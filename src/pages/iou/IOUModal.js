@@ -46,7 +46,6 @@ class IOUModal extends Component {
         this.state = {
             currentStepIndex: 0,
             participants: [],
-            iouAmount: 42,
             amount: '',
             selectedCurrency: 'USD',
             isAmountPageNextButtonDisabled: true,
@@ -60,16 +59,15 @@ class IOUModal extends Component {
     /**
      * Retrieve title for current step, based upon current step and type of IOU
      *
-     * @param {Boolean} hasMultipleParticipants
      * @returns {String}
      */
 
-     getTitleForStep(hasMultipleParticipants) {
+     getTitleForStep() {
         if (this.state.currentStepIndex === 1) {
-            return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.iouAmount}`;
+            return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.amount}`;
         }
         if (steps[this.state.currentStepIndex] === Steps.IOUAmount) {
-            return hasMultipleParticipants ? 'Split Bill' : 'Request Money';
+            return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
         }
         return steps[this.state.currentStepIndex] || '';
     }
@@ -163,7 +161,7 @@ class IOUModal extends Component {
                                 <Icon src={BackArrow} />
                             </TouchableOpacity>
                         )}
-                        <Header title={this.getTitleForStep(this.props.hasMultipleParticipants)} />
+                        <Header title={this.getTitleForStep()} />
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <TouchableOpacity
                                 onPress={Navigation.dismissModal}
@@ -196,7 +194,7 @@ class IOUModal extends Component {
                     <IOUConfirmPage
                         onConfirm={() => console.debug('create IOU report')}
                         participants={this.state.participants}
-                        iouAmount={42}
+                        iouAmount={this.state.amount}
                     />
                 )}
             </>
