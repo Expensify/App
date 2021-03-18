@@ -6,17 +6,12 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 
 const PasswordPage = () => (
     <ScreenWrapper>
-        {() => (
-            <>
-                <HeaderWithCloseButton
-                    title="Change Password"
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-            </>
-
-        )}
+        <HeaderWithCloseButton
+            title="Change Password"
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => Navigation.dismissModal()}
+        />
     </ScreenWrapper>
 );
 
