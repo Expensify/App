@@ -101,7 +101,7 @@ class PasswordPage extends Component {
                             {this.state.isPasswordRequirementsVisible && (
                                 <Text style={[styles.formHint, styles.mt1]}>
                                     New password must be different than your old password, have at least 8 characters,
-                                    1 capital letter, 1 lowercase number, 1 number.
+                                    1 capital letter, 1 lowercase letter, 1 number.
                                 </Text>
                             )}
                         </View>
