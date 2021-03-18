@@ -26,11 +26,15 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
 
+        - name: Fail workflow if PR is not mergeable
+          if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE }}
+          run: exit 1
+
         # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
         # the other workflows with the same change
         - uses: 8398a7/action-slack@v3
           name: Job failed Slack notification
-          if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+          if: ${{ failure() }}
           with:
             status: custom
             fields: workflow, repo
@@ -46,7 +50,6 @@ jobs:
           env:
             GITHUB_TOKEN: ${{ github.token }}
             SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
 
     master:
         runs-on: ubuntu-latest
