@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import ToggleSwitch from 'toggle-switch-react-native';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -18,6 +17,7 @@ import CONST from '../../CONST';
 import {DownArrow} from '../../components/Icon/Expensicons';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import Switch from '../../components/Switch';
 
 const propTypes = {
     // The chat priority mode
@@ -67,14 +67,9 @@ const PreferencesPage = ({priorityMode, user}) => (
                         </Text>
                     </View>
                     <View style={[styles.flex1, styles.alignItemsEnd]}>
-                        <ToggleSwitch
+                        <Switch
                             isOn={user.expensifyNewsStatus ?? true}
-                            onColor={colors.green}
                             onToggle={setExpensifyNewsStatus}
-                            trackOnStyle={styles.switchTrack}
-                            trackOffStyle={styles.switchTrack}
-                            thumbOnStyle={styles.switchThumb}
-                            thumbOffStyle={styles.switchThumb}
                         />
                     </View>
                 </View>
