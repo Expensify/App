@@ -132,14 +132,14 @@ class ProfilePage extends Component {
     render() {
         return (
             <ScreenWrapper>
-                <>
-                    <HeaderWithCloseButton
-                        title="Profile"
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={Navigation.dismissModal}
-                    />
-                    <View style={styles.p5}>
+                <HeaderWithCloseButton
+                    title="Profile"
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={Navigation.dismissModal}
+                />
+                <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
+                    <View style={styles.flexGrow1}>
                         <Avatar
                             style={[styles.avatarLarge, styles.alignSelfCenter]}
                             source={this.props.myPersonalDetails.avatar}
@@ -186,13 +186,13 @@ class ProfilePage extends Component {
                                 />
                             </View>
                             {this.state.pronouns === CONST.PRONOUNS.SELF_SELECT && (
-                                <TextInput
-                                    style={styles.textInput}
-                                    value={this.state.selfSelectedPronouns}
-                                    onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
-                                    placeholder="Self-select your pronoun"
-                                    placeholderTextColor={themeColors.placeholderText}
-                                />
+                            <TextInput
+                                style={styles.textInput}
+                                value={this.state.selfSelectedPronouns}
+                                onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
+                                placeholder="Self-select your pronoun"
+                                placeholderTextColor={themeColors.placeholderText}
+                            />
                             )}
                         </View>
                         <View style={styles.mb6}>
@@ -233,13 +233,13 @@ class ProfilePage extends Component {
                             onCheckboxClick={this.setAutomaticTimezone}
                         />
                     </View>
-                    <View style={styles.fixedBottomButton}>
+                    <View style={[styles.flexGrow0, styles.mt5]}>
                         <ButtonWithLoader
                             text="Save"
                             onClick={this.updatePersonalDetails}
                         />
                     </View>
-                </>
+                </View>
             </ScreenWrapper>
         );
     }
