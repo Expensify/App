@@ -88,66 +88,62 @@ const InitialSettingsPage = ({
     }
     return (
         <ScreenWrapper>
-            {() => (
-                <>
-                    <HeaderWithCloseButton
-                        title="Settings"
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
-                    <View
-                        pointerEvents="box-none"
-                        style={[
-                            styles.settingsPageBackground,
-                        ]}
-                    >
-                        <View style={styles.w100}>
-                            <View style={styles.pageWrapper}>
+            <HeaderWithCloseButton
+                title="Settings"
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            />
+            <View
+                pointerEvents="box-none"
+                style={[
+                    styles.settingsPageBackground,
+                ]}
+            >
+                <View style={styles.w100}>
+                    <View style={styles.pageWrapper}>
 
-                                <View style={[styles.mb3]}>
-                                    <AvatarWithIndicator
-                                        size="large"
-                                        source={myPersonalDetails.avatar}
-                                        isActive={network.isOffline === false}
-                                    />
-                                </View>
-                                <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
-                                    {myPersonalDetails.displayName
-                                        ? myPersonalDetails.displayName
-                                        : Str.removeSMSDomain(session.email)}
-                                </Text>
-                                {myPersonalDetails.displayName && (
-                                <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                                    {Str.removeSMSDomain(session.email)}
-                                </Text>
-                                )}
-                            </View>
-                            {menuItems.map(item => (
-                                <MenuItem
-                                    key={item.title}
-                                    title={item.title}
-                                    icon={item.icon}
-                                    onPress={() => Navigation.navigate(item.route)}
-                                    shouldShowRightArrow
-                                />
-                            ))}
-                            <View style={[styles.ph5]}>
-                                <TouchableOpacity
-                                    onPress={signOut}
-                                    style={[styles.button, styles.w100, styles.mt5]}
-                                >
-                                    <Text style={[styles.buttonText]}>
-                                        Sign Out
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
+                        <View style={[styles.mb3]}>
+                            <AvatarWithIndicator
+                                size="large"
+                                source={myPersonalDetails.avatar}
+                                isActive={network.isOffline === false}
+                            />
                         </View>
-                        <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                            v
-                            {version}
+                        <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
+                            {myPersonalDetails.displayName
+                                ? myPersonalDetails.displayName
+                                : Str.removeSMSDomain(session.email)}
                         </Text>
+                        {myPersonalDetails.displayName && (
+                        <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
+                            {Str.removeSMSDomain(session.email)}
+                        </Text>
+                        )}
                     </View>
-                </>
-            )}
+                    {menuItems.map(item => (
+                        <MenuItem
+                            key={item.title}
+                            title={item.title}
+                            icon={item.icon}
+                            onPress={() => Navigation.navigate(item.route)}
+                            shouldShowRightArrow
+                        />
+                    ))}
+                    <View style={[styles.ph5]}>
+                        <TouchableOpacity
+                            onPress={signOut}
+                            style={[styles.button, styles.w100, styles.mt5]}
+                        >
+                            <Text style={[styles.buttonText]}>
+                                Sign Out
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
+                    v
+                    {version}
+                </Text>
+            </View>
         </ScreenWrapper>
     );
 };
