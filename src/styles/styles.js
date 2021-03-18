@@ -136,6 +136,10 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonSuccessDisabled: {
+        opacity: 0.5,
+    },
+
     buttonSuccessHovered: {
         backgroundColor: themeColors.buttonSuccessHoveredBG,
         borderWidth: 0,
@@ -1092,6 +1096,18 @@ const styles = {
         height: 24,
         lineHeight: 20,
     },
+
+    iouAmountText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+    },
+
+    iouAmountTextInput: addOutlineWidth({
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+    }, 0),
 };
 
 const baseCodeTagStyles = {
