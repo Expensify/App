@@ -136,43 +136,39 @@ class SearchPage extends Component {
         );
         return (
             <ScreenWrapper>
-                {() => (
-                    <>
-                        <HeaderWithCloseButton
-                            title="Search"
-                            onCloseButtonPress={() => Navigation.dismissModal()}
-                        />
-                        <View style={[styles.flex1, styles.w100]}>
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.selectReport}
-                                onChangeText={(searchValue = '') => {
-                                    const {
-                                        recentReports,
-                                        personalDetails,
-                                        userToInvite,
-                                    } = getSearchOptions(
-                                        this.props.reports,
-                                        this.props.personalDetails,
-                                        searchValue,
-                                    );
-                                    this.setState({
-                                        searchValue,
-                                        userToInvite,
-                                        recentReports,
-                                        personalDetails,
-                                    });
-                                }}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                hideAdditionalOptionStates
-                                showTitleTooltip
-                            />
-                        </View>
-                        <KeyboardSpacer />
-                    </>
-                )}
+                <HeaderWithCloseButton
+                    title="Search"
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <View style={[styles.flex1, styles.w100]}>
+                    <OptionsSelector
+                        sections={sections}
+                        value={this.state.searchValue}
+                        onSelectRow={this.selectReport}
+                        onChangeText={(searchValue = '') => {
+                            const {
+                                recentReports,
+                                personalDetails,
+                                userToInvite,
+                            } = getSearchOptions(
+                                this.props.reports,
+                                this.props.personalDetails,
+                                searchValue,
+                            );
+                            this.setState({
+                                searchValue,
+                                userToInvite,
+                                recentReports,
+                                personalDetails,
+                            });
+                        }}
+                        headerMessage={headerMessage}
+                        hideSectionHeaders
+                        hideAdditionalOptionStates
+                        showTitleTooltip
+                    />
+                </View>
+                <KeyboardSpacer />
             </ScreenWrapper>
         );
     }
