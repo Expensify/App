@@ -39,9 +39,6 @@ const propTypes = {
     // Options that have already been selected
     selectedOptions: PropTypes.arrayOf(optionPropTypes),
 
-    // Optional header title
-    headerTitle: PropTypes.string,
-
     // Optional header message
     headerMessage: PropTypes.string,
 
@@ -54,7 +51,7 @@ const propTypes = {
     // Whether to allow arrow key actions on the list
     disableArrowKeysActions: PropTypes.bool,
 
-    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
+    // A flag to indicate whether to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
 
     // Force the text style to be the unread style on all rows
@@ -65,7 +62,6 @@ const defaultProps = {
     onSelectRow: () => {},
     placeholderText: 'Name, email, or phone number',
     selectedOptions: [],
-    headerTitle: '',
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
@@ -189,7 +185,6 @@ class OptionsSelector extends Component {
                     sections={this.props.sections}
                     focusedIndex={this.state.focusedIndex}
                     selectedOptions={this.props.selectedOptions}
-                    headerTitle={this.props.headerTitle}
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
                     headerMessage={this.props.headerMessage}

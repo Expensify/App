@@ -43,6 +43,30 @@ platform :android do
         rollout: '1.0'
     )
   end
+
+  desc "Deploy app to Google Play production"
+  lane :production do
+    google_play_track_version_codes(
+      package_name: "com.expensify.chat",
+      json_key: './android/app/android-fastlane-json-key.json',
+      track: 'internal'
+    )
+
+    upload_to_play_store(
+      package_name: "com.expensify.chat",
+      json_key: './android/app/android-fastlane-json-key.json',
+      version_code: ENV["VERSION"],
+      track: 'internal',
+      track_promote_to: 'production',
+      rollout: '1.0',
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
 end
 
 platform :ios do
@@ -109,6 +133,23 @@ platform :ios do
       dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH],
       gsp_path: "./ios/GoogleService-Info.plist",
       binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
+    )
+  end
+
+  desc "Move app to App Store Review"
+  lane :production do
+    deliver(
+      api_key_path: "./ios/ios-fastlane-json-key.json",
+      build_number: ENV["VERSION"],
+      submit_for_review: true,
+      automatic_release: false,
+      skip_metadata: true,
+      skip_screenshots: true,
+      skip_binary_upload: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
     )
   end
 end

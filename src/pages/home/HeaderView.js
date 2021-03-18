@@ -10,13 +10,14 @@ import Icon from '../../components/Icon';
 import {BackArrow, Pin} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import MultipleAvatars from '../../components/MultipleAvatars';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     // Toggles the navigationMenu open and closed
     onNavigationMenuButtonClicked: PropTypes.func.isRequired,
-
-    // Decides whether we should show the navigationMenu button
-    shouldShowNavigationMenuButton: PropTypes.bool.isRequired,
 
     /* Onyx Props */
     // The report currently being looked at
@@ -30,6 +31,8 @@ const propTypes = {
         // Value indicating if the report is pinned or not
         isPinned: PropTypes.bool,
     }),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -37,9 +40,9 @@ const defaultProps = {
 };
 
 const HeaderView = props => (
-    <View style={[styles.appContentHeader]}>
-        <View style={[styles.appContentHeaderTitle, !props.shouldShowNavigationMenuButton && styles.pl5]}>
-            {props.shouldShowNavigationMenuButton && (
+    <View style={[styles.appContentHeader]} nativeID="drag-area">
+        <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+            {props.isSmallScreenWidth && (
                 <Pressable
                     onPress={props.onNavigationMenuButtonClicked}
                     style={[styles.LHNToggle]}
@@ -56,6 +59,16 @@ const HeaderView = props => (
                         styles.justifyContentBetween,
                     ]}
                 >
+                    <Pressable
+                        onPress={() => {
+                            const {participants} = props.report;
+                            if (participants.length === 1) {
+                                Navigation.navigate(ROUTES.getProfileRoute(participants[0]));
+                            }
+                        }}
+                    >
+                        <MultipleAvatars avatarImageURLs={props.report.icons} />
+                    </Pressable>
                     <Header title={props.report.reportName} />
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <Pressable
@@ -76,14 +89,10 @@ HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
 export default compose(
-    withOnyx({
-        currentlyViewedReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-        },
-    }),
+    withWindowDimensions,
     withOnyx({
         report: {
-            key: ({currentlyViewedReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentlyViewedReportID}`,
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
 )(HeaderView);

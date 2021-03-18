@@ -10,8 +10,10 @@ import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
+import positioning from './utilities/positioning';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
+import textInputAlignSelf from './utilities/textInputAlignSelf';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -102,7 +104,7 @@ const styles = {
 
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         paddingHorizontal: 12,
@@ -134,6 +136,10 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonSuccessDisabled: {
+        opacity: 0.5,
+    },
+
     buttonSuccessHovered: {
         backgroundColor: themeColors.buttonSuccessHoveredBG,
         borderWidth: 0,
@@ -158,7 +164,7 @@ const styles = {
     },
 
     hoveredComponentBG: {
-        backgroundColor: themeColors.componentBGHover,
+        backgroundColor: themeColors.hoverComponentBG,
     },
 
     touchableButtonImage: {
@@ -167,6 +173,48 @@ const styles = {
         justifyContent: 'center',
         marginRight: 8,
         width: variables.componentSizeNormal,
+    },
+
+    picker: {
+        inputIOS: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingVertical: 12,
+            paddingHorizontal: 10,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            paddingRight: 30,
+        },
+        inputWeb: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingVertical: 12,
+            paddingHorizontal: 10,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            paddingRight: 30,
+            appearance: 'none',
+        },
+        inputAndroid: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingHorizontal: 10,
+            paddingVertical: 8,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            paddingRight: 30,
+        },
+        iconContainer: {
+            top: 12,
+            right: 12,
+            pointerEvents: 'none',
+        },
     },
 
     pill: {
@@ -229,7 +277,7 @@ const styles = {
 
     textInput: {
         backgroundColor: themeColors.componentBG,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         borderColor: themeColors.border,
         borderWidth: 1,
@@ -256,7 +304,9 @@ const styles = {
     noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
-        color: themeColors.text,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 8,
@@ -413,11 +463,23 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    createMenuPosition: {
+        left: 18,
+        bottom: 100,
+    },
+
+    createMenuContainer: {
+        width: variables.sideBarWidth - 40,
+        paddingVertical: 12,
+    },
+
     createMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
         paddingHorizontal: 20,
         paddingVertical: 12,
+        justifyContent: 'space-between',
+        width: '100%',
     },
 
     createMenuIcon: {
@@ -447,6 +509,9 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
+    },
+
+    sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
         paddingRight: 20,
@@ -638,7 +703,7 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         minHeight: variables.componentSizeNormal,
     },
 
@@ -658,7 +723,7 @@ const styles = {
         paddingHorizontal: 8,
         marginVertical: 5,
         paddingVertical: 0,
-        alignSelf: 'center',
+        ...textInputAlignSelf.center,
         textAlignVertical: 'center',
     }, 0),
 
@@ -690,7 +755,7 @@ const styles = {
         backgroundColor: themeColors.sidebar,
         borderColor: themeColors.border,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: 150,
         textAlign: 'center',
         verticalAlign: 'middle',
@@ -726,24 +791,19 @@ const styles = {
         borderRadius: 24,
     },
 
+    secondAvatar: {
+        position: 'absolute',
+        right: -13,
+        bottom: -14,
+        borderColor: 'transparent',
+        borderWidth: 2,
+    },
+
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
         backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
-    },
-
-    singleLeftAvatar: {
-        marginTop: -variables.componentSizeNormal / 2,
-        borderRadius: 24,
-    },
-
-    singleRightAvatar: {
-        marginTop: 12,
-        height: 30,
-        width: 30,
-        borderRadius: 30,
-        left: -12,
     },
 
     avatarText: {
@@ -776,6 +836,8 @@ const styles = {
 
     emptyAvatar: {
         marginRight: variables.componentSizeNormal - 24,
+        height: 40,
+        width: 40,
     },
 
     modalViewContainer: {
@@ -799,7 +861,17 @@ const styles = {
 
     imageModalPDF: {
         flex: 1,
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: themeColors.modalBackground,
+    },
+    PDFView: {
+        flex: 1,
+        backgroundColor: themeColors.modalBackground,
+        width: '100%',
+        height: '100%',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        overflowY: 'auto',
     },
 
     modalCenterContentContainer: {
@@ -819,7 +891,7 @@ const styles = {
 
     defaultAttachmentView: {
         backgroundColor: themeColors.sidebar,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         borderWidth: 1,
         borderColor: themeColors.border,
         flexDirection: 'row',
@@ -875,12 +947,33 @@ const styles = {
         borderColor: colors.transparent,
     },
 
+    miniReportActionContextMenuWrapperStyle: {
+        ...positioning.tn4,
+        ...positioning.r4,
+        position: 'absolute',
+    },
+
+    reportActionContextMenuText: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+        ...spacing.ml4,
+        ...spacing.mr2,
+    },
+
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
         flexGrow: 1,
         justifyContent: 'space-between',
         alignItems: 'center',
+    },
+
+    settingsPageBody: {
+        width: '100%',
+        justifyContent: 'space-around',
     },
 
     settingsPageColumn: {
@@ -912,7 +1005,7 @@ const styles = {
         zIndex: 10,
     },
 
-    settingsDisplayName: {
+    displayName: {
         fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
@@ -925,7 +1018,7 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
-    settingsWrapper: {
+    pageWrapper: {
         width: '100%',
         alignItems: 'center',
         padding: 20,
@@ -943,9 +1036,78 @@ const styles = {
         marginLeft: 8,
     },
 
+    unreadIndicatorContainer: {
+        position: 'absolute',
+        top: -10,
+        left: 0,
+        width: '100%',
+        height: 20,
+        paddingHorizontal: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    unreadIndicatorLine: {
+        height: 1,
+        backgroundColor: themeColors.unreadIndicator,
+        flexGrow: 1,
+        marginRight: 8,
+        opacity: 0.5,
+    },
+
+    unreadIndicatorText: {
+        color: themeColors.unreadIndicator,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+        fontWeight: fontWeightBold,
+    },
+
     flipUpsideDown: {
         transform: [{rotate: '180deg'}],
     },
+
+    navigationSceneContainer: {
+        backgroundColor: themeColors.appBG,
+    },
+
+    navigationScreenCardStyle: {
+        backgroundColor: themeColors.appBG,
+    },
+
+    invisible: {
+        position: 'absolute',
+        opacity: 0,
+    },
+
+    profilePageContainer: {
+        justifyContent: 'space-between',
+        width: '100%',
+        flex: 1,
+    },
+
+    profilePageSectionContainer: {
+        alignSelf: 'flex-start',
+    },
+
+    profilePageSectionVersion: {
+        alignSelf: 'center',
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
+        height: 24,
+        lineHeight: 20,
+    },
+
+    iouAmountText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+    },
+
+    iouAmountTextInput: addOutlineWidth({
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+    }, 0),
 };
 
 const baseCodeTagStyles = {
@@ -1012,7 +1174,7 @@ const webViewStyles = {
 
         img: {
             borderColor: themeColors.border,
-            borderRadius: variables.componentBorderRadius,
+            borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
         },
     },
@@ -1051,24 +1213,44 @@ function getSafeAreaMargins(insets) {
  * Return navigation menu styles.
  *
  * @param {Number} windowWidth
- * @param {Boolean} isSidebarShown
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationMenuStyle(windowWidth, isSidebarShown, isSmallScreenWidth) {
+function getNavigationDrawerStyle(windowWidth, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
-            ...styles.navigationMenuOpenAbsolute,
-            width: isSidebarShown ? windowWidth : 0,
+            width: windowWidth,
+            height: '100%',
+            borderColor: themeColors.border,
         }
         : {
-            borderColor: themeColors.border,
-            borderRightWidth: 1,
+            height: '100%',
             width: variables.sideBarWidth,
+            borderRightColor: themeColors.border,
         };
+}
+
+function getNavigationDrawerType(isSmallScreenWidth) {
+    return isSmallScreenWidth ? 'slide' : 'permanent';
+}
+
+function getNavigationModalCardStyle(isSmallScreenWidth) {
+    return {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        backgroundColor: 'transparent',
+        height: '100%',
+    };
 }
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
+    getSafeAreaPadding,
+    getSafeAreaMargins,
+    webViewStyles,
+    getNavigationDrawerStyle,
+    getNavigationDrawerType,
+    getNavigationModalCardStyle,
 };

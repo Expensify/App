@@ -1,6 +1,15 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 
 const CONST = {
+    BETAS: {
+        ALL: 'all',
+        REPORT_ACTION_CONTEXT_MENU: 'reportActionContextMenu',
+    },
+    BUTTON_STATES: {
+        DEFAULT: 'default',
+        HOVERED: 'hovered',
+        PRESSED: 'pressed',
+    },
     CLOUDFRONT_URL,
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
@@ -11,6 +20,7 @@ const CONST = {
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
+        REPORT_ACTIONS_LIMIT: 50,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -19,8 +29,19 @@ const CONST = {
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
         },
+        ANCHOR_ORIGIN_VERTICAL: {
+            TOP: 'top',
+            CENTER: 'center',
+            BOTTOM: 'bottom',
+        },
+        ANCHOR_ORIGIN_HORIZONTAL: {
+            LEFT: 'left',
+            CENTER: 'center',
+            RIGHT: 'right',
+        },
     },
     TIMING: {
+        SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
@@ -39,6 +60,12 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'API is offline',
     },
+    NVP: {
+        PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
+        PRIORITY_MODE: 'priorityMode',
+        TIMEZONE: 'timeZone',
+    },
+    DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
 };
 
 export default CONST;
