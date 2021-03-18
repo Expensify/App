@@ -62,7 +62,7 @@ class IOUModal extends Component {
      * @returns {String}
      */
 
-     getTitleForStep() {
+    getTitleForStep() {
         if (this.state.currentStepIndex === 1) {
             return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.amount}`;
         }
