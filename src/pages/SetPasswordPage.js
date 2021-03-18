@@ -39,6 +39,7 @@ const propTypes = {
 
     route: PropTypes.shape({
         params: PropTypes.shape({
+            email: PropTypes.string,
             validateCode: PropTypes.string,
         }),
     }),
@@ -78,7 +79,8 @@ class SetPasswordPage extends Component {
         this.setState({
             formError: null,
         });
-        setPassword(this.state.password, lodashGet(this.props.route, 'params.validateCode', ''));
+        console.log(">>>>", lodashGet(this.props.route, 'params.email', ''), this.state.password, lodashGet(this.props.route, 'params.validateCode', ''))
+        setPassword(lodashGet(this.props.route, 'params.email', ''), this.state.password, lodashGet(this.props.route, 'params.validateCode', ''));
     }
 
     render() {
