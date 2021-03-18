@@ -14,7 +14,6 @@ import positioning from './utilities/positioning';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
-import { Platform} from 'react-native';
 
 const styles = {
     // Add all of our utility and helper styles
