@@ -43,9 +43,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    report: {
-        maxSequenceNumber: 0,
-    },
     reportActions: {},
     session: {},
 };
