@@ -82,7 +82,7 @@ class SetPasswordPage extends Component {
         setPassword(
             lodashGet(this.props.route, 'params.email', ''),
             this.state.password,
-            lodashGet(this.props.route, 'params.validateCode', '')
+            lodashGet(this.props.route, 'params.validateCode', ''),
         );
     }
 
