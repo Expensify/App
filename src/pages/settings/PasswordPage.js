@@ -11,6 +11,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {changePassword} from '../../libs/actions/User';
 
@@ -29,10 +30,6 @@ const propTypes = {
 const defaultProps = {
     account: {},
 };
-
-// at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
-const passwordComplexityRegexString = '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$';
-
 class PasswordPage extends Component {
     constructor(props) {
         super(props);
@@ -63,14 +60,14 @@ class PasswordPage extends Component {
     render() {
         return (
             <ScreenWrapper>
-                <>
-                    <HeaderWithCloseButton
-                        title="Change Password"
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={Navigation.dismissModal}
-                    />
-                    <View style={[styles.p5, styles.flex1]}>
+                <HeaderWithCloseButton
+                    title="Change Password"
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={Navigation.dismissModal}
+                />
+                <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
+                    <View style={styles.flexGrow1}>
                         <Text style={[styles.mb6, styles.textP]}>
                             Changing your password will update your password for both your Expensify.com
                             and Expensify.cash accounts.
@@ -123,19 +120,19 @@ class PasswordPage extends Component {
                             </Text>
                         )}
                     </View>
-                    <View style={styles.fixedBottomButton}>
+                    <View style={styles.flexGrow0}>
                         <ButtonWithLoader
                             isDisabled={!this.state.currentPassword || !this.state.newPassword
                                 || !this.state.confirmNewPassword
                                 || (this.state.newPassword !== this.state.confirmNewPassword)
                                 || (this.state.currentPassword === this.state.newPassword)
-                                || !this.state.newPassword.match(passwordComplexityRegexString)}
+                                || !this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING)}
                             isLoading={this.props.account.loading}
                             text="Save"
                             onClick={this.handleChangePassword}
                         />
                     </View>
-                </>
+                </View>
             </ScreenWrapper>
         );
     }
