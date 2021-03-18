@@ -498,7 +498,6 @@ function fetchChatReports() {
 /**
  * Get a simplified version of an IOU report
  *
- * @param {Number} reportID
  * @param {Object} reportData
  * @param {Number} reportData.transactionID
  * @param {Number} reportData.amount
@@ -508,9 +507,10 @@ function fetchChatReports() {
  * @param {Object[]} reportData.transactionList
  * @param {String} reportData.ownerEmail
  * @param {String} reportData.managerEmail
+ * @param {Number} reportData.reportID
  * @returns {Object}
  */
-function getSimplifiedIOUReport(reportID, reportData) {
+function getSimplifiedIOUReport(reportData) {
     const transactions = _.map(reportData.transactionList, transaction => ({
         transactionID: transaction.transactionID,
         amount: transaction.amount,
@@ -520,7 +520,7 @@ function getSimplifiedIOUReport(reportID, reportData) {
     }));
 
     return {
-        reportID,
+        reportID: reportData.reportID,
         ownerEmail: reportData.ownerEmail,
         managerEmail: reportData.managerEmail,
         currency: reportData.currency,
@@ -569,7 +569,7 @@ function updateIOUReportData(reportHistory) {
     }).then((response) => {
         const iouReportData = response.reports[iouReportID];
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-            getSimplifiedIOUReport(iouReportID, iouReportData));
+            getSimplifiedIOUReport(iouReportData));
     });
 }
 
