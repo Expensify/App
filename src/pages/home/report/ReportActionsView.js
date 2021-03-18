@@ -32,14 +32,6 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 
     /* Onyx Props */
-
-    // The report currently being looked at
-    report: PropTypes.shape({
-
-        // Number of the last sequence
-        maxSequenceNumber: PropTypes.number,
-    }),
-
     // Array of report actions for this report
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
@@ -360,9 +352,6 @@ ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
 export default withOnyx({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
     reportActions: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: false,
