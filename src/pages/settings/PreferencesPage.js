@@ -9,7 +9,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import colors from '../../styles/colors';
 import Text from '../../components/Text';
 import Icon from '../../components/Icon';
 import NameValuePair from '../../libs/actions/NameValuePair';
