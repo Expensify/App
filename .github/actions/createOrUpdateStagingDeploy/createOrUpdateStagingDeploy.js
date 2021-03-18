@@ -22,7 +22,7 @@ githubUtils.getStagingDeployCash()
         ),
     ))
     .then(({data}) => {
-        console.log('Successfully updated StagingDeployCash!', data.html_url);
+        console.log('Successfully updated StagingDeployCash! 🎉', data.html_url);
         process.exit(0);
     })
     .catch((err) => {
@@ -64,7 +64,7 @@ githubUtils.getStagingDeployCash()
         newVersion,
         _.map(PRNumbers, GithubUtils.getPullRequestURLFromNumber),
     ))
-    .then(({data}) => console.log('Successfully created new StagingDeployCash!', data.html_url))
+    .then(({data}) => console.log('Successfully created new StagingDeployCash! 🎉', data.html_url))
     .catch((err) => {
         console.error('An error occurred!', err);
         core.setFailed(err);
