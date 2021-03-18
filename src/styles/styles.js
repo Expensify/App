@@ -14,6 +14,7 @@ import positioning from './utilities/positioning';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
+import { Platform} from 'react-native';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -1100,13 +1101,23 @@ const styles = {
     switchTrack: {
         width: 50,
         height: 28,
+        justifyContent: 'center',
+        borderRadius: 20,
+        padding: 15,
+        backgroundColor: colors.green,
+    },
+
+    switchInactive: {
+        backgroundColor: colors.gray2,
     },
 
     switchThumb: {
         width: 22,
         height: 22,
         borderRadius: 11,
-        shadowOpacity: 0,
+        position: 'absolute',
+        left: 4,
+        backgroundColor: colors.white,
     },
 
     iouAmountText: {
