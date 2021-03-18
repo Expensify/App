@@ -11,7 +11,7 @@ jobs:
     getPullRequestMergeability:
       runs-on: ubuntu-latest
       outputs:
-        isMergeable: ${{ steps.isPullRequestMergeable.IS_MERGEABLE }}
+        isMergeable: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE }}
       steps:
         - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
           with:
@@ -83,9 +83,6 @@ jobs:
           with:
             github-token: ${{ secrets.GITHUB_TOKEN }}
           if: needs.getPullRequestMergeability.outputs.isMergeable == 'true' && github.event.pull_request.head.ref == 'master'
-
-        - name: Check PR mergable states
-          run: echo "Mergeable - ${{ github.event.pull_request.mergeable }} Clean - ${{ github.event.pull_request.mergeable_state }}"
 
         - name: Check for an auto merge
           # Version: 0.12.0

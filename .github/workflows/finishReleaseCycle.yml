@@ -34,7 +34,7 @@ jobs:
           destination_branch: production
           pr_label: automerge
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          pr_title: Update version to ${{ env.PRODUCTION_VERSION }} on staging
+          pr_title: Update version to ${{ env.PRODUCTION_VERSION }} on production
           pr_body: Update version to ${{ env.PRODUCTION_VERSION }}
 
       - name: Create a new branch off master
