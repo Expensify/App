@@ -72,6 +72,12 @@ const HeaderView = props => (
                     <Header title={props.report.reportName} />
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <Pressable
+                            onPress={() => {}}
+                            style={[styles.touchableButtonImage, styles.mr0]}
+                        >
+                            '📞'
+                        </Pressable>
+                        <Pressable
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
