@@ -79,12 +79,11 @@ jobs:
       - name: 🚀 Push tags to trigger staging deploy 🚀
         run: git push --tags
 
-      - name: Create StagingDeployCash
+      - name: Create new StagingDeployCash
         uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@master
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
-          NEW_PULL_REQUESTS: https://github.com/Expensify/Expensify.cash/pull/${{ needs.chooseDeployActions.outputs.mergedPullRequest }}
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
