@@ -33,14 +33,12 @@ jobs:
             - name: Install detox
               run: npm install -g detox-cli
 
-            - run: cd ios
-
             - name: Install cocoapods
               uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
               with:
                 timeout_minutes: 15
                 max_attempts: 3
-                command: pod install --repo-update
+                command: cd ios && pod install --repo-update
 
             - name: Install brew depdencies
               run: |
