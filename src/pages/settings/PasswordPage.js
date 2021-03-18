@@ -99,7 +99,7 @@ class PasswordPage extends Component {
                                 onBlur={() => this.setState({isPasswordRequirementsVisible: false})}
                             />
                             {this.state.isPasswordRequirementsVisible && (
-                                <Text style={[styles.textMicro, styles.colorMuted, styles.mt1]}>
+                                <Text style={[styles.formHint, styles.mt1]}>
                                     New password must be different than your old password, have at least 8 characters,
                                     1 capital letter, 1 lowercase number, 1 number.
                                 </Text>

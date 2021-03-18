@@ -330,6 +330,12 @@ const styles = {
         marginBottom: 4,
     },
 
+    formHint: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+    },
+
     signInPage: {
         backgroundColor: themeColors.sidebar,
         padding: 20,
