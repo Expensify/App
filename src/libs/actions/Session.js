@@ -206,9 +206,9 @@ function restartSignin() {
  * Then it will create a temporary login for them which is used when re-authenticating
  * after an authToken expires.
  *
- * @param {String} email
  * @param {String} password
  * @param {String} validateCode
+ * @param {String} email
  */
 function setPassword(password, validateCode, email = '') {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
@@ -241,3 +241,4 @@ export {
     resendValidationLink,
     restartSignin,
 };
+g
