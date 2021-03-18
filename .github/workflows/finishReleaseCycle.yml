@@ -4,10 +4,9 @@ on:
   issues:
     types: [closed]
 
+# The updateProduction and createNewStagingDeployCash jobs are executed when a StagingDeployCash is closed.
 jobs:
-  # This job is executed when a StagingDeployCash is closed.
-  # It updates the production branch to trigger the production deploy,
-  # and creates a new StagingDeployCash for the next release cycle.
+  # Update the production branch to trigger the production deploy.
   updateProduction:
     runs-on: ubuntu-latest
 
@@ -37,9 +36,47 @@ jobs:
           pr_title: Update version to ${{ env.PRODUCTION_VERSION }} on production
           pr_body: Update version to ${{ env.PRODUCTION_VERSION }}
 
+      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+      # the other workflows with the same change
+      - uses: 8398a7/action-slack@v3
+        name: Job failed Slack notification
+        if: ${{ failure() }}
+        with:
+          status: custom
+          fields: workflow, repo
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!here>`,
+                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
+  createNewStagingDeployCash:
+    runs-on: macos-latest
+    if: contains(github.event.issue.labels.*.name, 'StagingDeployCash')
+    steps:
+      # Version: 2.3.4
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: master
+          fetch-depth: 0
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create a new branch off master
         run: |
-          git checkout master
           git checkout -b version-bump-${{ github.sha }}
           git push --set-upstream origin version-bump-${{ github.sha }}
 
@@ -70,10 +107,10 @@ jobs:
           body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
           labels: automerge
 
-      #TODO: Once we add cherry picking, we will need run this from elsewhere
       - name: Tag version
         run: git tag ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
+      #TODO: Once we add cherry picking, we will need run this from elsewhere
       - name: 🚀 Push tags to trigger staging deploy 🚀
         run: git push --tags
 
