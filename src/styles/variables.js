@@ -14,6 +14,7 @@ export default {
     iconSizeSmall: 16,
     iconSizeNormal: 20,
     iconSizeLarge: 24,
+    iouAmountTextSize: 40,
     mobileResponsiveWidthBreakpoint: 800,
     safeInsertPercentage: 0.7,
     sideBarWidth: 375,
