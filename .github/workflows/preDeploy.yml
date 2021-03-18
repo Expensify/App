@@ -159,7 +159,7 @@ jobs:
       - name: Set Staging Version
         run: echo "STAGING_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
 
-      - name: Create Pull Request
+      - name: Create Pull Request (staging)
         # Version: 2.4.3
         uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
         with:
