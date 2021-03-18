@@ -206,14 +206,15 @@ function restartSignin() {
  * Then it will create a temporary login for them which is used when re-authenticating
  * after an authToken expires.
  *
+ * @param {String} email
  * @param {String} password
  * @param {String} validateCode
  */
-function setPassword(password, validateCode) {
+function setPassword(email, password, validateCode) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
     API.SetPassword({
-        email: credentials.login,
+        email: email,
         password,
         validateCode,
     })
