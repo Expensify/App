@@ -44,7 +44,7 @@ const propTypes = {
     // Whether to allow option focus or not
     disableFocusOptions: PropTypes.bool,
 
-    // A flag to indicate wheter to show additional optional states, such as pin and draft icons
+    // A flag to indicate whether to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
 
     // Force the text style to be the unread style on all rows
@@ -52,9 +52,6 @@ const propTypes = {
 
     // Callback to fire when a row is selected
     onSelectRow: PropTypes.func,
-
-    // Optional header title
-    headerTitle: PropTypes.string,
 
     // Optional header message
     headerMessage: PropTypes.string,
@@ -79,7 +76,6 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     onSelectRow: () => {},
     headerMessage: '',
-    headerTitle: '',
     innerRef: null,
 };
 
@@ -99,10 +95,6 @@ class OptionsList extends Component {
         }
 
         if (nextProps.selectedOptions.length !== this.props.selectedOptions.length) {
-            return true;
-        }
-
-        if (nextProps.headerTitle !== this.props.headerTitle) {
             return true;
         }
 
@@ -168,7 +160,7 @@ class OptionsList extends Component {
      * @param {Object} params
      * @param {Object} params.section
      * @param {String} params.section.title
-     * @param {Booolean} params.section.shouldShow
+     * @param {Boolean} params.section.shouldShow
      *
      * @return {Component}
      */
@@ -191,12 +183,6 @@ class OptionsList extends Component {
             <View style={[styles.flex1]}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
-                        {this.props.headerTitle ? (
-                            <Text style={[styles.h4, styles.mb1]}>
-                                {this.props.headerTitle}
-                            </Text>
-                        ) : null}
-
                         <Text style={[styles.textLabel, styles.colorMuted]}>
                             {this.props.headerMessage}
                         </Text>
@@ -211,7 +197,6 @@ class OptionsList extends Component {
                     showsVerticalScrollIndicator={false}
                     sections={this.props.sections}
                     keyExtractor={this.extractKey}
-                    initialNumToRender={500}
                     onScrollToIndexFailed={this.onScrollToIndexFailed}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}

@@ -3,6 +3,7 @@ name: Lint JavaScript
 on:
     pull_request:
         types: [opened, synchronize]
+        branches-ignore: [staging, production]
 
 jobs:
     lint:
@@ -22,7 +23,12 @@ jobs:
               with:
                   node-version: '14.x'
 
-            - run: npm ci
+            - name: Install node packages
+              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+              with:
+                timeout_minutes: 10
+                max_attempts: 5
+                command: npm ci
 
             - run: npm run lint
               env:
