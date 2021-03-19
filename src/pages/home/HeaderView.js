@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Header from '../../components/Header';
+import lodashGet from 'lodash.get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
@@ -14,6 +14,10 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import MultipleAvatars from '../../components/MultipleAvatars';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import {getReportParticipantsTitle} from '../../libs/reportUtils';
+import OptionRowTitle from './sidebar/OptionRowTitle';
+import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import {participantPropTypes} from './sidebar/optionPropTypes';
 
 const propTypes = {
     // Toggles the navigationMenu open and closed
@@ -25,12 +29,18 @@ const propTypes = {
         // Name of the report
         reportName: PropTypes.string,
 
+        // List of primarylogins of participants of the report
+        participants: PropTypes.arrayOf(PropTypes.string),
+
         // ID of the report
         reportID: PropTypes.number,
 
         // Value indicating if the report is pinned or not
         isPinned: PropTypes.bool,
     }),
+
+    // Personal details of all the users
+    personalDetails: PropTypes.arrayOf(participantPropTypes).isRequired,
 
     ...windowDimensionsPropTypes,
 };
@@ -39,38 +49,34 @@ const defaultProps = {
     report: null,
 };
 
-const HeaderView = props => (
-    <View style={[styles.appContentHeader]} nativeID="drag-area">
-        <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
-            {props.isSmallScreenWidth && (
-                <Pressable
-                    onPress={props.onNavigationMenuButtonClicked}
-                    style={[styles.LHNToggle]}
-                >
-                    <Icon src={BackArrow} />
-                </Pressable>
-            )}
-            {props.report && props.report.reportName ? (
-                <View
-                    style={[
-                        styles.flex1,
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.justifyContentBetween,
-                    ]}
-                >
+const HeaderView = (props) => {
+    const participants = lodashGet(props.report, 'participants', []);
+    const reportOption = {
+        text: lodashGet(props.report, 'reportName', ''),
+        tooltipText: getReportParticipantsTitle(participants),
+        participantsList: getPersonalDetailsForLogins(participants, props.personalDetails),
+    };
+
+    return (
+        <View style={[styles.appContentHeader]} nativeID="drag-area">
+            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+                {props.isSmallScreenWidth && (
                     <Pressable
-                        onPress={() => {
-                            const {participants} = props.report;
-                            if (participants.length === 1) {
-                                Navigation.navigate(ROUTES.getProfileRoute(participants[0]));
-                            }
-                        }}
+                        onPress={props.onNavigationMenuButtonClicked}
+                        style={[styles.LHNToggle]}
                     >
-                        <MultipleAvatars avatarImageURLs={props.report.icons} />
+                        <Icon src={BackArrow} />
                     </Pressable>
-                    <Header title={props.report.reportName} />
-                    <View style={[styles.reportOptions, styles.flexRow]}>
+                )}
+                {props.report && props.report.reportName && (
+                    <View
+                        style={[
+                            styles.flex1,
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                        ]}
+                    >
                         <Pressable
                             onPress={() => { /* Open the video chat menu */ }}
                             style={[styles.touchableButtonImage, styles.mr0]}
@@ -81,15 +87,30 @@ const HeaderView = props => (
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
-                            <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                            <MultipleAvatars avatarImageURLs={props.report.icons} />
                         </Pressable>
+                        <View style={[styles.flex1, styles.flexRow]}>
+                            <OptionRowTitle
+                                option={reportOption}
+                                tooltipEnabled
+                                numberOfLines={2}
+                                style={[styles.headerText]}
+                            />
+                        </View>
+                        <View style={[styles.reportOptions, styles.flexRow]}>
+                            <Pressable
+                                onPress={() => togglePinnedState(props.report)}
+                                style={[styles.touchableButtonImage, styles.mr0]}
+                            >
+                                <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                            </Pressable>
+                        </View>
                     </View>
-                </View>
-            ) : null}
+                )}
+            </View>
         </View>
-    </View>
-);
-
+    );
+};
 HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
@@ -99,6 +120,9 @@ export default compose(
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
 )(HeaderView);
