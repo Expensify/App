@@ -67,9 +67,11 @@ const HeaderView = props => (
                             }
                         }}
                     >
-                        <MultipleAvatars avatarImageURLs={props.report.icons} />
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <MultipleAvatars avatarImageURLs={props.report.icons} />
+                            <Header title={props.report.reportName} />
+                        </View>
                     </Pressable>
-                    <Header title={props.report.reportName} />
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <Pressable
                             onPress={() => togglePinnedState(props.report)}
