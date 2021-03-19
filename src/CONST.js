@@ -74,6 +74,9 @@ const CONST = {
         SELF_SELECT: 'Self-select',
         CALL_ME_BY_MY_NAME: 'Call me by my name',
     },
+
+    // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
+    PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 };
 
 export default CONST;
