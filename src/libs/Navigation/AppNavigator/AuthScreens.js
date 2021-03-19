@@ -33,7 +33,7 @@ import MainDrawerNavigator from './MainDrawerNavigator';
 import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
-    ProfileModalStackNavigator,
+    DetailsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
@@ -158,9 +158,9 @@ class AuthScreens extends React.Component {
                     component={SearchModalStackNavigator}
                 />
                 <RootStack.Screen
-                    name="Profile"
+                    name="Details"
                     options={modalScreenOptions}
-                    component={ProfileModalStackNavigator}
+                    component={DetailsModalStackNavigator}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
