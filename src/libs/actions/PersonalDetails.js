@@ -211,10 +211,10 @@ function setPersonalDetails(details) {
 /**
  * Sets the user's avatar image
  *
- * @param {String} base64image
+ * @param {File|Object} file
  */
-function setAvatar(base64image) {
-    API.User_UploadAvatar({base64image}).then((response) => {
+function setAvatar(file) {
+    API.User_UploadAvatar({file}).then((response) => {
         // Once we get the s3url back, update the personal details for the user with the new avatar URL
         if (response.jsonCode === 200) {
             setPersonalDetails({avatar: response.s3url});

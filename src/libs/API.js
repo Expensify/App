@@ -583,12 +583,12 @@ function User_SecondaryLogin_Send(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.base64image
+ * @param {File|Object} parameters.file
  * @returns {Promise}
  */
 function User_UploadAvatar(parameters) {
     const commandName = 'User_UploadAvatar';
-    requireParameters(['base64image'], parameters, commandName);
+    requireParameters(['file'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
