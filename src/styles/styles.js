@@ -778,7 +778,7 @@ const styles = {
         left: 0,
         top: 0,
         bottom: 0,
-        zIndex: 2,
+        zIndex: variables.zIndexTop,
     },
 
     sidebarVisible: {
@@ -957,6 +957,7 @@ const styles = {
         ...positioning.tn4,
         ...positioning.r4,
         position: 'absolute',
+        zIndex: variables.zIndexTop,
     },
 
     reportActionContextMenuText: {
@@ -1044,13 +1045,14 @@ const styles = {
 
     unreadIndicatorContainer: {
         position: 'absolute',
-        top: -10,
+        top: -5,
         left: 0,
         width: '100%',
-        height: 20,
+        height: 10,
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
+        zIndex: variables.zIndexMiddle,
     },
 
     unreadIndicatorLine: {

@@ -11,7 +11,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
-import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import {
     fetchActions,
     updateLastReadActionID,
@@ -71,14 +70,6 @@ class ReportActionsView extends React.Component {
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
         this.timers = [];
-        this.unreadIndicatorOpacity = new Animated.Value(1);
-
-        // Helper variable that keeps track of the unread action count before it updates to zero
-        this.unreadActionCount = 0;
-
-        // Helper variable that prevents the unread indicator to show up for new messages
-        // received while the report is still active
-        this.shouldShowUnreadActionIndicator = true;
 
         this.state = {
             isLoadingMoreChats: false,
@@ -153,31 +144,6 @@ class ReportActionsView extends React.Component {
         if (Visibility.isVisible()) {
             this.timers.push(setTimeout(this.recordMaxAction, 3000));
         }
-    }
-
-    /**
-     * Checks if the unreadActionIndicator should be shown.
-     * If it does, starts a timeout for the fading out animation and creates
-     * a flag to not show it again if the report is still open
-     */
-    setUpUnreadActionIndicator() {
-        if (!this.shouldShowUnreadActionIndicator) {
-            return;
-        }
-
-        this.unreadActionCount = this.props.report.unreadActionCount;
-
-        if (this.unreadActionCount > 0) {
-            this.unreadIndicatorOpacity = new Animated.Value(1);
-            this.timers.push(setTimeout(() => {
-                Animated.timing(this.unreadIndicatorOpacity, {
-                    toValue: 0,
-                    useNativeDriver: false,
-                }).start();
-            }, 3000));
-        }
-
-        this.shouldShowUnreadActionIndicator = false;
     }
 
     /**
@@ -335,15 +301,13 @@ class ReportActionsView extends React.Component {
         // <InvertedFlatList /> are implemented on native and web/desktop which leads to
         // the unread indicator on native to render below the message instead of above it.
             <View>
-                {this.unreadActionCount > 0 && index === this.unreadActionCount - 1 && (
-                    <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
-                )}
                 <ReportActionItem
                     reportID={this.props.reportID}
                     action={item.action}
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
                     needsLayoutCalculation={needsLayoutCalculation}
+                    displayNewIndicator={this.props.report.unreadActionCount > 0}
                 />
             </View>
         );
@@ -364,7 +328,6 @@ class ReportActionsView extends React.Component {
             );
         }
 
-        this.setUpUnreadActionIndicator();
         this.updateSortedReportActions();
         return (
             <InvertedFlatList
