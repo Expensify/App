@@ -72,10 +72,10 @@ const HeaderView = props => (
                     <Header title={props.report.reportName} />
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <Pressable
-                            onPress={() => {}}
+                            onPress={() => {console.log('bang')}}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
-                            '📞'
+                            <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
                         </Pressable>
                         <Pressable
                             onPress={() => togglePinnedState(props.report)}
