@@ -565,6 +565,17 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    optionDisplayNameTooltipWrapper: {
+        position: 'relative',
+    },
+
+    optionDisplayNameTooltipEllipsis: {
+        position: 'absolute',
+        opacity: 0,
+        right: 0,
+        bottom: 0,
+    },
+
     optionAlternateText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
