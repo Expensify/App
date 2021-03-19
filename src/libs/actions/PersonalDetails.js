@@ -112,7 +112,7 @@ function fetch() {
     })
         .then((data) => {
             const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
             const myPersonalDetails = allPersonalDetails[currentUserEmail]
                 || {avatar: getAvatar(undefined, currentUserEmail)};
@@ -122,7 +122,7 @@ function fetch() {
             myPersonalDetails.lastName = lodashGet(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
-            Onyx.set(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
         })
         .catch(error => console.debug('Error fetching personal details', error));
 }
