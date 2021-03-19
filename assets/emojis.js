@@ -1,16 +1,40 @@
-// This list is generated from the code here https://github.com/amurani/unicode-emoji-list
+/*
+ * This list is generated from the code here https://github.com/amurani/unicode-emoji-list
+ * Each code is then converted to hex by replacing the "U+" with "0x"
+ * Each hex is then converted to a string using this function (each section is defined as "emojis" in this function)
+ * for (var i=0; i<emojis.length; i++) {
+ *  newCode = '';
+ *  emojis[i].code.forEach(codePiece => {
+ *      newCode += String.fromCodePoint(codePiece);
+ *  });
+ *  emojis[i].code=newCode;
+ *  //console.log(newCode);
+ *  if (emojis[i].types) {
+ *      newTypesArray = [];
+ *      emojis[i].types.forEach(type => {
+ *          typeCode = '';
+ *          type.forEach(code => {
+ *               typeCode += String.fromCodePoint(code);
+ *          });
+ *          newTypesArray.push(typeCode);
+ *      });
+ *      //console.log(newTypesArray);
+ *      emojis[i].types = newTypesArray
+ *  }
+ * }
+ */
 
 const emojis = {
     'Smileys & People': [
         {
-            code: 'U+1F600',
+            code: '😀',
             keywords: [
                 'face',
                 'grin',
             ],
         },
         {
-            code: 'U+1F601',
+            code: '😁',
             keywords: [
                 'eye',
                 'face',
@@ -19,7 +43,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F602',
+            code: '😂',
             keywords: [
                 'face',
                 'joy',
@@ -28,7 +52,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F923',
+            code: '🤣',
             keywords: [
                 'face',
                 'floor',
@@ -39,7 +63,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F603',
+            code: '😃',
             keywords: [
                 'face',
                 'mouth',
@@ -48,7 +72,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F604',
+            code: '😄',
             keywords: [
                 'eye',
                 'face',
@@ -58,7 +82,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F605',
+            code: '😅',
             keywords: [
                 'cold',
                 'face',
@@ -68,7 +92,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F606',
+            code: '😆',
             keywords: [
                 'face',
                 'laugh',
@@ -79,14 +103,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F609',
+            code: '😉',
             keywords: [
                 'face',
                 'wink',
             ],
         },
         {
-            code: 'U+1F60A',
+            code: '😊',
             keywords: [
                 'blush',
                 'eye',
@@ -95,7 +119,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F60B',
+            code: '😋',
             keywords: [
                 'delicious',
                 'face',
@@ -106,7 +130,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F60E',
+            code: '😎',
             keywords: [
                 'bright',
                 'cool',
@@ -121,7 +145,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F60D',
+            code: '😍',
             keywords: [
                 'eye',
                 'face',
@@ -131,7 +155,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F618',
+            code: '😘',
             keywords: [
                 'face',
                 'heart',
@@ -139,14 +163,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F617',
+            code: '😗',
             keywords: [
                 'face',
                 'kiss',
             ],
         },
         {
-            code: 'U+1F619',
+            code: '😙',
             keywords: [
                 'eye',
                 'face',
@@ -155,7 +179,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F61A',
+            code: '😚',
             keywords: [
                 'closed',
                 'eye',
@@ -164,7 +188,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+263A',
+            code: '☺',
             keywords: [
                 'face',
                 'outlined',
@@ -173,14 +197,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F642',
+            code: '🙂',
             keywords: [
                 'face',
                 'smile',
             ],
         },
         {
-            code: 'U+1F917',
+            code: '🤗',
             keywords: [
                 'face',
                 'hug',
@@ -188,14 +212,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F914',
+            code: '🤔',
             keywords: [
                 'face',
                 'thinking',
             ],
         },
         {
-            code: 'U+1F610',
+            code: '😐',
             keywords: [
                 'deadpan',
                 'face',
@@ -203,7 +227,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F611',
+            code: '😑',
             keywords: [
                 'expressionless',
                 'face',
@@ -212,7 +236,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F636',
+            code: '😶',
             keywords: [
                 'face',
                 'mouth',
@@ -221,7 +245,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F644',
+            code: '🙄',
             keywords: [
                 'eyes',
                 'face',
@@ -229,21 +253,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F60F',
+            code: '😏',
             keywords: [
                 'face',
                 'smirk',
             ],
         },
         {
-            code: 'U+1F623',
+            code: '😣',
             keywords: [
                 'face',
                 'persevere',
             ],
         },
         {
-            code: 'U+1F625',
+            code: '😥',
             keywords: [
                 'disappointed',
                 'face',
@@ -252,7 +276,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F62E',
+            code: '😮',
             keywords: [
                 'face',
                 'mouth',
@@ -261,7 +285,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F910',
+            code: '🤐',
             keywords: [
                 'face',
                 'mouth',
@@ -269,7 +293,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F62F',
+            code: '😯',
             keywords: [
                 'face',
                 'hushed',
@@ -278,21 +302,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F62A',
+            code: '😪',
             keywords: [
                 'face',
                 'sleep',
             ],
         },
         {
-            code: 'U+1F62B',
+            code: '😫',
             keywords: [
                 'face',
                 'tired',
             ],
         },
         {
-            code: 'U+1F634',
+            code: '😴',
             keywords: [
                 'face',
                 'sleep',
@@ -300,14 +324,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F60C',
+            code: '😌',
             keywords: [
                 'face',
                 'relieved',
             ],
         },
         {
-            code: 'U+1F913',
+            code: '🤓',
             keywords: [
                 'face',
                 'geek',
@@ -315,14 +339,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F61B',
+            code: '😛',
             keywords: [
                 'face',
                 'tongue',
             ],
         },
         {
-            code: 'U+1F61C',
+            code: '😜',
             keywords: [
                 'eye',
                 'face',
@@ -332,7 +356,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F61D',
+            code: '😝',
             keywords: [
                 'eye',
                 'face',
@@ -342,14 +366,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F924',
+            code: '🤤',
             keywords: [
                 'drooling',
                 'face',
             ],
         },
         {
-            code: 'U+1F612',
+            code: '😒',
             keywords: [
                 'face',
                 'unamused',
@@ -357,7 +381,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F613',
+            code: '😓',
             keywords: [
                 'cold',
                 'face',
@@ -365,7 +389,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F614',
+            code: '😔',
             keywords: [
                 'dejected',
                 'face',
@@ -373,21 +397,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F615',
+            code: '😕',
             keywords: [
                 'confused',
                 'face',
             ],
         },
         {
-            code: 'U+1F643',
+            code: '🙃',
             keywords: [
                 'face',
                 'upside-down',
             ],
         },
         {
-            code: 'U+1F911',
+            code: '🤑',
             keywords: [
                 'face',
                 'money',
@@ -395,7 +419,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F632',
+            code: '😲',
             keywords: [
                 'astonished',
                 'face',
@@ -404,42 +428,42 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2639',
+            code: '☹',
             keywords: [
                 'face',
                 'frown',
             ],
         },
         {
-            code: 'U+1F641',
+            code: '🙁',
             keywords: [
                 'face',
                 'frown',
             ],
         },
         {
-            code: 'U+1F616',
+            code: '😖',
             keywords: [
                 'confounded',
                 'face',
             ],
         },
         {
-            code: 'U+1F61E',
+            code: '😞',
             keywords: [
                 'disappointed',
                 'face',
             ],
         },
         {
-            code: 'U+1F61F',
+            code: '😟',
             keywords: [
                 'face',
                 'worried',
             ],
         },
         {
-            code: 'U+1F624',
+            code: '😤',
             keywords: [
                 'face',
                 'triumph',
@@ -447,7 +471,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F622',
+            code: '😢',
             keywords: [
                 'cry',
                 'face',
@@ -456,7 +480,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F62D',
+            code: '😭',
             keywords: [
                 'cry',
                 'face',
@@ -466,7 +490,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F626',
+            code: '😦',
             keywords: [
                 'face',
                 'frown',
@@ -475,14 +499,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F627',
+            code: '😧',
             keywords: [
                 'anguished',
                 'face',
             ],
         },
         {
-            code: 'U+1F628',
+            code: '😨',
             keywords: [
                 'face',
                 'fear',
@@ -491,7 +515,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F629',
+            code: '😩',
             keywords: [
                 'face',
                 'tired',
@@ -499,14 +523,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F62C',
+            code: '😬',
             keywords: [
                 'face',
                 'grimace',
             ],
         },
         {
-            code: 'U+1F630',
+            code: '😰',
             keywords: [
                 'blue',
                 'cold',
@@ -518,7 +542,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F631',
+            code: '😱',
             keywords: [
                 'face',
                 'fear',
@@ -529,7 +553,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F633',
+            code: '😳',
             keywords: [
                 'dazed',
                 'face',
@@ -537,14 +561,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F635',
+            code: '😵',
             keywords: [
                 'dizzy',
                 'face',
             ],
         },
         {
-            code: 'U+1F621',
+            code: '😡',
             keywords: [
                 'angry',
                 'face',
@@ -555,7 +579,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F620',
+            code: '😠',
             keywords: [
                 'angry',
                 'face',
@@ -563,7 +587,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F607',
+            code: '😇',
             keywords: [
                 'angel',
                 'face',
@@ -575,7 +599,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F920',
+            code: '🤠',
             keywords: [
                 'cowboy',
                 'cowgirl',
@@ -584,14 +608,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F921',
+            code: '🤡',
             keywords: [
                 'clown',
                 'face',
             ],
         },
         {
-            code: 'U+1F925',
+            code: '🤥',
             keywords: [
                 'face',
                 'lie',
@@ -599,7 +623,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F637',
+            code: '😷',
             keywords: [
                 'cold',
                 'doctor',
@@ -610,7 +634,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F912',
+            code: '🤒',
             keywords: [
                 'face',
                 'ill',
@@ -619,7 +643,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F915',
+            code: '🤕',
             keywords: [
                 'bandage',
                 'face',
@@ -628,7 +652,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F922',
+            code: '🤢',
             keywords: [
                 'face',
                 'nauseated',
@@ -636,7 +660,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F927',
+            code: '🤧',
             keywords: [
                 'face',
                 'gesundheit',
@@ -644,7 +668,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F608',
+            code: '😈',
             keywords: [
                 'face',
                 'fairy tale',
@@ -654,7 +678,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F47F',
+            code: '👿',
             keywords: [
                 'demon',
                 'devil',
@@ -665,7 +689,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F479',
+            code: '👹',
             keywords: [
                 'creature',
                 'face',
@@ -677,7 +701,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F47A',
+            code: '👺',
             keywords: [
                 'creature',
                 'face',
@@ -689,7 +713,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F480',
+            code: '💀',
             keywords: [
                 'body',
                 'death',
@@ -700,7 +724,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2620',
+            code: '☠',
             keywords: [
                 'body',
                 'crossbones',
@@ -711,7 +735,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F47B',
+            code: '👻',
             keywords: [
                 'creature',
                 'face',
@@ -722,7 +746,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F47D',
+            code: '👽',
             keywords: [
                 'alien',
                 'creature',
@@ -736,7 +760,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F47E',
+            code: '👾',
             keywords: [
                 'alien',
                 'creature',
@@ -750,7 +774,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F916',
+            code: '🤖',
             keywords: [
                 'face',
                 'monster',
@@ -758,7 +782,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4A9',
+            code: '💩',
             keywords: [
                 'comic',
                 'dung',
@@ -769,7 +793,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F63A',
+            code: '😺',
             keywords: [
                 'cat',
                 'face',
@@ -779,7 +803,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F638',
+            code: '😸',
             keywords: [
                 'cat',
                 'eye',
@@ -789,7 +813,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F639',
+            code: '😹',
             keywords: [
                 'cat',
                 'face',
@@ -798,7 +822,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F63B',
+            code: '😻',
             keywords: [
                 'cat',
                 'eye',
@@ -809,7 +833,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F63C',
+            code: '😼',
             keywords: [
                 'cat',
                 'face',
@@ -819,7 +843,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F63D',
+            code: '😽',
             keywords: [
                 'cat',
                 'eye',
@@ -828,7 +852,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F640',
+            code: '🙀',
             keywords: [
                 'cat',
                 'face',
@@ -838,7 +862,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F63F',
+            code: '😿',
             keywords: [
                 'cat',
                 'cry',
@@ -848,7 +872,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F63E',
+            code: '😾',
             keywords: [
                 'cat',
                 'face',
@@ -856,7 +880,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F648',
+            code: '🙈',
             keywords: [
                 'evil',
                 'face',
@@ -870,7 +894,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F649',
+            code: '🙉',
             keywords: [
                 'evil',
                 'face',
@@ -884,7 +908,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F64A',
+            code: '🙊',
             keywords: [
                 'evil',
                 'face',
@@ -898,20 +922,20 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F466',
+            code: '👦',
             keywords: [
                 'boy',
             ],
             types: [
-                'U+1F466 U+1F3FF',
-                'U+1F466 U+1F3FE',
-                'U+1F466 U+1F3FD',
-                'U+1F466 U+1F3FC',
-                'U+1F466 U+1F3FB',
+                '👦🏿',
+                '👦🏾',
+                '👦🏽',
+                '👦🏼',
+                '👦🏻',
             ],
         },
         {
-            code: 'U+1F467',
+            code: '👧',
             keywords: [
                 'girl',
                 'maiden',
@@ -920,82 +944,82 @@ const emojis = {
                 'zodiac',
             ],
             types: [
-                'U+1F467 U+1F3FF',
-                'U+1F467 U+1F3FE',
-                'U+1F467 U+1F3FD',
-                'U+1F467 U+1F3FC',
-                'U+1F467 U+1F3FB',
+                '👧🏿',
+                '👧🏾',
+                '👧🏽',
+                '👧🏼',
+                '👧🏻',
             ],
         },
         {
-            code: 'U+1F468',
+            code: '👨',
             keywords: [
                 'man',
             ],
             types: [
-                'U+1F468 U+1F3FF',
-                'U+1F468 U+1F3FE',
-                'U+1F468 U+1F3FD',
-                'U+1F468 U+1F3FC',
-                'U+1F468 U+1F3FB',
+                '👨🏿',
+                '👨🏾',
+                '👨🏽',
+                '👨🏼',
+                '👨🏻',
             ],
         },
         {
-            code: 'U+1F469',
+            code: '👩',
             keywords: [
                 'woman',
             ],
             types: [
-                'U+1F469 U+1F3FF',
-                'U+1F469 U+1F3FE',
-                'U+1F469 U+1F3FD',
-                'U+1F469 U+1F3FC',
-                'U+1F469 U+1F3FB',
+                '👩🏿',
+                '👩🏾',
+                '👩🏽',
+                '👩🏼',
+                '👩🏻',
             ],
         },
         {
-            code: 'U+1F474',
+            code: '👴',
             keywords: [
                 'man',
                 'old',
             ],
             types: [
-                'U+1F474 U+1F3FF',
-                'U+1F474 U+1F3FE',
-                'U+1F474 U+1F3FD',
-                'U+1F474 U+1F3FC',
-                'U+1F474 U+1F3FB',
+                '👴🏿',
+                '👴🏾',
+                '👴🏽',
+                '👴🏼',
+                '👴🏻',
             ],
         },
         {
-            code: 'U+1F475',
+            code: '👵',
             keywords: [
                 'old',
                 'woman',
             ],
             types: [
-                'U+1F475 U+1F3FF',
-                'U+1F475 U+1F3FE',
-                'U+1F475 U+1F3FD',
-                'U+1F475 U+1F3FC',
-                'U+1F475 U+1F3FB',
+                '👵🏿',
+                '👵🏾',
+                '👵🏽',
+                '👵🏼',
+                '👵🏻',
             ],
         },
         {
-            code: 'U+1F476',
+            code: '👶',
             keywords: [
                 'baby',
             ],
             types: [
-                'U+1F476 U+1F3FF',
-                'U+1F476 U+1F3FE',
-                'U+1F476 U+1F3FD',
-                'U+1F476 U+1F3FC',
-                'U+1F476 U+1F3FB',
+                '👶🏿',
+                '👶🏾',
+                '👶🏽',
+                '👶🏼',
+                '👶🏻',
             ],
         },
         {
-            code: 'U+1F47C',
+            code: '👼',
             keywords: [
                 'angel',
                 'baby',
@@ -1004,144 +1028,144 @@ const emojis = {
                 'fantasy',
             ],
             types: [
-                'U+1F47C U+1F3FF',
-                'U+1F47C U+1F3FE',
-                'U+1F47C U+1F3FD',
-                'U+1F47C U+1F3FC',
-                'U+1F47C U+1F3FB',
+                '👼🏿',
+                '👼🏾',
+                '👼🏽',
+                '👼🏼',
+                '👼🏻',
             ],
         },
         {
-            code: 'U+1F471',
+            code: '👱',
             keywords: [
                 'blond',
             ],
             types: [
-                'U+1F471 U+1F3FF',
-                'U+1F471 U+1F3FE',
-                'U+1F471 U+1F3FD',
-                'U+1F471 U+1F3FC',
-                'U+1F471 U+1F3FB',
+                '👱🏿',
+                '👱🏾',
+                '👱🏽',
+                '👱🏼',
+                '👱🏻',
             ],
         },
         {
-            code: 'U+1F46E',
+            code: '👮',
             keywords: [
                 'cop',
                 'officer',
                 'police',
             ],
             types: [
-                'U+1F46E U+1F3FF',
-                'U+1F46E U+1F3FE',
-                'U+1F46E U+1F3FD',
-                'U+1F46E U+1F3FC',
-                'U+1F46E U+1F3FB',
+                '👮🏿',
+                '👮🏾',
+                '👮🏽',
+                '👮🏼',
+                '👮🏻',
             ],
         },
         {
-            code: 'U+1F472',
+            code: '👲',
             keywords: [
                 'gua pi mao',
                 'hat',
                 'man',
             ],
             types: [
-                'U+1F472 U+1F3FF',
-                'U+1F472 U+1F3FE',
-                'U+1F472 U+1F3FD',
-                'U+1F472 U+1F3FC',
-                'U+1F472 U+1F3FB',
+                '👲🏿',
+                '👲🏾',
+                '👲🏽',
+                '👲🏼',
+                '👲🏻',
             ],
         },
         {
-            code: 'U+1F473',
+            code: '👳',
             keywords: [
                 'man',
                 'turban',
             ],
             types: [
-                'U+1F473 U+1F3FF',
-                'U+1F473 U+1F3FE',
-                'U+1F473 U+1F3FD',
-                'U+1F473 U+1F3FC',
-                'U+1F473 U+1F3FB',
+                '👳🏿',
+                '👳🏾',
+                '👳🏽',
+                '👳🏼',
+                '👳🏻',
             ],
         },
         {
-            code: 'U+1F477',
+            code: '👷',
             keywords: [
                 'construction',
                 'hat',
                 'worker',
             ],
             types: [
-                'U+1F477 U+1F3FF',
-                'U+1F477 U+1F3FE',
-                'U+1F477 U+1F3FD',
-                'U+1F477 U+1F3FC',
-                'U+1F477 U+1F3FB',
+                '👷🏿',
+                '👷🏾',
+                '👷🏽',
+                '👷🏼',
+                '👷🏻',
             ],
         },
         {
-            code: 'U+1F478',
+            code: '👸',
             keywords: [
                 'fairy tale',
                 'fantasy',
                 'princess',
             ],
             types: [
-                'U+1F478 U+1F3FF',
-                'U+1F478 U+1F3FE',
-                'U+1F478 U+1F3FD',
-                'U+1F478 U+1F3FC',
-                'U+1F478 U+1F3FB',
+                '👸🏿',
+                '👸🏾',
+                '👸🏽',
+                '👸🏼',
+                '👸🏻',
             ],
         },
         {
-            code: 'U+1F934',
+            code: '🤴',
             keywords: [
                 'prince',
             ],
             types: [
-                'U+1F934 U+1F3FF',
-                'U+1F934 U+1F3FE',
-                'U+1F934 U+1F3FD',
-                'U+1F934 U+1F3FC',
-                'U+1F934 U+1F3FB',
+                '🤴🏿',
+                '🤴🏾',
+                '🤴🏽',
+                '🤴🏼',
+                '🤴🏻',
             ],
         },
         {
-            code: 'U+1F482',
+            code: '💂',
             keywords: [
                 'guard',
                 'guardsman',
             ],
             types: [
-                'U+1F482 U+1F3FF',
-                'U+1F482 U+1F3FE',
-                'U+1F482 U+1F3FD',
-                'U+1F482 U+1F3FC',
-                'U+1F482 U+1F3FB',
+                '💂🏿',
+                '💂🏾',
+                '💂🏽',
+                '💂🏼',
+                '💂🏻',
             ],
         },
         {
-            code: 'U+1F575',
+            code: '🕵',
             keywords: [
                 'detective',
                 'sleuth',
                 'spy',
             ],
             types: [
-                'U+1F575 U+1F3FF',
-                'U+1F575 U+1F3FE',
-                'U+1F575 U+1F3FD',
-                'U+1F575 U+1F3FC',
-                'U+1F575 U+1F3FB',
+                '🕵🏿',
+                '🕵🏾',
+                '🕵🏽',
+                '🕵🏼',
+                '🕵🏻',
             ],
         },
         {
-            code: 'U+1F385',
+            code: '🎅',
             keywords: [
                 'activity',
                 'celebration',
@@ -1152,74 +1176,74 @@ const emojis = {
                 'santa',
             ],
             types: [
-                'U+1F385 U+1F3FF',
-                'U+1F385 U+1F3FE',
-                'U+1F385 U+1F3FD',
-                'U+1F385 U+1F3FC',
-                'U+1F385 U+1F3FB',
+                '🎅🏿',
+                '🎅🏾',
+                '🎅🏽',
+                '🎅🏼',
+                '🎅🏻',
             ],
         },
         {
-            code: 'U+1F936',
+            code: '🤶',
             keywords: [
                 'christmas',
                 'mother',
                 'mrs. claus',
             ],
             types: [
-                'U+1F936 U+1F3FF',
-                'U+1F936 U+1F3FE',
-                'U+1F936 U+1F3FD',
-                'U+1F936 U+1F3FC',
-                'U+1F936 U+1F3FB',
+                '🤶🏿',
+                '🤶🏾',
+                '🤶🏽',
+                '🤶🏼',
+                '🤶🏻',
             ],
         },
         {
-            code: 'U+1F470',
+            code: '👰',
             keywords: [
                 'bride',
                 'veil',
                 'wedding',
             ],
             types: [
-                'U+1F470 U+1F3FF',
-                'U+1F470 U+1F3FE',
-                'U+1F470 U+1F3FD',
-                'U+1F470 U+1F3FC',
-                'U+1F470 U+1F3FB',
+                '👰🏿',
+                '👰🏾',
+                '👰🏽',
+                '👰🏼',
+                '👰🏻',
             ],
         },
         {
-            code: 'U+1F935',
+            code: '🤵',
             keywords: [
                 'groom',
                 'man',
                 'tuxedo',
             ],
             types: [
-                'U+1F935 U+1F3FF',
-                'U+1F935 U+1F3FE',
-                'U+1F935 U+1F3FD',
-                'U+1F935 U+1F3FC',
-                'U+1F935 U+1F3FB',
+                '🤵🏿',
+                '🤵🏾',
+                '🤵🏽',
+                '🤵🏼',
+                '🤵🏻',
             ],
         },
         {
-            code: 'U+1F486',
+            code: '💆',
             keywords: [
                 'massage',
                 'salon',
             ],
             types: [
-                'U+1F486 U+1F3FF',
-                'U+1F486 U+1F3FE',
-                'U+1F486 U+1F3FD',
-                'U+1F486 U+1F3FC',
-                'U+1F486 U+1F3FB',
+                '💆🏿',
+                '💆🏾',
+                '💆🏽',
+                '💆🏼',
+                '💆🏻',
             ],
         },
         {
-            code: 'U+1F487',
+            code: '💇',
             keywords: [
                 'barber',
                 'beauty',
@@ -1227,43 +1251,43 @@ const emojis = {
                 'parlor',
             ],
             types: [
-                'U+1F487 U+1F3FF',
-                'U+1F487 U+1F3FE',
-                'U+1F487 U+1F3FD',
-                'U+1F487 U+1F3FC',
-                'U+1F487 U+1F3FB',
+                '💇🏿',
+                '💇🏾',
+                '💇🏽',
+                '💇🏼',
+                '💇🏻',
             ],
         },
         {
-            code: 'U+1F64D',
+            code: '🙍',
             keywords: [
                 'frown',
                 'gesture',
             ],
             types: [
-                'U+1F64D U+1F3FF',
-                'U+1F64D U+1F3FE',
-                'U+1F64D U+1F3FD',
-                'U+1F64D U+1F3FC',
-                'U+1F64D U+1F3FB',
+                '🙍🏿',
+                '🙍🏾',
+                '🙍🏽',
+                '🙍🏼',
+                '🙍🏻',
             ],
         },
         {
-            code: 'U+1F64E',
+            code: '🙎',
             keywords: [
                 'gesture',
                 'pouting',
             ],
             types: [
-                'U+1F64E U+1F3FF',
-                'U+1F64E U+1F3FE',
-                'U+1F64E U+1F3FD',
-                'U+1F64E U+1F3FC',
-                'U+1F64E U+1F3FB',
+                '🙎🏿',
+                '🙎🏾',
+                '🙎🏽',
+                '🙎🏼',
+                '🙎🏻',
             ],
         },
         {
-            code: 'U+1F645',
+            code: '🙅',
             keywords: [
                 'forbidden',
                 'gesture',
@@ -1273,30 +1297,30 @@ const emojis = {
                 'prohibited',
             ],
             types: [
-                'U+1F645 U+1F3FF',
-                'U+1F645 U+1F3FE',
-                'U+1F645 U+1F3FD',
-                'U+1F645 U+1F3FC',
-                'U+1F645 U+1F3FB',
+                '🙅🏿',
+                '🙅🏾',
+                '🙅🏽',
+                '🙅🏼',
+                '🙅🏻',
             ],
         },
         {
-            code: 'U+1F646',
+            code: '🙆',
             keywords: [
                 'gesture',
                 'hand',
                 'ok',
             ],
             types: [
-                'U+1F646 U+1F3FF',
-                'U+1F646 U+1F3FE',
-                'U+1F646 U+1F3FD',
-                'U+1F646 U+1F3FC',
-                'U+1F646 U+1F3FB',
+                '🙆🏿',
+                '🙆🏾',
+                '🙆🏽',
+                '🙆🏼',
+                '🙆🏻',
             ],
         },
         {
-            code: 'U+1F481',
+            code: '💁',
             keywords: [
                 'hand',
                 'help',
@@ -1304,15 +1328,15 @@ const emojis = {
                 'sassy',
             ],
             types: [
-                'U+1F481 U+1F3FF',
-                'U+1F481 U+1F3FE',
-                'U+1F481 U+1F3FD',
-                'U+1F481 U+1F3FC',
-                'U+1F481 U+1F3FB',
+                '💁🏿',
+                '💁🏾',
+                '💁🏽',
+                '💁🏼',
+                '💁🏻',
             ],
         },
         {
-            code: 'U+1F937',
+            code: '🤷',
             keywords: [
                 'doubt',
                 'ignorance',
@@ -1320,15 +1344,15 @@ const emojis = {
                 'shrug',
             ],
             types: [
-                'U+1F937 U+1F3FF',
-                'U+1F937 U+1F3FE',
-                'U+1F937 U+1F3FD',
-                'U+1F937 U+1F3FC',
-                'U+1F937 U+1F3FB',
+                '🤷🏿',
+                '🤷🏾',
+                '🤷🏽',
+                '🤷🏼',
+                '🤷🏻',
             ],
         },
         {
-            code: 'U+1F64B',
+            code: '🙋',
             keywords: [
                 'gesture',
                 'hand',
@@ -1336,15 +1360,15 @@ const emojis = {
                 'raised',
             ],
             types: [
-                'U+1F64B U+1F3FF',
-                'U+1F64B U+1F3FE',
-                'U+1F64B U+1F3FD',
-                'U+1F64B U+1F3FC',
-                'U+1F64B U+1F3FB',
+                '🙋🏿',
+                '🙋🏾',
+                '🙋🏽',
+                '🙋🏼',
+                '🙋🏻',
             ],
         },
         {
-            code: 'U+1F926',
+            code: '🤦',
             keywords: [
                 'disbelief',
                 'exasperation',
@@ -1352,15 +1376,15 @@ const emojis = {
                 'palm',
             ],
             types: [
-                'U+1F926 U+1F3FF',
-                'U+1F926 U+1F3FE',
-                'U+1F926 U+1F3FD',
-                'U+1F926 U+1F3FC',
-                'U+1F926 U+1F3FB',
+                '🤦🏿',
+                '🤦🏾',
+                '🤦🏽',
+                '🤦🏼',
+                '🤦🏻',
             ],
         },
         {
-            code: 'U+1F647',
+            code: '🙇',
             keywords: [
                 'apology',
                 'bow',
@@ -1368,15 +1392,15 @@ const emojis = {
                 'sorry',
             ],
             types: [
-                'U+1F647 U+1F3FF',
-                'U+1F647 U+1F3FE',
-                'U+1F647 U+1F3FD',
-                'U+1F647 U+1F3FC',
-                'U+1F647 U+1F3FB',
+                '🙇🏿',
+                '🙇🏾',
+                '🙇🏽',
+                '🙇🏼',
+                '🙇🏻',
             ],
         },
         {
-            code: 'U+1F6B6',
+            code: '🚶',
             keywords: [
                 'hike',
                 'pedestrian',
@@ -1384,71 +1408,71 @@ const emojis = {
                 'walking',
             ],
             types: [
-                'U+1F6B6 U+1F3FF',
-                'U+1F6B6 U+1F3FE',
-                'U+1F6B6 U+1F3FD',
-                'U+1F6B6 U+1F3FC',
-                'U+1F6B6 U+1F3FB',
+                '🚶🏿',
+                '🚶🏾',
+                '🚶🏽',
+                '🚶🏼',
+                '🚶🏻',
             ],
         },
         {
-            code: 'U+1F3C3',
+            code: '🏃',
             keywords: [
                 'marathon',
                 'runner',
                 'running',
             ],
             types: [
-                'U+1F3C3 U+1F3FF',
-                'U+1F3C3 U+1F3FE',
-                'U+1F3C3 U+1F3FD',
-                'U+1F3C3 U+1F3FC',
-                'U+1F3C3 U+1F3FB',
+                '🏃🏿',
+                '🏃🏾',
+                '🏃🏽',
+                '🏃🏼',
+                '🏃🏻',
             ],
         },
         {
-            code: 'U+1F483',
+            code: '💃',
             keywords: [
                 'dancer',
             ],
             types: [
-                'U+1F483 U+1F3FF',
-                'U+1F483 U+1F3FE',
-                'U+1F483 U+1F3FD',
-                'U+1F483 U+1F3FC',
-                'U+1F483 U+1F3FB',
+                '💃🏿',
+                '💃🏾',
+                '💃🏽',
+                '💃🏼',
+                '💃🏻',
             ],
         },
         {
-            code: 'U+1F57A',
+            code: '🕺',
             keywords: [
                 'dance',
                 'man',
             ],
             types: [
-                'U+1F57A U+1F3FF',
-                'U+1F57A U+1F3FE',
-                'U+1F57A U+1F3FD',
-                'U+1F57A U+1F3FC',
-                'U+1F57A U+1F3FB',
+                '🕺🏿',
+                '🕺🏾',
+                '🕺🏽',
+                '🕺🏼',
+                '🕺🏻',
             ],
         },
         {
-            code: 'U+1F930',
+            code: '🤰',
             keywords: [
                 'pregnant',
                 'woman',
             ],
             types: [
-                'U+1F930 U+1F3FF',
-                'U+1F930 U+1F3FE',
-                'U+1F930 U+1F3FD',
-                'U+1F930 U+1F3FC',
-                'U+1F930 U+1F3FB',
+                '🤰🏿',
+                '🤰🏾',
+                '🤰🏽',
+                '🤰🏼',
+                '🤰🏻',
             ],
         },
         {
-            code: 'U+1F46F',
+            code: '👯',
             keywords: [
                 'bunny',
                 'dancer',
@@ -1458,7 +1482,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F574',
+            code: '🕴',
             keywords: [
                 'business',
                 'man',
@@ -1466,7 +1490,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5E3',
+            code: '🗣',
             keywords: [
                 'face',
                 'head',
@@ -1476,21 +1500,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F464',
+            code: '👤',
             keywords: [
                 'bust',
                 'silhouette',
             ],
         },
         {
-            code: 'U+1F465',
+            code: '👥',
             keywords: [
                 'bust',
                 'silhouette',
             ],
         },
         {
-            code: 'U+1F46B',
+            code: '👫',
             keywords: [
                 'couple',
                 'hand',
@@ -1500,7 +1524,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F46C',
+            code: '👬',
             keywords: [
                 'couple',
                 'gemini',
@@ -1512,7 +1536,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F46D',
+            code: '👭',
             keywords: [
                 'couple',
                 'hand',
@@ -1521,7 +1545,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F48F',
+            code: '💏',
             keywords: [
                 'couple',
                 'kiss',
@@ -1529,7 +1553,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F469 U+200D U+2764 U+FE0F U+200D U+1F48B U+200D U+1F468',
+            code: '👩‍❤️‍💋‍👨',
             keywords: [
                 'kiss',
                 'man',
@@ -1537,21 +1561,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+2764 U+FE0F U+200D U+1F48B U+200D U+1F468',
+            code: '👨‍❤️‍💋‍👨',
             keywords: [
                 'kiss',
                 'man',
             ],
         },
         {
-            code: 'U+1F469 U+200D U+2764 U+FE0F U+200D U+1F48B U+200D U+1F469',
+            code: '👩‍❤️‍💋‍👩',
             keywords: [
                 'kiss',
                 'woman',
             ],
         },
         {
-            code: 'U+1F491',
+            code: '💑',
             keywords: [
                 'couple',
                 'heart',
@@ -1560,7 +1584,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F469 U+200D U+2764 U+FE0F U+200D U+1F468',
+            code: '👩‍❤️‍👨',
             keywords: [
                 'couple',
                 'man',
@@ -1568,21 +1592,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+2764 U+FE0F U+200D U+1F468',
+            code: '👨‍❤️‍👨',
             keywords: [
                 'couple',
                 'man',
             ],
         },
         {
-            code: 'U+1F469 U+200D U+2764 U+FE0F U+200D U+1F469',
+            code: '👩‍❤️‍👩',
             keywords: [
                 'couple',
                 'woman',
             ],
         },
         {
-            code: 'U+1F46A',
+            code: '👪',
             keywords: [
                 'child',
                 'family',
@@ -1591,7 +1615,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+1F469 U+200D U+1F466',
+            code: '👨‍👩‍👦',
             keywords: [
                 'boy',
                 'family',
@@ -1600,7 +1624,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+1F469 U+200D U+1F467',
+            code: '👨‍👩‍👧',
             keywords: [
                 'family',
                 'girl',
@@ -1609,7 +1633,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+1F469 U+200D U+1F467 U+200D U+1F466',
+            code: '👨‍👩‍👧‍👦',
             keywords: [
                 'boy',
                 'family',
@@ -1619,7 +1643,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+1F469 U+200D U+1F466 U+200D U+1F466',
+            code: '👨‍👩‍👦‍👦',
             keywords: [
                 'boy',
                 'family',
@@ -1628,7 +1652,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+1F469 U+200D U+1F467 U+200D U+1F467',
+            code: '👨‍👩‍👧‍👧',
             keywords: [
                 'family',
                 'girl',
@@ -1637,7 +1661,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+1F468 U+200D U+1F466',
+            code: '👨‍👨‍👦',
             keywords: [
                 'boy',
                 'family',
@@ -1645,7 +1669,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+1F468 U+200D U+1F467',
+            code: '👨‍👨‍👧',
             keywords: [
                 'family',
                 'girl',
@@ -1653,7 +1677,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+1F468 U+200D U+1F467 U+200D U+1F466',
+            code: '👨‍👨‍👧‍👦',
             keywords: [
                 'boy',
                 'family',
@@ -1662,7 +1686,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+1F468 U+200D U+1F466 U+200D U+1F466',
+            code: '👨‍👨‍👦‍👦',
             keywords: [
                 'boy',
                 'family',
@@ -1670,7 +1694,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F468 U+200D U+1F468 U+200D U+1F467 U+200D U+1F467',
+            code: '👨‍👨‍👧‍👧',
             keywords: [
                 'family',
                 'girl',
@@ -1678,7 +1702,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F469 U+200D U+1F469 U+200D U+1F466',
+            code: '👩‍👩‍👦',
             keywords: [
                 'boy',
                 'family',
@@ -1686,7 +1710,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F469 U+200D U+1F469 U+200D U+1F467',
+            code: '👩‍👩‍👧',
             keywords: [
                 'family',
                 'girl',
@@ -1694,7 +1718,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F469 U+200D U+1F469 U+200D U+1F467 U+200D U+1F466',
+            code: '👩‍👩‍👧‍👦',
             keywords: [
                 'boy',
                 'family',
@@ -1703,7 +1727,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F469 U+200D U+1F469 U+200D U+1F466 U+200D U+1F466',
+            code: '👩‍👩‍👦‍👦',
             keywords: [
                 'boy',
                 'family',
@@ -1711,7 +1735,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F469 U+200D U+1F469 U+200D U+1F467 U+200D U+1F467',
+            code: '👩‍👩‍👧‍👧',
             keywords: [
                 'family',
                 'girl',
@@ -1719,7 +1743,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3FB',
+            code: '🏻',
             keywords: [
                 'emoji modifier',
                 'fitzpatrick',
@@ -1728,7 +1752,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3FC',
+            code: '🏼',
             keywords: [
                 'emoji modifier',
                 'fitzpatrick',
@@ -1737,7 +1761,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3FD',
+            code: '🏽',
             keywords: [
                 'emoji modifier',
                 'fitzpatrick',
@@ -1746,7 +1770,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3FE',
+            code: '🏾',
             keywords: [
                 'emoji modifier',
                 'fitzpatrick',
@@ -1755,7 +1779,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3FF',
+            code: '🏿',
             keywords: [
                 'emoji modifier',
                 'fitzpatrick',
@@ -1764,7 +1788,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4AA',
+            code: '💪',
             keywords: [
                 'biceps',
                 'body',
@@ -1773,30 +1797,30 @@ const emojis = {
                 'muscle',
             ],
             types: [
-                'U+1F4AA U+1F3FF',
-                'U+1F4AA U+1F3FE',
-                'U+1F4AA U+1F3FD',
-                'U+1F4AA U+1F3FC',
-                'U+1F4AA U+1F3FB',
+                '💪🏿',
+                '💪🏾',
+                '💪🏽',
+                '💪🏼',
+                '💪🏻',
             ],
         },
         {
-            code: 'U+1F933',
+            code: '🤳',
             keywords: [
                 'camera',
                 'phone',
                 'selfie',
             ],
             types: [
-                'U+1F933 U+1F3FF',
-                'U+1F933 U+1F3FE',
-                'U+1F933 U+1F3FD',
-                'U+1F933 U+1F3FC',
-                'U+1F933 U+1F3FB',
+                '🤳🏿',
+                '🤳🏾',
+                '🤳🏽',
+                '🤳🏼',
+                '🤳🏻',
             ],
         },
         {
-            code: 'U+1F448',
+            code: '👈',
             keywords: [
                 'backhand',
                 'body',
@@ -1806,15 +1830,15 @@ const emojis = {
                 'point',
             ],
             types: [
-                'U+1F448 U+1F3FF',
-                'U+1F448 U+1F3FE',
-                'U+1F448 U+1F3FD',
-                'U+1F448 U+1F3FC',
-                'U+1F448 U+1F3FB',
+                '👈🏿',
+                '👈🏾',
+                '👈🏽',
+                '👈🏼',
+                '👈🏻',
             ],
         },
         {
-            code: 'U+1F449',
+            code: '👉',
             keywords: [
                 'backhand',
                 'body',
@@ -1824,15 +1848,15 @@ const emojis = {
                 'point',
             ],
             types: [
-                'U+1F449 U+1F3FF',
-                'U+1F449 U+1F3FE',
-                'U+1F449 U+1F3FD',
-                'U+1F449 U+1F3FC',
-                'U+1F449 U+1F3FB',
+                '👉🏿',
+                '👉🏾',
+                '👉🏽',
+                '👉🏼',
+                '👉🏻',
             ],
         },
         {
-            code: 'U+261D',
+            code: '☝',
             keywords: [
                 'body',
                 'finger',
@@ -1842,15 +1866,15 @@ const emojis = {
                 'up',
             ],
             types: [
-                'U+261D U+1F3FF',
-                'U+261D U+1F3FE',
-                'U+261D U+1F3FD',
-                'U+261D U+1F3FC',
-                'U+261D U+1F3FB',
+                '☝🏿',
+                '☝🏾',
+                '☝🏽',
+                '☝🏼',
+                '☝🏻',
             ],
         },
         {
-            code: 'U+1F446',
+            code: '👆',
             keywords: [
                 'backhand',
                 'body',
@@ -1861,15 +1885,15 @@ const emojis = {
                 'up',
             ],
             types: [
-                'U+1F446 U+1F3FF',
-                'U+1F446 U+1F3FE',
-                'U+1F446 U+1F3FD',
-                'U+1F446 U+1F3FC',
-                'U+1F446 U+1F3FB',
+                '👆🏿',
+                '👆🏾',
+                '👆🏽',
+                '👆🏼',
+                '👆🏻',
             ],
         },
         {
-            code: 'U+1F595',
+            code: '🖕',
             keywords: [
                 'body',
                 'finger',
@@ -1877,15 +1901,15 @@ const emojis = {
                 'middle finger',
             ],
             types: [
-                'U+1F595 U+1F3FF',
-                'U+1F595 U+1F3FE',
-                'U+1F595 U+1F3FD',
-                'U+1F595 U+1F3FC',
-                'U+1F595 U+1F3FB',
+                '🖕🏿',
+                '🖕🏾',
+                '🖕🏽',
+                '🖕🏼',
+                '🖕🏻',
             ],
         },
         {
-            code: 'U+1F447',
+            code: '👇',
             keywords: [
                 'backhand',
                 'body',
@@ -1896,15 +1920,15 @@ const emojis = {
                 'point',
             ],
             types: [
-                'U+1F447 U+1F3FF',
-                'U+1F447 U+1F3FE',
-                'U+1F447 U+1F3FD',
-                'U+1F447 U+1F3FC',
-                'U+1F447 U+1F3FB',
+                '👇🏿',
+                '👇🏾',
+                '👇🏽',
+                '👇🏼',
+                '👇🏻',
             ],
         },
         {
-            code: 'U+270C',
+            code: '✌',
             keywords: [
                 'body',
                 'hand',
@@ -1912,15 +1936,15 @@ const emojis = {
                 'victory',
             ],
             types: [
-                'U+270C U+1F3FF',
-                'U+270C U+1F3FE',
-                'U+270C U+1F3FD',
-                'U+270C U+1F3FC',
-                'U+270C U+1F3FB',
+                '✌🏿',
+                '✌🏾',
+                '✌🏽',
+                '✌🏼',
+                '✌🏻',
             ],
         },
         {
-            code: 'U+1F91E',
+            code: '🤞',
             keywords: [
                 'cross',
                 'finger',
@@ -1928,15 +1952,15 @@ const emojis = {
                 'luck',
             ],
             types: [
-                'U+1F91E U+1F3FF',
-                'U+1F91E U+1F3FE',
-                'U+1F91E U+1F3FD',
-                'U+1F91E U+1F3FC',
-                'U+1F91E U+1F3FB',
+                '🤞🏿',
+                '🤞🏾',
+                '🤞🏽',
+                '🤞🏼',
+                '🤞🏻',
             ],
         },
         {
-            code: 'U+1F596',
+            code: '🖖',
             keywords: [
                 'body',
                 'finger',
@@ -1945,15 +1969,15 @@ const emojis = {
                 'vulcan',
             ],
             types: [
-                'U+1F596 U+1F3FF',
-                'U+1F596 U+1F3FE',
-                'U+1F596 U+1F3FD',
-                'U+1F596 U+1F3FC',
-                'U+1F596 U+1F3FB',
+                '🖖🏿',
+                '🖖🏾',
+                '🖖🏽',
+                '🖖🏼',
+                '🖖🏻',
             ],
         },
         {
-            code: 'U+1F918',
+            code: '🤘',
             keywords: [
                 'body',
                 'finger',
@@ -1962,29 +1986,29 @@ const emojis = {
                 'rock-on',
             ],
             types: [
-                'U+1F918 U+1F3FF',
-                'U+1F918 U+1F3FE',
-                'U+1F918 U+1F3FD',
-                'U+1F918 U+1F3FC',
-                'U+1F918 U+1F3FB',
+                '🤘🏿',
+                '🤘🏾',
+                '🤘🏽',
+                '🤘🏼',
+                '🤘🏻',
             ],
         },
         {
-            code: 'U+1F919',
+            code: '🤙',
             keywords: [
                 'call',
                 'hand',
             ],
             types: [
-                'U+1F919 U+1F3FF',
-                'U+1F919 U+1F3FE',
-                'U+1F919 U+1F3FD',
-                'U+1F919 U+1F3FC',
-                'U+1F919 U+1F3FB',
+                '🤙🏿',
+                '🤙🏾',
+                '🤙🏽',
+                '🤙🏼',
+                '🤙🏻',
             ],
         },
         {
-            code: 'U+1F590',
+            code: '🖐',
             keywords: [
                 'body',
                 'finger',
@@ -1992,44 +2016,44 @@ const emojis = {
                 'splayed',
             ],
             types: [
-                'U+1F590 U+1F3FF',
-                'U+1F590 U+1F3FE',
-                'U+1F590 U+1F3FD',
-                'U+1F590 U+1F3FC',
-                'U+1F590 U+1F3FB',
+                '🖐🏿',
+                '🖐🏾',
+                '🖐🏽',
+                '🖐🏼',
+                '🖐🏻',
             ],
         },
         {
-            code: 'U+270B',
+            code: '✋',
             keywords: [
                 'body',
                 'hand',
             ],
             types: [
-                'U+270B U+1F3FF',
-                'U+270B U+1F3FE',
-                'U+270B U+1F3FD',
-                'U+270B U+1F3FC',
-                'U+270B U+1F3FB',
+                '✋🏿',
+                '✋🏾',
+                '✋🏽',
+                '✋🏼',
+                '✋🏻',
             ],
         },
         {
-            code: 'U+1F44C',
+            code: '👌',
             keywords: [
                 'body',
                 'hand',
                 'ok',
             ],
             types: [
-                'U+1F44C U+1F3FF',
-                'U+1F44C U+1F3FE',
-                'U+1F44C U+1F3FD',
-                'U+1F44C U+1F3FC',
-                'U+1F44C U+1F3FB',
+                '👌🏿',
+                '👌🏾',
+                '👌🏽',
+                '👌🏼',
+                '👌🏻',
             ],
         },
         {
-            code: 'U+1F44D',
+            code: '👍',
             keywords: [
                 '+1',
                 'body',
@@ -2039,15 +2063,15 @@ const emojis = {
                 'up',
             ],
             types: [
-                'U+1F44D U+1F3FF',
-                'U+1F44D U+1F3FE',
-                'U+1F44D U+1F3FD',
-                'U+1F44D U+1F3FC',
-                'U+1F44D U+1F3FB',
+                '👍🏿',
+                '👍🏾',
+                '👍🏽',
+                '👍🏼',
+                '👍🏻',
             ],
         },
         {
-            code: 'U+1F44E',
+            code: '👎',
             keywords: [
                 '-1',
                 'body',
@@ -2057,15 +2081,15 @@ const emojis = {
                 'thumbs down',
             ],
             types: [
-                'U+1F44E U+1F3FF',
-                'U+1F44E U+1F3FE',
-                'U+1F44E U+1F3FD',
-                'U+1F44E U+1F3FC',
-                'U+1F44E U+1F3FB',
+                '👎🏿',
+                '👎🏾',
+                '👎🏽',
+                '👎🏼',
+                '👎🏻',
             ],
         },
         {
-            code: 'U+270A',
+            code: '✊',
             keywords: [
                 'body',
                 'clenched',
@@ -2074,15 +2098,15 @@ const emojis = {
                 'punch',
             ],
             types: [
-                'U+270A U+1F3FF',
-                'U+270A U+1F3FE',
-                'U+270A U+1F3FD',
-                'U+270A U+1F3FC',
-                'U+270A U+1F3FB',
+                '✊🏿',
+                '✊🏾',
+                '✊🏽',
+                '✊🏼',
+                '✊🏻',
             ],
         },
         {
-            code: 'U+1F44A',
+            code: '👊',
             keywords: [
                 'body',
                 'clenched',
@@ -2091,57 +2115,57 @@ const emojis = {
                 'punch',
             ],
             types: [
-                'U+1F44A U+1F3FF',
-                'U+1F44A U+1F3FE',
-                'U+1F44A U+1F3FD',
-                'U+1F44A U+1F3FC',
-                'U+1F44A U+1F3FB',
+                '👊🏿',
+                '👊🏾',
+                '👊🏽',
+                '👊🏼',
+                '👊🏻',
             ],
         },
         {
-            code: 'U+1F91B',
+            code: '🤛',
             keywords: [
                 'fist',
                 'leftwards',
             ],
             types: [
-                'U+1F91B U+1F3FF',
-                'U+1F91B U+1F3FE',
-                'U+1F91B U+1F3FD',
-                'U+1F91B U+1F3FC',
-                'U+1F91B U+1F3FB',
+                '🤛🏿',
+                '🤛🏾',
+                '🤛🏽',
+                '🤛🏼',
+                '🤛🏻',
             ],
         },
         {
-            code: 'U+1F91C',
+            code: '🤜',
             keywords: [
                 'fist',
                 'rightwards',
             ],
             types: [
-                'U+1F91C U+1F3FF',
-                'U+1F91C U+1F3FE',
-                'U+1F91C U+1F3FD',
-                'U+1F91C U+1F3FC',
-                'U+1F91C U+1F3FB',
+                '🤜🏿',
+                '🤜🏾',
+                '🤜🏽',
+                '🤜🏼',
+                '🤜🏻',
             ],
         },
         {
-            code: 'U+1F91A',
+            code: '🤚',
             keywords: [
                 'backhand',
                 'raised',
             ],
             types: [
-                'U+1F91A U+1F3FF',
-                'U+1F91A U+1F3FE',
-                'U+1F91A U+1F3FD',
-                'U+1F91A U+1F3FC',
-                'U+1F91A U+1F3FB',
+                '🤚🏿',
+                '🤚🏾',
+                '🤚🏽',
+                '🤚🏼',
+                '🤚🏻',
             ],
         },
         {
-            code: 'U+1F44B',
+            code: '👋',
             keywords: [
                 'body',
                 'hand',
@@ -2149,60 +2173,60 @@ const emojis = {
                 'waving',
             ],
             types: [
-                'U+1F44B U+1F3FF',
-                'U+1F44B U+1F3FE',
-                'U+1F44B U+1F3FD',
-                'U+1F44B U+1F3FC',
-                'U+1F44B U+1F3FB',
+                '👋🏿',
+                '👋🏾',
+                '👋🏽',
+                '👋🏼',
+                '👋🏻',
             ],
         },
         {
-            code: 'U+1F44F',
+            code: '👏',
             keywords: [
                 'body',
                 'clap',
                 'hand',
             ],
             types: [
-                'U+1F44F U+1F3FF',
-                'U+1F44F U+1F3FE',
-                'U+1F44F U+1F3FD',
-                'U+1F44F U+1F3FC',
-                'U+1F44F U+1F3FB',
+                '👏🏿',
+                '👏🏾',
+                '👏🏽',
+                '👏🏼',
+                '👏🏻',
             ],
         },
         {
-            code: 'U+270D',
+            code: '✍',
             keywords: [
                 'body',
                 'hand',
                 'write',
             ],
             types: [
-                'U+270D U+1F3FF',
-                'U+270D U+1F3FE',
-                'U+270D U+1F3FD',
-                'U+270D U+1F3FC',
-                'U+270D U+1F3FB',
+                '✍🏿',
+                '✍🏾',
+                '✍🏽',
+                '✍🏼',
+                '✍🏻',
             ],
         },
         {
-            code: 'U+1F450',
+            code: '👐',
             keywords: [
                 'body',
                 'hand',
                 'open',
             ],
             types: [
-                'U+1F450 U+1F3FF',
-                'U+1F450 U+1F3FE',
-                'U+1F450 U+1F3FD',
-                'U+1F450 U+1F3FC',
-                'U+1F450 U+1F3FB',
+                '👐🏿',
+                '👐🏾',
+                '👐🏽',
+                '👐🏼',
+                '👐🏻',
             ],
         },
         {
-            code: 'U+1F64C',
+            code: '🙌',
             keywords: [
                 'body',
                 'celebration',
@@ -2212,15 +2236,15 @@ const emojis = {
                 'raised',
             ],
             types: [
-                'U+1F64C U+1F3FF',
-                'U+1F64C U+1F3FE',
-                'U+1F64C U+1F3FD',
-                'U+1F64C U+1F3FC',
-                'U+1F64C U+1F3FB',
+                '🙌🏿',
+                '🙌🏾',
+                '🙌🏽',
+                '🙌🏼',
+                '🙌🏻',
             ],
         },
         {
-            code: 'U+1F64F',
+            code: '🙏',
             keywords: [
                 'ask',
                 'body',
@@ -2233,15 +2257,15 @@ const emojis = {
                 'thanks',
             ],
             types: [
-                'U+1F64F U+1F3FF',
-                'U+1F64F U+1F3FE',
-                'U+1F64F U+1F3FD',
-                'U+1F64F U+1F3FC',
-                'U+1F64F U+1F3FB',
+                '🙏🏿',
+                '🙏🏾',
+                '🙏🏽',
+                '🙏🏼',
+                '🙏🏻',
             ],
         },
         {
-            code: 'U+1F91D',
+            code: '🤝',
             keywords: [
                 'agreement',
                 'hand',
@@ -2250,15 +2274,15 @@ const emojis = {
                 'shake',
             ],
             types: [
-                'U+1F91D U+1F3FF',
-                'U+1F91D U+1F3FE',
-                'U+1F91D U+1F3FD',
-                'U+1F91D U+1F3FC',
-                'U+1F91D U+1F3FB',
+                '🤝🏿',
+                '🤝🏾',
+                '🤝🏽',
+                '🤝🏼',
+                '🤝🏻',
             ],
         },
         {
-            code: 'U+1F485',
+            code: '💅',
             keywords: [
                 'body',
                 'care',
@@ -2268,43 +2292,43 @@ const emojis = {
                 'polish',
             ],
             types: [
-                'U+1F485 U+1F3FF',
-                'U+1F485 U+1F3FE',
-                'U+1F485 U+1F3FD',
-                'U+1F485 U+1F3FC',
-                'U+1F485 U+1F3FB',
+                '💅🏿',
+                '💅🏾',
+                '💅🏽',
+                '💅🏼',
+                '💅🏻',
             ],
         },
         {
-            code: 'U+1F442',
+            code: '👂',
             keywords: [
                 'body',
                 'ear',
             ],
             types: [
-                'U+1F442 U+1F3FF',
-                'U+1F442 U+1F3FE',
-                'U+1F442 U+1F3FD',
-                'U+1F442 U+1F3FC',
-                'U+1F442 U+1F3FB',
+                '👂🏿',
+                '👂🏾',
+                '👂🏽',
+                '👂🏼',
+                '👂🏻',
             ],
         },
         {
-            code: 'U+1F443',
+            code: '👃',
             keywords: [
                 'body',
                 'nose',
             ],
             types: [
-                'U+1F443 U+1F3FF',
-                'U+1F443 U+1F3FE',
-                'U+1F443 U+1F3FD',
-                'U+1F443 U+1F3FC',
-                'U+1F443 U+1F3FB',
+                '👃🏿',
+                '👃🏾',
+                '👃🏽',
+                '👃🏼',
+                '👃🏻',
             ],
         },
         {
-            code: 'U+1F463',
+            code: '👣',
             keywords: [
                 'body',
                 'clothing',
@@ -2313,7 +2337,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F440',
+            code: '👀',
             keywords: [
                 'body',
                 'eye',
@@ -2321,14 +2345,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F441',
+            code: '👁',
             keywords: [
                 'body',
                 'eye',
             ],
         },
         {
-            code: 'U+1F441 U+200D U+1F5E8',
+            code: '👁‍🗨',
             keywords: [
                 'bubble',
                 'eye',
@@ -2337,14 +2361,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F445',
+            code: '👅',
             keywords: [
                 'body',
                 'tongue',
             ],
         },
         {
-            code: 'U+1F444',
+            code: '👄',
             keywords: [
                 'body',
                 'lips',
@@ -2352,7 +2376,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F48B',
+            code: '💋',
             keywords: [
                 'heart',
                 'kiss',
@@ -2362,7 +2386,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F498',
+            code: '💘',
             keywords: [
                 'arrow',
                 'cupid',
@@ -2371,13 +2395,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2764',
+            code: '❤',
             keywords: [
                 'heart',
             ],
         },
         {
-            code: 'U+1F493',
+            code: '💓',
             keywords: [
                 'beating',
                 'heart',
@@ -2386,7 +2410,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F494',
+            code: '💔',
             keywords: [
                 'break',
                 'broken',
@@ -2394,14 +2418,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F495',
+            code: '💕',
             keywords: [
                 'heart',
                 'love',
             ],
         },
         {
-            code: 'U+1F496',
+            code: '💖',
             keywords: [
                 'excited',
                 'heart',
@@ -2409,7 +2433,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F497',
+            code: '💗',
             keywords: [
                 'excited',
                 'growing',
@@ -2419,35 +2443,35 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F499',
+            code: '💙',
             keywords: [
                 'blue',
                 'heart',
             ],
         },
         {
-            code: 'U+1F49A',
+            code: '💚',
             keywords: [
                 'green',
                 'heart',
             ],
         },
         {
-            code: 'U+1F49B',
+            code: '💛',
             keywords: [
                 'heart',
                 'yellow',
             ],
         },
         {
-            code: 'U+1F49C',
+            code: '💜',
             keywords: [
                 'heart',
                 'purple',
             ],
         },
         {
-            code: 'U+1F5A4',
+            code: '🖤',
             keywords: [
                 'black',
                 'evil',
@@ -2456,7 +2480,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F49D',
+            code: '💝',
             keywords: [
                 'heart',
                 'ribbon',
@@ -2464,20 +2488,20 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F49E',
+            code: '💞',
             keywords: [
                 'heart',
                 'revolving',
             ],
         },
         {
-            code: 'U+1F49F',
+            code: '💟',
             keywords: [
                 'heart',
             ],
         },
         {
-            code: 'U+2763',
+            code: '❣',
             keywords: [
                 'exclamation',
                 'heart',
@@ -2486,7 +2510,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F48C',
+            code: '💌',
             keywords: [
                 'heart',
                 'letter',
@@ -2496,7 +2520,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4A4',
+            code: '💤',
             keywords: [
                 'comic',
                 'sleep',
@@ -2504,7 +2528,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4A2',
+            code: '💢',
             keywords: [
                 'angry',
                 'comic',
@@ -2512,14 +2536,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4A3',
+            code: '💣',
             keywords: [
                 'bomb',
                 'comic',
             ],
         },
         {
-            code: 'U+1F4A5',
+            code: '💥',
             keywords: [
                 'boom',
                 'collision',
@@ -2527,7 +2551,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4A6',
+            code: '💦',
             keywords: [
                 'comic',
                 'splashing',
@@ -2535,7 +2559,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4A8',
+            code: '💨',
             keywords: [
                 'comic',
                 'dash',
@@ -2543,7 +2567,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4AB',
+            code: '💫',
             keywords: [
                 'comic',
                 'dizzy',
@@ -2551,7 +2575,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4AC',
+            code: '💬',
             keywords: [
                 'balloon',
                 'bubble',
@@ -2561,14 +2585,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5E8',
+            code: '🗨',
             keywords: [
                 'dialog',
                 'speech',
             ],
         },
         {
-            code: 'U+1F5EF',
+            code: '🗯',
             keywords: [
                 'angry',
                 'balloon',
@@ -2577,7 +2601,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4AD',
+            code: '💭',
             keywords: [
                 'balloon',
                 'bubble',
@@ -2586,13 +2610,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F573',
+            code: '🕳',
             keywords: [
                 'hole',
             ],
         },
         {
-            code: 'U+1F453',
+            code: '👓',
             keywords: [
                 'clothing',
                 'eye',
@@ -2602,7 +2626,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F576',
+            code: '🕶',
             keywords: [
                 'dark',
                 'eye',
@@ -2612,14 +2636,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F454',
+            code: '👔',
             keywords: [
                 'clothing',
                 'necktie',
             ],
         },
         {
-            code: 'U+1F455',
+            code: '👕',
             keywords: [
                 'clothing',
                 'shirt',
@@ -2627,7 +2651,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F456',
+            code: '👖',
             keywords: [
                 'clothing',
                 'jeans',
@@ -2636,21 +2660,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F457',
+            code: '👗',
             keywords: [
                 'clothing',
                 'dress',
             ],
         },
         {
-            code: 'U+1F458',
+            code: '👘',
             keywords: [
                 'clothing',
                 'kimono',
             ],
         },
         {
-            code: 'U+1F459',
+            code: '👙',
             keywords: [
                 'bikini',
                 'clothing',
@@ -2658,14 +2682,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F45A',
+            code: '👚',
             keywords: [
                 'clothing',
                 'woman',
             ],
         },
         {
-            code: 'U+1F45B',
+            code: '👛',
             keywords: [
                 'clothing',
                 'coin',
@@ -2673,7 +2697,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F45C',
+            code: '👜',
             keywords: [
                 'bag',
                 'clothing',
@@ -2681,7 +2705,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F45D',
+            code: '👝',
             keywords: [
                 'bag',
                 'clothing',
@@ -2689,7 +2713,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6CD',
+            code: '🛍',
             keywords: [
                 'bag',
                 'hotel',
@@ -2697,7 +2721,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F392',
+            code: '🎒',
             keywords: [
                 'activity',
                 'bag',
@@ -2706,7 +2730,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F45E',
+            code: '👞',
             keywords: [
                 'clothing',
                 'man',
@@ -2714,7 +2738,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F45F',
+            code: '👟',
             keywords: [
                 'athletic',
                 'clothing',
@@ -2723,7 +2747,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F460',
+            code: '👠',
             keywords: [
                 'clothing',
                 'heel',
@@ -2732,7 +2756,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F461',
+            code: '👡',
             keywords: [
                 'clothing',
                 'sandal',
@@ -2741,7 +2765,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F462',
+            code: '👢',
             keywords: [
                 'boot',
                 'clothing',
@@ -2750,7 +2774,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F451',
+            code: '👑',
             keywords: [
                 'clothing',
                 'crown',
@@ -2759,7 +2783,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F452',
+            code: '👒',
             keywords: [
                 'clothing',
                 'hat',
@@ -2767,7 +2791,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3A9',
+            code: '🎩',
             keywords: [
                 'activity',
                 'clothing',
@@ -2778,7 +2802,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F393',
+            code: '🎓',
             keywords: [
                 'activity',
                 'cap',
@@ -2789,7 +2813,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26D1',
+            code: '⛑',
             keywords: [
                 'aid',
                 'cross',
@@ -2799,7 +2823,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4FF',
+            code: '📿',
             keywords: [
                 'beads',
                 'clothing',
@@ -2809,7 +2833,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F484',
+            code: '💄',
             keywords: [
                 'cosmetics',
                 'lipstick',
@@ -2817,7 +2841,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F48D',
+            code: '💍',
             keywords: [
                 'diamond',
                 'ring',
@@ -2825,7 +2849,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F48E',
+            code: '💎',
             keywords: [
                 'diamond',
                 'gem',
@@ -2836,26 +2860,26 @@ const emojis = {
     ],
     'Animals & Nature': [
         {
-            code: 'U+1F435',
+            code: '🐵',
             keywords: [
                 'face',
                 'monkey',
             ],
         },
         {
-            code: 'U+1F412',
+            code: '🐒',
             keywords: [
                 'monkey',
             ],
         },
         {
-            code: 'U+1F98D',
+            code: '🦍',
             keywords: [
                 'gorilla',
             ],
         },
         {
-            code: 'U+1F436',
+            code: '🐶',
             keywords: [
                 'dog',
                 'face',
@@ -2863,35 +2887,35 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F415',
+            code: '🐕',
             keywords: [
                 'dog',
                 'pet',
             ],
         },
         {
-            code: 'U+1F429',
+            code: '🐩',
             keywords: [
                 'dog',
                 'poodle',
             ],
         },
         {
-            code: 'U+1F43A',
+            code: '🐺',
             keywords: [
                 'face',
                 'wolf',
             ],
         },
         {
-            code: 'U+1F98A',
+            code: '🦊',
             keywords: [
                 'face',
                 'fox',
             ],
         },
         {
-            code: 'U+1F431',
+            code: '🐱',
             keywords: [
                 'cat',
                 'face',
@@ -2899,14 +2923,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F408',
+            code: '🐈',
             keywords: [
                 'cat',
                 'pet',
             ],
         },
         {
-            code: 'U+1F981',
+            code: '🦁',
             keywords: [
                 'face',
                 'leo',
@@ -2915,33 +2939,33 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F42F',
+            code: '🐯',
             keywords: [
                 'face',
                 'tiger',
             ],
         },
         {
-            code: 'U+1F405',
+            code: '🐅',
             keywords: [
                 'tiger',
             ],
         },
         {
-            code: 'U+1F406',
+            code: '🐆',
             keywords: [
                 'leopard',
             ],
         },
         {
-            code: 'U+1F434',
+            code: '🐴',
             keywords: [
                 'face',
                 'horse',
             ],
         },
         {
-            code: 'U+1F40E',
+            code: '🐎',
             keywords: [
                 'horse',
                 'racehorse',
@@ -2949,27 +2973,27 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F98C',
+            code: '🦌',
             keywords: [
                 'deer',
             ],
         },
         {
-            code: 'U+1F984',
+            code: '🦄',
             keywords: [
                 'face',
                 'unicorn',
             ],
         },
         {
-            code: 'U+1F42E',
+            code: '🐮',
             keywords: [
                 'cow',
                 'face',
             ],
         },
         {
-            code: 'U+1F402',
+            code: '🐂',
             keywords: [
                 'bull',
                 'ox',
@@ -2978,41 +3002,41 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F403',
+            code: '🐃',
             keywords: [
                 'buffalo',
                 'water',
             ],
         },
         {
-            code: 'U+1F404',
+            code: '🐄',
             keywords: [
                 'cow',
             ],
         },
         {
-            code: 'U+1F437',
+            code: '🐷',
             keywords: [
                 'face',
                 'pig',
             ],
         },
         {
-            code: 'U+1F416',
+            code: '🐖',
             keywords: [
                 'pig',
                 'sow',
             ],
         },
         {
-            code: 'U+1F417',
+            code: '🐗',
             keywords: [
                 'boar',
                 'pig',
             ],
         },
         {
-            code: 'U+1F43D',
+            code: '🐽',
             keywords: [
                 'face',
                 'nose',
@@ -3020,7 +3044,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F40F',
+            code: '🐏',
             keywords: [
                 'aries',
                 'ram',
@@ -3029,14 +3053,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F411',
+            code: '🐑',
             keywords: [
                 'ewe',
                 'sheep',
             ],
         },
         {
-            code: 'U+1F410',
+            code: '🐐',
             keywords: [
                 'capricorn',
                 'goat',
@@ -3044,7 +3068,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F42A',
+            code: '🐪',
             keywords: [
                 'camel',
                 'dromedary',
@@ -3052,7 +3076,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F42B',
+            code: '🐫',
             keywords: [
                 'bactrian',
                 'camel',
@@ -3060,38 +3084,38 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F418',
+            code: '🐘',
             keywords: [
                 'elephant',
             ],
         },
         {
-            code: 'U+1F98F',
+            code: '🦏',
             keywords: [
                 'rhinoceros',
             ],
         },
         {
-            code: 'U+1F42D',
+            code: '🐭',
             keywords: [
                 'face',
                 'mouse',
             ],
         },
         {
-            code: 'U+1F401',
+            code: '🐁',
             keywords: [
                 'mouse',
             ],
         },
         {
-            code: 'U+1F400',
+            code: '🐀',
             keywords: [
                 'rat',
             ],
         },
         {
-            code: 'U+1F439',
+            code: '🐹',
             keywords: [
                 'face',
                 'hamster',
@@ -3099,7 +3123,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F430',
+            code: '🐰',
             keywords: [
                 'bunny',
                 'face',
@@ -3108,7 +3132,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F407',
+            code: '🐇',
             keywords: [
                 'bunny',
                 'pet',
@@ -3116,41 +3140,41 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F43F',
+            code: '🐿',
             keywords: [
                 'chipmunk',
             ],
         },
         {
-            code: 'U+1F987',
+            code: '🦇',
             keywords: [
                 'bat',
                 'vampire',
             ],
         },
         {
-            code: 'U+1F43B',
+            code: '🐻',
             keywords: [
                 'bear',
                 'face',
             ],
         },
         {
-            code: 'U+1F428',
+            code: '🐨',
             keywords: [
                 'bear',
                 'koala',
             ],
         },
         {
-            code: 'U+1F43C',
+            code: '🐼',
             keywords: [
                 'face',
                 'panda',
             ],
         },
         {
-            code: 'U+1F43E',
+            code: '🐾',
             keywords: [
                 'feet',
                 'paw',
@@ -3158,25 +3182,25 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F983',
+            code: '🦃',
             keywords: [
                 'turkey',
             ],
         },
         {
-            code: 'U+1F414',
+            code: '🐔',
             keywords: [
                 'chicken',
             ],
         },
         {
-            code: 'U+1F413',
+            code: '🐓',
             keywords: [
                 'rooster',
             ],
         },
         {
-            code: 'U+1F423',
+            code: '🐣',
             keywords: [
                 'baby',
                 'chick',
@@ -3184,33 +3208,33 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F424',
+            code: '🐤',
             keywords: [
                 'baby',
                 'chick',
             ],
         },
         {
-            code: 'U+1F425',
+            code: '🐥',
             keywords: [
                 'baby',
                 'chick',
             ],
         },
         {
-            code: 'U+1F426',
+            code: '🐦',
             keywords: [
                 'bird',
             ],
         },
         {
-            code: 'U+1F427',
+            code: '🐧',
             keywords: [
                 'penguin',
             ],
         },
         {
-            code: 'U+1F54A',
+            code: '🕊',
             keywords: [
                 'bird',
                 'dove',
@@ -3219,21 +3243,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F985',
+            code: '🦅',
             keywords: [
                 'bird',
                 'eagle',
             ],
         },
         {
-            code: 'U+1F986',
+            code: '🦆',
             keywords: [
                 'bird',
                 'duck',
             ],
         },
         {
-            code: 'U+1F989',
+            code: '🦉',
             keywords: [
                 'bird',
                 'owl',
@@ -3241,33 +3265,33 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F438',
+            code: '🐸',
             keywords: [
                 'face',
                 'frog',
             ],
         },
         {
-            code: 'U+1F40A',
+            code: '🐊',
             keywords: [
                 'crocodile',
             ],
         },
         {
-            code: 'U+1F422',
+            code: '🐢',
             keywords: [
                 'turtle',
             ],
         },
         {
-            code: 'U+1F98E',
+            code: '🦎',
             keywords: [
                 'lizard',
                 'reptile',
             ],
         },
         {
-            code: 'U+1F40D',
+            code: '🐍',
             keywords: [
                 'bearer',
                 'ophiuchus',
@@ -3277,7 +3301,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F432',
+            code: '🐲',
             keywords: [
                 'dragon',
                 'face',
@@ -3285,14 +3309,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F409',
+            code: '🐉',
             keywords: [
                 'dragon',
                 'fairy tale',
             ],
         },
         {
-            code: 'U+1F433',
+            code: '🐳',
             keywords: [
                 'face',
                 'spouting',
@@ -3300,20 +3324,20 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F40B',
+            code: '🐋',
             keywords: [
                 'whale',
             ],
         },
         {
-            code: 'U+1F42C',
+            code: '🐬',
             keywords: [
                 'dolphin',
                 'flipper',
             ],
         },
         {
-            code: 'U+1F41F',
+            code: '🐟',
             keywords: [
                 'fish',
                 'pisces',
@@ -3321,41 +3345,41 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F420',
+            code: '🐠',
             keywords: [
                 'fish',
                 'tropical',
             ],
         },
         {
-            code: 'U+1F421',
+            code: '🐡',
             keywords: [
                 'blowfish',
                 'fish',
             ],
         },
         {
-            code: 'U+1F988',
+            code: '🦈',
             keywords: [
                 'fish',
                 'shark',
             ],
         },
         {
-            code: 'U+1F419',
+            code: '🐙',
             keywords: [
                 'octopus',
             ],
         },
         {
-            code: 'U+1F41A',
+            code: '🐚',
             keywords: [
                 'shell',
                 'spiral',
             ],
         },
         {
-            code: 'U+1F980',
+            code: '🦀',
             keywords: [
                 'cancer',
                 'crab',
@@ -3363,7 +3387,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F990',
+            code: '🦐',
             keywords: [
                 'shellfish',
                 'shrimp',
@@ -3371,14 +3395,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F991',
+            code: '🦑',
             keywords: [
                 'molusc',
                 'squid',
             ],
         },
         {
-            code: 'U+1F98B',
+            code: '🦋',
             keywords: [
                 'butterfly',
                 'insect',
@@ -3386,27 +3410,27 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F40C',
+            code: '🐌',
             keywords: [
                 'snail',
             ],
         },
         {
-            code: 'U+1F41B',
+            code: '🐛',
             keywords: [
                 'bug',
                 'insect',
             ],
         },
         {
-            code: 'U+1F41C',
+            code: '🐜',
             keywords: [
                 'ant',
                 'insect',
             ],
         },
         {
-            code: 'U+1F41D',
+            code: '🐝',
             keywords: [
                 'bee',
                 'honeybee',
@@ -3414,7 +3438,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F41E',
+            code: '🐞',
             keywords: [
                 'beetle',
                 'insect',
@@ -3424,21 +3448,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F577',
+            code: '🕷',
             keywords: [
                 'insect',
                 'spider',
             ],
         },
         {
-            code: 'U+1F578',
+            code: '🕸',
             keywords: [
                 'spider',
                 'web',
             ],
         },
         {
-            code: 'U+1F982',
+            code: '🦂',
             keywords: [
                 'scorpio',
                 'scorpion',
@@ -3447,7 +3471,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F490',
+            code: '💐',
             keywords: [
                 'bouquet',
                 'flower',
@@ -3456,7 +3480,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F338',
+            code: '🌸',
             keywords: [
                 'blossom',
                 'cherry',
@@ -3465,20 +3489,20 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4AE',
+            code: '💮',
             keywords: [
                 'flower',
             ],
         },
         {
-            code: 'U+1F3F5',
+            code: '🏵',
             keywords: [
                 'plant',
                 'rosette',
             ],
         },
         {
-            code: 'U+1F339',
+            code: '🌹',
             keywords: [
                 'flower',
                 'plant',
@@ -3486,14 +3510,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F940',
+            code: '🥀',
             keywords: [
                 'flower',
                 'wilted',
             ],
         },
         {
-            code: 'U+1F33A',
+            code: '🌺',
             keywords: [
                 'flower',
                 'hibiscus',
@@ -3501,7 +3525,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F33B',
+            code: '🌻',
             keywords: [
                 'flower',
                 'plant',
@@ -3510,7 +3534,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F33C',
+            code: '🌼',
             keywords: [
                 'blossom',
                 'flower',
@@ -3518,7 +3542,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F337',
+            code: '🌷',
             keywords: [
                 'flower',
                 'plant',
@@ -3526,7 +3550,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F331',
+            code: '🌱',
             keywords: [
                 'plant',
                 'seedling',
@@ -3534,7 +3558,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F332',
+            code: '🌲',
             keywords: [
                 'evergreen',
                 'plant',
@@ -3542,7 +3566,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F333',
+            code: '🌳',
             keywords: [
                 'deciduous',
                 'plant',
@@ -3551,7 +3575,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F334',
+            code: '🌴',
             keywords: [
                 'palm',
                 'plant',
@@ -3559,14 +3583,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F335',
+            code: '🌵',
             keywords: [
                 'cactus',
                 'plant',
             ],
         },
         {
-            code: 'U+1F33E',
+            code: '🌾',
             keywords: [
                 'ear',
                 'plant',
@@ -3574,7 +3598,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F33F',
+            code: '🌿',
             keywords: [
                 'herb',
                 'leaf',
@@ -3582,14 +3606,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2618',
+            code: '☘',
             keywords: [
                 'plant',
                 'shamrock',
             ],
         },
         {
-            code: 'U+1F340',
+            code: '🍀',
             keywords: [
                 '4',
                 'clover',
@@ -3599,7 +3623,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F341',
+            code: '🍁',
             keywords: [
                 'falling',
                 'leaf',
@@ -3608,7 +3632,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F342',
+            code: '🍂',
             keywords: [
                 'falling',
                 'leaf',
@@ -3616,7 +3640,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F343',
+            code: '🍃',
             keywords: [
                 'blow',
                 'flutter',
@@ -3626,7 +3650,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F347',
+            code: '🍇',
             keywords: [
                 'fruit',
                 'grape',
@@ -3634,7 +3658,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F348',
+            code: '🍈',
             keywords: [
                 'fruit',
                 'melon',
@@ -3642,7 +3666,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F349',
+            code: '🍉',
             keywords: [
                 'fruit',
                 'plant',
@@ -3650,7 +3674,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F34A',
+            code: '🍊',
             keywords: [
                 'fruit',
                 'orange',
@@ -3659,7 +3683,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F34B',
+            code: '🍋',
             keywords: [
                 'citrus',
                 'fruit',
@@ -3668,7 +3692,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F34C',
+            code: '🍌',
             keywords: [
                 'banana',
                 'fruit',
@@ -3676,7 +3700,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F34D',
+            code: '🍍',
             keywords: [
                 'fruit',
                 'pineapple',
@@ -3684,7 +3708,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F34E',
+            code: '🍎',
             keywords: [
                 'apple',
                 'fruit',
@@ -3693,7 +3717,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F34F',
+            code: '🍏',
             keywords: [
                 'apple',
                 'fruit',
@@ -3702,7 +3726,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F350',
+            code: '🍐',
             keywords: [
                 'fruit',
                 'pear',
@@ -3710,7 +3734,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F351',
+            code: '🍑',
             keywords: [
                 'fruit',
                 'peach',
@@ -3718,7 +3742,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F352',
+            code: '🍒',
             keywords: [
                 'cherry',
                 'fruit',
@@ -3726,7 +3750,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F353',
+            code: '🍓',
             keywords: [
                 'berry',
                 'fruit',
@@ -3735,7 +3759,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F345',
+            code: '🍅',
             keywords: [
                 'plant',
                 'tomato',
@@ -3743,21 +3767,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F95D',
+            code: '🥝',
             keywords: [
                 'fruit',
                 'kiwi',
             ],
         },
         {
-            code: 'U+1F951',
+            code: '🥑',
             keywords: [
                 'avocado',
                 'fruit',
             ],
         },
         {
-            code: 'U+1F346',
+            code: '🍆',
             keywords: [
                 'aubergine',
                 'eggplant',
@@ -3766,21 +3790,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F954',
+            code: '🥔',
             keywords: [
                 'potato',
                 'vegetable',
             ],
         },
         {
-            code: 'U+1F955',
+            code: '🥕',
             keywords: [
                 'carrot',
                 'vegetable',
             ],
         },
         {
-            code: 'U+1F33D',
+            code: '🌽',
             keywords: [
                 'corn',
                 'ear',
@@ -3790,7 +3814,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F336',
+            code: '🌶',
             keywords: [
                 'hot',
                 'pepper',
@@ -3798,7 +3822,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F952',
+            code: '🥒',
             keywords: [
                 'cucumber',
                 'pickle',
@@ -3806,14 +3830,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F344',
+            code: '🍄',
             keywords: [
                 'mushroom',
                 'plant',
             ],
         },
         {
-            code: 'U+1F95C',
+            code: '🥜',
             keywords: [
                 'nut',
                 'peanut',
@@ -3821,21 +3845,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F330',
+            code: '🌰',
             keywords: [
                 'chestnut',
                 'plant',
             ],
         },
         {
-            code: 'U+1F35E',
+            code: '🍞',
             keywords: [
                 'bread',
                 'loaf',
             ],
         },
         {
-            code: 'U+1F950',
+            code: '🥐',
             keywords: [
                 'bread',
                 'crescent roll',
@@ -3844,7 +3868,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F956',
+            code: '🥖',
             keywords: [
                 'baguette',
                 'bread',
@@ -3852,7 +3876,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F95E',
+            code: '🥞',
             keywords: [
                 'crêpe',
                 'hotcake',
@@ -3860,20 +3884,20 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F9C0',
+            code: '🧀',
             keywords: [
                 'cheese',
             ],
         },
         {
-            code: 'U+1F356',
+            code: '🍖',
             keywords: [
                 'bone',
                 'meat',
             ],
         },
         {
-            code: 'U+1F357',
+            code: '🍗',
             keywords: [
                 'bone',
                 'chicken',
@@ -3882,28 +3906,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F953',
+            code: '🥓',
             keywords: [
                 'bacon',
                 'meat',
             ],
         },
         {
-            code: 'U+1F354',
+            code: '🍔',
             keywords: [
                 'burger',
                 'hamburger',
             ],
         },
         {
-            code: 'U+1F35F',
+            code: '🍟',
             keywords: [
                 'french',
                 'fries',
             ],
         },
         {
-            code: 'U+1F355',
+            code: '🍕',
             keywords: [
                 'cheese',
                 'pizza',
@@ -3911,7 +3935,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F32D',
+            code: '🌭',
             keywords: [
                 'frankfurter',
                 'hot dog',
@@ -3920,21 +3944,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F32E',
+            code: '🌮',
             keywords: [
                 'mexican',
                 'taco',
             ],
         },
         {
-            code: 'U+1F32F',
+            code: '🌯',
             keywords: [
                 'burrito',
                 'mexican',
             ],
         },
         {
-            code: 'U+1F959',
+            code: '🥙',
             keywords: [
                 'falafel',
                 'flatbread',
@@ -3944,13 +3968,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F95A',
+            code: '🥚',
             keywords: [
                 'egg',
             ],
         },
         {
-            code: 'U+1F373',
+            code: '🍳',
             keywords: [
                 'cooking',
                 'egg',
@@ -3959,7 +3983,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F958',
+            code: '🥘',
             keywords: [
                 'casserole',
                 'paella',
@@ -3968,41 +3992,41 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F372',
+            code: '🍲',
             keywords: [
                 'pot',
                 'stew',
             ],
         },
         {
-            code: 'U+1F957',
+            code: '🥗',
             keywords: [
                 'green',
                 'salad',
             ],
         },
         {
-            code: 'U+1F37F',
+            code: '🍿',
             keywords: [
                 'popcorn',
             ],
         },
         {
-            code: 'U+1F371',
+            code: '🍱',
             keywords: [
                 'bento',
                 'box',
             ],
         },
         {
-            code: 'U+1F358',
+            code: '🍘',
             keywords: [
                 'cracker',
                 'rice',
             ],
         },
         {
-            code: 'U+1F359',
+            code: '🍙',
             keywords: [
                 'ball',
                 'japanese',
@@ -4010,21 +4034,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F35A',
+            code: '🍚',
             keywords: [
                 'cooked',
                 'rice',
             ],
         },
         {
-            code: 'U+1F35B',
+            code: '🍛',
             keywords: [
                 'curry',
                 'rice',
             ],
         },
         {
-            code: 'U+1F35C',
+            code: '🍜',
             keywords: [
                 'bowl',
                 'noodle',
@@ -4033,14 +4057,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F35D',
+            code: '🍝',
             keywords: [
                 'pasta',
                 'spaghetti',
             ],
         },
         {
-            code: 'U+1F360',
+            code: '🍠',
             keywords: [
                 'potato',
                 'roasted',
@@ -4048,7 +4072,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F362',
+            code: '🍢',
             keywords: [
                 'kebab',
                 'oden',
@@ -4058,13 +4082,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F363',
+            code: '🍣',
             keywords: [
                 'sushi',
             ],
         },
         {
-            code: 'U+1F364',
+            code: '🍤',
             keywords: [
                 'fried',
                 'prawn',
@@ -4073,7 +4097,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F365',
+            code: '🍥',
             keywords: [
                 'cake',
                 'fish',
@@ -4082,7 +4106,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F361',
+            code: '🍡',
             keywords: [
                 'dango',
                 'dessert',
@@ -4093,7 +4117,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F366',
+            code: '🍦',
             keywords: [
                 'cream',
                 'dessert',
@@ -4104,7 +4128,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F367',
+            code: '🍧',
             keywords: [
                 'dessert',
                 'ice',
@@ -4113,7 +4137,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F368',
+            code: '🍨',
             keywords: [
                 'cream',
                 'dessert',
@@ -4122,7 +4146,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F369',
+            code: '🍩',
             keywords: [
                 'dessert',
                 'donut',
@@ -4131,7 +4155,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F36A',
+            code: '🍪',
             keywords: [
                 'cookie',
                 'dessert',
@@ -4139,7 +4163,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F382',
+            code: '🎂',
             keywords: [
                 'birthday',
                 'cake',
@@ -4150,7 +4174,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F370',
+            code: '🍰',
             keywords: [
                 'cake',
                 'dessert',
@@ -4161,7 +4185,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F36B',
+            code: '🍫',
             keywords: [
                 'bar',
                 'chocolate',
@@ -4170,7 +4194,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F36C',
+            code: '🍬',
             keywords: [
                 'candy',
                 'dessert',
@@ -4178,7 +4202,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F36D',
+            code: '🍭',
             keywords: [
                 'candy',
                 'dessert',
@@ -4187,7 +4211,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F36E',
+            code: '🍮',
             keywords: [
                 'custard',
                 'dessert',
@@ -4196,7 +4220,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F36F',
+            code: '🍯',
             keywords: [
                 'honey',
                 'honeypot',
@@ -4205,7 +4229,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F37C',
+            code: '🍼',
             keywords: [
                 'baby',
                 'bottle',
@@ -4214,7 +4238,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F95B',
+            code: '🥛',
             keywords: [
                 'drink',
                 'glass',
@@ -4222,7 +4246,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2615',
+            code: '☕',
             keywords: [
                 'beverage',
                 'coffee',
@@ -4233,7 +4257,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F375',
+            code: '🍵',
             keywords: [
                 'beverage',
                 'cup',
@@ -4243,7 +4267,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F376',
+            code: '🍶',
             keywords: [
                 'bar',
                 'beverage',
@@ -4254,7 +4278,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F37E',
+            code: '🍾',
             keywords: [
                 'bar',
                 'bottle',
@@ -4264,7 +4288,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F377',
+            code: '🍷',
             keywords: [
                 'bar',
                 'beverage',
@@ -4274,7 +4298,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F378',
+            code: '🍸',
             keywords: [
                 'bar',
                 'cocktail',
@@ -4283,7 +4307,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F379',
+            code: '🍹',
             keywords: [
                 'bar',
                 'drink',
@@ -4291,7 +4315,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F37A',
+            code: '🍺',
             keywords: [
                 'bar',
                 'beer',
@@ -4300,7 +4324,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F37B',
+            code: '🍻',
             keywords: [
                 'bar',
                 'beer',
@@ -4310,7 +4334,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F942',
+            code: '🥂',
             keywords: [
                 'celebrate',
                 'clink',
@@ -4319,7 +4343,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F943',
+            code: '🥃',
             keywords: [
                 'glass',
                 'liquor',
@@ -4329,7 +4353,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F37D',
+            code: '🍽',
             keywords: [
                 'cooking',
                 'fork',
@@ -4338,7 +4362,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F374',
+            code: '🍴',
             keywords: [
                 'cooking',
                 'fork',
@@ -4346,14 +4370,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F944',
+            code: '🥄',
             keywords: [
                 'spoon',
                 'tableware',
             ],
         },
         {
-            code: 'U+1F52A',
+            code: '🔪',
             keywords: [
                 'cooking',
                 'hocho',
@@ -4363,7 +4387,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3FA',
+            code: '🏺',
             keywords: [
                 'amphora',
                 'aquarius',
@@ -4378,7 +4402,7 @@ const emojis = {
     ],
     'Travel & Places': [
         {
-            code: 'U+1F30D',
+            code: '🌍',
             keywords: [
                 'africa',
                 'earth',
@@ -4388,7 +4412,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F30E',
+            code: '🌎',
             keywords: [
                 'americas',
                 'earth',
@@ -4397,7 +4421,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F30F',
+            code: '🌏',
             keywords: [
                 'asia',
                 'australia',
@@ -4407,7 +4431,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F310',
+            code: '🌐',
             keywords: [
                 'earth',
                 'globe',
@@ -4416,21 +4440,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5FA',
+            code: '🗺',
             keywords: [
                 'map',
                 'world',
             ],
         },
         {
-            code: 'U+1F5FE',
+            code: '🗾',
             keywords: [
                 'japan',
                 'map',
             ],
         },
         {
-            code: 'U+1F3D4',
+            code: '🏔',
             keywords: [
                 'cold',
                 'mountain',
@@ -4438,13 +4462,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26F0',
+            code: '⛰',
             keywords: [
                 'mountain',
             ],
         },
         {
-            code: 'U+1F30B',
+            code: '🌋',
             keywords: [
                 'eruption',
                 'mountain',
@@ -4453,81 +4477,81 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5FB',
+            code: '🗻',
             keywords: [
                 'fuji',
                 'mountain',
             ],
         },
         {
-            code: 'U+1F3D5',
+            code: '🏕',
             keywords: [
                 'camping',
             ],
         },
         {
-            code: 'U+1F3D6',
+            code: '🏖',
             keywords: [
                 'beach',
                 'umbrella',
             ],
         },
         {
-            code: 'U+1F3DC',
+            code: '🏜',
             keywords: [
                 'desert',
             ],
         },
         {
-            code: 'U+1F3DD',
+            code: '🏝',
             keywords: [
                 'desert',
                 'island',
             ],
         },
         {
-            code: 'U+1F3DE',
+            code: '🏞',
             keywords: [
                 'national park',
                 'park',
             ],
         },
         {
-            code: 'U+1F3DF',
+            code: '🏟',
             keywords: [
                 'stadium',
             ],
         },
         {
-            code: 'U+1F3DB',
+            code: '🏛',
             keywords: [
                 'building',
                 'classical',
             ],
         },
         {
-            code: 'U+1F3D7',
+            code: '🏗',
             keywords: [
                 'building',
                 'construction',
             ],
         },
         {
-            code: 'U+1F3D8',
+            code: '🏘',
             keywords: [
                 'building',
                 'house',
             ],
         },
         {
-            code: 'U+1F3D9',
+            code: '🏙',
             keywords: [
                 'building',
                 'city',
             ],
         },
         {
-            code: 'U+1F3DA',
+            code: '🏚',
             keywords: [
                 'building',
                 'derelict',
@@ -4535,7 +4559,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3E0',
+            code: '🏠',
             keywords: [
                 'building',
                 'home',
@@ -4543,7 +4567,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3E1',
+            code: '🏡',
             keywords: [
                 'building',
                 'garden',
@@ -4552,13 +4576,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3E2',
+            code: '🏢',
             keywords: [
                 'building',
             ],
         },
         {
-            code: 'U+1F3E3',
+            code: '🏣',
             keywords: [
                 'building',
                 'japanese',
@@ -4566,7 +4590,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3E4',
+            code: '🏤',
             keywords: [
                 'building',
                 'european',
@@ -4574,7 +4598,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3E5',
+            code: '🏥',
             keywords: [
                 'building',
                 'doctor',
@@ -4583,21 +4607,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3E6',
+            code: '🏦',
             keywords: [
                 'bank',
                 'building',
             ],
         },
         {
-            code: 'U+1F3E8',
+            code: '🏨',
             keywords: [
                 'building',
                 'hotel',
             ],
         },
         {
-            code: 'U+1F3E9',
+            code: '🏩',
             keywords: [
                 'building',
                 'hotel',
@@ -4605,7 +4629,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3EA',
+            code: '🏪',
             keywords: [
                 'building',
                 'convenience',
@@ -4613,14 +4637,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3EB',
+            code: '🏫',
             keywords: [
                 'building',
                 'school',
             ],
         },
         {
-            code: 'U+1F3EC',
+            code: '🏬',
             keywords: [
                 'building',
                 'department',
@@ -4628,14 +4652,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3ED',
+            code: '🏭',
             keywords: [
                 'building',
                 'factory',
             ],
         },
         {
-            code: 'U+1F3EF',
+            code: '🏯',
             keywords: [
                 'building',
                 'castle',
@@ -4643,7 +4667,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3F0',
+            code: '🏰',
             keywords: [
                 'building',
                 'castle',
@@ -4651,7 +4675,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F492',
+            code: '💒',
             keywords: [
                 'activity',
                 'chapel',
@@ -4660,21 +4684,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5FC',
+            code: '🗼',
             keywords: [
                 'tokyo',
                 'tower',
             ],
         },
         {
-            code: 'U+1F5FD',
+            code: '🗽',
             keywords: [
                 'liberty',
                 'statue',
             ],
         },
         {
-            code: 'U+26EA',
+            code: '⛪',
             keywords: [
                 'building',
                 'christian',
@@ -4684,7 +4708,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F54C',
+            code: '🕌',
             keywords: [
                 'islam',
                 'mosque',
@@ -4693,7 +4717,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F54D',
+            code: '🕍',
             keywords: [
                 'jew',
                 'jewish',
@@ -4703,7 +4727,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26E9',
+            code: '⛩',
             keywords: [
                 'religion',
                 'shinto',
@@ -4711,7 +4735,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F54B',
+            code: '🕋',
             keywords: [
                 'islam',
                 'kaaba',
@@ -4720,27 +4744,27 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26F2',
+            code: '⛲',
             keywords: [
                 'fountain',
             ],
         },
         {
-            code: 'U+26FA',
+            code: '⛺',
             keywords: [
                 'camping',
                 'tent',
             ],
         },
         {
-            code: 'U+1F301',
+            code: '🌁',
             keywords: [
                 'fog',
                 'weather',
             ],
         },
         {
-            code: 'U+1F303',
+            code: '🌃',
             keywords: [
                 'night',
                 'star',
@@ -4748,7 +4772,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F304',
+            code: '🌄',
             keywords: [
                 'morning',
                 'mountain',
@@ -4758,7 +4782,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F305',
+            code: '🌅',
             keywords: [
                 'morning',
                 'sun',
@@ -4767,7 +4791,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F306',
+            code: '🌆',
             keywords: [
                 'building',
                 'city',
@@ -4780,7 +4804,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F307',
+            code: '🌇',
             keywords: [
                 'building',
                 'dusk',
@@ -4790,7 +4814,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F309',
+            code: '🌉',
             keywords: [
                 'bridge',
                 'night',
@@ -4798,7 +4822,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2668',
+            code: '♨',
             keywords: [
                 'hot',
                 'hotsprings',
@@ -4807,7 +4831,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F30C',
+            code: '🌌',
             keywords: [
                 'milky way',
                 'space',
@@ -4815,7 +4839,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3A0',
+            code: '🎠',
             keywords: [
                 'activity',
                 'carousel',
@@ -4824,7 +4848,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3A1',
+            code: '🎡',
             keywords: [
                 'activity',
                 'amusement park',
@@ -4834,7 +4858,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3A2',
+            code: '🎢',
             keywords: [
                 'activity',
                 'amusement park',
@@ -4844,7 +4868,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F488',
+            code: '💈',
             keywords: [
                 'barber',
                 'haircut',
@@ -4852,7 +4876,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3AA',
+            code: '🎪',
             keywords: [
                 'activity',
                 'circus',
@@ -4861,7 +4885,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3AD',
+            code: '🎭',
             keywords: [
                 'activity',
                 'art',
@@ -4873,7 +4897,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5BC',
+            code: '🖼',
             keywords: [
                 'art',
                 'frame',
@@ -4883,7 +4907,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3A8',
+            code: '🎨',
             keywords: [
                 'activity',
                 'art',
@@ -4894,7 +4918,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3B0',
+            code: '🎰',
             keywords: [
                 'activity',
                 'game',
@@ -4902,7 +4926,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F682',
+            code: '🚂',
             keywords: [
                 'engine',
                 'locomotive',
@@ -4913,7 +4937,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F683',
+            code: '🚃',
             keywords: [
                 'car',
                 'electric',
@@ -4925,7 +4949,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F684',
+            code: '🚄',
             keywords: [
                 'railway',
                 'shinkansen',
@@ -4935,7 +4959,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F685',
+            code: '🚅',
             keywords: [
                 'bullet',
                 'railway',
@@ -4946,7 +4970,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F686',
+            code: '🚆',
             keywords: [
                 'railway',
                 'train',
@@ -4954,7 +4978,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F687',
+            code: '🚇',
             keywords: [
                 'metro',
                 'subway',
@@ -4962,14 +4986,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F688',
+            code: '🚈',
             keywords: [
                 'railway',
                 'vehicle',
             ],
         },
         {
-            code: 'U+1F689',
+            code: '🚉',
             keywords: [
                 'railway',
                 'station',
@@ -4978,7 +5002,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F68A',
+            code: '🚊',
             keywords: [
                 'tram',
                 'trolleybus',
@@ -4986,14 +5010,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F69D',
+            code: '🚝',
             keywords: [
                 'monorail',
                 'vehicle',
             ],
         },
         {
-            code: 'U+1F69E',
+            code: '🚞',
             keywords: [
                 'car',
                 'mountain',
@@ -5002,7 +5026,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F68B',
+            code: '🚋',
             keywords: [
                 'car',
                 'tram',
@@ -5011,14 +5035,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F68C',
+            code: '🚌',
             keywords: [
                 'bus',
                 'vehicle',
             ],
         },
         {
-            code: 'U+1F68D',
+            code: '🚍',
             keywords: [
                 'bus',
                 'oncoming',
@@ -5026,7 +5050,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F68E',
+            code: '🚎',
             keywords: [
                 'bus',
                 'tram',
@@ -5036,7 +5060,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F68F',
+            code: '🚏',
             keywords: [
                 'bus',
                 'busstop',
@@ -5044,7 +5068,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F690',
+            code: '🚐',
             keywords: [
                 'bus',
                 'minibus',
@@ -5052,14 +5076,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F691',
+            code: '🚑',
             keywords: [
                 'ambulance',
                 'vehicle',
             ],
         },
         {
-            code: 'U+1F692',
+            code: '🚒',
             keywords: [
                 'engine',
                 'fire',
@@ -5068,7 +5092,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F693',
+            code: '🚓',
             keywords: [
                 'car',
                 'patrol',
@@ -5077,7 +5101,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F694',
+            code: '🚔',
             keywords: [
                 'car',
                 'oncoming',
@@ -5086,14 +5110,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F695',
+            code: '🚕',
             keywords: [
                 'taxi',
                 'vehicle',
             ],
         },
         {
-            code: 'U+1F696',
+            code: '🚖',
             keywords: [
                 'oncoming',
                 'taxi',
@@ -5101,7 +5125,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F697',
+            code: '🚗',
             keywords: [
                 'automobile',
                 'car',
@@ -5109,7 +5133,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F698',
+            code: '🚘',
             keywords: [
                 'automobile',
                 'car',
@@ -5118,7 +5142,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F699',
+            code: '🚙',
             keywords: [
                 'recreational',
                 'rv',
@@ -5126,7 +5150,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F69A',
+            code: '🚚',
             keywords: [
                 'delivery',
                 'truck',
@@ -5134,7 +5158,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F69B',
+            code: '🚛',
             keywords: [
                 'lorry',
                 'semi',
@@ -5143,14 +5167,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F69C',
+            code: '🚜',
             keywords: [
                 'tractor',
                 'vehicle',
             ],
         },
         {
-            code: 'U+1F6B2',
+            code: '🚲',
             keywords: [
                 'bicycle',
                 'bike',
@@ -5158,7 +5182,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26FD',
+            code: '⛽',
             keywords: [
                 'fuel',
                 'fuelpump',
@@ -5168,7 +5192,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6E3',
+            code: '🛣',
             keywords: [
                 'highway',
                 'motorway',
@@ -5176,14 +5200,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6E4',
+            code: '🛤',
             keywords: [
                 'railway',
                 'train',
             ],
         },
         {
-            code: 'U+1F6A8',
+            code: '🚨',
             keywords: [
                 'beacon',
                 'car',
@@ -5194,7 +5218,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6A5',
+            code: '🚥',
             keywords: [
                 'light',
                 'signal',
@@ -5202,7 +5226,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6A6',
+            code: '🚦',
             keywords: [
                 'light',
                 'signal',
@@ -5210,35 +5234,35 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6A7',
+            code: '🚧',
             keywords: [
                 'barrier',
                 'construction',
             ],
         },
         {
-            code: 'U+1F6D1',
+            code: '🛑',
             keywords: [
                 'octagonal',
                 'stop',
             ],
         },
         {
-            code: 'U+1F6F4',
+            code: '🛴',
             keywords: [
                 'kick',
                 'scooter',
             ],
         },
         {
-            code: 'U+1F6F5',
+            code: '🛵',
             keywords: [
                 'motor',
                 'scooter',
             ],
         },
         {
-            code: 'U+2693',
+            code: '⚓',
             keywords: [
                 'anchor',
                 'ship',
@@ -5246,7 +5270,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26F5',
+            code: '⛵',
             keywords: [
                 'boat',
                 'resort',
@@ -5257,29 +5281,29 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6A3',
+            code: '🚣',
             keywords: [
                 'boat',
                 'rowboat',
                 'vehicle',
             ],
             types: [
-                'U+1F6A3 U+1F3FF',
-                'U+1F6A3 U+1F3FE',
-                'U+1F6A3 U+1F3FD',
-                'U+1F6A3 U+1F3FC',
-                'U+1F6A3 U+1F3FB',
+                '🚣🏿',
+                '🚣🏾',
+                '🚣🏽',
+                '🚣🏼',
+                '🚣🏻',
             ],
         },
         {
-            code: 'U+1F6F6',
+            code: '🛶',
             keywords: [
                 'boat',
                 'canoe',
             ],
         },
         {
-            code: 'U+1F6A4',
+            code: '🚤',
             keywords: [
                 'boat',
                 'speedboat',
@@ -5287,7 +5311,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6F3',
+            code: '🛳',
             keywords: [
                 'passenger',
                 'ship',
@@ -5295,14 +5319,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26F4',
+            code: '⛴',
             keywords: [
                 'boat',
                 'ferry',
             ],
         },
         {
-            code: 'U+1F6E5',
+            code: '🛥',
             keywords: [
                 'boat',
                 'motorboat',
@@ -5310,28 +5334,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6A2',
+            code: '🚢',
             keywords: [
                 'ship',
                 'vehicle',
             ],
         },
         {
-            code: 'U+2708',
+            code: '✈',
             keywords: [
                 'airplane',
                 'vehicle',
             ],
         },
         {
-            code: 'U+1F6E9',
+            code: '🛩',
             keywords: [
                 'airplane',
                 'vehicle',
             ],
         },
         {
-            code: 'U+1F6EB',
+            code: '🛫',
             keywords: [
                 'airplane',
                 'check-in',
@@ -5341,7 +5365,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6EC',
+            code: '🛬',
             keywords: [
                 'airplane',
                 'arrivals',
@@ -5351,21 +5375,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4BA',
+            code: '💺',
             keywords: [
                 'chair',
                 'seat',
             ],
         },
         {
-            code: 'U+1F681',
+            code: '🚁',
             keywords: [
                 'helicopter',
                 'vehicle',
             ],
         },
         {
-            code: 'U+1F69F',
+            code: '🚟',
             keywords: [
                 'railway',
                 'suspension',
@@ -5373,7 +5397,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6A0',
+            code: '🚠',
             keywords: [
                 'cable',
                 'gondola',
@@ -5382,7 +5406,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6A1',
+            code: '🚡',
             keywords: [
                 'aerial',
                 'cable',
@@ -5394,7 +5418,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F680',
+            code: '🚀',
             keywords: [
                 'rocket',
                 'space',
@@ -5402,7 +5426,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6F0',
+            code: '🛰',
             keywords: [
                 'satellite',
                 'space',
@@ -5410,7 +5434,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6CE',
+            code: '🛎',
             keywords: [
                 'bell',
                 'bellhop',
@@ -5418,20 +5442,20 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6AA',
+            code: '🚪',
             keywords: [
                 'door',
             ],
         },
         {
-            code: 'U+1F6CC',
+            code: '🛌',
             keywords: [
                 'hotel',
                 'sleep',
             ],
         },
         {
-            code: 'U+1F6CF',
+            code: '🛏',
             keywords: [
                 'bed',
                 'hotel',
@@ -5439,7 +5463,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6CB',
+            code: '🛋',
             keywords: [
                 'couch',
                 'hotel',
@@ -5447,41 +5471,41 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6BD',
+            code: '🚽',
             keywords: [
                 'toilet',
             ],
         },
         {
-            code: 'U+1F6BF',
+            code: '🚿',
             keywords: [
                 'shower',
                 'water',
             ],
         },
         {
-            code: 'U+1F6C0',
+            code: '🛀',
             keywords: [
                 'bath',
                 'bathtub',
             ],
             types: [
-                'U+1F6C0 U+1F3FF',
-                'U+1F6C0 U+1F3FE',
-                'U+1F6C0 U+1F3FD',
-                'U+1F6C0 U+1F3FC',
-                'U+1F6C0 U+1F3FB',
+                '🛀🏿',
+                '🛀🏾',
+                '🛀🏽',
+                '🛀🏼',
+                '🛀🏻',
             ],
         },
         {
-            code: 'U+1F6C1',
+            code: '🛁',
             keywords: [
                 'bath',
                 'bathtub',
             ],
         },
         {
-            code: 'U+231B',
+            code: '⌛',
             keywords: [
                 'hourglass',
                 'sand',
@@ -5489,7 +5513,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+23F3',
+            code: '⏳',
             keywords: [
                 'hourglass',
                 'sand',
@@ -5497,41 +5521,41 @@ const emojis = {
             ],
         },
         {
-            code: 'U+231A',
+            code: '⌚',
             keywords: [
                 'clock',
                 'watch',
             ],
         },
         {
-            code: 'U+23F0',
+            code: '⏰',
             keywords: [
                 'alarm',
                 'clock',
             ],
         },
         {
-            code: 'U+23F1',
+            code: '⏱',
             keywords: [
                 'clock',
                 'stopwatch',
             ],
         },
         {
-            code: 'U+23F2',
+            code: '⏲',
             keywords: [
                 'clock',
                 'timer',
             ],
         },
         {
-            code: 'U+1F570',
+            code: '🕰',
             keywords: [
                 'clock',
             ],
         },
         {
-            code: 'U+1F55B',
+            code: '🕛',
             keywords: [
                 '00',
                 '12',
@@ -5542,7 +5566,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F567',
+            code: '🕧',
             keywords: [
                 '12',
                 '12:30',
@@ -5553,7 +5577,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F550',
+            code: '🕐',
             keywords: [
                 '00',
                 '1',
@@ -5564,7 +5588,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F55C',
+            code: '🕜',
             keywords: [
                 '1',
                 '1:30',
@@ -5575,7 +5599,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F551',
+            code: '🕑',
             keywords: [
                 '00',
                 '2',
@@ -5586,7 +5610,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F55D',
+            code: '🕝',
             keywords: [
                 '2',
                 '2:30',
@@ -5597,7 +5621,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F552',
+            code: '🕒',
             keywords: [
                 '00',
                 '3',
@@ -5608,7 +5632,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F55E',
+            code: '🕞',
             keywords: [
                 '3',
                 '3:30',
@@ -5619,7 +5643,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F553',
+            code: '🕓',
             keywords: [
                 '00',
                 '4',
@@ -5630,7 +5654,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F55F',
+            code: '🕟',
             keywords: [
                 '30',
                 '4',
@@ -5641,7 +5665,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F554',
+            code: '🕔',
             keywords: [
                 '00',
                 '5',
@@ -5652,7 +5676,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F560',
+            code: '🕠',
             keywords: [
                 '30',
                 '5',
@@ -5663,7 +5687,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F555',
+            code: '🕕',
             keywords: [
                 '00',
                 '6',
@@ -5674,7 +5698,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F561',
+            code: '🕡',
             keywords: [
                 '30',
                 '6',
@@ -5685,7 +5709,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F556',
+            code: '🕖',
             keywords: [
                 '00',
                 '7',
@@ -5696,7 +5720,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F562',
+            code: '🕢',
             keywords: [
                 '30',
                 '7',
@@ -5707,7 +5731,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F557',
+            code: '🕗',
             keywords: [
                 '00',
                 '8',
@@ -5718,7 +5742,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F563',
+            code: '🕣',
             keywords: [
                 '30',
                 '8',
@@ -5729,7 +5753,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F558',
+            code: '🕘',
             keywords: [
                 '00',
                 '9',
@@ -5740,7 +5764,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F564',
+            code: '🕤',
             keywords: [
                 '30',
                 '9',
@@ -5751,7 +5775,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F559',
+            code: '🕙',
             keywords: [
                 '00',
                 '10',
@@ -5762,7 +5786,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F565',
+            code: '🕥',
             keywords: [
                 '10',
                 '10:30',
@@ -5773,7 +5797,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F55A',
+            code: '🕚',
             keywords: [
                 '00',
                 '11',
@@ -5784,7 +5808,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F566',
+            code: '🕦',
             keywords: [
                 '11',
                 '11:30',
@@ -5795,7 +5819,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F311',
+            code: '🌑',
             keywords: [
                 'dark',
                 'moon',
@@ -5804,7 +5828,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F312',
+            code: '🌒',
             keywords: [
                 'crescent',
                 'moon',
@@ -5814,7 +5838,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F313',
+            code: '🌓',
             keywords: [
                 'moon',
                 'quarter',
@@ -5823,7 +5847,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F314',
+            code: '🌔',
             keywords: [
                 'gibbous',
                 'moon',
@@ -5833,7 +5857,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F315',
+            code: '🌕',
             keywords: [
                 'full',
                 'moon',
@@ -5842,7 +5866,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F316',
+            code: '🌖',
             keywords: [
                 'gibbous',
                 'moon',
@@ -5852,7 +5876,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F317',
+            code: '🌗',
             keywords: [
                 'moon',
                 'quarter',
@@ -5861,7 +5885,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F318',
+            code: '🌘',
             keywords: [
                 'crescent',
                 'moon',
@@ -5871,7 +5895,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F319',
+            code: '🌙',
             keywords: [
                 'crescent',
                 'moon',
@@ -5880,7 +5904,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F31A',
+            code: '🌚',
             keywords: [
                 'face',
                 'moon',
@@ -5889,17 +5913,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F31B',
-            keywords: [
-                'face',
-                'moon',
-                'quarter',
-                'space',
-                'weather',
-            ],
-        },
-        {
-            code: 'U+1F31C',
+            code: '🌛',
             keywords: [
                 'face',
                 'moon',
@@ -5909,14 +5923,24 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F321',
+            code: '🌜',
+            keywords: [
+                'face',
+                'moon',
+                'quarter',
+                'space',
+                'weather',
+            ],
+        },
+        {
+            code: '🌡',
             keywords: [
                 'thermometer',
                 'weather',
             ],
         },
         {
-            code: 'U+2600',
+            code: '☀',
             keywords: [
                 'bright',
                 'rays',
@@ -5927,7 +5951,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F31D',
+            code: '🌝',
             keywords: [
                 'bright',
                 'face',
@@ -5938,7 +5962,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F31E',
+            code: '🌞',
             keywords: [
                 'bright',
                 'face',
@@ -5948,13 +5972,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2B50',
+            code: '⭐',
             keywords: [
                 'star',
             ],
         },
         {
-            code: 'U+1F31F',
+            code: '🌟',
             keywords: [
                 'glittery',
                 'glow',
@@ -5964,7 +5988,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F320',
+            code: '🌠',
             keywords: [
                 'activity',
                 'falling',
@@ -5974,14 +5998,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2601',
+            code: '☁',
             keywords: [
                 'cloud',
                 'weather',
             ],
         },
         {
-            code: 'U+26C5',
+            code: '⛅',
             keywords: [
                 'cloud',
                 'sun',
@@ -5989,7 +6013,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26C8',
+            code: '⛈',
             keywords: [
                 'cloud',
                 'rain',
@@ -5998,7 +6022,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F324',
+            code: '🌤',
             keywords: [
                 'cloud',
                 'sun',
@@ -6006,7 +6030,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F325',
+            code: '🌥',
             keywords: [
                 'cloud',
                 'sun',
@@ -6014,7 +6038,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F326',
+            code: '🌦',
             keywords: [
                 'cloud',
                 'rain',
@@ -6023,7 +6047,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F327',
+            code: '🌧',
             keywords: [
                 'cloud',
                 'rain',
@@ -6031,7 +6055,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F328',
+            code: '🌨',
             keywords: [
                 'cloud',
                 'cold',
@@ -6040,7 +6064,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F329',
+            code: '🌩',
             keywords: [
                 'cloud',
                 'lightning',
@@ -6048,7 +6072,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F32A',
+            code: '🌪',
             keywords: [
                 'cloud',
                 'tornado',
@@ -6057,7 +6081,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F32B',
+            code: '🌫',
             keywords: [
                 'cloud',
                 'fog',
@@ -6065,7 +6089,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F32C',
+            code: '🌬',
             keywords: [
                 'blow',
                 'cloud',
@@ -6075,7 +6099,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F300',
+            code: '🌀',
             keywords: [
                 'cyclone',
                 'dizzy',
@@ -6085,7 +6109,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F308',
+            code: '🌈',
             keywords: [
                 'rain',
                 'rainbow',
@@ -6093,7 +6117,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F302',
+            code: '🌂',
             keywords: [
                 'clothing',
                 'rain',
@@ -6102,7 +6126,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2602',
+            code: '☂',
             keywords: [
                 'clothing',
                 'rain',
@@ -6111,7 +6135,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2614',
+            code: '☔',
             keywords: [
                 'clothing',
                 'drop',
@@ -6121,7 +6145,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26F1',
+            code: '⛱',
             keywords: [
                 'rain',
                 'sun',
@@ -6130,7 +6154,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26A1',
+            code: '⚡',
             keywords: [
                 'danger',
                 'electric',
@@ -6141,7 +6165,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2744',
+            code: '❄',
             keywords: [
                 'cold',
                 'snow',
@@ -6150,7 +6174,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2603',
+            code: '☃',
             keywords: [
                 'cold',
                 'snow',
@@ -6159,7 +6183,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26C4',
+            code: '⛄',
             keywords: [
                 'cold',
                 'snow',
@@ -6168,14 +6192,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2604',
+            code: '☄',
             keywords: [
                 'comet',
                 'space',
             ],
         },
         {
-            code: 'U+1F525',
+            code: '🔥',
             keywords: [
                 'fire',
                 'flame',
@@ -6183,7 +6207,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4A7',
+            code: '💧',
             keywords: [
                 'cold',
                 'comic',
@@ -6193,7 +6217,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F30A',
+            code: '🌊',
             keywords: [
                 'ocean',
                 'water',
@@ -6204,7 +6228,7 @@ const emojis = {
     ],
     Activities: [
         {
-            code: 'U+1F383',
+            code: '🎃',
             keywords: [
                 'activity',
                 'celebration',
@@ -6215,7 +6239,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F384',
+            code: '🎄',
             keywords: [
                 'activity',
                 'celebration',
@@ -6225,7 +6249,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F386',
+            code: '🎆',
             keywords: [
                 'activity',
                 'celebration',
@@ -6234,7 +6258,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F387',
+            code: '🎇',
             keywords: [
                 'activity',
                 'celebration',
@@ -6244,7 +6268,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2728',
+            code: '✨',
             keywords: [
                 'entertainment',
                 'sparkle',
@@ -6252,7 +6276,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F388',
+            code: '🎈',
             keywords: [
                 'activity',
                 'balloon',
@@ -6261,7 +6285,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F389',
+            code: '🎉',
             keywords: [
                 'activity',
                 'celebration',
@@ -6272,7 +6296,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F38A',
+            code: '🎊',
             keywords: [
                 'activity',
                 'ball',
@@ -6282,7 +6306,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F38B',
+            code: '🎋',
             keywords: [
                 'activity',
                 'banner',
@@ -6293,7 +6317,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F38D',
+            code: '🎍',
             keywords: [
                 'activity',
                 'bamboo',
@@ -6304,7 +6328,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F38E',
+            code: '🎎',
             keywords: [
                 'activity',
                 'celebration',
@@ -6315,7 +6339,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F38F',
+            code: '🎏',
             keywords: [
                 'activity',
                 'carp',
@@ -6326,7 +6350,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F390',
+            code: '🎐',
             keywords: [
                 'activity',
                 'bell',
@@ -6337,7 +6361,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F391',
+            code: '🎑',
             keywords: [
                 'activity',
                 'celebration',
@@ -6347,14 +6371,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F380',
+            code: '🎀',
             keywords: [
                 'celebration',
                 'ribbon',
             ],
         },
         {
-            code: 'U+1F381',
+            code: '🎁',
             keywords: [
                 'box',
                 'celebration',
@@ -6365,7 +6389,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F397',
+            code: '🎗',
             keywords: [
                 'celebration',
                 'reminder',
@@ -6373,7 +6397,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F39F',
+            code: '🎟',
             keywords: [
                 'admission',
                 'entertainment',
@@ -6381,7 +6405,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3AB',
+            code: '🎫',
             keywords: [
                 'activity',
                 'admission',
@@ -6390,7 +6414,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F396',
+            code: '🎖',
             keywords: [
                 'celebration',
                 'medal',
@@ -6398,20 +6422,20 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3C6',
+            code: '🏆',
             keywords: [
                 'prize',
                 'trophy',
             ],
         },
         {
-            code: 'U+1F3C5',
+            code: '🏅',
             keywords: [
                 'medal',
             ],
         },
         {
-            code: 'U+1F947',
+            code: '🥇',
             keywords: [
                 'first',
                 'gold',
@@ -6419,7 +6443,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F948',
+            code: '🥈',
             keywords: [
                 'medal',
                 'second',
@@ -6427,7 +6451,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F949',
+            code: '🥉',
             keywords: [
                 'bronze',
                 'medal',
@@ -6435,21 +6459,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26BD',
+            code: '⚽',
             keywords: [
                 'ball',
                 'soccer',
             ],
         },
         {
-            code: 'U+26BE',
+            code: '⚾',
             keywords: [
                 'ball',
                 'baseball',
             ],
         },
         {
-            code: 'U+1F3C0',
+            code: '🏀',
             keywords: [
                 'ball',
                 'basketball',
@@ -6457,7 +6481,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3D0',
+            code: '🏐',
             keywords: [
                 'ball',
                 'game',
@@ -6465,7 +6489,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3C8',
+            code: '🏈',
             keywords: [
                 'american',
                 'ball',
@@ -6473,7 +6497,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3C9',
+            code: '🏉',
             keywords: [
                 'ball',
                 'football',
@@ -6481,7 +6505,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3BE',
+            code: '🎾',
             keywords: [
                 'ball',
                 'racquet',
@@ -6489,7 +6513,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3B1',
+            code: '🎱',
             keywords: [
                 '8',
                 '8 ball',
@@ -6500,7 +6524,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3B3',
+            code: '🎳',
             keywords: [
                 'ball',
                 'bowling',
@@ -6508,7 +6532,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3CF',
+            code: '🏏',
             keywords: [
                 'ball',
                 'bat',
@@ -6517,7 +6541,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3D1',
+            code: '🏑',
             keywords: [
                 'ball',
                 'field',
@@ -6527,7 +6551,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3D2',
+            code: '🏒',
             keywords: [
                 'game',
                 'hockey',
@@ -6537,7 +6561,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3D3',
+            code: '🏓',
             keywords: [
                 'ball',
                 'bat',
@@ -6547,7 +6571,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3F8',
+            code: '🏸',
             keywords: [
                 'badminton',
                 'birdie',
@@ -6557,14 +6581,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F94A',
+            code: '🥊',
             keywords: [
                 'boxing',
                 'glove',
             ],
         },
         {
-            code: 'U+1F94B',
+            code: '🥋',
             keywords: [
                 'judo',
                 'karate',
@@ -6574,7 +6598,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26F3',
+            code: '⛳',
             keywords: [
                 'flag',
                 'golf',
@@ -6582,21 +6606,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3CC',
+            code: '🏌',
             keywords: [
                 'ball',
                 'golf',
             ],
         },
         {
-            code: 'U+26F8',
+            code: '⛸',
             keywords: [
                 'ice',
                 'skate',
             ],
         },
         {
-            code: 'U+1F3A3',
+            code: '🎣',
             keywords: [
                 'entertainment',
                 'fish',
@@ -6604,7 +6628,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3BD',
+            code: '🎽',
             keywords: [
                 'running',
                 'sash',
@@ -6612,21 +6636,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3BF',
+            code: '🎿',
             keywords: [
                 'ski',
                 'snow',
             ],
         },
         {
-            code: 'U+26F7',
+            code: '⛷',
             keywords: [
                 'ski',
                 'snow',
             ],
         },
         {
-            code: 'U+1F3C2',
+            code: '🏂',
             keywords: [
                 'ski',
                 'snow',
@@ -6634,21 +6658,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3C4',
+            code: '🏄',
             keywords: [
                 'surfer',
                 'surfing',
             ],
             types: [
-                'U+1F3C4 U+1F3FF',
-                'U+1F3C4 U+1F3FE',
-                'U+1F3C4 U+1F3FD',
-                'U+1F3C4 U+1F3FC',
-                'U+1F3C4 U+1F3FB',
+                '🏄🏿',
+                '🏄🏾',
+                '🏄🏽',
+                '🏄🏼',
+                '🏄🏻',
             ],
         },
         {
-            code: 'U+1F3C7',
+            code: '🏇',
             keywords: [
                 'horse',
                 'jockey',
@@ -6657,48 +6681,48 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3CA',
+            code: '🏊',
             keywords: [
                 'swim',
                 'swimmer',
             ],
             types: [
-                'U+1F3CA U+1F3FF',
-                'U+1F3CA U+1F3FE',
-                'U+1F3CA U+1F3FD',
-                'U+1F3CA U+1F3FC',
-                'U+1F3CA U+1F3FB',
+                '🏊🏿',
+                '🏊🏾',
+                '🏊🏽',
+                '🏊🏼',
+                '🏊🏻',
             ],
         },
         {
-            code: 'U+26F9',
+            code: '⛹',
             keywords: [
                 'ball',
             ],
             types: [
-                'U+26F9 U+1F3FF',
-                'U+26F9 U+1F3FE',
-                'U+26F9 U+1F3FD',
-                'U+26F9 U+1F3FC',
-                'U+26F9 U+1F3FB',
+                '⛹🏿',
+                '⛹🏾',
+                '⛹🏽',
+                '⛹🏼',
+                '⛹🏻',
             ],
         },
         {
-            code: 'U+1F3CB',
+            code: '🏋',
             keywords: [
                 'lifter',
                 'weight',
             ],
             types: [
-                'U+1F3CB U+1F3FF',
-                'U+1F3CB U+1F3FE',
-                'U+1F3CB U+1F3FD',
-                'U+1F3CB U+1F3FC',
-                'U+1F3CB U+1F3FB',
+                '🏋🏿',
+                '🏋🏾',
+                '🏋🏽',
+                '🏋🏼',
+                '🏋🏻',
             ],
         },
         {
-            code: 'U+1F6B4',
+            code: '🚴',
             keywords: [
                 'bicycle',
                 'bicyclist',
@@ -6706,15 +6730,15 @@ const emojis = {
                 'cyclist',
             ],
             types: [
-                'U+1F6B4 U+1F3FF',
-                'U+1F6B4 U+1F3FE',
-                'U+1F6B4 U+1F3FD',
-                'U+1F6B4 U+1F3FC',
-                'U+1F6B4 U+1F3FB',
+                '🚴🏿',
+                '🚴🏾',
+                '🚴🏽',
+                '🚴🏼',
+                '🚴🏻',
             ],
         },
         {
-            code: 'U+1F6B5',
+            code: '🚵',
             keywords: [
                 'bicycle',
                 'bicyclist',
@@ -6723,85 +6747,85 @@ const emojis = {
                 'mountain',
             ],
             types: [
-                'U+1F6B5 U+1F3FF',
-                'U+1F6B5 U+1F3FE',
-                'U+1F6B5 U+1F3FD',
-                'U+1F6B5 U+1F3FC',
-                'U+1F6B5 U+1F3FB',
+                '🚵🏿',
+                '🚵🏾',
+                '🚵🏽',
+                '🚵🏼',
+                '🚵🏻',
             ],
         },
         {
-            code: 'U+1F3CE',
+            code: '🏎',
             keywords: [
                 'car',
                 'racing',
             ],
         },
         {
-            code: 'U+1F3CD',
+            code: '🏍',
             keywords: [
                 'motorcycle',
                 'racing',
             ],
         },
         {
-            code: 'U+1F938',
+            code: '🤸',
             keywords: [
                 'cartwheel',
                 'gymnastics',
             ],
             types: [
-                'U+1F938 U+1F3FF',
-                'U+1F938 U+1F3FE',
-                'U+1F938 U+1F3FD',
-                'U+1F938 U+1F3FC',
-                'U+1F938 U+1F3FB',
+                '🤸🏿',
+                '🤸🏾',
+                '🤸🏽',
+                '🤸🏼',
+                '🤸🏻',
             ],
         },
         {
-            code: 'U+1F93C',
+            code: '🤼',
             keywords: [
                 'wrestle',
                 'wrestler',
             ],
             types: [
-                'U+1F93C U+1F3FF',
-                'U+1F93C U+1F3FE',
-                'U+1F93C U+1F3FD',
-                'U+1F93C U+1F3FC',
-                'U+1F93C U+1F3FB',
+                '🤼🏿',
+                '🤼🏾',
+                '🤼🏽',
+                '🤼🏼',
+                '🤼🏻',
             ],
         },
         {
-            code: 'U+1F93D',
+            code: '🤽',
             keywords: [
                 'polo',
                 'water',
             ],
             types: [
-                'U+1F93D U+1F3FF',
-                'U+1F93D U+1F3FE',
-                'U+1F93D U+1F3FD',
-                'U+1F93D U+1F3FC',
-                'U+1F93D U+1F3FB',
+                '🤽🏿',
+                '🤽🏾',
+                '🤽🏽',
+                '🤽🏼',
+                '🤽🏻',
             ],
         },
         {
-            code: 'U+1F93E',
+            code: '🤾',
             keywords: [
                 'ball',
                 'handball',
             ],
             types: [
-                'U+1F93E U+1F3FF',
-                'U+1F93E U+1F3FE',
-                'U+1F93E U+1F3FD',
-                'U+1F93E U+1F3FC',
-                'U+1F93E U+1F3FB',
+                '🤾🏿',
+                '🤾🏾',
+                '🤾🏽',
+                '🤾🏼',
+                '🤾🏻',
             ],
         },
         {
-            code: 'U+1F93A',
+            code: '🤺',
             keywords: [
                 'fencer',
                 'fencing',
@@ -6809,14 +6833,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F945',
+            code: '🥅',
             keywords: [
                 'goal',
                 'net',
             ],
         },
         {
-            code: 'U+1F939',
+            code: '🤹',
             keywords: [
                 'balance',
                 'juggle',
@@ -6824,15 +6848,15 @@ const emojis = {
                 'skill',
             ],
             types: [
-                'U+1F939 U+1F3FF',
-                'U+1F939 U+1F3FE',
-                'U+1F939 U+1F3FD',
-                'U+1F939 U+1F3FC',
-                'U+1F939 U+1F3FB',
+                '🤹🏿',
+                '🤹🏾',
+                '🤹🏽',
+                '🤹🏼',
+                '🤹🏻',
             ],
         },
         {
-            code: 'U+1F3AF',
+            code: '🎯',
             keywords: [
                 'activity',
                 'bull',
@@ -6846,7 +6870,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3AE',
+            code: '🎮',
             keywords: [
                 'controller',
                 'entertainment',
@@ -6855,7 +6879,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F579',
+            code: '🕹',
             keywords: [
                 'entertainment',
                 'game',
@@ -6864,7 +6888,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3B2',
+            code: '🎲',
             keywords: [
                 'dice',
                 'die',
@@ -6873,7 +6897,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2660',
+            code: '♠',
             keywords: [
                 'card',
                 'game',
@@ -6882,7 +6906,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2665',
+            code: '♥',
             keywords: [
                 'card',
                 'game',
@@ -6892,7 +6916,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2666',
+            code: '♦',
             keywords: [
                 'card',
                 'diamond',
@@ -6902,7 +6926,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2663',
+            code: '♣',
             keywords: [
                 'card',
                 'club',
@@ -6912,7 +6936,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F0CF',
+            code: '🃏',
             keywords: [
                 'card',
                 'entertainment',
@@ -6922,7 +6946,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F004',
+            code: '🀄',
             keywords: [
                 'game',
                 'mahjong',
@@ -6930,7 +6954,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3B4',
+            code: '🎴',
             keywords: [
                 'activity',
                 'card',
@@ -6944,7 +6968,7 @@ const emojis = {
     ],
     Objects: [
         {
-            code: 'U+1F507',
+            code: '🔇',
             keywords: [
                 'mute',
                 'quiet',
@@ -6954,14 +6978,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F508',
+            code: '🔈',
             keywords: [
                 'speaker',
                 'volume',
             ],
         },
         {
-            code: 'U+1F509',
+            code: '🔉',
             keywords: [
                 'low',
                 'speaker',
@@ -6970,7 +6994,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F50A',
+            code: '🔊',
             keywords: [
                 '3',
                 'entertainment',
@@ -6982,7 +7006,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4E2',
+            code: '📢',
             keywords: [
                 'communication',
                 'loud',
@@ -6991,7 +7015,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4E3',
+            code: '📣',
             keywords: [
                 'cheering',
                 'communication',
@@ -6999,7 +7023,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4EF',
+            code: '📯',
             keywords: [
                 'communication',
                 'entertainment',
@@ -7009,13 +7033,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F514',
+            code: '🔔',
             keywords: [
                 'bell',
             ],
         },
         {
-            code: 'U+1F515',
+            code: '🔕',
             keywords: [
                 'bell',
                 'forbidden',
@@ -7028,7 +7052,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3BC',
+            code: '🎼',
             keywords: [
                 'activity',
                 'entertainment',
@@ -7037,7 +7061,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3B5',
+            code: '🎵',
             keywords: [
                 'activity',
                 'entertainment',
@@ -7046,7 +7070,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3B6',
+            code: '🎶',
             keywords: [
                 'activity',
                 'entertainment',
@@ -7056,7 +7080,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F399',
+            code: '🎙',
             keywords: [
                 'mic',
                 'microphone',
@@ -7065,7 +7089,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F39A',
+            code: '🎚',
             keywords: [
                 'level',
                 'music',
@@ -7073,7 +7097,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F39B',
+            code: '🎛',
             keywords: [
                 'control',
                 'knobs',
@@ -7081,7 +7105,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3A4',
+            code: '🎤',
             keywords: [
                 'activity',
                 'entertainment',
@@ -7091,7 +7115,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3A7',
+            code: '🎧',
             keywords: [
                 'activity',
                 'earbud',
@@ -7100,7 +7124,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4FB',
+            code: '📻',
             keywords: [
                 'entertainment',
                 'radio',
@@ -7108,7 +7132,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3B7',
+            code: '🎷',
             keywords: [
                 'activity',
                 'entertainment',
@@ -7119,7 +7143,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3B8',
+            code: '🎸',
             keywords: [
                 'activity',
                 'entertainment',
@@ -7129,7 +7153,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3B9',
+            code: '🎹',
             keywords: [
                 'activity',
                 'entertainment',
@@ -7140,7 +7164,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3BA',
+            code: '🎺',
             keywords: [
                 'activity',
                 'entertainment',
@@ -7150,7 +7174,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3BB',
+            code: '🎻',
             keywords: [
                 'activity',
                 'entertainment',
@@ -7160,7 +7184,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F941',
+            code: '🥁',
             keywords: [
                 'drum',
                 'drumsticks',
@@ -7168,7 +7192,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4F1',
+            code: '📱',
             keywords: [
                 'cell',
                 'communication',
@@ -7178,7 +7202,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4F2',
+            code: '📲',
             keywords: [
                 'arrow',
                 'call',
@@ -7191,14 +7215,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+260E',
+            code: '☎',
             keywords: [
                 'phone',
                 'telephone',
             ],
         },
         {
-            code: 'U+1F4DE',
+            code: '📞',
             keywords: [
                 'communication',
                 'phone',
@@ -7207,27 +7231,27 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4DF',
+            code: '📟',
             keywords: [
                 'communication',
                 'pager',
             ],
         },
         {
-            code: 'U+1F4E0',
+            code: '📠',
             keywords: [
                 'communication',
                 'fax',
             ],
         },
         {
-            code: 'U+1F50B',
+            code: '🔋',
             keywords: [
                 'battery',
             ],
         },
         {
-            code: 'U+1F50C',
+            code: '🔌',
             keywords: [
                 'electric',
                 'electricity',
@@ -7235,7 +7259,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4BB',
+            code: '💻',
             keywords: [
                 'computer',
                 'pc',
@@ -7243,28 +7267,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5A5',
+            code: '🖥',
             keywords: [
                 'computer',
                 'desktop',
             ],
         },
         {
-            code: 'U+1F5A8',
+            code: '🖨',
             keywords: [
                 'computer',
                 'printer',
             ],
         },
         {
-            code: 'U+2328',
+            code: '⌨',
             keywords: [
                 'computer',
                 'keyboard',
             ],
         },
         {
-            code: 'U+1F5B1',
+            code: '🖱',
             keywords: [
                 '3',
                 'button',
@@ -7274,14 +7298,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5B2',
+            code: '🖲',
             keywords: [
                 'computer',
                 'trackball',
             ],
         },
         {
-            code: 'U+1F4BD',
+            code: '💽',
             keywords: [
                 'computer',
                 'disk',
@@ -7291,7 +7315,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4BE',
+            code: '💾',
             keywords: [
                 'computer',
                 'disk',
@@ -7299,7 +7323,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4BF',
+            code: '💿',
             keywords: [
                 'blu-ray',
                 'cd',
@@ -7310,7 +7334,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4C0',
+            code: '📀',
             keywords: [
                 'blu-ray',
                 'cd',
@@ -7322,7 +7346,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3A5',
+            code: '🎥',
             keywords: [
                 'activity',
                 'camera',
@@ -7332,7 +7356,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F39E',
+            code: '🎞',
             keywords: [
                 'cinema',
                 'entertainment',
@@ -7342,7 +7366,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4FD',
+            code: '📽',
             keywords: [
                 'cinema',
                 'entertainment',
@@ -7353,7 +7377,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3AC',
+            code: '🎬',
             keywords: [
                 'activity',
                 'clapper',
@@ -7362,7 +7386,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4FA',
+            code: '📺',
             keywords: [
                 'entertainment',
                 'television',
@@ -7371,7 +7395,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4F7',
+            code: '📷',
             keywords: [
                 'camera',
                 'entertainment',
@@ -7379,7 +7403,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4F8',
+            code: '📸',
             keywords: [
                 'camera',
                 'flash',
@@ -7387,7 +7411,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4F9',
+            code: '📹',
             keywords: [
                 'camera',
                 'entertainment',
@@ -7395,7 +7419,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4FC',
+            code: '📼',
             keywords: [
                 'entertainment',
                 'tape',
@@ -7405,7 +7429,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F50D',
+            code: '🔍',
             keywords: [
                 'glass',
                 'magnifying',
@@ -7414,7 +7438,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F50E',
+            code: '🔎',
             keywords: [
                 'glass',
                 'magnifying',
@@ -7423,21 +7447,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F52C',
+            code: '🔬',
             keywords: [
                 'microscope',
                 'tool',
             ],
         },
         {
-            code: 'U+1F52D',
+            code: '🔭',
             keywords: [
                 'telescope',
                 'tool',
             ],
         },
         {
-            code: 'U+1F4E1',
+            code: '📡',
             keywords: [
                 'antenna',
                 'communication',
@@ -7446,14 +7470,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F56F',
+            code: '🕯',
             keywords: [
                 'candle',
                 'light',
             ],
         },
         {
-            code: 'U+1F4A1',
+            code: '💡',
             keywords: [
                 'bulb',
                 'comic',
@@ -7463,7 +7487,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F526',
+            code: '🔦',
             keywords: [
                 'electric',
                 'flashlight',
@@ -7473,7 +7497,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3EE',
+            code: '🏮',
             keywords: [
                 'bar',
                 'japanese',
@@ -7483,7 +7507,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4D4',
+            code: '📔',
             keywords: [
                 'book',
                 'cover',
@@ -7492,62 +7516,62 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4D5',
+            code: '📕',
             keywords: [
                 'book',
                 'closed',
             ],
         },
         {
-            code: 'U+1F4D6',
+            code: '📖',
             keywords: [
                 'book',
                 'open',
             ],
         },
         {
-            code: 'U+1F4D7',
+            code: '📗',
             keywords: [
                 'book',
                 'green',
             ],
         },
         {
-            code: 'U+1F4D8',
+            code: '📘',
             keywords: [
                 'blue',
                 'book',
             ],
         },
         {
-            code: 'U+1F4D9',
+            code: '📙',
             keywords: [
                 'book',
                 'orange',
             ],
         },
         {
-            code: 'U+1F4DA',
+            code: '📚',
             keywords: [
                 'book',
                 'books',
             ],
         },
         {
-            code: 'U+1F4D3',
+            code: '📓',
             keywords: [
                 'notebook',
             ],
         },
         {
-            code: 'U+1F4D2',
+            code: '📒',
             keywords: [
                 'ledger',
                 'notebook',
             ],
         },
         {
-            code: 'U+1F4C3',
+            code: '📃',
             keywords: [
                 'curl',
                 'document',
@@ -7555,21 +7579,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4DC',
+            code: '📜',
             keywords: [
                 'paper',
                 'scroll',
             ],
         },
         {
-            code: 'U+1F4C4',
+            code: '📄',
             keywords: [
                 'document',
                 'page',
             ],
         },
         {
-            code: 'U+1F4F0',
+            code: '📰',
             keywords: [
                 'communication',
                 'news',
@@ -7578,7 +7602,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5DE',
+            code: '🗞',
             keywords: [
                 'news',
                 'newspaper',
@@ -7587,7 +7611,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4D1',
+            code: '📑',
             keywords: [
                 'bookmark',
                 'mark',
@@ -7596,20 +7620,20 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F516',
+            code: '🔖',
             keywords: [
                 'bookmark',
                 'mark',
             ],
         },
         {
-            code: 'U+1F3F7',
+            code: '🏷',
             keywords: [
                 'label',
             ],
         },
         {
-            code: 'U+1F4B0',
+            code: '💰',
             keywords: [
                 'bag',
                 'dollar',
@@ -7618,7 +7642,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4B4',
+            code: '💴',
             keywords: [
                 'bank',
                 'banknote',
@@ -7630,7 +7654,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4B5',
+            code: '💵',
             keywords: [
                 'bank',
                 'banknote',
@@ -7642,7 +7666,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4B6',
+            code: '💶',
             keywords: [
                 'bank',
                 'banknote',
@@ -7654,7 +7678,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4B7',
+            code: '💷',
             keywords: [
                 'bank',
                 'banknote',
@@ -7666,7 +7690,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4B8',
+            code: '💸',
             keywords: [
                 'bank',
                 'banknote',
@@ -7679,7 +7703,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4B3',
+            code: '💳',
             keywords: [
                 'bank',
                 'card',
@@ -7688,7 +7712,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4B9',
+            code: '💹',
             keywords: [
                 'bank',
                 'chart',
@@ -7704,7 +7728,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4B1',
+            code: '💱',
             keywords: [
                 'bank',
                 'currency',
@@ -7713,7 +7737,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4B2',
+            code: '💲',
             keywords: [
                 'currency',
                 'dollar',
@@ -7721,7 +7745,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2709',
+            code: '✉',
             keywords: [
                 'e-mail',
                 'email',
@@ -7729,7 +7753,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4E7',
+            code: '📧',
             keywords: [
                 'communication',
                 'e-mail',
@@ -7739,7 +7763,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4E8',
+            code: '📨',
             keywords: [
                 'communication',
                 'e-mail',
@@ -7752,7 +7776,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4E9',
+            code: '📩',
             keywords: [
                 'arrow',
                 'communication',
@@ -7767,7 +7791,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4E4',
+            code: '📤',
             keywords: [
                 'box',
                 'communication',
@@ -7779,7 +7803,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4E5',
+            code: '📥',
             keywords: [
                 'box',
                 'communication',
@@ -7791,7 +7815,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4E6',
+            code: '📦',
             keywords: [
                 'box',
                 'communication',
@@ -7800,7 +7824,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4EB',
+            code: '📫',
             keywords: [
                 'closed',
                 'communication',
@@ -7811,7 +7835,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4EA',
+            code: '📪',
             keywords: [
                 'closed',
                 'communication',
@@ -7823,7 +7847,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4EC',
+            code: '📬',
             keywords: [
                 'communication',
                 'flag',
@@ -7834,7 +7858,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4ED',
+            code: '📭',
             keywords: [
                 'communication',
                 'flag',
@@ -7846,7 +7870,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4EE',
+            code: '📮',
             keywords: [
                 'communication',
                 'mail',
@@ -7855,27 +7879,27 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5F3',
+            code: '🗳',
             keywords: [
                 'ballot',
                 'box',
             ],
         },
         {
-            code: 'U+270F',
+            code: '✏',
             keywords: [
                 'pencil',
             ],
         },
         {
-            code: 'U+2712',
+            code: '✒',
             keywords: [
                 'nib',
                 'pen',
             ],
         },
         {
-            code: 'U+1F58B',
+            code: '🖋',
             keywords: [
                 'communication',
                 'fountain',
@@ -7883,7 +7907,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F58A',
+            code: '🖊',
             keywords: [
                 'ballpoint',
                 'communication',
@@ -7891,7 +7915,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F58C',
+            code: '🖌',
             keywords: [
                 'communication',
                 'paintbrush',
@@ -7899,14 +7923,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F58D',
+            code: '🖍',
             keywords: [
                 'communication',
                 'crayon',
             ],
         },
         {
-            code: 'U+1F4DD',
+            code: '📝',
             keywords: [
                 'communication',
                 'memo',
@@ -7914,20 +7938,20 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4BC',
+            code: '💼',
             keywords: [
                 'briefcase',
             ],
         },
         {
-            code: 'U+1F4C1',
+            code: '📁',
             keywords: [
                 'file',
                 'folder',
             ],
         },
         {
-            code: 'U+1F4C2',
+            code: '📂',
             keywords: [
                 'file',
                 'folder',
@@ -7935,7 +7959,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5C2',
+            code: '🗂',
             keywords: [
                 'card',
                 'dividers',
@@ -7943,20 +7967,20 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4C5',
+            code: '📅',
             keywords: [
                 'calendar',
                 'date',
             ],
         },
         {
-            code: 'U+1F4C6',
+            code: '📆',
             keywords: [
                 'calendar',
             ],
         },
         {
-            code: 'U+1F5D2',
+            code: '🗒',
             keywords: [
                 'note',
                 'pad',
@@ -7964,7 +7988,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5D3',
+            code: '🗓',
             keywords: [
                 'calendar',
                 'pad',
@@ -7972,7 +7996,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4C7',
+            code: '📇',
             keywords: [
                 'card',
                 'index',
@@ -7980,7 +8004,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4C8',
+            code: '📈',
             keywords: [
                 'chart',
                 'graph',
@@ -7990,7 +8014,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4C9',
+            code: '📉',
             keywords: [
                 'chart',
                 'down',
@@ -7999,7 +8023,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4CA',
+            code: '📊',
             keywords: [
                 'bar',
                 'chart',
@@ -8007,33 +8031,33 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4CB',
+            code: '📋',
             keywords: [
                 'clipboard',
             ],
         },
         {
-            code: 'U+1F4CC',
+            code: '📌',
             keywords: [
                 'pin',
                 'pushpin',
             ],
         },
         {
-            code: 'U+1F4CD',
+            code: '📍',
             keywords: [
                 'pin',
                 'pushpin',
             ],
         },
         {
-            code: 'U+1F4CE',
+            code: '📎',
             keywords: [
                 'paperclip',
             ],
         },
         {
-            code: 'U+1F587',
+            code: '🖇',
             keywords: [
                 'communication',
                 'link',
@@ -8041,14 +8065,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4CF',
+            code: '📏',
             keywords: [
                 'ruler',
                 'straight edge',
             ],
         },
         {
-            code: 'U+1F4D0',
+            code: '📐',
             keywords: [
                 'ruler',
                 'set',
@@ -8056,14 +8080,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2702',
+            code: '✂',
             keywords: [
                 'scissors',
                 'tool',
             ],
         },
         {
-            code: 'U+1F5C3',
+            code: '🗃',
             keywords: [
                 'box',
                 'card',
@@ -8071,27 +8095,27 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5C4',
+            code: '🗄',
             keywords: [
                 'cabinet',
                 'file',
             ],
         },
         {
-            code: 'U+1F5D1',
+            code: '🗑',
             keywords: [
                 'wastebasket',
             ],
         },
         {
-            code: 'U+1F512',
+            code: '🔒',
             keywords: [
                 'closed',
                 'lock',
             ],
         },
         {
-            code: 'U+1F513',
+            code: '🔓',
             keywords: [
                 'lock',
                 'open',
@@ -8099,7 +8123,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F50F',
+            code: '🔏',
             keywords: [
                 'ink',
                 'lock',
@@ -8109,7 +8133,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F510',
+            code: '🔐',
             keywords: [
                 'closed',
                 'key',
@@ -8118,7 +8142,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F511',
+            code: '🔑',
             keywords: [
                 'key',
                 'lock',
@@ -8126,7 +8150,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5DD',
+            code: '🗝',
             keywords: [
                 'clue',
                 'key',
@@ -8135,14 +8159,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F528',
+            code: '🔨',
             keywords: [
                 'hammer',
                 'tool',
             ],
         },
         {
-            code: 'U+26CF',
+            code: '⛏',
             keywords: [
                 'mining',
                 'pick',
@@ -8150,7 +8174,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2692',
+            code: '⚒',
             keywords: [
                 'hammer',
                 'pick',
@@ -8158,7 +8182,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6E0',
+            code: '🛠',
             keywords: [
                 'hammer',
                 'tool',
@@ -8166,7 +8190,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5E1',
+            code: '🗡',
             keywords: [
                 'dagger',
                 'knife',
@@ -8174,7 +8198,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2694',
+            code: '⚔',
             keywords: [
                 'crossed',
                 'swords',
@@ -8182,7 +8206,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F52B',
+            code: '🔫',
             keywords: [
                 'gun',
                 'handgun',
@@ -8193,7 +8217,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3F9',
+            code: '🏹',
             keywords: [
                 'archer',
                 'arrow',
@@ -8205,21 +8229,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6E1',
+            code: '🛡',
             keywords: [
                 'shield',
                 'weapon',
             ],
         },
         {
-            code: 'U+1F527',
+            code: '🔧',
             keywords: [
                 'tool',
                 'wrench',
             ],
         },
         {
-            code: 'U+1F529',
+            code: '🔩',
             keywords: [
                 'bolt',
                 'nut',
@@ -8227,14 +8251,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2699',
+            code: '⚙',
             keywords: [
                 'gear',
                 'tool',
             ],
         },
         {
-            code: 'U+1F5DC',
+            code: '🗜',
             keywords: [
                 'compression',
                 'tool',
@@ -8242,7 +8266,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2697',
+            code: '⚗',
             keywords: [
                 'alembic',
                 'chemistry',
@@ -8250,7 +8274,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2696',
+            code: '⚖',
             keywords: [
                 'balance',
                 'justice',
@@ -8262,19 +8286,19 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F517',
+            code: '🔗',
             keywords: [
                 'link',
             ],
         },
         {
-            code: 'U+26D3',
+            code: '⛓',
             keywords: [
                 'chain',
             ],
         },
         {
-            code: 'U+1F489',
+            code: '💉',
             keywords: [
                 'doctor',
                 'medicine',
@@ -8286,7 +8310,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F48A',
+            code: '💊',
             keywords: [
                 'doctor',
                 'medicine',
@@ -8295,21 +8319,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6AC',
+            code: '🚬',
             keywords: [
                 'activity',
                 'smoking',
             ],
         },
         {
-            code: 'U+26B0',
+            code: '⚰',
             keywords: [
                 'coffin',
                 'death',
             ],
         },
         {
-            code: 'U+26B1',
+            code: '⚱',
             keywords: [
                 'death',
                 'funeral',
@@ -8317,7 +8341,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F5FF',
+            code: '🗿',
             keywords: [
                 'face',
                 'moyai',
@@ -8325,14 +8349,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6E2',
+            code: '🛢',
             keywords: [
                 'drum',
                 'oil',
             ],
         },
         {
-            code: 'U+1F52E',
+            code: '🔮',
             keywords: [
                 'ball',
                 'crystal',
@@ -8343,7 +8367,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6D2',
+            code: '🛒',
             keywords: [
                 'cart',
                 'shopping',
@@ -8353,7 +8377,7 @@ const emojis = {
     ],
     Symbols: [
         {
-            code: 'U+1F3E7',
+            code: '🏧',
             keywords: [
                 'atm',
                 'automated',
@@ -8362,14 +8386,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6AE',
+            code: '🚮',
             keywords: [
                 'litter',
                 'litterbox',
             ],
         },
         {
-            code: 'U+1F6B0',
+            code: '🚰',
             keywords: [
                 'drink',
                 'potable',
@@ -8377,14 +8401,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+267F',
+            code: '♿',
             keywords: [
                 'access',
                 'wheelchair',
             ],
         },
         {
-            code: 'U+1F6B9',
+            code: '🚹',
             keywords: [
                 'lavatory',
                 'man',
@@ -8393,7 +8417,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6BA',
+            code: '🚺',
             keywords: [
                 'lavatory',
                 'restroom',
@@ -8402,7 +8426,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6BB',
+            code: '🚻',
             keywords: [
                 'lavatory',
                 'restroom',
@@ -8410,14 +8434,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6BC',
+            code: '🚼',
             keywords: [
                 'baby',
                 'changing',
             ],
         },
         {
-            code: 'U+1F6BE',
+            code: '🚾',
             keywords: [
                 'closet',
                 'lavatory',
@@ -8427,27 +8451,27 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6C2',
+            code: '🛂',
             keywords: [
                 'control',
                 'passport',
             ],
         },
         {
-            code: 'U+1F6C3',
+            code: '🛃',
             keywords: [
                 'customs',
             ],
         },
         {
-            code: 'U+1F6C4',
+            code: '🛄',
             keywords: [
                 'baggage',
                 'claim',
             ],
         },
         {
-            code: 'U+1F6C5',
+            code: '🛅',
             keywords: [
                 'baggage',
                 'left luggage',
@@ -8456,13 +8480,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26A0',
+            code: '⚠',
             keywords: [
                 'warning',
             ],
         },
         {
-            code: 'U+1F6B8',
+            code: '🚸',
             keywords: [
                 'child',
                 'crossing',
@@ -8471,7 +8495,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26D4',
+            code: '⛔',
             keywords: [
                 'entry',
                 'forbidden',
@@ -8482,7 +8506,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6AB',
+            code: '🚫',
             keywords: [
                 'entry',
                 'forbidden',
@@ -8492,7 +8516,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6B3',
+            code: '🚳',
             keywords: [
                 'bicycle',
                 'bike',
@@ -8504,7 +8528,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6AD',
+            code: '🚭',
             keywords: [
                 'forbidden',
                 'no',
@@ -8514,7 +8538,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6AF',
+            code: '🚯',
             keywords: [
                 'forbidden',
                 'litter',
@@ -8524,7 +8548,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6B1',
+            code: '🚱',
             keywords: [
                 'drink',
                 'forbidden',
@@ -8536,7 +8560,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6B7',
+            code: '🚷',
             keywords: [
                 'forbidden',
                 'no',
@@ -8546,7 +8570,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4F5',
+            code: '📵',
             keywords: [
                 'cell',
                 'communication',
@@ -8560,7 +8584,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F51E',
+            code: '🔞',
             keywords: [
                 '18',
                 'age restriction',
@@ -8573,19 +8597,19 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2622',
+            code: '☢',
             keywords: [
                 'radioactive',
             ],
         },
         {
-            code: 'U+2623',
+            code: '☣',
             keywords: [
                 'biohazard',
             ],
         },
         {
-            code: 'U+2B06',
+            code: '⬆',
             keywords: [
                 'arrow',
                 'cardinal',
@@ -8594,7 +8618,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2197',
+            code: '↗',
             keywords: [
                 'arrow',
                 'direction',
@@ -8603,7 +8627,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+27A1',
+            code: '➡',
             keywords: [
                 'arrow',
                 'cardinal',
@@ -8612,7 +8636,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2198',
+            code: '↘',
             keywords: [
                 'arrow',
                 'direction',
@@ -8621,7 +8645,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2B07',
+            code: '⬇',
             keywords: [
                 'arrow',
                 'cardinal',
@@ -8631,7 +8655,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2199',
+            code: '↙',
             keywords: [
                 'arrow',
                 'direction',
@@ -8640,7 +8664,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2B05',
+            code: '⬅',
             keywords: [
                 'arrow',
                 'cardinal',
@@ -8649,7 +8673,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2196',
+            code: '↖',
             keywords: [
                 'arrow',
                 'direction',
@@ -8658,44 +8682,44 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2195',
+            code: '↕',
             keywords: [
                 'arrow',
             ],
         },
         {
-            code: 'U+2194',
+            code: '↔',
             keywords: [
                 'arrow',
             ],
         },
         {
-            code: 'U+21A9',
+            code: '↩',
             keywords: [
                 'arrow',
             ],
         },
         {
-            code: 'U+21AA',
+            code: '↪',
             keywords: [
                 'arrow',
             ],
         },
         {
-            code: 'U+2934',
+            code: '⤴',
             keywords: [
                 'arrow',
             ],
         },
         {
-            code: 'U+2935',
+            code: '⤵',
             keywords: [
                 'arrow',
                 'down',
             ],
         },
         {
-            code: 'U+1F503',
+            code: '🔃',
             keywords: [
                 'arrow',
                 'clockwise',
@@ -8703,7 +8727,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F504',
+            code: '🔄',
             keywords: [
                 'anticlockwise',
                 'arrow',
@@ -8712,21 +8736,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F519',
+            code: '🔙',
             keywords: [
                 'arrow',
                 'back',
             ],
         },
         {
-            code: 'U+1F51A',
+            code: '🔚',
             keywords: [
                 'arrow',
                 'end',
             ],
         },
         {
-            code: 'U+1F51B',
+            code: '🔛',
             keywords: [
                 'arrow',
                 'mark',
@@ -8734,14 +8758,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F51C',
+            code: '🔜',
             keywords: [
                 'arrow',
                 'soon',
             ],
         },
         {
-            code: 'U+1F51D',
+            code: '🔝',
             keywords: [
                 'arrow',
                 'top',
@@ -8749,21 +8773,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6D0',
+            code: '🛐',
             keywords: [
                 'religion',
                 'worship',
             ],
         },
         {
-            code: 'U+269B',
+            code: '⚛',
             keywords: [
                 'atheist',
                 'atom',
             ],
         },
         {
-            code: 'U+1F549',
+            code: '🕉',
             keywords: [
                 'hindu',
                 'om',
@@ -8771,7 +8795,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2721',
+            code: '✡',
             keywords: [
                 'david',
                 'jew',
@@ -8781,7 +8805,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2638',
+            code: '☸',
             keywords: [
                 'buddhist',
                 'dharma',
@@ -8790,7 +8814,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+262F',
+            code: '☯',
             keywords: [
                 'religion',
                 'tao',
@@ -8800,7 +8824,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+271D',
+            code: '✝',
             keywords: [
                 'christian',
                 'cross',
@@ -8808,7 +8832,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2626',
+            code: '☦',
             keywords: [
                 'christian',
                 'cross',
@@ -8816,7 +8840,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+262A',
+            code: '☪',
             keywords: [
                 'islam',
                 'muslim',
@@ -8824,13 +8848,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+262E',
+            code: '☮',
             keywords: [
                 'peace',
             ],
         },
         {
-            code: 'U+1F54E',
+            code: '🕎',
             keywords: [
                 'candelabrum',
                 'candlestick',
@@ -8839,33 +8863,33 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F52F',
+            code: '🔯',
             keywords: [
                 'fortune',
                 'star',
             ],
         },
         {
-            code: 'U+267B',
+            code: '♻',
             keywords: [
                 'recycle',
             ],
         },
         {
-            code: 'U+1F4DB',
+            code: '📛',
             keywords: [
                 'badge',
                 'name',
             ],
         },
         {
-            code: 'U+269C',
+            code: '⚜',
             keywords: [
                 'fleur-de-lis',
             ],
         },
         {
-            code: 'U+1F530',
+            code: '🔰',
             keywords: [
                 'beginner',
                 'chevron',
@@ -8877,7 +8901,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F531',
+            code: '🔱',
             keywords: [
                 'anchor',
                 'emblem',
@@ -8887,21 +8911,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2B55',
+            code: '⭕',
             keywords: [
                 'circle',
                 'o',
             ],
         },
         {
-            code: 'U+2705',
+            code: '✅',
             keywords: [
                 'check',
                 'mark',
             ],
         },
         {
-            code: 'U+2611',
+            code: '☑',
             keywords: [
                 'ballot',
                 'box',
@@ -8909,14 +8933,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2714',
+            code: '✔',
             keywords: [
                 'check',
                 'mark',
             ],
         },
         {
-            code: 'U+2716',
+            code: '✖',
             keywords: [
                 'cancel',
                 'multiplication',
@@ -8925,7 +8949,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+274C',
+            code: '❌',
             keywords: [
                 'cancel',
                 'mark',
@@ -8935,42 +8959,42 @@ const emojis = {
             ],
         },
         {
-            code: 'U+274E',
+            code: '❎',
             keywords: [
                 'mark',
                 'square',
             ],
         },
         {
-            code: 'U+2795',
+            code: '➕',
             keywords: [
                 'math',
                 'plus',
             ],
         },
         {
-            code: 'U+2796',
+            code: '➖',
             keywords: [
                 'math',
                 'minus',
             ],
         },
         {
-            code: 'U+2797',
+            code: '➗',
             keywords: [
                 'division',
                 'math',
             ],
         },
         {
-            code: 'U+27B0',
+            code: '➰',
             keywords: [
                 'curl',
                 'loop',
             ],
         },
         {
-            code: 'U+27BF',
+            code: '➿',
             keywords: [
                 'curl',
                 'double',
@@ -8978,32 +9002,32 @@ const emojis = {
             ],
         },
         {
-            code: 'U+303D',
+            code: '〽',
             keywords: [
                 'mark',
                 'part',
             ],
         },
         {
-            code: 'U+2733',
+            code: '✳',
             keywords: [
                 'asterisk',
             ],
         },
         {
-            code: 'U+2734',
+            code: '✴',
             keywords: [
                 'star',
             ],
         },
         {
-            code: 'U+2747',
+            code: '❇',
             keywords: [
                 'sparkle',
             ],
         },
         {
-            code: 'U+203C',
+            code: '‼',
             keywords: [
                 'bangbang',
                 'exclamation',
@@ -9012,7 +9036,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2049',
+            code: '⁉',
             keywords: [
                 'exclamation',
                 'interrobang',
@@ -9022,7 +9046,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2753',
+            code: '❓',
             keywords: [
                 'mark',
                 'punctuation',
@@ -9030,7 +9054,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2754',
+            code: '❔',
             keywords: [
                 'mark',
                 'outlined',
@@ -9039,7 +9063,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2755',
+            code: '❕',
             keywords: [
                 'exclamation',
                 'mark',
@@ -9048,7 +9072,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2757',
+            code: '❗',
             keywords: [
                 'exclamation',
                 'mark',
@@ -9056,7 +9080,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+3030',
+            code: '〰',
             keywords: [
                 'dash',
                 'punctuation',
@@ -9064,19 +9088,19 @@ const emojis = {
             ],
         },
         {
-            code: 'U+00A9',
+            code: '©',
             keywords: [
                 'copyright',
             ],
         },
         {
-            code: 'U+00AE',
+            code: '®',
             keywords: [
                 'registered',
             ],
         },
         {
-            code: 'U+2122',
+            code: '™',
             keywords: [
                 'mark',
                 'tm',
@@ -9084,7 +9108,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2648',
+            code: '♈',
             keywords: [
                 'aries',
                 'ram',
@@ -9092,7 +9116,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2649',
+            code: '♉',
             keywords: [
                 'bull',
                 'ox',
@@ -9101,7 +9125,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+264A',
+            code: '♊',
             keywords: [
                 'gemini',
                 'twins',
@@ -9109,7 +9133,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+264B',
+            code: '♋',
             keywords: [
                 'cancer',
                 'crab',
@@ -9117,7 +9141,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+264C',
+            code: '♌',
             keywords: [
                 'leo',
                 'lion',
@@ -9125,7 +9149,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+264D',
+            code: '♍',
             keywords: [
                 'maiden',
                 'virgin',
@@ -9134,7 +9158,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+264E',
+            code: '♎',
             keywords: [
                 'balance',
                 'justice',
@@ -9144,7 +9168,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+264F',
+            code: '♏',
             keywords: [
                 'scorpio',
                 'scorpion',
@@ -9153,7 +9177,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2650',
+            code: '♐',
             keywords: [
                 'archer',
                 'sagittarius',
@@ -9161,7 +9185,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2651',
+            code: '♑',
             keywords: [
                 'capricorn',
                 'goat',
@@ -9169,7 +9193,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2652',
+            code: '♒',
             keywords: [
                 'aquarius',
                 'bearer',
@@ -9178,7 +9202,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+2653',
+            code: '♓',
             keywords: [
                 'fish',
                 'pisces',
@@ -9186,7 +9210,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26CE',
+            code: '⛎',
             keywords: [
                 'bearer',
                 'ophiuchus',
@@ -9196,14 +9220,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F500',
+            code: '🔀',
             keywords: [
                 'arrow',
                 'crossed',
             ],
         },
         {
-            code: 'U+1F501',
+            code: '🔁',
             keywords: [
                 'arrow',
                 'clockwise',
@@ -9211,7 +9235,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F502',
+            code: '🔂',
             keywords: [
                 'arrow',
                 'clockwise',
@@ -9219,7 +9243,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+25B6',
+            code: '▶',
             keywords: [
                 'arrow',
                 'play',
@@ -9228,7 +9252,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+23E9',
+            code: '⏩',
             keywords: [
                 'arrow',
                 'double',
@@ -9237,7 +9261,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+23ED',
+            code: '⏭',
             keywords: [
                 'arrow',
                 'next scene',
@@ -9246,7 +9270,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+23EF',
+            code: '⏯',
             keywords: [
                 'arrow',
                 'pause',
@@ -9256,7 +9280,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+25C0',
+            code: '◀',
             keywords: [
                 'arrow',
                 'left',
@@ -9265,7 +9289,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+23EA',
+            code: '⏪',
             keywords: [
                 'arrow',
                 'double',
@@ -9273,7 +9297,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+23EE',
+            code: '⏮',
             keywords: [
                 'arrow',
                 'previous scene',
@@ -9282,7 +9306,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F53C',
+            code: '🔼',
             keywords: [
                 'arrow',
                 'button',
@@ -9290,14 +9314,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+23EB',
+            code: '⏫',
             keywords: [
                 'arrow',
                 'double',
             ],
         },
         {
-            code: 'U+1F53D',
+            code: '🔽',
             keywords: [
                 'arrow',
                 'button',
@@ -9306,7 +9330,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+23EC',
+            code: '⏬',
             keywords: [
                 'arrow',
                 'double',
@@ -9314,7 +9338,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+23F8',
+            code: '⏸',
             keywords: [
                 'bar',
                 'double',
@@ -9323,27 +9347,27 @@ const emojis = {
             ],
         },
         {
-            code: 'U+23F9',
+            code: '⏹',
             keywords: [
                 'square',
                 'stop',
             ],
         },
         {
-            code: 'U+23FA',
+            code: '⏺',
             keywords: [
                 'circle',
                 'record',
             ],
         },
         {
-            code: 'U+23CF',
+            code: '⏏',
             keywords: [
                 'eject',
             ],
         },
         {
-            code: 'U+1F3A6',
+            code: '🎦',
             keywords: [
                 'activity',
                 'camera',
@@ -9354,7 +9378,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F505',
+            code: '🔅',
             keywords: [
                 'brightness',
                 'dim',
@@ -9362,14 +9386,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F506',
+            code: '🔆',
             keywords: [
                 'bright',
                 'brightness',
             ],
         },
         {
-            code: 'U+1F4F6',
+            code: '📶',
             keywords: [
                 'antenna',
                 'bar',
@@ -9382,7 +9406,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4F3',
+            code: '📳',
             keywords: [
                 'cell',
                 'communication',
@@ -9394,7 +9418,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4F4',
+            code: '📴',
             keywords: [
                 'cell',
                 'communication',
@@ -9405,7 +9429,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0023 U+FE0F U+20E3',
+            code: '#️⃣',
             keywords: [
                 'hash',
                 'keycap',
@@ -9413,7 +9437,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+002A U+FE0F U+20E3',
+            code: '*️⃣',
             keywords: [
                 'asterisk',
                 'keycap',
@@ -9421,7 +9445,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0030 U+FE0F U+20E3',
+            code: '0️⃣',
             keywords: [
                 '0',
                 'keycap',
@@ -9429,7 +9453,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0031 U+FE0F U+20E3',
+            code: '1️⃣',
             keywords: [
                 '1',
                 'keycap',
@@ -9437,7 +9461,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0032 U+FE0F U+20E3',
+            code: '2️⃣',
             keywords: [
                 '2',
                 'keycap',
@@ -9445,7 +9469,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0033 U+FE0F U+20E3',
+            code: '3️⃣',
             keywords: [
                 '3',
                 'keycap',
@@ -9453,7 +9477,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0034 U+FE0F U+20E3',
+            code: '4️⃣',
             keywords: [
                 '4',
                 'four',
@@ -9461,7 +9485,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0035 U+FE0F U+20E3',
+            code: '5️⃣',
             keywords: [
                 '5',
                 'five',
@@ -9469,7 +9493,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0036 U+FE0F U+20E3',
+            code: '6️⃣',
             keywords: [
                 '6',
                 'keycap',
@@ -9477,7 +9501,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0037 U+FE0F U+20E3',
+            code: '7️⃣',
             keywords: [
                 '7',
                 'keycap',
@@ -9485,7 +9509,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0038 U+FE0F U+20E3',
+            code: '8️⃣',
             keywords: [
                 '8',
                 'eight',
@@ -9493,7 +9517,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+0039 U+FE0F U+20E3',
+            code: '9️⃣',
             keywords: [
                 '9',
                 'keycap',
@@ -9501,7 +9525,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F51F',
+            code: '🔟',
             keywords: [
                 '10',
                 'keycap',
@@ -9509,7 +9533,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4AF',
+            code: '💯',
             keywords: [
                 '100',
                 'full',
@@ -9518,7 +9542,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F520',
+            code: '🔠',
             keywords: [
                 'input',
                 'latin',
@@ -9527,7 +9551,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F521',
+            code: '🔡',
             keywords: [
                 'abcd',
                 'input',
@@ -9537,7 +9561,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F522',
+            code: '🔢',
             keywords: [
                 '1234',
                 'input',
@@ -9545,13 +9569,13 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F523',
+            code: '🔣',
             keywords: [
                 'input',
             ],
         },
         {
-            code: 'U+1F524',
+            code: '🔤',
             keywords: [
                 'abc',
                 'alphabet',
@@ -9561,197 +9585,197 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F170',
+            code: '🅰',
             keywords: [
                 'a',
                 'blood',
             ],
         },
         {
-            code: 'U+1F18E',
+            code: '🆎',
             keywords: [
                 'ab',
                 'blood',
             ],
         },
         {
-            code: 'U+1F171',
+            code: '🅱',
             keywords: [
                 'b',
                 'blood',
             ],
         },
         {
-            code: 'U+1F191',
+            code: '🆑',
             keywords: [
                 'cl',
             ],
         },
         {
-            code: 'U+1F192',
+            code: '🆒',
             keywords: [
                 'cool',
             ],
         },
         {
-            code: 'U+1F193',
+            code: '🆓',
             keywords: [
                 'free',
             ],
         },
         {
-            code: 'U+2139',
+            code: 'ℹ',
             keywords: [
                 'i',
                 'information',
             ],
         },
         {
-            code: 'U+1F194',
+            code: '🆔',
             keywords: [
                 'id',
                 'identity',
             ],
         },
         {
-            code: 'U+24C2',
+            code: 'Ⓜ',
             keywords: [
                 'circle',
                 'm',
             ],
         },
         {
-            code: 'U+1F195',
+            code: '🆕',
             keywords: [
                 'new',
             ],
         },
         {
-            code: 'U+1F196',
+            code: '🆖',
             keywords: [
                 'ng',
             ],
         },
         {
-            code: 'U+1F17E',
+            code: '🅾',
             keywords: [
                 'blood',
                 'o',
             ],
         },
         {
-            code: 'U+1F197',
+            code: '🆗',
             keywords: [
                 'ok',
             ],
         },
         {
-            code: 'U+1F17F',
+            code: '🅿',
             keywords: [
                 'parking',
             ],
         },
         {
-            code: 'U+1F198',
+            code: '🆘',
             keywords: [
                 'help',
                 'sos',
             ],
         },
         {
-            code: 'U+1F199',
+            code: '🆙',
             keywords: [
                 'mark',
                 'up',
             ],
         },
         {
-            code: 'U+1F19A',
+            code: '🆚',
             keywords: [
                 'versus',
                 'vs',
             ],
         },
         {
-            code: 'U+1F201',
+            code: '🈁',
             keywords: [
                 'japanese',
             ],
         },
         {
-            code: 'U+1F202',
+            code: '🈂',
             keywords: [
                 'japanese',
             ],
         },
         {
-            code: 'U+1F237',
+            code: '🈷',
             keywords: [
                 'japanese',
             ],
         },
         {
-            code: 'U+1F236',
+            code: '🈶',
             keywords: [
                 'japanese',
             ],
         },
         {
-            code: 'U+1F22F',
+            code: '🈯',
             keywords: [
                 'japanese',
             ],
         },
         {
-            code: 'U+1F250',
+            code: '🉐',
             keywords: [
                 'japanese',
             ],
         },
         {
-            code: 'U+1F239',
+            code: '🈹',
             keywords: [
                 'japanese',
             ],
         },
         {
-            code: 'U+1F21A',
+            code: '🈚',
             keywords: [
                 'japanese',
             ],
         },
         {
-            code: 'U+1F232',
+            code: '🈲',
             keywords: [
                 'japanese',
             ],
         },
         {
-            code: 'U+1F251',
+            code: '🉑',
             keywords: [
                 'chinese',
             ],
         },
         {
-            code: 'U+1F238',
+            code: '🈸',
             keywords: [
                 'chinese',
             ],
         },
         {
-            code: 'U+1F234',
+            code: '🈴',
             keywords: [
                 'chinese',
             ],
         },
         {
-            code: 'U+1F233',
+            code: '🈳',
             keywords: [
                 'chinese',
             ],
         },
         {
-            code: 'U+3297',
+            code: '㊗',
             keywords: [
                 'chinese',
                 'congratulation',
@@ -9760,7 +9784,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+3299',
+            code: '㊙',
             keywords: [
                 'chinese',
                 'ideograph',
@@ -9768,75 +9792,75 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F23A',
+            code: '🈺',
             keywords: [
                 'chinese',
             ],
         },
         {
-            code: 'U+1F235',
+            code: '🈵',
             keywords: [
                 'chinese',
             ],
         },
         {
-            code: 'U+25AA',
+            code: '▪',
             keywords: [
                 'geometric',
                 'square',
             ],
         },
         {
-            code: 'U+25AB',
+            code: '▫',
             keywords: [
                 'geometric',
                 'square',
             ],
         },
         {
-            code: 'U+25FB',
+            code: '◻',
             keywords: [
                 'geometric',
                 'square',
             ],
         },
         {
-            code: 'U+25FC',
+            code: '◼',
             keywords: [
                 'geometric',
                 'square',
             ],
         },
         {
-            code: 'U+25FD',
+            code: '◽',
             keywords: [
                 'geometric',
                 'square',
             ],
         },
         {
-            code: 'U+25FE',
+            code: '◾',
             keywords: [
                 'geometric',
                 'square',
             ],
         },
         {
-            code: 'U+2B1B',
+            code: '⬛',
             keywords: [
                 'geometric',
                 'square',
             ],
         },
         {
-            code: 'U+2B1C',
+            code: '⬜',
             keywords: [
                 'geometric',
                 'square',
             ],
         },
         {
-            code: 'U+1F536',
+            code: '🔶',
             keywords: [
                 'diamond',
                 'geometric',
@@ -9844,7 +9868,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F537',
+            code: '🔷',
             keywords: [
                 'blue',
                 'diamond',
@@ -9852,7 +9876,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F538',
+            code: '🔸',
             keywords: [
                 'diamond',
                 'geometric',
@@ -9860,7 +9884,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F539',
+            code: '🔹',
             keywords: [
                 'blue',
                 'diamond',
@@ -9868,14 +9892,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F53A',
+            code: '🔺',
             keywords: [
                 'geometric',
                 'red',
             ],
         },
         {
-            code: 'U+1F53B',
+            code: '🔻',
             keywords: [
                 'down',
                 'geometric',
@@ -9883,7 +9907,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F4A0',
+            code: '💠',
             keywords: [
                 'comic',
                 'diamond',
@@ -9892,7 +9916,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F518',
+            code: '🔘',
             keywords: [
                 'button',
                 'geometric',
@@ -9900,7 +9924,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F532',
+            code: '🔲',
             keywords: [
                 'button',
                 'geometric',
@@ -9908,7 +9932,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F533',
+            code: '🔳',
             keywords: [
                 'button',
                 'geometric',
@@ -9917,21 +9941,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+26AA',
+            code: '⚪',
             keywords: [
                 'circle',
                 'geometric',
             ],
         },
         {
-            code: 'U+26AB',
+            code: '⚫',
             keywords: [
                 'circle',
                 'geometric',
             ],
         },
         {
-            code: 'U+1F534',
+            code: '🔴',
             keywords: [
                 'circle',
                 'geometric',
@@ -9939,7 +9963,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F535',
+            code: '🔵',
             keywords: [
                 'blue',
                 'circle',
@@ -9949,7 +9973,7 @@ const emojis = {
     ],
     Flags: [
         {
-            code: 'U+1F3C1',
+            code: '🏁',
             keywords: [
                 'checkered',
                 'chequered',
@@ -9958,14 +9982,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F6A9',
+            code: '🚩',
             keywords: [
                 'flag',
                 'post',
             ],
         },
         {
-            code: 'U+1F38C',
+            code: '🎌',
             keywords: [
                 'activity',
                 'celebration',
@@ -9976,21 +10000,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F3F4',
+            code: '🏴',
             keywords: [
                 'flag',
                 'waving',
             ],
         },
         {
-            code: 'U+1F3F3',
+            code: '🏳',
             keywords: [
                 'flag',
                 'waving',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1E8',
+            code: '🇦🇨',
             keywords: [
                 'ascension',
                 'flag',
@@ -9998,14 +10022,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1E9',
+            code: '🇦🇩',
             keywords: [
                 'andorra',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1EA',
+            code: '🇦🇪',
             keywords: [
                 'emirates',
                 'flag',
@@ -10014,14 +10038,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1EB',
+            code: '🇦🇫',
             keywords: [
                 'afghanistan',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1EC',
+            code: '🇦🇬',
             keywords: [
                 'antigua',
                 'barbuda',
@@ -10029,49 +10053,49 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1EE',
+            code: '🇦🇮',
             keywords: [
                 'anguilla',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1F1',
+            code: '🇦🇱',
             keywords: [
                 'albania',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1F2',
+            code: '🇦🇲',
             keywords: [
                 'armenia',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1F4',
+            code: '🇦🇴',
             keywords: [
                 'angola',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1F6',
+            code: '🇦🇶',
             keywords: [
                 'antarctica',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1F7',
+            code: '🇦🇷',
             keywords: [
                 'argentina',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1F8',
+            code: '🇦🇸',
             keywords: [
                 'american',
                 'flag',
@@ -10079,42 +10103,42 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1F9',
+            code: '🇦🇹',
             keywords: [
                 'austria',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1FA',
+            code: '🇦🇺',
             keywords: [
                 'australia',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1FC',
+            code: '🇦🇼',
             keywords: [
                 'aruba',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1FD',
+            code: '🇦🇽',
             keywords: [
                 'åland',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E6 U+1F1FF',
+            code: '🇦🇿',
             keywords: [
                 'azerbaijan',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1E6',
+            code: '🇧🇦',
             keywords: [
                 'bosnia',
                 'flag',
@@ -10122,63 +10146,63 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1E7',
+            code: '🇧🇧',
             keywords: [
                 'barbados',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1E9',
+            code: '🇧🇩',
             keywords: [
                 'bangladesh',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1EA',
+            code: '🇧🇪',
             keywords: [
                 'belgium',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1EB',
+            code: '🇧🇫',
             keywords: [
                 'burkina faso',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1EC',
+            code: '🇧🇬',
             keywords: [
                 'bulgaria',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1ED',
+            code: '🇧🇭',
             keywords: [
                 'bahrain',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1EE',
+            code: '🇧🇮',
             keywords: [
                 'burundi',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1EF',
+            code: '🇧🇯',
             keywords: [
                 'benin',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1F1',
+            code: '🇧🇱',
             keywords: [
                 'barthelemy',
                 'barthélemy',
@@ -10187,14 +10211,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1F2',
+            code: '🇧🇲',
             keywords: [
                 'bermuda',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1F3',
+            code: '🇧🇳',
             keywords: [
                 'brunei',
                 'darussalam',
@@ -10202,14 +10226,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1F4',
+            code: '🇧🇴',
             keywords: [
                 'bolivia',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1F6',
+            code: '🇧🇶',
             keywords: [
                 'bonaire',
                 'caribbean',
@@ -10221,28 +10245,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1F7',
+            code: '🇧🇷',
             keywords: [
                 'brazil',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1F8',
+            code: '🇧🇸',
             keywords: [
                 'bahamas',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1F9',
+            code: '🇧🇹',
             keywords: [
                 'bhutan',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1FB',
+            code: '🇧🇻',
             keywords: [
                 'bouvet',
                 'flag',
@@ -10250,35 +10274,35 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1FC',
+            code: '🇧🇼',
             keywords: [
                 'botswana',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1FE',
+            code: '🇧🇾',
             keywords: [
                 'belarus',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E7 U+1F1FF',
+            code: '🇧🇿',
             keywords: [
                 'belize',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1E6',
+            code: '🇨🇦',
             keywords: [
                 'canada',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1E8',
+            code: '🇨🇨',
             keywords: [
                 'cocos',
                 'flag',
@@ -10287,7 +10311,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1E9',
+            code: '🇨🇩',
             keywords: [
                 'congo',
                 'congo-kinshasa',
@@ -10299,7 +10323,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1EB',
+            code: '🇨🇫',
             keywords: [
                 'central african republic',
                 'flag',
@@ -10307,7 +10331,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1EC',
+            code: '🇨🇬',
             keywords: [
                 'brazzaville',
                 'congo',
@@ -10319,14 +10343,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1ED',
+            code: '🇨🇭',
             keywords: [
                 'flag',
                 'switzerland',
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1EE',
+            code: '🇨🇮',
             keywords: [
                 'cote ivoire',
                 'côte ivoire',
@@ -10335,7 +10359,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1F0',
+            code: '🇨🇰',
             keywords: [
                 'cook',
                 'flag',
@@ -10343,35 +10367,35 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1F1',
+            code: '🇨🇱',
             keywords: [
                 'chile',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1F2',
+            code: '🇨🇲',
             keywords: [
                 'cameroon',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1F3',
+            code: '🇨🇳',
             keywords: [
                 'china',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1F4',
+            code: '🇨🇴',
             keywords: [
                 'colombia',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1F5',
+            code: '🇨🇵',
             keywords: [
                 'clipperton',
                 'flag',
@@ -10379,21 +10403,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1F7',
+            code: '🇨🇷',
             keywords: [
                 'costa rica',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1FA',
+            code: '🇨🇺',
             keywords: [
                 'cuba',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1FB',
+            code: '🇨🇻',
             keywords: [
                 'cabo',
                 'cape',
@@ -10402,7 +10426,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1FC',
+            code: '🇨🇼',
             keywords: [
                 'antilles',
                 'curacao',
@@ -10411,7 +10435,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1FD',
+            code: '🇨🇽',
             keywords: [
                 'christmas',
                 'flag',
@@ -10419,70 +10443,70 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1FE',
+            code: '🇨🇾',
             keywords: [
                 'cyprus',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E8 U+1F1FF',
+            code: '🇨🇿',
             keywords: [
                 'czech republic',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E9 U+1F1EA',
+            code: '🇩🇪',
             keywords: [
                 'flag',
                 'germany',
             ],
         },
         {
-            code: 'U+1F1E9 U+1F1EC',
+            code: '🇩🇬',
             keywords: [
                 'diego garcia',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E9 U+1F1EF',
+            code: '🇩🇯',
             keywords: [
                 'djibouti',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E9 U+1F1F0',
+            code: '🇩🇰',
             keywords: [
                 'denmark',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E9 U+1F1F2',
+            code: '🇩🇲',
             keywords: [
                 'dominica',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E9 U+1F1F4',
+            code: '🇩🇴',
             keywords: [
                 'dominican republic',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1E9 U+1F1FF',
+            code: '🇩🇿',
             keywords: [
                 'algeria',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1EA U+1F1E6',
+            code: '🇪🇦',
             keywords: [
                 'ceuta',
                 'flag',
@@ -10490,28 +10514,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EA U+1F1E8',
+            code: '🇪🇨',
             keywords: [
                 'ecuador',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1EA U+1F1EA',
+            code: '🇪🇪',
             keywords: [
                 'estonia',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1EA U+1F1EC',
+            code: '🇪🇬',
             keywords: [
                 'egypt',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1EA U+1F1ED',
+            code: '🇪🇭',
             keywords: [
                 'flag',
                 'sahara',
@@ -10520,49 +10544,49 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EA U+1F1F7',
+            code: '🇪🇷',
             keywords: [
                 'eritrea',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1EA U+1F1F8',
+            code: '🇪🇸',
             keywords: [
                 'flag',
                 'spain',
             ],
         },
         {
-            code: 'U+1F1EA U+1F1F9',
+            code: '🇪🇹',
             keywords: [
                 'ethiopia',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1EA U+1F1FA',
+            code: '🇪🇺',
             keywords: [
                 'european union',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1EB U+1F1EE',
+            code: '🇫🇮',
             keywords: [
                 'finland',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1EB U+1F1EF',
+            code: '🇫🇯',
             keywords: [
                 'fiji',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1EB U+1F1F0',
+            code: '🇫🇰',
             keywords: [
                 'falkland',
                 'falklands',
@@ -10573,14 +10597,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EB U+1F1F2',
+            code: '🇫🇲',
             keywords: [
                 'flag',
                 'micronesia',
             ],
         },
         {
-            code: 'U+1F1EB U+1F1F4',
+            code: '🇫🇴',
             keywords: [
                 'faroe',
                 'flag',
@@ -10588,21 +10612,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EB U+1F1F7',
+            code: '🇫🇷',
             keywords: [
                 'flag',
                 'france',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1E6',
+            code: '🇬🇦',
             keywords: [
                 'flag',
                 'gabon',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1E7',
+            code: '🇬🇧',
             keywords: [
                 'britain',
                 'british',
@@ -10621,21 +10645,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EC U+1F1E9',
+            code: '🇬🇩',
             keywords: [
                 'flag',
                 'grenada',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1EA',
+            code: '🇬🇪',
             keywords: [
                 'flag',
                 'georgia',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1EB',
+            code: '🇬🇫',
             keywords: [
                 'flag',
                 'french',
@@ -10643,56 +10667,56 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EC U+1F1EC',
+            code: '🇬🇬',
             keywords: [
                 'flag',
                 'guernsey',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1ED',
+            code: '🇬🇭',
             keywords: [
                 'flag',
                 'ghana',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1EE',
+            code: '🇬🇮',
             keywords: [
                 'flag',
                 'gibraltar',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1F1',
+            code: '🇬🇱',
             keywords: [
                 'flag',
                 'greenland',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1F2',
+            code: '🇬🇲',
             keywords: [
                 'flag',
                 'gambia',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1F3',
+            code: '🇬🇳',
             keywords: [
                 'flag',
                 'guinea',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1F5',
+            code: '🇬🇵',
             keywords: [
                 'flag',
                 'guadeloupe',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1F6',
+            code: '🇬🇶',
             keywords: [
                 'equatorial guinea',
                 'flag',
@@ -10700,14 +10724,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EC U+1F1F7',
+            code: '🇬🇷',
             keywords: [
                 'flag',
                 'greece',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1F8',
+            code: '🇬🇸',
             keywords: [
                 'flag',
                 'georgia',
@@ -10718,21 +10742,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EC U+1F1F9',
+            code: '🇬🇹',
             keywords: [
                 'flag',
                 'guatemala',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1FA',
+            code: '🇬🇺',
             keywords: [
                 'flag',
                 'guam',
             ],
         },
         {
-            code: 'U+1F1EC U+1F1FC',
+            code: '🇬🇼',
             keywords: [
                 'bissau',
                 'flag',
@@ -10740,14 +10764,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EC U+1F1FE',
+            code: '🇬🇾',
             keywords: [
                 'flag',
                 'guyana',
             ],
         },
         {
-            code: 'U+1F1ED U+1F1F0',
+            code: '🇭🇰',
             keywords: [
                 'china',
                 'flag',
@@ -10755,7 +10779,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1ED U+1F1F2',
+            code: '🇭🇲',
             keywords: [
                 'flag',
                 'heard',
@@ -10764,35 +10788,35 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1ED U+1F1F3',
+            code: '🇭🇳',
             keywords: [
                 'flag',
                 'honduras',
             ],
         },
         {
-            code: 'U+1F1ED U+1F1F7',
+            code: '🇭🇷',
             keywords: [
                 'croatia',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1ED U+1F1F9',
+            code: '🇭🇹',
             keywords: [
                 'flag',
                 'haiti',
             ],
         },
         {
-            code: 'U+1F1ED U+1F1FA',
+            code: '🇭🇺',
             keywords: [
                 'flag',
                 'hungary',
             ],
         },
         {
-            code: 'U+1F1EE U+1F1E8',
+            code: '🇮🇨',
             keywords: [
                 'canary',
                 'flag',
@@ -10800,42 +10824,42 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EE U+1F1E9',
+            code: '🇮🇩',
             keywords: [
                 'flag',
                 'indonesia',
             ],
         },
         {
-            code: 'U+1F1EE U+1F1EA',
+            code: '🇮🇪',
             keywords: [
                 'flag',
                 'ireland',
             ],
         },
         {
-            code: 'U+1F1EE U+1F1F1',
+            code: '🇮🇱',
             keywords: [
                 'flag',
                 'israel',
             ],
         },
         {
-            code: 'U+1F1EE U+1F1F2',
+            code: '🇮🇲',
             keywords: [
                 'flag',
                 'isle of man',
             ],
         },
         {
-            code: 'U+1F1EE U+1F1F3',
+            code: '🇮🇳',
             keywords: [
                 'flag',
                 'india',
             ],
         },
         {
-            code: 'U+1F1EE U+1F1F4',
+            code: '🇮🇴',
             keywords: [
                 'british',
                 'chagos',
@@ -10845,98 +10869,98 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1EE U+1F1F6',
+            code: '🇮🇶',
             keywords: [
                 'flag',
                 'iraq',
             ],
         },
         {
-            code: 'U+1F1EE U+1F1F7',
+            code: '🇮🇷',
             keywords: [
                 'flag',
                 'iran',
             ],
         },
         {
-            code: 'U+1F1EE U+1F1F8',
+            code: '🇮🇸',
             keywords: [
                 'flag',
                 'iceland',
             ],
         },
         {
-            code: 'U+1F1EE U+1F1F9',
+            code: '🇮🇹',
             keywords: [
                 'flag',
                 'italy',
             ],
         },
         {
-            code: 'U+1F1EF U+1F1EA',
+            code: '🇯🇪',
             keywords: [
                 'flag',
                 'jersey',
             ],
         },
         {
-            code: 'U+1F1EF U+1F1F2',
+            code: '🇯🇲',
             keywords: [
                 'flag',
                 'jamaica',
             ],
         },
         {
-            code: 'U+1F1EF U+1F1F4',
+            code: '🇯🇴',
             keywords: [
                 'flag',
                 'jordan',
             ],
         },
         {
-            code: 'U+1F1EF U+1F1F5',
+            code: '🇯🇵',
             keywords: [
                 'flag',
                 'japan',
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1EA',
+            code: '🇰🇪',
             keywords: [
                 'flag',
                 'kenya',
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1EC',
+            code: '🇰🇬',
             keywords: [
                 'flag',
                 'kyrgyzstan',
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1ED',
+            code: '🇰🇭',
             keywords: [
                 'cambodia',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1EE',
+            code: '🇰🇮',
             keywords: [
                 'flag',
                 'kiribati',
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1F2',
+            code: '🇰🇲',
             keywords: [
                 'comoros',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1F3',
+            code: '🇰🇳',
             keywords: [
                 'flag',
                 'kitts',
@@ -10945,7 +10969,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1F5',
+            code: '🇰🇵',
             keywords: [
                 'flag',
                 'korea',
@@ -10954,7 +10978,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1F7',
+            code: '🇰🇷',
             keywords: [
                 'flag',
                 'korea',
@@ -10963,14 +10987,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1FC',
+            code: '🇰🇼',
             keywords: [
                 'flag',
                 'kuwait',
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1FE',
+            code: '🇰🇾',
             keywords: [
                 'cayman',
                 'flag',
@@ -10978,28 +11002,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F0 U+1F1FF',
+            code: '🇰🇿',
             keywords: [
                 'flag',
                 'kazakhstan',
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1E6',
+            code: '🇱🇦',
             keywords: [
                 'flag',
                 'laos',
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1E7',
+            code: '🇱🇧',
             keywords: [
                 'flag',
                 'lebanon',
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1E8',
+            code: '🇱🇨',
             keywords: [
                 'flag',
                 'lucia',
@@ -11007,91 +11031,91 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1EE',
+            code: '🇱🇮',
             keywords: [
                 'flag',
                 'liechtenstein',
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1F0',
+            code: '🇱🇰',
             keywords: [
                 'flag',
                 'sri lanka',
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1F7',
+            code: '🇱🇷',
             keywords: [
                 'flag',
                 'liberia',
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1F8',
+            code: '🇱🇸',
             keywords: [
                 'flag',
                 'lesotho',
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1F9',
+            code: '🇱🇹',
             keywords: [
                 'flag',
                 'lithuania',
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1FA',
+            code: '🇱🇺',
             keywords: [
                 'flag',
                 'luxembourg',
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1FB',
+            code: '🇱🇻',
             keywords: [
                 'flag',
                 'latvia',
             ],
         },
         {
-            code: 'U+1F1F1 U+1F1FE',
+            code: '🇱🇾',
             keywords: [
                 'flag',
                 'libya',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1E6',
+            code: '🇲🇦',
             keywords: [
                 'flag',
                 'morocco',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1E8',
+            code: '🇲🇨',
             keywords: [
                 'flag',
                 'monaco',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1E9',
+            code: '🇲🇩',
             keywords: [
                 'flag',
                 'moldova',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1EA',
+            code: '🇲🇪',
             keywords: [
                 'flag',
                 'montenegro',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1EB',
+            code: '🇲🇫',
             keywords: [
                 'flag',
                 'french',
@@ -11100,14 +11124,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1EC',
+            code: '🇲🇬',
             keywords: [
                 'flag',
                 'madagascar',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1ED',
+            code: '🇲🇭',
             keywords: [
                 'flag',
                 'island',
@@ -11115,21 +11139,21 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1F0',
+            code: '🇲🇰',
             keywords: [
                 'flag',
                 'macedonia',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1F1',
+            code: '🇲🇱',
             keywords: [
                 'flag',
                 'mali',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1F2',
+            code: '🇲🇲',
             keywords: [
                 'burma',
                 'flag',
@@ -11137,14 +11161,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1F3',
+            code: '🇲🇳',
             keywords: [
                 'flag',
                 'mongolia',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1F4',
+            code: '🇲🇴',
             keywords: [
                 'china',
                 'flag',
@@ -11153,7 +11177,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1F5',
+            code: '🇲🇵',
             keywords: [
                 'flag',
                 'island',
@@ -11163,84 +11187,84 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1F6',
+            code: '🇲🇶',
             keywords: [
                 'flag',
                 'martinique',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1F7',
+            code: '🇲🇷',
             keywords: [
                 'flag',
                 'mauritania',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1F8',
+            code: '🇲🇸',
             keywords: [
                 'flag',
                 'montserrat',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1F9',
+            code: '🇲🇹',
             keywords: [
                 'flag',
                 'malta',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1FA',
+            code: '🇲🇺',
             keywords: [
                 'flag',
                 'mauritius',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1FB',
+            code: '🇲🇻',
             keywords: [
                 'flag',
                 'maldives',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1FC',
+            code: '🇲🇼',
             keywords: [
                 'flag',
                 'malawi',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1FD',
+            code: '🇲🇽',
             keywords: [
                 'flag',
                 'mexico',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1FE',
+            code: '🇲🇾',
             keywords: [
                 'flag',
                 'malaysia',
             ],
         },
         {
-            code: 'U+1F1F2 U+1F1FF',
+            code: '🇲🇿',
             keywords: [
                 'flag',
                 'mozambique',
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1E6',
+            code: '🇳🇦',
             keywords: [
                 'flag',
                 'namibia',
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1E8',
+            code: '🇳🇨',
             keywords: [
                 'flag',
                 'new',
@@ -11248,14 +11272,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1EA',
+            code: '🇳🇪',
             keywords: [
                 'flag',
                 'niger',
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1EB',
+            code: '🇳🇫',
             keywords: [
                 'flag',
                 'island',
@@ -11263,56 +11287,56 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1EC',
+            code: '🇳🇬',
             keywords: [
                 'flag',
                 'nigeria',
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1EE',
+            code: '🇳🇮',
             keywords: [
                 'flag',
                 'nicaragua',
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1F1',
+            code: '🇳🇱',
             keywords: [
                 'flag',
                 'netherlands',
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1F4',
+            code: '🇳🇴',
             keywords: [
                 'flag',
                 'norway',
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1F5',
+            code: '🇳🇵',
             keywords: [
                 'flag',
                 'nepal',
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1F7',
+            code: '🇳🇷',
             keywords: [
                 'flag',
                 'nauru',
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1FA',
+            code: '🇳🇺',
             keywords: [
                 'flag',
                 'niue',
             ],
         },
         {
-            code: 'U+1F1F3 U+1F1FF',
+            code: '🇳🇿',
             keywords: [
                 'flag',
                 'new',
@@ -11320,28 +11344,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F4 U+1F1F2',
+            code: '🇴🇲',
             keywords: [
                 'flag',
                 'oman',
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1E6',
+            code: '🇵🇦',
             keywords: [
                 'flag',
                 'panama',
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1EA',
+            code: '🇵🇪',
             keywords: [
                 'flag',
                 'peru',
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1EB',
+            code: '🇵🇫',
             keywords: [
                 'flag',
                 'french',
@@ -11349,7 +11373,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1EC',
+            code: '🇵🇬',
             keywords: [
                 'flag',
                 'guinea',
@@ -11358,28 +11382,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1ED',
+            code: '🇵🇭',
             keywords: [
                 'flag',
                 'philippines',
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1F0',
+            code: '🇵🇰',
             keywords: [
                 'flag',
                 'pakistan',
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1F1',
+            code: '🇵🇱',
             keywords: [
                 'flag',
                 'poland',
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1F2',
+            code: '🇵🇲',
             keywords: [
                 'flag',
                 'miquelon',
@@ -11388,7 +11412,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1F3',
+            code: '🇵🇳',
             keywords: [
                 'flag',
                 'island',
@@ -11396,49 +11420,49 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1F7',
+            code: '🇵🇷',
             keywords: [
                 'flag',
                 'puerto rico',
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1F8',
+            code: '🇵🇸',
             keywords: [
                 'flag',
                 'palestine',
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1F9',
+            code: '🇵🇹',
             keywords: [
                 'flag',
                 'portugal',
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1FC',
+            code: '🇵🇼',
             keywords: [
                 'flag',
                 'palau',
             ],
         },
         {
-            code: 'U+1F1F5 U+1F1FE',
+            code: '🇵🇾',
             keywords: [
                 'flag',
                 'paraguay',
             ],
         },
         {
-            code: 'U+1F1F6 U+1F1E6',
+            code: '🇶🇦',
             keywords: [
                 'flag',
                 'qatar',
             ],
         },
         {
-            code: 'U+1F1F7 U+1F1EA',
+            code: '🇷🇪',
             keywords: [
                 'flag',
                 'reunion',
@@ -11446,42 +11470,42 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F7 U+1F1F4',
+            code: '🇷🇴',
             keywords: [
                 'flag',
                 'romania',
             ],
         },
         {
-            code: 'U+1F1F7 U+1F1F8',
+            code: '🇷🇸',
             keywords: [
                 'flag',
                 'serbia',
             ],
         },
         {
-            code: 'U+1F1F7 U+1F1FA',
+            code: '🇷🇺',
             keywords: [
                 'flag',
                 'russia',
             ],
         },
         {
-            code: 'U+1F1F7 U+1F1FC',
+            code: '🇷🇼',
             keywords: [
                 'flag',
                 'rwanda',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1E6',
+            code: '🇸🇦',
             keywords: [
                 'flag',
                 'saudi arabia',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1E7',
+            code: '🇸🇧',
             keywords: [
                 'flag',
                 'island',
@@ -11489,35 +11513,35 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1E8',
+            code: '🇸🇨',
             keywords: [
                 'flag',
                 'seychelles',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1E9',
+            code: '🇸🇩',
             keywords: [
                 'flag',
                 'sudan',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1EA',
+            code: '🇸🇪',
             keywords: [
                 'flag',
                 'sweden',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1EC',
+            code: '🇸🇬',
             keywords: [
                 'flag',
                 'singapore',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1ED',
+            code: '🇸🇭',
             keywords: [
                 'flag',
                 'helena',
@@ -11525,14 +11549,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1EE',
+            code: '🇸🇮',
             keywords: [
                 'flag',
                 'slovenia',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1EF',
+            code: '🇸🇯',
             keywords: [
                 'flag',
                 'jan mayen',
@@ -11540,49 +11564,49 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1F0',
+            code: '🇸🇰',
             keywords: [
                 'flag',
                 'slovakia',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1F1',
+            code: '🇸🇱',
             keywords: [
                 'flag',
                 'sierra leone',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1F2',
+            code: '🇸🇲',
             keywords: [
                 'flag',
                 'san marino',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1F3',
+            code: '🇸🇳',
             keywords: [
                 'flag',
                 'senegal',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1F4',
+            code: '🇸🇴',
             keywords: [
                 'flag',
                 'somalia',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1F7',
+            code: '🇸🇷',
             keywords: [
                 'flag',
                 'suriname',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1F8',
+            code: '🇸🇸',
             keywords: [
                 'flag',
                 'south',
@@ -11591,7 +11615,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1F9',
+            code: '🇸🇹',
             keywords: [
                 'flag',
                 'principe',
@@ -11601,14 +11625,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1FB',
+            code: '🇸🇻',
             keywords: [
                 'el salvador',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1FD',
+            code: '🇸🇽',
             keywords: [
                 'flag',
                 'maarten',
@@ -11616,28 +11640,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1FE',
+            code: '🇸🇾',
             keywords: [
                 'flag',
                 'syria',
             ],
         },
         {
-            code: 'U+1F1F8 U+1F1FF',
+            code: '🇸🇿',
             keywords: [
                 'flag',
                 'swaziland',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1E6',
+            code: '🇹🇦',
             keywords: [
                 'flag',
                 'tristan da cunha',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1E8',
+            code: '🇹🇨',
             keywords: [
                 'caicos',
                 'flag',
@@ -11646,14 +11670,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1E9',
+            code: '🇹🇩',
             keywords: [
                 'chad',
                 'flag',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1EB',
+            code: '🇹🇫',
             keywords: [
                 'antarctic',
                 'flag',
@@ -11661,35 +11685,35 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1EC',
+            code: '🇹🇬',
             keywords: [
                 'flag',
                 'togo',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1ED',
+            code: '🇹🇭',
             keywords: [
                 'flag',
                 'thailand',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1EF',
+            code: '🇹🇯',
             keywords: [
                 'flag',
                 'tajikistan',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1F0',
+            code: '🇹🇰',
             keywords: [
                 'flag',
                 'tokelau',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1F1',
+            code: '🇹🇱',
             keywords: [
                 'east',
                 'east timor',
@@ -11698,35 +11722,35 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1F2',
+            code: '🇹🇲',
             keywords: [
                 'flag',
                 'turkmenistan',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1F3',
+            code: '🇹🇳',
             keywords: [
                 'flag',
                 'tunisia',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1F4',
+            code: '🇹🇴',
             keywords: [
                 'flag',
                 'tonga',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1F7',
+            code: '🇹🇷',
             keywords: [
                 'flag',
                 'turkey',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1F9',
+            code: '🇹🇹',
             keywords: [
                 'flag',
                 'tobago',
@@ -11734,14 +11758,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1FB',
+            code: '🇹🇻',
             keywords: [
                 'flag',
                 'tuvalu',
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1FC',
+            code: '🇹🇼',
             keywords: [
                 'china',
                 'flag',
@@ -11749,28 +11773,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1F9 U+1F1FF',
+            code: '🇹🇿',
             keywords: [
                 'flag',
                 'tanzania',
             ],
         },
         {
-            code: 'U+1F1FA U+1F1E6',
+            code: '🇺🇦',
             keywords: [
                 'flag',
                 'ukraine',
             ],
         },
         {
-            code: 'U+1F1FA U+1F1EC',
+            code: '🇺🇬',
             keywords: [
                 'flag',
                 'uganda',
             ],
         },
         {
-            code: 'U+1F1FA U+1F1F2',
+            code: '🇺🇲',
             keywords: [
                 'america',
                 'flag',
@@ -11783,7 +11807,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1FA U+1F1F8',
+            code: '🇺🇸',
             keywords: [
                 'america',
                 'flag',
@@ -11793,28 +11817,28 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1FA U+1F1FE',
+            code: '🇺🇾',
             keywords: [
                 'flag',
                 'uruguay',
             ],
         },
         {
-            code: 'U+1F1FA U+1F1FF',
+            code: '🇺🇿',
             keywords: [
                 'flag',
                 'uzbekistan',
             ],
         },
         {
-            code: 'U+1F1FB U+1F1E6',
+            code: '🇻🇦',
             keywords: [
                 'flag',
                 'vatican',
             ],
         },
         {
-            code: 'U+1F1FB U+1F1E8',
+            code: '🇻🇨',
             keywords: [
                 'flag',
                 'grenadines',
@@ -11823,14 +11847,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1FB U+1F1EA',
+            code: '🇻🇪',
             keywords: [
                 'flag',
                 'venezuela',
             ],
         },
         {
-            code: 'U+1F1FB U+1F1EC',
+            code: '🇻🇬',
             keywords: [
                 'british',
                 'flag',
@@ -11839,7 +11863,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1FB U+1F1EE',
+            code: '🇻🇮',
             keywords: [
                 'america',
                 'american',
@@ -11853,7 +11877,7 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1FB U+1F1F3',
+            code: '🇻🇳',
             keywords: [
                 'flag',
                 'viet nam',
@@ -11861,14 +11885,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1FB U+1F1FA',
+            code: '🇻🇺',
             keywords: [
                 'flag',
                 'vanuatu',
             ],
         },
         {
-            code: 'U+1F1FC U+1F1EB',
+            code: '🇼🇫',
             keywords: [
                 'flag',
                 'futuna',
@@ -11876,35 +11900,35 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1FC U+1F1F8',
+            code: '🇼🇸',
             keywords: [
                 'flag',
                 'samoa',
             ],
         },
         {
-            code: 'U+1F1FD U+1F1F0',
+            code: '🇽🇰',
             keywords: [
                 'flag',
                 'kosovo',
             ],
         },
         {
-            code: 'U+1F1FE U+1F1EA',
+            code: '🇾🇪',
             keywords: [
                 'flag',
                 'yemen',
             ],
         },
         {
-            code: 'U+1F1FE U+1F1F9',
+            code: '🇾🇹',
             keywords: [
                 'flag',
                 'mayotte',
             ],
         },
         {
-            code: 'U+1F1FF U+1F1E6',
+            code: '🇿🇦',
             keywords: [
                 'flag',
                 'south',
@@ -11912,14 +11936,14 @@ const emojis = {
             ],
         },
         {
-            code: 'U+1F1FF U+1F1F2',
+            code: '🇿🇲',
             keywords: [
                 'flag',
                 'zambia',
             ],
         },
         {
-            code: 'U+1F1FF U+1F1FC',
+            code: '🇿🇼',
             keywords: [
                 'flag',
                 'zimbabwe',
