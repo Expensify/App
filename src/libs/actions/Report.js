@@ -184,7 +184,9 @@ function fetchChatReportsByIDs(chatList) {
             const simplifiedReports = {};
             _.each(fetchedReports, (report) => {
                 const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
-                simplifiedReports[key] = getSimplifiedReportObject(report);
+                const simplifiedReport = getSimplifiedReportObject(report);
+                simplifiedReports[key] = simplifiedReport;
+                updateIOUReportData(report, simplifiedReport.participants);
             });
 
             // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
@@ -531,14 +533,20 @@ function getSimplifiedIOUReport(reportData) {
 /**
  * Fetches the updated data for an IOU Report and updates the IOU collection in Onyx
  *
- * @param {Number} reportID
- * @param {Object[]} reportHistory
+ * @param {Object} report
+ * @param {String[]} participants
  */
-function updateIOUReportData(reportID, reportHistory) {
-    const containsIOUAction = _.any(reportHistory, action => action.actionName === 'IOU');
+function updateIOUReportData(report, participants) {
+    const reportActionList = lodashGet(report, ['reportActionList'], []);
+    const containsIOUAction = _.any(reportActionList, reportAction => reportAction.action === 'IOU');
 
     // If there aren't any IOU actions, we don't need to fetch any additional data
     if (!containsIOUAction) {
+        return;
+    }
+
+    // If we don't have one participant, this is not an IOU
+    if (participants.length !== 1) {
         return;
     }
 
@@ -546,9 +554,14 @@ function updateIOUReportData(reportID, reportHistory) {
     // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`
     let iouReportID = 0;
     API.GetIOUReport({
-        reportID,
+        debtorEmail: participants[0],
     }).then((response) => {
-        iouReportID = response.reportID;
+        iouReportID = response.reportID || 0;
+        if (response.jsonCode !== 200) {
+            throw new Error(response.message);
+        } else if (iouReportID === 0) {
+            throw new Error('GetIOUReport returned a reportID of 0');
+        }
 
         return API.Get({
             returnValueList: 'reportStuff',
@@ -557,9 +570,21 @@ function updateIOUReportData(reportID, reportHistory) {
             includePinnedReports: true,
         });
     }).then((response) => {
+        if (response.jsonCode !== 200) {
+            throw new Error(response.message);
+        } else if (response.reports.length === 0) {
+            throw new Error('Empty reportList returned from Get_ReportStuff');
+        }
+
         const iouReportData = response.reports[iouReportID];
+        if (!iouReportData) {
+            throw new Error(`No iouReportData found for reportID ${iouReportID}`);
+        }
+
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
             getSimplifiedIOUReport(iouReportData));
+    }).catch((error) => {
+        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
     });
 }
 
@@ -596,8 +621,6 @@ function fetchActions(reportID, offset) {
                 .pluck('sequenceNumber')
                 .max()
                 .value();
-
-            updateIOUReportData(reportID, indexedData);
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
