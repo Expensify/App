@@ -21,6 +21,9 @@ const CONST = {
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
         REPORT_ACTIONS_LIMIT: 50,
+        REPORT_ACTION_TYPE: {
+            IOU: 'IOU',
+        },
     },
     MODAL: {
         MODAL_TYPE: {

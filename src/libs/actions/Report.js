@@ -195,19 +195,25 @@ function getSimplifiedIOUReport(reportData) {
  * Fetches the updated data for an IOU Report and updates the IOU collection in Onyx
  *
  * @param {Object} report
- * @param {String[]} participants
+ * @param {Object[]} report.reportActionList
+ * @param {Number} report.reportID
  */
-function updateIOUReportData(report, participants) {
-    const reportActionList = lodashGet(report, ['reportActionList'], []);
-    const containsIOUAction = _.any(reportActionList, reportAction => reportAction.action === 'IOU');
+function updateIOUReportData(report) {
+    const reportActionList = report.reportActionList || [];
+    const containsIOUAction = _.any(reportActionList,
+        reportAction => reportAction.action === CONST.REPORT.REPORT_ACTION_TYPE.IOU);
 
     // If there aren't any IOU actions, we don't need to fetch any additional data
     if (!containsIOUAction) {
         return;
     }
 
-    // If we don't have one participant, this is not an IOU
+    // If we don't have one participant (other than the current user), this is not an IOU
+    const participants = getParticipantEmailsFromReport(report);
     if (participants.length !== 1) {
+        Log.alert('[Report] Report with IOU action has more than 2 participants', true, {
+            reportID: report.reportID,
+        });
         return;
     }
 
@@ -221,7 +227,7 @@ function updateIOUReportData(report, participants) {
         if (response.jsonCode !== 200) {
             throw new Error(response.message);
         } else if (iouReportID === 0) {
-            throw new Error('GetIOUReport returned a reportID of 0');
+            throw new Error('GetIOUReport returned a reportID of 0, not fetching IOU report data');
         }
 
         return API.Get({
@@ -233,8 +239,6 @@ function updateIOUReportData(report, participants) {
     }).then((response) => {
         if (response.jsonCode !== 200) {
             throw new Error(response.message);
-        } else if (response.reports.length === 0) {
-            throw new Error('Empty reportList returned from Get_ReportStuff');
         }
 
         const iouReportData = response.reports[iouReportID];
@@ -277,7 +281,7 @@ function fetchChatReportsByIDs(chatList) {
                 const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
                 const simplifiedReport = getSimplifiedReportObject(report);
                 simplifiedReports[key] = simplifiedReport;
-                updateIOUReportData(report, simplifiedReport.participants);
+                updateIOUReportData(report);
             });
 
             // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
