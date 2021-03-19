@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import Popover from '../../components/Popover';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -19,34 +20,40 @@ const defaultProps = {
     currentlyViewedReportID: 0,
 };
 
-const ReportScreen = (props) => {
-    const activeReportID = parseInt(props.currentlyViewedReportID, 10);
-    if (!activeReportID) {
-        return null;
+class ReportScreen extends React.Component {
+    constructor(props) {
+        this.state = {
+            isVideoChatModalActive: false
+        }
     }
+    
+    render() {
+        const activeReportID = parseInt(props.currentlyViewedReportID, 10);
+        if (!activeReportID) {
+                return null;
+            }
+        return (
+            <ScreenWrapper
+                        style={[
+                            styles.appContent,
+                            styles.flex1,
+                            styles.flexColumn,
+                        ]}
+                    >
+                        <HeaderView
+                            reportID={activeReportID}
+                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                        />
+                        <View style={[styles.dFlex, styles.flex1]}>
+                            <ReportView
+                                reportID={activeReportID}
+                            />
+                        </View>
+                    </ScreenWrapper> 
+        )
+    }
+}
 
-    return (
-        <ScreenWrapper
-            style={[
-                styles.appContent,
-                styles.flex1,
-                styles.flexColumn,
-            ]}
-        >
-            <HeaderView
-                reportID={activeReportID}
-                onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-            />
-            <View style={[styles.dFlex, styles.flex1]}>
-                <ReportView
-                    reportID={activeReportID}
-                />
-            </View>
-        </ScreenWrapper>
-    );
-};
-
-ReportScreen.displayName = 'ReportScreen';
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 export default withOnyx({
