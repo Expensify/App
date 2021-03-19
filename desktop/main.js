@@ -71,22 +71,36 @@ for (let i = 0; i < process.argv.length; i++) {
 // Add the listeners and variables required to ensure that auto-updating
 // happens correctly.
 let hasUpdate = false;
+let downloadedVersion;
 
-const quitAndInstallWithUpdate = (version) => {
+const quitAndInstallWithUpdate = () => {
+    if (!downloadedVersion) {
+        return;
+    }
     app.relaunch({
-        args: [`${EXPECTED_UPDATE_VERSION_FLAG}=${version}`],
+        args: [`${EXPECTED_UPDATE_VERSION_FLAG}=${downloadedVersion}`],
     });
     hasUpdate = true;
     autoUpdater.quitAndInstall();
 };
 
+// Defines the system-level menu item for manually triggering an update after
+const updateAppMenuItem = new MenuItem({
+    label: 'Update Expensify.cash',
+    enabled: false,
+    click: quitAndInstallWithUpdate,
+});
+
+// Actual auto-update listeners
 const electronUpdater = browserWindow => ({
     init: () => {
         autoUpdater.on('update-downloaded', (info) => {
+            downloadedVersion = info.version;
+            updateAppMenuItem.enabled = true;
             if (browserWindow.isVisible()) {
                 browserWindow.webContents.send('update-downloaded', info.version);
             } else {
-                quitAndInstallWithUpdate(info.version);
+                quitAndInstallWithUpdate();
             }
         });
 
@@ -133,6 +147,9 @@ const mainWindow = (() => {
                     click: () => { browserWindow.webContents.goForward(); },
                 }],
             }));
+
+            const appMenu = systemMenu.items.find(item => item.role === 'appmenu');
+            appMenu.submenu.insert(1, updateAppMenuItem);
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
@@ -186,6 +203,11 @@ const mainWindow = (() => {
             });
 
             app.on('before-quit', () => quitting = true);
+            app.on('activate', () => {
+                if (!expectedUpdateVersion || app.getVersion() === expectedUpdateVersion) {
+                    browserWindow.show();
+                }
+            });
 
             // Hide the app if we expected to upgrade to a new version but never did.
             if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {

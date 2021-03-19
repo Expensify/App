@@ -4,6 +4,7 @@ import {
     View,
     Keyboard,
     AppState,
+    ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -11,7 +12,12 @@ import lodashGet from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
-import {fetchActions, updateLastReadActionID} from '../../../libs/actions/Report';
+import {
+    fetchActions,
+    updateLastReadActionID,
+    subscribeToReportTypingEvents,
+    unsubscribeFromReportChannel,
+} from '../../../libs/actions/Report';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
@@ -19,13 +25,13 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
+import Timing from '../../../libs/actions/Timing';
+import CONST from '../../../CONST';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
-
-    // Is this report currently in view?
-    isActiveReport: PropTypes.bool.isRequired,
 
     /* Onyx Props */
 
@@ -58,10 +64,11 @@ class ReportActionsView extends React.Component {
         super(props);
 
         this.renderItem = this.renderItem.bind(this);
+        this.renderCell = this.renderCell.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
-
+        this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
         this.timers = [];
         this.unreadIndicatorOpacity = new Animated.Value(1);
@@ -74,23 +81,20 @@ class ReportActionsView extends React.Component {
         this.shouldShowUnreadActionIndicator = true;
 
         this.state = {
-            refetchNeeded: true,
+            isLoadingMoreChats: false,
         };
     }
 
     componentDidMount() {
         AppState.addEventListener('change', this.onVisibilityChange);
-
-        if (this.props.isActiveReport) {
-            this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
-            this.recordMaxAction();
-        }
-
+        subscribeToReportTypingEvents(this.props.reportID);
+        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        this.recordMaxAction();
         fetchActions(this.props.reportID);
     }
 
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.isActiveReport !== this.props.isActiveReport) {
+    shouldComponentUpdate(nextProps, nextState) {
+        if (nextProps.reportID !== this.props.reportID) {
             return true;
         }
 
@@ -98,19 +102,24 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
+            return true;
+        }
+
         return false;
     }
 
     componentDidUpdate(prevProps) {
-        // If we previously had a value for reportActions but no longer have one
-        // this can only mean that the reportActions have been deleted. So we must
-        // refetch these actions the next time we switch to this chat.
-        if (prevProps.reportActions && !this.props.reportActions) {
-            this.setRefetchNeeded(true);
+        // We have switched to a new report
+        if (prevProps.reportID !== this.props.reportID) {
+            this.reset(prevProps.reportID);
             return;
         }
 
-        if (_.size(prevProps.reportActions) !== _.size(this.props.reportActions)) {
+        // The last sequenceNumber of the same report has changed.
+        const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
+        const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
+        if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
             const lastAction = lastItem(this.props.reportActions);
@@ -118,25 +127,11 @@ class ReportActionsView extends React.Component {
                 this.scrollToListBottom();
             }
 
-            // When the number of actions change, wait three seconds, then record the max action
+            // When the last action changes, wait three seconds, then record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (this.props.isActiveReport && Visibility.isVisible()) {
+            if (Visibility.isVisible()) {
                 this.timers.push(setTimeout(this.recordMaxAction, 3000));
             }
-
-            return;
-        }
-
-        // If we are switching from not active to active report then mark comments as
-        // read and bind the keyboard listener for this report
-        if (!prevProps.isActiveReport && this.props.isActiveReport) {
-            if (this.state.refetchNeeded) {
-                fetchActions(this.props.reportID);
-                this.setRefetchNeeded(false);
-            }
-
-            this.recordMaxAction();
-            this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         }
     }
 
@@ -148,25 +143,16 @@ class ReportActionsView extends React.Component {
         AppState.removeEventListener('change', this.onVisibilityChange);
 
         _.each(this.timers, timer => clearTimeout(timer));
+        unsubscribeFromReportChannel(this.props.reportID);
     }
 
     /**
      * Records the max action on app visibility change event.
      */
     onVisibilityChange() {
-        if (this.props.isActiveReport && Visibility.isVisible()) {
+        if (Visibility.isVisible()) {
             this.timers.push(setTimeout(this.recordMaxAction, 3000));
         }
-    }
-
-    /**
-     * When setting to true we will refetch the reportActions
-     * the next time this report is switched to.
-     *
-     * @param {Boolean} refetchNeeded
-     */
-    setRefetchNeeded(refetchNeeded) {
-        this.setState({refetchNeeded});
     }
 
     /**
@@ -175,7 +161,7 @@ class ReportActionsView extends React.Component {
      * a flag to not show it again if the report is still open
      */
     setUpUnreadActionIndicator() {
-        if (!this.props.isActiveReport || !this.shouldShowUnreadActionIndicator) {
+        if (!this.shouldShowUnreadActionIndicator) {
             return;
         }
 
@@ -192,6 +178,43 @@ class ReportActionsView extends React.Component {
         }
 
         this.shouldShowUnreadActionIndicator = false;
+    }
+
+    /**
+     * Actions to run when the report has been updated
+     * @param {Number} oldReportID
+     */
+    reset(oldReportID) {
+        // Unsubscribe from previous report and resubscribe
+        unsubscribeFromReportChannel(oldReportID);
+        subscribeToReportTypingEvents(this.props.reportID);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
+
+        // Fetch the new set of actions
+        fetchActions(this.props.reportID);
+    }
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
+     */
+    loadMoreChats() {
+        const minSequenceNumber = _.chain(this.props.reportActions)
+            .pluck('sequenceNumber')
+            .min()
+            .value();
+
+        if (minSequenceNumber === 0) {
+            return;
+        }
+
+        this.setState({isLoadingMoreChats: true}, () => {
+            // Retrieve the next REPORT_ACTIONS_LIMIT sized page of comments, unless we're near the beginning, in which
+            // case just get everything starting from 0.
+            const offset = Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0);
+            fetchActions(this.props.reportID, offset)
+                .then(() => this.setState({isLoadingMoreChats: false}));
+        });
     }
 
     /**
@@ -268,6 +291,25 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
+     *  higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
+     *  rows is hidden beneath other rows.
+     *
+     * @param {Object} index - The ReportAction item in the FlatList.
+     * @param {Object|Array} style – The default styles of the CellRendererComponent provided by the CellRenderer.
+     * @param {Object} props – All the other Props provided to the CellRendererComponent by default.
+     * @returns {React.Component}
+     */
+    renderCell({item, style, ...props}) {
+        const cellStyle = [
+            style,
+            {zIndex: item.action.sequenceNumber},
+        ];
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <View style={cellStyle} {...props} />;
+    }
+
+    /**
      * Do not move this or make it an anonymous function it is a method
      * so it will not be recreated each time we render an item
      *
@@ -297,6 +339,7 @@ class ReportActionsView extends React.Component {
                     <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
                 )}
                 <ReportActionItem
+                    reportID={this.props.reportID}
                     action={item.action}
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
@@ -328,9 +371,15 @@ class ReportActionsView extends React.Component {
                 ref={el => this.actionListElement = el}
                 data={this.sortedReportActions}
                 renderItem={this.renderItem}
+                CellRendererComponent={this.renderCell}
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
+                onEndReached={this.loadMoreChats}
+                onEndReachedThreshold={0.75}
+                ListFooterComponent={this.state.isLoadingMoreChats
+                    ? <ActivityIndicator size="small" color={themeColors.spinner} />
+                    : null}
             />
         );
     }
@@ -345,7 +394,7 @@ export default withOnyx({
     },
     reportActions: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        canEvict: props => !props.isActiveReport,
+        canEvict: false,
     },
     session: {
         key: ONYXKEYS.SESSION,
