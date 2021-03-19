@@ -22,35 +22,36 @@ const defaultProps = {
 
 class ReportScreen extends React.Component {
     constructor(props) {
+        super(props);
         this.state = {
-            isVideoChatModalActive: false
-        }
+            isVideoChatModalActive: false,
+        };
     }
-    
+
     render() {
-        const activeReportID = parseInt(props.currentlyViewedReportID, 10);
+        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
         if (!activeReportID) {
-                return null;
-            }
+            return null;
+        }
         return (
             <ScreenWrapper
-                        style={[
-                            styles.appContent,
-                            styles.flex1,
-                            styles.flexColumn,
-                        ]}
-                    >
-                        <HeaderView
-                            reportID={activeReportID}
-                            onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                        />
-                        <View style={[styles.dFlex, styles.flex1]}>
-                            <ReportView
-                                reportID={activeReportID}
-                            />
-                        </View>
-                    </ScreenWrapper> 
-        )
+                style={[
+                    styles.appContent,
+                    styles.flex1,
+                    styles.flexColumn,
+                ]}
+            >
+                <HeaderView
+                    reportID={activeReportID}
+                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                />
+                <View style={[styles.dFlex, styles.flex1]}>
+                    <ReportView
+                        reportID={activeReportID}
+                    />
+                </View>
+            </ScreenWrapper>
+        );
     }
 }
 
