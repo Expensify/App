@@ -36,8 +36,24 @@ const propTypes = {
         isVisible: PropTypes.bool,
     }),
 
-    // Whether or not this report has more than one participant
-    hasMultipleParticipants: PropTypes.bool.isRequired,
+    // The report currently being looked at
+    report: PropTypes.shape({
+
+        // participants associated with current report
+        participants: PropTypes.arrayOf(PropTypes.shape({
+            login: PropTypes.string.isRequired,
+            alternateText: PropTypes.string,
+            hasDraftComment: PropTypes.bool,
+            icons: PropTypes.arrayOf(PropTypes.string),
+            searchText: PropTypes.string,
+            text: PropTypes.string,
+            keyForList: PropTypes.string,
+            isPinned: PropTypes.bool,
+            isUnread: PropTypes.bool,
+            reportID: PropTypes.number,
+        })),
+    }).isRequired,
+
 
     ...windowDimensionsPropTypes,
 };
@@ -182,6 +198,7 @@ class ReportActionCompose extends React.Component {
         // focus this from the chat switcher.
         // https://github.com/Expensify/Expensify.cash/issues/1228
         const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
+        const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
 
         return (
             <View style={[styles.chatItemCompose]}>
@@ -228,7 +245,7 @@ class ReportActionCompose extends React.Component {
                                                     }, 100);
                                                 }}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
-                                                menuOptions={this.props.hasMultipleParticipants
+                                                menuOptions={hasMultipleParticipants
                                                     ? [
                                                         CONST.MENU_ITEM_KEYS.SPLIT_BILL,
                                                         CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
@@ -301,6 +318,9 @@ export default compose(
         },
         modal: {
             key: ONYXKEYS.MODAL,
+        },
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
     withWindowDimensions,

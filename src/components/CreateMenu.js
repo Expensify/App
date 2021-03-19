@@ -109,7 +109,7 @@ class CreateMenu extends PureComponent {
                 anchorPosition={styles.createMenuPosition}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {menuItemData.map(({icon, text, onPress}) => (
+                    {this.menuItemData.map(({icon, text, onPress}) => (
                         <MenuItem
                             key={text}
                             icon={icon}
