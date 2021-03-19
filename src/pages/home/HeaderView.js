@@ -95,7 +95,6 @@ const HeaderView = (props) => {
                                 />
                             </View>
                         </Pressable>
-
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
