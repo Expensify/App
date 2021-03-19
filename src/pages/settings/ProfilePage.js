@@ -8,7 +8,6 @@ import {
 import RNPickerSelect from 'react-native-picker-select';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment-timezone';
-
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
