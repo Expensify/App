@@ -5,11 +5,11 @@ import {View} from 'react-native';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import Popover from '../../components/Popover';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
+import VideoChatMenu from '../../components/VideoChatMenu';
 
 const propTypes = {
     // id of the most recently viewed report
@@ -52,18 +52,13 @@ class ReportScreen extends React.Component {
                 <HeaderView
                     reportID={activeReportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                    onVideoChatMenuButtonClicked={this.toggleVideoChatMenu}
                 />
-                <Popover
+                <VideoChatMenu
                     onClose={this.toggleVideoChatMenu}
                     isVisible={this.state.isVideoChatMenuActive}
-                    onModalHide={() => {
-                        this.onModalHide();
-                        this.resetOnModalHide();
-                    }}
-                    anchorPosition={styles.videoChatMenuPosition}
-                >
-                    {/* Here is where we'd map the data for each menu item. */}
-                </Popover>
+                    onItemSelected={this.toggleVideoChatMenu}
+                />
                 <View style={[styles.dFlex, styles.flex1]}>
                     <ReportView
                         reportID={activeReportID}
