@@ -531,9 +531,10 @@ function getSimplifiedIOUReport(reportData) {
 /**
  * Fetches the updated data for an IOU Report and updates the IOU collection in Onyx
  *
+ * @param {Number} reportID
  * @param {Object[]} reportHistory
  */
-function updateIOUReportData(reportHistory) {
+function updateIOUReportData(reportID, reportHistory) {
     const containsIOUAction = _.any(reportHistory, action => action.actionName === 'IOU');
 
     // If there aren't any IOU actions, we don't need to fetch any additional data
@@ -541,22 +542,11 @@ function updateIOUReportData(reportHistory) {
         return;
     }
 
-    const otherParticipants = _.chain(reportHistory)
-        .pluck('actorEmail')
-        .unique()
-        .without(currentUserEmail)
-        .value();
-
-    // If we have more than one participant, this is not an IOU
-    if (otherParticipants.length > 1) {
-        return;
-    }
-
     // Since the Chat and the IOU are different reports with different reportIDs, and GetIOUReport only returns the
     // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`
     let iouReportID = 0;
     API.GetIOUReport({
-        debtorEmail: otherParticipants[0],
+        reportID,
     }).then((response) => {
         iouReportID = response.reportID;
 
@@ -607,7 +597,7 @@ function fetchActions(reportID, offset) {
                 .max()
                 .value();
 
-            updateIOUReportData(indexedData);
+            updateIOUReportData(reportID, indexedData);
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});

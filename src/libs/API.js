@@ -622,12 +622,12 @@ function Mobile_GetConstants(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.debtorEmail
+ * @param {Number} parameters.reportID
  * @returns {Promise}
  */
 function GetIOUReport(parameters) {
     const commandName = 'GetIOUReport';
-    requireParameters(['debtorEmail'], parameters, commandName);
+    requireParameters(['reportID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
