@@ -63,14 +63,13 @@ const HeaderView = props => (
                         onPress={() => {
                             const {participants} = props.report;
                             if (participants.length === 1) {
-                                Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
+                                Navigation.navigate(ROUTES.getProfileRoute(participants[0]));
                             }
                         }}
+                        style={[styles.flexRow, styles.alignItemsCenter]}
                     >
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <MultipleAvatars avatarImageURLs={props.report.icons} />
-                            <Header title={props.report.reportName} />
-                        </View>
+                        <MultipleAvatars avatarImageURLs={props.report.icons} />
+                        <Header title={props.report.reportName} />
                     </Pressable>
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <Pressable

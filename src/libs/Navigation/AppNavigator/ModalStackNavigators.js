@@ -7,14 +7,14 @@ import {
     NewChatModalStack,
     NewGroupModalStack,
     SearchModalStack,
-    DetailsModalStack,
+    ProfileModalStack,
     IOURequestModalStack,
     IOUBillModalStack,
 } from './ModalStacks';
 import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
-import DetailsPage from '../../../pages/DetailsPage';
+import ProfilePage from '../../../pages/ProfilePage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
 import SettingsInitialPage from '../../../pages/settings/InitialPage';
@@ -58,19 +58,19 @@ const IOURequestModalStackNavigator = () => (
     </IOURequestModalStack.Navigator>
 );
 
-const DetailsModalStackNavigator = () => (
-    <DetailsModalStack.Navigator
-        path={ROUTES.DETAILS}
+const ProfileModalStackNavigator = () => (
+    <ProfileModalStack.Navigator
+        path={ROUTES.PROFILE}
     >
-        <DetailsModalStack.Screen
-            name="Details_Root"
-            component={DetailsPage}
+        <ProfileModalStack.Screen
+            name="Profile_Root"
+            component={ProfilePage}
             options={{
                 ...defaultSubRouteOptions,
-                title: 'Details',
+                title: 'Profile',
             }}
         />
-    </DetailsModalStack.Navigator>
+    </ProfileModalStack.Navigator>
 );
 
 const SearchModalStackNavigator = () => (
@@ -168,7 +168,7 @@ const SettingsModalStackNavigator = () => (
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
-    DetailsModalStackNavigator,
+    ProfileModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
