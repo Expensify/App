@@ -34,7 +34,6 @@ const optionPropTypes = PropTypes.shape({
     tooltipText: PropTypes.string,
 });
 
-
 export {
     participantPropTypes,
     optionPropTypes,
