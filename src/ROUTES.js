@@ -18,7 +18,7 @@ export default {
     SEARCH: 'search',
     SIGNIN: 'signin',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:validateCode',
-    DETAILS: 'details',
-    DETAILS_WITH_LOGIN: 'details/:login',
-    getDetailsRoute: login => `details/${login}`,
+    PROFILE: 'profile',
+    PROFILE_WITH_LOGIN: 'profile/:login',
+    getProfileRoute: login => `profile/${login}`,
 };

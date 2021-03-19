@@ -1085,17 +1085,17 @@ const styles = {
         opacity: 0,
     },
 
-    detailsPageContainer: {
+    profilePageContainer: {
         justifyContent: 'space-between',
         width: '100%',
         flex: 1,
     },
 
-    detailsPageSectionContainer: {
+    profilePageSectionContainer: {
         alignSelf: 'flex-start',
     },
 
-    detailsPageSectionVersion: {
+    profilePageSectionVersion: {
         alignSelf: 'center',
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,

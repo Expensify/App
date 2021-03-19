@@ -181,7 +181,7 @@ export default compose(
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
         priorityMode: {
-            key: ONYXKEYS.NVP_PRIORITY_MODE,
+            key: ONYXKEYS.PRIORITY_MODE,
         },
     }),
 )(SidebarLinks);
