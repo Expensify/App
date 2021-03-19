@@ -25,4 +25,4 @@ Where is this issue occurring?
 **Version Number:**
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
 **Notes/Photos/Videos:** Any additional supporting documentation
-**Expensify/Expensify Issue Link:**
+**Expensify/Expensify Issue URL:**
