@@ -63,6 +63,7 @@ jobs:
                 LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
             - name: Run Fastlane
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
               run: bundle exec fastlane ios beta
               env:
                   APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
