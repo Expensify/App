@@ -5,39 +5,56 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 519:
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 8056:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const GithubUtils = __nccwpck_require__(7999);
+const {GITHUB_OWNER, EXPENSIFY_CASH_REPO} = __nccwpck_require__(7999);
+const promiseWhile = __nccwpck_require__(4502);
 
-const prList = JSON.parse(core.getInput('PR_LIST', {required: true}));
-const isProd = JSON.parse(
-    core.getInput('IS_PRODUCTION_DEPLOY', {required: true}),
-);
-const token = core.getInput('GITHUB_TOKEN', {required: true});
-const date = new Date();
-const message = `🚀 Deployed 🚀 to ${
-    isProd ? 'production' : 'staging'
-} on ${date.toDateString()} at ${date.toTimeString()}`;
+const run = function () {
+    const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+    const pullRequestNumber = Number(core.getInput('PULL_REQUEST_NUMBER', {required: true}));
 
-const octokit = github.getOctokit(token);
-const githubUtils = new GithubUtils(octokit);
-
-/**
- * Create comment on each pull request
- */
-prList.forEach((pr) => {
-    githubUtils.createComment(github.context.repo.repo, pr, message, octokit)
-        .then(() => {
-            console.log(`Comment created on #${pr} successfully 🎉`);
+    const MAX_RETRIES = 30;
+    let retryCount = 0;
+    let isMergeable = false;
+    let mergeabilityResolved = false;
+    console.log(`Checking the mergeability of PR #${pullRequestNumber}`);
+    return promiseWhile(
+        () => !mergeabilityResolved && retryCount < MAX_RETRIES,
+        _.throttle(() => octokit.pulls.get({
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            pull_number: pullRequestNumber,
         })
-        .catch((err) => {
-            console.log(`Unable to write comment on #${pr} 😞`);
-            core.setFailed(err.message);
+            .then(({data}) => {
+                if (!_.isNull(data.mergeable)) {
+                    console.log('Pull request mergeability is not yet resolved...');
+                    retryCount++;
+                    mergeabilityResolved = true;
+                    isMergeable = data.mergeable;
+                }
+            })
+            .catch((githubError) => {
+                mergeabilityResolved = true;
+                console.error(`An error occurred fetching the PR from Github: ${JSON.stringify(githubError)}`);
+                core.setFailed(githubError);
+            }), 5000),
+    )
+        .then(() => {
+            console.log(`Pull request #${pullRequestNumber} is ${isMergeable ? '' : 'not '}mergeable`);
+            core.setOutput('IS_MERGEABLE', isMergeable);
         });
-});
+};
+
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+
+module.exports = run;
 
 
 /***/ }),
@@ -484,6 +501,36 @@ module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
 module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
+
+
+/***/ }),
+
+/***/ 4502:
+/***/ ((module) => {
+
+/**
+ * Simulates a while loop where the condition is determined by the result of a Promise.
+ *
+ * @param {Function} condition
+ * @param {Function} action
+ * @returns {Promise}
+ */
+function promiseWhile(condition, action) {
+    return new Promise((resolve, reject) => {
+        const loop = function () {
+            if (!condition()) {
+                resolve();
+            } else {
+                Promise.resolve(action())
+                    .then(loop)
+                    .catch(reject);
+            }
+        };
+        loop();
+    });
+}
+
+module.exports = promiseWhile;
 
 
 /***/ }),
@@ -13832,6 +13879,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(519);
+/******/ 	return __nccwpck_require__(8056);
 /******/ })()
 ;
