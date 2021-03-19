@@ -651,7 +651,7 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
-        reportComment: htmlForNewComment,
+        reportComment: commentText,
         file,
         clientID: optimisticReportActionID,
 
