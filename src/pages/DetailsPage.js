@@ -35,7 +35,7 @@ const personalDetailsType = PropTypes.shape({
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
-        // login passed via route /profile/:login
+        // login passed via route /details/:login
         login: PropTypes.string,
     }),
 });
@@ -49,7 +49,7 @@ const propTypes = {
     route: matchType.isRequired,
 };
 
-const ProfilePage = ({personalDetails, route}) => {
+const DetailsPage = ({personalDetails, route}) => {
     const profileDetails = personalDetails[route.params.login];
     return (
         <ScreenWrapper>
@@ -60,7 +60,7 @@ const ProfilePage = ({personalDetails, route}) => {
             <View
                 pointerEvents="box-none"
                 style={[
-                    styles.profilePageContainer,
+                    styles.detailsPageContainer,
                 ]}
             >
                 {profileDetails ? (
@@ -80,7 +80,7 @@ const ProfilePage = ({personalDetails, route}) => {
                                     : null}
                             </Text>
                             {profileDetails.login ? (
-                                <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {Str.isSMSLogin(profileDetails.login) ? 'Phone Number' : 'Email'}
                                     </Text>
@@ -92,7 +92,7 @@ const ProfilePage = ({personalDetails, route}) => {
                                 </View>
                             ) : null}
                             {profileDetails.pronouns ? (
-                                <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         Preferred Pronouns
                                     </Text>
@@ -102,7 +102,7 @@ const ProfilePage = ({personalDetails, route}) => {
                                 </View>
                             ) : null}
                             {profileDetails.timezone ? (
-                                <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         Local Time
                                     </Text>
@@ -121,11 +121,11 @@ const ProfilePage = ({personalDetails, route}) => {
     );
 };
 
-ProfilePage.propTypes = propTypes;
-ProfilePage.displayName = 'ProfilePage';
+DetailsPage.propTypes = propTypes;
+DetailsPage.displayName = 'DetailsPage';
 
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
     },
-})(ProfilePage);
+})(DetailsPage);
