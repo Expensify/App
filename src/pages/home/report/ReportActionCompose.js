@@ -64,6 +64,7 @@ class ReportActionCompose extends React.Component {
         this.setIsFocused = this.setIsFocused.bind(this);
         this.showEmojiPicker = this.showEmojiPicker.bind(this);
         this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
+        this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.comment = props.comment;
 
         this.state = {
@@ -183,6 +184,12 @@ class ReportActionCompose extends React.Component {
         this.setState({isPickerVisible: false});
     }
 
+    addEmojiToTextBox(emoji) {
+        this.hideEmojiPicker();
+        this.textInput.value += emoji;
+        this.setIsFocused(true);
+    }
+
     /**
      * Add a new comment to this chat
      *
@@ -294,18 +301,20 @@ class ReportActionCompose extends React.Component {
                         animationIn="fadeIn"
                         anchorOrigin={
                             {
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                             }
                         }
                         measureContent={() => (
                             <EmojiPickerMenu
                                 isVisible
+                                addEmojiToTextBox={this.addEmojiToTextBox}
                             />
                         )}
                     >
                         <EmojiPickerMenu
                             isVisible={this.state.isPickerVisible}
+                            addEmojiToTextBox={this.addEmojiToTextBox}
                         />
                     </PopoverWithMeasuredContent>
                     <TouchableOpacity

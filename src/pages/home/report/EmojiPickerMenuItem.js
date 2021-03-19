@@ -1,29 +1,23 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, Text} from 'react-native';
-
+import {TouchableOpacity, Text} from 'react-native';
+import styles from '../../../styles/styles';
 
 const propTypes = {
-    iconCode: PropTypes.elementType.isRequired,
+    // The unicode that is used to display the emoji
+    emoji: PropTypes.string.isRequired,
+
+    // The function to call when an emoji is selected
+    onPress: PropTypes.func.isRequired,
 };
 
 const EmojiPickerMenuItem = props => (
-    <Pressable>
-        {() => (
-            <>
-                <Text
-
-                    selectable
-                >
-                    {props.iconCode}
-                </Text>
-            </>
-        )}
-    </Pressable>
+    <TouchableOpacity onPress={() => props.onPress(props.emoji)} style={styles.emojiText}>
+        <Text style={styles.title}>{props.emoji}</Text>
+    </TouchableOpacity>
 );
-
 
 EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 
-export default memo(EmojiPickerMenuItem);
+export default EmojiPickerMenuItem;

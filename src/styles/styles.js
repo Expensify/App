@@ -1108,6 +1108,16 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
     }, 0),
+
+    // Emoji Picker Styles
+    emojiText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.iconSizeLarge,
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingRight: 8,
+        paddingLeft: 8,
+    },
 };
 
 const baseCodeTagStyles = {
