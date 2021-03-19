@@ -25,7 +25,7 @@ jobs:
           timeoutSeconds: 360
 
       - name: Wait for any automerge jobs to start
-        run: sleep 30
+        run: sleep 60
 
       - name: Wait for any automerge-master jobs to finish
         uses: tomchv/wait-my-workflow@2da0b8a92211e6d7c9964602b99a7052080a1d61
