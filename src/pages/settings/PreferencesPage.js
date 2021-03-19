@@ -56,7 +56,7 @@ const PreferencesPage = ({priorityMode}) => (
                     {/* placeholder from appearing as a selection option. */}
                     <RNPickerSelect
                         onValueChange={
-                            mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
+                            mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
                         }
                         items={Object.values(priorityModes)}
                         style={styles.picker}
@@ -80,6 +80,6 @@ PreferencesPage.displayName = 'PreferencesPage';
 
 export default withOnyx({
     priorityMode: {
-        key: ONYXKEYS.PRIORITY_MODE,
+        key: ONYXKEYS.NVP_PRIORITY_MODE,
     },
 })(PreferencesPage);
