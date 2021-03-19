@@ -40,20 +40,8 @@ const propTypes = {
     report: PropTypes.shape({
 
         // participants associated with current report
-        participants: PropTypes.arrayOf(PropTypes.shape({
-            login: PropTypes.string.isRequired,
-            alternateText: PropTypes.string,
-            hasDraftComment: PropTypes.bool,
-            icons: PropTypes.arrayOf(PropTypes.string),
-            searchText: PropTypes.string,
-            text: PropTypes.string,
-            keyForList: PropTypes.string,
-            isPinned: PropTypes.bool,
-            isUnread: PropTypes.bool,
-            reportID: PropTypes.number,
-        })),
+        participants: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
-
 
     ...windowDimensionsPropTypes,
 };
@@ -242,7 +230,7 @@ class ReportActionCompose extends React.Component {
                                                                 displayFileInModal({file});
                                                             },
                                                         });
-                                                    }, 100);
+                                                    }, 10);
                                                 }}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 menuOptions={hasMultipleParticipants
