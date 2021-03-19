@@ -97,6 +97,7 @@ class PasswordForm extends React.Component {
                             placeholderTextColor={themeColors.textSupporting}
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
+                            keyboardType="numeric"
                         />
                     </View>
                 )}
