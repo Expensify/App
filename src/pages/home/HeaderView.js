@@ -7,7 +7,7 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
-import {BackArrow, Pin} from '../../components/Icon/Expensicons';
+import {BackArrow, Pin, Trashcan} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -22,6 +22,9 @@ import {participantPropTypes} from './sidebar/optionPropTypes';
 const propTypes = {
     // Toggles the navigationMenu open and closed
     onNavigationMenuButtonClicked: PropTypes.func.isRequired,
+
+    // Toggles the videoChatMenu open and closed
+    onVideoChatMenuButtonClicked: PropTypes.func.isRequired,
 
     /* Onyx Props */
     // The report currently being looked at
@@ -78,12 +81,6 @@ const HeaderView = (props) => {
                         ]}
                     >
                         <Pressable
-                            onPress={() => { /* Open the video chat menu */ }}
-                            style={[styles.touchableButtonImage, styles.mr0]}
-                        >
-                            <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
-                        </Pressable>
-                        <Pressable
                             onPress={() => togglePinnedState(props.report)}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
@@ -98,6 +95,12 @@ const HeaderView = (props) => {
                             />
                         </View>
                         <View style={[styles.reportOptions, styles.flexRow]}>
+                            <Pressable
+                                onPress={() => props.onVideoChatMenuButtonClicked}
+                                style={[styles.touchableButtonImage, styles.mr0]}
+                            >
+                                <Icon src={Trashcan} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                            </Pressable>
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}
