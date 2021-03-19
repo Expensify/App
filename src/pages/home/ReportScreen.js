@@ -30,7 +30,7 @@ class ReportScreen extends React.Component {
         };
     }
 
-     toggleVideoChatMenu() {
+    toggleVideoChatMenu() {
         this.setState(state => ({
             isVideoChatMenuActive: !state.isVideoChatMenuActive,
         }));

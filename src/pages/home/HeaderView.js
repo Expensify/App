@@ -72,7 +72,7 @@ const HeaderView = props => (
                     <Header title={props.report.reportName} />
                     <View style={[styles.reportOptions, styles.flexRow]}>
                         <Pressable
-                            onPress={() => {console.log('bang')}}
+                            onPress={() => { /* Open the video chat menu */ }}
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
                             <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
