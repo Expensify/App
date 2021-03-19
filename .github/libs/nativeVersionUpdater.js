@@ -14,38 +14,43 @@ const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test'
 const PLIST_PATH = './ios/ExpensifyCash/Info.plist';
 const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
 
+exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
+exports.PLIST_PATH = PLIST_PATH;
+exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
+
 /**
- * Pad a number to be three digits (with leading zeros if necessary).
+ * Pad a number to be two digits (with leading zeros if necessary).
  *
  * @param {Number} number - Must be an integer.
- * @returns {String} - A string representation of the number w/ length 3.
+ * @returns {String} - A string representation of the number with length 2.
  */
-function padToThreeDigits(number) {
-    if (number >= 100) {
+function padToTwoDigits(number) {
+    if (number >= 10) {
         return number.toString();
     }
-    if (number >= 10) {
-        return `0${number.toString()}`;
-    }
-    return `00${number.toString()}`;
+    return `0${number.toString()}`;
 }
 
 /**
- * Generate the 12-digit versionCode for android.
- * This version code allocates three digits each for MAJOR, MINOR, PATCH, and BUILD versions.
- * As a result, our max version is 999.999.999-999.
+ * Generate the 10-digit versionCode for android.
+ * This version code allocates two digits each for PREFIX, MAJOR, MINOR, PATCH, and BUILD versions.
+ * As a result, our max version is 99.99.99-99.
  *
  * @param {String} npmVersion
  * @returns {String}
  */
 exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVersion) {
+    // All Android versions will be prefixed with '10' due to previous versioning
+    const prefix = '10';
     return ''.concat(
-        padToThreeDigits(getMajorVersion(npmVersion) || 0),
-        padToThreeDigits(getMinorVersion(npmVersion) || 0),
-        padToThreeDigits(getPatchVersion(npmVersion) || 0),
-        padToThreeDigits(getBuildVersion(npmVersion) || 0),
+        prefix,
+        padToTwoDigits(getMajorVersion(npmVersion) || 0),
+        padToTwoDigits(getMinorVersion(npmVersion) || 0),
+        padToTwoDigits(getPatchVersion(npmVersion) || 0),
+        padToTwoDigits(getBuildVersion(npmVersion) || 0),
     );
 };
+
 
 /**
  * Update the Android app versionName and versionCode.
@@ -73,11 +78,15 @@ exports.updateAndroidVersion = function updateAndroidVersion(versionName, versio
  */
 exports.updateiOSVersion = function updateiOSVersion(version) {
     const shortVersion = version.split('-')[0];
-    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${version}`);
+    const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
+    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
+
+    // Pass back the cfVersion in the return array so we can set the NEW_IOS_VERSION in ios.yml
     return Promise.all([
+        cfVersion,
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
         exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" ${PLIST_PATH}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${version}" ${PLIST_PATH_TEST}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`),
+        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`),
     ]);
 };

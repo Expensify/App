@@ -1,20 +1,16 @@
 import React, {PureComponent} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {
-    View, Text, Pressable,
-} from 'react-native';
 import Popover from './Popover';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import Icon from './Icon';
 import {
     ChatBubble, Users, Receipt, MoneyCircle, Paperclip,
 } from './Icon/Expensicons';
-import {redirect} from '../libs/actions/App';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
-
+import Navigation from '../libs/Navigation/Navigation';
+import MenuItem from './MenuItem';
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -53,22 +49,22 @@ class CreateMenu extends PureComponent {
             [CONST.MENU_ITEM_KEYS.NEW_CHAT]: {
                 icon: ChatBubble,
                 text: 'New Chat',
-                onSelected: () => redirect(ROUTES.NEW_CHAT),
+                onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
             },
             [CONST.MENU_ITEM_KEYS.NEW_GROUP]: {
                 icon: Users,
                 text: 'New Group',
-                onSelected: () => redirect(ROUTES.NEW_GROUP),
+                onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
             },
             [CONST.MENU_ITEM_KEYS.REQUEST_MONEY]: {
                 icon: MoneyCircle,
                 text: 'Request Money',
-                onSelected: () => redirect(ROUTES.NEW_CHAT),
+                onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
             },
             [CONST.MENU_ITEM_KEYS.SPLIT_BILL]: {
                 icon: Receipt,
                 text: 'Split Bill',
-                onSelected: () => redirect(ROUTES.NEW_CHAT),
+                onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
             },
             [CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]: {
                 icon: Paperclip,
@@ -112,25 +108,16 @@ class CreateMenu extends PureComponent {
                 }}
                 anchorPosition={styles.createMenuPosition}
             >
-                {this.menuItemData.map(({icon, text, onPress}) => (
-                    <Pressable
-                        key={text}
-                        onPress={onPress}
-                        style={({hovered}) => ([
-                            styles.createMenuItem,
-                            hovered && {backgroundColor: themeColors.buttonHoveredBG},
-                        ])}
-                    >
-                        <View style={styles.createMenuIcon}>
-                            <Icon src={icon} />
-                        </View>
-                        <View style={styles.justifyContentCenter}>
-                            <Text style={[styles.createMenuText, styles.ml3]}>
-                                {text}
-                            </Text>
-                        </View>
-                    </Pressable>
-                ))}
+                <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                    {menuItemData.map(({icon, text, onPress}) => (
+                        <MenuItem
+                            key={text}
+                            icon={icon}
+                            title={text}
+                            onPress={onPress}
+                        />
+                    ))}
+                </View>
             </Popover>
         );
     }

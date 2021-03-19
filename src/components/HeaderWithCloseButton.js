@@ -6,14 +6,23 @@ import {
 import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
-import {Close} from './Icon/Expensicons';
+import {Close, Download, BackArrow} from './Icon/Expensicons';
 
 const propTypes = {
     /** Title of the Header */
     title: PropTypes.string,
 
+    /** Method to trigger when pressing download button of the header */
+    onDownloadButtonPress: PropTypes.func,
+
     /** Method to trigger when pressing close button of the header */
     onCloseButtonPress: PropTypes.func,
+
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress: PropTypes.func,
+
+    /** Whether we should show a back icon */
+    shouldShowBackButton: PropTypes.bool,
 
     /** Fontsize for the text in the Header */
     textSize: PropTypes.oneOf(['default', 'large']),
@@ -24,9 +33,12 @@ const propTypes = {
 
 const defaultProps = {
     title: '',
+    onDownloadButtonPress: () => {},
     onCloseButtonPress: () => {},
-    textSize: 'default',
-    shouldShowBorderBottom: true,
+    onBackButtonPress: () => {},
+    shouldShowBackButton: false,
+    textSize: 'large',
+    shouldShowBorderBottom: false,
 };
 
 const HeaderWithCloseButton = props => (
@@ -40,8 +52,27 @@ const HeaderWithCloseButton = props => (
             styles.overflowHidden,
         ]}
         >
+            {props.shouldShowBackButton && (
+            <TouchableOpacity
+                onPress={props.onBackButtonPress}
+                style={[styles.touchableButtonImage]}
+            >
+                <Icon src={BackArrow} />
+            </TouchableOpacity>
+            )}
             <Header title={props.title} textSize={props.textSize} />
             <View style={[styles.reportOptions, styles.flexRow]}>
+                {
+                    props.title === 'Attachment' && (
+                        <TouchableOpacity
+                            onPress={props.onDownloadButtonPress}
+                            style={[styles.touchableButtonImage]}
+                        >
+                            <Icon src={Download} />
+                        </TouchableOpacity>
+                    )
+                }
+
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}
                     style={[styles.touchableButtonImage]}

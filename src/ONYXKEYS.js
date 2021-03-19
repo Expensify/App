@@ -7,14 +7,11 @@ export default {
 
     // Holds an array of client IDs which is used for multi-tabs on web in order to know
     // which tab is the leader, and which ones are the followers
-    ACTIVE_CLIENTS: 'activeClients2',
-
-    // When this key is changed, the active page changes (see Expensify.js and `redirect` in actions/App.js)
-    APP_REDIRECT_TO: 'appRedirectTo',
+    ACTIVE_CLIENTS: 'activeClients',
 
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
-    // The current URL, you should not change this directly (use `redirect` in App.js)
+    // What the active route is for our navigator. Global route that determines what views to display.
     CURRENT_URL: 'currentURL',
 
     // Currently viewed reportID
@@ -22,6 +19,12 @@ export default {
 
     // Credentials to authenticate the user
     CREDENTIALS: 'credentials',
+
+    // Contains loading data for the IOU feature (IOUModal, IOUDetail, & IOUPreview Components)
+    IOU: 'iou',
+
+    // Keeps track if there is modal currently visible or not
+    MODAL: 'modal',
 
     // Contains the personalDetails of the user as well as their timezone
     MY_PERSONAL_DETAILS: 'myPersonalDetails',
@@ -35,8 +38,8 @@ export default {
     // Contains the user preference for the LHN priority mode
     PRIORITY_MODE: 'priorityMode',
 
-    // Contains the version of the update that has newly been downloaded.
-    UPDATE_VERSION: 'updateVersion',
+    // Indicates whether an update is available and ready to beinstalled.
+    UPDATE_AVAILABLE: 'updateAvailable',
 
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
@@ -47,7 +50,6 @@ export default {
 
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
-    IS_SIDEBAR_SHOWN: 'isSidebarShown',
     BETAS: 'betas',
 
     // NVP keys

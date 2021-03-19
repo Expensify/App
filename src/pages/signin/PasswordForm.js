@@ -19,9 +19,6 @@ const propTypes = {
         // Whether or not the account already exists
         accountExists: PropTypes.bool,
 
-        // Whether or not there have been chat reports shared with this user
-        canAccessExpensifyCash: PropTypes.bool,
-
         // Whether or not two factor authentication is required
         requiresTwoFactorAuth: PropTypes.bool,
 
@@ -91,6 +88,7 @@ class PasswordForm extends React.Component {
                             placeholderTextColor={themeColors.textSupporting}
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
+                            keyboardType="numeric"
                         />
                     </View>
                 )}

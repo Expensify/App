@@ -3,13 +3,14 @@ name: E2E iOS Tests
 on:
     pull_request:
         types: [opened, synchronize]
+        branches-ignore: [staging, production]
 
 env:
     DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer
 
 jobs:
     test:
-        runs-on: macos-10.15
+        runs-on: macos-latest
         steps:
             - uses: actions/checkout@v2
             - uses: actions/setup-ruby@v1
@@ -23,13 +24,21 @@ jobs:
               run: bundle install
 
             - name: Install node packages
-              run: npm install
+              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+              with:
+                timeout_minutes: 10
+                max_attempts: 5
+                command: npm ci
 
             - name: Install detox
               run: npm install -g detox-cli
 
             - name: Install cocoapods
-              run: cd ios && pod install --repo-update
+              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+              with:
+                timeout_minutes: 15
+                max_attempts: 3
+                command: cd ios && pod install --repo-update
 
             - name: Install brew depdencies
               run: |
