@@ -23,9 +23,17 @@ const defaultProps = {
 class ReportScreen extends React.Component {
     constructor(props) {
         super(props);
+        this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
+
         this.state = {
-            isVideoChatModalActive: false,
+            isVideoChatMenuActive: false,
         };
+    }
+
+     toggleVideoChatMenu() {
+        this.setState(state => ({
+            isVideoChatMenuActive: !state.isVideoChatMenuActive,
+        }));
     }
 
     render() {
@@ -45,6 +53,17 @@ class ReportScreen extends React.Component {
                     reportID={activeReportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                 />
+                <Popover
+                    onClose={this.toggleVideoChatMenu}
+                    isVisible={this.state.isVideoChatMenuActive}
+                    onModalHide={() => {
+                        this.onModalHide();
+                        this.resetOnModalHide();
+                    }}
+                    anchorPosition={styles.videoChatMenuPosition}
+                >
+                    {/* Here is where we'd map the data for each menu item. */}
+                </Popover>
                 <View style={[styles.dFlex, styles.flex1]}>
                     <ReportView
                         reportID={activeReportID}
