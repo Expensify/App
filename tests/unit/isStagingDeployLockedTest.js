@@ -1,15 +1,18 @@
 const core = require('@actions/core');
 const run = require('../../.github/actions/isStagingDeployLocked/isStagingDeployLocked');
 
-beforeEach(() => {
-    jest.resetModules();
-
-    // Mock GITHUB_TOKEN which is required before every test
+beforeAll(() => {
+    // Mock required GITHUB_TOKEN
     process.env.INPUT_GITHUB_TOKEN = 'fake_token';
 });
 
-afterEach(() => {
-    // Remove mock GITHUB_TOKEN after every test
+beforeEach(() => {
+    // Reset mocks before each test
+    jest.resetModules();
+});
+
+afterAll(() => {
+    // Remove mock GITHUB_TOKEN
     delete process.env.INPUT_GITHUB_TOKEN;
 });
 
