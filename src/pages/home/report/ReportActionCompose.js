@@ -17,6 +17,9 @@ import AttachmentModal from '../../../components/AttachmentModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
+import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredContent';
+import EmojiPickerMenu from './EmojiPickerMenu';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -46,6 +49,12 @@ class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
 
+        // The horizontal and vertical position (relative to the screen) where the popover will display.
+        this.popoverAnchorPosition = {
+            horizontal: 0,
+            vertical: 0,
+        };
+
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -53,12 +62,15 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.showEmojiPicker = this.showEmojiPicker.bind(this);
+        this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
         this.comment = props.comment;
 
         this.state = {
             isFocused: false,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
+            isPickerVisible: false,
         };
     }
 
@@ -139,6 +151,36 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
             this.submitForm();
         }
+    }
+
+    /**
+     * Save the location of a native press event.
+     *
+     * @param {Object} nativeEvent
+     */
+    capturePressLocation(nativeEvent) {
+        this.popoverAnchorPosition = {
+            horizontal: nativeEvent.pageX,
+            vertical: nativeEvent.pageY,
+        };
+    }
+
+    /**
+     * Show the ReportActionContextMenu modal popover.
+     *
+     * @param {Object} [event] - A press event.
+     */
+    showEmojiPicker(event) {
+        const nativeEvent = event.nativeEvent || {};
+        this.capturePressLocation(nativeEvent);
+        this.setState({isPickerVisible: true});
+    }
+
+    /**
+     * Hide the ReportActionContextMenu modal popover.
+     */
+    hideEmojiPicker() {
+        this.setState({isPickerVisible: false});
     }
 
     /**
@@ -245,6 +287,36 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
+                    <PopoverWithMeasuredContent
+                        isVisible={this.state.isPickerVisible}
+                        onClose={this.hideEmojiPicker}
+                        anchorPosition={this.popoverAnchorPosition}
+                        animationIn="fadeIn"
+                        anchorOrigin={
+                            {
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }
+                        }
+                        measureContent={() => (
+                            <EmojiPickerMenu
+                                isVisible
+                            />
+                        )}
+                    >
+                        <EmojiPickerMenu
+                            isVisible={this.state.isPickerVisible}
+                        />
+                    </PopoverWithMeasuredContent>
+                    <TouchableOpacity
+                        style={[styles.chatItemSubmitButton,
+                            this.state.isCommentEmpty
+                                ? styles.buttonDisable : styles.buttonSuccess]}
+                        onPress={this.showEmojiPicker}
+                        underlayColor={themeColors.componentBG}
+                    >
+                        <Icon src={Send} fill={themeColors.componentBG} />
+                    </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton,
                             this.state.isCommentEmpty
