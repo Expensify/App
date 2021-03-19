@@ -159,6 +159,97 @@ function getSimplifiedReportObject(report) {
 }
 
 /**
+ * Get a simplified version of an IOU report
+ *
+ * @param {Object} reportData
+ * @param {Number} reportData.transactionID
+ * @param {Number} reportData.amount
+ * @param {String} reportData.currency
+ * @param {String} reportData.created
+ * @param {String} reportData.comment
+ * @param {Object[]} reportData.transactionList
+ * @param {String} reportData.ownerEmail
+ * @param {String} reportData.managerEmail
+ * @param {Number} reportData.reportID
+ * @returns {Object}
+ */
+function getSimplifiedIOUReport(reportData) {
+    const transactions = _.map(reportData.transactionList, transaction => ({
+        transactionID: transaction.transactionID,
+        amount: transaction.amount,
+        currency: transaction.currency,
+        created: transaction.created,
+        comment: transaction.comment,
+    }));
+
+    return {
+        reportID: reportData.reportID,
+        ownerEmail: reportData.ownerEmail,
+        managerEmail: reportData.managerEmail,
+        currency: reportData.currency,
+        transactions,
+    };
+}
+
+/**
+ * Fetches the updated data for an IOU Report and updates the IOU collection in Onyx
+ *
+ * @param {Object} report
+ * @param {String[]} participants
+ */
+function updateIOUReportData(report, participants) {
+    const reportActionList = lodashGet(report, ['reportActionList'], []);
+    const containsIOUAction = _.any(reportActionList, reportAction => reportAction.action === 'IOU');
+
+    // If there aren't any IOU actions, we don't need to fetch any additional data
+    if (!containsIOUAction) {
+        return;
+    }
+
+    // If we don't have one participant, this is not an IOU
+    if (participants.length !== 1) {
+        return;
+    }
+
+    // Since the Chat and the IOU are different reports with different reportIDs, and GetIOUReport only returns the
+    // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`
+    let iouReportID = 0;
+    API.GetIOUReport({
+        debtorEmail: participants[0],
+    }).then((response) => {
+        iouReportID = response.reportID || 0;
+        if (response.jsonCode !== 200) {
+            throw new Error(response.message);
+        } else if (iouReportID === 0) {
+            throw new Error('GetIOUReport returned a reportID of 0');
+        }
+
+        return API.Get({
+            returnValueList: 'reportStuff',
+            reportIDList: iouReportID,
+            shouldLoadOptionalKeys: true,
+            includePinnedReports: true,
+        });
+    }).then((response) => {
+        if (response.jsonCode !== 200) {
+            throw new Error(response.message);
+        } else if (response.reports.length === 0) {
+            throw new Error('Empty reportList returned from Get_ReportStuff');
+        }
+
+        const iouReportData = response.reports[iouReportID];
+        if (!iouReportData) {
+            throw new Error(`No iouReportData found for reportID ${iouReportID}`);
+        }
+
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+            getSimplifiedIOUReport(iouReportData));
+    }).catch((error) => {
+        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
+    });
+}
+
+/**
  * Fetches chat reports when provided a list of
  * chat report IDs
  *
@@ -495,97 +586,6 @@ function fetchChatReports() {
 
             return response.chatList;
         });
-}
-
-/**
- * Get a simplified version of an IOU report
- *
- * @param {Object} reportData
- * @param {Number} reportData.transactionID
- * @param {Number} reportData.amount
- * @param {String} reportData.currency
- * @param {String} reportData.created
- * @param {String} reportData.comment
- * @param {Object[]} reportData.transactionList
- * @param {String} reportData.ownerEmail
- * @param {String} reportData.managerEmail
- * @param {Number} reportData.reportID
- * @returns {Object}
- */
-function getSimplifiedIOUReport(reportData) {
-    const transactions = _.map(reportData.transactionList, transaction => ({
-        transactionID: transaction.transactionID,
-        amount: transaction.amount,
-        currency: transaction.currency,
-        created: transaction.created,
-        comment: transaction.comment,
-    }));
-
-    return {
-        reportID: reportData.reportID,
-        ownerEmail: reportData.ownerEmail,
-        managerEmail: reportData.managerEmail,
-        currency: reportData.currency,
-        transactions,
-    };
-}
-
-/**
- * Fetches the updated data for an IOU Report and updates the IOU collection in Onyx
- *
- * @param {Object} report
- * @param {String[]} participants
- */
-function updateIOUReportData(report, participants) {
-    const reportActionList = lodashGet(report, ['reportActionList'], []);
-    const containsIOUAction = _.any(reportActionList, reportAction => reportAction.action === 'IOU');
-
-    // If there aren't any IOU actions, we don't need to fetch any additional data
-    if (!containsIOUAction) {
-        return;
-    }
-
-    // If we don't have one participant, this is not an IOU
-    if (participants.length !== 1) {
-        return;
-    }
-
-    // Since the Chat and the IOU are different reports with different reportIDs, and GetIOUReport only returns the
-    // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`
-    let iouReportID = 0;
-    API.GetIOUReport({
-        debtorEmail: participants[0],
-    }).then((response) => {
-        iouReportID = response.reportID || 0;
-        if (response.jsonCode !== 200) {
-            throw new Error(response.message);
-        } else if (iouReportID === 0) {
-            throw new Error('GetIOUReport returned a reportID of 0');
-        }
-
-        return API.Get({
-            returnValueList: 'reportStuff',
-            reportIDList: iouReportID,
-            shouldLoadOptionalKeys: true,
-            includePinnedReports: true,
-        });
-    }).then((response) => {
-        if (response.jsonCode !== 200) {
-            throw new Error(response.message);
-        } else if (response.reports.length === 0) {
-            throw new Error('Empty reportList returned from Get_ReportStuff');
-        }
-
-        const iouReportData = response.reports[iouReportID];
-        if (!iouReportData) {
-            throw new Error(`No iouReportData found for reportID ${iouReportID}`);
-        }
-
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-            getSimplifiedIOUReport(iouReportData));
-    }).catch((error) => {
-        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
-    });
 }
 
 /**
