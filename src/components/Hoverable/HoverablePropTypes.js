@@ -8,7 +8,7 @@ const propTypes = {
     ]).isRequired,
 
     // Styles to be assigned to the Hoverable Container
-    // eslint-disable-next-line.
+    // eslint-disable-next-line react/forbid-prop-types
     containerStyle: PropTypes.object,
 
     // Function that executes when the mouse moves over the children.

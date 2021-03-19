@@ -12,14 +12,8 @@ import hasEllipsis from '../../../../libs/hasEllipsis';
 class OptionRowTitle extends PureComponent {
     constructor(props) {
         super(props);
-        this.ref = null;
-        this.cRefs = [];
-        this.setContainerRef = (ref) => {
-            this.ref = ref;
-        };
-        this.setOptionChildRef = index => (ref) => {
-            this.cRefs[index] = ref;
-        };
+        this.containerRef = null;
+        this.childRefs = [];
         this.state = {
             isEllipsisActive: false,
         };
@@ -29,7 +23,7 @@ class OptionRowTitle extends PureComponent {
 
     componentDidMount() {
         this.setState({
-            isEllipsisActive: this.ref && hasEllipsis(this.ref),
+            isEllipsisActive: this.containerRef && hasEllipsis(this.containerRef),
         });
     }
 
@@ -58,13 +52,13 @@ class OptionRowTitle extends PureComponent {
      */
     getTooltipShiftX(index) {
         // Only shift when containerLayout or Refs to text node is available .
-        if (!this.containerLayout || !this.cRefs[index]) {
+        if (!this.containerLayout || !this.childRefs[index]) {
             return;
         }
         const {width: containerWidth, left: containerLeft} = this.containerLayout;
 
         // We have to return the value as Number so we can't use `measureWindow` which takes a callback
-        const {width: textNodeWidth, left: textNodeLeft} = this.cRefs[index].getBoundingClientRect();
+        const {width: textNodeWidth, left: textNodeLeft} = this.childRefs[index].getBoundingClientRect();
         const tooltipX = (textNodeWidth / 2) + textNodeLeft;
         const containerRight = containerWidth + containerLeft;
         const textNodeRight = textNodeWidth + textNodeLeft;
@@ -90,30 +84,25 @@ class OptionRowTitle extends PureComponent {
                 style={[style, styles.optionDisplayNameTooltipWrapper]}
                 onLayout={this.setContainerLayout}
                 numberOfLines={1}
-                ref={this.setContainerRef}
+                ref={el => this.containerRef = el}
             >
-                {_.map(option.participantsList, (participant, index) => {
-                    // We need to get the refs to all the names which will be used to correct
-                    // the horizontal position of the tooltip
-                    const setChildRef = this.setOptionChildRef(index);
-                    return (
-                        <Fragment key={index}>
-                            <Tooltip
-                                key={index}
-                                text={participant.login}
-                                containerStyle={styles.dInline}
-                                shiftHorizontal={() => this.getTooltipShiftX(index)}
-                            >
-                                <Text ref={setChildRef}>
-                                    {participant.displayName}
-                                </Text>
-                            </Tooltip>
-                            {index < option.participantsList.length - 1
-                                ? <Text>,&nbsp;</Text>
-                                : null}
-                        </Fragment>
-                    );
-                })}
+                {_.map(option.participantsList, (participant, index) => (
+                    <Fragment key={index}>
+                        <Tooltip
+                            key={index}
+                            text={participant.login}
+                            containerStyle={styles.dInline}
+                            shiftHorizontal={() => this.getTooltipShiftX(index)}
+                        >
+                            {/*  // We need to get the refs to all the names which will be used to correct
+                                 the horizontal position of the tooltip */}
+                            <Text ref={el => this.childRefs[index] = el}>
+                                {participant.displayName}
+                            </Text>
+                        </Tooltip>
+                        {index < option.participantsList.length - 1 && <Text>,&nbsp;</Text>}
+                    </Fragment>
+                ))}
                 {option.participantsList.length > 1 && this.state.isEllipsisActive
                     && (
                         <View style={styles.optionDisplayNameTooltipEllipsis}>

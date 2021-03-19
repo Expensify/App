@@ -52,4 +52,11 @@ const TooltipRenderedOnPageBody = props => ReactDOM.createPortal(
 
 TooltipRenderedOnPageBody.propTypes = propTypes;
 TooltipRenderedOnPageBody.defaultProps = defaultProps;
+TooltipRenderedOnPageBody.displayName = 'TooltipRenderedOnPageBody';
+
+// Props will change frequently.
+// On every tooltip hover, we update the position in state which will result in re-rendering.
+// We also update the state on layout changes which will be triggered often.
+// There will be n number of tooltip components in the page.
+// Its good to memorize this one.
 export default memo(TooltipRenderedOnPageBody);
