@@ -47,6 +47,7 @@ jobs:
                   LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
             - name: Run Fastlane beta
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
               run: bundle exec fastlane android beta
 
             - name: Run Fastlane production
