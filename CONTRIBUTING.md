@@ -44,6 +44,7 @@ We are currently managing payment via Upwork. If you'd like to be paid for your 
 	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/master/CLA.md) by following the CLA bot instructions that will be posted on your PR
 	1. Tests - All tests must pass before a merge of a pull request
 	1. Lint - All code must pass lint checks before a merge of a pull request
+1. Please never force push when a PR review has already started (because this messes with the PR review history)
 
 #### Testing
 Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
