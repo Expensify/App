@@ -83,17 +83,18 @@ const HeaderView = (props) => {
                                     Navigation.navigate(ROUTES.getProfileRoute(participants[0]));
                                 }
                             }}
+                            style={[styles.flexRow, styles.alignItemsCenter]}
                         >
                             <MultipleAvatars avatarImageURLs={props.report.icons} />
+                            <View style={[styles.flex1, styles.flexRow]}>
+                                <OptionRowTitle
+                                    option={reportOption}
+                                    tooltipEnabled
+                                    numberOfLines={2}
+                                    style={[styles.headerText]}
+                                />
+                            </View>
                         </Pressable>
-                        <View style={[styles.flex1, styles.flexRow]}>
-                            <OptionRowTitle
-                                option={reportOption}
-                                tooltipEnabled
-                                numberOfLines={2}
-                                style={[styles.headerText]}
-                            />
-                        </View>
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
