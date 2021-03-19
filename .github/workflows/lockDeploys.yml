@@ -54,14 +54,14 @@ jobs:
             ./ios/ExpensifyCashTests/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
-      - name: Create Pull Request (staging)
+      - name: Create Pull Request (master)
         uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           author: OSBotify <reactnative@expensify.com>
-          base: staging
+          base: master
           branch: version-patch-${{ github.sha }}
-          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on staging
+          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on master
           body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
           labels: automerge
 
