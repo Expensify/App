@@ -6,8 +6,10 @@ import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import styles from '../../../styles/styles';
-import getReportActionItemStyles from '../../../styles/getReportActionItemStyles';
+import {
+    getReportActionItemStyle,
+    getMiniReportActionContextMenuWrapperStyle,
+} from '../../../styles/getReportActionItemStyles';
 import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
 import Hoverable from '../../../components/Hoverable';
 import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredContent';
@@ -107,12 +109,12 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View>
-                            <View style={getReportActionItemStyles(hovered)}>
+                            <View style={getReportActionItemStyle(hovered)}>
                                 {!this.props.displayAsGroup
                                     ? <ReportActionItemSingle action={this.props.action} />
                                     : <ReportActionItemGrouped action={this.props.action} />}
                             </View>
-                            <View style={styles.miniReportActionContextMenuWrapperStyle}>
+                            <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
                                 <ReportActionContextMenu
                                     reportID={this.props.reportID}
                                     reportActionID={this.props.action.sequenceNumber}
