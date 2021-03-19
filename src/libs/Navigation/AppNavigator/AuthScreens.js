@@ -69,7 +69,7 @@ class AuthScreens extends React.Component {
         }).then(subscribeToReportCommentEvents);
 
         // Fetch some data we need on initialization
-        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.PRIORITY_MODE, 'default');
+        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
         User.fetch();
         User.getBetas();
