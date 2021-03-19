@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {TouchableOpacity, Animated} from 'react-native';
 import PropTypes from 'prop-types';
-
 import styles from '../styles/styles';
 
 const propTypes = {
