@@ -87,6 +87,8 @@ function fetchAccountDetails(login) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
                     requiresTwoFactorAuth: response.requiresTwoFactorAuth,
+                    validated: response.validated,
+                    forgotPassword: false,
                 });
 
                 if (!response.accountExists) {
@@ -195,6 +197,17 @@ function resendValidationLink() {
 }
 
 /**
+ * User forgot the password so let's send them the link to reset their password
+ */
+function resetPassword() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
+    API.ResetPassword({email: credentials.login})
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        });
+}
+
+/**
  * Restart the sign in process by clearing everything from Onyx
  */
 function restartSignin() {
@@ -238,5 +251,6 @@ export {
     signIn,
     signOut,
     resendValidationLink,
+    resetPassword,
     restartSignin,
 };
