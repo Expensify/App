@@ -1,33 +1,11 @@
+import _ from 'underscore';
 import React, {PureComponent} from 'react';
-import PropTypes from 'prop-types';
-import {Animated, Text, View} from 'react-native';
-import Hoverable from './Hoverable';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import getTooltipStyles from '../styles/getTooltipStyles';
-
-const propTypes = {
-    // The text to display in the tooltip.
-    text: PropTypes.string.isRequired,
-
-    // Children to wrap with Tooltip.
-    children: PropTypes.node.isRequired,
-
-    // Props inherited from withWindowDimensions
-    ...windowDimensionsPropTypes,
-
-    // Any additional amount to manually adjust the horizontal position of the tooltip.
-    // A positive value shifts the tooltip to the right, and a negative value shifts it to the left.
-    shiftHorizontal: PropTypes.number,
-
-    // Any additional amount to manually adjust the vertical position of the tooltip.
-    // A positive value shifts the tooltip down, and a negative value shifts it up.
-    shiftVertical: PropTypes.number,
-};
-
-const defaultProps = {
-    shiftHorizontal: 0,
-    shiftVertical: 0,
-};
+import {Animated, View} from 'react-native';
+import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
+import Hoverable from '../Hoverable';
+import withWindowDimensions from '../withWindowDimensions';
+import getTooltipStyles from '../../styles/getTooltipStyles';
+import {propTypes, defaultProps} from './TooltipPropTypes';
 
 class Tooltip extends PureComponent {
     constructor(props) {
@@ -56,6 +34,7 @@ class Tooltip extends PureComponent {
         this.tooltip = null;
 
         this.isComponentMounted = false;
+        this.shouldStartShowAnimation = false;
         this.animation = new Animated.Value(0);
 
         this.getWrapperPosition = this.getWrapperPosition.bind(this);
@@ -102,9 +81,13 @@ class Tooltip extends PureComponent {
         return new Promise(((resolve) => {
             // Make sure the wrapper is mounted before attempting to measure it.
             if (this.wrapperView) {
-                this.wrapperView.measureInWindow((x, y) => resolve({x, y}));
+                this.wrapperView.measureInWindow((x, y, width, height) => resolve({
+                    x, y, width, height,
+                }));
             } else {
-                resolve({x: 0, y: 0});
+                resolve({
+                    x: 0, y: 0, width: 0, height: 0,
+                });
             }
         }));
     }
@@ -144,16 +127,37 @@ class Tooltip extends PureComponent {
      * Display the tooltip in an animation.
      */
     showTooltip() {
-        Animated.timing(this.animation, {
-            toValue: 1,
-            duration: 140,
-        }).start();
+        this.shouldStartShowAnimation = true;
+
+        // We have to dynamically calculate the position here as tooltip could have been rendered on some elments
+        // that has changed its position
+        this.getWrapperPosition()
+            .then(({
+                x, y, width, height,
+            }) => {
+                this.setState({
+                    wrapperWidth: width,
+                    wrapperHeight: height,
+                    xOffset: x,
+                    yOffset: y,
+                });
+
+                // We may need this check due to the reason that the animation start will fire async
+                // and hideTooltip could fire before it thus keeping the Tooltip visible
+                if (this.shouldStartShowAnimation) {
+                    Animated.timing(this.animation, {
+                        toValue: 1,
+                        duration: 140,
+                    }).start();
+                }
+            });
     }
 
     /**
      * Hide the tooltip in an animation.
      */
     hideTooltip() {
+        this.shouldStartShowAnimation = false;
         Animated.timing(this.animation, {
             toValue: 0,
             duration: 140,
@@ -176,34 +180,35 @@ class Tooltip extends PureComponent {
             this.state.wrapperHeight,
             this.state.tooltipWidth,
             this.state.tooltipHeight,
-            this.props.shiftHorizontal,
-            this.props.shiftVertical,
+            _.result(this.props, 'shiftHorizontal'),
+            _.result(this.props, 'shiftVertical'),
         );
-
         return (
-            <Hoverable
-                onHoverIn={this.showTooltip}
-                onHoverOut={this.hideTooltip}
-            >
-                <View
-                    ref={el => this.wrapperView = el}
-                    onLayout={this.measureWrapperAndGetPosition}
+            <>
+                <TooltipRenderedOnPageBody
+                    animationStyle={animationStyle}
+                    tooltipWrapperStyle={tooltipWrapperStyle}
+                    tooltipTextStyle={tooltipTextStyle}
+                    pointerWrapperStyle={pointerWrapperStyle}
+                    pointerStyle={pointerStyle}
+                    setTooltipRef={el => this.tooltip = el}
+                    measureTooltip={this.measureTooltip}
+                    text={this.props.text}
+                />
+                <Hoverable
+                    containerStyle={this.props.containerStyle}
+                    onHoverIn={this.showTooltip}
+                    onHoverOut={this.hideTooltip}
                 >
-                    <Animated.View style={animationStyle}>
-                        <View
-                            ref={el => this.tooltip = el}
-                            onLayout={this.measureTooltip}
-                            style={tooltipWrapperStyle}
-                        >
-                            <Text style={tooltipTextStyle} numberOfLines={1}>{this.props.text}</Text>
-                        </View>
-                        <View style={pointerWrapperStyle}>
-                            <View style={pointerStyle} />
-                        </View>
-                    </Animated.View>
-                    {this.props.children}
-                </View>
-            </Hoverable>
+                    <View
+                        ref={el => this.wrapperView = el}
+                        onLayout={this.measureWrapperAndGetPosition}
+                        style={this.props.containerStyle}
+                    >
+                        {this.props.children}
+                    </View>
+                </Hoverable>
+            </>
         );
     }
 }
