@@ -62,7 +62,9 @@ class SignInPage extends Component {
         // - A login has not been entered yet
         const showLoginForm = !this.props.credentials.login;
 
-        const validAccount = this.props.account.accountExists && this.props.account.validated && !this.props.account.forgotPassword;
+        const validAccount = this.props.account.accountExists
+            && this.props.account.validated
+            && !this.props.account.forgotPassword;
 
         // Show the password form if
         // - A login has been entered
