@@ -201,7 +201,7 @@ function getSimplifiedIOUReport(reportData) {
 function updateIOUReportData(report) {
     const reportActionList = report.reportActionList || [];
     const containsIOUAction = _.any(reportActionList,
-        reportAction => reportAction.action === CONST.REPORT.REPORT_ACTION_TYPE.IOU);
+        reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
 
     // If there aren't any IOU actions, we don't need to fetch any additional data
     if (!containsIOUAction) {
@@ -213,6 +213,7 @@ function updateIOUReportData(report) {
     if (participants.length !== 1) {
         Log.alert('[Report] Report with IOU action has more than 2 participants', true, {
             reportID: report.reportID,
+            participants,
         });
         return;
     }
@@ -613,7 +614,7 @@ function fetchActions(reportID, offset) {
     return API.Report_GetHistory({
         reportID,
         reportActionsOffset,
-        reportActionsLimit: CONST.REPORT.REPORT_ACTIONS_LIMIT,
+        reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
     })
         .then((data) => {
             // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
