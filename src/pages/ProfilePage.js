@@ -108,6 +108,8 @@ const ProfilePage = ({personalDetails, route}) => {
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
                                         {moment().tz(profileDetails.timezone.selected).format('LT')}
+                                        {' '}
+                                        {moment().tz(profileDetails.timezone.selected).zoneAbbr()}
                                     </Text>
                                 </View>
                             ) : null}

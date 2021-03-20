@@ -10,7 +10,6 @@ import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
-import positioning from './utilities/positioning';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
@@ -134,6 +133,10 @@ const styles = {
     buttonSuccess: {
         backgroundColor: themeColors.buttonSuccessBG,
         borderWidth: 0,
+    },
+
+    buttonSuccessDisabled: {
+        opacity: 0.5,
     },
 
     buttonSuccessHovered: {
@@ -320,6 +323,12 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
+    },
+
+    formHint: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
     },
 
     signInPage: {
@@ -553,6 +562,17 @@ const styles = {
         height: 18,
         lineHeight: 18,
         ...whiteSpace.noWrap,
+    },
+
+    optionDisplayNameTooltipWrapper: {
+        position: 'relative',
+    },
+
+    optionDisplayNameTooltipEllipsis: {
+        position: 'absolute',
+        opacity: 0,
+        right: 0,
+        bottom: 0,
     },
 
     optionAlternateText: {
@@ -943,12 +963,6 @@ const styles = {
         borderColor: colors.transparent,
     },
 
-    miniReportActionContextMenuWrapperStyle: {
-        ...positioning.tn4,
-        ...positioning.r4,
-        position: 'absolute',
-    },
-
     reportActionContextMenuText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -1092,6 +1106,18 @@ const styles = {
         height: 24,
         lineHeight: 20,
     },
+
+    iouAmountText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+    },
+
+    iouAmountTextInput: addOutlineWidth({
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+    }, 0),
 };
 
 const baseCodeTagStyles = {
