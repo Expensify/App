@@ -91,7 +91,7 @@ class ProfilePage extends Component {
             lastName,
             pronouns: currentUserPronouns,
             selfSelectedPronouns: initialSelfSelectedPronouns,
-            selectedTimezone: timezone.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
+            selectedTimezone: timezone.selected || CONST.DEFAULT_TIME_ZONE.selected,
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
         };
 
@@ -129,6 +129,7 @@ class ProfilePage extends Component {
     }
 
     render() {
+        // Disables button if none of the form values have changed
         const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName)
             && (this.props.myPersonalDetails.lastName === this.state.lastName)
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
