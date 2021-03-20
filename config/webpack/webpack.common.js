@@ -19,7 +19,6 @@ const includeModules = [
     'react-native-modal',
     'react-native-onyx',
     'react-native-gesture-handler',
-    'toggle-switch-react-native',
 ].join('|');
 
 const webpackConfig = {
