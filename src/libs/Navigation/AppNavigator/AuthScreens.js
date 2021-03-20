@@ -69,11 +69,11 @@ class AuthScreens extends React.Component {
         }).then(subscribeToReportCommentEvents);
 
         // Fetch some data we need on initialization
-        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.PRIORITY_MODE, 'default');
+        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
         PersonalDetails.fetchTimezone();
-        User.getBetas();
         User.fetch();
+        User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
@@ -87,8 +87,8 @@ class AuthScreens extends React.Component {
             }
             PersonalDetails.fetch();
             PersonalDetails.fetchTimezone();
-            User.getBetas();
             User.fetch();
+            User.getBetas();
         }, 1000 * 60 * 30);
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);

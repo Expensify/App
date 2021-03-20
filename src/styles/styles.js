@@ -10,7 +10,6 @@ import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
-import positioning from './utilities/positioning';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
@@ -565,6 +564,17 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    optionDisplayNameTooltipWrapper: {
+        position: 'relative',
+    },
+
+    optionDisplayNameTooltipEllipsis: {
+        position: 'absolute',
+        opacity: 0,
+        right: 0,
+        bottom: 0,
+    },
+
     optionAlternateText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
@@ -951,12 +961,6 @@ const styles = {
     defaultModalContainer: {
         backgroundColor: themeColors.componentBG,
         borderColor: colors.transparent,
-    },
-
-    miniReportActionContextMenuWrapperStyle: {
-        ...positioning.tn4,
-        ...positioning.r4,
-        position: 'absolute',
     },
 
     reportActionContextMenuText: {
