@@ -57,6 +57,7 @@ class Hoverable extends Component {
     render() {
         return (
             <View
+                style={this.props.containerStyle}
                 ref={el => this.wrapperView = el}
                 onMouseEnter={() => this.setIsHovered(true)}
                 onMouseLeave={() => this.setIsHovered(false)}
