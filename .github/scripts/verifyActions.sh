@@ -11,16 +11,13 @@ declare -r NC='\033[0m'
 declare LIB_PATH
 LIB_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../ && pwd)/node_modules/diff-so-fancy"
 
-# Expose diff-so-fancy to path
-PATH=$LIB_PATH:$PATH
-
 # Rebuild all the Github Actions
 printf '\nRebuilding GitHub Actions...\n'
 npm run gh-actions-build
 
 # Check for a diff
 printf '\nChecking for a diff...\n'
-git diff --exit-code | diff-so-fancy | less --tabs=4 -RFX
+git diff --exit-code | $LIB_PATH/diff-so-fancy | less --tabs=4 -RFX
 
 # Runs git diff quietly to get the exit code
 declare EXIT_CODE
