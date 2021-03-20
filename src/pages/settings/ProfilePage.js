@@ -22,7 +22,6 @@ import Text from '../../components/Text';
 import {DownArrow} from '../../components/Icon/Expensicons';
 import Icon from '../../components/Icon';
 import Checkbox from '../../components/Checkbox';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
 import themeColors from '../../styles/themes/default';
 
 const propTypes = {
