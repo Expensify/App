@@ -9,13 +9,15 @@ import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
-import {Paperclip, Send} from '../../../components/Icon/Expensicons';
+import {Plus, Send} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
+import CreateMenu from '../../../components/CreateMenu';
+import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
@@ -34,6 +36,13 @@ const propTypes = {
         isVisible: PropTypes.bool,
     }),
 
+    // The report currently being looked at
+    report: PropTypes.shape({
+
+        // participants associated with current report
+        participants: PropTypes.arrayOf(PropTypes.string),
+    }).isRequired,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -45,7 +54,6 @@ const defaultProps = {
 class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
-
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -59,6 +67,7 @@ class ReportActionCompose extends React.Component {
             isFocused: false,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
+            isMenuVisible: false,
         };
     }
 
@@ -94,6 +103,15 @@ class ReportActionCompose extends React.Component {
      */
     setTextInputShouldClear(shouldClear) {
         this.setState({textInputShouldClear: shouldClear});
+    }
+
+    /**
+     * Updates the visiblity state of the menu
+     *
+     * @param {Boolean} isMenuVisible
+     */
+    setMenuVisibility(isMenuVisible) {
+        this.setState({isMenuVisible});
     }
 
     /**
@@ -168,6 +186,7 @@ class ReportActionCompose extends React.Component {
         // focus this from the chat switcher.
         // https://github.com/Expensify/Expensify.cash/issues/1228
         const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
+        const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
 
         return (
             <View style={[styles.chatItemCompose]}>
@@ -190,24 +209,39 @@ class ReportActionCompose extends React.Component {
                             <>
                                 <AttachmentPicker>
                                     {({openPicker}) => (
-                                        <TouchableOpacity
-                                            onPress={(e) => {
-                                                e.preventDefault();
-
-                                                // Do not open attachment picker from keypress event
-                                                if (!e.key) {
-                                                    openPicker({
-                                                        onPicked: (file) => {
-                                                            displayFileInModal({file});
-                                                        },
-                                                    });
-                                                }
-                                            }}
-                                            style={[styles.chatItemAttachButton]}
-                                            underlayColor={themeColors.componentBG}
-                                        >
-                                            <Icon src={Paperclip} />
-                                        </TouchableOpacity>
+                                        <>
+                                            <TouchableOpacity
+                                                onPress={(e) => {
+                                                    e.preventDefault();
+                                                    this.setMenuVisibility(true);
+                                                }}
+                                                style={styles.chatItemAttachButton}
+                                                underlayColor={themeColors.componentBG}
+                                            >
+                                                <Icon src={Plus} />
+                                            </TouchableOpacity>
+                                            <CreateMenu
+                                                isVisible={this.state.isMenuVisible}
+                                                onClose={() => this.setMenuVisibility(false)}
+                                                onAttachmentPickerSelected={() => {
+                                                    setTimeout(() => {
+                                                        openPicker({
+                                                            onPicked: (file) => {
+                                                                displayFileInModal({file});
+                                                            },
+                                                        });
+                                                    }, 10);
+                                                }}
+                                                onItemSelected={() => this.setMenuVisibility(false)}
+                                                menuOptions={hasMultipleParticipants
+                                                    ? [
+                                                        CONST.MENU_ITEM_KEYS.SPLIT_BILL,
+                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
+                                                    : [
+                                                        CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+                                            />
+                                        </>
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
@@ -272,6 +306,9 @@ export default compose(
         },
         modal: {
             key: ONYXKEYS.MODAL,
+        },
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
     withWindowDimensions,
