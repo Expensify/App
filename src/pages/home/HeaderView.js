@@ -81,19 +81,23 @@ const HeaderView = (props) => {
                         ]}
                     >
                         <Pressable
-                            onPress={() => togglePinnedState(props.report)}
-                            style={[styles.touchableButtonImage, styles.mr0]}
+                            onPress={() => {
+                                if (participants.length === 1) {
+                                    Navigation.navigate(ROUTES.getProfileRoute(participants[0]));
+                                }
+                            }}
+                            style={[styles.flexRow, styles.alignItemsCenter]}
                         >
                             <MultipleAvatars avatarImageURLs={props.report.icons} />
+                            <View style={[styles.flex1, styles.flexRow]}>
+                                <OptionRowTitle
+                                    option={reportOption}
+                                    tooltipEnabled
+                                    numberOfLines={2}
+                                    style={[styles.headerText]}
+                                />
+                            </View>
                         </Pressable>
-                        <View style={[styles.flex1, styles.flexRow]}>
-                            <OptionRowTitle
-                                option={reportOption}
-                                tooltipEnabled
-                                numberOfLines={2}
-                                style={[styles.headerText]}
-                            />
-                        </View>
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <Pressable
                                 onPress={() => props.onVideoChatMenuButtonClicked}
