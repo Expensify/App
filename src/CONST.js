@@ -11,6 +11,8 @@ const CONST = {
         PRESSED: 'pressed',
     },
     CLOUDFRONT_URL,
+    NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
+    NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     UPWORK_URL: 'https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&user_location_match=2',
