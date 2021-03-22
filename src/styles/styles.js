@@ -501,6 +501,11 @@ const styles = {
         color: themeColors.heading,
     },
 
+    videoChatMenuPosition: {
+        left: 0,
+        bottom: 100,
+    },
+
     chatLinkRowPressable: {
         minWidth: 0,
         textDecorationLine: 'none',
