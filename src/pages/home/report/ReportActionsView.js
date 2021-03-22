@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-    Animated,
     View,
     Keyboard,
     AppState,
@@ -69,7 +68,8 @@ class ReportActionsView extends React.Component {
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
-        this.timers = [];
+        this.unreadTimer = null;
+        this.newMessageMarkerPosition = -1;
 
         this.state = {
             isLoadingMoreChats: false,
@@ -101,6 +101,16 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // When the last action changes, wait three seconds, then record the max action
+        // If the report is already open, record the max action immediately
+        if (Visibility.isVisible()) {
+            if (prevProps.reportID !== this.props.reportID) {
+                this.unreadTimer = setTimeout(this.recordMaxAction, 3000);
+            } else if (!this.unreadTimer) {
+                this.recordMaxAction();
+            }
+        }
+
         // We have switched to a new report
         if (prevProps.reportID !== this.props.reportID) {
             this.reset(prevProps.reportID);
@@ -117,12 +127,6 @@ class ReportActionsView extends React.Component {
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
                 this.scrollToListBottom();
             }
-
-            // When the last action changes, wait three seconds, then record the max action
-            // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (Visibility.isVisible()) {
-                this.timers.push(setTimeout(this.recordMaxAction, 3000));
-            }
         }
     }
 
@@ -133,7 +137,10 @@ class ReportActionsView extends React.Component {
 
         AppState.removeEventListener('change', this.onVisibilityChange);
 
-        _.each(this.timers, timer => clearTimeout(timer));
+        if (this.unreadTimer) {
+            clearTimeout(this.unreadTimer);
+            this.unreadTimer = null;
+        }
         unsubscribeFromReportChannel(this.props.reportID);
     }
 
@@ -142,7 +149,7 @@ class ReportActionsView extends React.Component {
      */
     onVisibilityChange() {
         if (Visibility.isVisible()) {
-            this.timers.push(setTimeout(this.recordMaxAction, 3000));
+            this.unreadTimer = setTimeout(this.recordMaxAction, 3000);
         }
     }
 
@@ -158,6 +165,7 @@ class ReportActionsView extends React.Component {
 
         // Fetch the new set of actions
         fetchActions(this.props.reportID);
+        this.newMessageMarkerPosition = -1;
     }
 
     /**
@@ -229,6 +237,10 @@ class ReportActionsView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
+        if (this.unreadTimer) {
+            clearTimeout(this.unreadTimer);
+            this.unreadTimer = null;
+        }
         const reportActions = lodashGet(this.props, 'reportActions', {});
         const maxVisibleSequenceNumber = _.chain(reportActions)
 
@@ -307,7 +319,7 @@ class ReportActionsView extends React.Component {
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
                     needsLayoutCalculation={needsLayoutCalculation}
-                    displayNewIndicator={this.props.report.unreadActionCount > 0}
+                    displayNewIndicator={index === this.newMessageMarkerPosition - 1}
                 />
             </View>
         );
@@ -328,6 +340,9 @@ class ReportActionsView extends React.Component {
             );
         }
 
+        if (this.newMessageMarkerPosition < 0) {
+            this.newMessageMarkerPosition = this.props.report.unreadActionCount;
+        }
         this.updateSortedReportActions();
         return (
             <InvertedFlatList
