@@ -7,7 +7,10 @@ import * as Expensicons from './Expensicons';
 
 const propTypes = {
     // The asset to render.
-    src: PropTypes.oneOf(_.values(Expensicons)).isRequired,
+    src: PropTypes.oneOfType([
+        PropTypes.oneOf(_.values(Expensicons)),
+        PropTypes.func,
+    ]).isRequired,
 
     // The width of the icon.
     width: PropTypes.number,
