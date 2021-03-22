@@ -1,10 +1,12 @@
 import React, {Component} from 'react';
 import Popover from "./Popover";
 import PropTypes from 'prop-types';
-import {ChatBubble, Users} from './Icon/Expensicons';
-import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from "./withWindowDimensions";
 import MenuItem from './MenuItem';
+import openURLInNewTab from '../libs/openURLInNewTab';
+import ZoomIcon from '../../assets/images/Zoom - Blue.svg';
+import GoogleMeetIcon from '../../assets/images/google-meet.svg'
+import CONST from '../CONST';
 
 const propTypes = {
     // State that determines whether to display the create menu or not
@@ -19,21 +21,19 @@ const propTypes = {
 class VideoChatMenu extends Component {
     constructor(props) {
         super(props)
-
-
     }
 
     render() {
         const menuItemData = [
             {
-                icon: ChatBubble,
-                text: 'New Chat',
-                onPress: () => console.log('new chat'),
+                icon: ZoomIcon,
+                text: 'Zoom',
+                onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
             },
             {
-                icon: Users,
-                text: 'New Group',
-                onPress: () => console.log('new group'),
+                icon: GoogleMeetIcon,
+                text: 'Google Meet',
+                onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
             },
         ].map(item => ({
             ...item,
@@ -46,11 +46,10 @@ class VideoChatMenu extends Component {
             <Popover
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
-                onModalHide={() => {
-                    this.onModalHide();
-                    this.resetOnModalHide();
+                anchorPosition={{
+                    left: this.props.windowWidth - 250,
+                    top: 50
                 }}
-                anchorPosition={styles.createMenuPosition}
             >
                 {menuItemData.map(({icon, text, onPress}) => (
                     <MenuItem
