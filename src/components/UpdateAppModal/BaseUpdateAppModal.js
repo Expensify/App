@@ -1,11 +1,12 @@
 import React, {PureComponent} from 'react';
 import {
-    TouchableOpacity, Text,
+    TouchableOpacity, Text, View,
 } from 'react-native';
-import HeaderWithCloseButton from '../HeaderWithCloseButton';
+import Header from '../Header';
 import Modal from '../Modal';
 import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './UpdateAppModalPropTypes';
+import CONST from '../../CONST';
 
 class BaseUpdateAppModal extends PureComponent {
     constructor(props) {
@@ -33,31 +34,41 @@ class BaseUpdateAppModal extends PureComponent {
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
+                    type={CONST.MODAL.MODAL_TYPE.CONFIRM}
                 >
-                    <HeaderWithCloseButton
-                        title="Update App"
-                        onCloseButtonPress={() => this.setState({isModalOpen: false})}
-                    />
-                    <Text style={[styles.textLabel, styles.p4]}>
-                        A new version of Expensify.cash is available.
-                        Update now or restart the app at a later time to download the latest changes.
-                    </Text>
-                    {this.props.onSubmit && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
-                            onPress={this.submitAndClose}
-                        >
-                            <Text
-                                style={[
-                                    styles.buttonText,
-                                    styles.buttonSuccessText,
-                                    styles.buttonConfirmText,
-                                ]}
+                    <View style={[styles.m5]}>
+                        <View style={[styles.flexRow]}>
+                            <Header title="Update App" />
+                        </View>
+                        <Text style={[styles.textLabel, styles.mt4]}>
+                            A new version of Expensify.cash is available.
+                            Update now or restart the app at a later time to download the latest changes.
+                        </Text>
+                        {this.props.onSubmit && (
+                            <TouchableOpacity
+                                style={[styles.button, styles.buttonSuccess, styles.mt4]}
+                                onPress={this.submitAndClose}
                             >
-                                Update App
+                                <Text
+                                    style={[
+                                        styles.buttonText,
+                                        styles.buttonSuccessText,
+                                        styles.buttonConfirmText,
+                                    ]}
+                                >
+                                    Update App
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity
+                            style={[styles.button, styles.mt3]}
+                            onPress={() => this.setState({isModalOpen: false})}
+                        >
+                            <Text style={[styles.buttonText]}>
+                                Cancel
                             </Text>
                         </TouchableOpacity>
-                    )}
+                    </View>
                 </Modal>
             </>
         );
