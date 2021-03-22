@@ -6,6 +6,8 @@ let sleepTimer;
 let lastTime;
 
 /**
+ * Adds a listener for detecting when laptop screens have closed or desktop computers put to sleep. Not reliable on
+ * native platforms.
  *
  * @param {Function} onClockSkewCallback function to call when the
  * @returns {Fuction} that when called clears the timer
