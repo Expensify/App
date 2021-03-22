@@ -963,13 +963,6 @@ const styles = {
         borderColor: colors.transparent,
     },
 
-    miniReportActionContextMenuWrapperStyle: {
-        ...positioning.tn4,
-        ...positioning.r4,
-        position: 'absolute',
-        zIndex: variables.zIndexTop,
-    },
-
     reportActionContextMenuText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
