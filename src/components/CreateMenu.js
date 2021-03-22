@@ -3,10 +3,13 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Popover from './Popover';
 import styles from '../styles/styles';
-import {ChatBubble, Users} from './Icon/Expensicons';
-import Navigation from '../libs/Navigation/Navigation';
+import {
+    ChatBubble, Users, Receipt, MoneyCircle, Paperclip,
+} from './Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import CONST from '../CONST';
+import Navigation from '../libs/Navigation/Navigation';
 import MenuItem from './MenuItem';
 
 const propTypes = {
@@ -19,7 +22,19 @@ const propTypes = {
     // Callback to fire when a CreateMenu item is selected
     onItemSelected: PropTypes.func.isRequired,
 
+    // Menu items to be rendered on the list
+    menuOptions: PropTypes.arrayOf(
+        PropTypes.oneOf(Object.values(CONST.MENU_ITEM_KEYS)),
+    ).isRequired,
+
+    // Callback to fire when a AttachmentPicker item is selected
+    onAttachmentPickerSelected: PropTypes.func,
+
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    onAttachmentPickerSelected: () => {},
 };
 
 class CreateMenu extends PureComponent {
@@ -29,6 +44,42 @@ class CreateMenu extends PureComponent {
         this.setOnModalHide = this.setOnModalHide.bind(this);
         this.resetOnModalHide = this.resetOnModalHide.bind(this);
         this.onModalHide = () => {};
+
+        const MENU_ITEMS = {
+            [CONST.MENU_ITEM_KEYS.NEW_CHAT]: {
+                icon: ChatBubble,
+                text: 'New Chat',
+                onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
+            },
+            [CONST.MENU_ITEM_KEYS.NEW_GROUP]: {
+                icon: Users,
+                text: 'New Group',
+                onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
+            },
+            [CONST.MENU_ITEM_KEYS.REQUEST_MONEY]: {
+                icon: MoneyCircle,
+                text: 'Request Money',
+                onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
+            },
+            [CONST.MENU_ITEM_KEYS.SPLIT_BILL]: {
+                icon: Receipt,
+                text: 'Split Bill',
+                onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
+            },
+            [CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]: {
+                icon: Paperclip,
+                text: 'Add Attachment',
+                onSelected: () => this.props.onAttachmentPickerSelected(),
+            },
+        };
+
+        this.menuItemData = props.menuOptions.map(key => ({
+            ...MENU_ITEMS[key],
+            onPress: () => {
+                props.onItemSelected();
+                this.setOnModalHide(() => MENU_ITEMS[key].onSelected());
+            },
+        }));
     }
 
     /**
@@ -47,27 +98,6 @@ class CreateMenu extends PureComponent {
     }
 
     render() {
-        // This format allows to set individual callbacks to each item
-        // while including mutual callbacks first
-        const menuItemData = [
-            {
-                icon: ChatBubble,
-                text: 'New Chat',
-                onPress: () => this.setOnModalHide(() => Navigation.navigate(ROUTES.NEW_CHAT)),
-            },
-            {
-                icon: Users,
-                text: 'New Group',
-                onPress: () => this.setOnModalHide(() => Navigation.navigate(ROUTES.NEW_GROUP)),
-            },
-        ].map(item => ({
-            ...item,
-            onPress: () => {
-                this.props.onItemSelected();
-                item.onPress();
-            },
-        }));
-
         return (
             <Popover
                 onClose={this.props.onClose}
@@ -79,7 +109,7 @@ class CreateMenu extends PureComponent {
                 anchorPosition={styles.createMenuPosition}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {menuItemData.map(({icon, text, onPress}) => (
+                    {this.menuItemData.map(({icon, text, onPress}) => (
                         <MenuItem
                             key={text}
                             icon={icon}
@@ -94,5 +124,6 @@ class CreateMenu extends PureComponent {
 }
 
 CreateMenu.propTypes = propTypes;
+CreateMenu.defaultProps = defaultProps;
 CreateMenu.displayName = 'CreateMenu';
 export default withWindowDimensions(CreateMenu);
