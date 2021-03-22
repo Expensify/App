@@ -30,6 +30,27 @@ const emojis = [
         header: true,
     },
     {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
         code: '😀',
         keywords: [
             'face',
@@ -2861,8 +2882,38 @@ const emojis = [
         ],
     },
     {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
         code: 'Animals & Nature',
         header: true,
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
     },
     {
         code: '🐵',
@@ -4405,8 +4456,41 @@ const emojis = [
         ],
     },
     {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
         code: 'Travel & Places',
         header: true,
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
     },
     {
         code: '🌍',
@@ -6233,8 +6317,50 @@ const emojis = [
         ],
     },
     {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
         code: 'Activities',
         header: true,
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
     },
     {
         code: '🎃',
@@ -6975,8 +7101,41 @@ const emojis = [
         ],
     },
     {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
         code: 'Objects',
         header: true,
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
     },
     {
         code: '🔇',
@@ -8386,8 +8545,47 @@ const emojis = [
         ],
     },
     {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
         code: 'Symbols',
         header: true,
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
     },
     {
         code: '🏧',
@@ -9984,8 +10182,47 @@ const emojis = [
         ],
     },
     {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
         code: 'Flags',
         header: true,
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
     },
     {
         code: '🏁',
