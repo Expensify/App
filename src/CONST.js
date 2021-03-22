@@ -66,6 +66,11 @@ const CONST = {
         TIMEZONE: 'timeZone',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
+    APP_STATE: {
+        ACTIVE: 'active',
+        BACKGROUND: 'background',
+        INACTIVE: 'inactive',
+    },
 };
 
 export default CONST;

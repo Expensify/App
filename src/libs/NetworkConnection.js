@@ -1,16 +1,16 @@
 import _ from 'underscore';
-import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import NetInfo from './NetInfo';
 import ONYXKEYS from '../ONYXKEYS';
-import Timer from './Timer';
+import SleepTimer from './SleepTimer';
+import AppStateMonitor from './AppStateMonitor';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
 let unsubscribeFromNetInfo;
-let unsubscribeFromTimer;
+let unsubscribeFromSleepTimer;
+let unsubscribeFromAppState;
 let isOffline = false;
-let listeningForAppStateChanges = false;
 let logInfo = () => {};
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
@@ -42,10 +42,6 @@ function setOfflineStatus(isCurrentlyOffline) {
     isOffline = isCurrentlyOffline;
 }
 
-function logAppStateChange(state) {
-    logInfo('[NetworkConnection] AppState change event', true, {state});
-}
-
 /**
  * Set up the event listener for NetInfo to tell whether the user has
  * internet connectivity or not. This is more reliable than the Pusher
@@ -54,10 +50,9 @@ function logAppStateChange(state) {
 function listenForReconnect() {
     logInfo('[NetworkConnection] listenForReconnect called', true);
 
-    if (!listeningForAppStateChanges) {
-        AppState.addEventListener('change', logAppStateChange);
-        listeningForAppStateChanges = true;
-    }
+    unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
+        triggerReconnectionCallbacks('app became active');
+    });
 
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
@@ -70,7 +65,7 @@ function listenForReconnect() {
     // when connectivity has been lost. As a failsafe we will capture the time
     // every two seconds and if the last time recorded goes past a threshold
     // we know that the computer has been asleep.
-    unsubscribeFromTimer = Timer.addClockSkewListener(() => (
+    unsubscribeFromSleepTimer = SleepTimer.addClockSkewListener(() => (
         triggerReconnectionCallbacks('timer clock skewed')
     ));
 }
@@ -84,13 +79,13 @@ function stopListeningForReconnect() {
         unsubscribeFromNetInfo();
         unsubscribeFromNetInfo = undefined;
     }
-    if (unsubscribeFromTimer) {
-        unsubscribeFromTimer();
-        unsubscribeFromTimer = undefined;
+    if (unsubscribeFromSleepTimer) {
+        unsubscribeFromSleepTimer();
+        unsubscribeFromSleepTimer = undefined;
     }
-    if (listeningForAppStateChanges) {
-        AppState.removeEventListener('change', logAppStateChange);
-        listeningForAppStateChanges = false;
+    if (unsubscribeFromAppState) {
+        unsubscribeFromAppState();
+        unsubscribeFromAppState = undefined;
     }
 }
 
