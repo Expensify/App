@@ -20,7 +20,12 @@ const CONST = {
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
-        REPORT_ACTIONS_LIMIT: 50,
+        ACTIONS: {
+            LIMIT: 50,
+            TYPE: {
+                IOU: 'IOU',
+            },
+        },
     },
     MODAL: {
         MODAL_TYPE: {
@@ -67,6 +72,9 @@ const CONST = {
         TIMEZONE: 'timeZone',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
+
+    // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
+    PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 };
 
 export default CONST;
