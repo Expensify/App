@@ -1,16 +1,16 @@
 import React from 'react';
-import {Text} from 'react-native';
+import {Text, View} from 'react-native';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 
-const Terms = () => (
-    <>
-        <Text style={[styles.chatItemMessageHeaderTimestamp]}>
+const TermsOnly = () => (
+    <View style={[styles.mt6]}>
+        <Text style={[styles.loginTermsText]}>
             By logging in, you agree to the
             {' '}
             <Text
-                style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                style={[styles.loginTermsText, styles.link]}
                 onPress={() => openURLInNewTab(CONST.TERMS_URL)}
             >
                 terms of service
@@ -19,14 +19,14 @@ const Terms = () => (
             and
             {' '}
             <Text
-                style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                style={[styles.loginTermsText, styles.link]}
                 onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
             >
                 privacy policy
             </Text>
             .
         </Text>
-    </>
+    </View>
 );
 
-export default Terms;
+export default TermsOnly;
