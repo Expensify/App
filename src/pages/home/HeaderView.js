@@ -100,7 +100,7 @@ const HeaderView = (props) => {
                         </Pressable>
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <Pressable
-                                onPress={() => props.onVideoChatMenuButtonClicked}
+                                onPress={() => props.onVideoChatMenuButtonClicked()}
                                 style={[styles.touchableButtonImage, styles.mr0]}
                             >
                                 <Icon src={Trashcan} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
