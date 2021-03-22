@@ -40,7 +40,7 @@ const propTypes = {
     }),
 
     // Personal details of all the users
-    personalDetails: PropTypes.arrayOf(participantPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     ...windowDimensionsPropTypes,
 };
@@ -83,7 +83,7 @@ const HeaderView = (props) => {
                                     Navigation.navigate(ROUTES.getProfileRoute(participants[0]));
                                 }
                             }}
-                            style={[styles.flexRow, styles.alignItemsCenter]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
                             <MultipleAvatars avatarImageURLs={props.report.icons} />
                             <View style={[styles.flex1, styles.flexRow]}>
