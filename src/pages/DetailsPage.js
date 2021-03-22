@@ -107,9 +107,9 @@ const DetailsPage = ({personalDetails, route}) => {
                                         Local Time
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
-                                        {moment().tz(profileDetails.timezone.selected).format('LT')}
+                                        {moment().tz(details.timezone.selected).format('LT')}
                                         {' '}
-                                        {moment().tz(profileDetails.timezone.selected).zoneAbbr()}
+                                        {moment().tz(details.timezone.selected).zoneAbbr()}
                                     </Text>
                                 </View>
                             ) : null}
