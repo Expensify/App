@@ -386,12 +386,6 @@ const styles = {
         width: '100%',
     },
 
-    loginTermsText: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 20,
-    },
-
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,
