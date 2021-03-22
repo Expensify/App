@@ -186,6 +186,7 @@ class ReportActionCompose extends React.Component {
         // focus this from the chat switcher.
         // https://github.com/Expensify/Expensify.cash/issues/1228
         const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
+        // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
 
         return (
@@ -233,6 +234,11 @@ class ReportActionCompose extends React.Component {
                                                     }, 10);
                                                 }}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
+                                                menuOptions={CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER}
+
+                                                /**
+                                                 * Temporarily hiding IOU Modal options while Modal is incomplete. Will
+                                                 * be replaced by a beta flag once IOUConfirm is completed.
                                                 menuOptions={hasMultipleParticipants
                                                     ? [
                                                         CONST.MENU_ITEM_KEYS.SPLIT_BILL,
@@ -240,6 +246,7 @@ class ReportActionCompose extends React.Component {
                                                     : [
                                                         CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
                                                         CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+                                                */
                                             />
                                         </>
                                     )}
