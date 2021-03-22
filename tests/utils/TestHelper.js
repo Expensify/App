@@ -14,11 +14,11 @@ import waitForPromisesToResolve from './waitForPromisesToResolve';
  * @return {Promise}
  */
 function signInWithTestUser(accountID, login, password = 'Password1', authToken = 'asdfqwerty') {
+    const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
     HttpUtils.xhr.mockImplementation(() => Promise.resolve({
         jsonCode: 200,
         accountExists: true,
-        canAccessExpensifyCash: true,
         requiresTwoFactorAuth: false,
         normalizedLogin: login,
     }));
@@ -44,7 +44,10 @@ function signInWithTestUser(accountID, login, password = 'Password1', authToken 
                     email: login,
                 }));
             signIn(password);
-            return waitForPromisesToResolve();
+            return waitForPromisesToResolve()
+                .then(() => {
+                    HttpUtils.xhr = originalXhr;
+                });
         });
 }
 
@@ -68,10 +71,7 @@ function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) 
             accountID,
             email,
             personalDetailsList,
-        }))
-
-        // fetchTimezone
-        .mockImplementationOnce(() => Promise.resolve({}));
+        }));
 
     fetchPersonalDetails();
     return waitForPromisesToResolve();

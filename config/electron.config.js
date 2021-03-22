@@ -4,7 +4,6 @@ module.exports = {
     extraMetadata: {
         main: './desktop/main.js',
     },
-    afterSign: 'desktop/notarize.js',
     mac: {
         category: 'public.app-category.finance',
         icon: './desktop/icon.png',
@@ -20,7 +19,7 @@ module.exports = {
     },
     publish: [{
         provider: 's3',
-        bucket: 'chat-test-expensify-com',
+        bucket: process.env.SHOULD_DEPLOY_PRODUCTION === 'true' ? 'expensify-cash' : 'staging-expensify-cash',
         channel: 'latest',
     }],
     files: [

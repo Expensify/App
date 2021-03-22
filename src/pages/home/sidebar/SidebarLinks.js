@@ -7,7 +7,7 @@ import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
-import {redirect} from '../../../libs/actions/App';
+import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
@@ -17,6 +17,8 @@ import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
+import CONST from '../../../CONST';
+import {participantPropTypes} from './optionPropTypes';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -40,11 +42,7 @@ const propTypes = {
     draftComments: PropTypes.objectOf(PropTypes.string),
 
     // List of users' personal details
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        avatarURL: PropTypes.string.isRequired,
-        displayName: PropTypes.string.isRequired,
-    })),
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
@@ -52,7 +50,7 @@ const propTypes = {
         displayName: PropTypes.string,
 
         // Avatar URL of the current user from their personal details
-        avatarURL: PropTypes.string,
+        avatar: PropTypes.string,
     }),
 
     // Information about the network
@@ -63,6 +61,12 @@ const propTypes = {
 
     // Currently viewed reportID
     currentlyViewedReportID: PropTypes.string,
+
+    // Whether we are viewing below the responsive breakpoint
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    // The chat priority mode
+    priorityMode: PropTypes.string,
 };
 
 const defaultProps = {
@@ -70,15 +74,16 @@ const defaultProps = {
     draftComments: {},
     personalDetails: {},
     myPersonalDetails: {
-        avatarURL: getDefaultAvatar(),
+        avatar: getDefaultAvatar(),
     },
     network: null,
     currentlyViewedReportID: '',
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
 class SidebarLinks extends React.Component {
     showSearchPage() {
-        redirect(ROUTES.SEARCH);
+        Navigation.navigate(ROUTES.SEARCH);
     }
 
     render() {
@@ -89,6 +94,7 @@ class SidebarLinks extends React.Component {
             this.props.personalDetails,
             this.props.draftComments,
             activeReportID,
+            this.props.priorityMode,
         );
 
         const sections = [{
@@ -99,14 +105,16 @@ class SidebarLinks extends React.Component {
         }];
 
         return (
-            <View style={[styles.flex1, styles.h100, {marginTop: this.props.insets.top}]}>
-                <View style={[
-                    styles.flexRow,
-                    styles.ph5,
-                    styles.pv3,
-                    styles.justifyContentBetween,
-                    styles.alignItemsCenter,
-                ]}
+            <View style={[styles.flex1, styles.h100]}>
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.ph5,
+                        styles.pv3,
+                        styles.justifyContentBetween,
+                        styles.alignItemsCenter,
+                    ]}
+                    nativeID="drag-area"
                 >
                     <Header textSize="large" title="Chats" />
                     <TouchableOpacity
@@ -119,7 +127,7 @@ class SidebarLinks extends React.Component {
                         onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator
-                            source={this.props.myPersonalDetails.avatarURL}
+                            source={this.props.myPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
                         />
                     </TouchableOpacity>
@@ -134,10 +142,12 @@ class SidebarLinks extends React.Component {
                         option => option.reportID === activeReportID
                     ))}
                     onSelectRow={(option) => {
-                        redirect(ROUTES.getReportRoute(option.reportID));
+                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
                         this.props.onLinkClick();
                     }}
                     hideSectionHeaders
+                    showTitleTooltip
+                    disableFocusOptions={this.props.isSmallScreenWidth}
                 />
                 <KeyboardSpacer />
             </View>
@@ -167,6 +177,9 @@ export default compose(
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+        },
+        priorityMode: {
+            key: ONYXKEYS.NVP_PRIORITY_MODE,
         },
     }),
 )(SidebarLinks);

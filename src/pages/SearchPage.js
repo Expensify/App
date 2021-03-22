@@ -3,22 +3,26 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getSearchOptions} from '../libs/OptionsListUtils';
+import {getSearchOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import KeyboardSpacer from '../components/KeyboardSpacer';
-import {redirect} from '../libs/actions/App';
+import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
+import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import ScreenWrapper from '../components/ScreenWrapper';
+import Timing from '../libs/actions/Timing';
+import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
     login: PropTypes.string.isRequired,
 
-    // The URL of the person's avatar (there should already be a default avatarURL if
+    // The URL of the person's avatar (there should already be a default avatar if
     // the person doesn't have their own avatar uploaded yet)
-    avatarURL: PropTypes.string.isRequired,
+    avatar: PropTypes.string.isRequired,
 
     // This is either the user's full name, or their login if full name is an empty string
     displayName: PropTypes.string.isRequired,
@@ -49,10 +53,14 @@ class SearchPage extends Component {
     constructor(props) {
         super(props);
 
+        Timing.start(CONST.TIMING.SEARCH_RENDER);
+
         this.selectReport = this.selectReport.bind(this);
 
         const {
             recentReports,
+            personalDetails,
+            userToInvite,
         } = getSearchOptions(
             props.reports,
             props.personalDetails,
@@ -62,7 +70,13 @@ class SearchPage extends Component {
         this.state = {
             searchValue: '',
             recentReports,
+            personalDetails,
+            userToInvite,
         };
+    }
+
+    componentDidMount() {
+        Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
     /**
@@ -71,12 +85,23 @@ class SearchPage extends Component {
      * @returns {Array}
      */
     getSections() {
-        return [{
+        const sections = [{
             title: 'RECENT',
-            data: this.state.recentReports,
+            data: this.state.recentReports.concat(this.state.personalDetails),
             shouldShow: true,
             indexOffset: 0,
         }];
+
+        if (this.state.userToInvite) {
+            sections.push(({
+                undefined,
+                data: [this.state.userToInvite],
+                shouldShow: true,
+                indexOffset: 0,
+            }));
+        }
+
+        return sections;
     }
 
     /**
@@ -85,21 +110,36 @@ class SearchPage extends Component {
      * @param {Object} option
      */
     selectReport(option) {
-        this.setState({
-            searchValue: '',
-        }, () => {
-            if (this.props.isSmallScreenWidth) {
-                hideSidebar();
-            }
-            redirect(ROUTES.getReportRoute(option.reportID));
-        });
+        if (!option) {
+            return;
+        }
+
+        if (option.reportID) {
+            this.setState({
+                searchValue: '',
+            }, () => {
+                Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+            });
+        } else {
+            fetchOrCreateChatReport([
+                this.props.session.email,
+                option.login,
+            ]);
+        }
     }
 
     render() {
         const sections = this.getSections();
-
+        const headerMessage = getHeaderMessage(
+            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
+            Boolean(this.state.userToInvite),
+        );
         return (
-            <>
+            <ScreenWrapper>
+                <HeaderWithCloseButton
+                    title="Search"
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
                         sections={sections}
@@ -108,6 +148,8 @@ class SearchPage extends Component {
                         onChangeText={(searchValue = '') => {
                             const {
                                 recentReports,
+                                personalDetails,
+                                userToInvite,
                             } = getSearchOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
@@ -115,15 +157,19 @@ class SearchPage extends Component {
                             );
                             this.setState({
                                 searchValue,
+                                userToInvite,
                                 recentReports,
+                                personalDetails,
                             });
                         }}
+                        headerMessage={headerMessage}
                         hideSectionHeaders
                         hideAdditionalOptionStates
+                        showTitleTooltip
                     />
                 </View>
                 <KeyboardSpacer />
-            </>
+            </ScreenWrapper>
         );
     }
 }

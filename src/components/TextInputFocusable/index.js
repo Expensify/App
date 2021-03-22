@@ -2,7 +2,6 @@ import React from 'react';
 import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import mime from 'mime-types';
 
 const propTypes = {
     // Maximum number of lines in the text input
@@ -50,6 +49,16 @@ const defaultProps = {
     onDragLeave: () => {},
     onDrop: () => {},
     isDisabled: false,
+};
+
+const IMAGE_EXTENSIONS = {
+    'image/bmp': 'bmp',
+    'image/gif': 'gif',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/svg+xml': 'svg',
+    'image/tiff': 'tiff',
+    'image/webp': 'webp',
 };
 
 /**
@@ -101,6 +110,7 @@ class TextInputFocusable extends React.Component {
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
+            this.moveCursorToEnd();
         }
     }
 
@@ -153,7 +163,14 @@ class TextInputFocusable extends React.Component {
                         if (!response.ok) { throw Error(response.statusText); }
                         return response.blob();
                     })
-                    .then(x => new File([x], `pasted_image.${mime.extension(x.type)}`, {}))
+                    .then((x) => {
+                        const extension = IMAGE_EXTENSIONS[x.type];
+                        if (!extension) {
+                            throw new Error('No extension found for mime type');
+                        }
+
+                        return new File([x], `pasted_image.${extension}`, {});
+                    })
                     .then(this.props.onPasteFile)
                     .catch((error) => {
                         console.debug(error);
@@ -179,6 +196,19 @@ class TextInputFocusable extends React.Component {
             this.setState({
                 numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight),
             });
+        });
+    }
+
+    /**
+     * Move cursor to end by setting start and end
+     * to length of the input value.
+     */
+    moveCursorToEnd() {
+        this.setState({
+            selection: {
+                start: this.props.defaultValue.length,
+                end: this.props.defaultValue.length,
+            },
         });
     }
 

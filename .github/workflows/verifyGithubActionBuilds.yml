@@ -3,6 +3,7 @@ name: Verify Github Action Builds
 on:
     pull_request:
         types: [opened, synchronize]
+        branches-ignore: [staging, production]
 
 jobs:
     verify:
@@ -12,8 +13,15 @@ jobs:
 
             - name: Use Node.js
               uses: actions/setup-node@v1
+              with:
+                node-version: '14.x'
 
-            - run: npm install
+            - name: Install node packages
+              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+              with:
+                  timeout_minutes: 10
+                  max_attempts: 5
+                  command: npm ci
 
             # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
             # because that would be a sign that the PR author did not rebuild the Github Actions

@@ -62,23 +62,19 @@ function init(args, params) {
 
         // Listen for connection errors and log them
         socket.connection.bind('error', (error) => {
-            console.debug('[Pusher] error', error);
             callSocketEventCallbacks('error', error);
         });
 
         socket.connection.bind('connected', () => {
-            console.debug('[Pusher] connected');
             callSocketEventCallbacks('connected');
             resolve();
         });
 
         socket.connection.bind('disconnected', () => {
-            console.debug('[Pusher] disconnected');
             callSocketEventCallbacks('disconnected');
         });
 
         socket.connection.bind('state_change', (states) => {
-            console.debug('[Pusher] state changed', states);
             callSocketEventCallbacks('state_change', states);
         });
     });
@@ -326,6 +322,13 @@ function isSubscribed(channelName) {
  * @param {Object} payload
  */
 function sendEvent(channelName, eventName, payload) {
+    // Check to see if we are subscribed to this channel before sending the event. Sending client events over channels
+    // we are not subscribed too will throw errors and cause reconnection attempts. Subscriptions are not instant and
+    // can happen later than we expect.
+    if (!isSubscribed(channelName)) {
+        return;
+    }
+
     socket.send_event(eventName, payload, channelName);
 }
 
@@ -375,7 +378,7 @@ function registerCustomAuthorizer(authorizer) {
  */
 function disconnect() {
     if (!socket) {
-        console.debug('[Pusher] Attempting to disconnect from Pusher before initialisation has occured, ignoring.');
+        console.debug('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
         return;
     }
 
@@ -387,6 +390,11 @@ function disconnect() {
  * Disconnect and Re-Connect Pusher
  */
 function reconnect() {
+    if (!socket) {
+        console.debug('[Pusher] Unable to reconnect since Pusher instance does not yet exist.');
+        return;
+    }
+
     console.debug('[Pusher] Reconnecting to Pusher');
     socket.disconnect();
     socket.connect();

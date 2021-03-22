@@ -9,23 +9,14 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash.get';
-import lodashHas from 'lodash.has';
-import compose from '../libs/compose';
-import {Redirect, withRouter} from '../libs/Router';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../../assets/images/expensify-cash.svg';
-import CustomStatusBar from '../components/CustomStatusBar';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import ROUTES from '../ROUTES';
 import variables from '../styles/variables';
 import ButtonWithLoader from '../components/ButtonWithLoader';
 
 const propTypes = {
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     /* Onyx Props */
 
     // The details about the account that the user is signing in with
@@ -45,11 +36,20 @@ const propTypes = {
         // The password used to log in the user
         password: PropTypes.string,
     }),
+
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            validateCode: PropTypes.string,
+        }),
+    }),
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
+    route: {
+        params: {},
+    },
 };
 
 class SetPasswordPage extends Component {
@@ -78,19 +78,12 @@ class SetPasswordPage extends Component {
         this.setState({
             formError: null,
         });
-        setPassword(this.state.password, lodashGet(this.props.match.params, 'validateCode', ''));
+        setPassword(this.state.password, lodashGet(this.props.route, 'params.validateCode', ''));
     }
 
     render() {
-        // If someone manually navigates to this page, and there is already a password set in the credentials
-        // then they can't set a new password and should be taken to the root of the application
-        if (lodashHas(this.props.credentials, 'password')) {
-            return <Redirect to={ROUTES.ROOT} />;
-        }
-
         return (
             <>
-                <CustomStatusBar />
                 <SafeAreaView style={[styles.signInPage]}>
                     <View style={[styles.signInPageInner]}>
                         <View style={[styles.signInPageLogo]}>
@@ -136,10 +129,7 @@ class SetPasswordPage extends Component {
 SetPasswordPage.propTypes = propTypes;
 SetPasswordPage.defaultProps = defaultProps;
 
-export default compose(
-    withRouter,
-    withOnyx({
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(SetPasswordPage);
+export default withOnyx({
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    account: {key: ONYXKEYS.ACCOUNT},
+})(SetPasswordPage);
