@@ -40,8 +40,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
 
                 borderRadius: 12,
                 overflow: 'hidden',
-                width: isSmallScreenWidth ? '90%' : windowWidth * 0.3,
-                minWidth: isSmallScreenWidth ? '90%' : 400,
+                width: variables.sideBarWidth,
             };
 
             // setting this to undefined we effectively disable the

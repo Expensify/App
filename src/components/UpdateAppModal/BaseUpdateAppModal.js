@@ -7,6 +7,7 @@ import Modal from '../Modal';
 import styles from '../../styles/styles';
 import {propTypes, defaultProps} from './UpdateAppModalPropTypes';
 import CONST from '../../CONST';
+import withWindowDimensions from '../withWindowDimensions';
 
 class BaseUpdateAppModal extends PureComponent {
     constructor(props) {
@@ -34,7 +35,8 @@ class BaseUpdateAppModal extends PureComponent {
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
-                    type={CONST.MODAL.MODAL_TYPE.CONFIRM}
+                    type={this.props.isSmallScreenWidth
+                        ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
                 >
                     <View style={[styles.m5]}>
                         <View style={[styles.flexRow]}>
@@ -77,4 +79,4 @@ class BaseUpdateAppModal extends PureComponent {
 
 BaseUpdateAppModal.propTypes = propTypes;
 BaseUpdateAppModal.defaultProps = defaultProps;
-export default BaseUpdateAppModal;
+export default withWindowDimensions(BaseUpdateAppModal);
