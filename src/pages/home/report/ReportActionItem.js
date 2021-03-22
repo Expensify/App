@@ -28,10 +28,13 @@ const propTypes = {
     /* --- Onyx Props --- */
     // List of betas for the current user.
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    draftMessage: PropTypes.string,
 };
 
 const defaultProps = {
     betas: {},
+    draftMessage: '',
 };
 
 class ReportActionItem extends Component {
@@ -115,7 +118,7 @@ class ReportActionItem extends Component {
                             <View style={styles.miniReportActionContextMenuWrapperStyle}>
                                 <ReportActionContextMenu
                                     reportID={this.props.reportID}
-                                    reportActionID={this.props.action.sequenceNumber}
+                                    reportAction={this.props.action}
                                     isVisible={
                                         hovered
                                         && this.isInReportActionContextMenuBeta()
@@ -125,22 +128,15 @@ class ReportActionItem extends Component {
                                 />
                             </View>
                             <PopoverWithMeasuredContent
-                                isVisible={this.state.isPopoverVisible}
+                                isVisible
                                 onClose={this.hidePopover}
                                 anchorPosition={this.popoverAnchorPosition}
                                 animationIn="fadeIn"
-                                measureContent={() => (
-                                    <ReportActionContextMenu
-                                        isVisible
-                                        reportID={-1}
-                                        reportActionID={-1}
-                                    />
-                                )}
                             >
                                 <ReportActionContextMenu
                                     isVisible={this.state.isPopoverVisible}
                                     reportID={this.props.reportID}
-                                    reportActionID={this.props.action.sequenceNumber}
+                                    reportAction={this.props.action}
                                 />
                             </PopoverWithMeasuredContent>
                         </View>

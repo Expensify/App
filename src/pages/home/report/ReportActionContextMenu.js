@@ -6,41 +6,8 @@ import {
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
-
-/**
- * A list of all the context actions in this menu.
- */
-const CONTEXT_ACTIONS = [
-    // Copy to clipboard
-    {
-        text: 'Copy to Clipboard',
-        icon: Clipboard,
-    },
-
-    // Copy chat link
-    {
-        text: 'Copy Link',
-        icon: LinkCopy,
-    },
-
-    // Mark as Unread
-    {
-        text: 'Mark as Unread',
-        icon: Mail,
-    },
-
-    // Edit Comment
-    {
-        text: 'Edit Comment',
-        icon: Pencil,
-    },
-
-    // Delete Comment
-    {
-        text: 'Delete Comment',
-        icon: Trashcan,
-    },
-];
+import {editReportComment} from '../../../libs/actions/Report';
+import ReportActionPropTypes from './ReportActionPropTypes';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -49,7 +16,7 @@ const propTypes = {
 
     // The ID of the report action this context menu is attached to.
     // eslint-disable-next-line react/no-unused-prop-types
-    reportActionID: PropTypes.number.isRequired,
+    reportAction: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // If true, this component will be a small, row-oriented menu that displays icons but not text.
     // If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
@@ -64,21 +31,62 @@ const defaultProps = {
     isVisible: false,
 };
 
-const ReportActionContextMenu = (props) => {
-    const wrapperStyle = getReportActionContextMenuStyles(props.isMini);
-    return props.isVisible && (
-        <View style={wrapperStyle}>
-            {CONTEXT_ACTIONS.map(contextAction => (
-                <ReportActionContextMenuItem
-                    icon={contextAction.icon}
-                    text={contextAction.text}
-                    isMini={props.isMini}
-                    key={contextAction.text}
-                />
-            ))}
-        </View>
-    );
-};
+class ReportActionContextMenu extends React.Component {
+    /**
+     * A list of all the context actions in this menu.
+     */
+    CONTEXT_ACTIONS = [
+        // Copy to clipboard
+        {
+            text: 'Copy to Clipboard',
+            icon: Clipboard,
+        },
+
+        // Copy chat link
+        {
+            text: 'Copy Link',
+            icon: LinkCopy,
+        },
+
+        // Mark as Unread
+        {
+            text: 'Mark as Unread',
+            icon: Mail,
+        },
+
+        // Edit Comment
+        {
+            text: 'Edit Comment',
+            icon: Pencil,
+            callback: () => {
+                editReportComment(this.props.reportID, this.props.reportAction, "blah blah Yuwen test 4");
+            },
+        },
+
+        // Delete Comment
+        {
+            text: 'Delete Comment',
+            icon: Trashcan,
+        },
+    ];
+
+    render() {
+        const wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
+        return this.props.isVisible && (
+            <View style={wrapperStyle}>
+                {this.CONTEXT_ACTIONS.map(contextAction => (
+                    <ReportActionContextMenuItem
+                        icon={contextAction.icon}
+                        text={contextAction.text}
+                        isMini={this.props.isMini}
+                        key={contextAction.text}
+                        onPressOut={contextAction.callback}
+                    />
+                ))}
+            </View>
+        );
+    }
+}
 
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
