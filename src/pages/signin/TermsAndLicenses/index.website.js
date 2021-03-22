@@ -1,12 +1,3 @@
-import React from 'react';
-import Terms from './Terms';
-import Licenses from './Licenses';
+import TermsWithLicenses from './TermsWithLicenses';
 
-const TermsAndLicenses = () => (
-    <>
-        <Terms />
-        <Licenses />
-    </>
-);
-
-export default TermsAndLicenses;
+export default TermsWithLicenses;
