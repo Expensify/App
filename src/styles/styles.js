@@ -739,6 +739,18 @@ const styles = {
         justifyContent: 'center',
     },
 
+    chatItemEmojiButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
+        paddingTop: 6,
+        paddingRight: 6,
+        paddingBottom: 6,
+        paddingLeft: 6,
+        margin: 3,
+        justifyContent: 'center',
+    },
+
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
