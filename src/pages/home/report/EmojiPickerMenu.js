@@ -22,15 +22,9 @@ class EmojiPickerMenu extends Component {
         super(props);
 
         this.filterEmojis = this.filterEmojis.bind(this);
-        const headerIndices = [];
-        emojis.forEach((emoji, index) => {
-            if (emoji.header) {
-                headerIndices.push(index);
-            }
-        });
         this.state = {
             filteredEmojis: emojis,
-            headerIndices,
+            headerIndices: [0, 35, 61, 89, 100, 122, 149],
         };
     }
 
@@ -41,7 +35,7 @@ class EmojiPickerMenu extends Component {
         }
         const newFilteredEmojiList = [];
         emojis.forEach((emoji) => {
-            if (!emoji.header) {
+            if (!emoji.header && emoji.code !== 'BLANK') {
                 emoji.keywords.forEach((keyword) => {
                     if (keyword.includes(searchTerm)) {
                         newFilteredEmojiList.push(emoji);
@@ -54,9 +48,12 @@ class EmojiPickerMenu extends Component {
     }
 
     renderItem({item}, addEmojiToTextBox) {
+        if (item.code === 'BLANK') {
+            return;
+        }
         if (item.header) {
             return (
-                <Text style={{fontWeight: 'bold', flex: 1}}>
+                <Text style={{fontWeight: 'bold', width: '300', }}>
                     {item.code}
                 </Text>
             );
@@ -80,9 +77,8 @@ class EmojiPickerMenu extends Component {
                         placeholderTextColor={themeColors.textSupporting}
                         onChangeText={this.filterEmojis}
                         style={[styles.textInputCompose, styles.flex4]}
-                        onFocus={() => this.setIsFocused(true)}
-                        onBlur={() => this.setIsFocused(false)}
                         defaultValue=""
+                        ref={el => this.searchInput = el}
                     />
                     <FlatList
                         data={this.state.filteredEmojis}
@@ -91,7 +87,7 @@ class EmojiPickerMenu extends Component {
                         numColumns={8}
                         style={{height: 300}}
                         extraData={this.state.filteredEmojis}
-                        stickyHeaderIndecies={this.state.headerIndices}
+                        stickyHeaderIndices={this.state.headerIndices}
                     />
                 </>
             ));
