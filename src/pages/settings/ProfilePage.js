@@ -135,7 +135,8 @@ class ProfilePage extends Component {
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
             && (this.props.myPersonalDetails.pronouns === this.state.pronouns
-                || this.props.myPersonalDetails.pronouns === this.state.selfSelectedPronouns);
+            || (this.props.myPersonalDetails.pronouns
+                && this.props.myPersonalDetails.pronouns === this.state.selfSelectedPronouns));
 
         return (
             <ScreenWrapper>
