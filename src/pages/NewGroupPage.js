@@ -4,17 +4,16 @@ import {View, Text, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getNewGroupOptions} from '../libs/OptionsListUtils';
+import {getNewGroupOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
 import KeyboardSpacer from '../components/KeyboardSpacer';
-import {hide as hideSidebar} from '../libs/actions/Sidebar';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import {redirectToLastReport} from '../libs/actions/App';
-import HeaderGap from '../components/HeaderGap';
+import ScreenWrapper from '../components/ScreenWrapper';
+import Navigation from '../libs/Navigation/Navigation';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -74,34 +73,6 @@ class NewGroupPage extends Component {
     }
 
     /**
-     * Helper method that returns the text to be used for the header's message and title (if any)
-     *
-     * @param {Boolean} maxParticipantsReached
-     * @return {String}
-     */
-    getHeaderTitleAndMessage(maxParticipantsReached) {
-        if (maxParticipantsReached) {
-            return {
-                headerTitle: '',
-                headerMessage: CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED,
-            };
-        }
-
-        const hasSelectableOptions = this.state.personalDetails.length + this.state.recentReports.length !== 0;
-        if (!hasSelectableOptions && !this.state.userToInvite) {
-            return {
-                headerTitle: '',
-                headerMessage: CONST.MESSAGES.NO_CONTACTS_FOUND,
-            };
-        }
-
-        return {
-            headerTitle: '',
-            headerMessage: '',
-        };
-    }
-
-    /**
      * Returns the sections needed for the OptionsSelector
      *
      * @param {Boolean} maxParticipantsReached
@@ -155,9 +126,6 @@ class NewGroupPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-        if (this.props.isSmallScreenWidth) {
-            hideSidebar();
-        }
         fetchOrCreateChatReport([this.props.session.email, ...userLogins]);
     }
 
@@ -205,13 +173,16 @@ class NewGroupPage extends Component {
     render() {
         const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
-        const {headerTitle, headerMessage} = this.getHeaderTitleAndMessage(maxParticipantsReached);
+        const headerMessage = getHeaderMessage(
+            this.state.personalDetails.length + this.state.recentReports.length !== 0,
+            Boolean(this.state.userToInvite),
+            maxParticipantsReached,
+        );
         return (
-            <>
-                <HeaderGap />
+            <ScreenWrapper>
                 <HeaderWithCloseButton
                     title="New Group"
-                    onCloseButtonPress={redirectToLastReport}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
@@ -238,7 +209,6 @@ class NewGroupPage extends Component {
                                 personalDetails,
                             });
                         }}
-                        headerTitle={headerTitle}
                         headerMessage={headerMessage}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
@@ -263,7 +233,7 @@ class NewGroupPage extends Component {
                     )}
                 </View>
                 <KeyboardSpacer />
-            </>
+            </ScreenWrapper>
         );
     }
 }

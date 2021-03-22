@@ -55,12 +55,12 @@ class FAB extends PureComponent {
 
         const backgroundColor = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.buttonSuccessBG, themeColors.sidebar],
+            outputRange: [themeColors.buttonSuccessBG, themeColors.buttonDefaultBG],
         });
 
         const fill = this.animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [themeColors.componentBG, themeColors.icon],
+            outputRange: [themeColors.componentBG, themeColors.heading],
         });
 
         return (

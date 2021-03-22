@@ -8,12 +8,13 @@ import {
     StyleSheet,
 } from 'react-native';
 import styles from '../../../styles/styles';
-import optionPropTypes from './optionPropTypes';
+import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
+import OptionRowTitle from './OptionRowTitle';
 
 const propTypes = {
     // Style for hovered state
@@ -40,6 +41,9 @@ const propTypes = {
 
     // Force the text style to be the unread style
     forceTextUnreadStyle: PropTypes.bool,
+
+    // Whether to show the title tooltip
+    showTitleTooltip: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -48,6 +52,7 @@ const defaultProps = {
     showSelectedState: false,
     isSelected: false,
     forceTextUnreadStyle: false,
+    showTitleTooltip: false,
 };
 
 const OptionRow = ({
@@ -59,6 +64,7 @@ const OptionRow = ({
     showSelectedState,
     isSelected,
     forceTextUnreadStyle,
+    showTitleTooltip,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -68,7 +74,9 @@ const OptionRow = ({
     return (
         <Hoverable>
             {hovered => (
-                <View
+                <TouchableOpacity
+                    onPress={() => onSelectRow(option)}
+                    activeOpacity={0.8}
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,
@@ -79,13 +87,12 @@ const OptionRow = ({
                         hovered && !optionIsFocused ? hoverStyle : null,
                     ]}
                 >
-                    <TouchableOpacity
-                        onPress={() => onSelectRow(option)}
-                        activeOpacity={0.8}
+                    <View
                         style={StyleSheet.flatten([
                             styles.chatLinkRowPressable,
                             styles.flexGrow1,
                             styles.optionItemAvatarNameWrapper,
+                            styles.sidebarInnerRow,
                         ])}
                     >
                         <View
@@ -104,9 +111,13 @@ const OptionRow = ({
                                 )
                             }
                             <View style={[styles.flex1]}>
-                                <Text style={[styles.optionDisplayName, textUnreadStyle]} numberOfLines={1}>
-                                    {option.text}
-                                </Text>
+                                <OptionRowTitle
+                                    option={option}
+                                    tooltipEnabled={showTitleTooltip}
+                                    numberOfLines={1}
+                                    style={[styles.optionDisplayName, textUnreadStyle]}
+                                />
+
                                 {option.alternateText ? (
                                     <Text
                                         style={[textStyle, styles.optionAlternateText, styles.mt1]}
@@ -124,9 +135,9 @@ const OptionRow = ({
                                 </View>
                             )}
                         </View>
-                    </TouchableOpacity>
+                    </View>
                     {!hideAdditionalOptionStates && (
-                        <View style={styles.flexRow}>
+                        <View style={[styles.flexRow, styles.pr5]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pencil} />
@@ -139,7 +150,7 @@ const OptionRow = ({
                             )}
                         </View>
                     )}
-                </View>
+                </TouchableOpacity>
             )}
         </Hoverable>
     );

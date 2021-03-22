@@ -19,7 +19,6 @@ function signInWithTestUser(accountID, login, password = 'Password1', authToken 
     HttpUtils.xhr.mockImplementation(() => Promise.resolve({
         jsonCode: 200,
         accountExists: true,
-        canAccessExpensifyCash: true,
         requiresTwoFactorAuth: false,
         normalizedLogin: login,
     }));
@@ -72,10 +71,7 @@ function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) 
             accountID,
             email,
             personalDetailsList,
-        }))
-
-        // fetchTimezone
-        .mockImplementationOnce(() => Promise.resolve({}));
+        }));
 
     fetchPersonalDetails();
     return waitForPromisesToResolve();

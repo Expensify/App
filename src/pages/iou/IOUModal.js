@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
-import {redirectToLastReport} from '../../libs/actions/App';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
@@ -10,6 +9,7 @@ import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
 import {getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
+import Navigation from '../../libs/Navigation/Navigation';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -39,9 +39,16 @@ class IOUModal extends Component {
 
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
+        this.updateAmount = this.updateAmount.bind(this);
+        this.currencySelected = this.currencySelected.bind(this);
 
+        this.addParticipants = this.addParticipants.bind(this);
         this.state = {
             currentStepIndex: 0,
+            participants: [],
+            amount: '',
+            selectedCurrency: 'USD',
+            isAmountPageNextButtonDisabled: true,
         };
     }
 
@@ -54,7 +61,14 @@ class IOUModal extends Component {
      *
      * @returns {String}
      */
+
     getTitleForStep() {
+        if (this.state.currentStepIndex === 1) {
+            return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.amount}`;
+        }
+        if (steps[this.state.currentStepIndex] === Steps.IOUAmount) {
+            return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
+        }
         return steps[this.state.currentStepIndex] || '';
     }
 
@@ -80,6 +94,48 @@ class IOUModal extends Component {
         this.setState(prevState => ({
             currentStepIndex: prevState.currentStepIndex + 1,
         }));
+    }
+
+    addParticipants(participants) {
+        this.setState({
+            participants,
+        });
+    }
+
+    /**
+     * Update amount with number or Backspace pressed.
+     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
+     *
+     * @param {String} buttonPressed
+     */
+    updateAmount(buttonPressed) {
+        // Backspace button is pressed
+        if (buttonPressed === '<' || buttonPressed === 'Backspace') {
+            if (this.state.amount.length > 0) {
+                this.setState(prevState => ({
+                    amount: prevState.amount.substring(0, prevState.amount.length - 1),
+                    isAmountPageNextButtonDisabled: prevState.amount.length === 1,
+                }));
+            }
+        } else {
+            const decimalNumberRegex = new RegExp(/^\d{1,6}(\.\d{0,2})?$/, 'i');
+            const amount = this.state.amount + buttonPressed;
+            if (decimalNumberRegex.test(amount)) {
+                this.setState({
+                    amount,
+                    isAmountPageNextButtonDisabled: false,
+                });
+            }
+        }
+    }
+
+    /**
+     * Update the currency state
+     *
+     * @param {String} selectedCurrency
+     */
+    currencySelected(selectedCurrency) {
+        this.setState({selectedCurrency});
     }
 
     render() {
@@ -108,7 +164,7 @@ class IOUModal extends Component {
                         <Header title={this.getTitleForStep()} />
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <TouchableOpacity
-                                onPress={redirectToLastReport}
+                                onPress={Navigation.dismissModal}
                                 style={[styles.touchableButtonImage]}
                             >
                                 <Icon src={Close} />
@@ -117,19 +173,28 @@ class IOUModal extends Component {
                     </View>
                 </View>
                 {currentStep === Steps.IOUAmount && (
-                    <IOUAmountPage onStepComplete={this.navigateToNextStep} />
+                    <IOUAmountPage
+                        onStepComplete={this.navigateToNextStep}
+                        numberPressed={this.updateAmount}
+                        currencySelected={this.currencySelected}
+                        amount={this.state.amount}
+                        selectedCurrency={this.state.selectedCurrency}
+                        isNextButtonDisabled={this.state.isAmountPageNextButtonDisabled}
+                    />
                 )}
                 {currentStep === Steps.IOUParticipants && (
                     <IOUParticipantsPage
+                        participants={this.state.participants}
                         hasMultipleParticipants={this.props.hasMultipleParticipants}
+                        onAddParticipants={this.addParticipants}
                         onStepComplete={this.navigateToNextStep}
                     />
                 )}
                 {currentStep === Steps.IOUConfirm && (
                     <IOUConfirmPage
                         onConfirm={() => console.debug('create IOU report')}
-                        participants={[]}
-                        iouAmount={42}
+                        participants={this.state.participants}
+                        iouAmount={this.state.amount}
                     />
                 )}
             </>
