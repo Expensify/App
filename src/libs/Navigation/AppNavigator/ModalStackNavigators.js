@@ -1,6 +1,7 @@
 import React from 'react';
 
 import styles from '../../../styles/styles';
+import ROUTES from '../../../ROUTES';
 import {
     SettingsModalStack,
     NewChatModalStack,
@@ -29,7 +30,7 @@ const defaultSubRouteOptions = {
 
 const IOUBillStackNavigator = () => (
     <IOUBillModalStack.Navigator
-        path="/iou/split"
+        path={ROUTES.IOU_BILL}
     >
         <IOUBillModalStack.Screen
             name="IOU_Bill_Root"
@@ -44,7 +45,7 @@ const IOUBillStackNavigator = () => (
 
 const IOURequestModalStackNavigator = () => (
     <IOURequestModalStack.Navigator
-        path="/iou/request"
+        path={ROUTES.IOU_REQUEST}
     >
         <IOURequestModalStack.Screen
             name="IOU_Request_Root"
@@ -59,7 +60,7 @@ const IOURequestModalStackNavigator = () => (
 
 const ProfileModalStackNavigator = () => (
     <ProfileModalStack.Navigator
-        path="/profile"
+        path={ROUTES.PROFILE}
     >
         <ProfileModalStack.Screen
             name="Profile_Root"
@@ -74,7 +75,7 @@ const ProfileModalStackNavigator = () => (
 
 const SearchModalStackNavigator = () => (
     <SearchModalStack.Navigator
-        path="/search"
+        path={ROUTES.SEARCH}
     >
         <SearchModalStack.Screen
             name="Search_Root"
@@ -89,7 +90,7 @@ const SearchModalStackNavigator = () => (
 
 const NewGroupModalStackNavigator = () => (
     <NewGroupModalStack.Navigator
-        path="/new/group"
+        path={ROUTES.NEW_GROUP}
     >
         <NewGroupModalStack.Screen
             name="NewGroup_Root"
@@ -104,7 +105,7 @@ const NewGroupModalStackNavigator = () => (
 
 const NewChatModalStackNavigator = () => (
     <NewChatModalStack.Navigator
-        path="/new/chat"
+        path={ROUTES.NEW_CHAT}
     >
         <NewChatModalStack.Screen
             name="NewChat_Root"
@@ -119,7 +120,7 @@ const NewChatModalStackNavigator = () => (
 
 const SettingsModalStackNavigator = () => (
     <SettingsModalStack.Navigator
-        path="/settings"
+        path={ROUTES.SETTINGS}
     >
         <SettingsModalStack.Screen
             name="Settings_Root"

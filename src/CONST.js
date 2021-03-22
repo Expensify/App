@@ -20,7 +20,12 @@ const CONST = {
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
-        REPORT_ACTIONS_LIMIT: 50,
+        ACTIONS: {
+            LIMIT: 50,
+            TYPE: {
+                IOU: 'IOU',
+            },
+        },
     },
     MODAL: {
         MODAL_TYPE: {
@@ -60,6 +65,13 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'API is offline',
     },
+    MENU_ITEM_KEYS: {
+        NEW_CHAT: 'NewChat',
+        NEW_GROUP: 'NewGroup',
+        REQUEST_MONEY: 'RequestMoney',
+        SPLIT_BILL: 'SplitBill',
+        ATTACHMENT_PICKER: 'AttachmentPicker',
+    },
     NVP: {
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
@@ -71,6 +83,9 @@ const CONST = {
         BACKGROUND: 'background',
         INACTIVE: 'inactive',
     },
+
+    // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
+    PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
 };
 
 export default CONST;

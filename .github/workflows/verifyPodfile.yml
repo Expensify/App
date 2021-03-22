@@ -3,6 +3,7 @@ name: Verify Podfile
 on:
     pull_request:
         types: [opened, synchronize]
+        branches-ignore: [staging, production]
 
 jobs:
     verify:

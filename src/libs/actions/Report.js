@@ -31,12 +31,6 @@ Onyx.connect({
     },
 });
 
-let currentURL;
-Onyx.connect({
-    key: ONYXKEYS.CURRENT_URL,
-    callback: val => currentURL = val,
-});
-
 let lastViewedReportID;
 Onyx.connect({
     key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
@@ -159,6 +153,102 @@ function getSimplifiedReportObject(report) {
 }
 
 /**
+ * Get a simplified version of an IOU report
+ *
+ * @param {Object} reportData
+ * @param {Number} reportData.transactionID
+ * @param {Number} reportData.amount
+ * @param {String} reportData.currency
+ * @param {String} reportData.created
+ * @param {String} reportData.comment
+ * @param {Object[]} reportData.transactionList
+ * @param {String} reportData.ownerEmail
+ * @param {String} reportData.managerEmail
+ * @param {Number} reportData.reportID
+ * @returns {Object}
+ */
+function getSimplifiedIOUReport(reportData) {
+    const transactions = _.map(reportData.transactionList, transaction => ({
+        transactionID: transaction.transactionID,
+        amount: transaction.amount,
+        currency: transaction.currency,
+        created: transaction.created,
+        comment: transaction.comment,
+    }));
+
+    return {
+        reportID: reportData.reportID,
+        ownerEmail: reportData.ownerEmail,
+        managerEmail: reportData.managerEmail,
+        currency: reportData.currency,
+        transactions,
+    };
+}
+
+/**
+ * Fetches the updated data for an IOU Report and updates the IOU collection in Onyx
+ *
+ * @param {Object} report
+ * @param {Object[]} report.reportActionList
+ * @param {Number} report.reportID
+ */
+function updateIOUReportData(report) {
+    const reportActionList = report.reportActionList || [];
+    const containsIOUAction = _.any(reportActionList,
+        reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
+
+    // If there aren't any IOU actions, we don't need to fetch any additional data
+    if (!containsIOUAction) {
+        return;
+    }
+
+    // If we don't have one participant (other than the current user), this is not an IOU
+    const participants = getParticipantEmailsFromReport(report);
+    if (participants.length !== 1) {
+        Log.alert('[Report] Report with IOU action has more than 2 participants', true, {
+            reportID: report.reportID,
+            participants,
+        });
+        return;
+    }
+
+    // Since the Chat and the IOU are different reports with different reportIDs, and GetIOUReport only returns the
+    // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`
+    let iouReportID = 0;
+    API.GetIOUReport({
+        debtorEmail: participants[0],
+    }).then((response) => {
+        iouReportID = response.reportID || 0;
+        if (response.jsonCode !== 200) {
+            throw new Error(response.message);
+        } else if (iouReportID === 0) {
+            throw new Error('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+        }
+
+        return API.Get({
+            returnValueList: 'reportStuff',
+            reportIDList: iouReportID,
+            shouldLoadOptionalKeys: true,
+            includePinnedReports: true,
+        });
+    }).then((response) => {
+        if (response.jsonCode !== 200) {
+            throw new Error(response.message);
+        }
+
+        const iouReportData = response.reports[iouReportID];
+        if (!iouReportData) {
+            throw new Error(`No iouReportData found for reportID ${iouReportID}`);
+        }
+
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+            getSimplifiedIOUReport(iouReportData));
+    }).catch((error) => {
+        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
+    });
+}
+
+/**
  * Fetches chat reports when provided a list of
  * chat report IDs
  *
@@ -184,7 +274,9 @@ function fetchChatReportsByIDs(chatList) {
             const simplifiedReports = {};
             _.each(fetchedReports, (report) => {
                 const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
-                simplifiedReports[key] = getSimplifiedReportObject(report);
+                const simplifiedReport = getSimplifiedReportObject(report);
+                simplifiedReports[key] = simplifiedReport;
+                updateIOUReportData(report);
             });
 
             // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
@@ -244,6 +336,7 @@ function removeOptimisticActions(reportID) {
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
+    const lastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
 
     // When handling an action from the current users we can assume that their
     // last read actionID has been updated in the server but not necessarily reflected
@@ -257,14 +350,21 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
     // by handleReportChanged
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+    const updatedReportObject = {
         reportID,
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
+        unreadActionCount: newMaxSequenceNumber - lastReadSequenceNumber,
         maxSequenceNumber: reportAction.sequenceNumber,
-        lastMessageTimestamp: reportAction.timestamp,
-        lastMessageText: messageText,
-        lastActorEmail: reportAction.actorEmail,
-    });
+    };
+
+    // If the report action from pusher is a higher sequence number than we know about (meaning it has come from
+    // a chat participant in another application), then the last message text and author needs to be updated as well
+    if (newMaxSequenceNumber > lastReadSequenceNumber) {
+        updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
+        updatedReportObject.lastMessageText = messageText;
+        updatedReportObject.lastActorEmail = reportAction.actorEmail;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, updatedReportObject);
 
     const reportActionsToMerge = {};
     if (reportAction.clientID) {
@@ -516,7 +616,7 @@ function fetchActions(reportID, offset) {
     return API.Report_GetHistory({
         reportID,
         reportActionsOffset,
-        reportActionsLimit: CONST.REPORT.REPORT_ACTIONS_LIMIT,
+        reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
     })
         .then((data) => {
             // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
@@ -543,16 +643,16 @@ function fetchActions(reportID, offset) {
 function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
     fetchChatReports()
         .then((reportIDs) => {
-            if (shouldRedirectToReport && !currentURL.includes(ROUTES.REPORT)) {
-                // Redirect to either the last viewed report ID or the first report ID from our report collection
+            if (shouldRedirectToReport) {
+                // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
+                // one already.
                 if (lastViewedReportID) {
-                    Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(lastViewedReportID));
-                } else {
-                    const firstReportID = _.first(reportIDs);
-                    if (firstReportID) {
-                        Onyx.set(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(firstReportID));
-                    }
+                    return;
                 }
+
+                const firstReportID = _.first(reportIDs);
+                const currentReportID = firstReportID ? String(firstReportID) : '';
+                Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
             }
 
             Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
@@ -576,17 +676,24 @@ function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = fa
 function addAction(reportID, text, file) {
     // Convert the comment from MD into HTML because that's how it is stored in the database
     const parser = new ExpensiMark();
-    const htmlComment = parser.replace(text);
+    const commentText = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
 
     // The new sequence number will be one higher than the highest
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
     const newSequenceNumber = highestSequenceNumber + 1;
+    const htmlForNewComment = isAttachment ? 'Uploading Attachment...' : commentText;
+
+    // Remove HTML from text when applying optimistic offline comment
+    const textForNewComment = isAttachment ? '[Attachment]'
+        : htmlForNewComment.replace(/<[^>]*>?/gm, '');
 
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         maxSequenceNumber: newSequenceNumber,
         lastMessageTimestamp: moment().unix(),
+        lastMessageText: textForNewComment,
+        lastActorEmail: currentUserEmail,
     });
 
     // Generate a clientID so we can save the optimistic action to storage with the clientID as key. Later, we will
@@ -629,11 +736,8 @@ function addAction(reportID, text, file) {
             message: [
                 {
                     type: 'COMMENT',
-                    html: isAttachment ? 'Uploading Attachment...' : htmlComment,
-
-                    // Remove HTML from text when applying optimistic offline comment
-                    text: isAttachment ? '[Attachment]'
-                        : htmlComment.replace(/<[^>]*>?/gm, ''),
+                    html: htmlForNewComment,
+                    text: textForNewComment,
                 },
             ],
             isFirstItem: false,
@@ -645,7 +749,7 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
-        reportComment: htmlComment,
+        reportComment: commentText,
         file,
         clientID: optimisticReportActionID,
 
@@ -741,6 +845,13 @@ function handleReportChanged(report) {
     optimisticReportActionIDs[report.reportID] = report.optimisticReportActionIDs;
 }
 
+/**
+ * @param {Number} reportID
+ */
+function updateCurrentlyViewedReportID(reportID) {
+    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
+}
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
@@ -763,4 +874,5 @@ export {
     saveReportComment,
     broadcastUserIsTyping,
     togglePinnedState,
+    updateCurrentlyViewedReportID,
 };

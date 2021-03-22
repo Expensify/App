@@ -35,11 +35,8 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
-    // Contains the user preference for the LHN priority mode
-    PRIORITY_MODE: 'priorityMode',
-
-    // Contains the version of the update that has newly been downloaded.
-    UPDATE_VERSION: 'updateVersion',
+    // Indicates whether an update is available and ready to beinstalled.
+    UPDATE_AVAILABLE: 'updateAvailable',
 
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code
@@ -53,7 +50,11 @@ export default {
     BETAS: 'betas',
 
     // NVP keys
+    // Contains the user's payPalMe address
     NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
+
+    // Contains the user preference for the LHN priority mode
+    NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
     // Collection Keys
     COLLECTION: {
@@ -61,5 +62,6 @@ export default {
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        REPORT_IOUS: 'reportIOUs_',
     },
 };
