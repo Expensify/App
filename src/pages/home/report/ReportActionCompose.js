@@ -9,7 +9,7 @@ import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
-import {Paperclip, Send} from '../../../components/Icon/Expensicons';
+import {Paperclip, Send, Emoji} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
@@ -188,6 +188,7 @@ class ReportActionCompose extends React.Component {
         this.hideEmojiPicker();
         this.textInput.value += emoji;
         this.setIsFocused(true);
+        this.updateComment(this.textInput.value);
     }
 
     /**
@@ -318,13 +319,11 @@ class ReportActionCompose extends React.Component {
                         />
                     </PopoverWithMeasuredContent>
                     <TouchableOpacity
-                        style={[styles.chatItemSubmitButton,
-                            this.state.isCommentEmpty
-                                ? styles.buttonDisable : styles.buttonSuccess]}
+                        style={styles.chatItemEmojiButton}
                         onPress={this.showEmojiPicker}
                         underlayColor={themeColors.componentBG}
                     >
-                        <Icon src={Send} fill={themeColors.componentBG} />
+                        <Icon src={Emoji} fill={themeColors.componentBG} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton,
