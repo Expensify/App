@@ -103,7 +103,10 @@ const HeaderView = (props) => {
                                 onPress={() => props.onVideoChatMenuButtonClicked()}
                                 style={[styles.touchableButtonImage, styles.mr0]}
                             >
-                                <Icon src={Trashcan} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                                <Icon
+                                    src={Trashcan}
+                                    fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
+                                />
                             </Pressable>
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}

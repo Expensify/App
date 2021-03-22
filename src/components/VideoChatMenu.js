@@ -1,18 +1,18 @@
 import React, {Component} from 'react';
-import Popover from "./Popover";
 import PropTypes from 'prop-types';
-import withWindowDimensions, {windowDimensionsPropTypes} from "./withWindowDimensions";
+import Popover from './Popover';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import MenuItem from './MenuItem';
 import openURLInNewTab from '../libs/openURLInNewTab';
 import ZoomIcon from '../../assets/images/Zoom - Blue.svg';
-import GoogleMeetIcon from '../../assets/images/google-meet.svg'
+import GoogleMeetIcon from '../../assets/images/google-meet.svg';
 import CONST from '../CONST';
 
 const propTypes = {
     // State that determines whether to display the create menu or not
     isVisible: PropTypes.bool.isRequired,
 
-    // 
+    // Callback that determines behavior when menu is closed
     onClose: PropTypes.func.isRequired,
 
     ...windowDimensionsPropTypes,
@@ -20,7 +20,7 @@ const propTypes = {
 
 class VideoChatMenu extends Component {
     constructor(props) {
-        super(props)
+        super(props);
     }
 
     render() {
@@ -48,7 +48,7 @@ class VideoChatMenu extends Component {
                 isVisible={this.props.isVisible}
                 anchorPosition={{
                     left: this.props.windowWidth - 250,
-                    top: 50
+                    top: 50,
                 }}
             >
                 {menuItemData.map(({icon, text, onPress}) => (
@@ -59,8 +59,8 @@ class VideoChatMenu extends Component {
                         onPress={onPress}
                     />
                 ))}
-             </Popover>
-        )
+            </Popover>
+        );
     }
 }
 
