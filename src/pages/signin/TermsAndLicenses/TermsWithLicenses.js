@@ -25,7 +25,7 @@ const TermsWithLicenses = () => (
                 privacy policy
             </Text>
             . Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its
-            {' '} 
+            {' '}
             <Text
                 style={[styles.loginTermsText, styles.link]}
                 onPress={() => openURLInNewTab(CONST.LICENSES_URL)}
