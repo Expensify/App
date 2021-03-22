@@ -13,6 +13,14 @@ export default {
         margin: 8,
     },
 
+    m4: {
+        margin: 16,
+    },
+
+    m5: {
+        margin: 20,
+    },
+
     mh1: {
         marginHorizontal: 4,
     },
