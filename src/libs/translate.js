@@ -7,7 +7,7 @@ import translations from '../languages/translations';
 /**
  * Return translated string for given locale and key
  *
- * @param {String} locale
+ * @param {String} locale eg 'en', 'es-ES'
  * @param {String|Array} key
  * @param {Object} variables
  * @returns {string}
@@ -52,6 +52,8 @@ function translate(locale, key, variables = {}) {
 }
 
 export {
+
+    // Ignoring this lint error in case of we want to export more functions from this library
     // eslint-disable-next-line import/prefer-default-export
     translate,
 };
