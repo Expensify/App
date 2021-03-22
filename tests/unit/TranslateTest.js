@@ -4,7 +4,7 @@ const CONFIG = require('../../src/CONFIG');
 
 translations.default = {
     en: {
-        testkey1: 'English',
+        testKey1: 'English',
         testKey2: 'Test Word 2',
         testKey3: 'Test Word 3',
         testKeyGroup: {
@@ -12,15 +12,15 @@ translations.default = {
         },
     },
     es: {
-        testkey1: 'Spanish',
+        testKey1: 'Spanish',
         testKey2: 'Spanish Word 2',
     },
-    'es-ES': {testkey1: 'Spanish ES'},
+    'es-ES': {testKey1: 'Spanish ES'},
 };
 
 describe('translate', () => {
     it('Test present key in full locale', () => {
-        expect(translate.translate('es-ES', 'testkey1')).toBe('Spanish ES');
+        expect(translate.translate('es-ES', 'testKey1')).toBe('Spanish ES');
     });
 
     it('Test when key is not found in full locale, but present in language', () => {
@@ -38,11 +38,11 @@ describe('translate', () => {
     });
 
     test('Test when key is not found in default (Production Mode)', () => {
-        CONFIG.default = {
-            IS_IN_PRODUCTION: true,
-        };
+        const ORIGINAL_IS_IN_PRODUCTION = CONFIG.default.IS_IN_PRODUCTION;
+        CONFIG.default.IS_IN_PRODUCTION = true;
         expect(translate.translate('es-ES', 'testKey4')).toBe('testKey4');
         expect(translate.translate('es-ES', ['a', 'b', 'c'])).toBe('a.b.c');
+        CONFIG.default.IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
 
     it('Test when translation value is a function', () => {
