@@ -67,14 +67,17 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
     [gpg]
         program = gpg
     ```
+9. [Open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork), and make sure to fill in the required fields.
+10. An Expensify engineer will be assigned to your pull request automatically to review.
+11. Provide daily updates until reaching completion of your PR.
 
 #### Submit your pull request for final request
-13. When you are ready to submit your pull request for final review, make sure the following checks pass:
+12. When you are ready to submit your pull request for final review, make sure the following checks pass:
 	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/master/CLA.md) by following the CLA bot instructions that will be posted on your PR
 	2. Tests - All tests must pass before a merge of a pull request
 	3. Lint - All code must pass lint checks before a merge of a pull request
-14. Please never force push when a PR review has already started (because this messes with the PR review history)
-15. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
+13. Please never force push when a PR review has already started (because this messes with the PR review history)
+14. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
 
 #### Timeline expectations and asking for help along the way 
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself. 
