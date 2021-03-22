@@ -32,11 +32,7 @@ function goBack() {
  * Main navigation method for redirecting to a route.
  * @param {String} route
  */
-function navigate(route) {
-    if (!route) {
-        return;
-    }
-
+function navigate(route = ROUTES.HOME) {
     if (route === ROUTES.HOME) {
         openDrawer();
         return;

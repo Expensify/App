@@ -53,46 +53,41 @@ class PaymentsPage extends React.Component {
     render() {
         return (
             <ScreenWrapper>
-                {() => (
-                    <>
-                        <HeaderWithCloseButton
-                            title="Payments"
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
+                <HeaderWithCloseButton
+                    title="Payments"
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                />
+                <View style={[styles.flex1, styles.p5]}>
+                    <View style={[styles.flex1]}>
+                        <Text style={[styles.textP, styles.mb4]}>
+                            Enter your username to get paid back via PayPal.
+                        </Text>
+                        <Text style={[styles.formLabel]} numberOfLines={1}>
+                            PayPal.me/
+                        </Text>
+                        <TextInput
+                            style={[styles.textInput]}
+                            value={this.state.payPalMeUsername}
+                            placeholder="Your PayPal username"
+                            onChangeText={text => this.setState({payPalMeUsername: text})}
                         />
-                        <View style={[styles.flex1, styles.p5]}>
-                            <View style={[styles.flex1]}>
-                                <Text style={[styles.textP, styles.mb4]}>
-                                    Enter your username to get paid back via PayPal.
-                                </Text>
-                                <Text style={[styles.formLabel]} numberOfLines={1}>
-                                    PayPal.me/
-                                </Text>
-                                <TextInput
-                                    style={[styles.textInput]}
-                                    value={this.state.payPalMeUsername}
-                                    placeholder="Your PayPal username"
-                                    onChangeText={text => this.setState({payPalMeUsername: text})}
-                                />
-                            </View>
-                            <Pressable
-                                onPress={this.setPayPalMeUsername}
-                                style={({hovered}) => [
-                                    styles.button,
-                                    styles.buttonSuccess,
-                                    styles.mt3,
-                                    hovered && styles.buttonSuccessHovered,
-                                ]}
-                            >
-                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                    Add PayPal Account
-                                </Text>
-                            </Pressable>
-                        </View>
-                    </>
-
-                )}
+                    </View>
+                    <Pressable
+                        onPress={this.setPayPalMeUsername}
+                        style={({hovered}) => [
+                            styles.button,
+                            styles.buttonSuccess,
+                            styles.mt3,
+                            hovered && styles.buttonSuccessHovered,
+                        ]}
+                    >
+                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                            Add PayPal Account
+                        </Text>
+                    </Pressable>
+                </View>
             </ScreenWrapper>
         );
     }
