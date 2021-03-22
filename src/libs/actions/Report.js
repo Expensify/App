@@ -764,6 +764,24 @@ NetworkConnection.onReconnect(() => {
     fetchAll(false);
 });
 
+function editReportComment(reportID, reportAction, newMessage) {
+    // // Optimistically update the report action with the new message
+    // reportAction.message.isEdited = true;
+    // reportAction.message.html = newMessage;
+    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {reportAction});
+
+    // Persist the updated report comment
+    API.Report_EditComment({
+        reportID,
+        reportActionID: reportAction.reportActionID,
+        reportComment: newMessage,
+    });
+}
+
+function saveReportActionDraft(reportID, reportActionID, draftMessage) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_${reportActionID}`, draftMessage);
+}
+
 export {
     fetchAll,
     fetchActions,
@@ -777,4 +795,5 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     updateCurrentlyViewedReportID,
+    editReportComment,
 };
