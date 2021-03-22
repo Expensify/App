@@ -88,6 +88,12 @@ class SidebarScreen extends Component {
                             onClose={this.toggleCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             onItemSelected={this.onCreateMenuItemSelected}
+                            menuOptions={[
+                                CONST.MENU_ITEM_KEYS.NEW_CHAT,
+                                CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                                CONST.MENU_ITEM_KEYS.NEW_GROUP,
+                                CONST.MENU_ITEM_KEYS.SPLIT_BILL,
+                            ]}
                         />
                     </>
                 )}

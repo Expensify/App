@@ -21,4 +21,5 @@ export default {
     pdfPageMaxWidth: 992,
     zIndexMiddle: 50,
     zIndexTop: 999,
+    tooltipzIndex: 10050,
 };

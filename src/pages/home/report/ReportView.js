@@ -25,7 +25,6 @@ class ReportView extends React.Component {
                 <ReportActionsView
                     reportID={this.props.reportID}
                 />
-
                 <ReportActionCompose
                     onSubmit={text => addAction(this.props.reportID, text)}
                     reportID={this.props.reportID}

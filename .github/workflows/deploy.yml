@@ -52,7 +52,7 @@ jobs:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
 
       - name: 🚀 Create release to trigger production deploy 🚀
-        uses: softprops/action-gh-release@b7e450da2a4b4cb4bfbae528f788167786cfcedf
+        uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
         with:
           tag_name: ${{ env.PRODUCTION_VERSION }}
           body: ${{ steps.getReleaseBody.outputs.RELEASE_BODY }}
