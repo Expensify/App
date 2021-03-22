@@ -401,7 +401,7 @@ const styles = {
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         height: 84,
         justifyContent: 'flex-start',
         paddingHorizontal: 20,
