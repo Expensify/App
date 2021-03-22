@@ -342,6 +342,8 @@ class ReportActionsView extends React.Component {
 
         if (this.newMessageMarkerPosition < 0) {
             this.newMessageMarkerPosition = this.props.report.unreadActionCount;
+        } else if (this.newMessageMarkerPosition > 0 && this.props.report.unreadActionCount > 0) {
+            this.newMessageMarkerPosition += this.props.report.unreadActionCount;
         }
         this.updateSortedReportActions();
         return (
