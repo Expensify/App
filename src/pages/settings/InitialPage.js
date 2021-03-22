@@ -14,11 +14,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {version} from '../../../package.json';
 import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {redirect, redirectToLastReport} from '../../libs/actions/App';
+import Navigation from '../../libs/Navigation/Navigation';
 import {
     Gear, Lock, Profile, Wallet,
 } from '../../components/Icon/Expensicons';
-import HeaderGap from '../../components/HeaderGap';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
 
@@ -87,9 +87,11 @@ const InitialSettingsPage = ({
         return null;
     }
     return (
-        <>
-            <HeaderGap />
-            <HeaderWithCloseButton title="Settings" onCloseButtonPress={redirectToLastReport} />
+        <ScreenWrapper>
+            <HeaderWithCloseButton
+                title="Settings"
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            />
             <View
                 pointerEvents="box-none"
                 style={[
@@ -122,7 +124,7 @@ const InitialSettingsPage = ({
                             key={item.title}
                             title={item.title}
                             icon={item.icon}
-                            onPress={() => redirect(item.route)}
+                            onPress={() => Navigation.navigate(item.route)}
                             shouldShowRightArrow
                         />
                     ))}
@@ -142,7 +144,7 @@ const InitialSettingsPage = ({
                     {version}
                 </Text>
             </View>
-        </>
+        </ScreenWrapper>
     );
 };
 

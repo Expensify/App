@@ -7,6 +7,7 @@ import Str from 'expensify-common/lib/str';
 import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import {getReportParticipantsTitle} from './reportUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -82,6 +83,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
         && (report.reportID !== activeReportID)
+        && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
@@ -91,11 +93,14 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
             : '')
         + _.unescape(report.lastMessageText)
         : '';
+    const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
     return {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText) ? lastMessageText : personalDetail.login,
         icons: report ? report.icons : [personalDetail.avatar],
+        tooltipText,
+        participantsList: personalDetailList,
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
@@ -179,19 +184,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        if (!report.reportID || _.isEmpty(logins)) {
+        if (!report || !report.reportID || _.isEmpty(logins)) {
             return;
         }
 
-        // Skip this entry if it has no comments and is not the active report. We will only show reports from
-        // people we have sent or received at least one message with.
-        const hasNoComments = report.lastMessageTimestamp === 0;
-        const shouldFilterReport = !showReportsWithNoComments && hasNoComments
-            && report.reportID !== activeReportID && !report.isPinned;
-        if (shouldFilterReport) {
-            return;
-        }
-        if (hideReadReports && report.unreadActionCount === 0 && !report.isPinned) {
+        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
+        const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
+        if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
             return;
         }
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
@@ -402,9 +402,31 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
     });
 }
 
+/**
+ * Helper method that returns the text to be used for the header's message and title (if any)
+ *
+ * @param {Boolean} hasSelectableOptions
+ * @param {Boolean} hasUserToInvite
+ * @param {Boolean} [maxParticipantsReached]
+ * @return {String}
+ */
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, maxParticipantsReached = false) {
+    if (maxParticipantsReached) {
+        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
+    }
+
+    if (!hasSelectableOptions && !hasUserToInvite) {
+        return CONST.MESSAGES.NO_CONTACTS_FOUND;
+    }
+
+    return '';
+}
+
 export {
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,
     getSidebarOptions,
+    getHeaderMessage,
+    getPersonalDetailsForLogins,
 };
