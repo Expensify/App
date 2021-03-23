@@ -35,7 +35,7 @@ const personalDetailsType = PropTypes.shape({
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
-        // login passed via route /profile/:login
+        // login passed via route /details/:login
         login: PropTypes.string,
     }),
 });
@@ -49,8 +49,8 @@ const propTypes = {
     route: matchType.isRequired,
 };
 
-const ProfilePage = ({personalDetails, route}) => {
-    const profileDetails = personalDetails[route.params.login];
+const DetailsPage = ({personalDetails, route}) => {
+    const details = personalDetails[route.params.login];
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -60,10 +60,10 @@ const ProfilePage = ({personalDetails, route}) => {
             <View
                 pointerEvents="box-none"
                 style={[
-                    styles.profilePageContainer,
+                    styles.detailsPageContainer,
                 ]}
             >
-                {profileDetails ? (
+                {details ? (
                     <View>
                         <View style={styles.pageWrapper}>
                             <View
@@ -71,45 +71,45 @@ const ProfilePage = ({personalDetails, route}) => {
                             >
                                 <Avatar
                                     style={[styles.avatarLarge]}
-                                    source={profileDetails.avatar}
+                                    source={details.avatar}
                                 />
                             </View>
                             <Text style={[styles.displayName, styles.mt1, styles.mb6]} numberOfLines={1}>
-                                {profileDetails.displayName
-                                    ? profileDetails.displayName
+                                {details.displayName
+                                    ? details.displayName
                                     : null}
                             </Text>
-                            {profileDetails.login ? (
-                                <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                            {details.login ? (
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {Str.isSMSLogin(profileDetails.login) ? 'Phone Number' : 'Email'}
+                                        {Str.isSMSLogin(details.login) ? 'Phone Number' : 'Email'}
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
-                                        {Str.isSMSLogin(profileDetails.login)
-                                            ? Str.removeSMSDomain(profileDetails.login)
-                                            : profileDetails.login}
+                                        {Str.isSMSLogin(details.login)
+                                            ? Str.removeSMSDomain(details.login)
+                                            : details.login}
                                     </Text>
                                 </View>
                             ) : null}
-                            {profileDetails.pronouns ? (
-                                <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                            {details.pronouns ? (
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         Preferred Pronouns
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
-                                        {profileDetails.pronouns}
+                                        {details.pronouns}
                                     </Text>
                                 </View>
                             ) : null}
-                            {profileDetails.timezone ? (
-                                <View style={[styles.mb6, styles.profilePageSectionContainer]}>
+                            {details.timezone ? (
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         Local Time
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
-                                        {moment().tz(profileDetails.timezone.selected).format('LT')}
+                                        {moment().tz(details.timezone.selected).format('LT')}
                                         {' '}
-                                        {moment().tz(profileDetails.timezone.selected).zoneAbbr()}
+                                        {moment().tz(details.timezone.selected).zoneAbbr()}
                                     </Text>
                                 </View>
                             ) : null}
@@ -121,11 +121,11 @@ const ProfilePage = ({personalDetails, route}) => {
     );
 };
 
-ProfilePage.propTypes = propTypes;
-ProfilePage.displayName = 'ProfilePage';
+DetailsPage.propTypes = propTypes;
+DetailsPage.displayName = 'DetailsPage';
 
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
     },
-})(ProfilePage);
+})(DetailsPage);
