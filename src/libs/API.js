@@ -530,11 +530,11 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function ResendValidateCode(parameters) {
-    const commandName = 'ResendValidateCode';
+    const commandName = 'SetCashPassword';
     requireParameters(['email'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
