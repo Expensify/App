@@ -23,7 +23,7 @@ import CONFIG from '../../../CONFIG';
 import {fetchCountryCodeByRequestIP} from '../../actions/GeoLocation';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
-import {getBetas} from '../../actions/User';
+import * as User from '../../actions/User';
 import NameValuePair from '../../actions/NameValuePair';
 
 // Main drawer navigator
@@ -33,7 +33,7 @@ import MainDrawerNavigator from './MainDrawerNavigator';
 import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
-    ProfileModalStackNavigator,
+    DetailsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
@@ -69,10 +69,10 @@ class AuthScreens extends React.Component {
         }).then(subscribeToReportCommentEvents);
 
         // Fetch some data we need on initialization
-        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.PRIORITY_MODE, 'default');
+        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
-        PersonalDetails.fetchTimezone();
-        getBetas();
+        User.fetch();
+        User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
@@ -85,8 +85,8 @@ class AuthScreens extends React.Component {
                 return;
             }
             PersonalDetails.fetch();
-            PersonalDetails.fetchTimezone();
-            getBetas();
+            User.fetch();
+            User.getBetas();
         }, 1000 * 60 * 30);
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
@@ -158,9 +158,9 @@ class AuthScreens extends React.Component {
                     component={SearchModalStackNavigator}
                 />
                 <RootStack.Screen
-                    name="Profile"
+                    name="Details"
                     options={modalScreenOptions}
-                    component={ProfileModalStackNavigator}
+                    component={DetailsModalStackNavigator}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
