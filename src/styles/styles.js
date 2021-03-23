@@ -761,6 +761,7 @@ const styles = {
     emojiHeaderStyle: {
         backgroundColor: themeColors.hoverComponentBG,
         fontWeight: 'bold',
+        width: '100%',
     },
 
     chatItemEmojiButton: {
