@@ -386,6 +386,12 @@ const styles = {
         width: '100%',
     },
 
+    loginTermsText: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 20,
+    },
+
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,
@@ -395,7 +401,7 @@ const styles = {
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         height: 84,
         justifyContent: 'flex-start',
         paddingHorizontal: 20,
