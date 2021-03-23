@@ -11,7 +11,7 @@ const SettingsModalStack = shouldUseCustomModalStack ? createCustomModalStackNav
 const NewChatModalStack = shouldUseCustomModalStack ? createCustomModalStackNavigator() : createStackNavigator();
 const NewGroupModalStack = shouldUseCustomModalStack ? createCustomModalStackNavigator() : createStackNavigator();
 const SearchModalStack = shouldUseCustomModalStack ? createCustomModalStackNavigator() : createStackNavigator();
-const ProfileModalStack = shouldUseCustomModalStack ? createCustomModalStackNavigator() : createStackNavigator();
+const DetailsModalStack = shouldUseCustomModalStack ? createCustomModalStackNavigator() : createStackNavigator();
 const IOURequestModalStack = shouldUseCustomModalStack ? createCustomModalStackNavigator() : createStackNavigator();
 const IOUBillModalStack = shouldUseCustomModalStack ? createCustomModalStackNavigator() : createStackNavigator();
 
@@ -20,7 +20,7 @@ export {
     NewChatModalStack,
     NewGroupModalStack,
     SearchModalStack,
-    ProfileModalStack,
+    DetailsModalStack,
     IOURequestModalStack,
     IOUBillModalStack,
 };
