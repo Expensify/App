@@ -319,7 +319,8 @@ class ReportActionsView extends React.Component {
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
                     needsLayoutCalculation={needsLayoutCalculation}
-                    displayNewIndicator={index === this.newMessageMarkerPosition - 1}
+                    displayNewIndicator={this.newMessageMarkerPosition > 0
+                        && item.action.sequenceNumber === this.newMessageMarkerPosition}
                 />
             </View>
         );
@@ -341,10 +342,11 @@ class ReportActionsView extends React.Component {
         }
 
         if (this.newMessageMarkerPosition < 0) {
-            this.newMessageMarkerPosition = this.props.report.unreadActionCount;
-        } else if (this.newMessageMarkerPosition > 0 && this.props.report.unreadActionCount > 0) {
-            this.newMessageMarkerPosition += this.props.report.unreadActionCount;
+            this.newMessageMarkerPosition = this.props.report.unreadActionCount === 0
+                ? this.props.report.unreadActionCount
+                : _.size(this.props.reportActions) - this.props.report.unreadActionCount;
         }
+
         this.updateSortedReportActions();
         return (
             <InvertedFlatList
