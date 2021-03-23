@@ -9,8 +9,8 @@ import SetPasswordForm from './SetPasswordForm';
 
 const SetPasswordPage = (props) => {
     const welcomeText = (
-        <View style={props.isSmallScreenWidth ? [] : [styles.mb6]}>
-            <Text style={[styles.textLabel, styles.textStrong, styles.mb1]}>
+        <View style={props.isSmallScreenWidth ? [] : [styles.mb6, styles.mt6]}>
+            <Text style={[props.isSmallScreenWidth ? styles.textLabel : styles.textP, styles.textStrong, styles.mb1]}>
                 With Expensify.cash, chat and payments are the same thing.
             </Text>
             <Text style={[props.isSmallScreenWidth ? styles.textLabel : styles.textP]}>
@@ -37,8 +37,8 @@ const SetPasswordPage = (props) => {
                             />
                         </View>
                     )}
-                    {welcomeText}
                 </View>
+                {welcomeText}
             </SignInPageLayout>
         </SafeAreaView>
     );
