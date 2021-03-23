@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const lodashGet = require('lodash.get');
+const lodashGet = require('lodash/get');
 const semverParse = require('semver/functions/parse');
 const semverSatisfies = require('semver/functions/satisfies');
 
