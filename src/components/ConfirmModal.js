@@ -61,6 +61,7 @@ const ConfirmModal = props => (
             <TouchableOpacity
                 style={[styles.button, styles.buttonSuccess, styles.mt4]}
                 onPress={props.onConfirm}
+                focusable={false}
             >
                 <Text
                     style={[
@@ -75,6 +76,7 @@ const ConfirmModal = props => (
             <TouchableOpacity
                 style={[styles.button, styles.mt3]}
                 onPress={props.onCancel}
+                focusable={false}
             >
                 <Text style={styles.buttonText}>
                     {props.cancelText}
