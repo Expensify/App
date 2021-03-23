@@ -21,4 +21,7 @@ export default {
     PROFILE: 'profile',
     PROFILE_WITH_LOGIN: 'profile/:login',
     getProfileRoute: login => `profile/${login}`,
+    DETAILS: 'details',
+    DETAILS_WITH_LOGIN: 'details/:login',
+    getDetailsRoute: login => `details/${login}`,
 };
