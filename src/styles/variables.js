@@ -5,6 +5,8 @@ export default {
     componentSizeLarge: 52,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusNormal: 8,
+    avatarSizeNormal: 40,
+    avatarSizeSmall: 32,
     fontSizeSmall: 11,
     fontSizeLabel: 13,
     fontSizeNormal: 15,

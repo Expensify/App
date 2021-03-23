@@ -10,56 +10,60 @@ const propTypes = {
 
     // Whether this option is currently in focus so we can modify its style
     optionIsFocused: PropTypes.bool,
+
+    // Set the sie of avatars
+    size: PropTypes.oneOf(['default', 'small']),
 };
 
 const defaultProps = {
     avatarImageURLs: [],
     optionIsFocused: false,
+    size: 'default',
 };
 
-const MultipleAvatars = ({avatarImageURLs, optionIsFocused}) => {
+const MultipleAvatars = ({avatarImageURLs, optionIsFocused, size}) => {
     if (!avatarImageURLs.length) {
         return null;
     }
 
     if (avatarImageURLs.length === 1) {
         return (
-            <View style={styles.emptyAvatar}>
-                <Avatar source={avatarImageURLs[0]} />
+            <View style={size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar}>
+                <Avatar source={avatarImageURLs[0]} size={size} />
             </View>
         );
     }
 
     return (
-        <View style={styles.emptyAvatar}>
+        <View style={size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar}>
             <View
-                style={styles.singleAvatar}
+                style={size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar}
             >
                 <Image
                     source={{uri: avatarImageURLs[0]}}
-                    style={styles.singleAvatar}
+                    style={size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar}
                 />
                 <View
                     style={[
-                        styles.singleAvatar,
+                        size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar,
                         optionIsFocused ? styles.focusedAvatar : styles.avatar,
-                        styles.secondAvatar,
+                        size === 'small' ? styles.secondAvatarSmall : styles.secondAvatar,
                     ]}
                 >
                     {avatarImageURLs.length === 2 ? (
                         <Image
                             source={{uri: avatarImageURLs[1]}}
                             style={[
-                                styles.singleAvatar,
+                                size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar,
                             ]}
                         />
                     ) : (
                         <View
                             style={[
-                                styles.avatarText,
+                                size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar,
                             ]}
                         >
-                            <Text style={styles.avatarInnerText}>
+                            <Text style={size === 'small' ? styles.avatarInnerTextSmall : styles.avatarInnerText}>
                                 +
                                 {avatarImageURLs.length - 1}
                             </Text>

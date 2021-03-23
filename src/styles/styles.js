@@ -584,6 +584,13 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    optionDisplayNameCompact: {
+        minWidth: 'auto',
+        flexBasis: 'auto',
+        flexGrow: 0,
+        flexShrink: 0,
+    },
+
     optionDisplayNameTooltipWrapper: {
         position: 'relative',
     },
@@ -601,6 +608,12 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
+    },
+
+    optionAlternateTextCompact: {
+        flexShrink: 1,
+        flexGrow: 1,
+        flexBasis: 'auto',
     },
 
     // App Content Wrapper styles
@@ -827,10 +840,25 @@ const styles = {
         borderRadius: 24,
     },
 
+    singleAvatarSmall: {
+        height: 20,
+        width: 20,
+        backgroundColor: themeColors.icon,
+        borderRadius: 20,
+    },
+
     secondAvatar: {
         position: 'absolute',
         right: -13,
         bottom: -14,
+        borderColor: 'transparent',
+        borderWidth: 2,
+    },
+
+    secondAvatarSmall: {
+        position: 'absolute',
+        right: -8,
+        bottom: -9,
         borderColor: 'transparent',
         borderWidth: 2,
     },
@@ -842,11 +870,11 @@ const styles = {
         borderRadius: variables.componentSizeNormal,
     },
 
-    avatarText: {
+    avatarSmall: {
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
         backgroundColor: themeColors.icon,
-        borderRadius: 24,
-        height: 24,
-        width: 24,
+        borderRadius: variables.avatarSizeSmall,
     },
 
     avatarInnerText: {
@@ -854,6 +882,14 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 24,
         marginLeft: -3,
+        textAlign: 'center',
+    },
+
+    avatarInnerTextSmall: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 20,
+        marginLeft: -2,
         textAlign: 'center',
     },
 
@@ -872,8 +908,14 @@ const styles = {
 
     emptyAvatar: {
         marginRight: variables.componentSizeNormal - 24,
-        height: 40,
-        width: 40,
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
+    },
+
+    emptyAvatarSmall: {
+        marginRight: variables.componentSizeNormal - 24,
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
     },
 
     modalViewContainer: {
