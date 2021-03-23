@@ -1127,6 +1127,28 @@ const styles = {
         lineHeight: 20,
     },
 
+    switchTrack: {
+        width: 50,
+        height: 28,
+        justifyContent: 'center',
+        borderRadius: 20,
+        padding: 15,
+        backgroundColor: colors.green,
+    },
+
+    switchInactive: {
+        backgroundColor: colors.gray2,
+    },
+
+    switchThumb: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        position: 'absolute',
+        left: 4,
+        backgroundColor: colors.white,
+    },
+
     checkboxContainer: {
         backgroundColor: themeColors.componentBG,
         borderRadius: 2,
