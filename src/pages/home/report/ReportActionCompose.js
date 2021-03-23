@@ -19,6 +19,7 @@ import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
+import withNavigationContext, {navigationContextPropTypes} from '../../../components/withNavigationContext';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -44,6 +45,7 @@ const propTypes = {
     }).isRequired,
 
     ...windowDimensionsPropTypes,
+    ...navigationContextPropTypes,
 };
 
 const defaultProps = {
@@ -78,8 +80,8 @@ class ReportActionCompose extends React.Component {
             this.comment = this.props.comment;
         }
 
-        // When any modal goes from visible to hidden, bring focus to the compose field
-        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        // When any modal goes from visible to hidden, bring focus to the compose field only when the screen is focused.
+        if (this.props.isScreenFocused && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.setIsFocused(true);
         }
     }
@@ -319,4 +321,5 @@ export default compose(
         },
     }),
     withWindowDimensions,
+    withNavigationContext,
 )(ReportActionCompose);
