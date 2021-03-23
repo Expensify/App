@@ -50,11 +50,11 @@ const ConfirmModal = props => (
             : CONST.MODAL.MODAL_TYPE.CONFIRM}
     >
         <View style={styles.m5}>
-            <View style={styles.flexRow}>
+            <View style={[styles.flexRow, styles.mb4]}>
                 <Header title={props.title} />
             </View>
 
-            <Text style={[styles.textLabel, styles.mt4]}>
+            <Text style={styles.textP}>
                 {props.prompt}
             </Text>
 
@@ -66,7 +66,6 @@ const ConfirmModal = props => (
                     style={[
                         styles.buttonText,
                         styles.buttonSuccessText,
-                        styles.buttonConfirmText,
                     ]}
                 >
                     {props.confirmText}
