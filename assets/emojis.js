@@ -212,15 +212,6 @@ const emojis = [
         ],
     },
     {
-        code: '☺',
-        keywords: [
-            'face',
-            'outlined',
-            'relaxed',
-            'smile',
-        ],
-    },
-    {
         code: '🙂',
         keywords: [
             'face',
@@ -449,13 +440,6 @@ const emojis = [
             'face',
             'shocked',
             'totally',
-        ],
-    },
-    {
-        code: '☹',
-        keywords: [
-            'face',
-            'frown',
         ],
     },
     {
@@ -2880,6 +2864,12 @@ const emojis = [
             'jewel',
             'romance',
         ],
+    },
+    {
+        code: 'BLANK',
+    },
+    {
+        code: 'BLANK',
     },
     {
         code: 'BLANK',
