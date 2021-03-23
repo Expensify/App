@@ -6,7 +6,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
-import {editReportComment} from '../../../libs/actions/Report';
+import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
 import ReportActionPropTypes from './ReportActionPropTypes';
 
 const propTypes = {
@@ -59,7 +59,8 @@ class ReportActionContextMenu extends React.Component {
             text: 'Edit Comment',
             icon: Pencil,
             callback: () => {
-                editReportComment(this.props.reportID, this.props.reportAction, "blah blah Yuwen test 4");
+                // editReportComment(this.props.reportID, this.props.reportAction, "blah blah Yuwen test 21");
+                saveReportActionDraft(this.props.reportID, this.props.reportAction.reportActionID, "blah blah Yuwen test 21");
             },
         },
 
