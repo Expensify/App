@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 const {Octokit} = require('@octokit/rest');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
@@ -338,10 +341,39 @@ describe('GithubUtils', () => {
 
     describe('generateStagingDeployCashBody', () => {
         const mockTags = [{name: '1.0.2-0'}, {name: '1.0.2-12'}];
+        const mockPRs = [
+            {
+                number: 1,
+                html_url: 'https://github.com/Expensify/Expensify.cash/pull/1',
+                user: {login: 'testUser'},
+                labels: [],
+            },
+            {
+                number: 2,
+                html_url: 'https://github.com/Expensify/Expensify.cash/pull/2',
+                user: {login: 'testUser'},
+                labels: [],
+            },
+            {
+                number: 3,
+                html_url: 'https://github.com/Expensify/Expensify.cash/pull/3',
+                user: {login: 'testUser'},
+                labels: [],
+            },
+            {
+                number: 4,
+                html_url: 'https://github.com/Expensify/Expensify.cash/pull/4',
+                user: {login: 'OSBotify'},
+                labels: [{name: 'automerge'}],
+            },
+        ];
         const mockGithub = jest.fn(() => ({
             getOctokit: () => ({
                 repos: {
                     listTags: jest.fn().mockResolvedValue({data: mockTags}),
+                },
+                pulls: {
+                    list: jest.fn().mockResolvedValue({data: mockPRs}),
                 },
             }),
         }));
@@ -356,6 +388,7 @@ describe('GithubUtils', () => {
             'https://github.com/Expensify/Expensify.cash/pull/3',
             'https://github.com/Expensify/Expensify.cash/pull/3',
             'https://github.com/Expensify/Expensify.cash/pull/1',
+            'https://github.com/Expensify/Expensify.cash/pull/4',
         ];
 
         const baseDeployBlockerList = [
