@@ -5,14 +5,14 @@ import Config from '../CONFIG';
 import translations from '../languages/translations';
 
 /**
- * Return translated string for given locale and key
+ * Return translated string for given locale and phrase
  *
  * @param {String} locale eg 'en', 'es-ES'
- * @param {String|Array} key
+ * @param {String|Array} phrase
  * @param {Object} variables
  * @returns {string}
  */
-function translate(locale, key, variables = {}) {
+function translate(locale, phrase, variables = {}) {
     const localeLanguage = locale.substring(0, 2);
     const fullLocale = lodashGet(translations, locale, {});
     const language = lodashGet(translations, localeLanguage, {});
@@ -20,35 +20,35 @@ function translate(locale, key, variables = {}) {
 
     let translationValue;
 
-    // Search key in full locale
-    translationValue = lodashGet(fullLocale, key);
+    // Search phrase in full locale
+    translationValue = lodashGet(fullLocale, phrase);
     if (translationValue) {
         return Str.result(translationValue, variables);
     }
 
-    // Key is not found in full locale, search it in language
-    translationValue = lodashGet(language, key);
+    // Phrase is not found in full locale, search it in language
+    translationValue = lodashGet(language, phrase);
     if (translationValue) {
         return Str.result(translationValue, variables);
     }
     if (localeLanguage !== 'en') {
-        Log.alert(`${key} was not found in the ${localeLanguage} locale`, 0, {}, false);
+        Log.alert(`${phrase} was not found in the ${localeLanguage} locale`, 0, {}, false);
     }
 
-    // Key is not translated, search it in default language (en)
-    translationValue = lodashGet(defaultLanguage, key);
+    // Phrase is not translated, search it in default language (en)
+    translationValue = lodashGet(defaultLanguage, phrase);
     if (translationValue) {
         return Str.result(translationValue, variables);
     }
 
-    // Key is not found in default language, on production log an alert to server
+    // Phrase is not found in default language, on production log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION) {
-        const keyString = Array.isArray(key) ? key.join('.') : key;
-        Log.alert(`${keyString} was not found in the en locale`, 0, {}, false);
-        return keyString;
+        const phraseString = Array.isArray(phrase) ? phrase.join('.') : phrase;
+        Log.alert(`${phraseString} was not found in the en locale`, 0, {}, false);
+        return phraseString;
     }
-    throw new Error(`${key} was not found in the default language`);
+    throw new Error(`${phrase} was not found in the default language`);
 }
 
 export {
