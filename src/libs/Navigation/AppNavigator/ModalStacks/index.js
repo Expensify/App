@@ -5,7 +5,7 @@ const SettingsModalStack = createCustomModalStackNavigator();
 const NewChatModalStack = createCustomModalStackNavigator();
 const NewGroupModalStack = createCustomModalStackNavigator();
 const SearchModalStack = createCustomModalStackNavigator();
-const ProfileModalStack = createCustomModalStackNavigator();
+const DetailsModalStack = createCustomModalStackNavigator();
 const IOURequestModalStack = createCustomModalStackNavigator();
 const IOUBillModalStack = createCustomModalStackNavigator();
 
@@ -14,7 +14,7 @@ export {
     NewChatModalStack,
     NewGroupModalStack,
     SearchModalStack,
-    ProfileModalStack,
+    DetailsModalStack,
     IOURequestModalStack,
     IOUBillModalStack,
 };
