@@ -64,8 +64,7 @@ const MultipleAvatars = ({avatarImageURLs, optionIsFocused, size}) => {
                             ]}
                         >
                             <Text style={size === 'small' ? styles.avatarInnerTextSmall : styles.avatarInnerText}>
-                                +
-                                {avatarImageURLs.length - 1}
+                                {`+${avatarImageURLs.length - 1}`}
                             </Text>
                         </View>
                     )}

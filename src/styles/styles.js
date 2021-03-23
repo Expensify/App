@@ -545,7 +545,7 @@ const styles = {
     },
 
     sidebarInnerRowSmall: {
-        height: 56,
+        height: 52,
         paddingTop: 12,
         paddingRight: 20,
         paddingBottom: 12,
@@ -849,10 +849,10 @@ const styles = {
     },
 
     singleAvatarSmall: {
-        height: 20,
-        width: 20,
+        height: 18,
+        width: 18,
         backgroundColor: themeColors.icon,
-        borderRadius: 20,
+        borderRadius: 18,
     },
 
     secondAvatar: {
@@ -895,8 +895,8 @@ const styles = {
 
     avatarInnerTextSmall: {
         color: themeColors.textReversed,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 20,
+        fontSize: variables.fontSizeExtraSmall,
+        lineHeight: 18,
         marginLeft: -2,
         textAlign: 'center',
     },
@@ -921,7 +921,7 @@ const styles = {
     },
 
     emptyAvatarSmall: {
-        marginRight: variables.componentSizeNormal - 24,
+        marginRight: variables.componentSizeNormal - 28,
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
     },
