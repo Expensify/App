@@ -40,6 +40,10 @@ export default {
         alignSelf: 'stretch',
     },
 
+    alignSelfCenter: {
+        alignSelf: 'center',
+    },
+
     alignItemsCenter: {
         alignItems: 'center',
     },
