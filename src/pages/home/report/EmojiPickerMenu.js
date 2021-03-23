@@ -85,7 +85,7 @@ class EmojiPickerMenu extends Component {
                     />
                     <View
                         style={{
-                            borderBottomColor: themeColors.hoverComponentBG,
+                            borderBottomColor: themeColors.activeComponentBG,
                             borderBottomWidth: 2,
                         }}
                     />
@@ -97,7 +97,7 @@ class EmojiPickerMenu extends Component {
                         style={{height: 300}}
                         extraData={this.state.filteredEmojis}
                         stickyHeaderIndices={this.state.headerIndices}
-                        contentContainerStyle={{flexGrow: 1, justifyContent: 'space-between'}}
+                        contentContainerStyle={{flexGrow: 1}}
                     />
                 </View>
             ));
