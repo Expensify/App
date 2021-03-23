@@ -544,6 +544,14 @@ const styles = {
         paddingLeft: 20,
     },
 
+    sidebarInnerRowSmall: {
+        height: 56,
+        paddingTop: 12,
+        paddingRight: 20,
+        paddingBottom: 12,
+        paddingLeft: 20,
+    },
+
     sidebarLinkText: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,

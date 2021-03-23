@@ -85,6 +85,19 @@ const OptionRow = ({
     const contentContainerStyles = mode === 'compact'
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
+    const sidebarInnerRowStyle = StyleSheet.flatten(mode === 'compact' ? [
+        styles.chatLinkRowPressable,
+        styles.flexGrow1,
+        styles.optionItemAvatarNameWrapper,
+        styles.sidebarInnerRowSmall,
+        styles.justifyContentCenter,
+    ] : [
+        styles.chatLinkRowPressable,
+        styles.flexGrow1,
+        styles.optionItemAvatarNameWrapper,
+        styles.sidebarInnerRow,
+        styles.justifyContentCenter,
+    ]);
 
     return (
         <Hoverable>
@@ -102,15 +115,7 @@ const OptionRow = ({
                         hovered && !optionIsFocused ? hoverStyle : null,
                     ]}
                 >
-                    <View
-                        style={StyleSheet.flatten([
-                            styles.chatLinkRowPressable,
-                            styles.flexGrow1,
-                            styles.optionItemAvatarNameWrapper,
-                            styles.sidebarInnerRow,
-                            styles.justifyContentCenter,
-                        ])}
-                    >
+                    <View style={sidebarInnerRowStyle}>
                         <View
                             style={[
                                 styles.flexRow,
