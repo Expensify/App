@@ -1,5 +1,7 @@
 import React from 'react';
-import {SafeAreaView, Text, View, Image} from 'react-native';
+import {
+    SafeAreaView, Text, View, Image,
+} from 'react-native';
 import styles from '../../styles/styles';
 import SignInPageLayout from '../signin/SignInPageLayout';
 import SetPasswordPageProps from './SetPasswordPageProps';
