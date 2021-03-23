@@ -80,7 +80,7 @@ const HeaderView = (props) => {
                         <Pressable
                             onPress={() => {
                                 if (participants.length === 1) {
-                                    Navigation.navigate(ROUTES.getProfileRoute(participants[0]));
+                                    Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
                                 }
                             }}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}

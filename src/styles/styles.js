@@ -1109,17 +1109,17 @@ const styles = {
         opacity: 0,
     },
 
-    profilePageContainer: {
+    detailsPageContainer: {
         justifyContent: 'space-between',
         width: '100%',
         flex: 1,
     },
 
-    profilePageSectionContainer: {
+    detailsPageSectionContainer: {
         alignSelf: 'flex-start',
     },
 
-    profilePageSectionVersion: {
+    detailsPageSectionVersion: {
         alignSelf: 'center',
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
