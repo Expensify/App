@@ -65,6 +65,13 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'API is offline',
     },
+    MENU_ITEM_KEYS: {
+        NEW_CHAT: 'NewChat',
+        NEW_GROUP: 'NewGroup',
+        REQUEST_MONEY: 'RequestMoney',
+        SPLIT_BILL: 'SplitBill',
+        ATTACHMENT_PICKER: 'AttachmentPicker',
+    },
     NVP: {
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
@@ -78,6 +85,11 @@ const CONST = {
         ZE_HIR_HIRS: 'Ze/hir/hirs',
         SELF_SELECT: 'Self-select',
         CALL_ME_BY_MY_NAME: 'Call me by my name',
+    },
+    APP_STATE: {
+        ACTIVE: 'active',
+        BACKGROUND: 'background',
+        INACTIVE: 'inactive',
     },
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
