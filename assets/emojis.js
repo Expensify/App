@@ -30,25 +30,25 @@ const emojis = [
         header: true,
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
         code: '😀',
@@ -2895,25 +2895,25 @@ const emojis = [
         header: true,
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
         code: '🐵',
@@ -4472,25 +4472,25 @@ const emojis = [
         header: true,
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
         code: '🌍',
@@ -6342,25 +6342,25 @@ const emojis = [
         header: true,
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
         code: '🎃',
@@ -7117,25 +7117,25 @@ const emojis = [
         header: true,
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
         code: '🔇',
@@ -8567,25 +8567,25 @@ const emojis = [
         header: true,
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
         code: '🏧',
@@ -10204,25 +10204,25 @@ const emojis = [
         header: true,
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
-        code: 'BLANK',
+        code: 'HEADER_BAR',
     },
     {
         code: '🏁',
