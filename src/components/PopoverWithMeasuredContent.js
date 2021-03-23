@@ -85,7 +85,7 @@ class PopoverWithMeasuredContent extends Component {
         let horizontalConstraint;
         switch (this.props.anchorOrigin.horizontal) {
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT:
-                horizontalConstraint = {left: this.props.anchorPosition.horizontal - this.popoverWidth};
+                horizontalConstraint = {left: this.props.anchorPosition.horizontal - 300};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
                 horizontalConstraint = {
@@ -100,7 +100,7 @@ class PopoverWithMeasuredContent extends Component {
         let verticalConstraint;
         switch (this.props.anchorOrigin.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
-                verticalConstraint = {top: this.props.anchorPosition.vertical - this.popoverHeight};
+                verticalConstraint = {top: this.props.anchorPosition.vertical - 300};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.CENTER:
                 verticalConstraint = {

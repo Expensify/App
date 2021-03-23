@@ -739,6 +739,30 @@ const styles = {
         justifyContent: 'center',
     },
 
+    textInputEmojiSearch: addOutlineWidth({
+        backgroundColor: themeColors.componentBG,
+        borderColor: themeColors.border,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        borderWidth: 0,
+        borderRadius: 0,
+        height: 'auto',
+
+        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+
+        paddingHorizontal: 8,
+        marginVertical: 5,
+        paddingVertical: 0,
+        textAlignVertical: 'center',
+    }, 0),
+
+    emojiHeaderStyle: {
+        backgroundColor: themeColors.hoverComponentBG,
+        fontWeight: 'bold',
+    },
+
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: 6,

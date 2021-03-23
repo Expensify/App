@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
-import {FlatList, Text} from 'react-native';
+import {View, FlatList, Text} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import emojis from '../../../../assets/emojis';
@@ -21,7 +22,7 @@ class EmojiPickerMenu extends Component {
     constructor(props) {
         super(props);
 
-        this.filterEmojis = this.filterEmojis.bind(this);
+        this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 500, false);
         this.state = {
             filteredEmojis: emojis,
             headerIndices: [0, 35, 61, 89, 100, 122, 149],
@@ -35,7 +36,7 @@ class EmojiPickerMenu extends Component {
         }
         const newFilteredEmojiList = [];
         emojis.forEach((emoji) => {
-            if (!emoji.header && emoji.code !== 'BLANK') {
+            if (!emoji.header && emoji.code !== 'BLANK' && emoji.code !== 'HEADER_BAR') {
                 emoji.keywords.forEach((keyword) => {
                     if (keyword.includes(searchTerm)) {
                         newFilteredEmojiList.push(emoji);
@@ -51,9 +52,15 @@ class EmojiPickerMenu extends Component {
         if (item.code === 'BLANK') {
             return;
         }
+
+        if (item.code === 'HEADER_BAR') {
+            return (
+                <View style={{backgroundColor: themeColors.hoverComponentBG, width: 15}} />
+            );
+        }
         if (item.header) {
             return (
-                <Text style={{fontWeight: 'bold', width: '300', }}>
+                <Text style={styles.emojiHeaderStyle}>
                     {item.code}
                 </Text>
             );
@@ -70,13 +77,13 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             this.props.isVisible && (
-                <>
+                <View>
                     <TextInputFocusable
                         textAlignVertical="top"
                         placeholder="Search"
                         placeholderTextColor={themeColors.textSupporting}
                         onChangeText={this.filterEmojis}
-                        style={[styles.textInputCompose, styles.flex4]}
+                        style={[styles.textInputEmojiSearch, styles.flex4]}
                         defaultValue=""
                         ref={el => this.searchInput = el}
                     />
@@ -89,7 +96,7 @@ class EmojiPickerMenu extends Component {
                         extraData={this.state.filteredEmojis}
                         stickyHeaderIndices={this.state.headerIndices}
                     />
-                </>
+                </View>
             ));
     }
 }
