@@ -5,7 +5,7 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 const navigationContextPropTypes = {
     // Whether this screen is focused
-    isScreenFocused: PropTypes.number.isRequired,
+    isScreenFocused: PropTypes.bool.isRequired,
 };
 
 export default function (WrappedComponent) {
