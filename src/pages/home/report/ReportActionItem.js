@@ -14,6 +14,7 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
+import ReportActionItemEdit from './ReportActionItemEdit';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -29,6 +30,7 @@ const propTypes = {
     // List of betas for the current user.
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    // Draft message - if this is set the comment is in 'edit' mode
     draftMessage: PropTypes.string,
 };
 
@@ -105,7 +107,9 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        return (
+        return this.props.draftMessage ? (
+            <ReportActionItemEdit action={this.props.action} draftMessage={this.props.draftMessage} />
+        ) : (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
                     {hovered => (
@@ -153,5 +157,8 @@ ReportActionItem.defaultProps = defaultProps;
 export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    draftMessage: {
+        key: ({reportID, action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`,
     },
 })(ReportActionItem);

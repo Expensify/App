@@ -764,22 +764,28 @@ NetworkConnection.onReconnect(() => {
     fetchAll(false);
 });
 
-function editReportComment(reportID, reportAction, newMessage) {
-    // // Optimistically update the report action with the new message
-    // reportAction.message.isEdited = true;
-    // reportAction.message.html = newMessage;
-    // Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {reportAction});
+function editReportComment(reportID, reportAction, htmlForNewComment) {
+    debugger;
+    // Optimistically update the report action with the new message
+    const sequenceNumber = reportAction.sequenceNumber;
+    const newReportAction = {...reportAction};
+    const actionToMerge = {};
+    newReportAction.message[0].isEdited = true;
+    newReportAction.message[0].html = htmlForNewComment;
+    newReportAction.message[0].text = htmlForNewComment.replace(/<[^>]*>?/gm, '');
+    actionToMerge[sequenceNumber] = newReportAction;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
 
     // Persist the updated report comment
     API.Report_EditComment({
         reportID,
         reportActionID: reportAction.reportActionID,
-        reportComment: newMessage,
+        reportComment: htmlForNewComment,
     });
 }
 
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}_${reportActionID}`, draftMessage);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
 
 export {
@@ -796,4 +802,5 @@ export {
     togglePinnedState,
     updateCurrentlyViewedReportID,
     editReportComment,
+    saveReportActionDraft,
 };
