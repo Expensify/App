@@ -30,7 +30,8 @@ class EmojiPickerMenu extends Component {
     }
 
     filterEmojis(searchTerm) {
-        if (searchTerm === '') {
+        const normalizedSearchTerm = searchTerm.toLowerCase();
+        if (normalizedSearchTerm === '') {
             this.setState({filteredEmojis: emojis});
             return;
         }
@@ -38,7 +39,7 @@ class EmojiPickerMenu extends Component {
         emojis.forEach((emoji) => {
             if (!emoji.header && emoji.code !== 'BLANK') {
                 emoji.keywords.forEach((keyword) => {
-                    if (keyword.includes(searchTerm)) {
+                    if (keyword.includes(normalizedSearchTerm)) {
                         newFilteredEmojiList.push(emoji);
                     }
                 });
