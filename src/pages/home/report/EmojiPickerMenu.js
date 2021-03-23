@@ -36,7 +36,7 @@ class EmojiPickerMenu extends Component {
         }
         const newFilteredEmojiList = [];
         emojis.forEach((emoji) => {
-            if (!emoji.header && emoji.code !== 'BLANK' && emoji.code !== 'HEADER_BAR') {
+            if (!emoji.header && emoji.code !== 'BLANK') {
                 emoji.keywords.forEach((keyword) => {
                     if (keyword.includes(searchTerm)) {
                         newFilteredEmojiList.push(emoji);
@@ -53,11 +53,6 @@ class EmojiPickerMenu extends Component {
             return;
         }
 
-        if (item.code === 'HEADER_BAR') {
-            return (
-                <View style={{backgroundColor: themeColors.hoverComponentBG, width: 15}} />
-            );
-        }
         if (item.header) {
             return (
                 <Text style={styles.emojiHeaderStyle}>
