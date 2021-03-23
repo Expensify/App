@@ -129,14 +129,17 @@ class ProfilePage extends Component {
     }
 
     render() {
+        // Determines if the pronouns/selected pronouns have changed
+        const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns
+            || (this.props.myPersonalDetails.pronouns
+                && this.props.myPersonalDetails.pronouns === this.state.selfSelectedPronouns);
+
         // Disables button if none of the form values have changed
         const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName)
             && (this.props.myPersonalDetails.lastName === this.state.lastName)
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
-            && (this.props.myPersonalDetails.pronouns === this.state.pronouns
-            || (this.props.myPersonalDetails.pronouns
-                && this.props.myPersonalDetails.pronouns === this.state.selfSelectedPronouns));
+            && arePronounsUnchanged;
 
         return (
             <ScreenWrapper>
