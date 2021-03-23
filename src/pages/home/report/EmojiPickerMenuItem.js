@@ -12,8 +12,8 @@ const propTypes = {
 };
 
 const EmojiPickerMenuItem = props => (
-    <TouchableOpacity onPress={() => props.onPress(props.emoji)} style={styles.emojiText}>
-        <Text style={styles.title}>{props.emoji}</Text>
+    <TouchableOpacity onPress={() => props.onPress(props.emoji)}>
+        <Text style={styles.emojiText}>{props.emoji}</Text>
     </TouchableOpacity>
 );
 

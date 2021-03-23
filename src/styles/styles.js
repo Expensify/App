@@ -744,7 +744,7 @@ const styles = {
         borderColor: themeColors.border,
         color: themeColors.text,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
+        fontSize: variables.fontSizeLarge,
         borderWidth: 0,
         borderRadius: 0,
         height: 'auto',
@@ -752,7 +752,7 @@ const styles = {
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
-        paddingHorizontal: 8,
+        paddingHorizontal: 10,
         marginVertical: 5,
         paddingVertical: 0,
         textAlignVertical: 'center',
@@ -760,8 +760,11 @@ const styles = {
 
     emojiHeaderStyle: {
         backgroundColor: themeColors.hoverComponentBG,
-        fontWeight: 'bold',
         width: '100%',
+        paddingVertical: 5,
+        paddingLeft: 5,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
     },
 
     chatItemEmojiButton: {

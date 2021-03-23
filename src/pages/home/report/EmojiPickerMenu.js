@@ -73,15 +73,21 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             this.props.isVisible && (
-                <View>
+                <View style={{backgroundColor: themeColors.componentBG}}>
                     <TextInputFocusable
                         textAlignVertical="top"
                         placeholder="Search"
                         placeholderTextColor={themeColors.textSupporting}
                         onChangeText={this.filterEmojis}
-                        style={[styles.textInputEmojiSearch, styles.flex4]}
+                        style={[styles.textInputEmojiSearch]}
                         defaultValue=""
                         ref={el => this.searchInput = el}
+                    />
+                    <View
+                        style={{
+                            borderBottomColor: themeColors.hoverComponentBG,
+                            borderBottomWidth: 2,
+                        }}
                     />
                     <FlatList
                         data={this.state.filteredEmojis}
@@ -91,6 +97,7 @@ class EmojiPickerMenu extends Component {
                         style={{height: 300}}
                         extraData={this.state.filteredEmojis}
                         stickyHeaderIndices={this.state.headerIndices}
+                        contentContainerStyle={{flexGrow: 1, justifyContent: 'space-between'}}
                     />
                 </View>
             ));
