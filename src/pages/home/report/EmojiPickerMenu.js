@@ -29,6 +29,12 @@ class EmojiPickerMenu extends Component {
         };
     }
 
+    componentDidUpdate() {
+        if (this.props.isVisible) {
+            this.searchInput.focus();
+        }
+    }
+
     filterEmojis(searchTerm) {
         const normalizedSearchTerm = searchTerm.toLowerCase();
         if (normalizedSearchTerm === '') {
