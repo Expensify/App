@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import NotificationType from './NotificationType';
 
 const notificationEventActionMap = {};

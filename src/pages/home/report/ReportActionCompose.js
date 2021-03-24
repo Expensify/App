@@ -2,24 +2,25 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
-import {Paperclip, Send, Emoji} from '../../../components/Icon/Expensicons';
+import {Plus, Send, Emoji} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
+import CreateMenu from '../../../components/CreateMenu';
+import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredContent';
 import EmojiPickerMenu from './EmojiPickerMenu';
-import CONST from '../../../CONST';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -36,6 +37,13 @@ const propTypes = {
         // Indicates if there is a modal currently visible or not
         isVisible: PropTypes.bool,
     }),
+
+    // The report currently being looked at
+    report: PropTypes.shape({
+
+        // participants associated with current report
+        participants: PropTypes.arrayOf(PropTypes.string),
+    }).isRequired,
 
     ...windowDimensionsPropTypes,
 };
@@ -54,7 +62,6 @@ class ReportActionCompose extends React.Component {
             horizontal: 0,
             vertical: 0,
         };
-
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -72,6 +79,7 @@ class ReportActionCompose extends React.Component {
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isPickerVisible: false,
+            isMenuVisible: false,
         };
     }
 
@@ -82,8 +90,11 @@ class ReportActionCompose extends React.Component {
             this.comment = this.props.comment;
         }
 
-        // When any modal goes from visible to hidden, bring focus to the compose field
-        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        // When any modal goes from visible to hidden or when the report ID changes, bring focus to the compose field
+        if (
+            (prevProps.modal.isVisible && !this.props.modal.isVisible)
+            || (prevProps.reportID !== this.props.reportID)
+        ) {
             this.setIsFocused(true);
         }
     }
@@ -107,6 +118,15 @@ class ReportActionCompose extends React.Component {
      */
     setTextInputShouldClear(shouldClear) {
         this.setState({textInputShouldClear: shouldClear});
+    }
+
+    /**
+     * Updates the visiblity state of the menu
+     *
+     * @param {Boolean} isMenuVisible
+     */
+    setMenuVisibility(isMenuVisible) {
+        this.setState({isMenuVisible});
     }
 
     /**
@@ -218,6 +238,8 @@ class ReportActionCompose extends React.Component {
         // focus this from the chat switcher.
         // https://github.com/Expensify/Expensify.cash/issues/1228
         const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
+        // eslint-disable-next-line no-unused-vars
+        const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
 
         return (
             <View style={[styles.chatItemCompose]}>
@@ -240,24 +262,45 @@ class ReportActionCompose extends React.Component {
                             <>
                                 <AttachmentPicker>
                                     {({openPicker}) => (
-                                        <TouchableOpacity
-                                            onPress={(e) => {
-                                                e.preventDefault();
+                                        <>
+                                            <TouchableOpacity
+                                                onPress={(e) => {
+                                                    e.preventDefault();
+                                                    this.setMenuVisibility(true);
+                                                }}
+                                                style={styles.chatItemAttachButton}
+                                                underlayColor={themeColors.componentBG}
+                                            >
+                                                <Icon src={Plus} />
+                                            </TouchableOpacity>
+                                            <CreateMenu
+                                                isVisible={this.state.isMenuVisible}
+                                                onClose={() => this.setMenuVisibility(false)}
+                                                onAttachmentPickerSelected={() => {
+                                                    setTimeout(() => {
+                                                        openPicker({
+                                                            onPicked: (file) => {
+                                                                displayFileInModal({file});
+                                                            },
+                                                        });
+                                                    }, 10);
+                                                }}
+                                                onItemSelected={() => this.setMenuVisibility(false)}
+                                                menuOptions={[CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
 
-                                                // Do not open attachment picker from keypress event
-                                                if (!e.key) {
-                                                    openPicker({
-                                                        onPicked: (file) => {
-                                                            displayFileInModal({file});
-                                                        },
-                                                    });
-                                                }
-                                            }}
-                                            style={[styles.chatItemAttachButton]}
-                                            underlayColor={themeColors.componentBG}
-                                        >
-                                            <Icon src={Paperclip} />
-                                        </TouchableOpacity>
+                                                /**
+                                                 * Temporarily hiding IOU Modal options while Modal is incomplete. Will
+                                                 * be replaced by a beta flag once IOUConfirm is completed.
+                                                menuOptions={hasMultipleParticipants
+                                                    ? [
+                                                        CONST.MENU_ITEM_KEYS.SPLIT_BILL,
+                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
+                                                    : [
+                                                        CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+                                                */
+                                            />
+                                        </>
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
@@ -265,7 +308,7 @@ class ReportActionCompose extends React.Component {
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
                                     placeholder="Write something..."
-                                    placeholderTextColor={themeColors.textSupporting}
+                                    placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
                                     onDragEnter={() => this.setState({isDraggingOver: true})}
@@ -352,6 +395,9 @@ export default compose(
         },
         modal: {
             key: ONYXKEYS.MODAL,
+        },
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
     withWindowDimensions,
