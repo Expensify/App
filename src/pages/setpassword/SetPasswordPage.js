@@ -1,20 +1,17 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {
-    SafeAreaView,
-    Text,
-    TextInput,
-    View,
+    Image, SafeAreaView, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import lodashGet from 'lodash.get';
 import styles from '../../styles/styles';
-import ExpensifyCashLogo from '../../../assets/images/expensify-cash.svg';
-import {setPassword} from '../../libs/actions/Session';
+import SignInPageLayout from '../signin/SignInPageLayout';
+import welcomeScreenshot from '../../../assets/images/welcome-screenshot.png';
+import withWindowDimensions from '../../components/withWindowDimensions';
+import SetPasswordForm from './SetPasswordForm';
+import WelcomeText from '../../components/WelcomeText';
+import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import variables from '../../styles/variables';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,13 +34,15 @@ const propTypes = {
         password: PropTypes.string,
     }),
 
+    // Is this displaying on a device with a narrower screen width?
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
     route: PropTypes.shape({
         params: PropTypes.shape({
             validateCode: PropTypes.string,
         }),
     }),
 };
-
 const defaultProps = {
     account: {},
     credentials: {},
@@ -52,84 +51,38 @@ const defaultProps = {
     },
 };
 
-class SetPasswordPage extends Component {
-    constructor(props) {
-        super(props);
-
-        this.submitForm = this.submitForm.bind(this);
-
-        this.state = {
-            password: '',
-            formError: null,
-        };
-    }
-
-    /**
-     * Validate the form and then submit it
-     */
-    submitForm() {
-        if (!this.state.password.trim()) {
-            this.setState({
-                formError: 'Password cannot be blank',
-            });
-            return;
-        }
-
-        this.setState({
-            formError: null,
-        });
-        setPassword(this.state.password, lodashGet(this.props.route, 'params.validateCode', ''));
-    }
-
-    render() {
-        return (
-            <>
-                <SafeAreaView style={[styles.signInPage]}>
-                    <View style={[styles.signInPageInner]}>
-                        <View style={[styles.signInPageLogo]}>
-                            <ExpensifyCashLogo
-                                width={variables.componentSizeLarge}
-                                height={variables.componentSizeLarge}
+const SetPasswordPage = (props) => {
+    return (
+        <SafeAreaView style={[styles.signInPage]}>
+            <SignInPageLayout>
+                <View style={[styles.loginFormContainer]}>
+                    <SetPasswordForm
+                        validateCode={lodashGet(props.route, 'params.validateCode', '')}
+                        account={props.account}
+                    />
+                    {props.isSmallScreenWidth && (
+                        <View style={[styles.mt5, styles.mb5]}>
+                            <Image
+                                resizeMode="contain"
+                                style={[styles.signinWelcomeScreenshot]}
+                                source={welcomeScreenshot}
                             />
                         </View>
-                        <View style={[styles.mb4]}>
-                            <Text style={[styles.formLabel]}>Enter a password</Text>
-                            <TextInput
-                                style={[styles.textInput]}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                value={this.state.password}
-                                onChangeText={text => this.setState({password: text})}
-                                onSubmitEditing={this.submitForm}
-                            />
-                        </View>
-                        <ButtonWithLoader
-                            text="Set Password"
-                            onClick={this.submitForm}
-                            isLoading={this.props.account.loading}
-                        />
-                        {this.state.formError && (
-                            <Text style={[styles.formError]}>
-                                {this.state.formError}
-                            </Text>
-                        )}
-                        {!_.isEmpty(this.props.account.error) && (
-                            <Text style={[styles.formError]}>
-                                {this.props.account.error}
-                            </Text>
-                        )}
-                    </View>
-                </SafeAreaView>
-            </>
-        );
-    }
-}
+                    )}
+                </View>
+                <WelcomeText />
+            </SignInPageLayout>
+        </SafeAreaView>
+    );
+};
 
 SetPasswordPage.propTypes = propTypes;
 SetPasswordPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(SetPasswordPage);
+
+export default withWindowDimensions(
+    withOnyx({
+        credentials: {key: ONYXKEYS.CREDENTIALS},
+        account: {key: ONYXKEYS.ACCOUNT},
+    }),
+)(SetPasswordPage);
