@@ -4,13 +4,13 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash.get';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import SignInPageLayout from '../signin/SignInPageLayout';
 import welcomeScreenshot from '../../../assets/images/welcome-screenshot.png';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import SetPasswordForm from './SetPasswordForm';
 import WelcomeText from '../../components/WelcomeText';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
@@ -51,38 +51,33 @@ const defaultProps = {
     },
 };
 
-const SetPasswordPage = (props) => {
-    return (
-        <SafeAreaView style={[styles.signInPage]}>
-            <SignInPageLayout>
-                <View style={[styles.loginFormContainer]}>
-                    <SetPasswordForm
-                        validateCode={lodashGet(props.route, 'params.validateCode', '')}
-                        account={props.account}
-                    />
-                    {props.isSmallScreenWidth && (
-                        <View style={[styles.mt5, styles.mb5]}>
-                            <Image
-                                resizeMode="contain"
-                                style={[styles.signinWelcomeScreenshot]}
-                                source={welcomeScreenshot}
-                            />
-                        </View>
-                    )}
-                </View>
-                <WelcomeText />
-            </SignInPageLayout>
-        </SafeAreaView>
-    );
-};
+const SetPasswordPage = props => (
+    <SafeAreaView style={[styles.signInPage]}>
+        <SignInPageLayout>
+            <View style={[styles.loginFormContainer]}>
+                <SetPasswordForm
+                    validateCode={lodashGet(props.route, 'params.validateCode', '')}
+                    account={props.account}
+                />
+                {props.isSmallScreenWidth && (
+                    <View style={[styles.mt5, styles.mb5]}>
+                        <Image
+                            resizeMode="contain"
+                            style={[styles.signinWelcomeScreenshot]}
+                            source={welcomeScreenshot}
+                        />
+                    </View>
+                )}
+            </View>
+            <WelcomeText />
+        </SignInPageLayout>
+    </SafeAreaView>
+);
 
 SetPasswordPage.propTypes = propTypes;
 SetPasswordPage.defaultProps = defaultProps;
 
-
-export default withWindowDimensions(
-    withOnyx({
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(SetPasswordPage);
+export default withOnyx({
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    account: {key: ONYXKEYS.ACCOUNT},
+})(withWindowDimensions((SetPasswordPage)));
