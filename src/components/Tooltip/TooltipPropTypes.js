@@ -21,11 +21,19 @@ const propTypes = {
     // Any additional amount to manually adjust the vertical position of the tooltip.
     // A positive value shifts the tooltip down, and a negative value shifts it up.
     shiftVertical: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
+
+    // Delay before the tooltip is visible
+    showDelay: PropTypes.number,
+
+    // Delay before the tooltip is hidden
+    hideDelay: PropTypes.number,
 };
 
 const defaultProps = {
     shiftHorizontal: 0,
     shiftVertical: 0,
+    showDelay: 500,
+    hideDelay: 0,
 };
 
 export {
