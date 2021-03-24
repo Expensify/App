@@ -1751,51 +1751,6 @@ const emojis = [
         ],
     },
     {
-        code: '🏻',
-        keywords: [
-            'emoji modifier',
-            'fitzpatrick',
-            'skin',
-            'tone',
-        ],
-    },
-    {
-        code: '🏼',
-        keywords: [
-            'emoji modifier',
-            'fitzpatrick',
-            'skin',
-            'tone',
-        ],
-    },
-    {
-        code: '🏽',
-        keywords: [
-            'emoji modifier',
-            'fitzpatrick',
-            'skin',
-            'tone',
-        ],
-    },
-    {
-        code: '🏾',
-        keywords: [
-            'emoji modifier',
-            'fitzpatrick',
-            'skin',
-            'tone',
-        ],
-    },
-    {
-        code: '🏿',
-        keywords: [
-            'emoji modifier',
-            'fitzpatrick',
-            'skin',
-            'tone',
-        ],
-    },
-    {
         code: '💪',
         keywords: [
             'biceps',
@@ -2864,15 +2819,6 @@ const emojis = [
             'jewel',
             'romance',
         ],
-    },
-    {
-        code: 'BLANK',
-    },
-    {
-        code: 'BLANK',
-    },
-    {
-        code: 'BLANK',
     },
     {
         code: 'BLANK',
