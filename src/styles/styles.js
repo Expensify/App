@@ -857,18 +857,20 @@ const styles = {
 
     secondAvatar: {
         position: 'absolute',
-        right: -13,
-        bottom: -14,
+        right: -18,
+        bottom: -18,
+        borderWidth: 3,
+        borderRadius: 30,
         borderColor: 'transparent',
-        borderWidth: 2,
     },
 
     secondAvatarSmall: {
         position: 'absolute',
-        right: -8,
-        bottom: -9,
+        right: -13,
+        bottom: -13,
+        borderWidth: 3,
+        borderRadius: 18,
         borderColor: 'transparent',
-        borderWidth: 2,
     },
 
     avatarNormal: {
@@ -908,10 +910,12 @@ const styles = {
 
     avatar: {
         backgroundColor: themeColors.sidebar,
+        borderColor: themeColors.sidebar,
     },
 
     focusedAvatar: {
-        backgroundColor: themeColors.border,
+        backgroundColor: themeColors.pillBG,
+        borderColor: themeColors.pillBG,
     },
 
     emptyAvatar: {
