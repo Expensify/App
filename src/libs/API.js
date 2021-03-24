@@ -530,6 +530,19 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {Number} parameters.reportActionID
+ * @param {String} parameters.newComment
+ * @returns {Promise}
+ */
+function Report_UpdateComment(parameters) {
+    const commandName = 'Report_UpdateLastRead';
+    requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {Number} parameters.email
  * @returns {Promise}
  */
@@ -652,6 +665,7 @@ export {
     Report_GetHistory,
     Report_TogglePinned,
     Report_UpdateLastRead,
+    Report_UpdateComment,
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
