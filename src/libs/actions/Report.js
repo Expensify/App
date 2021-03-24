@@ -762,6 +762,21 @@ function addAction(reportID, text, file) {
 }
 
 /**
+ * Deletes a comment from the report, basically sets it as empty string
+ *
+ * @param {Number} reportID
+ * @param {Number} reportActionID
+ */
+function deleteReportComment(reportID, reportActionID) {
+    // Mark the report as not having any unread items
+    API.updateReportComment({
+        reportID,
+        reportActionID,
+        newComment: '',
+    });
+}
+
+/**
  * Updates the last read action ID on the report. It optimistically makes the change to the store, and then let's the
  * network layer handle the delayed write.
  *
