@@ -811,6 +811,15 @@ const styles = {
         zIndex: 2,
     },
 
+    navigationModalOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        transform: [{
+            translateX: -variables.sideBarWidth,
+        }],
+    },
+
     sidebarVisible: {
         borderRightWidth: 1,
     },
