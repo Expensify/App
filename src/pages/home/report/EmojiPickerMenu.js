@@ -103,7 +103,7 @@ class EmojiPickerMenu extends Component {
                         style={{height: 300}}
                         extraData={this.state.filteredEmojis}
                         stickyHeaderIndices={this.state.headerIndices}
-                        contentContainerStyle={{flexGrow: 1}}
+                        columnWrapperStyle={{justifyContent: 'space-between'}}
                     />
                 </View>
             ));
