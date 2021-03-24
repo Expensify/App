@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import Popover from './Popover';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
@@ -18,51 +18,47 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-class VideoChatMenu extends Component {
-    constructor(props) {
-        super(props);
-    }
+const VideoChatMenu = (props) => {
+    const menuItemData = [
+        {
+            icon: ZoomIcon,
+            text: 'Zoom',
+            onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
+        },
+        {
+            icon: GoogleMeetIcon,
+            text: 'Google Meet',
+            onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
+        },
+    ].map(item => ({
+        ...item,
+        onPress: () => {
+            item.onPress();
+            props.onClose();
+        },
+    }));
 
-    render() {
-        const menuItemData = [
-            {
-                icon: ZoomIcon,
-                text: 'Zoom',
-                onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
-            },
-            {
-                icon: GoogleMeetIcon,
-                text: 'Google Meet',
-                onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
-            },
-        ].map(item => ({
-            ...item,
-            onPress: () => {
-                this.props.onItemSelected();
-                item.onPress();
-            },
-        }));
-        return (
-            <Popover
-                onClose={this.props.onClose}
-                isVisible={this.props.isVisible}
-                anchorPosition={{
-                    left: this.props.windowWidth - 250,
-                    top: 50,
-                }}
-            >
-                {menuItemData.map(({icon, text, onPress}) => (
-                    <MenuItem
-                        key={text}
-                        icon={icon}
-                        title={text}
-                        onPress={onPress}
-                    />
-                ))}
-            </Popover>
-        );
-    }
-}
+    return (
+        <Popover
+            onClose={props.onClose}
+            isVisible={props.isVisible}
+            anchorPosition={{
+                left: props.windowWidth - 250,
+                top: 50,
+            }}
+        >
+            {menuItemData.map(({icon, text, onPress}) => (
+                <MenuItem
+                    key={text}
+                    icon={icon}
+                    title={text}
+                    onPress={onPress}
+                />
+            ))}
+        </Popover>
+    );
+};
+
 
 VideoChatMenu.propTypes = propTypes;
 VideoChatMenu.displayName = 'VideoChatMenu';

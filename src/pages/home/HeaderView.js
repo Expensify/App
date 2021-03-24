@@ -7,7 +7,7 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
-import {BackArrow, Pin, Trashcan} from '../../components/Icon/Expensicons';
+import {BackArrow, Pin, Phone} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -25,6 +25,9 @@ const propTypes = {
 
     // Toggles the videoChatMenu open and closed
     onVideoChatMenuButtonClicked: PropTypes.func.isRequired,
+
+    // Indicates whether the video chat menu is active
+    isVideoChatMenuActive: PropTypes.bool.isRequired,
 
     /* Onyx Props */
     // The report currently being looked at
@@ -104,15 +107,18 @@ const HeaderView = (props) => {
                                 style={[styles.touchableButtonImage, styles.mr0]}
                             >
                                 <Icon
-                                    src={Trashcan}
-                                    fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
+                                    src={Phone}
+                                    fill={props.isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
                                 />
                             </Pressable>
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}
                             >
-                                <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                                <Icon
+                                    src={Pin}
+                                    fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
+                                />
                             </Pressable>
                         </View>
                     </View>

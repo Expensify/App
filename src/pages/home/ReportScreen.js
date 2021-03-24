@@ -53,11 +53,11 @@ class ReportScreen extends React.Component {
                     reportID={activeReportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                     onVideoChatMenuButtonClicked={this.toggleVideoChatMenu}
+                    isVideoChatMenuActive={this.state.isVideoChatMenuActive}
                 />
                 <VideoChatMenu
                     onClose={this.toggleVideoChatMenu}
                     isVisible={this.state.isVideoChatMenuActive}
-                    onItemSelected={this.toggleVideoChatMenu}
                 />
                 <View style={[styles.dFlex, styles.flex1]}>
                     <ReportView
