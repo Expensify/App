@@ -14,7 +14,7 @@ export default function () {
             callback: (myPersonalDetails) => {
                 Onyx.disconnect(connectionID);
 
-                if (_.isUndefined(myPersonalDetails)) {
+                if (_.isUndefined(myPersonalDetails) || _.isEmpty(myPersonalDetails)) {
                     console.debug('[Migrate Onyx] Skipped migration ReformatTimezone: No myPersonalDetails key found');
                     return resolve();
                 }
