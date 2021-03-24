@@ -178,36 +178,45 @@ const styles = {
         inputIOS: {
             fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeNormal,
-            paddingVertical: 12,
-            paddingHorizontal: 10,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            paddingBottom: 10,
             borderRadius: variables.componentBorderRadius,
             borderWidth: 1,
             borderColor: themeColors.border,
             color: themeColors.text,
-            paddingRight: 30,
+            height: variables.componentSizeNormal,
+            opacity: 1,
         },
         inputWeb: {
             fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeNormal,
-            paddingVertical: 12,
-            paddingHorizontal: 10,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            paddingBottom: 10,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
             color: themeColors.text,
-            paddingRight: 30,
             appearance: 'none',
+            height: variables.componentSizeNormal,
+            opacity: 1,
         },
         inputAndroid: {
             fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeNormal,
-            paddingHorizontal: 10,
-            paddingVertical: 8,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            paddingBottom: 10,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
             color: themeColors.text,
-            paddingRight: 30,
+            height: variables.componentSizeNormal,
+            opacity: 1,
         },
         iconContainer: {
             top: 12,
@@ -288,6 +297,11 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         textAlignVertical: 'center',
+    },
+
+    disabledTextInput: {
+        backgroundColor: colors.gray1,
+        color: colors.gray3,
     },
 
     textInputReversed: addOutlineWidth({
@@ -386,6 +400,13 @@ const styles = {
         width: '100%',
     },
 
+    loginTermsText: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+    },
+
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,
@@ -395,7 +416,7 @@ const styles = {
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         height: 84,
         justifyContent: 'flex-start',
         paddingHorizontal: 20,
@@ -791,6 +812,15 @@ const styles = {
         zIndex: 2,
     },
 
+    navigationModalOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        transform: [{
+            translateX: -variables.sideBarWidth,
+        }],
+    },
+
     sidebarVisible: {
         borderRightWidth: 1,
     },
@@ -1089,22 +1119,59 @@ const styles = {
         opacity: 0,
     },
 
-    profilePageContainer: {
+    detailsPageContainer: {
         justifyContent: 'space-between',
         width: '100%',
         flex: 1,
     },
 
-    profilePageSectionContainer: {
+    detailsPageSectionContainer: {
         alignSelf: 'flex-start',
     },
 
-    profilePageSectionVersion: {
+    detailsPageSectionVersion: {
         alignSelf: 'center',
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
         height: 24,
         lineHeight: 20,
+    },
+
+    switchTrack: {
+        width: 50,
+        height: 28,
+        justifyContent: 'center',
+        borderRadius: 20,
+        padding: 15,
+        backgroundColor: colors.green,
+    },
+
+    switchInactive: {
+        backgroundColor: colors.gray2,
+    },
+
+    switchThumb: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        position: 'absolute',
+        left: 4,
+        backgroundColor: colors.white,
+    },
+
+    checkboxContainer: {
+        backgroundColor: themeColors.componentBG,
+        borderRadius: 2,
+        height: 20,
+        width: 20,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    checkedContainer: {
+        backgroundColor: colors.blue,
     },
 
     iouAmountText: {

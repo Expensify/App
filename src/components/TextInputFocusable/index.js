@@ -110,7 +110,6 @@ class TextInputFocusable extends React.Component {
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
-            this.moveCursorToEnd();
         }
     }
 
@@ -196,19 +195,6 @@ class TextInputFocusable extends React.Component {
             this.setState({
                 numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight),
             });
-        });
-    }
-
-    /**
-     * Move cursor to end by setting start and end
-     * to length of the input value.
-     */
-    moveCursorToEnd() {
-        this.setState({
-            selection: {
-                start: this.props.defaultValue.length,
-                end: this.props.defaultValue.length,
-            },
         });
     }
 
