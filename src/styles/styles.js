@@ -539,7 +539,6 @@ const styles = {
     sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
-        paddingRight: 20,
         paddingBottom: 12,
         paddingLeft: 20,
     },
@@ -547,7 +546,6 @@ const styles = {
     sidebarInnerRowSmall: {
         height: 52,
         paddingTop: 12,
-        paddingRight: 20,
         paddingBottom: 12,
         paddingLeft: 20,
     },
