@@ -739,32 +739,32 @@ const styles = {
         justifyContent: 'center',
     },
 
-    textInputEmojiSearch: addOutlineWidth({
+    emojiPickerBox: {
         backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLarge,
-        borderWidth: 0,
-        borderRadius: 0,
-        height: 'auto',
-
-        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
-
-        paddingHorizontal: 10,
-        marginVertical: 5,
-        paddingVertical: 0,
-        textAlignVertical: 'center',
-    }, 0),
+    },
 
     emojiHeaderStyle: {
-        backgroundColor: themeColors.hoverComponentBG,
+        backgroundColor: themeColors.componentBG,
         width: '100%',
-        paddingVertical: 5,
-        paddingLeft: 5,
+        paddingVertical: 12,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    // Emoji Picker Styles
+    emojiText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.iconSizeLarge,
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingRight: 8,
+        paddingLeft: 8,
+    },
+
+    emojiTextWrapper: {
+        width: '12.5%'
     },
 
     chatItemEmojiButton: {
@@ -1148,16 +1148,6 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
     }, 0),
-
-    // Emoji Picker Styles
-    emojiText: {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.iconSizeLarge,
-        paddingTop: 4,
-        paddingBottom: 4,
-        paddingRight: 8,
-        paddingLeft: 8,
-    },
 };
 
 const baseCodeTagStyles = {
