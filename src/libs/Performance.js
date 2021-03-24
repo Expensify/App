@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import lodashTransform from 'lodash.transform';
+import lodashTransform from 'lodash/transform';
 
 /**
  * Deep diff between two objects. Useful for figuring out what changed about an object from one render to the next so

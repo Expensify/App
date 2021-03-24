@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
@@ -78,8 +78,11 @@ class ReportActionCompose extends React.Component {
             this.comment = this.props.comment;
         }
 
-        // When any modal goes from visible to hidden, bring focus to the compose field
-        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        // When any modal goes from visible to hidden or when the report ID changes, bring focus to the compose field
+        if (
+            (prevProps.modal.isVisible && !this.props.modal.isVisible)
+            || (prevProps.reportID !== this.props.reportID)
+        ) {
             this.setIsFocused(true);
         }
     }
@@ -256,7 +259,7 @@ class ReportActionCompose extends React.Component {
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
                                     placeholder="Write something..."
-                                    placeholderTextColor={themeColors.textSupporting}
+                                    placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
                                     onDragEnter={() => this.setState({isDraggingOver: true})}
