@@ -15,13 +15,7 @@ LIB_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../ && pwd)/node_module
 printf '\nRebuilding GitHub Actions...\n'
 npm run gh-actions-build
 
-# Check for a diff
-printf '\nChecking for a diff...\n'
-git diff --exit-code | $LIB_PATH/diff-so-fancy | less --tabs=4 -RFX
-
-# Runs git diff quietly to get the exit code
-declare EXIT_CODE
-git diff --quiet
+DIFF_OUTPUT=$(git diff --exit-code)
 EXIT_CODE=$?
 
 if [[ EXIT_CODE -eq 0 ]]; then
@@ -29,5 +23,6 @@ if [[ EXIT_CODE -eq 0 ]]; then
     exit 0
 else
     echo -e "${RED}Error: Diff found when Github Actions were rebuilt. Did you forget to run \`npm run gh-actions-build\`?${NC}"
+    echo "$DIFF_OUTPUT" | $LIB_PATH/diff-so-fancy | less --tabs=4 -RFX
     exit 1
 fi
