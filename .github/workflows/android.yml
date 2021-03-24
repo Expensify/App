@@ -48,10 +48,8 @@ jobs:
               if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
               run: bundle exec fastlane android beta
 
-            # TODO: uncomment when we want to release iOS to production
             - name: Run Fastlane production
-#              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'false' == 'true' }}
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
               run: bundle exec fastlane android production
               env:
                 VERSION: ${{ env.VERSION }}
