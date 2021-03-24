@@ -3,6 +3,7 @@ export default {
     componentSizeSmall: 28,
     componentSizeNormal: 40,
     componentSizeLarge: 52,
+    componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusNormal: 8,
     fontSizeSmall: 11,
@@ -19,4 +20,5 @@ export default {
     safeInsertPercentage: 0.7,
     sideBarWidth: 375,
     pdfPageMaxWidth: 992,
+    tooltipzIndex: 10050,
 };

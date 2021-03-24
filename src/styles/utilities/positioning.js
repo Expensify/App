@@ -6,6 +6,9 @@ export default {
     tn4: {
         top: -16,
     },
+    tn8: {
+        top: -32,
+    },
     r4: {
         right: 16,
     },

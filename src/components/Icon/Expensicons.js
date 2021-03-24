@@ -14,6 +14,8 @@ import Send from '../../../assets/images/send.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
 import Users from '../../../assets/images/users.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
+import Receipt from '../../../assets/images/receipt.svg';
+import MoneyCircle from '../../../assets/images/money-circle.svg';
 import Download from '../../../assets/images/download.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Profile from '../../../assets/images/profile.svg';
@@ -41,6 +43,8 @@ export {
     Trashcan,
     Users,
     Checkmark,
+    Receipt,
+    MoneyCircle,
     Download,
     Profile,
     Gear,

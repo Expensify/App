@@ -40,8 +40,16 @@ export default {
         alignSelf: 'stretch',
     },
 
+    alignSelfCenter: {
+        alignSelf: 'center',
+    },
+
     alignItemsCenter: {
         alignItems: 'center',
+    },
+
+    alignItemsEnd: {
+        alignItems: 'flex-end',
     },
 
     flexWrap: {
