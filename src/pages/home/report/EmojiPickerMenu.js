@@ -79,31 +79,26 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             this.props.isVisible && (
-                <View style={{backgroundColor: themeColors.componentBG}}>
-                    <TextInputFocusable
-                        textAlignVertical="top"
-                        placeholder="Search"
-                        placeholderTextColor={themeColors.textSupporting}
-                        onChangeText={this.filterEmojis}
-                        style={[styles.textInputEmojiSearch]}
-                        defaultValue=""
-                        ref={el => this.searchInput = el}
-                    />
-                    <View
-                        style={{
-                            borderBottomColor: themeColors.activeComponentBG,
-                            borderBottomWidth: 2,
-                        }}
-                    />
+                <View style={[styles.emojiPickerBox]}>
+                    <View style={[styles.pt4, styles.ph4]}>
+                        <TextInputFocusable
+                            textAlignVertical="top"
+                            placeholder="Search"
+                            placeholderTextColor={themeColors.textSupporting}
+                            onChangeText={this.filterEmojis}
+                            style={[styles.textInput]}
+                            defaultValue=""
+                            ref={el => this.searchInput = el}
+                        />
+                    </View>
                     <FlatList
                         data={this.state.filteredEmojis}
                         renderItem={item => this.renderItem(item, this.props.addEmojiToTextBox)}
                         keyExtractor={item => (`emoji_picker_${item.code}`)}
                         numColumns={8}
-                        style={{height: 300}}
+                        style={{height: 300, paddingHorizontal: 16, paddingBottom: 16}}
                         extraData={this.state.filteredEmojis}
                         stickyHeaderIndices={this.state.headerIndices}
-                        columnWrapperStyle={{justifyContent: 'space-between'}}
                     />
                 </View>
             ));

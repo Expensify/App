@@ -323,7 +323,7 @@ class ReportActionCompose extends React.Component {
                         onPress={this.showEmojiPicker}
                         underlayColor={themeColors.componentBG}
                     >
-                        <Icon src={Emoji} fill={themeColors.componentBG} />
+                        <Icon src={Emoji} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton,

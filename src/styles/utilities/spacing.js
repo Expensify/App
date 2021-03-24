@@ -145,6 +145,10 @@ export default {
         paddingHorizontal: 8,
     },
 
+    ph4: {
+        paddingHorizontal: 16,
+    },
+
     ph5: {
         paddingHorizontal: 20,
     },
@@ -171,6 +175,10 @@ export default {
 
     pt3: {
         paddingTop: 12,
+    },
+
+    pt4: {
+        paddingTop: 16,
     },
 
     pb2: {
