@@ -769,10 +769,10 @@ function addAction(reportID, text, file) {
  */
 function deleteReportComment(reportID, reportActionID) {
     // Mark the report as not having any unread items
-    API.updateReportComment({
+    API.Report_EditComment({
         reportID,
         reportActionID,
-        newComment: '',
+        reportComment: '',
     });
 }
 
