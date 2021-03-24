@@ -19,6 +19,36 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
     let shouldAddTopSafeAreaPadding = false;
 
     switch (type) {
+        case CONST.MODAL.MODAL_TYPE.CONFIRM:
+            // A confirm modal is one that has a visible backdrop
+            // and can be dismissed by clicking outside of the modal.
+            modalStyle = {
+                ...modalStyle,
+                ...{
+                    alignItems: 'center',
+                },
+            };
+            modalContainerStyle = {
+                // Shadow Styles
+                shadowColor: colors.black,
+                shadowOffset: {
+                    width: 0,
+                    height: 0,
+                },
+                shadowOpacity: 0.1,
+                shadowRadius: 5,
+
+                borderRadius: 12,
+                overflow: 'hidden',
+                width: variables.sideBarWidth,
+            };
+
+            // setting this to undefined we effectively disable the
+            // ability to swipe our modal
+            swipeDirection = undefined;
+            animationIn = 'fadeIn';
+            animationOut = 'fadeOut';
+            break;
         case CONST.MODAL.MODAL_TYPE.CENTERED:
             // A centered modal is one that has a visible backdrop
             // and can be dismissed by clicking outside of the modal.
