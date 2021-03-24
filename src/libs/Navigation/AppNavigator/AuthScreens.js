@@ -24,7 +24,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import NameValuePair from '../../actions/NameValuePair';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
-import createCustomModalStackNavigator from './createCustomModalStackNavigator.js';
+import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
