@@ -88,6 +88,7 @@ function formatPersonalDetails(personalDetailsList) {
         const avatar = getAvatar(personalDetailsResponse, login);
         const displayName = getDisplayName(login, personalDetailsResponse);
         const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
+        const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
 
         return {
             ...finalObject,
@@ -96,24 +97,10 @@ function formatPersonalDetails(personalDetailsList) {
                 avatar,
                 displayName,
                 pronouns,
+                timezone,
             },
         };
     }, {});
-}
-
-/**
- * Get the timezone of the logged in user
- */
-function fetchTimezone() {
-    API.Get({
-        returnValueList: 'nameValuePairs',
-        name: 'timeZone',
-    })
-        .then((response) => {
-            const timezone = lodashGet(response.nameValuePairs, [CONST.NVP.TIMEZONE], CONST.DEFAULT_TIME_ZONE);
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
-        })
-        .catch(error => console.debug('Error fetching user timezone', error));
 }
 
 /**
@@ -240,7 +227,6 @@ NetworkConnection.onReconnect(fetch);
 
 export {
     fetch,
-    fetchTimezone,
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,
