@@ -1,34 +1,63 @@
 import React from 'react';
 import {
-    SafeAreaView, Text, View, Image,
+    Image, SafeAreaView, Text, View,
 } from 'react-native';
+import PropTypes from 'prop-types';
+import lodashGet from 'lodash.get';
 import styles from '../../styles/styles';
 import SignInPageLayout from '../signin/SignInPageLayout';
-import SetPasswordPageProps from './SetPasswordPageProps';
 import welcomeScreenshot from '../../../assets/images/welcome-screenshot.png';
 import withWindowDimensions from '../../components/withWindowDimensions';
 import SetPasswordForm from './SetPasswordForm';
+import WelcomeText from '../../components/WelcomeText';
+
+const propTypes = {
+    /* Onyx Props */
+
+    // The details about the account that the user is signing in with
+    account: PropTypes.shape({
+        // An error message to display to the user
+        error: PropTypes.string,
+
+        // Whether or not a sign on form is loading (being submitted)
+        loading: PropTypes.bool,
+    }),
+
+    // The credentials of the logged in person
+    credentials: PropTypes.shape({
+        // The email the user logged in with
+        login: PropTypes.string,
+
+        // The password used to log in the user
+        password: PropTypes.string,
+    }),
+
+    // Is this displaying on a device with a narrower screen width?
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            validateCode: PropTypes.string,
+        }),
+    }),
+};
+const defaultProps = {
+    account: {},
+    credentials: {},
+    route: {
+        params: {},
+    },
+};
 
 const SetPasswordPage = (props) => {
-    const welcomeText = (
-        <View style={props.isSmallScreenWidth ? [] : [styles.mb6, styles.mt6]}>
-            <Text style={[props.isSmallScreenWidth ? styles.textLabel : styles.textP, styles.textStrong, styles.mb1]}>
-                With Expensify.cash, chat and payments are the same thing.
-            </Text>
-            <Text style={[props.isSmallScreenWidth ? styles.textLabel : styles.textP]}>
-                Money talks. And now that chat and payments are in one place, it&apos;s also easy.
-                {' '}
-                Your payments get to you as fast as you can get your point across.
-            </Text>
-        </View>
-    );
     return (
         <SafeAreaView style={[styles.signInPage]}>
             <SignInPageLayout>
                 <View style={[styles.loginFormContainer]}>
                     <SetPasswordForm
                         /* eslint-disable-next-line react/jsx-props-no-spreading */
-                        {...props}
+                        validateCode={lodashGet(props.route, 'params.validateCode', '')}
+                        account={props.account}
                     />
                     {props.isSmallScreenWidth && (
                         <View style={[styles.mt5, styles.mb5]}>
@@ -40,13 +69,13 @@ const SetPasswordPage = (props) => {
                         </View>
                     )}
                 </View>
-                {welcomeText}
+                <WelcomeText />
             </SignInPageLayout>
         </SafeAreaView>
     );
 };
 
-SetPasswordPage.propTypes = SetPasswordPageProps.propTypes;
-SetPasswordPage.defaultProps = SetPasswordPageProps.defaultProps;
+SetPasswordPage.propTypes = propTypes;
+SetPasswordPage.defaultProps = defaultProps;
 
 export default withWindowDimensions(SetPasswordPage);

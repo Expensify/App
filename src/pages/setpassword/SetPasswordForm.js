@@ -1,11 +1,28 @@
 import {Text, TextInput, View} from 'react-native';
 import _ from 'underscore';
 import React from 'react';
-import lodashGet from 'lodash.get';
+import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {setPassword} from '../../libs/actions/Session';
-import SetPasswordPageProps from './SetPasswordPageProps';
+
+const propTypes = {
+    // The details about the account that the user is signing in with
+    account: PropTypes.shape({
+        // An error message to display to the user
+        error: PropTypes.string,
+
+        // Whether or not a sign on form is loading (being submitted)
+        loading: PropTypes.bool,
+    }),
+
+    // The user's validate code (passed in through the URL)
+    validateCode: PropTypes.string.isRequired,
+};
+
+const defaultProps = {
+    account: {},
+};
 
 class SetPasswordForm extends React.Component {
     constructor(props) {
@@ -32,7 +49,7 @@ class SetPasswordForm extends React.Component {
         this.setState({
             formError: null,
         });
-        setPassword(this.state.password, lodashGet(this.props.route, 'params.validateCode', ''));
+        setPassword(this.state.password, this.props.validateCode);
     }
 
     render() {
@@ -71,7 +88,7 @@ class SetPasswordForm extends React.Component {
     }
 }
 
-SetPasswordForm.propTypes = SetPasswordPageProps.propTypes;
-SetPasswordForm.defaultProps = SetPasswordPageProps.defaultProps;
+SetPasswordForm.propTypes = propTypes;
+SetPasswordForm.defaultProps = defaultProps;
 
 export default SetPasswordForm;
