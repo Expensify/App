@@ -7,21 +7,8 @@ import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {setPassword} from '../../libs/actions/Session';
 
 const propTypes = {
-    // The details about the account that the user is signing in with
-    account: PropTypes.shape({
-        // An error message to display to the user
-        error: PropTypes.string,
-
-        // Whether or not a sign on form is loading (being submitted)
-        loading: PropTypes.bool,
-    }),
-
     // The user's validate code (passed in through the URL)
     validateCode: PropTypes.string.isRequired,
-};
-
-const defaultProps = {
-    account: {},
 };
 
 class SetPasswordForm extends React.Component {
@@ -89,6 +76,5 @@ class SetPasswordForm extends React.Component {
 }
 
 SetPasswordForm.propTypes = propTypes;
-SetPasswordForm.defaultProps = defaultProps;
 
 export default SetPasswordForm;
