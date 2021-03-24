@@ -13,9 +13,7 @@ jobs:
         if: github.actor == 'OSBotify'
         runs-on: ubuntu-latest
         env:
-#          TODO: Uncomment when we'd like to deploy to staging
-#          SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
-          SHOULD_DEPLOY_PRODUCTION: ${{ true }}
+          SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
 
         steps:
             - uses: actions/checkout@v2
