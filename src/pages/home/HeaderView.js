@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
@@ -40,7 +40,7 @@ const propTypes = {
     }),
 
     // Personal details of all the users
-    personalDetails: PropTypes.arrayOf(participantPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     ...windowDimensionsPropTypes,
 };
@@ -80,10 +80,10 @@ const HeaderView = (props) => {
                         <Pressable
                             onPress={() => {
                                 if (participants.length === 1) {
-                                    Navigation.navigate(ROUTES.getProfileRoute(participants[0]));
+                                    Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
                                 }
                             }}
-                            style={[styles.flexRow, styles.alignItemsCenter]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
                             <MultipleAvatars avatarImageURLs={props.report.icons} />
                             <View style={[styles.flex1, styles.flexRow]}>

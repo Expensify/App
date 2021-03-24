@@ -1,4 +1,4 @@
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';

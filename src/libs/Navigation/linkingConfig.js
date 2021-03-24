@@ -64,10 +64,10 @@ export default {
                     Search_Root: '',
                 },
             },
-            Profile: {
-                initialRouteName: 'Profile_Root',
+            Details: {
+                initialRouteName: 'Details_Root',
                 screens: {
-                    Profile_Root: ROUTES.PROFILE_WITH_LOGIN,
+                    Details_Root: ROUTES.DETAILS_WITH_LOGIN,
                 },
             },
             IOU_Request: {
