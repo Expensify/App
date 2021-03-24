@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
