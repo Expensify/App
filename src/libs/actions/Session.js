@@ -220,9 +220,7 @@ function setPassword(password, validateCode, email) {
     })
         .then((response) => {
             if (response.jsonCode === 200) {
-                const {authToken} = response;
-                const login = response.email;
-                createTemporaryLogin(authToken, login);
+                createTemporaryLogin(response.authToken, response.email);
                 return;
             }
 
