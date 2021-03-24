@@ -9,7 +9,7 @@ const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = req
 let newVersion;
 
 /**
- * Update the native app versions.
+ * Updates the native app versions.
  *
  * @param {String} version
  */
@@ -20,7 +20,7 @@ function updateNativeVersions(version) {
     const androidVersionCode = generateAndroidVersionCode(version);
     updateAndroidVersion(version, androidVersionCode)
         .then(() => {
-            console.log('Successfully updated Android!');
+            console.log('Successfully updated Andruid!');
         })
         .catch((err) => {
             console.error('Error updating Android');
@@ -30,7 +30,7 @@ function updateNativeVersions(version) {
     // Update iOS
     updateiOSVersion(version)
         .then((promiseValues) => {
-            // The first promiseValue will be the CFBundleVersion, so confirm it has 4 parts before setting the env var
+            // The first promiseValue will be the CFBundleVersion, so confirms it has 4 parts before setting the env var
             const cfBundleVersion = promiseValues[0];
             if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
                 core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
