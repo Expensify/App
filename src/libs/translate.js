@@ -1,4 +1,4 @@
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import Log from './Log';
 import Config from '../CONFIG';
