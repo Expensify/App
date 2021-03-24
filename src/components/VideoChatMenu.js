@@ -4,7 +4,7 @@ import Popover from './Popover';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import MenuItem from './MenuItem';
 import openURLInNewTab from '../libs/openURLInNewTab';
-import ZoomIcon from '../../assets/images/Zoom - Blue.svg';
+import ZoomIcon from '../../assets/images/zoom-icon.svg';
 import GoogleMeetIcon from '../../assets/images/google-meet.svg';
 import CONST from '../CONST';
 
