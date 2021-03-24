@@ -402,8 +402,9 @@ const styles = {
 
     loginTermsText: {
         color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 20,
+        lineHeight: 16,
     },
 
     // Sidebar Styles
