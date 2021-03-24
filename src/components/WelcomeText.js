@@ -5,7 +5,7 @@ import styles from '../styles/styles';
 import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
-    isSmallScreenWidth: PropTypes.bool.isRequired
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
 const WelcomeText = props => (
