@@ -3,6 +3,7 @@ export default {
     componentSizeSmall: 28,
     componentSizeNormal: 40,
     componentSizeLarge: 52,
+    componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusNormal: 8,
     fontSizeSmall: 11,

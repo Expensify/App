@@ -20,6 +20,7 @@ const propTypes = {
 
     // Style of modal to display
     type: PropTypes.oneOf([
+        CONST.MODAL.MODAL_TYPE.CONFIRM,
         CONST.MODAL.MODAL_TYPE.CENTERED,
         CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
         CONST.MODAL.MODAL_TYPE.POPOVER,
