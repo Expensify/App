@@ -55,7 +55,6 @@ const SetPasswordPage = (props) => {
             <SignInPageLayout>
                 <View style={[styles.loginFormContainer]}>
                     <SetPasswordForm
-                        /* eslint-disable-next-line react/jsx-props-no-spreading */
                         validateCode={lodashGet(props.route, 'params.validateCode', '')}
                         account={props.account}
                     />
