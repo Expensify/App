@@ -56,6 +56,9 @@ const propTypes = {
 
     // Force the text style to be the unread style on all rows
     forceTextUnreadStyle: PropTypes.bool,
+
+    // Whether to show the title tooltip
+    showTitleTooltip: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -68,6 +71,7 @@ const defaultProps = {
     disableArrowKeysActions: false,
     hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
+    showTitleTooltip: false,
 };
 
 class OptionsSelector extends Component {
@@ -175,7 +179,7 @@ class OptionsSelector extends Component {
                         onChangeText={this.props.onChangeText}
                         onKeyPress={this.handleKeyPress}
                         placeholder={this.props.placeholderText}
-                        placeholderTextColor={themeColors.textSupporting}
+                        placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
                 <OptionsList
@@ -191,6 +195,7 @@ class OptionsSelector extends Component {
                     disableFocusOptions={this.props.disableArrowKeysActions}
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                     forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                    showTitleTooltip={this.props.showTitleTooltip}
                 />
             </View>
         );
