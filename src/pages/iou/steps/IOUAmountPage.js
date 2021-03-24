@@ -85,15 +85,15 @@ class IOUAmountPage extends React.Component {
                         : (
                             <View>
                                 <TextInputFocusable
-                                        style={[styles.iouAmountTextInput,
-                                            {width: Math.max(5, this.state.textInputWidth)}]}
-                                        onKeyPress={(event) => {
-                                            this.props.numberPressed(event.key);
-                                            event.preventDefault();
-                                        }}
-                                        ref={el => this.textInput = el}
-                                        defaultValue={this.props.amount}
-                                        textAlign="left"
+                                    style={[styles.iouAmountTextInput,
+                                        {width: Math.max(5, this.state.textInputWidth)}]}
+                                    onKeyPress={(event) => {
+                                        this.props.numberPressed(event.key);
+                                        event.preventDefault();
+                                    }}
+                                    ref={el => this.textInput = el}
+                                    defaultValue={this.props.amount}
+                                    textAlign="left"
                                 />
                                 <Text
                                     style={[styles.iouAmountText, styles.invisible, {left: 100000}]}
