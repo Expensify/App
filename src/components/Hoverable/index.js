@@ -25,22 +25,22 @@ class Hoverable extends Component {
 
         // we like to Block the hover on touch devices but we keep it for Hybrid devices so
         // following logic blocks hover on touch devices.
-        this.touchStartListener = () => {
+        this.disableHover = () => {
             this.hoverDisabled = true;
         };
-        this.touchEndListener = () => {
+        this.enableHover = () => {
             this.hoverDisabled = false;
         };
-        document.addEventListener('touchstart', this.touchStartListener);
+        document.addEventListener('touchstart', this.disableHover);
 
         // Remember Touchend fires before `mouse` events so we have to use alternative.
-        document.addEventListener('touchmove', this.touchEndListener);
+        document.addEventListener('touchmove', this.enableHover);
     }
 
     componentWillUnmount() {
         document.removeEventListener('mousedown', this.resetHoverStateOnOutsideClick);
-        document.removeEventListener('touchstart', this.touchStartListener);
-        document.removeEventListener('touchmove', this.touchEndListener);
+        document.removeEventListener('touchstart', this.disableHover);
+        document.removeEventListener('touchmove', this.enableHover);
     }
 
     /**
