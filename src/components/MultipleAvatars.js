@@ -45,9 +45,8 @@ const MultipleAvatars = ({avatarImageURLs, optionIsFocused, size}) => {
                 />
                 <View
                     style={[
-                        size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar,
-                        optionIsFocused ? styles.focusedAvatar : styles.avatar,
                         size === 'small' ? styles.secondAvatarSmall : styles.secondAvatar,
+                        optionIsFocused ? styles.focusedAvatar : styles.avatar,
                     ]}
                 >
                     {avatarImageURLs.length === 2 ? (
