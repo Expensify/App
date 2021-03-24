@@ -27,13 +27,36 @@ jobs:
     if: ${{ needs.validate.outputs.isAutomergePR == 'true' && github.ref == 'refs/heads/production' }}
 
     steps:
-      - name: Checkout production
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
-          ref: production
+          fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: 🚀 Create release to trigger production deploy 🚀
-        run: echo "Create release with version $(npm run print-version --silent)"
+      - name: Checkout production branch
+        run: git checkout production
 
+      - name: Get current app version
+        run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+
+      - name: Get Release Pull Request List
+        id: getReleasePRList
+        uses: Expensify/Expensify.cash/.github/actions/getReleasePullRequestList@master
+        with:
+          TAG: ${{ env.PRODUCTION_VERSION }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Generate Release Body
+        id: getReleaseBody
+        uses: Expensify/Expensify.cash/.github/actions/getReleaseBody@master
+        with:
+          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
+
+      - name: 🚀 Create release to trigger production deploy 🚀
+        uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
+        with:
+          tag_name: ${{ env.PRODUCTION_VERSION }}
+          body: ${{ steps.getReleaseBody.outputs.RELEASE_BODY }}
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 

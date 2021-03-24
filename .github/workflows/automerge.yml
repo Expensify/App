@@ -9,9 +9,10 @@ on:
 
 jobs:
     getPullRequestMergeability:
+      if: github.actor == 'OSBotify' && github.event.label.name == 'automerge'
       runs-on: ubuntu-latest
       outputs:
-        isMergeable: ${{ steps.isPullRequestMergeable.IS_MERGEABLE }}
+        isMergeable: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE }}
       steps:
         - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
           with:
@@ -24,6 +25,31 @@ jobs:
           with:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+
+        - name: Fail workflow if PR is not mergeable
+          if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+          run: exit 1
+
+        # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+        # the other workflows with the same change
+        - uses: 8398a7/action-slack@v3
+          name: Job failed Slack notification
+          if: ${{ failure() }}
+          with:
+            status: custom
+            fields: workflow, repo
+            custom_payload: |
+              {
+                channel: '#announce',
+                attachments: [{
+                  color: "#DB4545",
+                  pretext: `<!here>`,
+                  text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+                }]
+              }
+          env:
+            GITHUB_TOKEN: ${{ github.token }}
+            SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
     master:
         runs-on: ubuntu-latest
@@ -42,12 +68,11 @@ jobs:
               uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
-              if: needs.getPullRequestMergeability.outputs.isMergeable == 'true' && steps.changed.outputs.files_updated == 'android/app/build.gradle ios/ExpensifyCash/Info.plist ios/ExpensifyCashTests/Info.plist package-lock.json package.json' && steps.changed.outputs.files_created == '' && steps.changed.outputs.files_deleted == ''
+              if: steps.changed.outputs.files_updated == 'android/app/build.gradle ios/ExpensifyCash/Info.plist ios/ExpensifyCashTests/Info.plist package-lock.json package.json' && steps.changed.outputs.files_created == '' && steps.changed.outputs.files_deleted == ''
 
             - name: Check for an auto merge
               # Version: 0.12.0
               uses: pascalgn/automerge-action@c9bd1823770819dc8fb8a5db2d11a3a95fbe9b07
-              if: needs.getPullRequestMergeability.outputs.isMergeable == 'true' && github.event.pull_request.mergeable_state == 'clean'
               env:
                   GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -82,15 +107,11 @@ jobs:
           uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
           with:
             github-token: ${{ secrets.GITHUB_TOKEN }}
-          if: needs.getPullRequestMergeability.outputs.isMergeable == 'true' && github.event.pull_request.head.ref == 'master'
-
-        - name: Check PR mergable states
-          run: echo "Mergeable - ${{ github.event.pull_request.mergeable }} Clean - ${{ github.event.pull_request.mergeable_state }}"
+          if: github.event.pull_request.head.ref == 'master'
 
         - name: Check for an auto merge
           # Version: 0.12.0
           uses: pascalgn/automerge-action@c9bd1823770819dc8fb8a5db2d11a3a95fbe9b07
-          if: needs.getPullRequestMergeability.outputs.isMergeable == 'true' && github.event.pull_request.mergeable_state == 'clean'
           env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -125,12 +146,11 @@ jobs:
           uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
           with:
             github-token: ${{ secrets.GITHUB_TOKEN }}
-          if: needs.getPullRequestMergeability.outputs.isMergeable == 'true' && github.event.pull_request.head.ref == 'staging'
+          if: github.event.pull_request.head.ref == 'staging'
 
         - name: Check for an auto merge
           # Version: 0.12.0
           uses: pascalgn/automerge-action@c9bd1823770819dc8fb8a5db2d11a3a95fbe9b07
-          if: needs.getPullRequestMergeability.outputs.isMergeable == 'true' && github.event.pull_request.mergeable_state == 'clean'
           env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 

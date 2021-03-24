@@ -1,16 +1,16 @@
 import _ from 'underscore';
-import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import NetInfo from './NetInfo';
 import ONYXKEYS from '../ONYXKEYS';
+import SleepTimer from './SleepTimer';
+import AppStateMonitor from './AppStateMonitor';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
 let unsubscribeFromNetInfo;
-let sleepTimer;
-let lastTime;
+let unsubscribeFromSleepTimer;
+let unsubscribeFromAppState;
 let isOffline = false;
-let listeningForAppStateChanges = false;
 let logInfo = () => {};
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
@@ -42,10 +42,6 @@ function setOfflineStatus(isCurrentlyOffline) {
     isOffline = isCurrentlyOffline;
 }
 
-function logAppStateChange(state) {
-    logInfo('[NetworkConnection] AppState change event', true, {state});
-}
-
 /**
  * Set up the event listener for NetInfo to tell whether the user has
  * internet connectivity or not. This is more reliable than the Pusher
@@ -54,10 +50,9 @@ function logAppStateChange(state) {
 function listenForReconnect() {
     logInfo('[NetworkConnection] listenForReconnect called', true);
 
-    if (!listeningForAppStateChanges) {
-        AppState.addEventListener('change', logAppStateChange);
-        listeningForAppStateChanges = true;
-    }
+    unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
+        triggerReconnectionCallbacks('app became active');
+    });
 
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
@@ -68,18 +63,11 @@ function listenForReconnect() {
 
     // When a device is put to sleep, NetInfo is not always able to detect
     // when connectivity has been lost. As a failsafe we will capture the time
-    // every two seconds and if the last time recorded is greater than 4 seconds
+    // every two seconds and if the last time recorded goes past a threshold
     // we know that the computer has been asleep.
-    lastTime = (new Date()).getTime();
-    clearInterval(sleepTimer);
-    sleepTimer = setInterval(() => {
-        const currentTime = (new Date()).getTime();
-        const isSkewed = currentTime > (lastTime + 4000);
-        if (isSkewed) {
-            triggerReconnectionCallbacks('sleep timer clock skewed');
-        }
-        lastTime = currentTime;
-    }, 2000);
+    unsubscribeFromSleepTimer = SleepTimer.addClockSkewListener(() => (
+        triggerReconnectionCallbacks('timer clock skewed')
+    ));
 }
 
 /**
@@ -87,15 +75,17 @@ function listenForReconnect() {
  */
 function stopListeningForReconnect() {
     logInfo('[NetworkConnection] stopListeningForReconnect called', true);
-    clearInterval(sleepTimer);
-    sleepTimer = null;
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
         unsubscribeFromNetInfo = undefined;
     }
-    if (listeningForAppStateChanges) {
-        AppState.removeEventListener('change', logAppStateChange);
-        listeningForAppStateChanges = false;
+    if (unsubscribeFromSleepTimer) {
+        unsubscribeFromSleepTimer();
+        unsubscribeFromSleepTimer = undefined;
+    }
+    if (unsubscribeFromAppState) {
+        unsubscribeFromAppState();
+        unsubscribeFromAppState = undefined;
     }
 }
 
