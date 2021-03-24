@@ -534,7 +534,7 @@ function Report_UpdateLastRead(parameters) {
  * @returns {Promise}
  */
 function ResendValidateCode(parameters) {
-    const commandName = 'SetCashPassword';
+    const commandName = 'ResendValidateCode';
     requireParameters(['email'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
