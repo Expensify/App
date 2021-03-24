@@ -7,7 +7,7 @@ export default ({
         screen,
     },
 }) => {
-    const translateFocused = Animated.multiply(progress.interpolate({
+    const translateX = Animated.multiply(progress.interpolate({
         inputRange: [0, 1],
         outputRange: [screen.width, 0],
         extrapolate: 'clamp',
@@ -18,9 +18,7 @@ export default ({
             overflow: 'hidden',
         },
         cardStyle: {
-            transform: [
-                {translateX: translateFocused},
-            ],
+            transform: [{translateX}],
         },
         overlayStyle: {
             opacity: progress.interpolate({
