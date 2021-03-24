@@ -51,7 +51,6 @@ const MultipleAvatars = ({
         optionIsFocused ? globalStyles.focusedAvatar : globalStyles.avatar,
         styles.secondAvatar,
     ];
-    console.debug(styles, secondAvatarStyles);
 
     if (!avatarImageURLs.length) {
         return null;
