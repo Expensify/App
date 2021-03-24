@@ -174,12 +174,13 @@ class IOUModal extends Component {
                 </View>
                 {currentStep === Steps.IOUAmount && (
                     <IOUAmountPage
-                        onStepComplete={this.navigateToNextStep}
-                        numberPressed={this.updateAmount}
+                        onStepComplete={(amount) => {
+                            console.log(amount);
+                            this.setState({amount});
+                            this.navigateToNextStep();
+                        }}
                         currencySelected={this.currencySelected}
-                        amount={this.state.amount}
                         selectedCurrency={this.state.selectedCurrency}
-                        isNextButtonDisabled={this.state.isAmountPageNextButtonDisabled}
                     />
                 )}
                 {currentStep === Steps.IOUParticipants && (

@@ -18,21 +18,12 @@ const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
-    // Callback to inform parent modal with key pressed
-    numberPressed: PropTypes.func.isRequired,
-
     // Currency selection will be implemented later
     // eslint-disable-next-line react/no-unused-prop-types
     currencySelected: PropTypes.func.isRequired,
 
     // User's currency preference
     selectedCurrency: PropTypes.string.isRequired,
-
-    // Amount value entered by user
-    amount: PropTypes.string.isRequired,
-
-    // To disable/enable Next button based on amount validity
-    isNextButtonDisabled: PropTypes.bool.isRequired,
 
     /* Window Dimensions Props */
     ...windowDimensionsPropTypes,
@@ -54,8 +45,12 @@ class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
 
+        this.onlyAllowNumericValues = this.onlyAllowNumericValues.bind(this);
+
         this.state = {
             textInputWidth: 0,
+            amount: '',
+            isNextButtonEnabled: false,
         };
     }
 
@@ -63,6 +58,31 @@ class IOUAmountPage extends React.Component {
         if (this.textInput) {
             this.textInput.focus();
         }
+    }
+
+    onlyAllowNumericValues(event) {
+        // Backspace button is pressed
+        if (event.key === '<' || event.key === 'Backspace') {
+            if (this.state.amount.length > 0) {
+                this.setState(prevState => ({
+                    amount: prevState.amount.substring(0, prevState.amount.length - 1),
+                    isNextButtonEnabled: prevState.amount.length !== 1,
+                }));
+            }
+            return;
+        }
+
+        const prevValue = event.target.value;
+        const newValue = `${prevValue}${event.key}`;
+        const decimalNumberRegex = new RegExp(/^\d{1,6}(\.\d{0,2})?$/, 'i');
+        if (!decimalNumberRegex.test(newValue)) {
+            event.preventDefault();
+            return;
+        }
+        this.setState({
+            amount: newValue,
+            isNextButtonEnabled: true,
+        });
     }
 
     render() {
@@ -85,21 +105,18 @@ class IOUAmountPage extends React.Component {
                         : (
                             <View>
                                 <TextInputFocusable
-                                    style={[styles.iouAmountTextInput,
-                                        {width: Math.max(5, this.state.textInputWidth)}]}
-                                    onKeyPress={(event) => {
-                                        this.props.numberPressed(event.key);
-                                        event.preventDefault();
-                                    }}
-                                    ref={el => this.textInput = el}
-                                    defaultValue={this.props.amount}
-                                    textAlign="left"
+                                        style={[styles.iouAmountTextInput,
+                                            {width: Math.max(5, this.state.textInputWidth)}]}
+                                        onKeyPress={this.onlyAllowNumericValues}
+                                        ref={el => this.textInput = el}
+                                        value={this.state.amount}
+                                        textAlign="left"
                                 />
                                 <Text
                                     style={[styles.iouAmountText, styles.invisible, {left: 100000}]}
                                     onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
                                 >
-                                    {this.props.amount}
+                                    {this.state.amount}
                                 </Text>
                             </View>
                         )}
@@ -110,9 +127,9 @@ class IOUAmountPage extends React.Component {
                         : <View />}
                     <TouchableOpacity
                             style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
-                                this.props.isNextButtonDisabled ? styles.buttonSuccessDisabled : {}]}
-                            onPress={this.props.onStepComplete}
-                            disabled={this.props.isNextButtonDisabled}
+                                !this.state.isNextButtonEnabled ? styles.buttonSuccessDisabled : {}]}
+                            onPress={() => this.props.onStepComplete(this.state.amount)}
+                            disabled={!this.state.isNextButtonEnabled}
                     >
                         <Text style={[styles.buttonText, styles.buttonSuccessText]}>
                             Next
