@@ -1,20 +1,11 @@
 import React from 'react';
-
+import {createStackNavigator} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
 import ROUTES from '../../../ROUTES';
-import {
-    SettingsModalStack,
-    NewChatModalStack,
-    NewGroupModalStack,
-    SearchModalStack,
-    ProfileModalStack,
-    IOURequestModalStack,
-    IOUBillModalStack,
-} from './ModalStacks';
 import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
-import ProfilePage from '../../../pages/ProfilePage';
+import DetailsPage from '../../../pages/DetailsPage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
 import SettingsInitialPage from '../../../pages/settings/InitialPage';
@@ -22,6 +13,15 @@ import SettingsProfilePage from '../../../pages/settings/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
+
+// Setup the modal stack navigators so we only have to create them once
+const SettingsModalStack = createStackNavigator();
+const NewChatModalStack = createStackNavigator();
+const NewGroupModalStack = createStackNavigator();
+const SearchModalStack = createStackNavigator();
+const DetailsModalStack = createStackNavigator();
+const IOURequestModalStack = createStackNavigator();
+const IOUBillModalStack = createStackNavigator();
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -58,19 +58,19 @@ const IOURequestModalStackNavigator = () => (
     </IOURequestModalStack.Navigator>
 );
 
-const ProfileModalStackNavigator = () => (
-    <ProfileModalStack.Navigator
-        path={ROUTES.PROFILE}
+const DetailsModalStackNavigator = () => (
+    <DetailsModalStack.Navigator
+        path={ROUTES.DETAILS}
     >
-        <ProfileModalStack.Screen
-            name="Profile_Root"
-            component={ProfilePage}
+        <DetailsModalStack.Screen
+            name="Details_Root"
+            component={DetailsPage}
             options={{
                 ...defaultSubRouteOptions,
-                title: 'Profile',
+                title: 'Details',
             }}
         />
-    </ProfileModalStack.Navigator>
+    </DetailsModalStack.Navigator>
 );
 
 const SearchModalStackNavigator = () => (
@@ -168,7 +168,7 @@ const SettingsModalStackNavigator = () => (
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
-    ProfileModalStackNavigator,
+    DetailsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,

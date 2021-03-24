@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
@@ -209,9 +209,9 @@ class ReportActionsView extends React.Component {
         }
 
         this.setState({isLoadingMoreChats: true}, () => {
-            // Retrieve the next REPORT_ACTIONS_LIMIT sized page of comments, unless we're near the beginning, in which
+            // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
             // case just get everything starting from 0.
-            const offset = Math.max(minSequenceNumber - CONST.REPORT.REPORT_ACTIONS_LIMIT, 0);
+            const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
             fetchActions(this.props.reportID, offset)
                 .then(() => this.setState({isLoadingMoreChats: false}));
         });
