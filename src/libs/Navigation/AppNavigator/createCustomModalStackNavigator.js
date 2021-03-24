@@ -5,6 +5,7 @@ import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/co
 import {StackRouter} from '@react-navigation/routers';
 import {StackView} from '@react-navigation/stack';
 import ClickAwayHandler from './ClickAwayHandler';
+import {setModalVisibility} from '../../actions/Modal';
 
 const CustomRootStackNavigator = ({
     children,
@@ -14,6 +15,12 @@ const CustomRootStackNavigator = ({
         children,
     });
     const isDisplayingModal = Boolean(_.find(descriptors, descriptor => descriptor.options.isModal));
+
+    // Store modal visible state in Onyx
+    if (isDisplayingModal) {
+        setModalVisibility(true);
+    }
+
     return (
         <>
             <StackView
