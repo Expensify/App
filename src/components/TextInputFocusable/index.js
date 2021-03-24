@@ -37,9 +37,6 @@ const propTypes = {
 
     // Whether or not this TextInput is disabled.
     isDisabled: PropTypes.bool,
-
-    // Whether or not force move cursor to end all the time
-    forceMoveCursorToEnd: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -52,7 +49,6 @@ const defaultProps = {
     onDragLeave: () => {},
     onDrop: () => {},
     isDisabled: false,
-    forceMoveCursorToEnd: false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -114,9 +110,6 @@ class TextInputFocusable extends React.Component {
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
-            if (this.props.forceMoveCursorToEnd) {
-                this.moveCursorToEnd();
-            }
         }
     }
 
@@ -202,19 +195,6 @@ class TextInputFocusable extends React.Component {
             this.setState({
                 numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight),
             });
-        });
-    }
-
-    /**
-     * Move cursor to end by setting start and end
-     * to length of the input value.
-     */
-    moveCursorToEnd() {
-        this.setState({
-            selection: {
-                start: this.props.defaultValue.length,
-                end: this.props.defaultValue.length,
-            },
         });
     }
 

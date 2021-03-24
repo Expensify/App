@@ -94,7 +94,6 @@ class IOUAmountPage extends React.Component {
                                         ref={el => this.textInput = el}
                                         defaultValue={this.props.amount}
                                         textAlign="left"
-                                        forceMoveCursorToEnd
                                 />
                                 <Text
                                     style={[styles.iouAmountText, styles.invisible, {left: 100000}]}
