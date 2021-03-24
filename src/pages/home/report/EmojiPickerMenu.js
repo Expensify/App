@@ -25,7 +25,7 @@ class EmojiPickerMenu extends Component {
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 500, false);
         this.state = {
             filteredEmojis: emojis,
-            headerIndices: [0, 35, 61, 89, 100, 122, 149],
+            headerIndices: [0, 34, 60, 88, 99, 121, 148],
         };
     }
 
