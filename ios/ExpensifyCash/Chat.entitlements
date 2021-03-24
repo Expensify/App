@@ -7,6 +7,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:www.expensify.cash</string>
+		<string>applinks:staging.expensify.cash</string>
 		<string>applinks:expensify.cash</string>
 	</array>
 </dict>
