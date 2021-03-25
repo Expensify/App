@@ -149,6 +149,7 @@ function getSimplifiedReportObject(report) {
         lastMessageTimestamp,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
+        hasOutstandingIOU: false,
     };
 }
 
@@ -221,7 +222,8 @@ function updateIOUReportData(chatReport) {
     }
 
     // Since the Chat and the IOU are different reports with different reportIDs, and GetIOUReport only returns the
-    // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`
+    // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`.
+    // Note: GetIOUReport does not return IOU reports that have been settled.
     let iouReportID = 0;
     return API.GetIOUReport({
         debtorEmail: participants[0],
@@ -230,7 +232,11 @@ function updateIOUReportData(chatReport) {
         if (response.jsonCode !== 200) {
             throw new Error(response.message);
         } else if (iouReportID === 0) {
-            throw new Error('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+            // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
+            // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
+            // been settled then there's nothing more to do.
+            console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+            return;
         }
 
         return API.Get({
@@ -240,6 +246,10 @@ function updateIOUReportData(chatReport) {
             includePinnedReports: true,
         });
     }).then((response) => {
+        if (!response) {
+            return;
+        }
+
         if (response.jsonCode !== 200) {
             throw new Error(response.message);
         }
@@ -294,6 +304,7 @@ function fetchChatReportsByIDs(chatList) {
                 const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
                 reportIOUData[iouReportKey] = iouReportObject;
+                simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
                 simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === 1
                     && iouReportObject.total !== 0;
             });
