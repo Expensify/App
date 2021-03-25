@@ -17,6 +17,7 @@ import {getReportParticipantsTitle} from './reportUtils';
 
 let currentUserLogin;
 let countryCodeByIP;
+let isInChronosBeta;
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
@@ -127,6 +128,11 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: val => countryCodeByIP = val || 1,
+});
+
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: val => isInChronosBeta = _.contains(val, CONST.BETAS.CHRONOS_IN_CASH) || _.contains(val, CONST.BETAS.ALL),
 });
 
 /**
@@ -298,6 +304,15 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
+    }
+
+    if (!isInChronosBeta && searchValue === 'chronos@expensify.com') {
+        userToInvite = null;
+        return {
+            personalDetails: [],
+            recentReports: [],
+            userToInvite,
+        };
     }
 
     return {
