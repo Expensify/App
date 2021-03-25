@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
 
 // This migration changes the format of the timezone in the Onyx key MY_PERSONAL_DETAILS from a string to an object
 export default function () {
@@ -10,7 +9,7 @@ export default function () {
         // then update the timezone to be the default timezone and set the myPersonalDetails
         // key with the updated values
         const connectionID = Onyx.connect({
-            key: 'myPersonalDetails',
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
             callback: (myPersonalDetails) => {
                 Onyx.disconnect(connectionID);
 
@@ -25,9 +24,10 @@ export default function () {
                     return resolve();
                 }
 
-                // Replace the old timezone with the default timezone
+                // Update the timezone with the user's old timezone selection and set "automatic" to false
+                // because we don't know if their old timezone was set automatically or not
                 const details = myPersonalDetails;
-                details.timezone = CONST.DEFAULT_TIME_ZONE;
+                details.timezone = {selected: details.timezone, automatic: false};
                 Onyx.set({
                     [ONYXKEYS.MY_PERSONAL_DETAILS]: details,
                 })
