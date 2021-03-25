@@ -38,8 +38,6 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 14. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
 15. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
 
-## Updating 
-
 ## Actions
 
 All these _workflows_ are comprised of atomic _actions_. Most of the time, we can use pre-made and independently maintained actions to create powerful workflows that meet our needs. However, when we want to do something very specific or have a more complex or robust action in mind, we can create our own _actions_.
