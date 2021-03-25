@@ -112,7 +112,6 @@ jobs:
 
       #TODO: Once we add cherry picking, we will need run this from elsewhere
       - name: 🚀 Push tags to trigger staging deploy 🚀
-        if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' }}
         run: git push --tags
 
       - name: Update StagingDeployCash
