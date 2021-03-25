@@ -1,8 +1,8 @@
-name: Process new code merged to master
+name: Process new code merged to main
 
 on:
   push:
-    branches: [master]
+    branches: [main]
 
 jobs:
   chooseDeployActions:
@@ -27,7 +27,7 @@ jobs:
 
       - name: Check if StagingDeployCash is locked
         id: isStagingDeployLocked
-        uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@master
+        uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -72,7 +72,7 @@ jobs:
       - name: Set up git
         run: |
           git fetch
-          git checkout master
+          git checkout main
           git config user.name OSBotify
 
       - name: Create new branch
@@ -82,7 +82,7 @@ jobs:
 
       - name: Generate version
         id: bumpVersion
-        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
+        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -96,14 +96,14 @@ jobs:
             ./ios/ExpensifyCashTests/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
-      - name: Create Pull Request (master)
+      - name: Create Pull Request (main)
         uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           author: OSBotify <reactnative@expensify.com>
-          base: master
+          base: main
           branch: version-bump-${{ github.sha }}
-          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on master
+          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on main
           body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
           labels: automerge
 
@@ -116,7 +116,7 @@ jobs:
         run: git push --tags
 
       - name: Update StagingDeployCash
-        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@master
+        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
@@ -154,8 +154,8 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Checkout master branch
-        run: git checkout master
+      - name: Checkout main branch
+        run: git checkout main
 
       - name: Set Staging Version
         run: echo "STAGING_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
@@ -164,7 +164,7 @@ jobs:
         # Version: 2.4.3
         uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
         with:
-          source_branch: master
+          source_branch: main
           destination_branch: staging
           pr_label: automerge
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
