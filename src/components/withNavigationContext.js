@@ -27,8 +27,8 @@ export default function (WrappedComponent) {
         }
 
         componentDidUpdate() {
-            const valueToReturn = this.context.isFocused();
-            if (this.state.isScreenFocused !== valueToReturn) {
+            const isCurrentlyFocused = this.context.isFocused();
+            if (this.state.isScreenFocused !== isCurrentlyFocused) {
                 // If the value has changed since the last render, we need to update it.
                 // This could happen if we missed an update from the event listeners during re-render.
                 // React will process this update immediately, so the old subscription value won't be committed.
@@ -37,7 +37,7 @@ export default function (WrappedComponent) {
 
                 // eslint-disable-next-line react/no-did-update-set-state
                 this.setState({
-                    isScreenFocused: valueToReturn,
+                    isScreenFocused: isCurrentlyFocused,
                 });
             }
         }
