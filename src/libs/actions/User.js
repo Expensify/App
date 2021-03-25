@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -72,11 +72,17 @@ function resendValidateCode(email) {
  * @param {Boolean} subscribed
  */
 function setExpensifyNewsStatus(subscribed) {
-    API.UpdateAccount({subscribed}).then((response) => {
-        if (response.jsonCode === 200) {
-            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: subscribed});
-        }
-    });
+    Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: subscribed});
+
+    API.UpdateAccount({subscribed})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
+            }
+        })
+        .catch(() => {
+            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
+        });
 }
 
 /**

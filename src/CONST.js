@@ -32,6 +32,7 @@ const CONST = {
     },
     MODAL: {
         MODAL_TYPE: {
+            CONFIRM: 'confirm',
             CENTERED: 'centered',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',

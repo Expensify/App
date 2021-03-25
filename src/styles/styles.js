@@ -402,8 +402,9 @@ const styles = {
 
     loginTermsText: {
         color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 20,
+        lineHeight: 16,
     },
 
     // Sidebar Styles
@@ -811,6 +812,15 @@ const styles = {
         zIndex: 2,
     },
 
+    navigationModalOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        transform: [{
+            translateX: -variables.sideBarWidth,
+        }],
+    },
+
     sidebarVisible: {
         borderRightWidth: 1,
     },
@@ -1125,6 +1135,28 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         height: 24,
         lineHeight: 20,
+    },
+
+    switchTrack: {
+        width: 50,
+        height: 28,
+        justifyContent: 'center',
+        borderRadius: 20,
+        padding: 15,
+        backgroundColor: colors.green,
+    },
+
+    switchInactive: {
+        backgroundColor: colors.gray2,
+    },
+
+    switchThumb: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        position: 'absolute',
+        left: 4,
+        backgroundColor: colors.white,
     },
 
     checkboxContainer: {
