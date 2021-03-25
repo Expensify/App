@@ -149,6 +149,7 @@ function getSimplifiedReportObject(report) {
         lastMessageTimestamp,
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
+        hasOutstandingIOU: false,
     };
 }
 
@@ -165,9 +166,10 @@ function getSimplifiedReportObject(report) {
  * @param {String} reportData.ownerEmail
  * @param {String} reportData.managerEmail
  * @param {Number} reportData.reportID
+ * @param {Number} chatReportID
  * @returns {Object}
  */
-function getSimplifiedIOUReport(reportData) {
+function getSimplifiedIOUReport(reportData, chatReportID) {
     const transactions = _.map(reportData.transactionList, transaction => ({
         transactionID: transaction.transactionID,
         amount: transaction.amount,
@@ -182,18 +184,25 @@ function getSimplifiedIOUReport(reportData) {
         managerEmail: reportData.managerEmail,
         currency: reportData.currency,
         transactions,
+        chatReportID,
+        state: reportData.state,
+        cachedTotal: reportData.cachedTotal,
+        total: reportData.total,
+        status: reportData.status,
+        stateNum: reportData.stateNum,
     };
 }
 
 /**
  * Fetches the updated data for an IOU Report and updates the IOU collection in Onyx
  *
- * @param {Object} report
- * @param {Object[]} report.reportActionList
- * @param {Number} report.reportID
+ * @param {Object} chatReport
+ * @param {Object[]} chatReport.reportActionList
+ * @param {Number} chatReport.reportID
+ * @return {Promise}
  */
-function updateIOUReportData(report) {
-    const reportActionList = report.reportActionList || [];
+function updateIOUReportData(chatReport) {
+    const reportActionList = chatReport.reportActionList || [];
     const containsIOUAction = _.any(reportActionList,
         reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
 
@@ -203,26 +212,31 @@ function updateIOUReportData(report) {
     }
 
     // If we don't have one participant (other than the current user), this is not an IOU
-    const participants = getParticipantEmailsFromReport(report);
+    const participants = getParticipantEmailsFromReport(chatReport);
     if (participants.length !== 1) {
         Log.alert('[Report] Report with IOU action has more than 2 participants', true, {
-            reportID: report.reportID,
+            reportID: chatReport.reportID,
             participants,
         });
         return;
     }
 
     // Since the Chat and the IOU are different reports with different reportIDs, and GetIOUReport only returns the
-    // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`
+    // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`.
+    // Note: GetIOUReport does not return IOU reports that have been settled.
     let iouReportID = 0;
-    API.GetIOUReport({
+    return API.GetIOUReport({
         debtorEmail: participants[0],
     }).then((response) => {
         iouReportID = response.reportID || 0;
         if (response.jsonCode !== 200) {
             throw new Error(response.message);
         } else if (iouReportID === 0) {
-            throw new Error('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+            // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
+            // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
+            // been settled then there's nothing more to do.
+            console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+            return;
         }
 
         return API.Get({
@@ -232,6 +246,10 @@ function updateIOUReportData(report) {
             includePinnedReports: true,
         });
     }).then((response) => {
+        if (!response) {
+            return;
+        }
+
         if (response.jsonCode !== 200) {
             throw new Error(response.message);
         }
@@ -240,9 +258,7 @@ function updateIOUReportData(report) {
         if (!iouReportData) {
             throw new Error(`No iouReportData found for reportID ${iouReportID}`);
         }
-
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-            getSimplifiedIOUReport(iouReportData));
+        return getSimplifiedIOUReport(iouReportData, chatReport.reportID);
     }).catch((error) => {
         console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
     });
@@ -257,6 +273,7 @@ function updateIOUReportData(report) {
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
+    const simplifiedReports = {};
     return API.Get({
         returnValueList: 'reportStuff',
         reportIDList: chatList.join(','),
@@ -266,22 +283,36 @@ function fetchChatReportsByIDs(chatList) {
         .then(({reports}) => {
             Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reports;
-
+            return Promise.all(_.map(fetchedReports, updateIOUReportData));
+        })
+        .then((iouReportObjects) => {
             // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
             // variable called simplifiedReports which hold the participants (minus the current user) for each report.
             // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
             // personal details of all the participants and even link up their avatars to report icons.
-            const simplifiedReports = {};
+            const reportIOUData = {};
             _.each(fetchedReports, (report) => {
-                const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
                 const simplifiedReport = getSimplifiedReportObject(report);
-                simplifiedReports[key] = simplifiedReport;
-                updateIOUReportData(report);
+                simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
             });
 
-            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+            _.each(iouReportObjects, (iouReportObject) => {
+                if (!iouReportObject) {
+                    return;
+                }
+
+                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
+                reportIOUData[iouReportKey] = iouReportObject;
+                simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
+                simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === 1
+                    && iouReportObject.total !== 0;
+            });
+
+            // We use mergeCollection such that it updates the collection in one go.
             // Any withOnyx subscribers to this key will also receive the complete updated props just once
             // than updating props for each report and re-rendering had merge been used.
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
             // Fetch the personal details if there are any
