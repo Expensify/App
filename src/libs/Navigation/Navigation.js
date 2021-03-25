@@ -2,7 +2,6 @@ import React from 'react';
 import {StackActions, DrawerActions} from '@react-navigation/native';
 import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
 
-import {setModalVisibility} from '../actions/Modal';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 
@@ -52,9 +51,6 @@ function dismissModal() {
     // From there we can just navigate back and open the drawer
     goBack();
     openDrawer();
-
-    // Store modal closed state in Onyx
-    setModalVisibility(false);
 }
 
 /**
