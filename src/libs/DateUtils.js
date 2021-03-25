@@ -42,6 +42,7 @@ function getLocalMomentFromTimestamp(locale, timestamp) {
  */
 function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
     const date = getLocalMomentFromTimestamp(locale, timestamp);
+    const TZ = '[UTC]Z';
 
     moment.calendarFormat = function (myMoment, now) {
         const diff = myMoment.diff(now, 'days', true);
@@ -60,21 +61,27 @@ function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
             retVal = 'nextWeek';
         }
 
-        if (includeTimeZone) {
-            retVal = 'timeZone';
-        }
-
         return retVal;
     };
 
-    return moment().calendar(date, {
+    if (includeTimeZone) {
+        return moment(date).calendar({
+            sameDay: `[Today at] LT ${TZ}`,
+            nextDay: `[Tomorrow at] LT ${TZ}`,
+            nextWeek: `MMM D [at] LT ${TZ}`,
+            lastDay: `[Yesterday at] LT ${TZ}`,
+            lastWeek: `MMM D [at] LT ${TZ}`,
+            sameElse: `MMM D, YYYY [at] LT ${TZ}`,
+        });
+    }
+
+    return moment(date).calendar({
         sameDay: '[Today at] LT',
         nextDay: '[Tomorrow at] LT',
         nextWeek: 'MMM D [at] LT',
         lastDay: '[Yesterday at] LT',
         lastWeek: 'MMM D [at] LT',
         sameElse: 'MMM D, YYYY [at] LT',
-        timeZone: 'LT [UTC]Z',
     });
 }
 
