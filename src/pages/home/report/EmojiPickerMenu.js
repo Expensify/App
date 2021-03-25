@@ -38,7 +38,7 @@ class EmojiPickerMenu extends Component {
     filterEmojis(searchTerm) {
         const normalizedSearchTerm = searchTerm.toLowerCase();
         if (normalizedSearchTerm === '') {
-            this.setState({filteredEmojis: emojis});
+            this.setState({filteredEmojis: emojis, headerIndices: [0, 34, 60, 88, 99, 121, 148]});
             return;
         }
         const newFilteredEmojiList = [];
@@ -52,7 +52,7 @@ class EmojiPickerMenu extends Component {
             }
         });
 
-        this.setState({filteredEmojis: newFilteredEmojiList});
+        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: []});
     }
 
     renderItem({item}, addEmojiToTextBox) {
