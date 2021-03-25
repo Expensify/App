@@ -9,6 +9,7 @@ const CONST = {
         DEFAULT: 'default',
         HOVERED: 'hovered',
         PRESSED: 'pressed',
+        COMPLETE: 'complete',
     },
     CLOUDFRONT_URL,
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
