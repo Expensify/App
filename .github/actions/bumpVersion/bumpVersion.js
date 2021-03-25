@@ -1,67 +1,86 @@
-const {exec} = require('child_process');
-const fs = require('fs');
+const {promisify} = require('util');
+const exec = promisify(require('child_process').exec);
+const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
+const versionUpdater = require('../../libs/versionUpdater');
+const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = require('../../libs/nativeVersionUpdater');
 
-// Use Github Actions' default environment variables to get repo information
-// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
-const [repoOwner, repoName] = process.env.GITHUB_REPOSITORY.split('/');
+let newVersion;
 
-const MAX_RETRIES = 10;
-let errCount = 0;
-let shouldRetry;
+/**
+ * Update the native app versions.
+ *
+ * @param {String} version
+ */
+function updateNativeVersions(version) {
+    console.log(`Updating native versions to ${version}`);
 
-do {
-    shouldRetry = false;
-    exec('npm version prerelease -m "Update version to %s"', (err, stdout, stderr) => {
-        console.log(stdout);
-        if (err) {
-            console.log(stderr);
+    // Update Android
+    const androidVersionCode = generateAndroidVersionCode(version);
+    updateAndroidVersion(version, androidVersionCode)
+        .then(() => {
+            console.log('Successfully updated Android!');
+        })
+        .catch((err) => {
+            console.error('Error updating Android');
+            core.setFailed(err);
+        });
 
-            // It's possible that two PRs were merged in rapid succession.
-            // In this case, both PRs will attempt to update to the same npm version.
-            // This will cause the deploy to fail with an exit code 128, saying the git tag for that version already exists.
-            if (errCount < MAX_RETRIES) {
-                console.log(
-                    'Err: npm version conflict, attempting to automatically resolve',
-                    `retryCount: ${++errCount}`,
-                );
-                shouldRetry = true;
-                const {version} = JSON.parse(fs.readFileSync('./package.json'));
-                const currentPatchVersion = `v${version.slice(0, -4)}`
-                console.log('Current patch version:', currentPatchVersion);
-
-                // Get the highest build version git tag from the repo
-                console.log('Fetching tags from github...');
-                const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-                octokit.repos.listTags({
-                    owner: repoOwner,
-                    repo: repoName,
-                })
-                    .then(response => {
-                        const tags = response.data.map(tag => tag.name);
-                        console.log('Tags: ', tags);
-                        const highestBuildNumber = Math.max(
-                            ...(tags
-                                .filter(tag => tag.startsWith(currentPatchVersion))
-                                .map(tag => tag.split('-')[1])
-                            )
-                        );
-                        console.log('Highest build number from current patch version:', highestBuildNumber);
-
-                        const newBuildNumber = `${currentPatchVersion}-${highestBuildNumber + 1}`;
-                        console.log(`Setting npm version for this PR to ${newBuildNumber}`);
-                        exec(`npm version ${newBuildNumber} -m "Update version to ${newBuildNumber}"`, (err, stdout, stderr) => {
-                            console.log(stdout);
-                            if (err) {
-                                console.log(stderr);
-                            }
-                        });
-                    })
-                    .catch(exception => core.setFailed(exception))
-            } else {
-                core.setFailed(err);
-            }
+    // Update iOS
+    try {
+        const cfBundleVersion = updateiOSVersion(version);
+        if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
+            core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
+            console.log('Successfully updated iOS!');
+        } else {
+            core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
         }
+    } catch (err) {
+        console.error('Error updating iOS');
+        core.setFailed(err);
+    }
+}
+
+const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
+
+if (!semanticVersionLevel || !_.find(versionUpdater.SEMANTIC_VERSION_LEVELS, v => v === semanticVersionLevel)) {
+    console.log(
+        `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
+        `Defaulting to: ${versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD}`,
+    );
+    semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
+}
+console.log('Fetching tags from github...');
+octokit.repos.listTags({
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
+})
+    .catch(githubError => core.setFailed(githubError))
+    .then((githubResponse) => {
+        // Find the highest version git tag
+        const tags = githubResponse.data.map(tag => tag.name);
+
+        // tags come from latest to oldest
+        const highestVersion = tags[0];
+
+        console.log(`Highest version found: ${highestVersion}.`);
+
+        newVersion = versionUpdater.incrementVersion(highestVersion, semanticVersionLevel);
+
+        updateNativeVersions(newVersion);
+        console.log(`Setting npm version for this PR to ${newVersion}`);
+        return exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
+    })
+    .then(({stdout}) => {
+        // NPM and native versions successfully updated, output new version
+        console.log(stdout);
+        core.setOutput('NEW_VERSION', newVersion);
+    })
+    .catch(({stdout, stderr}) => {
+        // Log errors and retry
+        console.log(stdout);
+        console.error(stderr);
+        core.setFailed('An error occurred in the `npm version` command');
     });
-} while (shouldRetry);

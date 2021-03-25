@@ -133,7 +133,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    
+
     packagingOptions {
         pickFirst 'lib/x86/libc++_shared.so'
         pickFirst 'lib/x86_64/libjsc.so'
@@ -148,8 +148,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 462
-        versionName "1.0.1-463"
+        versionCode 1001000602
+        versionName "1.0.6-2"
     }
     splits {
         abi {

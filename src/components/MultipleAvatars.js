@@ -2,6 +2,7 @@ import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {Image, Text, View} from 'react-native';
 import styles from '../styles/styles';
+import Avatar from './Avatar';
 
 const propTypes = {
     // Array of avatar URL
@@ -16,62 +17,59 @@ const defaultProps = {
     optionIsFocused: false,
 };
 
-const MultipleAvatars = props => (
-    <>
-        {props.avatarImageURLs !== undefined && (
-            <>
+const MultipleAvatars = ({avatarImageURLs, optionIsFocused}) => {
+    if (!avatarImageURLs.length) {
+        return null;
+    }
+
+    if (avatarImageURLs.length === 1) {
+        return (
+            <View style={styles.emptyAvatar}>
+                <Avatar source={avatarImageURLs[0]} />
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.emptyAvatar}>
+            <View
+                style={styles.singleAvatar}
+            >
+                <Image
+                    source={{uri: avatarImageURLs[0]}}
+                    style={styles.singleAvatar}
+                />
                 <View
                     style={[
-                        props.avatarImageURLs.length > 1
-                            ? [styles.singleAvatar, styles.singleLeftAvatar]
-                            : [styles.avatarNormal, styles.emptyAvatar],
+                        styles.singleAvatar,
+                        optionIsFocused ? styles.focusedAvatar : styles.avatar,
+                        styles.secondAvatar,
                     ]}
                 >
-                    <Image
-                        source={{uri: props.avatarImageURLs[0]}}
-                        style={
-                            props.avatarImageURLs.length > 1
-                                ? styles.singleAvatar
-                                : styles.avatarNormal
-                        }
-                    />
+                    {avatarImageURLs.length === 2 ? (
+                        <Image
+                            source={{uri: avatarImageURLs[1]}}
+                            style={[
+                                styles.singleAvatar,
+                            ]}
+                        />
+                    ) : (
+                        <View
+                            style={[
+                                styles.avatarText,
+                            ]}
+                        >
+                            <Text style={styles.avatarInnerText}>
+                                +
+                                {avatarImageURLs.length - 1}
+                            </Text>
+                        </View>
+                    )}
                 </View>
-                {props.avatarImageURLs.length > 1 && (
-                    <View
-                        style={[
-                            styles.singleAvatar,
-                            props.avatarImageURLs.length > 1 ? styles.singleRightAvatar : null,
-                            props.optionIsFocused ? styles.focusedAvatar : styles.avatar,
-                        ]}
-                    >
-                        {props.avatarImageURLs.length > 2 && (
-                            <View
-                                style={[
-                                    styles.avatarText,
-                                    styles.avatarSpace,
-                                ]}
-                            >
-                                <Text style={styles.avatarInnerText}>
-                                    +
-                                    {props.avatarImageURLs.length - 1}
-                                </Text>
-                            </View>
-                        )}
-                        {props.avatarImageURLs.length === 2 && (
-                            <Image
-                                source={{uri: props.avatarImageURLs[1]}}
-                                style={[
-                                    styles.singleAvatar,
-                                    styles.avatarSpace,
-                                ]}
-                            />
-                        )}
-                    </View>
-                )}
-            </>
-        )}
-    </>
-);
+            </View>
+        </View>
+    );
+};
 
 MultipleAvatars.defaultProps = defaultProps;
 MultipleAvatars.propTypes = propTypes;

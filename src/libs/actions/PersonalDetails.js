@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -7,6 +7,7 @@ import md5 from '../md5';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
+import NameValuePair from './NameValuePair';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -70,31 +71,22 @@ function formatPersonalDetails(personalDetailsList) {
     return _.reduce(personalDetailsList, (finalObject, personalDetailsResponse, login) => {
         // Form the details into something that has all the data in an easy to use format.
         const avatarURL = personalDetailsResponse.avatarThumbnail;
+        //const avatar = getAvatar(personalDetailsResponse, login);
         const displayName = getDisplayName(login, personalDetailsResponse);
+        const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
+        const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
+
         return {
             ...finalObject,
             [login]: {
                 login,
-                avatarURL,
+                avatar,
                 displayName,
+                pronouns,
+                timezone,
             },
         };
     }, {});
-}
-
-/**
- * Get the timezone of the logged in user
- */
-function fetchTimezone() {
-    API.Get({
-        returnValueList: 'nameValuePairs',
-        name: 'timeZone',
-    })
-        .then((data) => {
-            const timezone = lodashGet(data, 'nameValuePairs.timeZone.selected', 'America/Los_Angeles');
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
-        })
-        .catch(error => console.debug('Error fetching user timezone', error));
 }
 
 /**
@@ -105,9 +97,20 @@ function fetch() {
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
-            const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
+            let myPersonalDetails = {};
+
+            // If personalDetailsList is empty, ensure we set the personal details for the current user
+            const personalDetailsList = _.isEmpty(data.personalDetailsList)
+                ? {[currentUserEmail]: myPersonalDetails}
+                : data.personalDetailsList;
+            const allPersonalDetails = formatPersonalDetails(personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
-            const myPersonalDetails = allPersonalDetails[currentUserEmail];
+
+            myPersonalDetails = allPersonalDetails[currentUserEmail];
+
+            // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
+            myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
+            myPersonalDetails.lastName = lodashGet(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
@@ -133,7 +136,16 @@ function getFromReportParticipants(reports) {
 
     API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
-            const details = _.pick(data, participantEmails);
+            const existingDetails = _.pick(data, participantEmails);
+
+            // Fallback to add logins that don't appear in the response
+            const details = participantEmails
+                .filter(login => !data[login])
+                .reduce((previousDetails, login) => ({
+                    ...previousDetails,
+                    [login]: {}, // Simply just need the key to exist
+                }), existingDetails);
+
             const formattedPersonalDetails = formatPersonalDetails(details);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
 
@@ -169,13 +181,46 @@ function getFromReportParticipants(reports) {
         });
 }
 
+
+/**
+ * Sets the personal details object for the current user
+ *
+ * @param {Object} details
+ */
+function setPersonalDetails(details) {
+    API.PersonalDetails_Update({details: JSON.stringify(details)});
+
+    if (details.timezone) {
+        NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
+    }
+
+    // Update the associated onyx keys
+    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails({[currentUserEmail]: details}));
+}
+
+/**
+ * Sets the user's avatar image
+ *
+ * @param {File|Object} file
+ */
+function setAvatar(file) {
+    API.User_UploadAvatar({file}).then((response) => {
+        // Once we get the s3url back, update the personal details for the user with the new avatar URL
+        if (response.jsonCode === 200) {
+            setPersonalDetails({avatar: response.s3url});
+        }
+    });
+}
+
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
 
 export {
     fetch,
-    fetchTimezone,
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,
+    setPersonalDetails,
+    setAvatar,
 };
