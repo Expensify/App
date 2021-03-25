@@ -186,7 +186,9 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         chatReportID,
         state: reportData.state,
         cachedTotal: reportData.cachedTotal,
+        total: reportData.total,
         status: reportData.status,
+        stateNum: reportData.stateNum,
     };
 }
 
@@ -292,8 +294,8 @@ function fetchChatReportsByIDs(chatList) {
                 const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
                 reportIOUData[iouReportKey] = iouReportObject;
-                simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.state !== 'OPEN'
-                    && iouReportObject.cachedTotal !== 0;
+                simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === 1
+                    && iouReportObject.total !== 0;
             });
 
             // We use mergeCollection such that it updates the collection in one go.
