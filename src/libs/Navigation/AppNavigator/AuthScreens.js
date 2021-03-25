@@ -22,7 +22,7 @@ import {fetchCountryCodeByRequestIP} from '../../actions/GeoLocation';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
-import {setModalVisibility} from '../../actions/Modal'
+import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
@@ -51,7 +51,7 @@ const modalScreenListeners = {
     },
     beforeRemove: () => {
         setModalVisibility(false);
-    }
+    },
 };
 
 const propTypes = {
