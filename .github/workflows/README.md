@@ -42,7 +42,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 
 All these _workflows_ are comprised of atomic _actions_. Most of the time, we can use pre-made and independently maintained actions to create powerful workflows that meet our needs. However, when we want to do something very specific or have a more complex or robust action in mind, we can create our own _actions_.
 
-All our actions are stored in the neighboring directory [`.github/actions`](https://github.com/Expensify/Expensify.cash/tree/master/.github/actions). Each action is a module comprised of three parts:
+All our actions are stored in the neighboring directory [`.github/actions`](https://github.com/Expensify/Expensify.cash/tree/main/.github/actions). Each action is a module comprised of three parts:
 
 1) An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`. This describes the action, gives it a name, and defines its inputs and outputs.
 2) A Node.js script, whose name matches the module. This is where you can implement the custom logic for your action.
@@ -67,7 +67,7 @@ In order to bundle actions with their dependencies into a single Node.js executa
     - Use the absolute path of the action in GitHub, including the repo name, path, and branch ref, like so:
       ```yaml
       - name: Generate Version
-        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
+        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@main
       ```
        Do not try to use a relative path.
 - Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.

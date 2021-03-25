@@ -12,7 +12,7 @@ jobs:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
-          ref: master
+          ref: main
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -27,11 +27,11 @@ jobs:
       - name: Wait for any automerge jobs to start
         run: sleep 60
 
-      - name: Wait for any automerge-master jobs to finish
+      - name: Wait for any automerge-main jobs to finish
         uses: tomchv/wait-my-workflow@2da0b8a92211e6d7c9964602b99a7052080a1d61
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: master
+          checkName: main
           intervalSeconds: 10
           timeoutSeconds: 150
 
@@ -44,13 +44,13 @@ jobs:
       - name: Create a new branch
         run: |
           git config user.name OSBotify
-          git pull origin master
+          git pull origin main
           git checkout -b version-patch-${{ github.sha }}
           git push --set-upstream origin version-patch-${{ github.sha }}
 
       - name: Generate version
         id: bumpVersion
-        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
+        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@main
         with:
           SEMVER_LEVEL: PATCH
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -65,14 +65,14 @@ jobs:
             ./ios/ExpensifyCashTests/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
-      - name: Create Pull Request (master)
+      - name: Create Pull Request (main)
         uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           author: OSBotify <reactnative@expensify.com>
-          base: master
+          base: main
           branch: version-patch-${{ github.sha }}
-          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on master
+          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on main
           body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
           labels: automerge
 
@@ -84,7 +84,7 @@ jobs:
         run: git push --tags
 
       - name: Update StagingDeployCash
-        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@master
+        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
