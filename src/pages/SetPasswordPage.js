@@ -3,7 +3,7 @@ import {
     Image, SafeAreaView, Text, TextInput, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
