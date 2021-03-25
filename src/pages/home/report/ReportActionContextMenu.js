@@ -1,11 +1,16 @@
+import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
+import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import {
-    Clipboard, LinkCopy, Mail, Pencil, Trashcan,
+    Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
+import ReportActionPropTypes from './ReportActionPropTypes';
+import Clipboard from '../../../libs/Clipboard';
 
 /**
  * A list of all the context actions in this menu.
@@ -14,7 +19,20 @@ const CONTEXT_ACTIONS = [
     // Copy to clipboard
     {
         text: 'Copy to Clipboard',
-        icon: Clipboard,
+        icon: ClipboardIcon,
+        successText: 'Copied!',
+        successIcon: Checkmark,
+        onPress: (action) => {
+            const lastMessage = _.last(lodashGet(action, 'message', null));
+            const html = lodashGet(lastMessage, 'html', '');
+            const isImage = lastMessage && /<img([^>]+)\/>/gi.test(html);
+            if (isImage) {
+                Clipboard.setImage(html);
+            } else {
+                Clipboard.setString(action.message[0].text);
+            }
+            return true;
+        },
     },
 
     // Copy chat link
@@ -47,9 +65,8 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     reportID: PropTypes.number.isRequired,
 
-    // The ID of the report action this context menu is attached to.
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportActionID: PropTypes.number.isRequired,
+    // The report action this context menu is attached to.
+    reportAction: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // If true, this component will be a small, row-oriented menu that displays icons but not text.
     // If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
@@ -72,7 +89,10 @@ const ReportActionContextMenu = (props) => {
                 <ReportActionContextMenuItem
                     icon={contextAction.icon}
                     text={contextAction.text}
+                    successIcon={contextAction.successIcon}
+                    successText={contextAction.successText}
                     isMini={props.isMini}
+                    onPress={() => Str.result(contextAction.onPress, props.reportAction)}
                     key={contextAction.text}
                 />
             ))}
