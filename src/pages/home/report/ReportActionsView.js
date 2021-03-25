@@ -224,6 +224,7 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = _.chain(this.props.reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'ADDCOMMENT')
+            .filter(action => action.message.text !== '')
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
