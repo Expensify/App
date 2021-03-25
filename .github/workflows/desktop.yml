@@ -48,7 +48,7 @@ jobs:
 
             - name: Build staging desktop app
               if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
-              run: npm run desktop-build -- --publish always -c.afterSign=desktop/notarize.js
+              run: npm run desktop-build-staging -- --publish always -c.afterSign=desktop/notarize.js
               env:
                 CSC_LINK: ${{ secrets.CSC_LINK }}
                 CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
