@@ -100,22 +100,7 @@ function getDataForUpload(fileData) {
  * a callback. This is the ios/android implementation
  * opening a modal with attachment options
  *
- * @example
- * <AttachmentPicker>
- * {({openPicker}) => (
- *     <Button
- *         onPress={() => {
- *             openPicker({
- *                 onPicked: (file) => {
- *                     // Display or upload File
- *                 },
- *             });
- *         }}
- *     />
- * )}
- * </AttachmentPicker>
- *
- * @returns {Function}
+ * @returns {React.FunctionComponent}
  */
 const AttachmentPicker = ({children}) => children({
     openPicker: ({onPicked}) => {

@@ -1,9 +1,24 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    /** renderProp with the following interface
+    /**
+     * A renderProp with the following interface
+     *
      * @example
-     * function ({ openPicker: ({ onPicked: (file): void }}): void }): ReactNode */
+     * <AttachmentPicker>
+     * {({openPicker}) => (
+     *     <Button
+     *         onPress={() => {
+     *             openPicker({
+     *                 onPicked: (file) => {
+     *                     // Display or upload File
+     *                 },
+     *             });
+     *         }}
+     *     />
+     * )}
+     * </AttachmentPicker>
+     * */
     children: PropTypes.func.isRequired,
 };
 
