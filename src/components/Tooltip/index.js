@@ -149,7 +149,7 @@ class Tooltip extends PureComponent {
                     Animated.timing(this.animation, {
                         toValue: 1,
                         duration: 140,
-                        delay: this.props.showDelay,
+                        delay: 500,
                     }).start();
                 }
             });
@@ -164,7 +164,6 @@ class Tooltip extends PureComponent {
         Animated.timing(this.animation, {
             toValue: 0,
             duration: 140,
-            delay: this.props.hideDelay,
         }).start();
     }
 
