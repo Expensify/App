@@ -1,10 +1,21 @@
 /**
  * The react native image/document pickers work for iOS/Android, but we want to wrap them both within AttachmentPicker
  */
-import {Alert, Linking} from 'react-native';
+import React, {Component} from 'react';
+import {Alert, Linking, View} from 'react-native';
 import RNImagePicker from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
-import propTypes from './propTypes';
+import basePropTypes from './propTypes';
+import styles from '../../styles/styles';
+import Popover from '../Popover';
+import MenuItem from '../MenuItem';
+import {Paperclip} from '../Icon/Expensicons';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+
+const propTypes = {
+    ...basePropTypes,
+    ...windowDimensionsPropTypes,
+};
 
 /**
  * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
@@ -99,17 +110,75 @@ function getDataForUpload(fileData) {
  * returns a "show attachment picker" method that takes
  * a callback. This is the ios/android implementation
  * opening a modal with attachment options
- *
- * @returns {React.FunctionComponent}
  */
-const AttachmentPicker = ({children}) => children({
-    openPicker: ({onPicked}) => {
-        show((response) => {
-            onPicked(getDataForUpload(response));
+class AttachmentPicker extends Component {
+    constructor(...args) {
+        super(...args);
+
+        this.state = {};
+        this.resetState();
+        this.handlePopoverClose = this.handlePopoverClose.bind(this);
+    }
+
+    handlePopoverClose() {
+        // Todo: call `onPicked` with result
+        this.state.onPicked(null);
+        this.setState({isVisible: false});
+    }
+
+    resetState() {
+        this.setState({isVisible: false, onPicked: () => {}});
+    }
+
+    renderMenuItems() {
+        const menuItemData = [
+            {
+                icon: Paperclip,
+                text: 'Take Photo',
+            },
+            {
+                icon: Paperclip,
+                text: 'Choose from Gallery',
+            },
+            {
+                icon: Paperclip,
+                text: 'Choose Document',
+            },
+        ];
+
+        return menuItemData.map(({icon, text}) => (
+            <MenuItem key={text} icon={icon} title={text} onPress={this.handlePopoverClose} />
+        ));
+    }
+
+    renderChildren() {
+        return this.props.children({
+            openPicker: ({onPicked}) => {
+                // Todo: perhaps we want some error handling here if onPicked is missing
+                // As this is not a prop it won't be caught by prop types
+                this.setState({isVisible: true, onPicked});
+            },
         });
-    },
-});
+    }
+
+    render() {
+        return (
+            <>
+                <Popover
+                    onClose={this.handlePopoverClose}
+                    isVisible={this.state.isVisible}
+                    anchorPosition={styles.createMenuPosition}
+                >
+                    <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                        {this.renderMenuItems()}
+                    </View>
+                </Popover>
+                {this.renderChildren()}
+            </>
+        );
+    }
+}
 
 AttachmentPicker.propTypes = propTypes;
 AttachmentPicker.displayName = 'AttachmentPicker';
-export default AttachmentPicker;
+export default withWindowDimensions(AttachmentPicker);
