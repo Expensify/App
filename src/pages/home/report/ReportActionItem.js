@@ -67,8 +67,9 @@ class ReportActionItem extends Component {
      * @returns {Boolean}
      */
     isInReportActionContextMenuBeta() {
-        return _.contains(this.props.betas, CONST.BETAS.REPORT_ACTION_CONTEXT_MENU)
-            || _.contains(this.props.betas, CONST.BETAS.ALL);
+        return true;
+        // return _.contains(this.props.betas, CONST.BETAS.REPORT_ACTION_CONTEXT_MENU)
+        //     || _.contains(this.props.betas, CONST.BETAS.ALL);
     }
 
     /**

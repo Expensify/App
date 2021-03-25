@@ -665,7 +665,7 @@ export {
     Report_GetHistory,
     Report_TogglePinned,
     Report_UpdateLastRead,
-    Report_UpdateComment,
+    Report_EditComment,
     ResendValidateCode,
     SetNameValuePair,
     SetPassword,
