@@ -4,7 +4,7 @@
 import {Alert, Linking} from 'react-native';
 import RNImagePicker from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
-import PropTypes from 'prop-types';
+import propTypes from './propTypes';
 
 /**
  * See https://github.com/react-native-community/react-native-image-picker/blob/master/docs/Reference.md#options
@@ -93,10 +93,6 @@ function getDataForUpload(fileData) {
         uri: fileData.uri,
     };
 }
-
-const propTypes = {
-    children: PropTypes.func.isRequired,
-};
 
 /**
  * This component renders a function as a child and
