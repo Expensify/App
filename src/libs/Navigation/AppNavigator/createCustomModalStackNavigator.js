@@ -14,7 +14,6 @@ const CustomRootStackNavigator = ({
         children,
     });
     const isDisplayingModal = Boolean(_.find(descriptors, descriptor => descriptor.options.isModal));
-
     return (
         <>
             <StackView
