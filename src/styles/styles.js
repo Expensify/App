@@ -776,8 +776,15 @@ const styles = {
         justifyContent: 'center',
     },
 
-    emojiPickerBox: {
+    emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
+        minWidth: 360,
+    },
+
+    emojiPickerList: {
+        height: 300,
+        width: '100%',
+        paddingHorizontal: 16,
     },
 
     emojiHeaderStyle: {
@@ -800,8 +807,9 @@ const styles = {
         paddingLeft: 8,
     },
 
-    emojiTextWrapper: {
-        width: '12.5%'
+    emojiItem: {
+        width: '12.5%',
+        textAlign: 'center',
     },
 
     chatItemEmojiButton: {
