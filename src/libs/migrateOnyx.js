@@ -1,4 +1,6 @@
 import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
+import RenamePriorityModeKey from './migrations/RenamePriorityModeKey';
+import ReformatTimezone from './migrations/ReformatTimezone';
 
 export default function () {
     const startTime = Date.now();
@@ -8,6 +10,8 @@ export default function () {
         // Add all migrations to an array so they are executed in order
         const migrationPromises = [
             RenameActiveClientsKey,
+            RenamePriorityModeKey,
+            ReformatTimezone,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

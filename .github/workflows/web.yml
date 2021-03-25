@@ -13,9 +13,7 @@ jobs:
         if: github.actor == 'OSBotify'
         runs-on: ubuntu-latest
         env:
-#          TODO: Uncomment when we'd like to deploy to staging
-#          SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
-          SHOULD_DEPLOY_PRODUCTION: ${{ true }}
+          SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
 
         steps:
             - uses: actions/checkout@v2
@@ -100,21 +98,3 @@ jobs:
             - name: Set version in ENV
               if: ${{ success() }}
               run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
-
-            - uses: 8398a7/action-slack@v3
-              name: QA Slack notification
-              if: ${{ success() }}
-              with:
-                  status: custom
-                  fields: workflow, repo
-                  custom_payload: |
-                      {
-                        channel: '#qa',
-                        attachments: [{
-                          color: "#39AA56",
-                          text: `*Expensify Chat :expensifychat:* ${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
-                        }]
-                      }
-              env:
-                  GITHUB_TOKEN: ${{ github.token }}
-                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
