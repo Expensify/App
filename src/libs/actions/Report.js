@@ -191,6 +191,7 @@ function getSimplifiedIOUReport(reportData) {
  * @param {Object} report
  * @param {Object[]} report.reportActionList
  * @param {Number} report.reportID
+ * @return {Promise}
  */
 function updateIOUReportData(report) {
     const reportActionList = report.reportActionList || [];
@@ -215,7 +216,7 @@ function updateIOUReportData(report) {
     // Since the Chat and the IOU are different reports with different reportIDs, and GetIOUReport only returns the
     // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`
     let iouReportID = 0;
-    API.GetIOUReport({
+    return API.GetIOUReport({
         debtorEmail: participants[0],
     }).then((response) => {
         iouReportID = response.reportID || 0;
@@ -240,9 +241,7 @@ function updateIOUReportData(report) {
         if (!iouReportData) {
             throw new Error(`No iouReportData found for reportID ${iouReportID}`);
         }
-
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-            getSimplifiedIOUReport(iouReportData));
+        return getSimplifiedIOUReport(iouReportData);
     }).catch((error) => {
         console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
     });
@@ -257,6 +256,7 @@ function updateIOUReportData(report) {
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
+    const simplifiedReports = {};
     return API.Get({
         returnValueList: 'reportStuff',
         reportIDList: chatList.join(','),
@@ -266,22 +266,28 @@ function fetchChatReportsByIDs(chatList) {
         .then(({reports}) => {
             Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reports;
-
+            return Promise.all(_.map(fetchedReports, updateIOUReportData));
+        })
+        .then((data) => {
             // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
             // variable called simplifiedReports which hold the participants (minus the current user) for each report.
             // Using this simplifiedReport we can call PersonalDetails.getFromReportParticipants to get the
             // personal details of all the participants and even link up their avatars to report icons.
-            const simplifiedReports = {};
-            _.each(fetchedReports, (report) => {
-                const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+            const reportIOUData = {};
+            _.each(fetchedReports, (report, index) => {
+                const iouReportData = data[index] || {state: 1, cachedTotal: 0};
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.reportID}`;
                 const simplifiedReport = getSimplifiedReportObject(report);
-                simplifiedReports[key] = simplifiedReport;
-                updateIOUReportData(report);
+                simplifiedReport.hasOutstandingIOU = iouReportData.state !== 1 && iouReportData.cachedTotal !== 0;
+                simplifiedReports[reportKey] = simplifiedReport;
+                reportIOUData[iouReportKey] = iouReportData;
             });
 
-            // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
+            // We use mergeCollection such that it updates the collection in one go.
             // Any withOnyx subscribers to this key will also receive the complete updated props just once
             // than updating props for each report and re-rendering had merge been used.
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
             // Fetch the personal details if there are any
