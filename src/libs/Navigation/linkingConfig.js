@@ -1,7 +1,13 @@
 import ROUTES from '../../ROUTES';
 
 export default {
-    prefixes: ['expensify-cash://', 'https://expensify.cash', 'https://www.expensify.cash', 'http://localhost'],
+    prefixes: [
+        'expensify-cash://',
+        'https://expensify.cash',
+        'https://www.expensify.cash',
+        'https://staging.expensify.cash',
+        'http://localhost',
+    ],
     config: {
         screens: {
             Home: {
