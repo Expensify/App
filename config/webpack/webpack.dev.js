@@ -32,6 +32,7 @@ module.exports = () => {
             hot: true,
             ...proxySettings,
             ...ngrokSettings,
+            historyApiFallback: true,
         },
         plugins: [
             new webpack.DefinePlugin({

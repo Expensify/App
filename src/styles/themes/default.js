@@ -4,7 +4,8 @@ export default {
     shadow: colors.black,
     link: colors.blue,
     componentBG: colors.white,
-    componentBGHover: colors.gray1,
+    hoverComponentBG: colors.gray1,
+    activeComponentBG: colors.gray2,
     appBG: colors.white,
     heading: colors.charcoal,
     sidebar: colors.gray1,
@@ -31,4 +32,7 @@ export default {
     pillBG: colors.gray2,
     buttonDisabledBG: colors.gray2,
     buttonHoveredBG: colors.gray1,
+    spinner: colors.gray4,
+    unreadIndicator: colors.green,
+    placeholderText: colors.gray3,
 };

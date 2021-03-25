@@ -1,4 +1,4 @@
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';
@@ -32,7 +32,8 @@ export default {
     APP_NAME: 'ExpensifyCash',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
-        URL_EXPENSIFY_COM: expensifyComWithProxy,
+        // Note: This will be EXACTLY what is set for EXPENSIFY_URL_COM whether the proxy is enabled or not.
+        URL_EXPENSIFY_COM: expensifyURL,
         URL_EXPENSIFY_CASH: expensifyCashURL,
         URL_API_ROOT: expensifyURLRoot,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
@@ -46,7 +47,7 @@ export default {
     },
     SITE_TITLE: 'Expensify.cash',
     FAVICON: {
-        DEFAULT: 'favicon.png',
-        UNREAD: 'favicon-unread.png',
+        DEFAULT: '/favicon.png',
+        UNREAD: '/favicon-unread.png',
     },
 };

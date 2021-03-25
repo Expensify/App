@@ -39,9 +39,6 @@ const propTypes = {
     // Options that have already been selected
     selectedOptions: PropTypes.arrayOf(optionPropTypes),
 
-    // Optional header title
-    headerTitle: PropTypes.string,
-
     // Optional header message
     headerMessage: PropTypes.string,
 
@@ -59,19 +56,22 @@ const propTypes = {
 
     // Force the text style to be the unread style on all rows
     forceTextUnreadStyle: PropTypes.bool,
+
+    // Whether to show the title tooltip
+    showTitleTooltip: PropTypes.bool,
 };
 
 const defaultProps = {
     onSelectRow: () => {},
     placeholderText: 'Name, email, or phone number',
     selectedOptions: [],
-    headerTitle: '',
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
     disableArrowKeysActions: false,
     hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
+    showTitleTooltip: false,
 };
 
 class OptionsSelector extends Component {
@@ -179,7 +179,7 @@ class OptionsSelector extends Component {
                         onChangeText={this.props.onChangeText}
                         onKeyPress={this.handleKeyPress}
                         placeholder={this.props.placeholderText}
-                        placeholderTextColor={themeColors.textSupporting}
+                        placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
                 <OptionsList
@@ -189,13 +189,13 @@ class OptionsSelector extends Component {
                     sections={this.props.sections}
                     focusedIndex={this.state.focusedIndex}
                     selectedOptions={this.props.selectedOptions}
-                    headerTitle={this.props.headerTitle}
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
                     headerMessage={this.props.headerMessage}
                     disableFocusOptions={this.props.disableArrowKeysActions}
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                     forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                    showTitleTooltip={this.props.showTitleTooltip}
                 />
             </View>
         );

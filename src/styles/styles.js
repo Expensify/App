@@ -103,7 +103,7 @@ const styles = {
 
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         paddingHorizontal: 12,
@@ -135,6 +135,10 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonSuccessDisabled: {
+        opacity: 0.5,
+    },
+
     buttonSuccessHovered: {
         backgroundColor: themeColors.buttonSuccessHoveredBG,
         borderWidth: 0,
@@ -159,7 +163,7 @@ const styles = {
     },
 
     hoveredComponentBG: {
-        backgroundColor: themeColors.componentBGHover,
+        backgroundColor: themeColors.hoverComponentBG,
     },
 
     touchableButtonImage: {
@@ -168,6 +172,57 @@ const styles = {
         justifyContent: 'center',
         marginRight: 8,
         width: variables.componentSizeNormal,
+    },
+
+    picker: {
+        inputIOS: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            paddingBottom: 10,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeNormal,
+            opacity: 1,
+        },
+        inputWeb: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            paddingBottom: 10,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            appearance: 'none',
+            height: variables.componentSizeNormal,
+            opacity: 1,
+        },
+        inputAndroid: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            paddingBottom: 10,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeNormal,
+            opacity: 1,
+        },
+        iconContainer: {
+            top: 12,
+            right: 12,
+            pointerEvents: 'none',
+        },
     },
 
     pill: {
@@ -230,7 +285,7 @@ const styles = {
 
     textInput: {
         backgroundColor: themeColors.componentBG,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         borderColor: themeColors.border,
         borderWidth: 1,
@@ -242,6 +297,11 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         textAlignVertical: 'center',
+    },
+
+    disabledTextInput: {
+        backgroundColor: colors.gray1,
+        color: colors.gray3,
     },
 
     textInputReversed: addOutlineWidth({
@@ -257,7 +317,9 @@ const styles = {
     noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
-        color: themeColors.text,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 8,
@@ -275,6 +337,12 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 4,
+    },
+
+    formHint: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
     },
 
     signInPage: {
@@ -332,6 +400,13 @@ const styles = {
         width: '100%',
     },
 
+    loginTermsText: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+    },
+
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,
@@ -341,7 +416,7 @@ const styles = {
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         height: 84,
         justifyContent: 'flex-start',
         paddingHorizontal: 20,
@@ -419,11 +494,18 @@ const styles = {
         bottom: 100,
     },
 
+    createMenuContainer: {
+        width: variables.sideBarWidth - 40,
+        paddingVertical: 12,
+    },
+
     createMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
         paddingHorizontal: 20,
         paddingVertical: 12,
+        justifyContent: 'space-between',
+        width: '100%',
     },
 
     createMenuIcon: {
@@ -453,6 +535,9 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
+    },
+
+    sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
         paddingRight: 20,
@@ -498,6 +583,17 @@ const styles = {
         height: 18,
         lineHeight: 18,
         ...whiteSpace.noWrap,
+    },
+
+    optionDisplayNameTooltipWrapper: {
+        position: 'relative',
+    },
+
+    optionDisplayNameTooltipEllipsis: {
+        position: 'absolute',
+        opacity: 0,
+        right: 0,
+        bottom: 0,
     },
 
     optionAlternateText: {
@@ -644,7 +740,7 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         minHeight: variables.componentSizeNormal,
     },
 
@@ -696,7 +792,7 @@ const styles = {
         backgroundColor: themeColors.sidebar,
         borderColor: themeColors.border,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: 150,
         textAlign: 'center',
         verticalAlign: 'middle',
@@ -716,6 +812,15 @@ const styles = {
         zIndex: 2,
     },
 
+    navigationModalOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        transform: [{
+            translateX: -variables.sideBarWidth,
+        }],
+    },
+
     sidebarVisible: {
         borderRightWidth: 1,
     },
@@ -732,24 +837,19 @@ const styles = {
         borderRadius: 24,
     },
 
+    secondAvatar: {
+        position: 'absolute',
+        right: -13,
+        bottom: -14,
+        borderColor: 'transparent',
+        borderWidth: 2,
+    },
+
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
         backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
-    },
-
-    singleLeftAvatar: {
-        marginTop: -variables.componentSizeNormal / 2,
-        borderRadius: 24,
-    },
-
-    singleRightAvatar: {
-        marginTop: 12,
-        height: 30,
-        width: 30,
-        borderRadius: 30,
-        left: -12,
     },
 
     avatarText: {
@@ -782,6 +882,8 @@ const styles = {
 
     emptyAvatar: {
         marginRight: variables.componentSizeNormal - 24,
+        height: 40,
+        width: 40,
     },
 
     modalViewContainer: {
@@ -835,7 +937,7 @@ const styles = {
 
     defaultAttachmentView: {
         backgroundColor: themeColors.sidebar,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         borderWidth: 1,
         borderColor: themeColors.border,
         flexDirection: 'row',
@@ -891,12 +993,27 @@ const styles = {
         borderColor: colors.transparent,
     },
 
+    reportActionContextMenuText: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+        ...spacing.ml4,
+        ...spacing.mr2,
+    },
+
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
         flexGrow: 1,
         justifyContent: 'space-between',
         alignItems: 'center',
+    },
+
+    settingsPageBody: {
+        width: '100%',
+        justifyContent: 'space-around',
     },
 
     settingsPageColumn: {
@@ -928,7 +1045,7 @@ const styles = {
         zIndex: 10,
     },
 
-    settingsDisplayName: {
+    displayName: {
         fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
@@ -941,7 +1058,7 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
-    settingsWrapper: {
+    pageWrapper: {
         width: '100%',
         alignItems: 'center',
         padding: 20,
@@ -959,9 +1076,115 @@ const styles = {
         marginLeft: 8,
     },
 
+    unreadIndicatorContainer: {
+        position: 'absolute',
+        top: -10,
+        left: 0,
+        width: '100%',
+        height: 20,
+        paddingHorizontal: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    unreadIndicatorLine: {
+        height: 1,
+        backgroundColor: themeColors.unreadIndicator,
+        flexGrow: 1,
+        marginRight: 8,
+        opacity: 0.5,
+    },
+
+    unreadIndicatorText: {
+        color: themeColors.unreadIndicator,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+        fontWeight: fontWeightBold,
+    },
+
     flipUpsideDown: {
         transform: [{rotate: '180deg'}],
     },
+
+    navigationSceneContainer: {
+        backgroundColor: themeColors.appBG,
+    },
+
+    navigationScreenCardStyle: {
+        backgroundColor: themeColors.appBG,
+    },
+
+    invisible: {
+        position: 'absolute',
+        opacity: 0,
+    },
+
+    detailsPageContainer: {
+        justifyContent: 'space-between',
+        width: '100%',
+        flex: 1,
+    },
+
+    detailsPageSectionContainer: {
+        alignSelf: 'flex-start',
+    },
+
+    detailsPageSectionVersion: {
+        alignSelf: 'center',
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
+        height: 24,
+        lineHeight: 20,
+    },
+
+    switchTrack: {
+        width: 50,
+        height: 28,
+        justifyContent: 'center',
+        borderRadius: 20,
+        padding: 15,
+        backgroundColor: colors.green,
+    },
+
+    switchInactive: {
+        backgroundColor: colors.gray2,
+    },
+
+    switchThumb: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        position: 'absolute',
+        left: 4,
+        backgroundColor: colors.white,
+    },
+
+    checkboxContainer: {
+        backgroundColor: themeColors.componentBG,
+        borderRadius: 2,
+        height: 20,
+        width: 20,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    checkedContainer: {
+        backgroundColor: colors.blue,
+    },
+
+    iouAmountText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+    },
+
+    iouAmountTextInput: addOutlineWidth({
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+    }, 0),
 };
 
 const baseCodeTagStyles = {
@@ -1028,7 +1251,7 @@ const webViewStyles = {
 
         img: {
             borderColor: themeColors.border,
-            borderRadius: variables.componentBorderRadius,
+            borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
         },
     },
@@ -1070,20 +1293,41 @@ function getSafeAreaMargins(insets) {
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationMenuStyle(windowWidth, isSmallScreenWidth) {
+function getNavigationDrawerStyle(windowWidth, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
-            ...styles.navigationMenuOpenAbsolute,
             width: windowWidth,
+            height: '100%',
+            borderColor: themeColors.border,
         }
         : {
-            borderColor: themeColors.border,
-            borderRightWidth: 1,
+            height: '100%',
             width: variables.sideBarWidth,
+            borderRightColor: themeColors.border,
         };
+}
+
+function getNavigationDrawerType(isSmallScreenWidth) {
+    return isSmallScreenWidth ? 'slide' : 'permanent';
+}
+
+function getNavigationModalCardStyle(isSmallScreenWidth) {
+    return {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        backgroundColor: 'transparent',
+        height: '100%',
+    };
 }
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
+    getSafeAreaPadding,
+    getSafeAreaMargins,
+    webViewStyles,
+    getNavigationDrawerStyle,
+    getNavigationDrawerType,
+    getNavigationModalCardStyle,
 };

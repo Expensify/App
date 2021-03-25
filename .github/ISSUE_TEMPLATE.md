@@ -1,15 +1,28 @@
 If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/master/CONTRIBUTING.md) for onboarding!
 ___
 
-**Platform - version:**  
+## Expected Result:
+Describe what you think should've happened
 
-**Action Performed (reproducible steps):**
+## Actual Result:
+Describe what actually happened
 
-**Expected Result:**
+## Action Performed:
+Break down in numbered steps
 
-**Actual Result:**
+## Workaround:
+Can the user still use Expensify without this being fixed? Have you informed them of the workaround?
 
-**Notes/Photos/Videos:** 
- 
-**Logs - JS/Android/iOS (if applicable)**:
+## Platform:
+Where is this issue occurring?
 
+ Web
+ iOS
+ Android
+ Desktop App
+ Mobile Web
+
+**Version Number:**
+**Logs:** https://stackoverflow.com/c/expensify/questions/4856
+**Notes/Photos/Videos:** Any additional supporting documentation
+**Expensify/Expensify Issue URL:**

@@ -5,6 +5,8 @@ on:
     push:
         tags:
             - '*'
+    release:
+      types: [created]
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer
@@ -13,6 +15,8 @@ jobs:
     build:
         if: github.actor == 'OSBotify'
         runs-on: macos-latest
+        env:
+          SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
         steps:
             - uses: actions/checkout@v2
 
@@ -32,7 +36,11 @@ jobs:
               run: bundle install
 
             - name: Install node packages
-              run: npm ci -ddd
+              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+              with:
+                timeout_minutes: 10
+                max_attempts: 5
+                command: npm ci
 
             - name: Install cocoapods
               run: cd ios && pod install
@@ -53,12 +61,21 @@ jobs:
                 LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
             - name: Run Fastlane
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
               run: bundle exec fastlane ios beta
               env:
                   APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
                   APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
                   APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
                   APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+
+            # TODO: uncomment when we want to release iOS to production
+            - name: Run Fastlane for App Store release
+#              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'false' == 'true' }}
+              run: bundle exec fastlane ios production
+              env:
+                VERSION: ${{ env.NEW_IOS_VERSION }}
 
             # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
             # the other workflows with the same changes
@@ -84,21 +101,3 @@ jobs:
             - name: Set version in ENV
               if: ${{ success() }}
               run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
-
-            - uses: 8398a7/action-slack@v3
-              name: QA Slack notification
-              if: ${{ success() }}
-              with:
-                  status: custom
-                  fields: workflow, repo
-                  custom_payload: |
-                      {
-                        channel: '#qa',
-                        attachments: [{
-                          color: "#39AA56",
-                          text: `*Expensify Chat :expensifychat:* ${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
-                        }]
-                      }
-              env:
-                  GITHUB_TOKEN: ${{ github.token }}
-                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
