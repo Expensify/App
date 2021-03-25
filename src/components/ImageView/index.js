@@ -14,7 +14,27 @@ class ImageView extends PureComponent {
         this.scrollableRef = null;
         this.state = {
             isZoomed: false,
+            isDragging: false,
+            isMouseDown: false,
+            x: 0,
+            y: 0,
         };
+    }
+
+    componentDidMount() {
+        document.addEventListener('mousemove', this.trackMouseMove.bind(this));
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('mousemove', this.trackMouseMove.bind(this));
+    }
+
+    trackMouseMove() {
+        if (!this.state.isMouseDown) {
+            return;
+        }
+
+        this.setState({isDragging: true});
     }
 
     render() {
@@ -35,15 +55,38 @@ class ImageView extends PureComponent {
                         styles.w100,
                         styles.h100,
                         styles.flex1,
-                        getZoomCursorStyle(this.state.isZoomed),
+                        getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
                     ]}
+                    onPressIn={() => {
+                        console.log('on press in');
+                        this.setState({
+                            isDragging: false,
+                            isMouseDown: true,
+                        });
+                    }}
                     onPress={(e) => {
+                        if (!this.state.isMouseDown) {
+                            return;
+                        }
+
                         const {offsetX, offsetY} = e.nativeEvent;
+                        this.setState({
+                            x: offsetX * 1.5,
+                            y: offsetY * 1.5,
+                        }, () => {
+                            this.scrollableRef.scrollTo(this.state.x, this.state.y);
+                        });
+                    }}
+                    onPressOut={() => {
+                        console.log('on press out');
+                        if (this.state.isDragging) {
+                            this.setState({isDragging: false, isMouseDown: false});
+                            return;
+                        }
+
                         this.setState(prevState => ({
                             isZoomed: !prevState.isZoomed,
-                        }), () => {
-                            this.scrollableRef.scrollTo(offsetX, offsetY);
-                        });
+                        }));
                     }}
                 >
                     <Image

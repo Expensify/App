@@ -1328,11 +1328,16 @@ function getNavigationModalCardStyle(isSmallScreenWidth) {
 
 /**
  * @param {Boolean} isZoomed
+ * @param {Boolean} isDragging
  * @return {Object}
  */
-function getZoomCursorStyle(isZoomed) {
+function getZoomCursorStyle(isZoomed, isDragging) {
+    if (!isZoomed) {
+        return {cursor: 'zoom-in'};
+    }
+
     return {
-        cursor: isZoomed ? 'zoom-out' : 'zoom-in',
+        cursor: isDragging ? 'grabbing' : 'zoom-out',
     };
 }
 
@@ -1342,8 +1347,8 @@ function getZoomCursorStyle(isZoomed) {
  */
 function getZoomSizingStyle(isZoomed) {
     return {
-        height: isZoomed ? '200%' : '100%',
-        width: isZoomed ? '200%' : '100%',
+        height: isZoomed ? '250%' : '100%',
+        width: isZoomed ? '250%' : '100%',
     };
 }
 
