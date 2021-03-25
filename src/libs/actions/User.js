@@ -1,9 +1,8 @@
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import {signIn} from './Session';
 import CONST from '../../CONST';
 
 /**
@@ -11,15 +10,23 @@ import CONST from '../../CONST';
  *
  * @param {String} oldPassword
  * @param {String} password
- * @param {String} [twoFactorAuthCode]
+ * @returns {Promise}
  */
-function changePassword(oldPassword, password, twoFactorAuthCode) {
-    API.ChangePassword({oldPassword, password}).then((response) => {
-        // If we've successfully authenticated the user, ensure we sign them in so they don't get booted out
-        if (response.jsonCode === 200) {
-            signIn(password, twoFactorAuthCode);
-        }
-    });
+function changePassword(oldPassword, password) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+
+    return API.ChangePassword({oldPassword, password})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+            }
+            return response;
+        })
+        .finally((response) => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            return response;
+        });
 }
 
 function getBetas() {
@@ -65,11 +72,17 @@ function resendValidateCode(email) {
  * @param {Boolean} subscribed
  */
 function setExpensifyNewsStatus(subscribed) {
-    API.UpdateAccount({subscribed}).then((response) => {
-        if (response.jsonCode === 200) {
-            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: subscribed});
-        }
-    });
+    Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: subscribed});
+
+    API.UpdateAccount({subscribed})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
+            }
+        })
+        .catch(() => {
+            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
+        });
 }
 
 /**

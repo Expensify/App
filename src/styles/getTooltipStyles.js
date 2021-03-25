@@ -111,19 +111,24 @@ export default function getTooltipStyles(
 
     return {
         animationStyle: {
+            // remember Transform causes a new Local cordinate system
+            // https://drafts.csswg.org/css-transforms-1/#transform-rendering
+            // so Position fixed children will be relative to this new Local cordinate system
             transform: [{
                 scale: currentSize,
             }],
         },
         tooltipWrapperStyle: {
-            position: 'absolute',
+            position: 'fixed',
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
             ...spacing.ph2,
+            zIndex: variables.tooltipzIndex,
 
-            // Because it uses absolute positioning, the top-left corner of the tooltip is aligned
-            // with the top-left corner of the wrapped component by default.
+            // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
+            // with the top-left corner of the window by default.
+            // we will use yOffset to position the tooltip relative to the Wrapped Component
             // So we need to shift the tooltip vertically and horizontally to position it correctly.
             //
             // First, we'll position it vertically.
@@ -132,12 +137,13 @@ export default function getTooltipStyles(
             top: shouldShowBelow
 
                 // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
-                ? componentHeight + POINTER_HEIGHT + manualShiftVertical
+                ? yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical
 
                 // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
-                : -(tooltipHeight + POINTER_HEIGHT) + manualShiftVertical,
+                : (yOffset - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical,
 
             // Next, we'll position it horizontally.
+            // we will use xOffset to position the tooltip relative to the Wrapped Component
             // To shift the tooltip right, we'll give `left` a positive value.
             // To shift the tooltip left, we'll give `left` a negative value.
             //
@@ -148,7 +154,7 @@ export default function getTooltipStyles(
             //      so the tooltip's center lines up with the center of the wrapped component.
             //   3) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
             //   4) Lastly, add the manual horizontal shift passed in as a parameter.
-            left: ((componentWidth / 2) - (tooltipWidth / 2)) + horizontalShift + manualShiftHorizontal,
+            left: xOffset + ((componentWidth / 2) - (tooltipWidth / 2)) + horizontalShift + manualShiftHorizontal,
         },
         tooltipTextStyle: {
             color: themeColors.textReversed,
@@ -156,14 +162,13 @@ export default function getTooltipStyles(
             fontSize: tooltipFontSize,
         },
         pointerWrapperStyle: {
-            position: 'absolute',
+            position: 'fixed',
 
-
-            // By default, the pointer's top-left will align with the top-left of the wrapped component.
+            // By default, the pointer's top-left will align with the top-left of the wrapped tooltip.
             //
             // To align it vertically, we'll:
             //
-            //   Shift the pointer up (-) by its height, so that the bottom of the pointer lines up
+            //   Shift the pointer up (-) by component's height, so that the bottom of the pointer lines up
             //   with the top of the wrapped component.
             //
             //   OR if it should show below:
@@ -172,14 +177,16 @@ export default function getTooltipStyles(
             //      so that the top of the pointer aligns with the bottom of the component.
             //
             // Always add the manual vertical shift passed in as a parameter.
-            top: shouldShowBelow ? componentHeight + manualShiftVertical : manualShiftVertical - POINTER_HEIGHT,
+            top: shouldShowBelow ? manualShiftVertical - POINTER_HEIGHT : tooltipHeight + manualShiftVertical,
 
             // To align it horizontally, we'll:
-            //   1) Shift the pointer to the right (+) by the half the component's width,
-            //      so the left edge of the pointer lines up with the component's center.
+            //   1) Shift the pointer to the right (+) by the half the tooltipWidth's width,
+            //      so the left edge of the pointer lines up with the tooltipWidth's center.
             //   2) To the left (-) by half the pointer's width,
-            //      so the pointer's center lines up with the component's center.
-            left: (componentWidth / 2) - (POINTER_WIDTH / 2),
+            //      so the pointer's center lines up with the tooltipWidth's center.
+            //   3) Due to the tip start from the left edge of wrapper Tooltip so we have to remove the
+            //      horizontalShift which is added to adjust it into the Window
+            left: -horizontalShift + ((tooltipWidth / 2) - (POINTER_WIDTH / 2)),
         },
         pointerStyle: {
             width: 0,

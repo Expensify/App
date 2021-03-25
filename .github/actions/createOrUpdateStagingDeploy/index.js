@@ -481,6 +481,19 @@ class GithubUtils {
     }
 
     /**
+     * Generate the well-formatted body of a production release.
+     *
+     * @param {Array} pullRequests
+     * @returns {String}
+     */
+    static getReleaseBody(pullRequests) {
+        return _.map(
+            pullRequests,
+            number => `- ${this.getPullRequestURLFromNumber(number)}`,
+        ).join('\r\n');
+    }
+
+    /**
      * Generate the URL of an Expensify.cash pull request given the PR number.
      *
      * @param {Number} number

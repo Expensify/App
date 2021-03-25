@@ -30,7 +30,7 @@ const defaultProps = {
 };
 
 const ScreenWrapper = props => (
-    <SafeAreaInsetsContext.Consumer style={props.style}>
+    <SafeAreaInsetsContext.Consumer>
         {(insets) => {
             const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
             const paddingStyle = {};
@@ -44,11 +44,11 @@ const ScreenWrapper = props => (
             }
 
             return (
-                <View
-                    style={[
-                        styles.flex1,
-                        paddingStyle,
-                    ]}
+                <View style={_.union([
+                    props.style,
+                    styles.flex1,
+                    paddingStyle,
+                ])}
                 >
                     <HeaderGap />
                     {// If props.children is a function, call it to provide the insets to the children.

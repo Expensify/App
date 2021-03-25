@@ -1,6 +1,6 @@
 import moment from 'moment';
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -153,6 +153,102 @@ function getSimplifiedReportObject(report) {
 }
 
 /**
+ * Get a simplified version of an IOU report
+ *
+ * @param {Object} reportData
+ * @param {Number} reportData.transactionID
+ * @param {Number} reportData.amount
+ * @param {String} reportData.currency
+ * @param {String} reportData.created
+ * @param {String} reportData.comment
+ * @param {Object[]} reportData.transactionList
+ * @param {String} reportData.ownerEmail
+ * @param {String} reportData.managerEmail
+ * @param {Number} reportData.reportID
+ * @returns {Object}
+ */
+function getSimplifiedIOUReport(reportData) {
+    const transactions = _.map(reportData.transactionList, transaction => ({
+        transactionID: transaction.transactionID,
+        amount: transaction.amount,
+        currency: transaction.currency,
+        created: transaction.created,
+        comment: transaction.comment,
+    }));
+
+    return {
+        reportID: reportData.reportID,
+        ownerEmail: reportData.ownerEmail,
+        managerEmail: reportData.managerEmail,
+        currency: reportData.currency,
+        transactions,
+    };
+}
+
+/**
+ * Fetches the updated data for an IOU Report and updates the IOU collection in Onyx
+ *
+ * @param {Object} report
+ * @param {Object[]} report.reportActionList
+ * @param {Number} report.reportID
+ */
+function updateIOUReportData(report) {
+    const reportActionList = report.reportActionList || [];
+    const containsIOUAction = _.any(reportActionList,
+        reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
+
+    // If there aren't any IOU actions, we don't need to fetch any additional data
+    if (!containsIOUAction) {
+        return;
+    }
+
+    // If we don't have one participant (other than the current user), this is not an IOU
+    const participants = getParticipantEmailsFromReport(report);
+    if (participants.length !== 1) {
+        Log.alert('[Report] Report with IOU action has more than 2 participants', true, {
+            reportID: report.reportID,
+            participants,
+        });
+        return;
+    }
+
+    // Since the Chat and the IOU are different reports with different reportIDs, and GetIOUReport only returns the
+    // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`
+    let iouReportID = 0;
+    API.GetIOUReport({
+        debtorEmail: participants[0],
+    }).then((response) => {
+        iouReportID = response.reportID || 0;
+        if (response.jsonCode !== 200) {
+            throw new Error(response.message);
+        } else if (iouReportID === 0) {
+            throw new Error('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+        }
+
+        return API.Get({
+            returnValueList: 'reportStuff',
+            reportIDList: iouReportID,
+            shouldLoadOptionalKeys: true,
+            includePinnedReports: true,
+        });
+    }).then((response) => {
+        if (response.jsonCode !== 200) {
+            throw new Error(response.message);
+        }
+
+        const iouReportData = response.reports[iouReportID];
+        if (!iouReportData) {
+            throw new Error(`No iouReportData found for reportID ${iouReportID}`);
+        }
+
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+            getSimplifiedIOUReport(iouReportData));
+    }).catch((error) => {
+        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
+    });
+}
+
+/**
  * Fetches chat reports when provided a list of
  * chat report IDs
  *
@@ -178,7 +274,9 @@ function fetchChatReportsByIDs(chatList) {
             const simplifiedReports = {};
             _.each(fetchedReports, (report) => {
                 const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
-                simplifiedReports[key] = getSimplifiedReportObject(report);
+                const simplifiedReport = getSimplifiedReportObject(report);
+                simplifiedReports[key] = simplifiedReport;
+                updateIOUReportData(report);
             });
 
             // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
@@ -518,7 +616,7 @@ function fetchActions(reportID, offset) {
     return API.Report_GetHistory({
         reportID,
         reportActionsOffset,
-        reportActionsLimit: CONST.REPORT.REPORT_ACTIONS_LIMIT,
+        reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
     })
         .then((data) => {
             // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should
@@ -651,7 +749,7 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
-        reportComment: htmlForNewComment,
+        reportComment: commentText,
         file,
         clientID: optimisticReportActionID,
 
