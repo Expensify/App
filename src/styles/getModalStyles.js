@@ -3,7 +3,7 @@ import colors from './colors';
 import variables from './variables';
 import themeColors from './themes/default';
 
-export default (type, windowDimensions) => {
+export default (type, windowDimensions, popoverAnchorPosition = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
@@ -19,6 +19,36 @@ export default (type, windowDimensions) => {
     let shouldAddTopSafeAreaPadding = false;
 
     switch (type) {
+        case CONST.MODAL.MODAL_TYPE.CONFIRM:
+            // A confirm modal is one that has a visible backdrop
+            // and can be dismissed by clicking outside of the modal.
+            modalStyle = {
+                ...modalStyle,
+                ...{
+                    alignItems: 'center',
+                },
+            };
+            modalContainerStyle = {
+                // Shadow Styles
+                shadowColor: colors.black,
+                shadowOffset: {
+                    width: 0,
+                    height: 0,
+                },
+                shadowOpacity: 0.1,
+                shadowRadius: 5,
+
+                borderRadius: 12,
+                overflow: 'hidden',
+                width: variables.sideBarWidth,
+            };
+
+            // setting this to undefined we effectively disable the
+            // ability to swipe our modal
+            swipeDirection = undefined;
+            animationIn = 'fadeIn';
+            animationOut = 'fadeOut';
+            break;
         case CONST.MODAL.MODAL_TYPE.CENTERED:
             // A centered modal is one that has a visible backdrop
             // and can be dismissed by clicking outside of the modal.
@@ -83,20 +113,17 @@ export default (type, windowDimensions) => {
         case CONST.MODAL.MODAL_TYPE.POPOVER:
             modalStyle = {
                 ...modalStyle,
+                ...popoverAnchorPosition,
                 ...{
+                    position: 'absolute',
                     alignItems: 'center',
                     justifyContent: 'flex-end',
-                    marginRight: windowWidth - variables.sideBarWidth,
-                    marginBottom: 100,
                 },
             };
             modalContainerStyle = {
-                width: variables.sideBarWidth - 40,
                 borderRadius: 12,
                 borderWidth: 1,
                 borderColor: themeColors.border,
-                paddingTop: 12,
-                paddingBottom: 12,
                 justifyContent: 'center',
                 overflow: 'hidden',
                 boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',

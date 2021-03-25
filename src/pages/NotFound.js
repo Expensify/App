@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import styles from '../styles/styles';
 import logo from '../../assets/images/expensify-logo_reversed.png';
-import {redirect} from '../libs/actions/App';
+import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 
 const NotFound = () => (
@@ -27,7 +27,7 @@ const NotFound = () => (
                     <Text style={styles.notFoundTextBody}>The chat you are looking for cannot be found.</Text>
                 </View>
                 <TouchableOpacity
-                    onPress={() => redirect(ROUTES.HOME)}
+                    onPress={() => Navigation.navigate(ROUTES.HOME)}
                 >
                     <Text style={styles.notFoundButtonText}>Get me out of here</Text>
                 </TouchableOpacity>

@@ -1,11 +1,13 @@
 /* eslint-disable no-continue */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash.get';
-import lodashOrderBy from 'lodash.orderby';
+import lodashGet from 'lodash/get';
+import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
+import {getReportParticipantsTitle} from './reportUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -35,7 +37,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
             personalDetail = {
                 login,
                 displayName: login,
-                avatarURL: getDefaultAvatar(login),
+                avatar: getDefaultAvatar(login),
             };
         }
 
@@ -73,6 +75,7 @@ function getSearchText(report, personalDetailList) {
  * @param {Object} [report]
  * @param {Object} draftComments
  * @param {Number} activeReportID
+ * @param {Boolean} showChatPreviewLine
  * @returns {Object}
  */
 function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
@@ -80,6 +83,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
         && (report.reportID !== activeReportID)
+        && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
@@ -89,11 +93,14 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
             : '')
         + _.unescape(report.lastMessageText)
         : '';
+    const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
     return {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText) ? lastMessageText : personalDetail.login,
-        icons: report ? report.icons : [personalDetail.avatarURL],
+        icons: report ? report.icons : [personalDetail.avatar],
+        tooltipText,
+        participantsList: personalDetailList,
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
@@ -138,7 +145,7 @@ function isSearchStringMatch(searchValue, searchText) {
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Obejct} draftComments
+ * @param {Object} draftComments
  * @param {Number} activeReportID
  * @param {Object} options
  * @returns {Object}
@@ -155,34 +162,38 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     searchValue = '',
     showChatPreviewLine = false,
     showReportsWithNoComments = false,
+    hideReadReports = false,
+    sortByAlphaAsc = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const personalDetailsOptions = [];
 
     const reportMapForLogins = {};
-    const orderedReports = lodashOrderBy(reports, [
-        sortByLastMessageTimestamp
-            ? 'lastMessageTimestamp'
-            : 'lastVisitedTimestamp',
-    ], ['desc']);
+    let sortProperty = sortByLastMessageTimestamp
+        ? ['lastMessageTimestamp']
+        : ['lastVisitedTimestamp'];
+    if (sortByAlphaAsc) {
+        sortProperty = ['reportName'];
+    }
+    const sortDirection = [sortByAlphaAsc ? 'asc' : 'desc'];
+    const orderedReports = lodashOrderBy(reports, sortProperty, sortDirection);
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
         const logins = lodashGet(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
-        if (!report.reportID || _.isEmpty(logins)) {
+        if (!report || !report.reportID || _.isEmpty(logins)) {
             return;
         }
 
-        // Skip this entry if it has no comments and is not the active report. We will only show reports from
-        // people we have sent or recieved at least one message with.
-        const hasNoComments = report.lastMessageTimestamp === 0;
-        if (!showReportsWithNoComments && hasNoComments && report.reportID !== activeReportID) {
+        const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
+        const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
+        if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
             return;
         }
-
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
@@ -365,19 +376,50 @@ function getNewGroupOptions(
  * Build the options for the Sidebar a.k.a. LHN
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Obejct} draftComments
+ * @param {Object} draftComments
  * @param {Number} activeReportID
+ * @param {String} priorityMode
  * @returns {Object}
  */
-function getSidebarOptions(reports, personalDetails, draftComments, activeReportID) {
+function getSidebarOptions(reports, personalDetails, draftComments, activeReportID, priorityMode) {
+    let sideBarOptions = {
+        prioritizePinnedReports: true,
+    };
+    if (priorityMode === CONST.PRIORITY_MODE.GSD) {
+        sideBarOptions = {
+            hideReadReports: true,
+            sortByAlphaAsc: true,
+        };
+    }
+
     return getOptions(reports, personalDetails, draftComments, activeReportID, {
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: true,
         sortByLastMessageTimestamp: true,
         showChatPreviewLine: true,
+        ...sideBarOptions,
     });
+}
+
+/**
+ * Helper method that returns the text to be used for the header's message and title (if any)
+ *
+ * @param {Boolean} hasSelectableOptions
+ * @param {Boolean} hasUserToInvite
+ * @param {Boolean} [maxParticipantsReached]
+ * @return {String}
+ */
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, maxParticipantsReached = false) {
+    if (maxParticipantsReached) {
+        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
+    }
+
+    if (!hasSelectableOptions && !hasUserToInvite) {
+        return CONST.MESSAGES.NO_CONTACTS_FOUND;
+    }
+
+    return '';
 }
 
 export {
@@ -385,4 +427,6 @@ export {
     getNewChatOptions,
     getNewGroupOptions,
     getSidebarOptions,
+    getHeaderMessage,
+    getPersonalDetailsForLogins,
 };

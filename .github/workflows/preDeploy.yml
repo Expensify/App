@@ -1,0 +1,172 @@
+name: Process new code merged to master
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  chooseDeployActions:
+    runs-on: ubuntu-latest
+    outputs:
+      mergedPullRequest: ${{ steps.getMergedPullRequest.outputs.number }}
+      isStagingDeployLocked: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
+      isVersionBumpPR: ${{ steps.isVersionBumpPR.outputs.IS_VERSION_BUMP_PR }}
+
+    steps:
+      # Version: 2.3.4
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if StagingDeployCash is locked
+        id: isStagingDeployLocked
+        uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Check if merged pull request was an automatic version bump PR
+        id: isVersionBumpPR
+        run: echo "::set-output name=IS_VERSION_BUMP_PR::${{ contains(steps.getMergedPullRequest.outputs.labels, 'automerge') && github.actor == 'OSBotify' }}"
+
+  skipDeploy:
+    runs-on: ubuntu-latest
+    needs: chooseDeployActions
+    if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.isVersionBumpPR == 'false' }}
+
+    steps:
+      - name: Comment on deferred PR
+        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
+        with:
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          number: ${{ needs.chooseDeployActions.outputs.mergedPullRequest }}
+          body: |
+            :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
+
+  version:
+    runs-on: macos-latest
+    needs: chooseDeployActions
+    if: ${{ needs.chooseDeployActions.outputs.isVersionBumpPR == 'false' }}
+    outputs:
+      newVersion: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
+
+    steps:
+      # Version: 2.3.4
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up git
+        run: |
+          git fetch
+          git checkout master
+          git config user.name OSBotify
+
+      - name: Create new branch
+        run: |
+          git checkout -b version-bump-${{ github.sha }}
+          git push --set-upstream origin version-bump-${{ github.sha }}
+
+      - name: Generate version
+        id: bumpVersion
+        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Commit new version
+        run: |
+          git add \
+            ./package.json \
+            ./package-lock.json \
+            ./android/app/build.gradle \
+            ./ios/ExpensifyCash/Info.plist \
+            ./ios/ExpensifyCashTests/Info.plist
+          git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+
+      - name: Create Pull Request (master)
+        uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
+        with:
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          author: OSBotify <reactnative@expensify.com>
+          base: master
+          branch: version-bump-${{ github.sha }}
+          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on master
+          body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
+          labels: automerge
+
+      - name: Tag version
+        run: git tag ${{ steps.bumpVersion.outputs.NEW_VERSION }}
+
+      #TODO: Once we add cherry picking, we will need run this from elsewhere
+      - name: 🚀 Push tags to trigger staging deploy 🚀
+        if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' }}
+        run: git push --tags
+
+      - name: Update StagingDeployCash
+        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          NPM_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
+          NEW_PULL_REQUESTS: https://github.com/Expensify/Expensify.cash/pull/${{ needs.chooseDeployActions.outputs.mergedPullRequest }}
+
+      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+      # the other workflows with the same change
+      - uses: 8398a7/action-slack@v3
+        name: Job failed Slack notification
+        if: ${{ failure() }}
+        with:
+          status: custom
+          fields: workflow, repo
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!here>`,
+                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  updateStaging:
+    runs-on: ubuntu-latest
+    needs: chooseDeployActions
+    if: ${{ needs.chooseDeployActions.outputs.isVersionBumpPR == 'true' && needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' }}
+
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Checkout master branch
+        run: git checkout master
+
+      - name: Set Staging Version
+        run: echo "STAGING_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+
+      - name: Create Pull Request (staging)
+        # Version: 2.4.3
+        uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
+        with:
+          source_branch: master
+          destination_branch: staging
+          pr_label: automerge
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          pr_title: Update version to ${{ env.STAGING_VERSION }} on staging
+          pr_body: Update version to ${{ env.STAGING_VERSION }}

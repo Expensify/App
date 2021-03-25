@@ -10,7 +10,8 @@ jobs:
     CLA:
         runs-on: ubuntu-latest
         # This job only runs for pull request comments or pull request target events (not issue comments)
-        if: github.event.issue.pull_request || github.event_name == 'pull_request_target'
+        # It does not run for pull requests created by OSBotify
+        if: ${{ github.event.issue.pull_request || (github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'OSBotify') }}
         steps:
             - uses: actions-ecosystem/action-regex-match@9c35fe9ac1840239939c59e5db8839422eed8a73
               id: sign
@@ -24,8 +25,8 @@ jobs:
                 regex: '\s*recheck\s*'
             - name: CLA Assistant
               if: ${{ steps.recheck.outputs.match != '' || steps.sign.outputs.match != '' }} || github.event_name == 'pull_request_target'
-              # Version: 2.0.3-alpha
-              uses: cla-assistant/github-action@50267bf6156835b55d5f7b74d0da0cf0bf26cfe5
+              # Version: 2.1.2-beta
+              uses: cla-assistant/github-action@948230deb0d44dd38957592f08c6bd934d96d0cf
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   PERSONAL_ACCESS_TOKEN : ${{ secrets.CLA_BOTIFY_TOKEN }}
@@ -35,4 +36,5 @@ jobs:
                   branch: 'master'
                   remote-organization-name: 'Expensify'
                   remote-repository-name: 'CLA'
-                  allowlist: botify
+                  lock-pullrequest-aftermerge: false
+                  allowlist: OSBotify

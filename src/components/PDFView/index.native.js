@@ -36,7 +36,7 @@ const PDFView = props => (
                 styles.imageModalPDF,
                 {
                     width: props.windowWidth,
-                    height: props.windwoHeight,
+                    height: props.windowHeight,
                 },
             ]}
         />
