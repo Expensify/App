@@ -1185,6 +1185,10 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
     }, 0),
+
+    noScrollbars: {
+        scrollbarWidth: 'none',
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1322,6 +1326,27 @@ function getNavigationModalCardStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * @param {Boolean} isZoomed
+ * @return {Object}
+ */
+function getZoomCursorStyle(isZoomed) {
+    return {
+        cursor: isZoomed ? 'zoom-out' : 'zoom-in',
+    };
+}
+
+/**
+ * @param {Boolean} isZoomed
+ * @return {Object}
+ */
+function getZoomSizingStyle(isZoomed) {
+    return {
+        height: isZoomed ? '200%' : '100%',
+        width: isZoomed ? '200%' : '100%',
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1330,4 +1355,6 @@ export {
     getNavigationDrawerStyle,
     getNavigationDrawerType,
     getNavigationModalCardStyle,
+    getZoomCursorStyle,
+    getZoomSizingStyle,
 };
