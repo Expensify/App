@@ -583,12 +583,12 @@ function User_SecondaryLogin_Send(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.base64image
+ * @param {File|Object} parameters.file
  * @returns {Promise}
  */
 function User_UploadAvatar(parameters) {
     const commandName = 'User_UploadAvatar';
-    requireParameters(['base64image'], parameters, commandName);
+    requireParameters(['file'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -605,7 +605,6 @@ function SetNameValuePair(parameters) {
 }
 
 /**
- *
  * @param {Object} parameters
  * @param {String[]} data
  * @returns {Promise}
@@ -621,6 +620,17 @@ function Mobile_GetConstants(parameters) {
     return Network.post(commandName, finalParameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.debtorEmail
+ * @returns {Promise}
+ */
+function GetIOUReport(parameters) {
+    const commandName = 'GetIOUReport';
+    requireParameters(['debtorEmail'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -630,6 +640,7 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
+    GetIOUReport,
     GetRequestCountryCode,
     Graphite_Timer,
     Log,

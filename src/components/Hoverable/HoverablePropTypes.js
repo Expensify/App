@@ -7,6 +7,10 @@ const propTypes = {
         PropTypes.func,
     ]).isRequired,
 
+    // Styles to be assigned to the Hoverable Container
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyle: PropTypes.object,
+
     // Function that executes when the mouse moves over the children.
     onHoverIn: PropTypes.func,
 
@@ -15,6 +19,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    containerStyle: {},
     onHoverIn: () => {},
     onHoverOut: () => {},
 };
