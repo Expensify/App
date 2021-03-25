@@ -7,21 +7,6 @@ import propTypes from './propTypes';
  * a callback. This is the web/mWeb/desktop version since
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
- *
- * @example
- * <AttachmentPicker>
- * {({openPicker}) => (
- *     <Button
- *         onPress={() => {
- *             openPicker({
- *                 onPicked: (file) => {
- *                     // Display or upload File
- *                 },
- *             });
- *         }}
- *     />
- * )}
- * </AttachmentPicker>
  */
 class AttachmentPicker extends React.Component {
     render() {
