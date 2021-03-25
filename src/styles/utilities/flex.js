@@ -48,6 +48,10 @@ export default {
         alignItems: 'center',
     },
 
+    alignItemsEnd: {
+        alignItems: 'flex-end',
+    },
+
     flexWrap: {
         flexWrap: 'wrap',
     },

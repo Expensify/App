@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
@@ -80,8 +80,12 @@ class ReportActionCompose extends React.Component {
             this.comment = this.props.comment;
         }
 
-        // When any modal goes from visible to hidden, bring focus to the compose field only when the screen is focused.
-        if (this.props.isScreenFocused && prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        // When any modal goes from visible to hidden or when the report ID changes,
+        // bring focus to the compose field only when the screen is focused.
+        if (this.props.isScreenFocused && (
+            (prevProps.modal.isVisible && !this.props.modal.isVisible)
+            || (prevProps.reportID !== this.props.reportID)
+        )) {
             this.setIsFocused(true);
         }
     }
@@ -238,17 +242,17 @@ class ReportActionCompose extends React.Component {
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 menuOptions={[CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
 
-                                                /**
-                                                 * Temporarily hiding IOU Modal options while Modal is incomplete. Will
-                                                 * be replaced by a beta flag once IOUConfirm is completed.
-                                                menuOptions={hasMultipleParticipants
-                                                    ? [
-                                                        CONST.MENU_ITEM_KEYS.SPLIT_BILL,
-                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
-                                                    : [
-                                                        CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
-                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
-                                                */
+                                            /**
+                                             * Temporarily hiding IOU Modal options while Modal is incomplete. Will
+                                             * be replaced by a beta flag once IOUConfirm is completed.
+                                            menuOptions={hasMultipleParticipants
+                                                ? [
+                                                    CONST.MENU_ITEM_KEYS.SPLIT_BILL,
+                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
+                                                : [
+                                                    CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+                                            */
                                             />
                                         </>
                                     )}

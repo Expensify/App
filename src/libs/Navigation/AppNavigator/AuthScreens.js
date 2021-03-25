@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {createStackNavigator} from '@react-navigation/stack';
-
 import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -25,6 +23,8 @@ import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import NameValuePair from '../../actions/NameValuePair';
+import modalCardStyleInterpolator from './modalCardStyleInterpolator';
+import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -40,7 +40,7 @@ import {
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
 
-const RootStack = createStackNavigator();
+const RootStack = createCustomModalStackNavigator();
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
@@ -116,8 +116,14 @@ class AuthScreens extends React.Component {
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-        };
+            cardStyleInterpolator: modalCardStyleInterpolator,
+            animationEnabled: true,
+            gestureDirection: 'horizontal',
 
+            // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
+            // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
+            isModal: true,
+        };
         return (
             <RootStack.Navigator
                 mode="modal"
