@@ -97,10 +97,8 @@ function getDataForUpload(fileData) {
 /**
  * This component renders a function as a child and
  * returns a "show attachment picker" method that takes
- * a callback. This is the web/mWeb/desktop version since
- * on iOS Safari we must append a hidden input to the DOM
- * and listen to onChange event. When the show method is
- * called an attachment
+ * a callback. This is the ios/android implementation
+ * opening a modal with attachment options
  *
  * @example
  * <AttachmentPicker>
