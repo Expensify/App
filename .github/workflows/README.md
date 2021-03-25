@@ -18,7 +18,7 @@
 
 ## Secrets
 The GitHub workflows require a large list of secrets to deploy, notify and test the code:
-1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository:
+1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository. To create updated versions of these encrypted files, refer to steps 1-4 of [this encrypted secrets help page](https://docs.github.com/en/actions/reference/encrypted-secrets#limits-for-secrets) using the `LARGE_SECRET_PASSPHRASE`.
    1. `android/app/my-upload-key.keystore.gpg`
    2. `android/app/android-fastlane-json-key.json.gpg`
    3. `ios/chat_expensify_appstore.mobileprovision`
@@ -37,6 +37,8 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 13. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 14. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
 15. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
+
+## Updating 
 
 ## Actions
 
