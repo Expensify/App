@@ -44,26 +44,6 @@ function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
     const date = getLocalMomentFromTimestamp(locale, timestamp);
     const TZ = '[UTC]Z';
 
-    moment.calendarFormat = function (myMoment, now) {
-        const diff = myMoment.diff(now, 'days', true);
-
-        let retVal = 'sameElse';
-
-        if (diff < -1) {
-            retVal = 'lastWeek';
-        } else if (diff < 0) {
-            retVal = 'lastDay';
-        } else if (diff < 1) {
-            retVal = 'sameDay';
-        } else if (diff < 2) {
-            retVal = 'nextDay';
-        } else if (diff < 7) {
-            retVal = 'nextWeek';
-        }
-
-        return retVal;
-    };
-
     if (includeTimeZone) {
         return moment(date).calendar({
             sameDay: `[Today at] LT ${TZ}`,
