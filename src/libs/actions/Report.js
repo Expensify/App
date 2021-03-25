@@ -275,13 +275,17 @@ function fetchChatReportsByIDs(chatList) {
             // personal details of all the participants and even link up their avatars to report icons.
             const reportIOUData = {};
             _.each(fetchedReports, (report, index) => {
-                const iouReportData = data[index] || {state: 1, cachedTotal: 0};
+                const iouReportData = data[index];
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
                 const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.reportID}`;
                 const simplifiedReport = getSimplifiedReportObject(report);
-                simplifiedReport.hasOutstandingIOU = iouReportData.state !== 1 && iouReportData.cachedTotal !== 0;
+
+                if (iouReportData) {
+                    reportIOUData[iouReportKey] = iouReportData;
+                    simplifiedReport.hasOutstandingIOU = iouReportData.state !== 1 && iouReportData.cachedTotal !== 0;
+                }
+
                 simplifiedReports[reportKey] = simplifiedReport;
-                reportIOUData[iouReportKey] = iouReportData;
             });
 
             // We use mergeCollection such that it updates the collection in one go.
