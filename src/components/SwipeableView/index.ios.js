@@ -14,7 +14,7 @@ class SwipeableView extends PureComponent {
         super(props);
         this.panResponder = PanResponder.create({
 
-            // The PanResponder gets focus only when the y-axis movement is over 10 pixels
+            // The PanResponder gets focus only when the y-axis movement is over 3 pixels
             onMoveShouldSetPanResponderCapture:
             (_, gestureState) => gestureState.dy > 3,
 
