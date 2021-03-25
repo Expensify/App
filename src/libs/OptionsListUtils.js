@@ -1,12 +1,13 @@
 /* eslint-disable no-continue */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash.get';
-import lodashOrderBy from 'lodash.orderby';
+import lodashGet from 'lodash/get';
+import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import {getReportParticipantsTitle} from './reportUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -92,11 +93,14 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
             : '')
         + _.unescape(report.lastMessageText)
         : '';
+    const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
     return {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText) ? lastMessageText : personalDetail.login,
         icons: report ? report.icons : [personalDetail.avatar],
+        tooltipText,
+        participantsList: personalDetailList,
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
@@ -424,4 +428,5 @@ export {
     getNewGroupOptions,
     getSidebarOptions,
     getHeaderMessage,
+    getPersonalDetailsForLogins,
 };

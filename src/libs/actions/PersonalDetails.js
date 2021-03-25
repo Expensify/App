@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -88,6 +88,7 @@ function formatPersonalDetails(personalDetailsList) {
         const avatar = getAvatar(personalDetailsResponse, login);
         const displayName = getDisplayName(login, personalDetailsResponse);
         const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
+        const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
 
         return {
             ...finalObject,
@@ -96,24 +97,10 @@ function formatPersonalDetails(personalDetailsList) {
                 avatar,
                 displayName,
                 pronouns,
+                timezone,
             },
         };
     }, {});
-}
-
-/**
- * Get the timezone of the logged in user
- */
-function fetchTimezone() {
-    API.Get({
-        returnValueList: 'nameValuePairs',
-        name: 'timeZone',
-    })
-        .then((response) => {
-            const timezone = lodashGet(response.nameValuePairs, [CONST.NVP.TIMEZONE], CONST.DEFAULT_TIME_ZONE);
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
-        })
-        .catch(error => console.debug('Error fetching user timezone', error));
 }
 
 /**
@@ -124,11 +111,16 @@ function fetch() {
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
-            const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
+            let myPersonalDetails = {};
+
+            // If personalDetailsList is empty, ensure we set the personal details for the current user
+            const personalDetailsList = _.isEmpty(data.personalDetailsList)
+                ? {[currentUserEmail]: myPersonalDetails}
+                : data.personalDetailsList;
+            const allPersonalDetails = formatPersonalDetails(personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
-            const myPersonalDetails = allPersonalDetails[currentUserEmail]
-                || {avatar: getAvatar(undefined, currentUserEmail)};
+            myPersonalDetails = allPersonalDetails[currentUserEmail];
 
             // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
             myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
@@ -224,10 +216,10 @@ function setPersonalDetails(details) {
 /**
  * Sets the user's avatar image
  *
- * @param {String} base64image
+ * @param {File|Object} file
  */
-function setAvatar(base64image) {
-    API.User_UploadAvatar({base64image}).then((response) => {
+function setAvatar(file) {
+    API.User_UploadAvatar({file}).then((response) => {
         // Once we get the s3url back, update the personal details for the user with the new avatar URL
         if (response.jsonCode === 200) {
             setPersonalDetails({avatar: response.s3url});
@@ -240,7 +232,6 @@ NetworkConnection.onReconnect(fetch);
 
 export {
     fetch,
-    fetchTimezone,
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,

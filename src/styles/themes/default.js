@@ -34,4 +34,5 @@ export default {
     buttonHoveredBG: colors.gray1,
     spinner: colors.gray4,
     unreadIndicator: colors.green,
+    placeholderText: colors.gray3,
 };
