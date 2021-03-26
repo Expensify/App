@@ -139,7 +139,7 @@ const OptionRow = ({
                         </View>
                     </View>
                     {!hideAdditionalOptionStates && (
-                        <View style={[styles.flexRow, styles.pr5, styles.justifyContentCenter]}>
+                        <View style={[styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pencil} />
