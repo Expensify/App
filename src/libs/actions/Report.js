@@ -367,7 +367,7 @@ function removeOptimisticActions(reportID) {
 function updateReportWithNewAction(reportID, reportAction) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
-    const lastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
+    const initialLastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
 
     // When handling an action from the current users we can assume that their
     // last read actionID has been updated in the server but not necessarily reflected
@@ -383,13 +383,15 @@ function updateReportWithNewAction(reportID, reportAction) {
     // by handleReportChanged
     const updatedReportObject = {
         reportID,
-        unreadActionCount: newMaxSequenceNumber - lastReadSequenceNumber,
+
+        // Use updated lastReadSequenceNumber, value may have been modified by setLocalLastRead
+        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
     };
 
     // If the report action from pusher is a higher sequence number than we know about (meaning it has come from
     // a chat participant in another application), then the last message text and author needs to be updated as well
-    if (newMaxSequenceNumber > lastReadSequenceNumber) {
+    if (newMaxSequenceNumber > initialLastReadSequenceNumber) {
         updatedReportObject.lastMessageTimestamp = reportAction.timestamp;
         updatedReportObject.lastMessageText = messageText;
         updatedReportObject.lastActorEmail = reportAction.actorEmail;
