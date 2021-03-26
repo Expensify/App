@@ -225,27 +225,25 @@ const styles = {
         },
     },
 
-    pill: {
+    badge: {
+        backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
-        backgroundColor: themeColors.pillBG,
-        height: 20,
+        height: 26,
         flexDirection: 'row',
-        paddingLeft: 7,
-        paddingRight: 7,
+        paddingHorizontal: 8,
         alignItems: 'center',
     },
 
-    pillText: {
+    badgeSuccess: {
+        backgroundColor: themeColors.badgeSuccessBG,
+    },
+
+    badgeText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         userSelect: 'none',
         ...whiteSpace.noWrap,
-    },
-
-    pillCancelIcon: {
-        width: 12,
-        height: 12,
     },
 
     headerText: {
