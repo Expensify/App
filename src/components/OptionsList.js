@@ -190,7 +190,9 @@ class OptionsList extends Component {
 
     render() {
         return (
-            <View style={[styles.flex1]}>
+
+            // need to set a height (0 works in this case) so that the view will scroll on mobile
+            <View style={[styles.flex1, {height: 0}]}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>
