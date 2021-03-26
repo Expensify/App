@@ -45,6 +45,9 @@ const propTypes = {
 
     // Whether to show the title tooltip
     showTitleTooltip: PropTypes.bool,
+
+    // Toggle between compact and default view
+    mode: PropTypes.oneOf(['compact', 'default']),
 };
 
 const defaultProps = {
@@ -54,6 +57,7 @@ const defaultProps = {
     isSelected: false,
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
+    mode: 'default',
 };
 
 const OptionRow = ({
@@ -66,12 +70,36 @@ const OptionRow = ({
     isSelected,
     forceTextUnreadStyle,
     showTitleTooltip,
+    mode,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
     const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
+    const displayNameStyle = mode === 'compact'
+        ? [styles.optionDisplayName, textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
+        : [styles.optionDisplayName, textUnreadStyle];
+    const alternateTextStyle = mode === 'compact'
+        ? [textStyle, styles.optionAlternateText, styles.optionAlternateTextCompact]
+        : [textStyle, styles.optionAlternateText, styles.mt1];
+    const contentContainerStyles = mode === 'compact'
+        ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
+        : [styles.flex1];
+    const sidebarInnerRowStyle = StyleSheet.flatten(mode === 'compact' ? [
+        styles.chatLinkRowPressable,
+        styles.flexGrow1,
+        styles.optionItemAvatarNameWrapper,
+        styles.sidebarInnerRowSmall,
+        styles.justifyContentCenter,
+    ] : [
+        styles.chatLinkRowPressable,
+        styles.flexGrow1,
+        styles.optionItemAvatarNameWrapper,
+        styles.sidebarInnerRow,
+        styles.justifyContentCenter,
+    ]);
+
     return (
         <Hoverable>
             {hovered => (
@@ -88,14 +116,7 @@ const OptionRow = ({
                         hovered && !optionIsFocused ? hoverStyle : null,
                     ]}
                 >
-                    <View
-                        style={StyleSheet.flatten([
-                            styles.chatLinkRowPressable,
-                            styles.flexGrow1,
-                            styles.optionItemAvatarNameWrapper,
-                            styles.sidebarInnerRow,
-                        ])}
-                    >
+                    <View style={sidebarInnerRowStyle}>
                         <View
                             style={[
                                 styles.flexRow,
@@ -108,21 +129,28 @@ const OptionRow = ({
                                     <MultipleAvatars
                                         avatarImageURLs={option.icons}
                                         optionIsFocused={optionIsFocused}
+                                        size={mode === 'compact' ? 'small' : 'default'}
+                                        styles={hovered && !optionIsFocused && {
+                                            secondAvatar: {
+                                                backgroundColor: themeColors.sidebarHover,
+                                                borderColor: themeColors.sidebarHover,
+                                            },
+                                        }}
                                     />
                                 )
                             }
-                            <View style={[styles.flex1]}>
+                            <View style={contentContainerStyles}>
                                 <OptionRowTitle
                                     option={option}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
-                                    style={[styles.optionDisplayName, textUnreadStyle]}
+                                    style={displayNameStyle}
                                     reportID={option.reportID}
                                 />
 
                                 {option.alternateText ? (
                                     <Text
-                                        style={[textStyle, styles.optionAlternateText, styles.mt1]}
+                                        style={alternateTextStyle}
                                         numberOfLines={1}
                                     >
                                         {option.alternateText}
@@ -172,6 +200,10 @@ export default memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (prevProps.isSelected !== nextProps.isSelected) {
+        return false;
+    }
+
+    if (prevProps.mode !== nextProps.mode) {
         return false;
     }
 
