@@ -42,11 +42,15 @@ const documentPickerOptions = {
 function showDocumentPicker() {
     return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
         if (!RNDocumentPicker.isCancel(error)) {
+            // Todo: alert the user that interaction failed for some reason
             throw error;
         }
     });
 }
 
+/**
+ * Inform the users when they need to grant camera access and guide them to settings
+ */
 function showPermissionsAlert() {
     Alert.alert(
         'ExpensifyCash does not have access to your camera. To enable access, tap Settings and turn on Camera.',
@@ -65,6 +69,11 @@ function showPermissionsAlert() {
     );
 }
 
+/**
+ * A generic handling when we don't know the exact reason for an error
+ *
+ * @param {String} message
+ */
 function showGeneralAlert(message) {
     Alert.alert(
         'An error is preventing us to use handle the attachment',
@@ -145,12 +154,20 @@ class AttachmentPicker extends Component {
         this.onModalHide = this.onModalHide.bind(this);
     }
 
+    /**
+     * After the modal closes, if an attachment was selected delegate it to the `onPicked` callback
+     */
     onModalHide() {
         if (this.state.result) {
             this.state.onPicked(this.state.result);
         }
     }
 
+    /**
+     * Store the selected attachment mapped to an appropriate file interface
+     *
+     * @param {ImagePickerResponse|DocumentPickerResponse} result
+     */
     setResult(result) {
         if (result && !result.didCancel && !result.error) {
             this.setState({result: getDataForUpload(result)});
@@ -167,6 +184,11 @@ class AttachmentPicker extends Component {
         this.setState({isVisible: false});
     }
 
+    /**
+     * Call the `children` renderProp with the interface defined in propTypes
+     *
+     * @returns {React.ReactNode}
+     */
     renderChildren() {
         return this.props.children({
             openPicker: ({onPicked}) => this.open(onPicked),
