@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {Image, Text, View} from 'react-native';
-import globalStyles from '../styles/styles';
+import styles from '../styles/styles';
 import Avatar from './Avatar';
 
 const propTypes = {
@@ -14,42 +14,28 @@ const propTypes = {
     // Set the sie of avatars
     size: PropTypes.oneOf(['default', 'small']),
 
-    // Styles to override the basic component styles
-    styles: PropTypes.shape({
-        // Style for First Avatar on Multiple Avatars
-        // eslint-disable-next-line react/forbid-prop-types
-        singleAvatar: PropTypes.object,
+    // Style for Second Avatar on Multiple Avatars
+    // eslint-disable-next-line react/forbid-prop-types
+    secondAvatarStyle: PropTypes.object,
 
-        // Style for Second Avatar on Multiple Avatars
-        // eslint-disable-next-line react/forbid-prop-types
-        secondAvatar: PropTypes.object,
-
-        // Style for avatar Container
-        // eslint-disable-next-line react/forbid-prop-types
-        emptyAvatar: PropTypes.object,
-    }),
 };
 
 const defaultProps = {
     avatarImageURLs: [],
     optionIsFocused: false,
     size: 'default',
-    styles: {},
+    secondAvatarStyle: {},
 };
 
 const MultipleAvatars = ({
-    avatarImageURLs, optionIsFocused, size, styles,
+    avatarImageURLs, optionIsFocused, size, secondAvatarStyle,
 }) => {
-    const avatarContainerStyles = [
-        size === 'small' ? globalStyles.emptyAvatarSmall : globalStyles.emptyAvatar, styles.emptyAvatar,
-    ];
-    const singleAvatarStyles = [
-        size === 'small' ? globalStyles.singleAvatarSmall : globalStyles.singleAvatar, styles.singleAvatar,
-    ];
+    const avatarContainerStyles = size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
+    const singleAvatarStyles = size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [
-        size === 'small' ? globalStyles.secondAvatarSmall : globalStyles.secondAvatar,
-        optionIsFocused ? globalStyles.focusedAvatar : globalStyles.avatar,
-        styles.secondAvatar,
+        size === 'small' ? styles.secondAvatarSmall : styles.secondAvatar,
+        optionIsFocused ? styles.focusedAvatar : styles.avatar,
+        secondAvatarStyle,
     ];
 
     if (!avatarImageURLs.length) {
@@ -86,8 +72,8 @@ const MultipleAvatars = ({
                             style={singleAvatarStyles}
                         >
                             <Text style={size === 'small'
-                                ? globalStyles.avatarInnerTextSmall
-                                : globalStyles.avatarInnerText}
+                                ? styles.avatarInnerTextSmall
+                                : styles.avatarInnerText}
                             >
                                 {`+${avatarImageURLs.length - 1}`}
                             </Text>
