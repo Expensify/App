@@ -1,6 +1,10 @@
-import React from 'react';
+import React, {Component} from 'react';
 import {
-    Image, SafeAreaView, Text, TextInput, View,
+    Image,
+    SafeAreaView,
+    Text,
+    TextInput,
+    View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -52,7 +56,7 @@ const defaultProps = {
     },
 };
 
-class SetPasswordPage extends React.Component {
+class SetPasswordPage extends Component {
     constructor(props) {
         super(props);
         this.submitForm = this.submitForm.bind(this);
