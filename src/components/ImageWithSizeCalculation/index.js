@@ -66,10 +66,6 @@ class ImageWithSizeCalculation extends PureComponent {
         });
     }
 
-    doStuff(width, height) {
-        this.props.onMeasure({width, height});
-    }
-
     render() {
         return (
             <Image
