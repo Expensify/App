@@ -59,7 +59,7 @@ const CONST = {
     },
     MESSAGES: {
         // eslint-disable-next-line max-len
-        NO_CONTACTS_FOUND: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
+        NO_PHONE_NUMBER: 'Please enter a phone number including the country code e.g +447814266907',
         MAXIMUM_PARTICIPANTS_REACHED: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     PRIORITY_MODE: {
@@ -81,7 +81,7 @@ const CONST = {
         PRIORITY_MODE: 'priorityMode',
         TIMEZONE: 'timeZone',
     },
-    DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
+    DEFAULT_TIME_ZONE: { automatic: true, selected: 'America/Los_Angeles' },
     PRONOUNS: {
         THEY_THEM_THEIRS: 'They/them/theirs',
         SHE_HER_HERS: 'She/her/hers',
