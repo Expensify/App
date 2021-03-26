@@ -279,6 +279,21 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Checks whether given sequence number belongs to the most recent IOU Report
+     *
+     * @param {Number} actionSequenceNumber
+     * @returns {Boolean}
+     */
+    isMostRecentIOUReport(actionSequenceNumber) {
+        const mostRecentIOUReportSequenceNumber = _.chain(this.props.reportActions)
+            .sortBy('sequenceNumber')
+            .filter(action => action.actionName === 'IOU')
+            .max(action => action.sequenceNumber)
+            .value().sequenceNumber;
+        return actionSequenceNumber === mostRecentIOUReportSequenceNumber;
+    }
+
+    /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
      * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
@@ -344,6 +359,7 @@ class ReportActionsView extends React.Component {
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
                     needsLayoutCalculation={needsLayoutCalculation}
+                    isMostRecentIOUReport={this.isMostRecentIOUReport(item.action.sequenceNumber)}
                 />
             </View>
         );
