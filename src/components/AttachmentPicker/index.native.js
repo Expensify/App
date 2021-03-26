@@ -9,7 +9,7 @@ import basePropTypes from './propTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
-import {Paperclip} from '../Icon/Expensicons';
+import {Camera, Gallery, Paperclip} from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
@@ -133,12 +133,12 @@ class AttachmentPicker extends Component {
 
         this.menuItemData = [
             {
-                icon: Paperclip,
+                icon: Camera,
                 text: 'Take Photo',
                 pickAttachment: () => showImagePicker(RNImagePicker.launchCamera),
             },
             {
-                icon: Paperclip,
+                icon: Gallery,
                 text: 'Choose from Gallery',
                 pickAttachment: () => showImagePicker(RNImagePicker.launchImageLibrary),
             },
