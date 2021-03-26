@@ -175,8 +175,12 @@ class AttachmentPicker extends Component {
     }
 
     open(onPicked) {
-        // Todo: perhaps we want some error handling here if onPicked is missing
-        // As this is not a prop it won't be caught by prop types
+        if (typeof onPicked !== 'function') {
+            throw new Error(
+                `Invalid onPicked parameter. Check the children passed to: ${AttachmentPicker.displayName}`,
+            );
+        }
+
         this.setState({isVisible: true, onPicked, result: null});
     }
 
