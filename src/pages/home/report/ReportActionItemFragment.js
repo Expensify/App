@@ -19,6 +19,9 @@ const propTypes = {
     // Is this fragment an attachment?
     isAttachment: PropTypes.bool,
 
+    // Type of the current action
+    actionName: PropTypes.string,
+
     // Does this fragment belong to a reportAction that has not yet loaded?
     loading: PropTypes.bool,
 };
@@ -27,6 +30,7 @@ const defaultProps = {
     isAttachment: false,
     loading: false,
     tooltipText: '',
+    actionName: '',
 };
 
 class ReportActionItemFragment extends React.PureComponent {
@@ -54,6 +58,13 @@ class ReportActionItemFragment extends React.PureComponent {
                     <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
                 );
             case 'TEXT':
+                if (this.props.actionName === 'IOU') {
+                    const viewDetails = '<br /><a href="#" style="text-decoration:none;">View Details</a>';
+                    const html = `<blockquote>${fragment.text}${viewDetails}</blockquote>`;
+                    return (
+                        <RenderHTML html={html} debug={false} />
+                    );
+                }
                 return (
                     <Tooltip text={tooltipText}>
                         <Text
