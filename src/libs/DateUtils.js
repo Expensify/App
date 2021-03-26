@@ -1,5 +1,6 @@
 import moment from 'moment';
 import 'moment-timezone';
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
