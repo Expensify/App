@@ -191,8 +191,7 @@ class OptionsList extends Component {
     render() {
         return (
 
-            // need to set a height (0 works in this case) so that the view will scroll on mobile
-            <View style={[styles.flex1, {height: 0}]}>
+            <View style={[styles.flex1]}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>
@@ -214,6 +213,7 @@ class OptionsList extends Component {
                     renderItem={this.renderItem}
                     renderSectionHeader={this.renderSectionHeader}
                     extraData={this.props.focusedIndex}
+                    style={[styles.flex1]}
                 />
             </View>
         );
