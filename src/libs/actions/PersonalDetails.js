@@ -170,7 +170,7 @@ function getFromReportParticipants(reports) {
                 if (report.participants.length > 0) {
                     const avatars = _.map(report.participants, dmParticipant => ({
                         firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
-                        avatar: lodashGet(details, [dmParticipant, 'avatarThumbnail'], ''),
+                        avatar: lodashGet(details, [dmParticipant, 'avatarThumbnail'], '') ||  getDefaultAvatar(dmParticipant),
                     }))
                         .sort((first, second) => first.firstName - second.firstName)
                         .map(item => item.avatar);
