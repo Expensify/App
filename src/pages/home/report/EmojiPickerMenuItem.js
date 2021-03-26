@@ -1,4 +1,3 @@
-import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {TouchableOpacity, Text} from 'react-native';
 import styles from '../../../styles/styles';
