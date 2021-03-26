@@ -281,10 +281,10 @@ class ReportActionsView extends React.Component {
     /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
      * items have been rendered. If the number of actions has changed since it was last rendered, then
-     * scroll the list to the end.
+     * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
     scrollToListBottom() {
-        if (this.actionListElement) {
+        if (this.actionListElement && this.actionListElement.data) {
             this.actionListElement.scrollToIndex({animated: false, index: 0});
         }
         this.recordMaxAction();
