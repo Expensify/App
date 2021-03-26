@@ -16,25 +16,38 @@ class ImageView extends PureComponent {
             isZoomed: false,
             isDragging: false,
             isMouseDown: false,
-            x: 0,
-            y: 0,
+            initialScrollLeft: 0,
+            initialScrollTop: 0,
+            initialX: 0,
+            initialY: 0,
         };
     }
 
     componentDidMount() {
         document.addEventListener('mousemove', this.trackMouseMove.bind(this));
+        document.addEventListener('touchmove', this.trackMouseMove.bind(this));
     }
 
     componentWillUnmount() {
         document.removeEventListener('mousemove', this.trackMouseMove.bind(this));
+        document.removeEventListener('touchmove', this.trackMouseMove.bind(this));
     }
 
-    trackMouseMove() {
-        if (!this.state.isMouseDown) {
+    trackMouseMove(e) {
+        if (!this.state.isZoomed) {
             return;
         }
 
-        this.setState({isDragging: true});
+        if (this.state.isDragging && this.state.isMouseDown && e.nativeEvent.type !== 'touchmove') {
+            const x = e.nativeEvent.x;
+            const y = e.nativeEvent.y;
+            const moveX = this.state.initialX - x;
+            const moveY = this.state.initialY - y;
+            this.scrollableRef.scrollLeft = this.state.initialScrollLeft + moveX;
+            this.scrollableRef.scrollTop = this.state.initialScrollTop + moveY;
+        }
+
+        this.setState(prevState => ({isDragging: prevState.isMouseDown}));
     }
 
     render() {
@@ -57,35 +70,35 @@ class ImageView extends PureComponent {
                         styles.flex1,
                         getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
                     ]}
-                    onPressIn={() => {
-                        console.log('on press in');
+                    onPressIn={(e) => {
+                        const {pageX, pageY} = e.nativeEvent;
                         this.setState({
-                            isDragging: false,
                             isMouseDown: true,
+                            initialX: pageX,
+                            initialY: pageY,
+                            initialScrollLeft: this.scrollableRef.scrollLeft,
+                            initialScrollTop: this.scrollableRef.scrollTop,
                         });
                     }}
                     onPress={(e) => {
-                        if (!this.state.isMouseDown) {
-                            return;
+                        if (this.state.isZoomed && !this.state.isDragging) {
+                            const {offsetX, offsetY} = e.nativeEvent;
+                            this.scrollableRef.scrollTop = offsetY * 1.5;
+                            this.scrollableRef.scrollLeft = offsetX * 1.5;
                         }
 
-                        const {offsetX, offsetY} = e.nativeEvent;
-                        this.setState({
-                            x: offsetX * 1.5,
-                            y: offsetY * 1.5,
-                        }, () => {
-                            this.scrollableRef.scrollTo(this.state.x, this.state.y);
-                        });
+                        if (this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
+                            this.setState({isDragging: false, isMouseDown: false});
+                        }
                     }}
                     onPressOut={() => {
-                        console.log('on press out');
                         if (this.state.isDragging) {
-                            this.setState({isDragging: false, isMouseDown: false});
                             return;
                         }
 
                         this.setState(prevState => ({
                             isZoomed: !prevState.isZoomed,
+                            isMouseDown: false,
                         }));
                     }}
                 >
