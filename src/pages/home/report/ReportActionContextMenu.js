@@ -6,6 +6,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
+import Log from '../../../libs/Log';
 
 /**
  * A list of all the context actions in this menu.
@@ -15,30 +16,41 @@ const CONTEXT_ACTIONS = [
     {
         text: 'Copy to Clipboard',
         icon: Clipboard,
+        onPress: () => {
+        },
     },
 
     // Copy chat link
     {
         text: 'Copy Link',
         icon: LinkCopy,
+        onPress: () => {
+        },
     },
 
     // Mark as Unread
     {
         text: 'Mark as Unread',
         icon: Mail,
+        onPress: () => {
+        },
     },
 
     // Edit Comment
     {
         text: 'Edit Comment',
         icon: Pencil,
+        onPress: () => {
+        },
     },
 
     // Delete Comment
     {
         text: 'Delete Comment',
         icon: Trashcan,
+        onPress: () => {
+            Log.info('delete pressed', true);
+        },
     },
 ];
 
@@ -73,7 +85,7 @@ const ReportActionContextMenu = (props) => {
                     icon={contextAction.icon}
                     text={contextAction.text}
                     isMini={props.isMini}
-                    key={contextAction.text}
+                    onPress={contextAction.onPress}
                 />
             ))}
         </View>
