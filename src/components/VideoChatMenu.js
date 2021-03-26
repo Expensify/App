@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Popover from './Popover';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import MenuItem from './MenuItem';
 import openURLInNewTab from '../libs/openURLInNewTab';
 import ZoomIcon from '../../assets/images/zoom-icon.svg';
@@ -15,7 +14,14 @@ const propTypes = {
     // Callback that determines behavior when menu is closed
     onClose: PropTypes.func.isRequired,
 
-    ...windowDimensionsPropTypes,
+    // Anchor position of the menu
+    anchorPosition: PropTypes.shape({
+        // x position of the anchor icon
+        x: PropTypes.number,
+
+        // y position of the anchor icon
+        y: PropTypes.number,
+    }).isRequired,
 };
 
 const VideoChatMenu = (props) => {
@@ -43,8 +49,8 @@ const VideoChatMenu = (props) => {
             onClose={props.onClose}
             isVisible={props.isVisible}
             anchorPosition={{
-                left: props.windowWidth - 250,
-                top: 50,
+                left: props.anchorPosition.x - 150,
+                top: props.anchorPosition.y + 40,
             }}
         >
             {menuItemData.map(({icon, text, onPress}) => (
@@ -62,4 +68,4 @@ const VideoChatMenu = (props) => {
 
 VideoChatMenu.propTypes = propTypes;
 VideoChatMenu.displayName = 'VideoChatMenu';
-export default withWindowDimensions(VideoChatMenu);
+export default VideoChatMenu;

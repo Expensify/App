@@ -9,7 +9,6 @@ import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
-import VideoChatMenu from '../../components/VideoChatMenu';
 
 const propTypes = {
     // id of the most recently viewed report
@@ -20,54 +19,31 @@ const defaultProps = {
     currentlyViewedReportID: 0,
 };
 
-class ReportScreen extends React.Component {
-    constructor(props) {
-        super(props);
-        this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
-
-        this.state = {
-            isVideoChatMenuActive: false,
-        };
+const ReportScreen = (props) => {
+    const activeReportID = parseInt(props.currentlyViewedReportID, 10);
+    if (!activeReportID) {
+        return null;
     }
-
-    toggleVideoChatMenu() {
-        this.setState(state => ({
-            isVideoChatMenuActive: !state.isVideoChatMenuActive,
-        }));
-    }
-
-    render() {
-        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
-        if (!activeReportID) {
-            return null;
-        }
-        return (
-            <ScreenWrapper
-                style={[
-                    styles.appContent,
-                    styles.flex1,
-                    styles.flexColumn,
-                ]}
-            >
-                <HeaderView
+    return (
+        <ScreenWrapper
+            style={[
+                styles.appContent,
+                styles.flex1,
+                styles.flexColumn,
+            ]}
+        >
+            <HeaderView
+                reportID={activeReportID}
+                onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+            />
+            <View style={[styles.dFlex, styles.flex1]}>
+                <ReportView
                     reportID={activeReportID}
-                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-                    onVideoChatMenuButtonClicked={this.toggleVideoChatMenu}
-                    isVideoChatMenuActive={this.state.isVideoChatMenuActive}
                 />
-                <VideoChatMenu
-                    onClose={this.toggleVideoChatMenu}
-                    isVisible={this.state.isVideoChatMenuActive}
-                />
-                <View style={[styles.dFlex, styles.flex1]}>
-                    <ReportView
-                        reportID={activeReportID}
-                    />
-                </View>
-            </ScreenWrapper>
-        );
-    }
-}
+            </View>
+        </ScreenWrapper>
+    );
+};
 
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
