@@ -148,6 +148,7 @@ class SidebarLinks extends React.Component {
                     hideSectionHeaders
                     showTitleTooltip
                     disableFocusOptions={this.props.isSmallScreenWidth}
+                    optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                 />
                 <KeyboardSpacer />
             </View>
