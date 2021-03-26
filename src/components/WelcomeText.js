@@ -1,11 +1,10 @@
 import React from 'react';
 import {Text, View} from 'react-native';
-import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import withWindowDimensions from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
-    isSmallScreenWidth: PropTypes.bool.isRequired,
+    ...windowDimensionsPropTypes,
 };
 
 const WelcomeText = props => (

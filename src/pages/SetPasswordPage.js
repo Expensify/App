@@ -9,7 +9,7 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import SignInPageLayout from './signin/SignInPageLayout';
 import welcomeScreenshot from '../../assets/images/welcome-screenshot.png';
-import withWindowDimensions from '../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import WelcomeText from '../components/WelcomeText';
 import ONYXKEYS from '../ONYXKEYS';
 import {setPassword} from '../libs/actions/Session';
@@ -37,14 +37,12 @@ const propTypes = {
         password: PropTypes.string,
     }),
 
-    // Is this displaying on a device with a narrower screen width?
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-
     route: PropTypes.shape({
         params: PropTypes.shape({
             validateCode: PropTypes.string,
         }),
     }),
+    ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     account: {},
