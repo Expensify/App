@@ -4,10 +4,10 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
-import {getDefaultAvatar} from './actions/PersonalDetails';
+import { getDefaultAvatar } from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {getReportParticipantsTitle} from './reportUtils';
+import { getReportParticipantsTitle } from './reportUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -78,7 +78,7 @@ function getSearchText(report, personalDetailList) {
  * @param {Boolean} showChatPreviewLine
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
+function createOption(personalDetailList, report, draftComments, activeReportID, { showChatPreviewLine = false }) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
@@ -86,7 +86,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
-    const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
+    const lastActorDetails = report ? _.find(personalDetailList, { login: report.lastActorEmail }) : null;
     const lastMessageText = report
         ? (hasMultipleParticipants && lastActorDetails
             ? `${lastActorDetails.displayName}: `
@@ -213,7 +213,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     ));
 
     // Always exclude already selected options and the currently logged in user
-    const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+    const loginOptionsToExclude = [...selectedOptions, { login: currentUserLogin }];
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -248,7 +248,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
-                loginOptionsToExclude.push({login: reportOption.login});
+                loginOptionsToExclude.push({ login: reportOption.login });
             }
         }
     }
@@ -263,8 +263,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
             if (_.some(loginOptionsToExclude, loginOptionToExclude => (
-                loginOptionToExclude.login === personalDetailOption.login
-            ))) {
+                    loginOptionToExclude.login === personalDetailOption.login
+                ))) {
                 return;
             }
 
@@ -407,16 +407,21 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  *
  * @param {Boolean} hasSelectableOptions
  * @param {Boolean} hasUserToInvite
+ * @param {String} searchValue
  * @param {Boolean} [maxParticipantsReached]
  * @return {String}
  */
-function getHeaderMessage(hasSelectableOptions, hasUserToInvite, maxParticipantsReached = false) {
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
         return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
-        return CONST.MESSAGES.NO_CONTACTS_FOUND;
+        if (/^\d+$/.test(searchValue)) {
+            return CONST.MESSAGES.NO_PHONE_NUMBER;
+        }
+
+        return searchValue;
     }
 
     return '';

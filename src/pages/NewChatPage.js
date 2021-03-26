@@ -1,14 +1,14 @@
-import React, {Component} from 'react';
-import {View} from 'react-native';
+import React, { Component } from 'react';
+import { View } from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getNewChatOptions, getHeaderMessage} from '../libs/OptionsListUtils';
+import { getNewChatOptions, getHeaderMessage } from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import { fetchOrCreateChatReport } from '../libs/actions/Report';
 import KeyboardSpacer from '../components/KeyboardSpacer';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
+import withWindowDimensions, { windowDimensionsPropTypes } from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -77,7 +77,7 @@ class NewChatPage extends Component {
             title: 'CONTACTS',
             data: this.state.personalDetails,
             shouldShow: this.state.personalDetails.length > 0,
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: sections.reduce((prev, { data }) => prev + data.length, 0),
         });
 
         if (this.state.userToInvite) {
@@ -108,6 +108,7 @@ class NewChatPage extends Component {
         const headerMessage = getHeaderMessage(
             this.state.personalDetails.length !== 0,
             Boolean(this.state.userToInvite),
+            this.state.searchValue
         );
 
         return (
@@ -119,24 +120,24 @@ class NewChatPage extends Component {
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
                         sections={sections}
-                        value={this.state.searchValue}
-                        onSelectRow={this.createNewChat}
+            value = { this.state.searchValue }
+            onSelectRow = { this.createNewChat }
                         onChangeText={(searchValue = '') => {
-                            const {
-                                personalDetails,
-                                userToInvite,
-                            } = getNewChatOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                personalDetails,
-                            });
+                    const {
+                        personalDetails,
+                        userToInvite,
+                    } = getNewChatOptions(
+                        this.props.reports,
+                        this.props.personalDetails,
+                        searchValue,
+                    );
+                    this.setState({
+                        searchValue,
+                        userToInvite,
+                        personalDetails,
+                    });
                         }}
-                        headerMessage={headerMessage}
+            headerMessage = { headerMessage }
                         hideSectionHeaders
                         disableArrowKeysActions
                         hideAdditionalOptionStates
