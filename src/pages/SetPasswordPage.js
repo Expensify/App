@@ -59,6 +59,7 @@ const defaultProps = {
 class SetPasswordPage extends Component {
     constructor(props) {
         super(props);
+
         this.submitForm = this.submitForm.bind(this);
 
         this.state = {
