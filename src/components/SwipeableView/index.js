@@ -1,14 +1,3 @@
-import PropTypes from 'prop-types';
+export default ({children}) => children;
 
-const propTypes = {
-    children: PropTypes.element.isRequired,
-
-};
-
-function SwipeableView({children}) {
-    return children;
-}
-
-SwipeableView.propTypes = propTypes;
-SwipeableView.displayName = 'SwipeableView';
-export default SwipeableView;
+// Swiping is not available in web
