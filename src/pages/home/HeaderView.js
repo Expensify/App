@@ -91,7 +91,7 @@ const HeaderView = (props) => {
                                 <OptionRowTitle
                                     option={reportOption}
                                     tooltipEnabled
-                                    numberOfLines={2}
+                                    numberOfLines={1}
                                     style={[styles.headerText]}
                                 />
                             </View>
