@@ -24,6 +24,7 @@ const ReportScreen = (props) => {
     if (!activeReportID) {
         return null;
     }
+
     return (
         <ScreenWrapper
             style={[
@@ -45,6 +46,7 @@ const ReportScreen = (props) => {
     );
 };
 
+ReportScreen.displayName = 'ReportScreen';
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 export default withOnyx({
