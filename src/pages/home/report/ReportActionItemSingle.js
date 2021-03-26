@@ -9,13 +9,24 @@ import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
+import ReportActionItemIOUPreview from '../../../components/ReportActionItemIOUPreview';
 
 const propTypes = {
     // All the data of the action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
+
+    // Is this the most recent IOU Action?
+    isMostRecentIOUReport: PropTypes.bool.isRequired,
+
+    // The report currently being looked at
+    report: PropTypes.shape({
+
+        // IOU report ID associated with current report
+        iouReportID: PropTypes.number,
+    }).isRequired,
 };
 
-const ReportActionItemSingle = ({action}) => {
+const ReportActionItemSingle = ({action, report, isMostRecentIOUReport}) => {
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
         : action.avatar;
@@ -38,7 +49,15 @@ const ReportActionItemSingle = ({action}) => {
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
-                <ReportActionItemMessage action={action} />
+                {action.actionName === 'IOU'
+                    ? (
+                        <ReportActionItemIOUPreview
+                            report={report}
+                            action={action}
+                            isMostRecentIOUReport={isMostRecentIOUReport}
+                        />
+                    )
+                    : <ReportActionItemMessage action={action} />}
             </View>
         </View>
     );

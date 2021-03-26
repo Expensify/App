@@ -27,9 +27,19 @@ const propTypes = {
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
 
+    // Is this the most recent IOU Action?
+    isMostRecentIOUReport: PropTypes.bool.isRequired,
+
     /* --- Onyx Props --- */
     // List of betas for the current user.
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    // The report currently being looked at
+    report: PropTypes.shape({
+
+        // IOU report ID associated with current report
+        iouReportID: PropTypes.number,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -111,8 +121,20 @@ class ReportActionItem extends Component {
                         <View>
                             <View style={getReportActionItemStyle(hovered)}>
                                 {!this.props.displayAsGroup
-                                    ? <ReportActionItemSingle action={this.props.action} />
-                                    : <ReportActionItemGrouped action={this.props.action} />}
+                                    ? (
+                                        <ReportActionItemSingle
+                                            action={this.props.action}
+                                            report={this.props.report}
+                                            isMostRecentIOUReport={this.props.isMostRecentIOUReport}
+                                        />
+                                    )
+                                    : (
+                                        <ReportActionItemGrouped
+                                            action={this.props.action}
+                                            report={this.props.report}
+                                            isMostRecentIOUReport={this.props.isMostRecentIOUReport}
+                                        />
+                                    )}
                             </View>
                             <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
                                 <ReportActionContextMenu
@@ -159,5 +181,8 @@ ReportActionItem.defaultProps = defaultProps;
 export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,
+    },
+    report: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
     },
 })(ReportActionItem);
