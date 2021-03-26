@@ -59,7 +59,7 @@ const CONST = {
     },
     MESSAGES: {
         // eslint-disable-next-line max-len
-        NO_CONTACTS_FOUND: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
+        NO_PHONE_NUMBER: 'Please enter a phone number including the country code e.g +447814266907',
         MAXIMUM_PARTICIPANTS_REACHED: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     PRIORITY_MODE: {
