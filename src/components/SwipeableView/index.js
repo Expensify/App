@@ -1,3 +1,3 @@
 export default ({children}) => children;
 
-// Swiping is not available in web
+// Swipeable View is available just on Android/iOS for now.
