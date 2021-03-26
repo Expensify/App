@@ -6,7 +6,6 @@ import Icon from '../../../components/Icon';
 import getReportActionContextMenuItemStyles from '../../../styles/getReportActionContextMenuItemStyles';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
-import Log from '../../../libs/Log';
 
 /**
  * Get the string representation of a button's state.
@@ -27,16 +26,10 @@ function getButtonState(isHovered = false, isPressed = false) {
     return CONST.BUTTON_STATES.DEFAULT;
 }
 
-function buttonPressed() {
-    Log.alert('delete pressed',0, {}, false);
-    if (props.text === 'Delete Comment') {
-        Log.alert('delete pressed',0, {}, false);
-    }
-}
-
 const propTypes = {
     icon: PropTypes.elementType.isRequired,
     text: PropTypes.string.isRequired,
+    onPress: PropTypes.func.isRequired,
     isMini: PropTypes.bool,
 };
 
@@ -61,8 +54,8 @@ const ReportActionContextMenuItem = (props) => {
                 </Tooltip>
             ) : (
                 <Pressable
-                    onPress={() => buttonPressed()}
                     style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}
+                    onPress={props.onPress}
                 >
                     {({hovered, pressed}) => (
                         <>
