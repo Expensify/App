@@ -228,23 +228,18 @@ const styles = {
     pill: {
         borderRadius: 14,
         backgroundColor: themeColors.pillBG,
-        height: variables.componentSizeSmall,
+        height: 20,
         flexDirection: 'row',
-        paddingTop: 6,
-        paddingBottom: 6,
         paddingLeft: 7,
         paddingRight: 7,
         alignItems: 'center',
     },
 
     pillText: {
-        color: themeColors.text,
-        weight: '400',
+        color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
-        marginRight: 4,
         userSelect: 'none',
-        maxWidth: 144,
         ...whiteSpace.noWrap,
     },
 
