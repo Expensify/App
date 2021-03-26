@@ -62,6 +62,21 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
+ * Returns the URL for a user's avatar and handles someone not having any avatar at all
+ *
+ * @param {Object} personalDetail
+ * @param {String} login
+ * @returns {String}
+ */
+function getAvatar(personalDetail, login) {
+    if (personalDetail.avatarThumbnail) {
+        return personalDetail.avatarThumbnail;
+    }
+
+    return getDefaultAvatar(login);
+}
+
+/**
  * Format personal details
  *
  * @param {Object} personalDetailsList
@@ -70,8 +85,7 @@ function getDisplayName(login, personalDetail) {
 function formatPersonalDetails(personalDetailsList) {
     return _.reduce(personalDetailsList, (finalObject, personalDetailsResponse, login) => {
         // Form the details into something that has all the data in an easy to use format.
-        const avatarURL = personalDetailsResponse.avatarThumbnail;
-        //const avatar = getAvatar(personalDetailsResponse, login);
+        const avatar = getAvatar(personalDetailsResponse, login);
         const displayName = getDisplayName(login, personalDetailsResponse);
         const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
         const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
