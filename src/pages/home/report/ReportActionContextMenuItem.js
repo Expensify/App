@@ -16,7 +16,6 @@ import styles from '../../../styles/styles';
  * @returns {String}
  */
 function getButtonState(isHovered = false, isPressed = false, isComplete = false) {
-    // We force this one over other states
     if (isComplete) {
         return CONST.BUTTON_STATES.COMPLETE;
     }
@@ -51,7 +50,7 @@ class ReportActionContextMenuItem extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            hasRun: false,
+            success: false,
         };
         this.onPress = this.onPress.bind(this);
     }
@@ -63,27 +62,17 @@ class ReportActionContextMenuItem extends Component {
      */
     onPress() {
         const pressResult = this.props.onPress();
-        if (!(pressResult instanceof Promise)) {
-            if (pressResult) {
-                this.setState({
-                    hasRun: true,
-                });
-            }
-            return;
+        if (pressResult) {
+            this.setState({
+                success: true,
+            });
         }
-        pressResult.then((result) => {
-            if (result) {
-                this.setState({
-                    hasRun: true,
-                });
-            }
-        });
     }
 
     render() {
         const {getButtonStyle, getIconFillColor} = getReportActionContextMenuItemStyles(this.props.isMini);
-        const icon = this.state.hasRun ? this.props.successIcon || this.props.icon : this.props.icon;
-        const text = this.state.hasRun ? this.props.successText || this.props.text : this.props.text;
+        const icon = this.state.success ? this.props.successIcon || this.props.icon : this.props.icon;
+        const text = this.state.success ? this.props.successText || this.props.text : this.props.text;
         return (
             this.props.isMini
                 ? (
@@ -92,14 +81,14 @@ class ReportActionContextMenuItem extends Component {
                             onPress={this.onPress}
                             style={
                                 ({hovered, pressed}) => getButtonStyle(
-                                    getButtonState(hovered, pressed, this.state.hasRun),
+                                    getButtonState(hovered, pressed, this.state.success),
                                 )
                             }
                         >
                             {({hovered, pressed}) => (
                                 <Icon
                                     src={icon}
-                                    fill={getIconFillColor(getButtonState(hovered, pressed, this.state.hasRun))}
+                                    fill={getIconFillColor(getButtonState(hovered, pressed, this.state.success))}
                                 />
                             )}
                         </Pressable>
@@ -109,7 +98,7 @@ class ReportActionContextMenuItem extends Component {
                         onPress={this.onPress}
                         style={
                             ({hovered, pressed}) => getButtonStyle(
-                                getButtonState(hovered, pressed, this.state.hasRun),
+                                getButtonState(hovered, pressed, this.state.success),
                             )
                         }
                     >
@@ -117,7 +106,7 @@ class ReportActionContextMenuItem extends Component {
                             <>
                                 <Icon
                                     src={icon}
-                                    fill={getIconFillColor(getButtonState(hovered, pressed, this.state.hasRun))}
+                                    fill={getIconFillColor(getButtonState(hovered, pressed, this.state.success))}
                                 />
                                 <Text
                                     style={styles.reportActionContextMenuText}

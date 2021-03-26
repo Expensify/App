@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
-import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {
@@ -22,13 +21,14 @@ const CONTEXT_ACTIONS = [
         icon: ClipboardIcon,
         successText: 'Copied!',
         successIcon: Checkmark,
+
+        // If return value is true, we switch the `text` and `icon` on
+        // `ReportActionContextMenuItem` with `successText` and `successIcon`
         onPress: (action) => {
             const lastMessage = _.last(lodashGet(action, 'message', null));
             const html = lodashGet(lastMessage, 'html', '');
             const isImage = lastMessage && /<img([^>]+)\/>/gi.test(html);
-            if (isImage) {
-                Clipboard.setImage(html);
-            } else {
+            if (!isImage) {
                 Clipboard.setString(action.message[0].text);
             }
             return true;
@@ -39,24 +39,28 @@ const CONTEXT_ACTIONS = [
     {
         text: 'Copy Link',
         icon: LinkCopy,
+        onPress: () => { },
     },
 
     // Mark as Unread
     {
         text: 'Mark as Unread',
         icon: Mail,
+        onPress: () => { },
     },
 
     // Edit Comment
     {
         text: 'Edit Comment',
         icon: Pencil,
+        onPress: () => { },
     },
 
     // Delete Comment
     {
         text: 'Delete Comment',
         icon: Trashcan,
+        onPress: () => { },
     },
 ];
 
@@ -92,7 +96,7 @@ const ReportActionContextMenu = (props) => {
                     successIcon={contextAction.successIcon}
                     successText={contextAction.successText}
                     isMini={props.isMini}
-                    onPress={() => Str.result(contextAction.onPress, props.reportAction)}
+                    onPress={() => contextAction.onPress(props.reportAction)}
                     key={contextAction.text}
                 />
             ))}
