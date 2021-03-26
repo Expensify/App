@@ -111,11 +111,16 @@ function fetch() {
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
-            const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
+            let myPersonalDetails = {};
+
+            // If personalDetailsList is empty, ensure we set the personal details for the current user
+            const personalDetailsList = _.isEmpty(data.personalDetailsList)
+                ? {[currentUserEmail]: myPersonalDetails}
+                : data.personalDetailsList;
+            const allPersonalDetails = formatPersonalDetails(personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
-            const myPersonalDetails = allPersonalDetails[currentUserEmail]
-                || {avatar: getAvatar(undefined, currentUserEmail)};
+            myPersonalDetails = allPersonalDetails[currentUserEmail];
 
             // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
             myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
