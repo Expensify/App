@@ -208,7 +208,7 @@ function restartSignin() {
  *
  * @param {String} password
  * @param {String} validateCode
- * @param {String} accountID
+ * @param {String} [accountID]
  * @param {String} [email]
  */
 function setPassword(password, validateCode, accountID, email) {
