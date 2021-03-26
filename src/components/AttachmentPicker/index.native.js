@@ -22,10 +22,6 @@ const propTypes = {
  * for ImagePicker configuration options
  */
 const imagePickerOptions = {
-    title: 'Select an Attachment',
-    takePhotoButtonTitle: 'Take Photo',
-    chooseFromLibraryButtonTitle: 'Choose from Gallery',
-    customButtons: [{name: 'Document', title: 'Choose Document'}],
     storageOptions: {
         skipBackup: true,
     },
@@ -39,54 +35,63 @@ const documentPickerOptions = {
 };
 
 /**
- * Launch the DocumentPicker. Results are in same format as ImagePicker, so we can pass the repsonse to the
- * callback as is.
+ * Launch the DocumentPicker. Results are in the same format as ImagePicker
  *
- * @param {Object} callback
+ * @returns {Promise<DocumentPickerResponse>}
  */
-function showDocumentPicker(callback) {
-    RNDocumentPicker.pick(documentPickerOptions).then((results) => {
-        callback(results);
-    }).catch((error) => {
+function showDocumentPicker() {
+    return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
         if (!RNDocumentPicker.isCancel(error)) {
             throw error;
         }
     });
 }
 
+function showPermissionsAlert() {
+    Alert.alert(
+        'ExpensifyCash does not have access to your camera. To enable access, tap Settings and turn on Camera.',
+        '',
+        [
+            {
+                text: 'Cancel',
+                style: 'cancel',
+            },
+            {
+                text: 'Settings',
+                onPress: () => Linking.openURL('app-settings:'),
+            },
+        ],
+        {cancelable: false},
+    );
+}
+
+function showGeneralAlert(message) {
+    Alert.alert(
+        'An error is preventing us to use handle the attachment',
+        message, // Todo: maybe we don't want to show this as it's probably not human friendly
+    );
+}
+
 /**
- * Launch the AttachmentPicker. We display the ImagePicker first, as the document option is displayed as a
- * custom ImagePicker list item.
+ * Common select image picker handling
  *
- * @param {Object} callback
+ * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
+ * @returns {Promise<ImagePickerResponse>}
  */
-function show(callback) {
-    RNImagePicker.showImagePicker(imagePickerOptions, (response) => {
-        if (response.error) {
-            if (response.error === 'Camera permissions not granted') {
-                Alert.alert(
-                    // eslint-disable-next-line max-len
-                    'ExpensifyCash does not have access to your camera. To enable access, tap Settings and turn on Camera.',
-                    '',
-                    [
-                        {
-                            text: 'Cancel',
-                            style: 'cancel',
-                        },
-                        {
-                            text: 'Settings',
-                            onPress: () => Linking.openURL('app-settings:'),
-                        },
-                    ],
-                    {cancelable: false},
-                );
+function selectImage(imagePickerFunc) {
+    return new Promise((resolve, reject) => {
+        imagePickerFunc(imagePickerOptions, (response) => {
+            if (response.error) {
+                switch (response.error) {
+                    case 'Camera permissions not granted': showPermissionsAlert(); break;
+                    default: showGeneralAlert(response.error); break;
+                }
+
+                reject(new Error(`Error during attachment selection: ${response.error}`));
             }
-            console.debug(`Error during attachment selection: ${response.error}`);
-        } else if (response.customButton) {
-            showDocumentPicker(callback);
-        } else if (!response.didCancel) {
-            callback(response);
-        }
+
+            resolve(response);
+        });
     });
 }
 
@@ -115,49 +120,56 @@ class AttachmentPicker extends Component {
     constructor(...args) {
         super(...args);
 
-        this.state = {};
-        this.resetState();
-        this.handlePopoverClose = this.handlePopoverClose.bind(this);
-    }
+        this.state = {isVisible: false, onPicked: () => {}, result: null};
 
-    handlePopoverClose() {
-        // Todo: call `onPicked` with result
-        this.state.onPicked(null);
-        this.setState({isVisible: false});
-    }
-
-    resetState() {
-        this.setState({isVisible: false, onPicked: () => {}});
-    }
-
-    renderMenuItems() {
-        const menuItemData = [
+        this.menuItemData = [
             {
                 icon: Paperclip,
                 text: 'Take Photo',
+                pickAttachment: () => selectImage(RNImagePicker.launchCamera),
             },
             {
                 icon: Paperclip,
                 text: 'Choose from Gallery',
+                pickAttachment: () => selectImage(RNImagePicker.launchImageLibrary),
             },
             {
                 icon: Paperclip,
                 text: 'Choose Document',
+                pickAttachment: showDocumentPicker,
             },
         ];
 
-        return menuItemData.map(({icon, text}) => (
-            <MenuItem key={text} icon={icon} title={text} onPress={this.handlePopoverClose} />
-        ));
+        this.setResult = this.setResult.bind(this);
+        this.close = this.close.bind(this);
+        this.onModalHide = this.onModalHide.bind(this);
+    }
+
+    onModalHide() {
+        if (this.state.result) {
+            this.state.onPicked(this.state.result);
+        }
+    }
+
+    setResult(result) {
+        if (result && !result.didCancel && !result.error) {
+            this.setState({result: getDataForUpload(result)});
+        }
+    }
+
+    open(onPicked) {
+        // Todo: perhaps we want some error handling here if onPicked is missing
+        // As this is not a prop it won't be caught by prop types
+        this.setState({isVisible: true, onPicked, result: null});
+    }
+
+    close() {
+        this.setState({isVisible: false});
     }
 
     renderChildren() {
         return this.props.children({
-            openPicker: ({onPicked}) => {
-                // Todo: perhaps we want some error handling here if onPicked is missing
-                // As this is not a prop it won't be caught by prop types
-                this.setState({isVisible: true, onPicked});
-            },
+            openPicker: ({onPicked}) => this.open(onPicked),
         });
     }
 
@@ -165,12 +177,25 @@ class AttachmentPicker extends Component {
         return (
             <>
                 <Popover
-                    onClose={this.handlePopoverClose}
+                    onClose={this.close}
                     isVisible={this.state.isVisible}
                     anchorPosition={styles.createMenuPosition}
+                    onModalHide={this.onModalHide}
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                        {this.renderMenuItems()}
+                        {
+                            this.menuItemData.map(({icon, text, pickAttachment}) => (
+                                <MenuItem
+                                    key={text}
+                                    icon={icon}
+                                    title={text}
+                                    onPress={() => pickAttachment()
+                                        .then(this.setResult)
+                                        .then(this.close)
+                                        .catch(console.error)}
+                                />
+                            ))
+                        }
                     </View>
                 </Popover>
                 {this.renderChildren()}

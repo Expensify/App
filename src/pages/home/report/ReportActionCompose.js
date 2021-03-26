@@ -83,10 +83,11 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldHighlight
      */
     setIsFocused(shouldHighlight) {
-        this.setState({isFocused: shouldHighlight});
-        if (shouldHighlight && this.textInput) {
+        if (shouldHighlight && this.textInput && !this.state.isFocused) {
             this.textInput.focus();
         }
+
+        this.setState({isFocused: shouldHighlight});
     }
 
     /**
@@ -99,7 +100,7 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Updates the visiblity state of the menu
+     * Updates the visibility state of the menu
      *
      * @param {Boolean} isMenuVisible
      */
@@ -223,11 +224,11 @@ class ReportActionCompose extends React.Component {
                                                         icon: Paperclip,
                                                         text: 'Upload Photo',
                                                         onSelected: () => {
-                                                            setTimeout(() => {
-                                                                openPicker({
-                                                                    onPicked: file => displayFileInModal({file}),
-                                                                });
-                                                            }, 10);
+                                                            openPicker({
+                                                                onPicked: (file) => {
+                                                                    displayFileInModal({file});
+                                                                },
+                                                            });
                                                         },
                                                     },
                                                 ]}
