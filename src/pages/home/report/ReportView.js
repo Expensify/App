@@ -6,7 +6,7 @@ import ReportActionCompose from './ReportActionCompose';
 import {addAction} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/styles';
-import SwipeableView from '../../../components/SwipeableView/index.ios';
+import SwipeableView from '../../../components/SwipeableView';
 
 const propTypes = {
     // The ID of the report actions will be created for
