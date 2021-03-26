@@ -82,12 +82,12 @@ function showDocumentPicker() {
 }
 
 /**
- * Common select image picker handling
+ * Common image picker handling
  *
  * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
  * @returns {Promise<ImagePickerResponse>}
  */
-function selectImage(imagePickerFunc) {
+function showImagePicker(imagePickerFunc) {
     return new Promise((resolve, reject) => {
         imagePickerFunc(imagePickerOptions, (response) => {
             if (response.error) {
@@ -135,12 +135,12 @@ class AttachmentPicker extends Component {
             {
                 icon: Paperclip,
                 text: 'Take Photo',
-                pickAttachment: () => selectImage(RNImagePicker.launchCamera),
+                pickAttachment: () => showImagePicker(RNImagePicker.launchCamera),
             },
             {
                 icon: Paperclip,
                 text: 'Choose from Gallery',
-                pickAttachment: () => selectImage(RNImagePicker.launchImageLibrary),
+                pickAttachment: () => showImagePicker(RNImagePicker.launchImageLibrary),
             },
             {
                 icon: Paperclip,
