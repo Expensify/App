@@ -24,16 +24,16 @@ class ImageView extends PureComponent {
     }
 
     componentDidMount() {
-        document.addEventListener('mousemove', this.trackMouseMove.bind(this));
-        document.addEventListener('touchmove', this.trackMouseMove.bind(this));
+        document.addEventListener('mousemove', this.trackMovement.bind(this));
+        document.addEventListener('touchmove', this.trackMovement.bind(this));
     }
 
     componentWillUnmount() {
-        document.removeEventListener('mousemove', this.trackMouseMove.bind(this));
-        document.removeEventListener('touchmove', this.trackMouseMove.bind(this));
+        document.removeEventListener('mousemove', this.trackMovement.bind(this));
+        document.removeEventListener('touchmove', this.trackMovement.bind(this));
     }
 
-    trackMouseMove(e) {
+    trackMovement(e) {
         if (!this.state.isZoomed) {
             return;
         }
