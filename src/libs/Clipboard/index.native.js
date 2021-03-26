@@ -1,16 +1,3 @@
-import base from '@react-native-community/clipboard';
-
-class Clipboard extends base {
-    /**
-     * Noop on native platforms
-     *
-     * @static
-     * @returns {Boolean}
-     * @memberof Clipboard
-     */
-    static setImage() {
-        return null;
-    }
-}
+import Clipboard from '@react-native-community/clipboard';
 
 export default Clipboard;
