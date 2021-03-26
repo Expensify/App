@@ -14,6 +14,7 @@ import WelcomeText from '../components/WelcomeText';
 import ONYXKEYS from '../ONYXKEYS';
 import {setPassword} from '../libs/actions/Session';
 import ButtonWithLoader from '../components/ButtonWithLoader';
+import compose from '../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -134,7 +135,10 @@ class SetPasswordPage extends React.Component {
 SetPasswordPage.propTypes = propTypes;
 SetPasswordPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(withWindowDimensions((SetPasswordPage)));
+export default compose(
+    withOnyx({
+        credentials: {key: ONYXKEYS.CREDENTIALS},
+        account: {key: ONYXKEYS.ACCOUNT},
+    }),
+    withWindowDimensions,
+)(SetPasswordPage);
