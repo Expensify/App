@@ -533,7 +533,13 @@ const styles = {
     sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
-        paddingRight: 20,
+        paddingBottom: 12,
+        paddingLeft: 20,
+    },
+
+    sidebarInnerRowSmall: {
+        height: 52,
+        paddingTop: 12,
         paddingBottom: 12,
         paddingLeft: 20,
     },
@@ -578,6 +584,13 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    optionDisplayNameCompact: {
+        minWidth: 'auto',
+        flexBasis: 'auto',
+        flexGrow: 0,
+        flexShrink: 0,
+    },
+
     optionDisplayNameTooltipWrapper: {
         position: 'relative',
     },
@@ -595,6 +608,12 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
+    },
+
+    optionAlternateTextCompact: {
+        flexShrink: 1,
+        flexGrow: 1,
+        flexBasis: 'auto',
     },
 
     // App Content Wrapper styles
@@ -830,12 +849,29 @@ const styles = {
         borderRadius: 24,
     },
 
+    singleAvatarSmall: {
+        height: 18,
+        width: 18,
+        backgroundColor: themeColors.icon,
+        borderRadius: 18,
+    },
+
     secondAvatar: {
         position: 'absolute',
-        right: -13,
-        bottom: -14,
+        right: -18,
+        bottom: -18,
+        borderWidth: 3,
+        borderRadius: 30,
         borderColor: 'transparent',
-        borderWidth: 2,
+    },
+
+    secondAvatarSmall: {
+        position: 'absolute',
+        right: -13,
+        bottom: -13,
+        borderWidth: 3,
+        borderRadius: 18,
+        borderColor: 'transparent',
     },
 
     avatarNormal: {
@@ -845,11 +881,11 @@ const styles = {
         borderRadius: variables.componentSizeNormal,
     },
 
-    avatarText: {
+    avatarSmall: {
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
         backgroundColor: themeColors.icon,
-        borderRadius: 24,
-        height: 24,
-        width: 24,
+        borderRadius: variables.avatarSizeSmall,
     },
 
     avatarInnerText: {
@@ -860,6 +896,14 @@ const styles = {
         textAlign: 'center',
     },
 
+    avatarInnerTextSmall: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeExtraSmall,
+        lineHeight: 18,
+        marginLeft: -2,
+        textAlign: 'center',
+    },
+
     avatarSpace: {
         top: 3,
         left: 3,
@@ -867,16 +911,24 @@ const styles = {
 
     avatar: {
         backgroundColor: themeColors.sidebar,
+        borderColor: themeColors.sidebar,
     },
 
     focusedAvatar: {
-        backgroundColor: themeColors.border,
+        backgroundColor: themeColors.pillBG,
+        borderColor: themeColors.pillBG,
     },
 
     emptyAvatar: {
         marginRight: variables.componentSizeNormal - 24,
-        height: 40,
-        width: 40,
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
+    },
+
+    emptyAvatarSmall: {
+        marginRight: variables.componentSizeNormal - 28,
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
     },
 
     modalViewContainer: {

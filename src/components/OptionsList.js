@@ -64,6 +64,9 @@ const propTypes = {
 
     // Whether to show the title tooltip
     showTitleTooltip: PropTypes.bool,
+
+    // Toggle between compact and default view of the option
+    optionMode: PropTypes.oneOf(['compact', 'default']),
 };
 
 const defaultProps = {
@@ -81,6 +84,7 @@ const defaultProps = {
     headerMessage: '',
     innerRef: null,
     showTitleTooltip: false,
+    optionMode: undefined,
 };
 
 class OptionsList extends Component {
@@ -146,6 +150,7 @@ class OptionsList extends Component {
         return (
             <OptionRow
                 option={item}
+                mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
@@ -185,7 +190,10 @@ class OptionsList extends Component {
 
     render() {
         return (
-            <View style={[styles.flex1]}>
+
+            // need to set a height (0 works in this case) so that the view will scroll on mobile
+            // NOTE: the view will still fill its container since it has flex: 1 on it
+            <View style={[styles.flex1, {height: 0}]}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>
