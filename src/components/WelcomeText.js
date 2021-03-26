@@ -22,5 +22,6 @@ const WelcomeText = props => (
 );
 
 WelcomeText.propTypes = propTypes;
+WelcomeText.displayName = 'WelcomeText';
 
 export default withWindowDimensions(WelcomeText);
