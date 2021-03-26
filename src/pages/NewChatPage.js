@@ -108,7 +108,7 @@ class NewChatPage extends Component {
         const headerMessage = getHeaderMessage(
             this.state.personalDetails.length !== 0,
             Boolean(this.state.userToInvite),
-	    this.state.searchValue,
+			this.state.searchValue,
         );
 
         return (
