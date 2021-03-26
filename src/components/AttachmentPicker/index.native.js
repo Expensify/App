@@ -35,20 +35,6 @@ const documentPickerOptions = {
 };
 
 /**
- * Launch the DocumentPicker. Results are in the same format as ImagePicker
- *
- * @returns {Promise<DocumentPickerResponse>}
- */
-function showDocumentPicker() {
-    return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
-        if (!RNDocumentPicker.isCancel(error)) {
-            // Todo: alert the user that interaction failed for some reason
-            throw error;
-        }
-    });
-}
-
-/**
  * Inform the users when they need to grant camera access and guide them to settings
  */
 function showPermissionsAlert() {
@@ -79,6 +65,20 @@ function showGeneralAlert(message) {
         'An error is preventing us to use handle the attachment',
         message, // Todo: maybe we don't want to show this as it's probably not human friendly
     );
+}
+
+/**
+ * Launch the DocumentPicker. Results are in the same format as ImagePicker
+ *
+ * @returns {Promise<DocumentPickerResponse>}
+ */
+function showDocumentPicker() {
+    return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
+        if (!RNDocumentPicker.isCancel(error)) {
+            showGeneralAlert(error.message);
+            throw error;
+        }
+    });
 }
 
 /**
