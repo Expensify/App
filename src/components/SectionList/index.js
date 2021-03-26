@@ -1,3 +1,3 @@
-import SectionList from 'react-native';
+import {SectionList} from 'react-native';
 
 export default SectionList;
