@@ -2,6 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import Geolocation from '@react-native-community/geolocation';
 import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
@@ -214,6 +215,54 @@ function setPersonalDetails(details) {
 }
 
 /**
+ * Gets the preferred currency for the current user
+ *
+ * @param {Object} details
+ */
+function setCurrencyPreferences() {
+    let coords = {};
+    let currency = '';
+
+    Geolocation.getCurrentPosition((position) => {
+        coords = {
+            longitude: position.coords.longitude,
+            latitude: position.coords.latitude,
+        };
+    });
+
+
+    API.GetPreferredCurrency({...coords})
+        .then((data) => {
+            currency = data.currency;
+        })
+        .then(() => API.GetCurrencyList())
+        .then((data) => {
+            const currencyList = JSON.parse(data.currencyList);
+            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyList);
+            return currencyList;
+        })
+        .then((currencyList) => {
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
+                {preferredCurrencyCode: currency, preferredCurrencySymbol: currencyList[currency].symbol});
+        })
+        .catch(error => console.debug(error));
+}
+
+/**
+ * Gets the preferred currency for the current user
+ *
+ * @param {Object} details
+ */
+function getCurrencyList() {
+    API.GetCurrencyList()
+        .then((data) => {
+            const currencyListObject = JSON.parse(data.currencyList);
+            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
+            return currencyListObject;
+        });
+}
+
+/**
  * Sets the user's avatar image
  *
  * @param {File|Object} file
@@ -237,4 +286,6 @@ export {
     getDefaultAvatar,
     setPersonalDetails,
     setAvatar,
+    setCurrencyPreferences,
+    getCurrencyList,
 };

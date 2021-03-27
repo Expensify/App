@@ -71,6 +71,7 @@ class AuthScreens extends React.Component {
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
+        PersonalDetails.setCurrencyPreferences();
         User.fetch();
         User.getBetas();
         fetchAllReports(true, true);
