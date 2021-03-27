@@ -12,12 +12,6 @@ const propTypes = {
     // Callback to fire when a row is tapped
     onSelectRow: PropTypes.func,
 
-    // amount if iouTransaction row is to be shown
-    amount: PropTypes.string,
-
-    // currency for iouTransaction
-    currency: PropTypes.string,
-
     // if we should show search or not?
     showSearch: PropTypes.bool,
 
@@ -81,8 +75,6 @@ const defaultProps = {
     hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
-    amount: '',
-    currency: 'USD',
     showSearch: true,
     onChangeText: () => {},
     value: '',
@@ -214,8 +206,6 @@ class OptionsSelector extends Component {
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                     forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                     showTitleTooltip={this.props.showTitleTooltip}
-                    amount={this.props.amount}
-                    currency={this.props.currency}
                 />
             </View>
         );

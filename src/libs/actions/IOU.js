@@ -16,7 +16,12 @@ function getPreferredCurrency() {
 }
 
 /**
- * Creates IOUTransaction for IOURequest
+ * Creates IOUSplit Transaction
+ * @param {Object} parameters
+ * @param {String} parameters.amount
+ * @param {String} parameters.comment
+ * @param {String} parameters.currency
+ * @param {String} parameters.debtorEmail
  */
 function createIOUTransaction({
     comment, amount, currency, debtorEmail,
@@ -28,29 +33,32 @@ function createIOUTransaction({
         amount,
         currency,
         debtorEmail,
-    }).then((data) => {
-        iouReportID = data.reportID;
-        return iouReportID;
-    }).then(reportID => API.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: reportID,
-        shouldLoadOptionalKeys: true,
-        includePinnedReports: true,
-    })).then((response) => {
-        if (response.jsonCode !== 200) {
-            throw new Error(response.message);
-        }
-
-        const iouReportData = response.reports[iouReportID];
-        if (!iouReportData) {
-            throw new Error(`No iouReportData found for reportID ${iouReportID}`);
-        }
-
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-            getSimplifiedIOUReport(iouReportData));
-
-        Onyx.merge(ONYXKEYS.IOU, {loading: false});
     })
+        .then((data) => {
+            iouReportID = data.reportID;
+            return iouReportID;
+        })
+        .then(reportID => API.Get({
+            returnValueList: 'reportStuff',
+            reportIDList: reportID,
+            shouldLoadOptionalKeys: true,
+            includePinnedReports: true,
+        }))
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+
+            const iouReportData = response.reports[iouReportID];
+            if (!iouReportData) {
+                throw new Error(`No iouReportData found for reportID ${iouReportID}`);
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+                getSimplifiedIOUReport(iouReportData));
+
+            Onyx.merge(ONYXKEYS.IOU, {loading: false});
+        })
         .catch((error) => {
             console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
         });
@@ -72,6 +80,7 @@ function createIOUSplit({
     currency,
     splits,
 }) {
+    Onyx.merge(ONYXKEYS.IOU, {loading: true});
     API.CreateChatReport({
         emailList: participants.join(','),
     })
@@ -82,11 +91,14 @@ function createIOUSplit({
             amount,
             comment,
             reportID,
-        })).then((res) => {
+        }))
+        .then((res) => {
             console.debug('Response from CreateIOUSplit', res);
+            Onyx.merge(ONYXKEYS.IOU, {loading: false}); // placeholder
         })
         .catch((error) => {
             console.debug(`Error: ${error.message}`);
+            Onyx.merge(ONYXKEYS.IOU, {loading: false});
         });
 }
 
