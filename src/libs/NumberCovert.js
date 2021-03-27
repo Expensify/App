@@ -9,6 +9,16 @@ import Log from './Log';
 import Config from '../CONFIG';
 import translations from '../languages/translations';
 
+function showErrorAndReturn(locale) {
+    // When a locale is entered which is not available, on production log an alert to server
+
+    if (Config.IS_IN_PRODUCTION) {
+        Log.alert(`${locale} was not found.`, 0, {}, false);
+    }
+
+    return `${locale} was not found.`;
+}
+
 /**
  * Returns a locally converted phone number without the country code
  *
@@ -18,15 +28,25 @@ import translations from '../languages/translations';
  */
 function toLocalPhone(locale, number) {
     const numString = loadashTrim(loadashToString(number));
-    const withoutPlusNum = loadashIncludes(numString, '+') ? loadashTrimStart(numString, '+') : numString;
+
+    let withoutPlusNum;
+
+    if (loadashIncludes(numString, '+')) {
+        withoutPlusNum = loadashTrimStart(numString, '+');
+    } else {
+        withoutPlusNum = numString;
+    }
+
     const fullLocale = lodashGet(translations, locale, {});
     const phoneCountryCode = fullLocale.phoneCountryCode;
 
-    return phoneCountryCode ?  
-        loadashStartsWith(withoutPlusNum, phoneCountryCode) ? 
-            loadashTrimStart(withoutPlusNum, phoneCountryCode ) : 
-                numString :
-                    showErrorAndReturn(locale);;
+    if (phoneCountryCode) {
+        if (loadashStartsWith(withoutPlusNum, phoneCountryCode)) {
+            return loadashTrimStart(withoutPlusNum, phoneCountryCode);
+        }
+        return numString;
+    }
+    return showErrorAndReturn(locale);
 }
 
 /**
@@ -36,29 +56,32 @@ function toLocalPhone(locale, number) {
  * @param {String|Array} number
  * @returns {string}
  */
- function fromLocalPhone(locale, number) {
+function fromLocalPhone(locale, number) {
     const numString = loadashTrim(loadashToString(number));
-    const withoutPlusNum = loadashIncludes(numString, '+') ? loadashTrimStart(numString, '+') : numString;
+    let withoutPlusNum;
+
+    if (loadashIncludes(numString, '+')) {
+        withoutPlusNum = loadashTrimStart(numString, '+');
+    } else {
+        withoutPlusNum = numString;
+    }
+
     const fullLocale = lodashGet(translations, locale, {});
     const phoneCountryCode = fullLocale.phoneCountryCode;
-    const paddedConCode = phoneCountryCode ? loadashPadStart(phoneCountryCode, phoneCountryCode.length + 1, '+') : '';
 
-    return phoneCountryCode ?  
-        loadashStartsWith(withoutPlusNum, phoneCountryCode) ? 
-            loadashPadStart(withoutPlusNum, withoutPlusNum.length + 1, '+') : 
-                loadashPadStart(withoutPlusNum, paddedConCode.length + withoutPlusNum.length, paddedConCode) :
-                    showErrorAndReturn(locale);
-}
+    let paddedConCode = '';
 
-function showErrorAndReturn(locale){
-    // When a locale is entered which is not available, on production log an alert to server
-    // on development throw an error
-
-    if (Config.IS_IN_PRODUCTION) {
-        Log.alert(`${locale} was not found.`, 0, {}, false);
-        return `${locale} was not found.`;
+    if (phoneCountryCode) {
+        paddedConCode = loadashPadStart(phoneCountryCode, phoneCountryCode.length + 1, '+');
     }
-    throw new Error(`${locale} was not found.`);
+
+    if (phoneCountryCode) {
+        if (loadashStartsWith(withoutPlusNum, phoneCountryCode)) {
+            return loadashPadStart(withoutPlusNum, withoutPlusNum.length + 1, '+');
+        }
+        return loadashPadStart(withoutPlusNum, paddedConCode.length + withoutPlusNum.length, paddedConCode);
+    }
+    return showErrorAndReturn(locale);
 }
 
 export {
