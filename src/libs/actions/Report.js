@@ -583,11 +583,12 @@ function fetchOrCreateChatReport(participants) {
     if (participants.length < 2) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
-
+    console.debug('this is working?', participants.join(','));
     API.CreateChatReport({
         emailList: participants.join(','),
     })
         .then((data) => {
+            console.debug('debug::::: data', data.reportID);
             if (data.jsonCode !== 200) {
                 throw new Error(data.message);
             }
@@ -908,4 +909,5 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     updateCurrentlyViewedReportID,
+    getSimplifiedIOUReport,
 };

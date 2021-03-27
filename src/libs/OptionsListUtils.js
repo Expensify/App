@@ -348,6 +348,22 @@ function getNewChatOptions(
 }
 
 /**
+ * Build the options for the New Chat view
+ *
+ * @param {Object} participant
+ * @returns {Array}
+ */
+function getDisplayOptionFromParticipant(
+    participant,
+) {
+    return {
+        text: participant.displayName,
+        alternateText: participant.login,
+        icons: [participant.avatar],
+    };
+}
+
+/**
  * Build the options for the New Group view
  *
  * @param {Object} reports
@@ -429,4 +445,5 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
+    getDisplayOptionFromParticipant,
 };
