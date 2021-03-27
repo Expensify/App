@@ -42,6 +42,9 @@ export default {
     // an international code
     COUNTRY_CODE: 'countryCode',
 
+    // Saves the currency list obtained from the network
+    CURRENCY_LIST: 'currencyList',
+
     // Contains all the users settings for the Settings page and sub pages
     USER: 'user',
 

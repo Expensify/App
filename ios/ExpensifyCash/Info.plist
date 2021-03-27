@@ -67,6 +67,10 @@
 	<string>Your camera is used to create chat attachments.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string></string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string></string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Your camera roll is used to store chat attachments.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

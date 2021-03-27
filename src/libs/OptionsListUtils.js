@@ -141,6 +141,32 @@ function isSearchStringMatch(searchValue, searchText) {
 }
 
 /**
+ * Returns the personal details for an array of logins
+ *
+ * @param {Object} currencyListObject
+ * @param {String} searchValue
+ * @param {Object} selectedCurrency
+ * @returns {Array}
+ */
+function getCurrencyListForSections(currencyListObject, searchValue) {
+    const currencyListKeys = _.keys(currencyListObject);
+    const currencyOptions = _.map(currencyListKeys, currencyCode => ({
+        text: `${currencyCode} - ${currencyListObject[currencyCode].symbol}`,
+        searchText: `${currencyCode} ${currencyListObject[currencyCode].symbol}`,
+        currencyCode,
+    }));
+
+    const filteredOptions = currencyOptions.filter(
+        currencyOption => isSearchStringMatch(searchValue, currencyOption.searchText),
+    );
+
+    return {
+        // currency options holds a section for those currencies which are not selected
+        currencyOptions: filteredOptions,
+    };
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -429,4 +455,5 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
+    getCurrencyListForSections,
 };
