@@ -350,17 +350,35 @@ function getNewChatOptions(
 /**
  * Build the options for the New Chat view
  *
- * @param {Object} participant
+ * @param {Object} myPersonalDetail
+ * @param {String} amountText
  * @returns {Array}
  */
-function getDisplayOptionFromParticipant(
-    participant,
+function getDisplayOptionFromMyPersonalDetail(
+    myPersonalDetail,
+    amountText,
 ) {
-    return {
-        text: participant.displayName,
-        alternateText: participant.login,
-        icons: [participant.avatar],
-    };
+    return [{
+        text: myPersonalDetail.displayName,
+        alternateText: myPersonalDetail.login,
+        icons: [myPersonalDetail.avatar],
+        descriptiveText: amountText,
+    }];
+}
+
+/**
+ * Build the options for the New Chat view
+ *
+ * @param {Array} participants
+ * @param {String} amountText
+ * @returns {Array}
+ */
+function getDisplayOptionsFromParticipants(
+    participants, amountText,
+) {
+    return participants.map(participant => ({
+        ...participant, descriptiveText: amountText,
+    }));
 }
 
 /**
@@ -445,5 +463,6 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
-    getDisplayOptionFromParticipant,
+    getDisplayOptionFromMyPersonalDetail,
+    getDisplayOptionsFromParticipants,
 };

@@ -1,15 +1,18 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'lodash';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {getPreferredCurrency} from '../../libs/actions/IOU';
+import {createIOUSplit, createIOUTransaction, getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
+import ONYXKEYS from '../../ONYXKEYS';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -17,6 +20,17 @@ import Navigation from '../../libs/Navigation/Navigation';
 const propTypes = {
     // Is this new IOU for a single request or group bill split?
     hasMultipleParticipants: PropTypes.bool,
+
+    /* Onyx Props */
+    iousReport: PropTypes.objectOf(PropTypes.shape({
+        currency: PropTypes.string,
+        managerEmail: PropTypes.string,
+        ownerEmail: PropTypes.string,
+        reportID: PropTypes.number,
+        transactions: PropTypes.arrayOf(PropTypes.shape({
+            transactionID: PropTypes.string,
+        })),
+    })).isRequired,
 };
 
 const defaultProps = {
@@ -41,19 +55,30 @@ class IOUModal extends Component {
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.currencySelected = this.currencySelected.bind(this);
-
+        this.createTransaction = this.createTransaction.bind(this);
+        this.updateComment = this.updateComment.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
+
         this.state = {
             currentStepIndex: 0,
             participants: [],
             amount: '',
             selectedCurrency: 'USD',
             isAmountPageNextButtonDisabled: true,
+            comment: '',
         };
     }
 
     componentDidMount() {
         getPreferredCurrency();
+    }
+
+    componentDidUpdate(prevProps) {
+        // Dismiss modal when previous iousReport changes from the new iousReport
+        // This should occur the data changes from within the modal activity
+        if (!_.isEqual(prevProps.iousReport, this.props.iousReport)) {
+            return Navigation.dismissModal();
+        }
     }
 
     /**
@@ -63,13 +88,14 @@ class IOUModal extends Component {
      */
 
     getTitleForStep() {
-        if (this.state.currentStepIndex === 1) {
+        const currentStepIndex = this.state.currentStepIndex;
+        if (currentStepIndex === 1 || currentStepIndex === 2) {
             return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.amount}`;
         }
-        if (steps[this.state.currentStepIndex] === Steps.IOUAmount) {
+        if (steps[currentStepIndex] === Steps.IOUAmount) {
             return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
         }
-        return steps[this.state.currentStepIndex] || '';
+        return steps[currentStepIndex] || '';
     }
 
     /**
@@ -99,6 +125,17 @@ class IOUModal extends Component {
     addParticipants(participants) {
         this.setState({
             participants,
+        });
+    }
+
+    /**
+     * Update comment whenever user enters any new text
+     *
+     * @param {String} comment
+     */
+    updateComment(comment) {
+        this.setState({
+            comment,
         });
     }
 
@@ -136,6 +173,28 @@ class IOUModal extends Component {
      */
     currencySelected(selectedCurrency) {
         this.setState({selectedCurrency});
+    }
+
+    closeModal() {
+        Navigation.dismissModal();
+    }
+
+    createTransaction({debtorEmail, splits, participants}) {
+        if (debtorEmail) {
+            return createIOUTransaction({
+                comment: this.state.comment,
+                amount: this.state.amount,
+                currency: this.state.selectedCurrency,
+                debtorEmail,
+            });
+        }
+        return createIOUSplit({
+            comment: this.state.comment,
+            amount: this.state.amount,
+            currency: this.state.selectedCurrency,
+            splits,
+            participants,
+        });
     }
 
     render() {
@@ -192,9 +251,13 @@ class IOUModal extends Component {
                 )}
                 {currentStep === Steps.IOUConfirm && (
                     <IOUConfirmPage
-                        onConfirm={() => console.debug('create IOU report')}
+                        onConfirm={this.createTransaction}
+                        hasMultipleParticipants={this.props.hasMultipleParticipants}
                         participants={this.state.participants}
                         iouAmount={this.state.amount}
+                        comment={this.state.comment}
+                        selectedCurrency={this.state.selectedCurrency}
+                        onUpdateComment={this.updateComment}
                     />
                 )}
             </>
@@ -206,4 +269,11 @@ IOUModal.propTypes = propTypes;
 IOUModal.defaultProps = defaultProps;
 IOUModal.displayName = 'IOUModal';
 
-export default IOUModal;
+export default withOnyx({
+    iousReport: {
+        key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+    },
+    reportID: {
+        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    },
+})(IOUModal);

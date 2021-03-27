@@ -67,12 +67,6 @@ const propTypes = {
 
     // Toggle between compact and default view of the option
     optionMode: PropTypes.oneOf(['compact', 'default']),
-
-    // amount if iouTransaction row is to be shown
-    amount: PropTypes.string,
-
-    // currency for iouTransaction
-    currency: PropTypes.string,
 };
 
 const defaultProps = {
@@ -91,8 +85,6 @@ const defaultProps = {
     innerRef: null,
     showTitleTooltip: false,
     optionMode: undefined,
-    amount: '',
-    currency: 'USD',
 };
 
 class OptionsList extends Component {
@@ -162,14 +154,12 @@ class OptionsList extends Component {
                 showTitleTooltip={this.props.showTitleTooltip}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
-                    && this.props.focusedIndex === (index + section.indexOffset)}
+                        && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}
                 isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
                 showSelectedState={this.props.canSelectMultipleOptions}
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                amount={this.props.amount}
-                currency={this.props.currency}
             />
         );
     }
