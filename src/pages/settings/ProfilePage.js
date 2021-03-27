@@ -12,17 +12,19 @@ import moment from 'moment-timezone';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {setPersonalDetails} from '../../libs/actions/PersonalDetails';
+import { setPersonalDetails, setAvatar, getDefaultAvatar} from '../../libs/actions/PersonalDetails';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Avatar from '../../components/Avatar';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import {DownArrow} from '../../components/Icon/Expensicons';
+import {DownArrow, Download, Trashcan} from '../../components/Icon/Expensicons';
 import Icon from '../../components/Icon';
 import Checkbox from '../../components/Checkbox';
 import themeColors from '../../styles/themes/default';
+import AttachmentPicker from '../../components/AttachmentPicker';
+import CreateMenu from '../../components/CreateMenu';
 
 const propTypes = {
     /* Onyx Props */
@@ -93,6 +95,7 @@ class ProfilePage extends Component {
             selfSelectedPronouns: initialSelfSelectedPronouns,
             selectedTimezone: timezone.selected || CONST.DEFAULT_TIME_ZONE.selected,
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
+            isEditPhotoMenuVisible: false,
         };
 
         this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
@@ -154,6 +157,47 @@ class ProfilePage extends Component {
                         style={[styles.avatarLarge, styles.alignSelfCenter]}
                         source={this.props.myPersonalDetails.avatar}
                     />
+                    <AttachmentPicker>
+                        {({openPicker}) => (
+                            <>
+                                <Pressable
+                                    style={[styles.button, {width: 100, alignSelf: 'center'}, styles.mt2]}
+                                    onPress={() => this.setState({isEditPhotoMenuVisible: true})}
+                                >
+                                    <Text>Edit Photo</Text>
+                                </Pressable>
+                                <CreateMenu
+                                    isVisible={this.state.isEditPhotoMenuVisible}
+                                    onClose={() => this.setState({isEditPhotoMenuVisible: false})}
+                                    onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}
+                                    menuItems={[
+                                        {
+                                            icon: Download,
+                                            text: 'Upload Photo',
+                                            onSelected: () => {
+                                                setTimeout(() => {
+                                                    openPicker({
+                                                        onPicked: (file) => {
+                                                            console.log(file)
+                                                            setAvatar({file});
+                                                        },
+                                                    });
+                                                }, 10);
+                                            },
+                                        },
+                                        {
+                                            icon: Trashcan,
+                                            text: 'Remove Photo',
+                                            onSelected: () => {
+                                                const uri = getDefaultAvatar();
+                                                // setAvatar({ file });
+                                            },
+                                        },
+                                    ]}
+                                />
+                            </>
+                        )}
+                    </AttachmentPicker>
                     <Text style={[styles.mt6, styles.mb6, styles.textP]}>
                         Tell us about yourself, we would love to get to know you!
                     </Text>
