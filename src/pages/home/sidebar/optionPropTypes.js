@@ -19,7 +19,7 @@ const optionPropTypes = PropTypes.shape({
     alternateText: PropTypes.string.isRequired,
 
     // List of participants of the report
-    participantsList: PropTypes.arrayOf(participantPropTypes).isRequired,
+    participantsList: PropTypes.arrayOf(participantPropTypes),
 
     // The array URLs of the person's avatar
     icon: PropTypes.arrayOf(PropTypes.string),

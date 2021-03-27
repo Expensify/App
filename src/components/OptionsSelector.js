@@ -12,6 +12,15 @@ const propTypes = {
     // Callback to fire when a row is tapped
     onSelectRow: PropTypes.func,
 
+    // amount if iouTransaction row is to be shown
+    amount: PropTypes.string,
+
+    // currency for iouTransaction
+    currency: PropTypes.string,
+
+    // if we should show search or not?
+    showSearch: PropTypes.bool,
+
     // Sections for the section list
     sections: PropTypes.arrayOf(PropTypes.shape({
         // Title of the section
@@ -28,10 +37,10 @@ const propTypes = {
     })).isRequired,
 
     // Value in the search input field
-    value: PropTypes.string.isRequired,
+    value: PropTypes.string,
 
     // Callback fired when text changes
-    onChangeText: PropTypes.func.isRequired,
+    onChangeText: PropTypes.func,
 
     // Optional placeholder text for the selector
     placeholderText: PropTypes.string,
@@ -72,6 +81,11 @@ const defaultProps = {
     hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
+    amount: '',
+    currency: 'USD',
+    showSearch: true,
+    onChangeText: () => {},
+    value: '',
 };
 
 class OptionsSelector extends Component {
@@ -87,7 +101,9 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        this.textInput.focus();
+        if (this.props.showSearch) {
+            this.textInput.focus();
+        }
     }
 
     /**
@@ -170,18 +186,20 @@ class OptionsSelector extends Component {
     render() {
         return (
             <View style={[styles.flex1]}>
-                <View style={[styles.ph5, styles.pv3]}>
-                    <TextInputWithFocusStyles
-                        styleFocusIn={[styles.textInputReversedFocus]}
-                        ref={el => this.textInput = el}
-                        style={[styles.textInput]}
-                        value={this.props.value}
-                        onChangeText={this.props.onChangeText}
-                        onKeyPress={this.handleKeyPress}
-                        placeholder={this.props.placeholderText}
-                        placeholderTextColor={themeColors.placeholderText}
-                    />
-                </View>
+                { this.props.showSearch ? (
+                    <View style={[styles.ph5, styles.pv3]}>
+                        <TextInputWithFocusStyles
+                            styleFocusIn={[styles.textInputReversedFocus]}
+                            ref={el => this.textInput = el}
+                            style={[styles.textInput]}
+                            value={this.props.value}
+                            onChangeText={this.props.onChangeText}
+                            onKeyPress={this.handleKeyPress}
+                            placeholder={this.props.placeholderText}
+                            placeholderTextColor={themeColors.placeholderText}
+                        />
+                    </View>
+                ) : null}
                 <OptionsList
                     ref={el => this.list = el}
                     optionHoveredStyle={styles.hoveredComponentBG}
@@ -196,6 +214,8 @@ class OptionsSelector extends Component {
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                     forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                     showTitleTooltip={this.props.showTitleTooltip}
+                    amount={this.props.amount}
+                    currency={this.props.currency}
                 />
             </View>
         );

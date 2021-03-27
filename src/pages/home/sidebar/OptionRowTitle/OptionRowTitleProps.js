@@ -18,7 +18,7 @@ const propTypes = {
         text: PropTypes.string.isRequired,
 
         // List of particiapants of the report
-        participantsList: PropTypes.arrayOf(participantPropTypes).isRequired,
+        participantsList: PropTypes.arrayOf(participantPropTypes),
 
         // Text to show for tooltip
         tooltipText: PropTypes.string,

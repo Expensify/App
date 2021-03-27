@@ -28,7 +28,13 @@ const propTypes = {
     optionIsFocused: PropTypes.bool.isRequired,
 
     // A function that is called when an option is selected. Selected option is passed as a param
-    onSelectRow: PropTypes.func.isRequired,
+    onSelectRow: PropTypes.func,
+
+    // amount if iouTransaction row is to be shown
+    amount: PropTypes.string,
+
+    // currency for iouTransaction
+    currency: PropTypes.string,
 
     // A flag to indicate whether to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
@@ -57,6 +63,9 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     mode: 'default',
+    onSelectRow: null,
+    amount: '',
+    currency: 'USD',
 };
 
 const OptionRow = ({
@@ -70,6 +79,8 @@ const OptionRow = ({
     forceTextUnreadStyle,
     showTitleTooltip,
     mode,
+    amount,
+    currency,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -155,6 +166,13 @@ const OptionRow = ({
                                     </Text>
                                 ) : null}
                             </View>
+                            {amount ? (
+                                <View style={[styles.flexWrap]}>
+                                    <Text style={[styles.textLabel]}>
+                                        {`${currency}${amount}`}
+                                    </Text>
+                                </View>
+                            ) : null}
                             {showSelectedState && (
                                 <View style={[styles.selectCircle]}>
                                     {isSelected && (
