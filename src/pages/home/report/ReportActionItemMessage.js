@@ -19,7 +19,6 @@ const ReportActionItemMessage = ({action}) => (
                 fragment={fragment}
                 isAttachment={action.isAttachment}
                 loading={action.loading}
-                actionName={action.actionName}
             />
         ))}
     </View>
