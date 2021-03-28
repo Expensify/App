@@ -12,7 +12,7 @@ import moment from 'moment-timezone';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import { setPersonalDetails, setAvatar, deleteAvatar} from '../../libs/actions/PersonalDetails';
+import {setPersonalDetails, setAvatar, deleteAvatar} from '../../libs/actions/PersonalDetails';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';

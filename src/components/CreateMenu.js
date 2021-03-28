@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import Popover from './Popover';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import CONST from '../CONST';
 import MenuItem from './MenuItem';
 
 const propTypes = {
