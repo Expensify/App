@@ -227,6 +227,21 @@ function setAvatar(file) {
     });
 }
 
+/**
+ * Deletes the user's avatar image
+ *
+ * @param {String} [login]
+ */
+function deleteAvatar(login) {
+    const details = JSON.stringify({avatar: ''});
+    API.PersonalDetails_Update({details});
+
+    // Set onyx value to default avatar
+    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+        avatar: getDefaultAvatar(login),
+    });
+}
+
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
 
@@ -237,4 +252,5 @@ export {
     getDefaultAvatar,
     setPersonalDetails,
     setAvatar,
+    deleteAvatar,
 };
