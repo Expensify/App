@@ -86,6 +86,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
+    const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
     const lastMessageText = report
         ? (hasMultipleParticipants && lastActorDetails
@@ -111,6 +112,8 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, personalDetailList),
         isPinned: lodashGet(report, 'isPinned', false),
+        hasOutstandingIOU,
+        iouReportID: lodashGet(report, 'iouReportID'),
     };
 }
 
