@@ -228,9 +228,9 @@ const styles = {
     badge: {
         backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
-        height: 26,
+        height: variables.iconSizeNormal,
         flexDirection: 'row',
-        paddingHorizontal: 8,
+        paddingHorizontal: 7,
         alignItems: 'center',
     },
 
