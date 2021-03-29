@@ -950,6 +950,13 @@ const styles = {
         width: '100%',
     },
 
+    imageViewContainer: {
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     imageModalPDF: {
         flex: 1,
         backgroundColor: themeColors.modalBackground,
