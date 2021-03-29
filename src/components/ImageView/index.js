@@ -1,35 +1,145 @@
-import React, {memo} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, Image} from 'react-native';
-import styles from '../../styles/styles';
+import {View, Image, Pressable} from 'react-native';
+import styles, {getZoomCursorStyle, getZoomSizingStyle} from '../../styles/styles';
+import canUseTouchScreen from '../../libs/canUseTouchscreen';
 
 const propTypes = {
     // URL to full-sized image
     url: PropTypes.string.isRequired,
 };
 
-const ImageView = props => (
-    <View
-        style={[
+class ImageView extends PureComponent {
+    constructor(props) {
+        super(props);
+        this.scrollableRef = null;
+        this.canUseTouchScreen = canUseTouchScreen();
+        this.containerStyles = [
             styles.w100,
             styles.h100,
             styles.alignItemsCenter,
             styles.justifyContentCenter,
-            styles.overflowHidden,
-        ]}
-    >
-        <Image
-            source={{uri: props.url}}
-            style={[
-                styles.w100,
-                styles.h100,
-            ]}
-            resizeMode="center"
-        />
-    </View>
-);
+        ];
+        this.state = {
+            isZoomed: false,
+            isDragging: false,
+            isMouseDown: false,
+            initialScrollLeft: 0,
+            initialScrollTop: 0,
+            initialX: 0,
+            initialY: 0,
+        };
+    }
+
+    componentDidMount() {
+        if (this.canUseTouchScreen) {
+            return;
+        }
+
+        document.addEventListener('mousemove', this.trackMovement.bind(this));
+    }
+
+    componentWillUnmount() {
+        if (this.canUseTouchScreen) {
+            return;
+        }
+
+        document.removeEventListener('mousemove', this.trackMovement.bind(this));
+    }
+
+    trackMovement(e) {
+        if (!this.state.isZoomed) {
+            return;
+        }
+
+        if (this.state.isDragging && this.state.isMouseDown) {
+            const x = e.nativeEvent.x;
+            const y = e.nativeEvent.y;
+            const moveX = this.state.initialX - x;
+            const moveY = this.state.initialY - y;
+            this.scrollableRef.scrollLeft = this.state.initialScrollLeft + moveX;
+            this.scrollableRef.scrollTop = this.state.initialScrollTop + moveY;
+        }
+
+        this.setState(prevState => ({isDragging: prevState.isMouseDown}));
+    }
+
+    render() {
+        if (this.canUseTouchScreen) {
+            return (
+                <View
+                    style={[...this.containerStyles, styles.overflowHidden]}
+                >
+                    <Image
+                        source={{uri: this.props.url}}
+                        style={[
+                            styles.w100,
+                            styles.h100,
+                        ]}
+                        resizeMode="center"
+                    />
+                </View>
+            );
+        }
+
+        return (
+            <View
+                ref={el => this.scrollableRef = el}
+                style={[
+                    ...this.containerStyles,
+                    styles.overflowScroll,
+                    styles.noScrollbars,
+                ]}
+            >
+                <Pressable
+                    style={[
+                        styles.w100,
+                        styles.h100,
+                        styles.flex1,
+                        getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
+                    ]}
+                    onPressIn={(e) => {
+                        const {pageX, pageY} = e.nativeEvent;
+                        this.setState({
+                            isMouseDown: true,
+                            initialX: pageX,
+                            initialY: pageY,
+                            initialScrollLeft: this.scrollableRef.scrollLeft,
+                            initialScrollTop: this.scrollableRef.scrollTop,
+                        });
+                    }}
+                    onPress={(e) => {
+                        if (this.state.isZoomed && !this.state.isDragging) {
+                            const {offsetX, offsetY} = e.nativeEvent;
+                            this.scrollableRef.scrollTop = offsetY * 1.5;
+                            this.scrollableRef.scrollLeft = offsetX * 1.5;
+                        }
+
+                        if (this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
+                            this.setState({isDragging: false, isMouseDown: false});
+                        }
+                    }}
+                    onPressOut={() => {
+                        if (this.state.isDragging) {
+                            return;
+                        }
+
+                        this.setState(prevState => ({
+                            isZoomed: !prevState.isZoomed,
+                            isMouseDown: false,
+                        }));
+                    }}
+                >
+                    <Image
+                        source={{uri: this.props.url}}
+                        style={getZoomSizingStyle(this.state.isZoomed)}
+                        resizeMode="center"
+                    />
+                </Pressable>
+            </View>
+        );
+    }
+}
 
 ImageView.propTypes = propTypes;
-ImageView.displayName = 'ImageView';
-
-export default memo(ImageView);
+export default ImageView;
