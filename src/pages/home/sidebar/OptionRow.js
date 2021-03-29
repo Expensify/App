@@ -162,7 +162,7 @@ const OptionRow = ({
                         </View>
                     </View>
                     {!hideAdditionalOptionStates && (
-                        <View style={[styles.flexRow, styles.pr5]}>
+                        <View style={styles.flexRow}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pencil} />
