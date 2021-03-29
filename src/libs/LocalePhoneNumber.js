@@ -16,8 +16,7 @@ import translations from '../languages/translations';
 function toLocalPhone(locale, number) {
     const numString = loadashTrim(number);
     const withoutPlusNum = loadashIncludes(numString, '+') ? loadashTrimStart(numString, '+') : numString;
-    const fullLocale = lodashGet(translations, locale, {});
-    const country = fullLocale.phoneCountryCode;
+    const country = lodashGet(translations, [locale, 'phoneCountryCode']);
 
     if (country) {
         if (loadashStartsWith(withoutPlusNum, country)) {
@@ -25,7 +24,7 @@ function toLocalPhone(locale, number) {
         }
         return numString;
     }
-    return `${locale} was not found.`;
+    return number;
 }
 
 /**
@@ -38,17 +37,16 @@ function toLocalPhone(locale, number) {
 function fromLocalPhone(locale, number) {
     const numString = loadashTrim(number);
     const withoutPlusNum = loadashIncludes(numString, '+') ? loadashTrimStart(numString, '+') : numString;
-    const fullLocale = lodashGet(translations, locale, {});
-    const country = fullLocale.phoneCountryCode;
-    const paddedConCode = country ? loadashPadStart(country, country.length + 1, '+') : '';
+    const country = lodashGet(translations, [locale, 'phoneCountryCode']);
+    const paddedCountryCode = country ? loadashPadStart(country, country.length + 1, '+') : '';
 
     if (country) {
         if (loadashStartsWith(withoutPlusNum, country)) {
             return loadashPadStart(withoutPlusNum, withoutPlusNum.length + 1, '+');
         }
-        return loadashPadStart(withoutPlusNum, paddedConCode.length + withoutPlusNum.length, paddedConCode);
+        return loadashPadStart(withoutPlusNum, paddedCountryCode.length + withoutPlusNum.length, paddedCountryCode);
     }
-    return `${locale} was not found.`;
+    return number;
 }
 
 export {
