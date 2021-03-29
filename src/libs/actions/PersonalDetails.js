@@ -230,11 +230,11 @@ function setAvatar(file) {
 /**
  * Deletes the user's avatar image
  *
- * @param {String} [login]
+ * @param {String} login
  */
 function deleteAvatar(login) {
-    const details = JSON.stringify({avatar: ''});
-    API.PersonalDetails_Update({details});
+    // We don't want to save default avatar on BE, just update to empty string
+    API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
 
     // Set onyx value to default avatar
     Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
