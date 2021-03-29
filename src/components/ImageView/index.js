@@ -2,6 +2,7 @@ import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View, Image, Pressable} from 'react-native';
 import styles, {getZoomCursorStyle, getZoomSizingStyle} from '../../styles/styles';
+import canUseTouchScreen from '../../libs/canUseTouchscreen';
 
 const propTypes = {
     // URL to full-sized image
@@ -12,6 +13,13 @@ class ImageView extends PureComponent {
     constructor(props) {
         super(props);
         this.scrollableRef = null;
+        this.canUseTouchScreen = canUseTouchScreen();
+        this.containerStyles = [
+            styles.w100,
+            styles.h100,
+            styles.alignItemsCenter,
+            styles.justifyContentCenter,
+        ];
         this.state = {
             isZoomed: false,
             isDragging: false,
@@ -24,13 +32,19 @@ class ImageView extends PureComponent {
     }
 
     componentDidMount() {
+        if (this.canUseTouchScreen) {
+            return;
+        }
+
         document.addEventListener('mousemove', this.trackMovement.bind(this));
-        document.addEventListener('touchmove', this.trackMovement.bind(this));
     }
 
     componentWillUnmount() {
+        if (this.canUseTouchScreen) {
+            return;
+        }
+
         document.removeEventListener('mousemove', this.trackMovement.bind(this));
-        document.removeEventListener('touchmove', this.trackMovement.bind(this));
     }
 
     trackMovement(e) {
@@ -38,7 +52,7 @@ class ImageView extends PureComponent {
             return;
         }
 
-        if (this.state.isDragging && this.state.isMouseDown && e.nativeEvent.type !== 'touchmove') {
+        if (this.state.isDragging && this.state.isMouseDown) {
             const x = e.nativeEvent.x;
             const y = e.nativeEvent.y;
             const moveX = this.state.initialX - x;
@@ -51,14 +65,28 @@ class ImageView extends PureComponent {
     }
 
     render() {
+        if (this.canUseTouchScreen) {
+            return (
+                <View
+                    style={[...this.containerStyles, styles.overflowHidden]}
+                >
+                    <Image
+                        source={{uri: this.props.url}}
+                        style={[
+                            styles.w100,
+                            styles.h100,
+                        ]}
+                        resizeMode="center"
+                    />
+                </View>
+            );
+        }
+
         return (
             <View
                 ref={el => this.scrollableRef = el}
                 style={[
-                    styles.w100,
-                    styles.h100,
-                    styles.alignItemsCenter,
-                    styles.justifyContentCenter,
+                    ...this.containerStyles,
                     styles.overflowScroll,
                     styles.noScrollbars,
                 ]}
