@@ -67,6 +67,7 @@ class ReportActionsView extends React.Component {
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
+        this.scheduleRecordMaxAction = this.scheduleRecordMaxAction.bind(this);
         this.sortedReportActions = [];
         this.unreadTimer = null;
         this.newMessageMarkerPosition = -1;
@@ -105,9 +106,9 @@ class ReportActionsView extends React.Component {
         // If the report is already open, record the max action immediately
         if (Visibility.isVisible()) {
             if (prevProps.reportID !== this.props.reportID) {
-                this.unreadTimer = setTimeout(this.recordMaxAction, 3000);
+                this.scheduleRecordMaxAction(3000);
             } else if (!this.unreadTimer) {
-                this.recordMaxAction();
+                this.scheduleRecordMaxAction();
             }
         }
 
@@ -149,8 +150,28 @@ class ReportActionsView extends React.Component {
      */
     onVisibilityChange() {
         if (Visibility.isVisible()) {
-            this.unreadTimer = setTimeout(this.recordMaxAction, 3000);
+            this.scheduleRecordMaxAction(3000);
         }
+    }
+
+    /**
+     * Sets the max action after a set delay
+     *
+     * @param {Number} delay - In miliseconds
+     */
+    scheduleRecordMaxAction(delay = 0) {
+        // Always cancel the existing timer
+        if (this.unreadTimer) {
+            clearTimeout(this.unreadTimer);
+            this.unreadTimer = null;
+        }
+
+        if (delay === 0) {
+            this.recordMaxAction();
+            return;
+        }
+
+        this.unreadTimer = setTimeout(this.recordMaxAction, delay);
     }
 
     /**
@@ -237,10 +258,6 @@ class ReportActionsView extends React.Component {
      * action when scrolled
      */
     recordMaxAction() {
-        if (this.unreadTimer) {
-            clearTimeout(this.unreadTimer);
-            this.unreadTimer = null;
-        }
         const reportActions = lodashGet(this.props, 'reportActions', {});
         const maxVisibleSequenceNumber = _.chain(reportActions)
 
