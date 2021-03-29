@@ -1237,6 +1237,10 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
     }, 0),
+
+    noScrollbars: {
+        scrollbarWidth: 'none',
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1374,6 +1378,32 @@ function getNavigationModalCardStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * @param {Boolean} isZoomed
+ * @param {Boolean} isDragging
+ * @return {Object}
+ */
+function getZoomCursorStyle(isZoomed, isDragging) {
+    if (!isZoomed) {
+        return {cursor: 'zoom-in'};
+    }
+
+    return {
+        cursor: isDragging ? 'grabbing' : 'zoom-out',
+    };
+}
+
+/**
+ * @param {Boolean} isZoomed
+ * @return {Object}
+ */
+function getZoomSizingStyle(isZoomed) {
+    return {
+        height: isZoomed ? '250%' : '100%',
+        width: isZoomed ? '250%' : '100%',
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1382,4 +1412,6 @@ export {
     getNavigationDrawerStyle,
     getNavigationDrawerType,
     getNavigationModalCardStyle,
+    getZoomCursorStyle,
+    getZoomSizingStyle,
 };
