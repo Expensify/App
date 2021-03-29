@@ -30,8 +30,7 @@ const propTypes = {
 class CreateMenu extends PureComponent {
     constructor(props) {
         super(props);
-        this.onModalHide = () => { };
-
+        this.onModalHide = () => {};
         this.setOnModalHide = this.setOnModalHide.bind(this);
         this.resetOnModalHide = this.resetOnModalHide.bind(this);
     }

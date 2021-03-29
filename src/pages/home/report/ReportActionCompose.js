@@ -253,7 +253,6 @@ class ReportActionCompose extends React.Component {
                                                     CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
                                             */
                                             />
-
                                         </>
                                     )}
                                 </AttachmentPicker>
