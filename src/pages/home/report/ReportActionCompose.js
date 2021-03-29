@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, Pressable} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -361,13 +361,21 @@ class ReportActionCompose extends React.Component {
                             addEmojiToTextBox={this.addEmojiToTextBox}
                         />
                     </PopoverWithMeasuredContent>
-                    <TouchableOpacity
-                        style={styles.chatItemEmojiButton}
+                    <Pressable
+                        style={({hovered}) => ([
+                            styles.chatItemEmojiButton,
+                            hovered && {backgroundColor: themeColors.buttonHoveredBG},
+                        ])}
                         onPress={this.showEmojiPicker}
                         underlayColor={themeColors.componentBG}
                     >
-                        <Icon src={Emoji} />
-                    </TouchableOpacity>
+                        {({hovered}) => (
+                            <Icon
+                                src={Emoji}
+                                fill={hovered ? themeColors.text : themeColors.icon}
+                            />
+                        )}
+                    </Pressable>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton,
                             this.state.isCommentEmpty
