@@ -19,7 +19,7 @@ import CONST from '../../CONST';
 import Avatar from '../../components/Avatar';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import {DownArrow, Download, Trashcan} from '../../components/Icon/Expensicons';
+import {DownArrow, Upload, Trashcan} from '../../components/Icon/Expensicons';
 import Icon from '../../components/Icon';
 import Checkbox from '../../components/Checkbox';
 import themeColors from '../../styles/themes/default';
@@ -135,7 +135,7 @@ class ProfilePage extends Component {
     createMenuItems(openPicker) {
         const menuItems = [
             {
-                icon: Download,
+                icon: Upload,
                 text: 'Upload Photo',
                 onSelected: () => {
                     setTimeout(() => {
