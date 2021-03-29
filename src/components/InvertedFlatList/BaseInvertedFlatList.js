@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-multi-spaces */
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
@@ -25,11 +26,15 @@ const propTypes = {
 
     // Should we measure these items and call getItemLayout?
     shouldMeasureItems: PropTypes.bool,
+
+    // Should we remove the clipped sub views?
+    shouldRemoveClippedSubviews: PropTypes.bool,
 };
 
 const defaultProps = {
     data: [],
     shouldMeasureItems: false,
+    shouldRemoveClippedSubviews: false,
 };
 
 class BaseInvertedFlatList extends Component {
@@ -146,18 +151,13 @@ class BaseInvertedFlatList extends Component {
 
                 // Native platforms do not need to measure items and work fine without this.
                 // Web requires that items be measured or else crazy things happen when scrolling.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
                 bounces={false}
 
                 // We keep this property very low so that chat switching remains fast
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 maxToRenderPerBatch={1}
                 windowSize={15}
-
-                // Setting removeClippedSubviews will break text selection on Android
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                removeClippedSubviews={false}
+                removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
             />
         );
     }
