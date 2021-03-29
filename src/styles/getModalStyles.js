@@ -100,7 +100,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
                 borderTopLeftRadius: 20,
                 borderTopRightRadius: 20,
                 paddingTop: 12,
-                paddingBottom: 12,
+                paddingBottom: 0,
                 justifyContent: 'center',
                 overflow: 'hidden',
             };
