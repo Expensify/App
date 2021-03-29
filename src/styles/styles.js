@@ -225,32 +225,25 @@ const styles = {
         },
     },
 
-    pill: {
+    badge: {
+        backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
-        backgroundColor: themeColors.pillBG,
-        height: variables.componentSizeSmall,
+        height: variables.iconSizeNormal,
         flexDirection: 'row',
-        paddingTop: 6,
-        paddingBottom: 6,
-        paddingLeft: 7,
-        paddingRight: 7,
+        paddingHorizontal: 7,
         alignItems: 'center',
     },
 
-    pillText: {
-        color: themeColors.text,
-        weight: '400',
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
-        marginRight: 4,
-        userSelect: 'none',
-        maxWidth: 144,
-        ...whiteSpace.noWrap,
+    badgeSuccess: {
+        backgroundColor: themeColors.badgeSuccessBG,
     },
 
-    pillCancelIcon: {
-        width: 12,
-        height: 12,
+    badgeText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        userSelect: 'none',
+        ...whiteSpace.noWrap,
     },
 
     headerText: {
