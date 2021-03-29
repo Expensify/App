@@ -179,7 +179,7 @@ class OptionsSelector extends Component {
                         onChangeText={this.props.onChangeText}
                         onKeyPress={this.handleKeyPress}
                         placeholder={this.props.placeholderText}
-                        placeholderTextColor={themeColors.textSupporting}
+                        placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
                 <OptionsList

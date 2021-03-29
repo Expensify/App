@@ -1,7 +1,13 @@
 import ROUTES from '../../ROUTES';
 
 export default {
-    prefixes: ['expensify-cash://', 'https://expensify.cash', 'https://www.expensify.cash', 'http://localhost'],
+    prefixes: [
+        'expensify-cash://',
+        'https://expensify.cash',
+        'https://www.expensify.cash',
+        'https://staging.expensify.cash',
+        'http://localhost',
+    ],
     config: {
         screens: {
             Home: {
@@ -64,10 +70,10 @@ export default {
                     Search_Root: '',
                 },
             },
-            Profile: {
-                initialRouteName: 'Profile_Root',
+            Details: {
+                initialRouteName: 'Details_Root',
                 screens: {
-                    Profile_Root: ROUTES.PROFILE_WITH_LOGIN,
+                    Details_Root: ROUTES.DETAILS_WITH_LOGIN,
                 },
             },
             IOU_Request: {

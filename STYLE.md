@@ -281,7 +281,7 @@ So, if a new language feature isn't something we have agreed to support it's off
 Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
 
 - **Async/Await** - Use the native `Promise` instead
-- **Optional Chaining** - Use `lodash.get` to fetch a nested value instead
+- **Optional Chaining** - Use `lodash/get` to fetch a nested value instead
 
 # React Coding Standards
 

@@ -48,10 +48,8 @@ jobs:
               if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
               run: bundle exec fastlane android beta
 
-            # TODO: uncomment when we want to release iOS to production
             - name: Run Fastlane production
-#              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'false' == 'true' }}
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
               run: bundle exec fastlane android production
               env:
                 VERSION: ${{ env.VERSION }}
@@ -80,21 +78,3 @@ jobs:
             - name: Set version in ENV
               if: ${{ success() }}
               run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
-
-            - uses: 8398a7/action-slack@v3
-              name: QA Slack notification
-              if: ${{ success() }}
-              with:
-                  status: custom
-                  fields: workflow, repo
-                  custom_payload: |
-                      {
-                        channel: '#qa',
-                        attachments: [{
-                          color: "#39AA56",
-                          text: `*Expensify Chat :expensifychat:* ${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
-                        }]
-                      }
-              env:
-                  GITHUB_TOKEN: ${{ github.token }}
-                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

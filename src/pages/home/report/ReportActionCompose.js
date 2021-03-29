@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
@@ -78,8 +78,11 @@ class ReportActionCompose extends React.Component {
             this.comment = this.props.comment;
         }
 
-        // When any modal goes from visible to hidden, bring focus to the compose field
-        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        // When any modal goes from visible to hidden or when the report ID changes, bring focus to the compose field
+        if (
+            (prevProps.modal.isVisible && !this.props.modal.isVisible)
+            || (prevProps.reportID !== this.props.reportID)
+        ) {
             this.setIsFocused(true);
         }
     }
@@ -186,6 +189,7 @@ class ReportActionCompose extends React.Component {
         // focus this from the chat switcher.
         // https://github.com/Expensify/Expensify.cash/issues/1228
         const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
+        // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
 
         return (
@@ -233,6 +237,11 @@ class ReportActionCompose extends React.Component {
                                                     }, 10);
                                                 }}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
+                                                menuOptions={[CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+
+                                                /**
+                                                 * Temporarily hiding IOU Modal options while Modal is incomplete. Will
+                                                 * be replaced by a beta flag once IOUConfirm is completed.
                                                 menuOptions={hasMultipleParticipants
                                                     ? [
                                                         CONST.MENU_ITEM_KEYS.SPLIT_BILL,
@@ -240,6 +249,7 @@ class ReportActionCompose extends React.Component {
                                                     : [
                                                         CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
                                                         CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+                                                */
                                             />
                                         </>
                                     )}
@@ -249,7 +259,7 @@ class ReportActionCompose extends React.Component {
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
                                     placeholder="Write something..."
-                                    placeholderTextColor={themeColors.textSupporting}
+                                    placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
                                     onDragEnter={() => this.setState({isDraggingOver: true})}

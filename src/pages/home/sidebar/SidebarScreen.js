@@ -90,10 +90,19 @@ class SidebarScreen extends Component {
                             onItemSelected={this.onCreateMenuItemSelected}
                             menuOptions={[
                                 CONST.MENU_ITEM_KEYS.NEW_CHAT,
+                                CONST.MENU_ITEM_KEYS.NEW_GROUP,
+                            ]}
+
+                            /**
+                             * Temporarily hiding IOU Modal options while Modal is incomplete. Will
+                             * be replaced by a beta flag once IOUConfirm is completed.
+                            menuOptions={[
+                                CONST.MENU_ITEM_KEYS.NEW_CHAT,
                                 CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
                                 CONST.MENU_ITEM_KEYS.NEW_GROUP,
                                 CONST.MENU_ITEM_KEYS.SPLIT_BILL,
                             ]}
+                            */
                         />
                     </>
                 )}
