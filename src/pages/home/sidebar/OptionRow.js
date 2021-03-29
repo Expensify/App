@@ -130,12 +130,12 @@ const OptionRow = ({
                                         avatarImageURLs={option.icons}
                                         optionIsFocused={optionIsFocused}
                                         size={mode === 'compact' ? 'small' : 'default'}
-                                        styles={hovered && !optionIsFocused && {
+                                        styles={(hovered && !optionIsFocused) ? {
                                             secondAvatar: {
                                                 backgroundColor: themeColors.sidebarHover,
                                                 borderColor: themeColors.sidebarHover,
                                             },
-                                        }}
+                                        } : undefined}
                                     />
                                 )
                             }

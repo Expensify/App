@@ -242,7 +242,6 @@ const styles = {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
-        userSelect: 'none',
         ...whiteSpace.noWrap,
     },
 
