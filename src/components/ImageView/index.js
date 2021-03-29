@@ -14,12 +14,6 @@ class ImageView extends PureComponent {
         super(props);
         this.scrollableRef = null;
         this.canUseTouchScreen = canUseTouchScreen();
-        this.containerStyles = [
-            styles.w100,
-            styles.h100,
-            styles.alignItemsCenter,
-            styles.justifyContentCenter,
-        ];
         this.state = {
             isZoomed: false,
             isDragging: false,
@@ -68,7 +62,7 @@ class ImageView extends PureComponent {
         if (this.canUseTouchScreen) {
             return (
                 <View
-                    style={[...this.containerStyles, styles.overflowHidden]}
+                    style={[styles.imageViewContainer, styles.overflowHidden]}
                 >
                     <Image
                         source={{uri: this.props.url}}
@@ -86,7 +80,7 @@ class ImageView extends PureComponent {
             <View
                 ref={el => this.scrollableRef = el}
                 style={[
-                    ...this.containerStyles,
+                    styles.imageViewContainer,
                     styles.overflowScroll,
                     styles.noScrollbars,
                 ]}
