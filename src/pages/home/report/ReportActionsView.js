@@ -223,7 +223,7 @@ class ReportActionsView extends React.Component {
     updateSortedReportActions() {
         this.sortedReportActions = _.chain(this.props.reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'ADDCOMMENT')
+            .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU')
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
@@ -284,7 +284,7 @@ class ReportActionsView extends React.Component {
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
     scrollToListBottom() {
-        if (this.actionListElement && this.actionListElement.data) {
+        if (this.actionListElement) {
             this.actionListElement.scrollToIndex({animated: false, index: 0});
         }
         this.recordMaxAction();
