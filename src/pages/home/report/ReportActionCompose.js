@@ -60,6 +60,8 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.focus = this.focus.bind(this);
+        this.blur = this.blur.bind(this);
         this.comment = props.comment;
 
         this.state = {
@@ -73,7 +75,7 @@ class ReportActionCompose extends React.Component {
     componentDidUpdate(prevProps) {
         // When any modal goes from visible to hidden, bring focus to the compose field
         if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
-            this.setIsFocused(true);
+            this.focus();
         }
     }
 
@@ -83,10 +85,6 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldHighlight
      */
     setIsFocused(shouldHighlight) {
-        if (shouldHighlight && this.textInput && !this.state.isFocused) {
-            this.textInput.focus();
-        }
-
         this.setState({isFocused: shouldHighlight});
     }
 
@@ -106,6 +104,24 @@ class ReportActionCompose extends React.Component {
      */
     setMenuVisibility(isMenuVisible) {
         this.setState({isMenuVisible});
+    }
+
+    /**
+     * Focus the composer text input
+     */
+    focus() {
+        if (this.textInput) {
+            this.textInput.focus();
+        }
+    }
+
+    /**
+     * Un-focus from the composer text input
+     */
+    blur() {
+        if (this.textInput) {
+            this.textInput.blur();
+        }
     }
 
     /**
@@ -199,6 +215,7 @@ class ReportActionCompose extends React.Component {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
                         }}
+                        onModalHide={this.focus}
                     >
                         {({displayFileInModal}) => (
                             <>
