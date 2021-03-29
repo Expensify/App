@@ -649,21 +649,18 @@ A common mistake with refs is using them to pass data back to a parent component
 
 There are several ways to use and declare refs and we prefer the [callback method](https://reactjs.org/docs/refs-and-the-dom.html#callback-refs).
 
-In addition, all refs should be declared in the constructor and null-initialized, rather than inline. This makes it easier to quickly see what refs are declared in the component:
+In addition, all refs should be declared in the constructor, rather than inline. This makes it easier to quickly see what refs are declared in the component:
 
 ```jsx
 class BadRefComponent extends Component {
     constructor(props) {
         super(props);
+        
+        // Bad: Ref is declared inline instead of in the constructor
     }
     
     render() {
-        return (
-            <View
-                // Bad: Ref is declared inline
-                ref={el => this.myRef = el}
-            />
-        )
+        return <View ref={el => this.myRef = el} />;
     }
 }
 
@@ -673,7 +670,7 @@ class GoodRefComponent extends Component {
         super(props);
         
         // Good: Ref is declared in the constructor
-        this.myRef = null;
+        this.myRef = undefined;
     }
 
     render() {
