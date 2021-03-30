@@ -9,15 +9,8 @@ import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 
 const propTypes = {
-    // Controls the visibility of this component.
-    isVisible: PropTypes.bool,
-
     // Function to add the selected emoji to the main compose text input
     addEmojiToTextBox: PropTypes.func.isRequired,
-};
-
-const defaultProps = {
-    isVisible: false,
 };
 
 class EmojiPickerMenu extends Component {
@@ -41,9 +34,7 @@ class EmojiPickerMenu extends Component {
     }
 
     componentDidUpdate() {
-        if (this.props.isVisible) {
-            this.searchInput.focus();
-        }
+        this.searchInput.focus();
     }
 
     filterEmojis(searchTerm) {
@@ -89,34 +80,32 @@ class EmojiPickerMenu extends Component {
 
     render() {
         return (
-            this.props.isVisible && (
-                <View style={styles.emojiPickerContainer}>
-                    <View style={[styles.pt4, styles.ph4, styles.pb1]}>
-                        <TextInputFocusable
-                            textAlignVertical="top"
-                            placeholder="Search"
-                            placeholderTextColor={themeColors.textSupporting}
-                            onChangeText={this.filterEmojis}
-                            style={styles.textInput}
-                            defaultValue=""
-                            ref={el => this.searchInput = el}
-                        />
-                    </View>
-                    <FlatList
-                        data={this.state.filteredEmojis}
-                        renderItem={this.renderItem}
-                        keyExtractor={item => (`emoji_picker_${item.code}`)}
-                        numColumns={8}
-                        style={styles.emojiPickerList}
-                        extraData={this.state.filteredEmojis}
-                        stickyHeaderIndices={this.state.headerIndices}
+            <View style={styles.emojiPickerContainer}>
+                <View style={[styles.pt4, styles.ph4, styles.pb1]}>
+                    <TextInputFocusable
+                        textAlignVertical="top"
+                        placeholder="Search"
+                        placeholderTextColor={themeColors.textSupporting}
+                        onChangeText={this.filterEmojis}
+                        style={styles.textInput}
+                        defaultValue=""
+                        ref={el => this.searchInput = el}
                     />
                 </View>
-            ));
+                <FlatList
+                    data={this.state.filteredEmojis}
+                    renderItem={this.renderItem}
+                    keyExtractor={item => (`emoji_picker_${item.code}`)}
+                    numColumns={8}
+                    style={styles.emojiPickerList}
+                    extraData={this.state.filteredEmojis}
+                    stickyHeaderIndices={this.state.headerIndices}
+                />
+            </View>
+        );
     }
 }
 
 EmojiPickerMenu.propTypes = propTypes;
-EmojiPickerMenu.defaultProps = defaultProps;
 
 export default EmojiPickerMenu;
