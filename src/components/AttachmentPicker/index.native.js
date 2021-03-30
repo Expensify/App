@@ -48,7 +48,7 @@ function showPermissionsAlert() {
             },
             {
                 text: 'Settings',
-                onPress: () => Linking.openURL('app-settings:'),
+                onPress: () => Linking.openSettings(),
             },
         ],
         {cancelable: false},
@@ -93,6 +93,7 @@ function showImagePicker(imagePickerFunc) {
             if (response.error) {
                 switch (response.error) {
                     case 'Camera permissions not granted':
+                    case 'Permissions weren\'t granted':
                         showPermissionsAlert();
                         break;
                     default:
