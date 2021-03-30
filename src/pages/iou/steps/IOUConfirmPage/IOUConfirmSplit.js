@@ -151,7 +151,6 @@ class IOUConfirmSplitPage extends Component {
             getDisplayOptionFromMyPersonalDetail(this.props.myPersonalDetails)];
     }
 
-
     /**
      * Calculates the amount per user
      * @param {Boolean} isDefaultUser

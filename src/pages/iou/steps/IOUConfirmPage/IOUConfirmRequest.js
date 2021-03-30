@@ -69,7 +69,6 @@ const defaultProps = {
     comment: '',
 };
 
-
 class IOUConfirmRequestPage extends Component {
     /**
      * Returns the sections needed for the OptionsSelector
