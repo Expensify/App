@@ -61,6 +61,9 @@ class ReportActionContextMenuItem extends Component {
      * @memberof ReportActionContextMenuItem
      */
     onPress() {
+        if (this.state.success) {
+            return;
+        }
         const pressResult = this.props.onPress();
         if (pressResult) {
             this.setState({

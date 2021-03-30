@@ -23,13 +23,17 @@ const CONTEXT_ACTIONS = [
         successIcon: Checkmark,
 
         // If return value is true, we switch the `text` and `icon` on
-        // `ReportActionContextMenuItem` with `successText` and `successIcon`
+        // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
+        // the `text` and `icon`
         onPress: (action) => {
             const lastMessage = _.last(lodashGet(action, 'message', null));
             const html = lodashGet(lastMessage, 'html', '');
-            const isImage = lastMessage && /<img([^>]+)\/>/gi.test(html);
-            if (!isImage) {
-                Clipboard.setString(action.message[0].text);
+            const text = lodashGet(lastMessage, 'text', '');
+            const isAttachment = text === '[Attachment]';
+            if (!isAttachment) {
+                Clipboard.setString(text);
+            } else {
+                Clipboard.setString(html);
             }
             return true;
         },
