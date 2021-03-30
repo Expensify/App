@@ -9,19 +9,18 @@ import RenderHTML from './RenderHTML';
 const propTypes = {
     // All the data of the action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
-
 };
+
 const ReportActionItemIOUQuote = ({action}) => (
     <View style={[styles.chatItemMessage]}>
         {_.map(_.compact(action.message), (fragment, index) => {
-            const viewDetails = '<br /><a href="#" style="text-decoration:none;">View Details</a>';
+            const viewDetails = '<br /><a href="#">View Details</a>';
             const html = `<blockquote>${fragment.text}${viewDetails}</blockquote>`;
             return (
-                <RenderHTML key={`iouQuote-${action.sequenceNumber}-${index}`} html={html} debug={false} />
+                <RenderHTML key={`iouQuote-${action.sequenceNumber}-${index}`} html={html} />
             );
         })}
     </View>
-
 );
 
 ReportActionItemIOUQuote.propTypes = propTypes;
