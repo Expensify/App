@@ -343,7 +343,7 @@ class ReportActionCompose extends React.Component {
                         }}
                     >
                         <EmojiPickerMenu
-                            addEmojiToTextBox={this.addEmojiToTextBox}
+                            onEmojiSelected={this.addEmojiToTextBox}
                         />
                     </PopoverWithMeasuredContent>
                     <Pressable
@@ -352,7 +352,6 @@ class ReportActionCompose extends React.Component {
                             hovered && {backgroundColor: themeColors.buttonHoveredBG},
                         ])}
                         onPress={this.showEmojiPicker}
-                        underlayColor={themeColors.componentBG}
                     >
                         {({hovered}) => (
                             <Icon
