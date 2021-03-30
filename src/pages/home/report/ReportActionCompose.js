@@ -341,11 +341,6 @@ class ReportActionCompose extends React.Component {
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                         }}
-                        measureContent={() => (
-                            <EmojiPickerMenu
-                                addEmojiToTextBox={this.addEmojiToTextBox}
-                            />
-                        )}
                     >
                         <EmojiPickerMenu
                             addEmojiToTextBox={this.addEmojiToTextBox}
