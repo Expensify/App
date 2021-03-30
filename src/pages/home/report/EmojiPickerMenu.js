@@ -24,6 +24,9 @@ class EmojiPickerMenu extends Component {
     constructor(props) {
         super(props);
 
+        // Ref for the emoji search input
+        this.searchInput = null;
+
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 500, false);
         this.state = {
             filteredEmojis: emojis,
