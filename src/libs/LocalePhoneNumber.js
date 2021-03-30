@@ -1,8 +1,8 @@
 import lodashGet from 'lodash/get';
-import loadashTrim from 'lodash/trim';
-import loadashIncludes from 'lodash/includes';
-import loadashStartsWith from 'lodash/startsWith';
-import loadashPadStart from 'lodash/padStart';
+import lodashTrim from 'lodash/trim';
+import lodashIncludes from 'lodash/includes';
+import lodashStartsWith from 'lodash/startsWith';
+import lodashPadStart from 'lodash/padStart';
 import Str from 'expensify-common/lib/str';
 import translations from '../languages/translations';
 
@@ -14,12 +14,12 @@ import translations from '../languages/translations';
  * @returns {string}
  */
 function toLocalPhone(locale, number) {
-    const numString = loadashTrim(number);
-    const withoutPlusNum = loadashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
+    const numString = lodashTrim(number);
+    const withoutPlusNum = lodashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
     const country = lodashGet(translations, [locale, 'phoneCountryCode']);
 
     if (country) {
-        if (loadashStartsWith(withoutPlusNum, country)) {
+        if (lodashStartsWith(withoutPlusNum, country)) {
             return Str.cutBefore(withoutPlusNum, country);
         }
         return numString;
@@ -35,15 +35,15 @@ function toLocalPhone(locale, number) {
  * @returns {string}
  */
 function fromLocalPhone(locale, number) {
-    const numString = loadashTrim(number);
-    const withoutPlusNum = loadashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
+    const numString = lodashTrim(number);
+    const withoutPlusNum = lodashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
     const country = lodashGet(translations, [locale, 'phoneCountryCode']);
 
     if (country) {
-        if (loadashStartsWith(withoutPlusNum, country)) {
-            return loadashPadStart(withoutPlusNum, withoutPlusNum.length + 1, '+');
+        if (lodashStartsWith(withoutPlusNum, country)) {
+            return lodashPadStart(withoutPlusNum, withoutPlusNum.length + 1, '+');
         }
-        return loadashPadStart(withoutPlusNum, `+${country}`.length + withoutPlusNum.length, `+${country}`);
+        return lodashPadStart(withoutPlusNum, `+${country}`.length + withoutPlusNum.length, `+${country}`);
     }
     return number;
 }
