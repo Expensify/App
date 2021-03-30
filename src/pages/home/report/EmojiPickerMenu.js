@@ -28,6 +28,8 @@ class EmojiPickerMenu extends Component {
         this.searchInput = null;
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 500, false);
+        this.renderItem = this.renderItem.bind(this);
+
         this.state = {
             filteredEmojis: emojis,
 
@@ -64,7 +66,7 @@ class EmojiPickerMenu extends Component {
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: []});
     }
 
-    renderItem({item}, addEmojiToTextBox) {
+    renderItem({item}) {
         if (item.code === 'BLANK') {
             return;
         }
@@ -79,7 +81,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={addEmojiToTextBox}
+                onPress={this.props.addEmojiToTextBox}
                 emoji={item.code}
             />
         );
@@ -102,7 +104,7 @@ class EmojiPickerMenu extends Component {
                     </View>
                     <FlatList
                         data={this.state.filteredEmojis}
-                        renderItem={item => this.renderItem(item, this.props.addEmojiToTextBox)}
+                        renderItem={this.renderItem}
                         keyExtractor={item => (`emoji_picker_${item.code}`)}
                         numColumns={8}
                         style={styles.emojiPickerList}
