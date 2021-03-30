@@ -85,14 +85,14 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             this.props.isVisible && (
-                <View style={[styles.emojiPickerContainer]}>
+                <View style={styles.emojiPickerContainer}>
                     <View style={[styles.pt4, styles.ph4, styles.pb1]}>
                         <TextInputFocusable
                             textAlignVertical="top"
                             placeholder="Search"
                             placeholderTextColor={themeColors.textSupporting}
                             onChangeText={this.filterEmojis}
-                            style={[styles.textInput]}
+                            style={styles.textInput}
                             defaultValue=""
                             ref={el => this.searchInput = el}
                         />
@@ -102,7 +102,7 @@ class EmojiPickerMenu extends Component {
                         renderItem={item => this.renderItem(item, this.props.addEmojiToTextBox)}
                         keyExtractor={item => (`emoji_picker_${item.code}`)}
                         numColumns={8}
-                        style={[styles.emojiPickerList]}
+                        style={styles.emojiPickerList}
                         extraData={this.state.filteredEmojis}
                         stickyHeaderIndices={this.state.headerIndices}
                     />
