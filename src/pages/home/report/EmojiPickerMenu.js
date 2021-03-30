@@ -25,19 +25,21 @@ class EmojiPickerMenu extends Component {
         // Because of how flatList implements these rows, each row is an index rather than each element
         // For this reason to make headers work, we need to have the header be the only rendered element in its row
         // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
-        // around each header
+        // around each header.
         this.numColumns = 8;
+
+        // This is the indices of each category of emojis
+        // The positions are static, and are calculated as index/numColumns (8 in our case)
+        // This is because each row of 8 emojis counts as one index
+        // If this emojis are ever added to emojis.js this will need to be updated or things will break
+        this.unfilteredHeaderIndices = [0, 34, 60, 88, 99, 121, 148];
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 500, false);
         this.renderItem = this.renderItem.bind(this);
 
         this.state = {
             filteredEmojis: emojis,
-
-            // This is the indices of each category of emojis
-            // The positions are static, and are calculated as index/numColumns (8 in our case)
-            // This is because each row of 8 emojis counts as one index
-            headerIndices: [0, 34, 60, 88, 99, 121, 148],
+            headerIndices: this.unfilteredHeaderIndices,
         };
     }
 
@@ -53,7 +55,8 @@ class EmojiPickerMenu extends Component {
     filterEmojis(searchTerm) {
         const normalizedSearchTerm = searchTerm.toLowerCase();
         if (normalizedSearchTerm === '') {
-            this.setState({filteredEmojis: emojis, headerIndices: [0, 34, 60, 88, 99, 121, 148]});
+            // There are no headers when searching, so we need to re-make them sticky when there is no search term
+            this.setState({filteredEmojis: emojis, headerIndices: this.unfilteredHeaderIndices});
             return;
         }
         const newFilteredEmojiList = [];
@@ -67,6 +70,7 @@ class EmojiPickerMenu extends Component {
             }
         });
 
+        // Remove sticky header indices since there are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: []});
     }
 
