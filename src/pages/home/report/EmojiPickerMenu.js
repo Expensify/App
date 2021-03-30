@@ -11,6 +11,8 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 const propTypes = {
     // Controls the visibility of this component.
     isVisible: PropTypes.bool,
+
+    // Function to add the selected emoji to the main compose text input
     addEmojiToTextBox: PropTypes.func.isRequired,
 };
 
@@ -25,6 +27,10 @@ class EmojiPickerMenu extends Component {
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 500, false);
         this.state = {
             filteredEmojis: emojis,
+
+            // This is the indices of each category of emojis
+            // The positions are static, and are calculated as index/numColumns (8 in our case)
+            // This is because each row of 8 emojis counts as one index
             headerIndices: [0, 34, 60, 88, 99, 121, 148],
         };
     }
