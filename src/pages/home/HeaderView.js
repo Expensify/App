@@ -19,6 +19,7 @@ import OptionRowTitle from './sidebar/OptionRowTitle';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatMenu from '../../components/VideoChatMenu';
+import IOUBadge from '../../components/IOUBadge';
 
 const propTypes = {
     // Toggles the navigationMenu open and closed
@@ -118,12 +119,15 @@ class HeaderView extends Component {
                                     <OptionRowTitle
                                         option={this.reportOption}
                                         tooltipEnabled
-                                        numberOfLines={2}
+                                        numberOfLines={1}
                                         style={[styles.headerText]}
                                     />
                                 </View>
                             </Pressable>
-                            <View style={[styles.reportOptions, styles.flexRow]}>
+                            <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                                {this.props.report.hasOutstandingIOU && (
+                                    <IOUBadge iouReportID={this.props.report.iouReportID} />
+                                )}
                                 <View
                                     ref={el => this.videoChatIconWrapper = el}
                                     onLayout={this.measureVideoChatIconPosition}

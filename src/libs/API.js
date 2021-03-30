@@ -62,8 +62,7 @@ function addDefaultValuesToParameters(command, parameters) {
         finalParameters.authToken = authToken;
     }
 
-    // Always set referer to https://expensify.cash/
-    finalParameters.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+    finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
 
     // This application does not save its authToken in cookies like the classic Expensify app.
     // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
@@ -583,12 +582,12 @@ function User_SecondaryLogin_Send(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.base64image
+ * @param {File|Object} parameters.file
  * @returns {Promise}
  */
 function User_UploadAvatar(parameters) {
     const commandName = 'User_UploadAvatar';
-    requireParameters(['base64image'], parameters, commandName);
+    requireParameters(['file'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 

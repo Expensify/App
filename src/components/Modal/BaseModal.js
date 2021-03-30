@@ -69,7 +69,12 @@ class BaseModal extends PureComponent {
         );
         return (
             <ReactNativeModal
-                onBackdropPress={this.props.onClose}
+                onBackdropPress={(e) => {
+                    if (e && e.type === 'keydown' && e.key === 'Enter') {
+                        return;
+                    }
+                    this.props.onClose();
+                }}
                 onBackButtonPress={this.props.onClose}
                 onModalShow={() => {
                     this.subscribeToKeyEvents();
