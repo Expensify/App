@@ -1,3 +1,5 @@
+import CONST from '../src/CONST';
+
 /*
  * This list is generated from the code here https://github.com/amurani/unicode-emoji-list
  * Each code is then converted to hex by replacing the "U+" with "0x"
@@ -30,25 +32,25 @@ const emojis = [
         header: true,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: '😀',
@@ -2821,35 +2823,35 @@ const emojis = [
         ],
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: 'Animals & Nature',
         header: true,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🐵',
@@ -4392,41 +4394,41 @@ const emojis = [
         ],
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: 'Travel & Places',
         header: true,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🌍',
@@ -6253,50 +6255,50 @@ const emojis = [
         ],
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: 'Activities',
         header: true,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🎃',
@@ -7037,41 +7039,41 @@ const emojis = [
         ],
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: 'Objects',
         header: true,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🔇',
@@ -8481,47 +8483,47 @@ const emojis = [
         ],
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: 'Symbols',
         header: true,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🏧',
@@ -10118,47 +10120,47 @@ const emojis = [
         ],
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: 'Flags',
         header: true,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
-        code: 'BLANK',
+        code: CONST.EMOJI_SPACER,
     },
     {
         code: '🏁',
