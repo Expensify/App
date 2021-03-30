@@ -10,7 +10,7 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 
 const propTypes = {
     // Function to add the selected emoji to the main compose text input
-    addEmojiToTextBox: PropTypes.func.isRequired,
+    onEmojiSelected: PropTypes.func.isRequired,
 };
 
 class EmojiPickerMenu extends Component {
@@ -85,7 +85,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={this.props.addEmojiToTextBox}
+                onPress={this.props.onEmojiSelected}
                 emoji={item.code}
             />
         );
