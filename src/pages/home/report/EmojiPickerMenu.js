@@ -45,12 +45,12 @@ class EmojiPickerMenu extends Component {
         }
         const newFilteredEmojiList = [];
         _.each(emojis, (emoji) => {
-            if (!emoji.header && emoji.code !== 'BLANK') {
-                emoji.keywords.forEach((keyword) => {
-                    if (keyword.includes(normalizedSearchTerm)) {
-                        newFilteredEmojiList.push(emoji);
-                    }
-                });
+            if (emoji.header || emoji.code === 'BLANK') {
+                return;
+            }
+
+            if (_.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))) {
+                newFilteredEmojiList.push(emoji);
             }
         });
 
