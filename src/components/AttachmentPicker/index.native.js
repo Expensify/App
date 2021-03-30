@@ -133,7 +133,11 @@ class AttachmentPicker extends Component {
     constructor(...args) {
         super(...args);
 
-        this.state = {isVisible: false, onPicked: () => {}, result: null};
+        this.state = {
+            isVisible: false,
+            result: null,
+            onPicked: () => {},
+        };
 
         this.menuItemData = [
             {
@@ -161,11 +165,12 @@ class AttachmentPicker extends Component {
     /**
      * Store the selected attachment mapped to an appropriate file interface
      *
-     * @param {ImagePickerResponse|DocumentPickerResponse} result
+     * @param {ImagePickerResponse|DocumentPickerResponse} attachment
      */
-    setResult(result) {
-        if (result && !result.didCancel && !result.error) {
-            this.setState({result: getDataForUpload(result)});
+    setResult(attachment) {
+        if (attachment && !attachment.didCancel && !attachment.error) {
+            const result = getDataForUpload(attachment);
+            this.setState({result});
         }
     }
 
@@ -191,7 +196,11 @@ class AttachmentPicker extends Component {
             );
         }
 
-        this.setState({isVisible: true, onPicked, result: null});
+        this.setState({
+            isVisible: true,
+            result: null,
+            onPicked,
+        });
     }
 
     /**
