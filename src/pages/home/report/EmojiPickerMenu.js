@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {View, FlatList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import emojis from '../../../../assets/emojis';
@@ -50,7 +51,7 @@ class EmojiPickerMenu extends Component {
         }
         const newFilteredEmojiList = [];
         _.each(emojis, (emoji) => {
-            if (emoji.header || emoji.code === 'BLANK') {
+            if (emoji.header || emoji.code === CONST.EMOJI_SPACER) {
                 return;
             }
 
@@ -64,15 +65,15 @@ class EmojiPickerMenu extends Component {
 
     /**
      * Given an emoji item object, render a component based on its type.
-     * Items with the code "BLANK" return nothing and are used to fill rows up to 8
+     * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly
      *
      * @param {Object} item
      * @returns {*}
      */
     renderItem({item}) {
-        if (item.code === 'BLANK') {
-            return;
+        if (item.code === CONST.EMOJI_SPACER) {
+            return null;
         }
 
         if (item.header) {
