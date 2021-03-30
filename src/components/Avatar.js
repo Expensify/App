@@ -28,7 +28,6 @@ class Avatar extends PureComponent {
 
         return (
             <Image
-                ref={el => this.image = el}
                 source={{uri: this.props.source}}
                 style={[
                     this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
