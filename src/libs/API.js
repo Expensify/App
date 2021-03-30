@@ -62,8 +62,7 @@ function addDefaultValuesToParameters(command, parameters) {
         finalParameters.authToken = authToken;
     }
 
-    // Always set referer to https://expensify.cash/
-    finalParameters.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+    finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
 
     // This application does not save its authToken in cookies like the classic Expensify app.
     // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
