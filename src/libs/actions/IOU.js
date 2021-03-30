@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import {getSimplifiedIOUReport} from './Report';
@@ -24,7 +25,7 @@ function getPreferredCurrency() {
  * @param {String} parameters.debtorEmail
  */
 function createIOUTransaction({
-    comment, amount, currency, debtorEmail,
+    comment, amount, currency, debtorEmail, setIsTransactionComplete,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true});
     let iouReportID = '';
@@ -56,7 +57,7 @@ function createIOUTransaction({
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
                 getSimplifiedIOUReport(iouReportData));
-
+            setIsTransactionComplete(true);
             Onyx.merge(ONYXKEYS.IOU, {loading: false});
         })
         .catch((error) => {
@@ -79,7 +80,9 @@ function createIOUSplit({
     amount,
     currency,
     splits,
+    setIsTransactionComplete,
 }) {
+    let reportIDs = [];
     Onyx.merge(ONYXKEYS.IOU, {loading: true});
     API.CreateChatReport({
         emailList: participants.join(','),
@@ -92,9 +95,33 @@ function createIOUSplit({
             comment,
             reportID,
         }))
-        .then((res) => {
-            console.debug('Response from CreateIOUSplit', res);
-            Onyx.merge(ONYXKEYS.IOU, {loading: false}); // placeholder
+        .then((data) => {
+            console.debug(data);
+            Onyx.merge(ONYXKEYS.IOU, {loading: false});
+            reportIDs = data.reportIDList;
+            return reportIDs;
+        })
+        .then(reportIDList => API.Get({
+            returnValueList: 'reportStuff',
+            reportIDList,
+            shouldLoadOptionalKeys: true,
+            includePinnedReports: true,
+        }))
+        .then(({reports}) => _.map(reports, getSimplifiedIOUReport))
+        .then((iouReportObjects) => {
+            const reportIOUData = {};
+            _.each(iouReportObjects, (iouReportObject) => {
+                if (!iouReportObject) {
+                    return;
+                }
+                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+                reportIOUData[iouReportKey] = iouReportObject;
+            });
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, {...reportIOUData});
+        })
+        .then(() => {
+            setIsTransactionComplete(true);
+            Onyx.merge(ONYXKEYS.IOU, {loading: false});
         })
         .catch((error) => {
             console.debug(`Error: ${error.message}`);
