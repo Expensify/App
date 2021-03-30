@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import lodashTrim from 'lodash/trim';
 import lodashIncludes from 'lodash/includes';
 import lodashStartsWith from 'lodash/startsWith';
-import lodashPadStart from 'lodash/padStart';
 import Str from 'expensify-common/lib/str';
 import translations from '../languages/translations';
 
@@ -41,9 +40,9 @@ function fromLocalPhone(locale, number) {
 
     if (country) {
         if (lodashStartsWith(withoutPlusNum, country)) {
-            return lodashPadStart(withoutPlusNum, withoutPlusNum.length + 1, '+');
+            return `+${withoutPlusNum}`;
         }
-        return lodashPadStart(withoutPlusNum, `+${country}`.length + withoutPlusNum.length, `+${country}`);
+        return `+${country}${withoutPlusNum}`;
     }
     return number;
 }
