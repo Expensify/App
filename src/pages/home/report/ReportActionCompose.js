@@ -58,7 +58,7 @@ class ReportActionCompose extends React.Component {
         super(props);
 
         // The horizontal and vertical position (relative to the screen) where the popover will display.
-        this.popoverAnchorPosition = {
+        this.emojiPopoverAnchorPosition = {
             horizontal: 0,
             vertical: 0,
         };
@@ -78,7 +78,7 @@ class ReportActionCompose extends React.Component {
             isFocused: false,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
-            isPickerVisible: false,
+            isEmojiPickerVisible: false,
             isMenuVisible: false,
         };
     }
@@ -175,33 +175,24 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Save the location of a native press event.
-     *
-     * @param {Object} nativeEvent
-     */
-    capturePressLocation(nativeEvent) {
-        this.popoverAnchorPosition = {
-            horizontal: nativeEvent.pageX,
-            vertical: nativeEvent.pageY,
-        };
-    }
-
-    /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
      */
     showEmojiPicker(event) {
         const nativeEvent = event.nativeEvent || {};
-        this.capturePressLocation(nativeEvent);
-        this.setState({isPickerVisible: true});
+        this.emojiPopoverAnchorPosition = {
+            horizontal: nativeEvent.pageX,
+            vertical: nativeEvent.pageY,
+        };
+        this.setState({isEmojiPickerVisible: true});
     }
 
     /**
      * Hide the ReportActionContextMenu modal popover.
      */
     hideEmojiPicker() {
-        this.setState({isPickerVisible: false});
+        this.setState({isEmojiPickerVisible: false});
     }
 
     addEmojiToTextBox(emoji) {
@@ -339,16 +330,14 @@ class ReportActionCompose extends React.Component {
                         )}
                     </AttachmentModal>
                     <PopoverWithMeasuredContent
-                        isVisible={this.state.isPickerVisible}
+                        isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
-                        anchorPosition={this.popoverAnchorPosition}
+                        anchorPosition={this.emojiPopoverAnchorPosition}
                         animationIn="fadeIn"
-                        anchorOrigin={
-                            {
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            }
-                        }
+                        anchorOrigin={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        }}
                         measureContent={() => (
                             <EmojiPickerMenu
                                 isVisible
@@ -357,7 +346,7 @@ class ReportActionCompose extends React.Component {
                         )}
                     >
                         <EmojiPickerMenu
-                            isVisible={this.state.isPickerVisible}
+                            isVisible={this.state.isEmojiPickerVisible}
                             addEmojiToTextBox={this.addEmojiToTextBox}
                         />
                     </PopoverWithMeasuredContent>
