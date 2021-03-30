@@ -92,8 +92,12 @@ function showImagePicker(imagePickerFunc) {
         imagePickerFunc(imagePickerOptions, (response) => {
             if (response.error) {
                 switch (response.error) {
-                    case 'Camera permissions not granted': showPermissionsAlert(); break;
-                    default: showGeneralAlert(response.error); break;
+                    case 'Camera permissions not granted':
+                        showPermissionsAlert();
+                        break;
+                    default:
+                        showGeneralAlert(response.error);
+                        break;
                 }
 
                 reject(new Error(`Error during attachment selection: ${response.error}`));
