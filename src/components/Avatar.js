@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {Image} from 'react-native';
 import PropTypes from 'prop-types';
@@ -9,11 +10,15 @@ const propTypes = {
 
     // Extra styles to pass
     style: PropTypes.arrayOf(PropTypes.any),
+
+    // Set the size of Avatar
+    size: PropTypes.oneOf(['default', 'small']),
 };
 
 const defaultProps = {
     source: '',
     style: [],
+    size: 'default',
 };
 
 class Avatar extends PureComponent {
@@ -24,12 +29,11 @@ class Avatar extends PureComponent {
 
         return (
             <Image
-                ref={el => this.image = el}
                 source={{uri: this.props.source}}
-                style={[
-                    styles.avatarNormal,
-                    ...this.props.style,
-                ]}
+                style={_.union([
+                    this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
+                    this.props.style,
+                ])}
             />
         );
     }

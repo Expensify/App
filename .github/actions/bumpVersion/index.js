@@ -38,21 +38,18 @@ function updateNativeVersions(version) {
         });
 
     // Update iOS
-    updateiOSVersion(version)
-        .then((promiseValues) => {
-            // The first promiseValue will be the CFBundleVersion, so confirm it has 4 parts before setting the env var
-            const cfBundleVersion = promiseValues[0];
-            if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
-                core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
-                console.log('Successfully updated iOS!');
-            } else {
-                core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
-            }
-        })
-        .catch((err) => {
-            console.error('Error updating iOS');
-            core.setFailed(err);
-        });
+    try {
+        const cfBundleVersion = updateiOSVersion(version);
+        if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
+            core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
+            console.log('Successfully updated iOS!');
+        } else {
+            core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
+        }
+    } catch (err) {
+        console.error('Error updating iOS');
+        core.setFailed(err);
+    }
 }
 
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
@@ -104,8 +101,7 @@ octokit.repos.listTags({
 /***/ 322:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-const {promisify} = __nccwpck_require__(1669);
-const exec = promisify(__nccwpck_require__(3129).exec);
+const {execSync} = __nccwpck_require__(3129);
 const fs = __nccwpck_require__(5747).promises;
 const path = __nccwpck_require__(5622);
 const getMajorVersion = __nccwpck_require__(6688);
@@ -180,21 +176,21 @@ exports.updateAndroidVersion = function updateAndroidVersion(versionName, versio
  * Updates the CFBundleShortVersionString and the CFBundleVersion.
  *
  * @param {String} version
- * @returns {Promise}
+ * @returns {String}
  */
 exports.updateiOSVersion = function updateiOSVersion(version) {
     const shortVersion = version.split('-')[0];
     const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
     console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
 
-    // Pass back the cfVersion in the return array so we can set the NEW_IOS_VERSION in ios.yml
-    return Promise.all([
-        cfVersion,
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`),
-    ]);
+    // Update Plists
+    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`);
+    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`);
+    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`);
+    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`);
+
+    // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
+    return cfVersion;
 };
 
 
