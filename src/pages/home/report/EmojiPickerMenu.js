@@ -37,6 +37,11 @@ class EmojiPickerMenu extends Component {
         this.searchInput.focus();
     }
 
+    /**
+     * Filter the entire list of emojis to only emojis that have the search term in their keywords
+     *
+     * @param {String} searchTerm
+     */
     filterEmojis(searchTerm) {
         const normalizedSearchTerm = searchTerm.toLowerCase();
         if (normalizedSearchTerm === '') {
@@ -57,6 +62,14 @@ class EmojiPickerMenu extends Component {
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: []});
     }
 
+    /**
+     * Given an emoji item object, render a component based on its type.
+     * Items with the code "BLANK" return nothing and are used to fill rows up to 8
+     * so that the sticky headers function properly
+     *
+     * @param {Object} item
+     * @returns {*}
+     */
     renderItem({item}) {
         if (item.code === 'BLANK') {
             return;
