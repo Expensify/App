@@ -57,11 +57,6 @@ class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
 
-        // The horizontal and vertical position (relative to the screen) where the popover will display.
-        this.emojiPopoverAnchorPosition = {
-            horizontal: 0,
-            vertical: 0,
-        };
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -80,6 +75,12 @@ class ReportActionCompose extends React.Component {
             isCommentEmpty: props.comment.length === 0,
             isEmojiPickerVisible: false,
             isMenuVisible: false,
+
+            // The horizontal and vertical position (relative to the screen) where the emoji popover will display.
+            emojiPopoverAnchorPosition: {
+                horizontal: 0,
+                vertical: 0,
+            },
         };
     }
 
@@ -180,7 +181,7 @@ class ReportActionCompose extends React.Component {
      * @param {Object} [event] - A press event.
      */
     showEmojiPicker(event) {
-        this.emojiPopoverAnchorPosition = {
+        this.state.emojiPopoverAnchorPosition = {
             horizontal: event.nativeEvent.pageX,
             vertical: event.nativeEvent.pageY,
         };
@@ -331,7 +332,7 @@ class ReportActionCompose extends React.Component {
                     <PopoverWithMeasuredContent
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
-                        anchorPosition={this.emojiPopoverAnchorPosition}
+                        anchorPosition={this.state.emojiPopoverAnchorPosition}
                         animationIn="fadeIn"
                         hideModalContentWhileAnimating
                         animationInTiming={1}
