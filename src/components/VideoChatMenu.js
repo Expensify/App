@@ -6,6 +6,7 @@ import openURLInNewTab from '../libs/openURLInNewTab';
 import ZoomIcon from '../../assets/images/zoom-icon.svg';
 import GoogleMeetIcon from '../../assets/images/google-meet.svg';
 import CONST from '../CONST';
+import styles from '../styles/styles';
 
 const propTypes = {
     // State that determines whether to display the create menu or not
@@ -52,9 +53,12 @@ const VideoChatMenu = (props) => {
                 left: props.anchorPosition.x - 150,
                 top: props.anchorPosition.y + 40,
             }}
+            animationIn="fadeInDown"
+            animationOut="fadeOutDown"
         >
             {menuItemData.map(({icon, text, onPress}) => (
                 <MenuItem
+                    style={[styles.mr3]}
                     key={text}
                     icon={icon}
                     title={text}
