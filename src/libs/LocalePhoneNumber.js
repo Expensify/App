@@ -3,8 +3,8 @@ import loadashTrim from 'lodash/trim';
 import loadashIncludes from 'lodash/includes';
 import loadashStartsWith from 'lodash/startsWith';
 import loadashPadStart from 'lodash/padStart';
-import translations from '../languages/translations';
 import Str from 'expensify-common/lib/str';
+import translations from '../languages/translations';
 
 /**
  * Returns a locally converted phone number without the country code
