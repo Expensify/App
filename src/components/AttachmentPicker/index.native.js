@@ -151,16 +151,7 @@ class AttachmentPicker extends Component {
 
         this.setResult = this.setResult.bind(this);
         this.close = this.close.bind(this);
-        this.onModalHide = this.onModalHide.bind(this);
-    }
-
-    /**
-     * After the modal closes, if an attachment was selected delegate it to the `onPicked` callback
-     */
-    onModalHide() {
-        if (this.state.result) {
-            this.state.onPicked(this.state.result);
-        }
+        this.completeAttachmentSelection = this.completeAttachmentSelection.bind(this);
     }
 
     /**
@@ -174,6 +165,21 @@ class AttachmentPicker extends Component {
         }
     }
 
+    /**
+     * Triggers the `onPicked` callback with the selected attachment
+     */
+    completeAttachmentSelection() {
+        if (this.state.result) {
+            this.state.onPicked(this.state.result);
+        }
+    }
+
+    /**
+     * Opens the attachment modal
+     *
+     * @param {function} onPicked A callback that will be called with the selected attachment
+     * @throws {Error} when the `onPicked` parameter is invalid
+     */
     open(onPicked) {
         if (typeof onPicked !== 'function') {
             throw new Error(
@@ -184,6 +190,9 @@ class AttachmentPicker extends Component {
         this.setState({isVisible: true, onPicked, result: null});
     }
 
+    /**
+     * Closes the attachment modal
+     */
     close() {
         this.setState({isVisible: false});
     }
@@ -206,7 +215,7 @@ class AttachmentPicker extends Component {
                     onClose={this.close}
                     isVisible={this.state.isVisible}
                     anchorPosition={styles.createMenuPosition}
-                    onModalHide={this.onModalHide}
+                    onModalHide={this.completeAttachmentSelection}
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {
