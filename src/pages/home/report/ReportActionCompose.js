@@ -180,10 +180,9 @@ class ReportActionCompose extends React.Component {
      * @param {Object} [event] - A press event.
      */
     showEmojiPicker(event) {
-        const nativeEvent = event.nativeEvent || {};
         this.emojiPopoverAnchorPosition = {
-            horizontal: nativeEvent.pageX,
-            vertical: nativeEvent.pageY,
+            horizontal: event.nativeEvent.pageX,
+            vertical: event.nativeEvent.pageY,
         };
         this.setState({isEmojiPickerVisible: true});
     }
