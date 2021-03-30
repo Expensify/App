@@ -920,8 +920,8 @@ const styles = {
     },
 
     focusedAvatar: {
-        backgroundColor: themeColors.pillBG,
-        borderColor: themeColors.pillBG,
+        backgroundColor: themeColors.border,
+        borderColor: themeColors.border,
     },
 
     emptyAvatar: {
