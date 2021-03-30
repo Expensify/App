@@ -225,6 +225,10 @@ class ReportActionCompose extends React.Component {
                                                 onPress={(e) => {
                                                     e.preventDefault();
                                                     this.setMenuVisibility(true);
+
+                                                    /* Keep last focus inside the input so that focus is restored
+                                                     on modal close. Otherwise breaks modal 2 modal transition */
+                                                    this.focus();
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
