@@ -1,10 +1,11 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View, SectionList, Text} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
+import SectionList from './SectionList';
 
 const propTypes = {
     // Style for hovered state
@@ -190,7 +191,10 @@ class OptionsList extends Component {
 
     render() {
         return (
-            <View style={[styles.flex1]}>
+
+            // need to set a height (0 works in this case) so that the view will scroll on mobile
+            // NOTE: the view will still fill its container since it has flex: 1 on it
+            <View style={[styles.flex1, {height: 0}]}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>

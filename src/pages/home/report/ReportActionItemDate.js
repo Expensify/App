@@ -11,7 +11,7 @@ const propTypes = {
 
 const ReportActionItemDate = props => (
     <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-        {DateUtils.timestampToDateTime(props.timestamp)}
+        {DateUtils.timestampToDateTime('en', props.timestamp)}
     </Text>
 );
 

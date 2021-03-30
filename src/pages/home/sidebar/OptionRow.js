@@ -15,6 +15,7 @@ import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
 import OptionRowTitle from './OptionRowTitle';
+import IOUBadge from '../../../components/IOUBadge';
 
 const propTypes = {
     // Style for hovered state
@@ -141,6 +142,7 @@ const OptionRow = ({
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
                                     style={displayNameStyle}
+                                    reportID={option.reportID}
                                 />
 
                                 {option.alternateText ? (
@@ -162,11 +164,14 @@ const OptionRow = ({
                         </View>
                     </View>
                     {!hideAdditionalOptionStates && (
-                        <View style={styles.flexRow}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pencil} />
                                 </View>
+                            )}
+                            {option.hasOutstandingIOU && (
+                                <IOUBadge iouReportID={option.iouReportID} />
                             )}
                             {option.isPinned && (
                                 <View style={styles.ml2}>
@@ -212,6 +217,10 @@ export default memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (prevProps.option.isPinned !== nextProps.option.isPinned) {
+        return false;
+    }
+
+    if (prevProps.option.hasOutstandingIOU !== nextProps.option.hasOutstandingIOU) {
         return false;
     }
 
