@@ -66,7 +66,7 @@ class PasswordPage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
+                <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <View style={styles.flexGrow1}>
                         <Text style={[styles.mb6, styles.textP]}>
                             Changing your password will update your password for both your Expensify.com
