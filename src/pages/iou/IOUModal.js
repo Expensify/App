@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'lodash';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
@@ -58,6 +57,7 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
+        this.setIsTransactionComplete = this.setIsTransactionComplete.bind(this);
 
         this.state = {
             currentStepIndex: 0,
@@ -66,6 +66,7 @@ class IOUModal extends Component {
             selectedCurrency: 'USD',
             isAmountPageNextButtonDisabled: true,
             comment: '',
+            isTransactionComplete: false,
         };
     }
 
@@ -74,11 +75,21 @@ class IOUModal extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        // Dismiss modal when previous iousReport changes from the new iousReport
-        // This should occur the data changes from within the modal activity
-        if (!_.isEqual(prevProps.iousReport, this.props.iousReport)) {
+        // Dismiss modal when the length of transactions for any iousReport changes
+        if (!prevProps.iousReport) { return; }
+
+        if (this.state.isTransactionComplete === true) {
             return Navigation.dismissModal();
         }
+
+        // Object.keys(this.props.iousReport)
+        //     .forEach((reportKey) => {
+        //         const prevTransactions = lodashGet({...prevProps.iousReport[reportKey]}, 'transactions', null);
+        //         const currentTransactions = lodashGet({...this.props.iousReport[reportKey]}, 'transactions', null);
+        //         if (prevTransactions.length !== currentTransactions.length) {
+        //             return Navigation.dismissModal();
+        //         }
+        //     });
     }
 
     /**
@@ -96,6 +107,18 @@ class IOUModal extends Component {
             return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
         }
         return steps[currentStepIndex] || '';
+    }
+
+    setIsTransactionComplete(isTransactionComplete) {
+        this.setState({
+            isTransactionComplete,
+        });
+    }
+
+    addParticipants(participants) {
+        this.setState({
+            participants,
+        });
     }
 
     /**
@@ -120,12 +143,6 @@ class IOUModal extends Component {
         this.setState(prevState => ({
             currentStepIndex: prevState.currentStepIndex + 1,
         }));
-    }
-
-    addParticipants(participants) {
-        this.setState({
-            participants,
-        });
     }
 
     /**
@@ -183,17 +200,23 @@ class IOUModal extends Component {
         if (debtorEmail) {
             return createIOUTransaction({
                 comment: this.state.comment,
-                amount: this.state.amount,
+
+                // should send in cents to API
+                amount: this.state.amount * 100,
                 currency: this.state.selectedCurrency,
                 debtorEmail,
+                setIsTransactionComplete: this.setIsTransactionComplete,
             });
         }
         return createIOUSplit({
             comment: this.state.comment,
-            amount: this.state.amount,
+
+            // should send in cents to API
+            amount: this.state.amount * 100,
             currency: this.state.selectedCurrency,
             splits,
             participants,
+            setIsTransactionComplete: this.setIsTransactionComplete,
         });
     }
 
@@ -272,8 +295,5 @@ IOUModal.displayName = 'IOUModal';
 export default withOnyx({
     iousReport: {
         key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    },
-    reportID: {
-        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
     },
 })(IOUModal);

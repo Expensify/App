@@ -909,4 +909,5 @@ export {
     togglePinnedState,
     updateCurrentlyViewedReportID,
     getSimplifiedIOUReport,
+    getSimplifiedReportObject,
 };

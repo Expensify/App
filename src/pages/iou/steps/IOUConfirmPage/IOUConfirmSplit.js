@@ -86,12 +86,12 @@ class IOUConfirmSplitPage extends Component {
     getSections() {
         const sections = [];
 
-        // $ should be replaced by currency symbol once available
-        const individualAmountText = `$${this.calculateAmount(2)}`;
         const formattedMyPersonalDetails = getDisplayOptionFromMyPersonalDetail(this.props.myPersonalDetails,
-            individualAmountText);
+
+            // convert from cent to bigger form
+            `$${this.calculateAmount(true) / 100}`);
         const formattedParticipants = getDisplayOptionsFromParticipants(this.props.participants,
-            individualAmountText);
+            `$${this.calculateAmount() / 100}`);
 
         sections.push({
             title: 'WHO PAID?',
@@ -115,12 +115,19 @@ class IOUConfirmSplitPage extends Component {
      * @returns {Array}
      */
     getSplits() {
-        const amountPerPerson = parseFloat(this.calculateAmount());
         const splits = this.props.participants.map(participant => ({
             email: participant.login,
-            amount: amountPerPerson,
+
+            // we should send in cents to API
+            amount: this.calculateAmount(),
         }));
-        splits.push({email: this.props.myPersonalDetails.login, amount: amountPerPerson});
+
+        splits.push({
+            email: this.props.myPersonalDetails.login,
+
+            // the user is default and we should send in cents to API
+            amount: this.calculateAmount(true),
+        });
         return splits;
     }
 
@@ -144,14 +151,27 @@ class IOUConfirmSplitPage extends Component {
             getDisplayOptionFromMyPersonalDetail(this.props.myPersonalDetails)];
     }
 
+
     /**
-     * Calculates amount for individual
-     * @param {Number} precision
+     * Calculates the amount per user
+     * @param {Boolean} isDefaultUser
      * @returns {Number}
      */
-    calculateAmount(precision) {
-        const calculatedAmount = (this.props.iouAmount / (this.props.participants.length + 1));
-        return precision ? calculatedAmount.toFixed(precision) : calculatedAmount;
+    calculateAmount(isDefaultUser = false) {
+        // convert to cents before working with iouAmount to avoid
+        // javascript subtraction with decimal problem
+        const iouAmount = Math.round(parseFloat(this.props.iouAmount * 100));
+        const totalParticipants = this.props.participants.length + 1;
+
+        const amountPerPerson = Math.round(iouAmount / totalParticipants);
+
+        const sumAmount = amountPerPerson * totalParticipants;
+
+        const difference = iouAmount - sumAmount;
+
+        if (!isDefaultUser) { return amountPerPerson; }
+
+        return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
     }
 
     render() {
