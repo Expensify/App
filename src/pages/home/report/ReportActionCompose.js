@@ -215,7 +215,6 @@ class ReportActionCompose extends React.Component {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
                         }}
-                        onModalHide={this.focus}
                     >
                         {({displayFileInModal}) => (
                             <>
@@ -226,9 +225,6 @@ class ReportActionCompose extends React.Component {
                                                 onPress={(e) => {
                                                     e.preventDefault();
                                                     this.setMenuVisibility(true);
-
-                                                    // Hide the keyboard during a modal to modal transition
-                                                    this.blur();
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
