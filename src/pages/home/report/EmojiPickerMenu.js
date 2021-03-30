@@ -10,6 +10,9 @@ import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 
 const propTypes = {
+    // Is the picker currently visible?
+    isVisible: PropTypes.bool.isRequired,
+
     // Function to add the selected emoji to the main compose text input
     onEmojiSelected: PropTypes.func.isRequired,
 };
@@ -43,8 +46,10 @@ class EmojiPickerMenu extends Component {
         };
     }
 
-    componentDidUpdate() {
-        this.searchInput.focus();
+    componentDidMount() {
+        if (this.props.isVisible) {
+            this.searchInput.focus();
+        }
     }
 
     /**
@@ -70,7 +75,7 @@ class EmojiPickerMenu extends Component {
             }
         });
 
-        // Remove sticky header indices since there are no headers while searching and we don't want to make emojis sticky
+        // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: []});
     }
 
