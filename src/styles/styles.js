@@ -1130,10 +1130,10 @@ const styles = {
 
     unreadIndicatorContainer: {
         position: 'absolute',
-        top: -5,
+        top: -10,
         left: 0,
         width: '100%',
-        height: 10,
+        height: 20,
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
