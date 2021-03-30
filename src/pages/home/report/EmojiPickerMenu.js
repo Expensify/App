@@ -48,7 +48,7 @@ class EmojiPickerMenu extends Component {
             return;
         }
         const newFilteredEmojiList = [];
-        emojis.forEach((emoji) => {
+        _.each(emojis, (emoji) => {
             if (!emoji.header && emoji.code !== 'BLANK') {
                 emoji.keywords.forEach((keyword) => {
                     if (keyword.includes(normalizedSearchTerm)) {
