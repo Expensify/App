@@ -334,19 +334,20 @@ class ReportActionCompose extends React.Component {
                         onClose={this.hideEmojiPicker}
                         anchorPosition={this.emojiPopoverAnchorPosition}
                         animationIn="fadeIn"
+                        hideModalContentWhileAnimating
+                        animationInTiming={1}
+                        animationOutTiming={1}
                         anchorOrigin={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                         }}
                         measureContent={() => (
                             <EmojiPickerMenu
-                                isVisible
                                 addEmojiToTextBox={this.addEmojiToTextBox}
                             />
                         )}
                     >
                         <EmojiPickerMenu
-                            isVisible={this.state.isEmojiPickerVisible}
                             addEmojiToTextBox={this.addEmojiToTextBox}
                         />
                     </PopoverWithMeasuredContent>
