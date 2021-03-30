@@ -124,14 +124,14 @@ class ReportActionItem extends Component {
                                     ? (
                                         <ReportActionItemSingle
                                             action={this.props.action}
-                                            report={this.props.report}
+                                            iouReportID={this.props.report.iouReportID}
                                             isMostRecentIOUReport={this.props.isMostRecentIOUReport}
                                         />
                                     )
                                     : (
                                         <ReportActionItemGrouped
                                             action={this.props.action}
-                                            report={this.props.report}
+                                            iouReportID={this.props.report.iouReportID}
                                             isMostRecentIOUReport={this.props.isMostRecentIOUReport}
                                         />
                                     )}

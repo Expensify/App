@@ -128,6 +128,9 @@ const styles = {
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
     },
 
     buttonSuccess: {
@@ -1255,6 +1258,18 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
     }, 0),
+
+    iouPreviewBox: {
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        padding: 15,
+        marginTop: 15,
+    },
+
+    normalRadius: {
+        borderRadius: variables.componentBorderRadius,
+    },
 
     noScrollbars: {
         scrollbarWidth: 'none',
