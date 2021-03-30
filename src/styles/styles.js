@@ -820,6 +820,10 @@ const styles = {
         justifyContent: 'center',
     },
 
+    hoveredButton: {
+        backgroundColor: themeColors.buttonHoveredBG,
+    },
+
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',

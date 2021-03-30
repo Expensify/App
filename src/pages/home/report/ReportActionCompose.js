@@ -349,7 +349,7 @@ class ReportActionCompose extends React.Component {
                     <Pressable
                         style={({hovered}) => ([
                             styles.chatItemEmojiButton,
-                            hovered && {backgroundColor: themeColors.buttonHoveredBG},
+                            hovered && styles.hoveredButton,
                         ])}
                         onPress={this.showEmojiPicker}
                     >
