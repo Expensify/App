@@ -39,7 +39,7 @@ const documentPickerOptions = {
  */
 function showPermissionsAlert() {
     Alert.alert(
-        'ExpensifyCash does not have access to your camera. To enable access, tap Settings and turn on Camera.',
+        'Expensify.cash does not have access to your camera. To enable access, tap Settings and turn on Camera.',
         '',
         [
             {
