@@ -21,6 +21,13 @@ class EmojiPickerMenu extends Component {
         // Ref for the emoji search input
         this.searchInput = undefined;
 
+        // This is the number of columns in each row of the picker.
+        // Because of how flatList implements these rows, each row is an index rather than each element
+        // For this reason to make headers work, we need to have the header be the only rendered element in its row
+        // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
+        // around each header
+        this.numColumns = 8;
+
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 500, false);
         this.renderItem = this.renderItem.bind(this);
 
@@ -110,7 +117,7 @@ class EmojiPickerMenu extends Component {
                     data={this.state.filteredEmojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
-                    numColumns={8}
+                    numColumns={this.numColumns}
                     style={styles.emojiPickerList}
                     extraData={this.state.filteredEmojis}
                     stickyHeaderIndices={this.state.headerIndices}
