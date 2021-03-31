@@ -141,6 +141,17 @@ Using arrow functions is the preferred way to write an anonymous function such a
     _.map(someArray, (item) => {...});
     ```
 
+Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
+
+    ```javascript
+    // Bad
+    const callback = _.noop;
+    const callback = () => { };
+
+    // Good
+    const callback = () => {};
+    ```
+
 ## `var`, `const` and `let`
 
 - Never use `var`
@@ -655,10 +666,10 @@ In addition, all refs should be declared in the constructor, rather than inline.
 class BadRefComponent extends Component {
     constructor(props) {
         super(props);
-        
+
         // Bad: Ref is declared inline instead of in the constructor
     }
-    
+
     render() {
         return <View ref={el => this.myRef = el} />;
     }
@@ -668,7 +679,7 @@ class BadRefComponent extends Component {
 class GoodRefComponent extends Component {
     constructor(props) {
         super(props);
-        
+
         // Good: Ref is declared in the constructor
         this.myRef = undefined;
     }
