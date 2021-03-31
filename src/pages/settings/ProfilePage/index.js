@@ -140,7 +140,7 @@ class ProfilePage extends Component {
     // Get the most validated login of each type
     getLogins(loginList) {
         return loginList.reduce((logins, currLogin) => {
-            const type = Str.isSMSLogin(currLogin.partnerUserID) ? 'phone' : 'email';
+            const type = Str.isSMSLogin(currLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
 
             // If there's already a login type that's validated and/or currLogin isn't valid then return early
             if (!_.isEmpty(logins[type]) && (logins[type].validatedDate || !currLogin.validatedDate)) {
