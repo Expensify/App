@@ -233,7 +233,8 @@ function setAvatar(file) {
  * @param {String} login
  */
 function deleteAvatar(login) {
-    // We don't want to save default avatar on BE, just update to empty string
+    // We don't want to save the default avatar URL in the backend since we don't want to allow
+    // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
 
     // Set onyx value to default avatar
