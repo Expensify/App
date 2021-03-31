@@ -1,10 +1,11 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View, SectionList, Text} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
+import SectionList from './SectionList';
 
 const propTypes = {
     // Style for hovered state

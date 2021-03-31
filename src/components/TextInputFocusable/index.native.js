@@ -47,6 +47,7 @@ class TextInputFocusable extends React.Component {
             <TextInput
                 ref={el => this.textInput = el}
                 maxHeight={116}
+                rejectResponderTermination={false}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}
             />

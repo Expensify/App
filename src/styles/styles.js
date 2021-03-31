@@ -225,32 +225,24 @@ const styles = {
         },
     },
 
-    pill: {
+    badge: {
+        backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
-        backgroundColor: themeColors.pillBG,
-        height: variables.componentSizeSmall,
+        height: variables.iconSizeNormal,
         flexDirection: 'row',
-        paddingTop: 6,
-        paddingBottom: 6,
-        paddingLeft: 7,
-        paddingRight: 7,
+        paddingHorizontal: 7,
         alignItems: 'center',
     },
 
-    pillText: {
-        color: themeColors.text,
-        weight: '400',
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
-        marginRight: 4,
-        userSelect: 'none',
-        maxWidth: 144,
-        ...whiteSpace.noWrap,
+    badgeSuccess: {
+        backgroundColor: themeColors.badgeSuccessBG,
     },
 
-    pillCancelIcon: {
-        width: 12,
-        height: 12,
+    badgeText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        ...whiteSpace.noWrap,
     },
 
     headerText: {
@@ -535,20 +527,20 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
         paddingBottom: 12,
-        paddingLeft: 20,
     },
 
     sidebarInnerRowSmall: {
         height: 52,
         paddingTop: 12,
         paddingBottom: 12,
-        paddingLeft: 20,
     },
 
     sidebarLinkText: {
@@ -957,6 +949,13 @@ const styles = {
         width: '100%',
     },
 
+    imageViewContainer: {
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     imageModalPDF: {
         flex: 1,
         backgroundColor: themeColors.modalBackground,
@@ -1164,6 +1163,7 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
+        height: '100%',
     },
 
     invisible: {
@@ -1237,6 +1237,10 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
     }, 0),
+
+    noScrollbars: {
+        scrollbarWidth: 'none',
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1374,6 +1378,32 @@ function getNavigationModalCardStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * @param {Boolean} isZoomed
+ * @param {Boolean} isDragging
+ * @return {Object}
+ */
+function getZoomCursorStyle(isZoomed, isDragging) {
+    if (!isZoomed) {
+        return {cursor: 'zoom-in'};
+    }
+
+    return {
+        cursor: isDragging ? 'grabbing' : 'zoom-out',
+    };
+}
+
+/**
+ * @param {Boolean} isZoomed
+ * @return {Object}
+ */
+function getZoomSizingStyle(isZoomed) {
+    return {
+        height: isZoomed ? '250%' : '100%',
+        width: isZoomed ? '250%' : '100%',
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1382,4 +1412,6 @@ export {
     getNavigationDrawerStyle,
     getNavigationDrawerType,
     getNavigationModalCardStyle,
+    getZoomCursorStyle,
+    getZoomSizingStyle,
 };
