@@ -630,6 +630,24 @@ function GetIOUReport(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @param {object} parameters
+ * @param {number} [parameters.latitude]
+ * @param {number} [parameters.longitude]
+ * @returns {Promise}
+ */
+function GetPreferredCurrency(parameters) {
+    const commandName = 'GetPreferredCurrency';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
+function GetCurrencyList() {
+    return Mobile_GetConstants({data: ['currencyList']});
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -660,4 +678,6 @@ export {
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     reauthenticate,
+    GetPreferredCurrency,
+    GetCurrencyList,
 };
