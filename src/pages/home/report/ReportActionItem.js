@@ -68,7 +68,8 @@ class ReportActionItem extends Component {
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
-            || !_.isEqual(this.props.action, nextProps.action);
+            || !_.isEqual(this.props.action, nextProps.action)
+            || this.props.isMostRecentIOUReport !== nextProps.isMostRecentIOUReport;
     }
 
     /**
@@ -124,14 +125,14 @@ class ReportActionItem extends Component {
                                     ? (
                                         <ReportActionItemSingle
                                             action={this.props.action}
-                                            iouReportID={this.props.report.iouReportID}
+                                            report={this.props.report}
                                             isMostRecentIOUReport={this.props.isMostRecentIOUReport}
                                         />
                                     )
                                     : (
                                         <ReportActionItemGrouped
                                             action={this.props.action}
-                                            iouReportID={this.props.report.iouReportID}
+                                            report={this.props.report}
                                             isMostRecentIOUReport={this.props.isMostRecentIOUReport}
                                         />
                                     )}

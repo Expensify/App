@@ -13,21 +13,21 @@ const propTypes = {
     // Is this the most recent IOU Action?
     isMostRecentIOUReport: PropTypes.bool.isRequired,
 
-    // IOU report ID associated with current report
-    iouReportID: PropTypes.number,
+    // The report currently being looked at
+    report: PropTypes.shape({
+
+        // IOU report ID associated with current report
+        iouReportID: PropTypes.number,
+    }).isRequired,
 };
 
-const defaultProps = {
-    iouReportID: null,
-};
-
-const ReportActionItemGrouped = ({action, iouReportID, isMostRecentIOUReport}) => (
+const ReportActionItemGrouped = ({action, report, isMostRecentIOUReport}) => (
     <View style={[styles.chatItem]}>
         <View style={[styles.chatItemRightGrouped]}>
             {action.actionName === 'IOU'
                 ? (
                     <ReportActionItemIOUPreview
-                        iouReportID={iouReportID}
+                        report={report}
                         action={action}
                         isMostRecentIOUReport={isMostRecentIOUReport}
                     />
@@ -38,5 +38,4 @@ const ReportActionItemGrouped = ({action, iouReportID, isMostRecentIOUReport}) =
 );
 
 ReportActionItemGrouped.propTypes = propTypes;
-ReportActionItemGrouped.defaultProps = defaultProps;
 export default ReportActionItemGrouped;
