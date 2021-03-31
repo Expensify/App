@@ -1,16 +1,11 @@
-import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
-import * as Expensicons from './Expensicons';
 
 const propTypes = {
     // The asset to render.
-    src: PropTypes.oneOfType([
-        PropTypes.oneOf(_.values(Expensicons)),
-        PropTypes.func,
-    ]).isRequired,
+    src: PropTypes.func.isRequired,
 
     // The width of the icon.
     width: PropTypes.number,
