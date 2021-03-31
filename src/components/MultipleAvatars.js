@@ -11,7 +11,7 @@ const propTypes = {
     // Set the sie of avatars
     size: PropTypes.oneOf(['default', 'small']),
 
-    // Style for Second Avatar on Hovered state
+    // Style for Second Avatar
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 

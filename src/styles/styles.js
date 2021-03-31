@@ -1409,6 +1409,12 @@ function getZoomSizingStyle(isZoomed) {
     };
 }
 
+function getSecondAvatarStyle(parentBGColor) {
+    return {
+        backgroundColor: parentBGColor,
+        borderColor: parentBGColor,
+    };
+}
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1419,4 +1425,5 @@ export {
     getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
+    getSecondAvatarStyle,
 };
