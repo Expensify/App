@@ -242,7 +242,6 @@ const styles = {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
-        userSelect: 'none',
         ...whiteSpace.noWrap,
     },
 
@@ -1169,6 +1168,7 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
+        height: '100%',
     },
 
     invisible: {

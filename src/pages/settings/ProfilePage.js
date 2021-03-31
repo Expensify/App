@@ -149,7 +149,7 @@ class ProfilePage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
+                <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <Avatar
                         style={[styles.avatarLarge, styles.alignSelfCenter]}
                         source={this.props.myPersonalDetails.avatar}
