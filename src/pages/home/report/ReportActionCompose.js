@@ -19,7 +19,7 @@ import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
-import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredContent';
+import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
 const propTypes = {
@@ -329,24 +329,23 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
-                    <PopoverWithMeasuredContent
+                    <Popover
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
-                        anchorPosition={this.state.emojiPopoverAnchorPosition}
                         animationIn="fadeIn"
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
-                        anchorOrigin={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                        anchorPosition={{
+                            top: this.state.emojiPopoverAnchorPosition.vertical - (360),
+                            left: this.state.emojiPopoverAnchorPosition.horizontal - (360),
                         }}
                     >
                         <EmojiPickerMenu
                             isVisible={this.state.isEmojiPickerVisible}
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
-                    </PopoverWithMeasuredContent>
+                    </Popover>
                     <Pressable
                         style={({hovered}) => ([
                             styles.chatItemEmojiButton,

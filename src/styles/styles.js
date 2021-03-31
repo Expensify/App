@@ -778,7 +778,8 @@ const styles = {
 
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
-        minWidth: 360,
+        width: 360,
+        height: 360,
     },
 
     emojiPickerList: {
