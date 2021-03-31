@@ -18,7 +18,7 @@ import {getReportParticipantsTitle} from '../../libs/reportUtils';
 import OptionRowTitle from './sidebar/OptionRowTitle';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
-import VideoChatMenu from '../../components/VideoChatMenu';
+import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 
 const propTypes = {
@@ -61,28 +61,6 @@ class HeaderView extends Component {
             tooltipText: getReportParticipantsTitle(this.participants),
             participantsList: getPersonalDetailsForLogins(this.participants, this.props.personalDetails),
         };
-        this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
-        this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
-        this.videoChatIconWrapper = null;
-
-        this.state = {
-            isVideoChatMenuActive: false,
-            videoChatIconPosition: {x: 0, y: 0},
-        };
-    }
-
-    toggleVideoChatMenu() {
-        this.setState(prevState => ({
-            isVideoChatMenuActive: !prevState.isVideoChatMenuActive,
-        }));
-    }
-
-    measureVideoChatIconPosition() {
-        if (this.videoChatIconWrapper) {
-            this.videoChatIconWrapper.measureInWindow((x, y) => this.setState({
-                videoChatIconPosition: {x, y},
-            }));
-        }
     }
 
     render() {
@@ -128,24 +106,7 @@ class HeaderView extends Component {
                                 {this.props.report.hasOutstandingIOU && (
                                     <IOUBadge iouReportID={this.props.report.iouReportID} />
                                 )}
-                                <View
-                                    ref={el => this.videoChatIconWrapper = el}
-                                    onLayout={this.measureVideoChatIconPosition}
-                                >
-                                    <Pressable
-                                        onPress={() => {
-                                            this.toggleVideoChatMenu();
-                                        }}
-                                        style={[styles.touchableButtonImage, styles.mr0]}
-                                    >
-                                        <Icon
-                                            src={Phone}
-                                            fill={this.state.isVideoChatMenuActive
-                                                ? themeColors.heading
-                                                : themeColors.icon}
-                                        />
-                                    </Pressable>
-                                </View>
+                                <VideoChatButtonAndMenu/>
                                 <Pressable
                                     onPress={() => togglePinnedState(this.props.report)}
                                     style={[styles.touchableButtonImage, styles.mr0]}
@@ -155,11 +116,6 @@ class HeaderView extends Component {
                                         fill={this.props.report.isPinned ? themeColors.heading : themeColors.icon}
                                     />
                                 </Pressable>
-                                <VideoChatMenu
-                                    onClose={this.toggleVideoChatMenu}
-                                    isVisible={this.state.isVideoChatMenuActive}
-                                    anchorPosition={this.state.videoChatIconPosition}
-                                />
                             </View>
                         </View>
                     )}
