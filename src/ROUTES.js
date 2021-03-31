@@ -8,6 +8,8 @@ export default {
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_PASSWORD: 'settings/password',
     SETTINGS_PAYMENTS: 'settings/payments',
+    SETTINGS_ADD_PHONE: 'settings/add-phone',
+    SETTINGS_ADD_EMAIL: 'settings/add-email',
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT: 'r',

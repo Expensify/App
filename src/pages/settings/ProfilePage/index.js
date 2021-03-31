@@ -9,20 +9,22 @@ import {
 import RNPickerSelect from 'react-native-picker-select';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment-timezone';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import {setPersonalDetails} from '../../libs/actions/PersonalDetails';
-import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import Avatar from '../../components/Avatar';
-import styles from '../../styles/styles';
-import Text from '../../components/Text';
-import {DownArrow} from '../../components/Icon/Expensicons';
-import Icon from '../../components/Icon';
-import Checkbox from '../../components/Checkbox';
-import themeColors from '../../styles/themes/default';
+import _ from 'underscore';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import {setPersonalDetails} from '../../../libs/actions/PersonalDetails';
+import ROUTES from '../../../ROUTES';
+import ONYXKEYS from '../../../ONYXKEYS';
+import CONST from '../../../CONST';
+import Avatar from '../../../components/Avatar';
+import styles from '../../../styles/styles';
+import Text from '../../../components/Text';
+import {DownArrow} from '../../../components/Icon/Expensicons';
+import Icon from '../../../components/Icon';
+import Checkbox from '../../../components/Checkbox';
+import themeColors from '../../../styles/themes/default';
+import LoginField from './LoginField';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,10 +55,27 @@ const propTypes = {
             automatic: PropTypes.bool,
         }),
     }),
+
+    // The details about the user that is signed in
+    user: PropTypes.shape({
+        // Whether or not the user is subscribed to news updates
+        loginList: PropTypes.arrayOf(PropTypes.shape({
+
+            // Value of partner name
+            partnerName: PropTypes.string,
+
+            // Phone/Email associated with user
+            partnerUserID: PropTypes.string,
+
+            // Date of when login was validated
+            validatedDate: PropTypes.string,
+        })),
+    }),
 };
 
 const defaultProps = {
     myPersonalDetails: {},
+    user: {},
 };
 
 const timezones = moment.tz.names()
@@ -68,7 +87,6 @@ const timezones = moment.tz.names()
 class ProfilePage extends Component {
     constructor(props) {
         super(props);
-
         const {
             firstName,
             lastName,
@@ -93,11 +111,23 @@ class ProfilePage extends Component {
             selfSelectedPronouns: initialSelfSelectedPronouns,
             selectedTimezone: timezone.selected || CONST.DEFAULT_TIME_ZONE.selected,
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
+            logins: this.getLogins(props.user.loginList),
         };
 
         this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
+        this.getLogins = this.getLogins.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        // Recalculate logins if loginList has changed
+        if (this.props.user.loginList !== prevProps.user.loginList) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({
+                logins: this.getLogins(this.props.user.loginList),
+            });
+        }
     }
 
     setAutomaticTimezone(isAutomaticTimezone) {
@@ -105,6 +135,31 @@ class ProfilePage extends Component {
             isAutomaticTimezone,
             selectedTimezone: isAutomaticTimezone ? moment.tz.guess() : selectedTimezone,
         }));
+    }
+
+    // Get the most validated login of each type
+    getLogins(loginList) {
+        return loginList.reduce((logins, currLogin) => {
+            const type = Str.isSMSLogin(currLogin.partnerUserID) ? 'phone' : 'email';
+
+            // If there's already a login type that's validated and/or currLogin isn't valid then return early
+            if (!_.isEmpty(logins[type]) && (logins[type].validatedDate || !currLogin.validatedDate)) {
+                return logins;
+            }
+            return {
+                ...logins,
+                [type]: {
+                    ...currLogin,
+                    type,
+                    partnerUserID: Str.isSMSLogin(currLogin.partnerUserID)
+                        ? Str.removeSMSDomain(currLogin.partnerUserID)
+                        : currLogin.partnerUserID,
+                },
+            };
+        }, {
+            phone: {},
+            email: {},
+        });
     }
 
     updatePersonalDetails() {
@@ -205,19 +260,8 @@ class ProfilePage extends Component {
                         />
                         )}
                     </View>
-                    <View style={styles.mb6}>
-                        <Text style={[styles.mb1, styles.formLabel]}>
-                            {Str.isSMSLogin(this.props.myPersonalDetails.login)
-                                ? 'Phone Number' : 'Email Address'}
-                        </Text>
-                        <TextInput
-                            style={[styles.textInput, styles.disabledTextInput]}
-                            value={Str.isSMSLogin(this.props.myPersonalDetails.login)
-                                ? Str.removeSMSDomain(this.props.myPersonalDetails.login)
-                                : this.props.myPersonalDetails.login}
-                            editable={false}
-                        />
-                    </View>
+                    <LoginField label="Email Address" type="email" login={this.state.logins.email} />
+                    <LoginField label="Phone Number" type="phone" login={this.state.logins.phone} />
                     <View style={styles.mb3}>
                         <Text style={[styles.mb1, styles.formLabel]}>Timezone</Text>
                         <RNPickerSelect
@@ -272,5 +316,8 @@ ProfilePage.displayName = 'ProfilePage';
 export default withOnyx({
     myPersonalDetails: {
         key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    },
+    user: {
+        key: ONYXKEYS.USER,
     },
 })(ProfilePage);

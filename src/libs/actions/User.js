@@ -60,10 +60,10 @@ function fetch() {
 /**
  * Resends a validation link to a given login
  *
- * @param {String} email
+ * @param {String} login
  */
-function resendValidateCode(email) {
-    API.ResendValidateCode({email});
+function resendValidateCode(login) {
+    API.ResendValidateCode({email: login});
 }
 
 /**
@@ -90,16 +90,27 @@ function setExpensifyNewsStatus(subscribed) {
  *
  * @param {String} login
  * @param {String} password
+ * @returns {Promise}
+ *
  */
 function setSecondaryLogin(login, password) {
-    API.User_SecondaryLogin_Send({
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+
+    return API.User_SecondaryLogin_Send({
         email: login,
         password,
     }).then((response) => {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
+        } else {
+            const error = lodashGet(response, 'message', 'Unable to add phone number. Please try again.');
+            Onyx.merge(ONYXKEYS.USER, {error});
         }
+        return response;
+    }).finally((response) => {
+        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        return response;
     });
 }
 

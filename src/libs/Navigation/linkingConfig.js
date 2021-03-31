@@ -45,6 +45,14 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_Add_Phone: {
+                        path: ROUTES.SETTINGS_ADD_PHONE,
+                        exact: true,
+                    },
+                    Settings_Add_Email: {
+                        path: ROUTES.SETTINGS_ADD_EMAIL,
+                        exact: true,
+                    },
                 },
             },
             NewGroup: {
