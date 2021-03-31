@@ -543,13 +543,12 @@ function ResendValidateCode(parameters) {
  * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
- * @param {String} [parameters.accountID]
- * @param {String} [parameters.email]
+ * @param {String} parameters.accountID
  * @returns {Promise}
  */
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
-    requireParameters(['password', 'validateCode'], parameters, commandName);
+    requireParameters(['accountID, password', 'validateCode'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
