@@ -39,8 +39,8 @@ const documentPickerOptions = {
  */
 function showPermissionsAlert() {
     Alert.alert(
-        'Expensify.cash does not have access to your camera.',
-        'Please enable the permission and try again.',
+        'Camera Permission Required',
+        'Expensify.cash does not have access to your camera, please enable the permission and try again.',
         [
             {
                 text: 'Cancel',
@@ -61,8 +61,8 @@ function showPermissionsAlert() {
  */
 function showGeneralAlert() {
     Alert.alert(
-        'Oops. An error occurred while selecting an attachment.',
-        'Please try again.',
+        'Attachment Error',
+        'An error occurred while selecting an attachment, please try again',
     );
 }
 
