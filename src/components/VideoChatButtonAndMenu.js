@@ -31,7 +31,7 @@ class VideoChatButtonAndMenu extends Component {
             this.toggleVideoChatMenu();
         },
     }));
-    
+
     constructor(props) {
         super(props);
 
