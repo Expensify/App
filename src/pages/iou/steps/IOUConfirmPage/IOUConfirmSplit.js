@@ -12,7 +12,7 @@ import {
     getDisplayOptionsFromParticipants,
 } from '../../../../libs/OptionsListUtils';
 import ButtonWithLoader from '../../../../components/ButtonWithLoader';
-import OptionsSelector from '../../../../components/OptionsSelector';
+import OptionsList from '../../../../components/OptionsList';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -178,19 +178,21 @@ class IOUConfirmSplitPage extends Component {
         return (
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View>
-                    <OptionsSelector
+                    <OptionsList
                         sections={sections}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                         canSelectMultipleOptions
+                        disableFocusOptions
                         selectedOptions={this.getAllOptionsAsSelected()}
-                        showSearch={false}
                     />
-                    <Text style={[styles.ph5, styles.textMicroBold, styles.colorHeading]}>
-                        WHAT&apos;S IT FOR?
-                    </Text>
-                    <View style={[styles.p4]}>
+                    <View>
+                        <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                            WHAT&apos;S IT FOR?
+                        </Text>
+                    </View>
+                    <View style={[styles.ph5]}>
                         <TextInput
                             style={[styles.textInput]}
                             value={this.props.comment}
@@ -200,7 +202,7 @@ class IOUConfirmSplitPage extends Component {
                         />
                     </View>
                 </View>
-                <View style={[styles.ph5, styles.pb5]}>
+                <View style={[styles.ph5, styles.pb3]}>
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
                         text="Split"

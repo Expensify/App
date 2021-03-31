@@ -12,9 +12,6 @@ const propTypes = {
     // Callback to fire when a row is tapped
     onSelectRow: PropTypes.func,
 
-    // if we should show search or not?
-    showSearch: PropTypes.bool,
-
     // Sections for the section list
     sections: PropTypes.arrayOf(PropTypes.shape({
         // Title of the section
@@ -31,10 +28,10 @@ const propTypes = {
     })).isRequired,
 
     // Value in the search input field
-    value: PropTypes.string,
+    value: PropTypes.string.isRequired,
 
     // Callback fired when text changes
-    onChangeText: PropTypes.func,
+    onChangeText: PropTypes.func.isRequired,
 
     // Optional placeholder text for the selector
     placeholderText: PropTypes.string,
@@ -75,9 +72,6 @@ const defaultProps = {
     hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
-    showSearch: true,
-    onChangeText: () => {},
-    value: '',
 };
 
 class OptionsSelector extends Component {
@@ -93,9 +87,7 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        if (this.props.showSearch) {
-            this.textInput.focus();
-        }
+        this.textInput.focus();
     }
 
     /**
@@ -178,20 +170,18 @@ class OptionsSelector extends Component {
     render() {
         return (
             <View style={[styles.flex1]}>
-                { this.props.showSearch ? (
-                    <View style={[styles.ph5, styles.pv3]}>
-                        <TextInputWithFocusStyles
-                            styleFocusIn={[styles.textInputReversedFocus]}
-                            ref={el => this.textInput = el}
-                            style={[styles.textInput]}
-                            value={this.props.value}
-                            onChangeText={this.props.onChangeText}
-                            onKeyPress={this.handleKeyPress}
-                            placeholder={this.props.placeholderText}
-                            placeholderTextColor={themeColors.placeholderText}
-                        />
-                    </View>
-                ) : null}
+                <View style={[styles.ph5, styles.pv3]}>
+                    <TextInputWithFocusStyles
+                        styleFocusIn={[styles.textInputReversedFocus]}
+                        ref={el => this.textInput = el}
+                        style={[styles.textInput]}
+                        value={this.props.value}
+                        onChangeText={this.props.onChangeText}
+                        onKeyPress={this.handleKeyPress}
+                        placeholder={this.props.placeholderText}
+                        placeholderTextColor={themeColors.placeholderText}
+                    />
+                </View>
                 <OptionsList
                     ref={el => this.list = el}
                     optionHoveredStyle={styles.hoveredComponentBG}
