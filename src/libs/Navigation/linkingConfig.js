@@ -70,6 +70,12 @@ export default {
                     Details_Root: ROUTES.DETAILS_WITH_LOGIN,
                 },
             },
+            Participants: {
+                initialRouteName: 'Participants_Root',
+                screens: {
+                    Participants_Root: ROUTES.PARTICIPANTS_WITH_REPORT,
+                },
+            },
             IOU_Request: {
                 screens: {
                     IOU_Request_Root: ROUTES.IOU_REQUEST,

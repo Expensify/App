@@ -14,6 +14,7 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
+import ParticipantsPage from '../../../pages/ParticipantsPage';
 
 // Setup the modal stack navigators so we only have to create them once
 const SettingsModalStack = createStackNavigator();
@@ -21,6 +22,7 @@ const NewChatModalStack = createStackNavigator();
 const NewGroupModalStack = createStackNavigator();
 const SearchModalStack = createStackNavigator();
 const DetailsModalStack = createStackNavigator();
+const ParticipantsModalStack = createStackNavigator();
 const IOURequestModalStack = createStackNavigator();
 const IOUBillModalStack = createStackNavigator();
 
@@ -78,6 +80,21 @@ const DetailsModalStackNavigator = () => (
             }}
         />
     </DetailsModalStack.Navigator>
+);
+
+const ParticipantsModalStackNavigator = () => (
+    <ParticipantsModalStack.Navigator
+        path={ROUTES.PARTICIPANTS}
+    >
+        <ParticipantsModalStack.Screen
+            name="Participants_Root"
+            component={ParticipantsPage}
+            options={{
+                ...defaultSubRouteOptions,
+                title: 'Participants',
+            }}
+        />
+    </ParticipantsModalStack.Navigator>
 );
 
 const SearchModalStackNavigator = () => (
@@ -170,6 +187,7 @@ export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     DetailsModalStackNavigator,
+    ParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,

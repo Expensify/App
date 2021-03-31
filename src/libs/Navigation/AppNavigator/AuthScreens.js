@@ -35,6 +35,7 @@ import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     DetailsModalStackNavigator,
+    ParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
@@ -184,6 +185,11 @@ class AuthScreens extends React.Component {
                     options={modalScreenOptions}
                     component={DetailsModalStackNavigator}
                     listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="Participants"
+                    options={modalScreenOptions}
+                    component={ParticipantsModalStackNavigator}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
