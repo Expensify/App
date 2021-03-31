@@ -106,10 +106,7 @@ const HeaderView = (props) => {
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}
                             >
-                                <Icon
-                                    src={Pin}
-                                    fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
-                                />
+                                <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
                             </Pressable>
                         </View>
                     </View>
