@@ -25,7 +25,7 @@ function getPreferredCurrency() {
  * @param {String} parameters.debtorEmail
  */
 function createIOUTransaction({
-    comment, amount, currency, debtorEmail, setIsTransactionComplete,
+    comment, amount, currency, debtorEmail,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true});
     let iouReportID = '';
@@ -57,7 +57,6 @@ function createIOUTransaction({
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
                 getSimplifiedIOUReport(iouReportData));
-            setIsTransactionComplete(true);
             Onyx.merge(ONYXKEYS.IOU, {loading: false});
         })
         .catch((error) => {
@@ -80,7 +79,6 @@ function createIOUSplit({
     amount,
     currency,
     splits,
-    setIsTransactionComplete,
 }) {
     let reportIDs = [];
     Onyx.merge(ONYXKEYS.IOU, {loading: true});
@@ -96,8 +94,6 @@ function createIOUSplit({
             reportID,
         }))
         .then((data) => {
-            console.debug(data);
-            Onyx.merge(ONYXKEYS.IOU, {loading: false});
             reportIDs = data.reportIDList;
             return reportIDs;
         })
@@ -120,7 +116,6 @@ function createIOUSplit({
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, {...reportIOUData});
         })
         .then(() => {
-            setIsTransactionComplete(true);
             Onyx.merge(ONYXKEYS.IOU, {loading: false});
         })
         .catch((error) => {

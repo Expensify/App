@@ -57,7 +57,6 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
-        this.setIsTransactionComplete = this.setIsTransactionComplete.bind(this);
 
         this.state = {
             currentStepIndex: 0,
@@ -66,7 +65,6 @@ class IOUModal extends Component {
             selectedCurrency: 'USD',
             isAmountPageNextButtonDisabled: true,
             comment: '',
-            isTransactionComplete: false,
         };
     }
 
@@ -75,21 +73,19 @@ class IOUModal extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        // Dismiss modal when the length of transactions for any iousReport changes
+        // Handles edge case when there are no previous user IOU report
         if (!prevProps.iousReport) { return; }
 
-        if (this.state.isTransactionComplete === true) {
-            return Navigation.dismissModal();
-        }
+        // Dismiss modal when the length of transactions for any iousReport changes
+        Object.keys(this.props.iousReport)
+            .forEach((reportKey) => {
+                const prevTransactions = [...prevProps.iousReport[reportKey].transactions];
+                const currentTransactions = [...this.props.iousReport[reportKey].transactions];
 
-        // Object.keys(this.props.iousReport)
-        //     .forEach((reportKey) => {
-        //         const prevTransactions = lodashGet({...prevProps.iousReport[reportKey]}, 'transactions', null);
-        //         const currentTransactions = lodashGet({...this.props.iousReport[reportKey]}, 'transactions', null);
-        //         if (prevTransactions.length !== currentTransactions.length) {
-        //             return Navigation.dismissModal();
-        //         }
-        //     });
+                if (prevTransactions.length !== currentTransactions.length) {
+                    return Navigation.dismissModal();
+                }
+            });
     }
 
     /**
@@ -107,12 +103,6 @@ class IOUModal extends Component {
             return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
         }
         return steps[currentStepIndex] || '';
-    }
-
-    setIsTransactionComplete(isTransactionComplete) {
-        this.setState({
-            isTransactionComplete,
-        });
     }
 
     addParticipants(participants) {
@@ -216,7 +206,6 @@ class IOUModal extends Component {
             currency: this.state.selectedCurrency,
             splits,
             participants,
-            setIsTransactionComplete: this.setIsTransactionComplete,
         });
     }
 
