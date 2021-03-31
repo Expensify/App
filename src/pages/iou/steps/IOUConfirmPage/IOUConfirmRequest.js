@@ -7,8 +7,8 @@ import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
 import ButtonWithLoader from '../../../../components/ButtonWithLoader';
 import themeColors from '../../../../styles/themes/default';
-import OptionsSelector from '../../../../components/OptionsSelector';
 import {getDisplayOptionsFromParticipants} from '../../../../libs/OptionsListUtils';
+import OptionsList from '../../../../components/OptionsList';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -97,17 +97,19 @@ class IOUConfirmRequestPage extends Component {
         return (
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View>
-                    <OptionsSelector
+                    <OptionsList
                         sections={sections}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
-                        showSearch={false}
+                        disableFocusOptions
                     />
-                    <Text style={[styles.ph5, styles.textMicroBold, styles.colorHeading]}>
-                        WHAT&apos;S IT FOR?
-                    </Text>
-                    <View style={[styles.p4]}>
+                    <View>
+                        <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                            WHAT&apos;S IT FOR?
+                        </Text>
+                    </View>
+                    <View style={[styles.ph5]}>
                         <TextInput
                             style={[styles.textInput]}
                             value={this.props.comment}
@@ -117,7 +119,7 @@ class IOUConfirmRequestPage extends Component {
                         />
                     </View>
                 </View>
-                <View style={[styles.ph5, styles.pb5]}>
+                <View style={[styles.ph5, styles.pb3]}>
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
                         text={`Request $${this.props.iouAmount}`}
