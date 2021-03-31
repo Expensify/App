@@ -1,5 +1,5 @@
 import React from 'react';
-import propTypes from './propTypes';
+import propTypes from './AttachmentPickerPropTypes';
 
 /**
  * This component renders a function as a child and
