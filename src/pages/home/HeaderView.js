@@ -88,7 +88,7 @@ const HeaderView = (props) => {
                         >
                             <MultipleAvatars
                                 avatarImageURLs={props.report.icons}
-                                secondAvatarStyle={styles.secondAvatarHovered}
+                                secondAvatarStyle={[styles.secondAvatarHovered]}
                             />
                             <View style={[styles.flex1, styles.flexRow]}>
                                 <OptionRowTitle
