@@ -39,8 +39,8 @@ const documentPickerOptions = {
  */
 function showPermissionsAlert() {
     Alert.alert(
-        'Expensify.cash does not have access to your camera. To enable access, tap Settings and turn on Camera.',
-        '',
+        'Expensify.cash does not have access to your camera.',
+        'Please enable the permission and try again.',
         [
             {
                 text: 'Cancel',
@@ -58,12 +58,11 @@ function showPermissionsAlert() {
 /**
  * A generic handling when we don't know the exact reason for an error
  *
- * @param {String} message
  */
-function showGeneralAlert(message) {
+function showGeneralAlert() {
     Alert.alert(
-        'An error is preventing us to use handle the attachment',
-        message, // Todo: maybe we don't want to show this as it's probably not human friendly
+        'Oops. An error occurred while selecting an attachment.',
+        'Please try again.',
     );
 }
 
