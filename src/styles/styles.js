@@ -242,7 +242,6 @@ const styles = {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
-        userSelect: 'none',
         ...whiteSpace.noWrap,
     },
 
@@ -528,20 +527,20 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
         paddingBottom: 12,
-        paddingLeft: 20,
     },
 
     sidebarInnerRowSmall: {
         height: 52,
         paddingTop: 12,
         paddingBottom: 12,
-        paddingLeft: 20,
     },
 
     sidebarLinkText: {
@@ -1164,6 +1163,7 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
+        height: '100%',
     },
 
     invisible: {
