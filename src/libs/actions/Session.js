@@ -208,14 +208,12 @@ function restartSignin() {
  *
  * @param {String} password
  * @param {String} validateCode
- * @param {String} [accountID]
- * @param {String} [email]
+ * @param {String} accountID
  */
-function setPassword(password, validateCode, accountID, email) {
+function setPassword(password, validateCode, accountID) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
     API.SetPassword({
-        email,
         password,
         validateCode,
         accountID,
