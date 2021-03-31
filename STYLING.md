@@ -6,7 +6,7 @@ All styles must be defined in the `styles.js` file which exists as a globally ex
 
 ## When to Create a New Style
 
-If we need some minimal style changes then it's almost always better to use an array of helper styles rather than create an entirely new style if it will only be used once. Resist the urge to create a new style for any new element added to a screen. There is a very good chance the style we are adding is a "single-use" style.
+If we need some minimal set of styling rules applied to a component then it's almost always better to use an array of helper styles rather than create an entirely new style if it will only be used once. Resist the urge to create a new style for any new element added to a screen. There is a very good chance the style we are adding is a "single-use" style.
 
 ```jsx
 // Bad - Since we only use this style once in this component
