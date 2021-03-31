@@ -11,17 +11,22 @@ import Text from './Text';
 import MultipleAvatars from './MultipleAvatars';
 import styles from '../styles/styles';
 
-const personalDetailsPropTypes = PropTypes.shape({
-    // This is either the user's full name, or their login if full name is an empty string
-    displayName: PropTypes.string.isRequired,
-});
-
 const propTypes = {
     // All the data of the action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // Is this the most recent IOU Action?
     isMostRecentIOUReport: PropTypes.bool.isRequired,
+
+    // The report currently being looked at
+    report: PropTypes.shape({
+
+        // IOU report ID associated with current report
+        iouReportID: PropTypes.number,
+
+        // Whether there is an outstanding amount in IOU
+        hasOutstandingIOU: PropTypes.bool,
+    }).isRequired,
 
     /* Window Dimensions Props */
     ...windowDimensionsPropTypes,
@@ -40,7 +45,11 @@ const propTypes = {
     }),
 
     // All of the personal details for everyone
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(PropTypes.shape({
+
+        // This is either the user's full name, or their login if full name is an empty string
+        displayName: PropTypes.string.isRequired,
+    })).isRequired,
 
     // Session info for the currently logged in user.
     session: PropTypes.shape({
@@ -50,7 +59,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iou: null,
+    iou: {},
 };
 
 class ReportActionItemIOUPreview extends React.Component {
@@ -96,11 +105,6 @@ class ReportActionItemIOUPreview extends React.Component {
         const ownerAvatar = lodashGet(this.props.personalDetails, [this.props.iou.ownerEmail, 'avatar'], '');
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const cachedTotal = this.props.iou.cachedTotal.replace(/[()]/g, '');
-        const amount = Number(cachedTotal.substring(1));
-
-        if (amount === 0) {
-            return null;
-        }
 
         return (
             <View style={[styles.iouPreviewBox, {width: this.props.isSmallScreenWidth ? '100%' : '50%'}]}>
@@ -115,12 +119,7 @@ class ReportActionItemIOUPreview extends React.Component {
                     </View>
                     <MultipleAvatars
                         avatarImageURLs={[managerAvatar, ownerAvatar]}
-                        styles={{
-                            secondAvatar: {
-                                bottom: -3,
-                                right: -25,
-                            },
-                        }}
+                        styles={{secondAvatar: styles.secondAvatarInline}}
                     />
                 </View>
                 {(this.props.iou.managerEmail === sessionEmail) ? (
@@ -135,9 +134,11 @@ class ReportActionItemIOUPreview extends React.Component {
         return (
             <View>
                 <ReportActionItemIOUQuote action={this.props.action} />
-                {this.props.isMostRecentIOUReport && this.props.iou ? (
-                    this.createPreviewBox()
-                )
+                {this.props.isMostRecentIOUReport
+                    && this.props.report.hasOutstandingIOU
+                    && this.props.iou ? (
+                        this.createPreviewBox()
+                    )
                     : null}
             </View>
         );
@@ -150,7 +151,7 @@ ReportActionItemIOUPreview.displayName = 'ReportActionItemIOUPreview';
 
 export default withWindowDimensions(withOnyx({
     iou: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`,
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
