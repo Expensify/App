@@ -13,6 +13,25 @@ import themeColors from '../styles/themes/default';
 import withWindowDimensions from './withWindowDimensions';
 
 class VideoChatButtonAndMenu extends Component {
+    menuItemData = [
+        {
+            icon: ZoomIcon,
+            text: 'Zoom',
+            onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
+        },
+        {
+            icon: GoogleMeetIcon,
+            text: 'Google Meet',
+            onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
+        },
+    ].map(item => ({
+        ...item,
+        onPress: () => {
+            item.onPress();
+            this.toggleVideoChatMenu();
+        },
+    }));
+    
     constructor(props) {
         super(props);
 
@@ -26,7 +45,6 @@ class VideoChatButtonAndMenu extends Component {
         };
     }
 
-   
     /**
      * Toggles the state variable isVideoChatMenuActive
      */
@@ -46,25 +64,6 @@ class VideoChatButtonAndMenu extends Component {
             }));
         }
     }
-
-    menuItemData = [
-        {
-            icon: ZoomIcon,
-            text: 'Zoom',
-            onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
-        },
-        {
-            icon: GoogleMeetIcon,
-            text: 'Google Meet',
-            onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
-        },
-    ].map(item => ({
-        ...item,
-        onPress: () => {
-            item.onPress();
-            this.toggleVideoChatMenu();
-        },
-    }));
 
     render() {
         return (
@@ -110,7 +109,7 @@ class VideoChatButtonAndMenu extends Component {
             </>
         );
     }
-};
+}
 
 VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
 export default withWindowDimensions(VideoChatButtonAndMenu);
