@@ -21,6 +21,12 @@ jobs:
       - name: Reopen and comment on issue
         if: ${{ steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
         uses: Expensify/Expensify.cash/.github/actions/reopenIssueWithComments@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }},
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT: |
+            This issue either has unchecked QA steps or has not yet been marked with the `:shipit:` emoji of approval.
+            Reopening!
 
   # Update the production branch to trigger the production deploy.
   updateProduction:
