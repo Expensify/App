@@ -2,6 +2,7 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
 import ROUTES from '../../../ROUTES';
+import CONST from '../../../CONST';
 import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
@@ -154,7 +155,7 @@ const SettingsModalStackNavigator = () => (
                 ...defaultSubRouteOptions,
                 title: 'Add Phone Number',
             }}
-            initialParams={{type: 'phone'}}
+            initialParams={{type: CONST.LOGIN_TYPE.PHONE}}
         />
         <SettingsModalStack.Screen
             name="Settings_Add_Email"
@@ -163,7 +164,7 @@ const SettingsModalStackNavigator = () => (
                 ...defaultSubRouteOptions,
                 title: 'Add Email Address',
             }}
-            initialParams={{type: 'email'}}
+            initialParams={{type: CONST.LOGIN_TYPE.EMAIL}}
         />
         <SettingsModalStack.Screen
             name="Settings_Preferences"

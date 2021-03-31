@@ -13,6 +13,7 @@ import {setSecondaryLogin} from '../../libs/actions/User';
 import ONYXKEYS from '../../ONYXKEYS';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ROUTES from '../../ROUTES';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -79,7 +80,7 @@ class AddLoginPage extends Component {
 
     // Determines whether form is valid
     validateForm() {
-        const validationMethod = this.formType === 'phone' ? Str.isValidPhone : Str.isValidEmail;
+        const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
         return !this.state.password || !validationMethod(this.state.login);
     }
 
@@ -87,7 +88,7 @@ class AddLoginPage extends Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.formType === 'phone' ? 'Add Phone Number' : 'Add Email Address'}
+                    title={this.formType === CONST.LOGIN_TYPE.PHONE ? 'Add Phone Number' : 'Add Email Address'}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -95,20 +96,20 @@ class AddLoginPage extends Component {
                 <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
                     <View style={styles.flexGrow1}>
                         <Text style={[styles.mb6, styles.textP]}>
-                            {this.formType === 'phone'
+                            {this.formType === CONST.LOGIN_TYPE.PHONE
                                 ? 'Enter your preferred phone number and password to send a validation link.'
                                 : 'Enter your preferred email address and password to send a validation link.'}
                         </Text>
                         <View style={styles.mb6}>
                             <Text style={[styles.mb1, styles.formLabel]}>
-                                {this.formType === 'phone' ? 'Phone Number' : 'Email Address'}
+                                {this.formType === CONST.LOGIN_TYPE.PHONE ? 'Phone Number' : 'Email Address'}
                             </Text>
                             <TextInput
                                 style={styles.textInput}
                                 value={this.state.login}
                                 onChangeText={login => this.setState({login})}
                                 autoFocus
-                                keyboardType={this.formType === 'phone' ? 'phone-pad' : undefined}
+                                keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE ? 'phone-pad' : undefined}
                                 returnKeyType="done"
                             />
                         </View>

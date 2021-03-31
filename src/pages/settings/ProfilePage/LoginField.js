@@ -6,6 +6,7 @@ import styles from '../../../styles/styles';
 import {Plus} from '../../../components/Icon/Expensicons';
 import Icon from '../../../components/Icon';
 import ROUTES from '../../../ROUTES';
+import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import {resendValidateCode} from '../../../libs/actions/User';
 
@@ -14,7 +15,7 @@ const propTypes = {
     label: PropTypes.string.isRequired,
 
     // Type associated with the login
-    type: PropTypes.oneOf(['email', 'phone']).isRequired,
+    type: PropTypes.oneOf([CONST.LOGIN_TYPE.EMAIL, CONST.LOGIN_TYPE.PHONE]).isRequired,
 
     // Login associated with the user
     login: PropTypes.shape({
@@ -28,7 +29,7 @@ const LoginField = ({
     type,
 }) => {
     let note;
-    if (type === 'phone') {
+    if (type === CONST.LOGIN_TYPE.PHONE) {
         // No phone number
         if (!login.partnerUserID) {
             note = 'Add your phone number to settle up via Venmo.';
@@ -53,7 +54,7 @@ const LoginField = ({
             {!login.partnerUserID ? (
                 <Pressable
                     style={[styles.createMenuItem, styles.ph0]}
-                    onPress={() => Navigation.navigate(type === 'phone'
+                    onPress={() => Navigation.navigate(type === CONST.LOGIN_TYPE.PHONE
                         ? ROUTES.SETTINGS_ADD_PHONE
                         : ROUTES.SETTINGS_ADD_EMAIL)}
                 >
