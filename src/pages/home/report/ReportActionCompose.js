@@ -337,8 +337,8 @@ class ReportActionCompose extends React.Component {
                         animationInTiming={1}
                         animationOutTiming={1}
                         anchorPosition={{
-                            top: this.state.emojiPopoverAnchorPosition.vertical - (360),
-                            left: this.state.emojiPopoverAnchorPosition.horizontal - (360),
+                            top: this.state.emojiPopoverAnchorPosition.vertical - 360,
+                            left: this.state.emojiPopoverAnchorPosition.horizontal - 360,
                         }}
                     >
                         <EmojiPickerMenu
