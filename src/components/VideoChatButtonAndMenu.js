@@ -23,11 +23,12 @@ class VideoChatButtonAndMenu extends Component {
         this.state = {
             isVideoChatMenuActive: false,
             videoChatIconPosition: {x: 0, y: 0},
-        }
+        };
     }
 
+   
     /**
-     * 
+     * Toggles the state variable isVideoChatMenuActive
      */
     toggleVideoChatMenu() {
         this.setState(prevState => ({
@@ -36,7 +37,7 @@ class VideoChatButtonAndMenu extends Component {
     }
 
     /**
-     * 
+     * This gets called onLayout to find the cooridnates of the wrapper for the video chat button.
      */
     measureVideoChatIconPosition() {
         if (this.videoChatIconWrapper) {
