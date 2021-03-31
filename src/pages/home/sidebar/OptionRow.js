@@ -16,8 +16,12 @@ import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
 import OptionRowTitle from './OptionRowTitle';
 import IOUBadge from '../../../components/IOUBadge';
+import colors from '../../../styles/colors';
 
 const propTypes = {
+    // Background Color of the Option Row
+    backgroundColor: PropTypes.string,
+
     // Style for hovered state
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
@@ -51,6 +55,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
     showSelectedState: false,
@@ -61,6 +66,7 @@ const defaultProps = {
 };
 
 const OptionRow = ({
+    backgroundColor,
     hoverStyle,
     option,
     optionIsFocused,
@@ -99,7 +105,10 @@ const OptionRow = ({
         styles.sidebarInnerRow,
         styles.justifyContentCenter,
     ]);
-
+    const hoveredBackgroundColor = hoverStyle && hoverStyle.backgroundColor
+        ? hoverStyle.backgroundColor
+        : backgroundColor;
+    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     return (
         <Hoverable>
             {hovered => (
@@ -112,6 +121,7 @@ const OptionRow = ({
                         styles.justifyContentBetween,
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
+                        {backgroundColor},
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
                     ]}
@@ -128,11 +138,22 @@ const OptionRow = ({
                                 && (
                                     <MultipleAvatars
                                         avatarImageURLs={option.icons}
-                                        optionIsFocused={optionIsFocused}
                                         size={mode === 'compact' ? 'small' : 'default'}
-                                        secondAvatarStyle={hovered && !optionIsFocused
-                                            ? styles.secondAvatarHovered
-                                            : undefined}
+                                        secondAvatarStyle={[
+                                            {
+                                                backgroundColor,
+                                                borderColor: backgroundColor,
+                                            },
+                                            optionIsFocused && {
+                                                backgroundColor: focusedBackgroundColor,
+                                                borderColor: focusedBackgroundColor,
+                                            },
+                                            hovered && !optionIsFocused
+                                            && {
+                                                backgroundColor: hoveredBackgroundColor,
+                                                borderColor: hoveredBackgroundColor,
+                                            },
+                                        ]}
                                     />
                                 )
                             }

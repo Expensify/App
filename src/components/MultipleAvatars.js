@@ -8,34 +8,29 @@ const propTypes = {
     // Array of avatar URL
     avatarImageURLs: PropTypes.arrayOf(PropTypes.string),
 
-    // Whether this option is currently in focus so we can modify its style
-    optionIsFocused: PropTypes.bool,
-
     // Set the sie of avatars
     size: PropTypes.oneOf(['default', 'small']),
 
-    // Style for Second Avatar on Multiple Avatars
+    // Style for Second Avatar on Hovered state
     // eslint-disable-next-line react/forbid-prop-types
-    secondAvatarStyle: PropTypes.object,
+    secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
 };
 
 const defaultProps = {
     avatarImageURLs: [],
-    optionIsFocused: false,
     size: 'default',
-    secondAvatarStyle: {},
+    secondAvatarStyle: [styles.secondAvatarHovered],
 };
 
 const MultipleAvatars = ({
-    avatarImageURLs, optionIsFocused, size, secondAvatarStyle,
+    avatarImageURLs, size, secondAvatarStyle,
 }) => {
     const avatarContainerStyles = size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
     const singleAvatarStyles = size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [
         size === 'small' ? styles.secondAvatarSmall : styles.secondAvatar,
-        optionIsFocused ? styles.focusedAvatar : styles.avatar,
-        secondAvatarStyle,
+        ...secondAvatarStyle,
     ];
 
     if (!avatarImageURLs.length) {
