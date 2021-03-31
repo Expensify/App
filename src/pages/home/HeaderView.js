@@ -118,7 +118,6 @@ const HeaderView = (props) => {
         </View>
     );
 };
-
 HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
