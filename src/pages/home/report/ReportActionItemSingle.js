@@ -18,15 +18,15 @@ const propTypes = {
     // Is this the most recent IOU Action?
     isMostRecentIOUReport: PropTypes.bool.isRequired,
 
-    // IOU report ID associated with current report
-    iouReportID: PropTypes.number,
+    // The report currently being looked at
+    report: PropTypes.shape({
+
+        // IOU report ID associated with current report
+        iouReportID: PropTypes.number,
+    }).isRequired,
 };
 
-const defaultProps = {
-    iouReportID: null,
-};
-
-const ReportActionItemSingle = ({action, iouReportID, isMostRecentIOUReport}) => {
+const ReportActionItemSingle = ({action, report, isMostRecentIOUReport}) => {
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
         : action.avatar;
@@ -52,7 +52,7 @@ const ReportActionItemSingle = ({action, iouReportID, isMostRecentIOUReport}) =>
                 {action.actionName === 'IOU'
                     ? (
                         <ReportActionItemIOUPreview
-                            iouReportID={iouReportID}
+                            report={report}
                             action={action}
                             isMostRecentIOUReport={isMostRecentIOUReport}
                         />
@@ -64,5 +64,4 @@ const ReportActionItemSingle = ({action, iouReportID, isMostRecentIOUReport}) =>
 };
 
 ReportActionItemSingle.propTypes = propTypes;
-ReportActionItemSingle.defaultProps = defaultProps;
 export default ReportActionItemSingle;
