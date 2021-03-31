@@ -133,7 +133,7 @@ class ReportActionItem extends Component {
                                 animationIn="fadeIn"
                             >
                                 <ReportActionContextMenu
-                                    isVisible={this.state.isPopoverVisible}
+                                    isVisible
                                     reportID={this.props.reportID}
                                     reportActionID={this.props.action.sequenceNumber}
                                 />
