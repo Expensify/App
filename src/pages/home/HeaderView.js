@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -7,7 +7,7 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
-import {BackArrow, Pin, Phone} from '../../components/Icon/Expensicons';
+import {BackArrow, Pin} from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
 import {togglePinnedState} from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -51,79 +51,73 @@ const defaultProps = {
     report: null,
 };
 
-class HeaderView extends Component {
-    constructor(props) {
-        super(props);
+const HeaderView = (props) => {
+    const participants = lodashGet(props.report, 'participants', []);
+    const reportOption = {
+        text: lodashGet(props.report, 'reportName', ''),
+        tooltipText: getReportParticipantsTitle(participants),
+        participantsList: getPersonalDetailsForLogins(participants, props.personalDetails),
+    };
 
-        this.participants = lodashGet(this.props.report, 'participants', []);
-        this.reportOption = {
-            text: lodashGet(this.props.report, 'reportName', ''),
-            tooltipText: getReportParticipantsTitle(this.participants),
-            participantsList: getPersonalDetailsForLogins(this.participants, this.props.personalDetails),
-        };
-    }
-
-    render() {
-        return (
-            <View style={[styles.appContentHeader]} nativeID="drag-area">
-                <View style={[styles.appContentHeaderTitle, !this.props.isSmallScreenWidth && styles.pl5]}>
-                    {this.props.isSmallScreenWidth && (
+    return (
+        <View style={[styles.appContentHeader]} nativeID="drag-area">
+            <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
+                {props.isSmallScreenWidth && (
+                    <Pressable
+                        onPress={props.onNavigationMenuButtonClicked}
+                        style={[styles.LHNToggle]}
+                    >
+                        <Icon src={BackArrow} />
+                    </Pressable>
+                )}
+                {props.report && props.report.reportName && (
+                    <View
+                        style={[
+                            styles.flex1,
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                        ]}
+                    >
                         <Pressable
-                            onPress={this.props.onNavigationMenuButtonClicked}
-                            style={[styles.LHNToggle]}
+                            onPress={() => {
+                                if (participants.length === 1) {
+                                    Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
+                                }
+                            }}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
-                            <Icon src={BackArrow} />
-                        </Pressable>
-                    )}
-                    {this.props.report && this.props.report.reportName && (
-                        <View
-                            style={[
-                                styles.flex1,
-                                styles.flexRow,
-                                styles.alignItemsCenter,
-                                styles.justifyContentBetween,
-                            ]}
-                        >
-                            <Pressable
-                                onPress={() => {
-                                    if (this.participants.length === 1) {
-                                        Navigation.navigate(ROUTES.getDetailsRoute(this.participants[0]));
-                                    }
-                                }}
-                                style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            >
-                                <MultipleAvatars avatarImageURLs={this.props.report.icons} />
-                                <View style={[styles.flex1, styles.flexRow]}>
-                                    <OptionRowTitle
-                                        option={this.reportOption}
-                                        tooltipEnabled
-                                        numberOfLines={1}
-                                        style={[styles.headerText]}
-                                    />
-                                </View>
-                            </Pressable>
-                            <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {this.props.report.hasOutstandingIOU && (
-                                    <IOUBadge iouReportID={this.props.report.iouReportID} />
-                                )}
-                                <VideoChatButtonAndMenu/>
-                                <Pressable
-                                    onPress={() => togglePinnedState(this.props.report)}
-                                    style={[styles.touchableButtonImage, styles.mr0]}
-                                >
-                                    <Icon
-                                        src={Pin}
-                                        fill={this.props.report.isPinned ? themeColors.heading : themeColors.icon}
-                                    />
-                                </Pressable>
+                            <MultipleAvatars avatarImageURLs={props.report.icons} />
+                            <View style={[styles.flex1, styles.flexRow]}>
+                                <OptionRowTitle
+                                    option={reportOption}
+                                    tooltipEnabled
+                                    numberOfLines={1}
+                                    style={[styles.headerText]}
+                                />
                             </View>
+                        </Pressable>
+                        <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                            {props.report.hasOutstandingIOU && (
+                                <IOUBadge iouReportID={props.report.iouReportID} />
+                            )}
+                            <VideoChatButtonAndMenu />
+                            <Pressable
+                                onPress={() => togglePinnedState(props.report)}
+                                style={[styles.touchableButtonImage, styles.mr0]}
+                            >
+                                <Icon
+                                    src={Pin}
+                                    fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
+                                />
+                            </Pressable>
                         </View>
-                    )}
-                </View>
+                    </View>
+                )}
             </View>
-        );
-    }
-}
+        </View>
+    );
+};
 
 HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
