@@ -65,7 +65,6 @@ const MenuItem = ({
     </Pressable>
 );
 
-
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
