@@ -6,6 +6,7 @@ import setPasswordPagePropTypes from './setPasswordPagePropTypes';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
+    // eslint-disable-next-line react/forbid-foreign-prop-types
     ...setPasswordPagePropTypes.propTypes,
 };
 
