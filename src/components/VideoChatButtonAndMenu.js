@@ -98,7 +98,7 @@ class VideoChatButtonAndMenu extends Component {
                 >
                     {this.menuItemData.map(({icon, text, onPress}) => (
                         <MenuItem
-                            style={[styles.mr3]}
+                            wrapperStyle={styles.mr3}
                             key={text}
                             icon={icon}
                             title={text}
