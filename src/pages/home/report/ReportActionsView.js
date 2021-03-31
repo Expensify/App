@@ -67,7 +67,7 @@ class ReportActionsView extends React.Component {
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
-        this.scheduleRecordMaxAction = this.scheduleRecordMaxAction.bind(this);
+        this.scheduledRecordMaxAction = this.scheduledRecordMaxAction.bind(this);
         this.sortedReportActions = [];
         this.unreadTimer = null;
         this.newMessageMarkerPosition = -1;
@@ -103,12 +103,9 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         // When the last action changes, wait three seconds, then record the max action
-        // If the report is already open, record the max action immediately
         if (Visibility.isVisible()) {
             if (prevProps.reportID !== this.props.reportID) {
-                this.scheduleRecordMaxAction(3000);
-            } else if (!this.unreadTimer) {
-                this.scheduleRecordMaxAction();
+                this.unreadTimer = setTimeout(this.scheduledRecordMaxAction, 3000);
             }
         }
 
@@ -127,6 +124,11 @@ class ReportActionsView extends React.Component {
             const lastAction = lastItem(this.props.reportActions);
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
                 this.scrollToListBottom();
+            }
+
+            // If we are adding a new action while the report is open, record the max action immediately
+            if (Visibility.isVisible() && prevProps.reportID === this.props.reportID && !this.unreadTimer) {
+                this.scheduledRecordMaxAction();
             }
         }
     }
@@ -150,28 +152,21 @@ class ReportActionsView extends React.Component {
      */
     onVisibilityChange() {
         if (Visibility.isVisible()) {
-            this.scheduleRecordMaxAction(3000);
+            this.unreadTimer = setTimeout(this.scheduledRecordMaxAction, 3000);
         }
     }
 
     /**
-     * Sets the max action after a set delay
-     *
-     * @param {Number} delay - In miliseconds
+     * Helper function to clean up the timer before setting the max action
      */
-    scheduleRecordMaxAction(delay = 0) {
+    scheduledRecordMaxAction() {
         // Always cancel the existing timer
         if (this.unreadTimer) {
             clearTimeout(this.unreadTimer);
             this.unreadTimer = null;
         }
 
-        if (delay === 0) {
-            this.recordMaxAction();
-            return;
-        }
-
-        this.unreadTimer = setTimeout(this.recordMaxAction, delay);
+        this.recordMaxAction();
     }
 
     /**
