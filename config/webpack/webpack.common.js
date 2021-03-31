@@ -127,7 +127,6 @@ const webpackConfig = {
         alias: {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
-            '@react-native-community/clipboard': 'react-native-web',
         },
 
         // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`

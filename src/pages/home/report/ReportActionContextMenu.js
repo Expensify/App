@@ -10,6 +10,7 @@ import getReportActionContextMenuStyles from '../../../styles/getReportActionCon
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
+import {isReportActionAttachment} from '../../../libs/reportUtils';
 
 /**
  * A list of all the context actions in this menu.
@@ -29,13 +30,11 @@ const CONTEXT_ACTIONS = [
             const lastMessage = _.last(lodashGet(action, 'message', null));
             const html = lodashGet(lastMessage, 'html', '');
             const text = lodashGet(lastMessage, 'text', '');
-            const isAttachment = text === '[Attachment]';
-            if (!isAttachment) {
+            if (!isReportActionAttachment(action)) {
                 Clipboard.setString(text);
             } else {
                 Clipboard.setString(html);
             }
-            return true;
         },
     },
 
@@ -43,28 +42,28 @@ const CONTEXT_ACTIONS = [
     {
         text: 'Copy Link',
         icon: LinkCopy,
-        onPress: () => { },
+        onPress: () => {},
     },
 
     // Mark as Unread
     {
         text: 'Mark as Unread',
         icon: Mail,
-        onPress: () => { },
+        onPress: () => {},
     },
 
     // Edit Comment
     {
         text: 'Edit Comment',
         icon: Pencil,
-        onPress: () => { },
+        onPress: () => {},
     },
 
     // Delete Comment
     {
         text: 'Delete Comment',
         icon: Trashcan,
-        onPress: () => { },
+        onPress: () => {},
     },
 ];
 
