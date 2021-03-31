@@ -13,31 +13,30 @@ import themeColors from '../styles/themes/default';
 import withWindowDimensions from './withWindowDimensions';
 
 class VideoChatButtonAndMenu extends Component {
-    menuItemData = [
-        {
-            icon: ZoomIcon,
-            text: 'Zoom',
-            onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
-        },
-        {
-            icon: GoogleMeetIcon,
-            text: 'Google Meet',
-            onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
-        },
-    ].map(item => ({
-        ...item,
-        onPress: () => {
-            item.onPress();
-            this.toggleVideoChatMenu();
-        },
-    }));
-
     constructor(props) {
         super(props);
 
         this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
         this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
         this.videoChatIconWrapper = null;
+        this.menuItemData = [
+            {
+                icon: ZoomIcon,
+                text: 'Zoom',
+                onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
+            },
+            {
+                icon: GoogleMeetIcon,
+                text: 'Google Meet',
+                onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
+            },
+        ].map(item => ({
+            ...item,
+            onPress: () => {
+                item.onPress();
+                this.toggleVideoChatMenu();
+            },
+        }));
 
         this.state = {
             isVideoChatMenuActive: false,
@@ -94,7 +93,7 @@ class VideoChatButtonAndMenu extends Component {
                         top: this.state.videoChatIconPosition.y + 40,
                     }}
                     animationIn="fadeInDown"
-                    animationOut="fadeOutDown"
+                    animationOut="fadeOutUp"
                 >
                     {this.menuItemData.map(({icon, text, onPress}) => (
                         <MenuItem
