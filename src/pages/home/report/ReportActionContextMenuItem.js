@@ -52,20 +52,21 @@ class ReportActionContextMenuItem extends Component {
         this.state = {
             success: false,
         };
-        this.onPress = this.onPress.bind(this);
+        this.triggerPressAndUpdateSuccess = this.triggerPressAndUpdateSuccess.bind(this);
     }
 
     /**
      * Called on button press and mark the run
-     *
-     * @memberof ReportActionContextMenuItem
      */
-    onPress() {
+    triggerPressAndUpdateSuccess() {
         if (this.state.success) {
             return;
         }
-        const pressResult = this.props.onPress();
-        if (pressResult) {
+        this.props.onPress();
+
+        // We only set the success state when we have icon or text to represent the success state
+        // We may want to replace this check by checking the Result from OnPress Callback in future.
+        if (this.props.successIcon || this.props.successText) {
             this.setState({
                 success: true,
             });
@@ -81,7 +82,7 @@ class ReportActionContextMenuItem extends Component {
                 ? (
                     <Tooltip text={text}>
                         <Pressable
-                            onPress={this.onPress}
+                            onPress={this.triggerPressAndUpdateSuccess}
                             style={
                                 ({hovered, pressed}) => getButtonStyle(
                                     getButtonState(hovered, pressed, this.state.success),
@@ -98,7 +99,7 @@ class ReportActionContextMenuItem extends Component {
                     </Tooltip>
                 ) : (
                     <Pressable
-                        onPress={this.onPress}
+                        onPress={this.triggerPressAndUpdateSuccess}
                         style={
                             ({hovered, pressed}) => getButtonStyle(
                                 getButtonState(hovered, pressed, this.state.success),
