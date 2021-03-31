@@ -308,6 +308,7 @@ function fetchChatReportsByIDs(chatList) {
                 simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
                 simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === 1
                     && iouReportObject.total !== 0;
+                Onyx.merge(iouReportKey, iouReportObject);
             });
 
             // We use mergeCollection such that it updates the collection in one go.

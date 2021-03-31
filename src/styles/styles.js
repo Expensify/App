@@ -894,6 +894,11 @@ const styles = {
         borderColor: 'transparent',
     },
 
+    secondAvatarInline: {
+        bottom: -3,
+        right: -25,
+    },
+
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
