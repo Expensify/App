@@ -23,4 +23,7 @@ export default {
     DETAILS: 'details',
     DETAILS_WITH_LOGIN: 'details/:login',
     getDetailsRoute: login => `details/${login}`,
+    PARTICIPANTS: 'participants',
+    PARTICIPANTS_WITH_REPORT: 'participants/:reportID',
+    getParticipantsRoute: reportID => `participants/${reportID}`,
 };
