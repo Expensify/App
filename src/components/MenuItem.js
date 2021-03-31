@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, Text, Pressable,
+    View, Text, Pressable, StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
 
@@ -12,7 +12,7 @@ import {ArrowRight} from './Icon/Expensicons';
 const propTypes = {
     // Any additional styles to apply
     // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
+    wrapperStyle: PropTypes.any,
 
     // Function to fire when component is pressed
     onPress: PropTypes.func.isRequired,
@@ -29,7 +29,7 @@ const propTypes = {
 
 const defaultProps = {
     shouldShowRightArrow: false,
-    style: {},
+    wrapperStyle: null,
 };
 
 const MenuItem = ({
@@ -37,33 +37,38 @@ const MenuItem = ({
     icon,
     title,
     shouldShowRightArrow,
-    style,
-}) => (
-    <Pressable
-        onPress={onPress}
-        style={({hovered}) => ([
-            styles.createMenuItem,
-            hovered && {backgroundColor: themeColors.buttonHoveredBG},
-            ...style,
-        ])}
-    >
-        <View style={styles.flexRow}>
-            <View style={styles.createMenuIcon}>
-                <Icon src={icon} />
+    wrapperStyle,
+}) => {
+    // Flatten the wrapperStyle in case it's an array of styles
+    const flatWrapperStyle = StyleSheet.flatten(wrapperStyle);
+
+    return (
+        <Pressable
+            onPress={onPress}
+            style={({hovered}) => ([
+                styles.createMenuItem,
+                hovered && {backgroundColor: themeColors.buttonHoveredBG},
+                flatWrapperStyle,
+            ])}
+        >
+            <View style={styles.flexRow}>
+                <View style={styles.createMenuIcon}>
+                    <Icon src={icon} />
+                </View>
+                <View style={styles.justifyContentCenter}>
+                    <Text style={[styles.createMenuText, styles.ml3]}>
+                        {title}
+                    </Text>
+                </View>
             </View>
-            <View style={styles.justifyContentCenter}>
-                <Text style={[styles.createMenuText, styles.ml3]}>
-                    {title}
-                </Text>
-            </View>
-        </View>
-        {shouldShowRightArrow && (
-            <View style={styles.createMenuIcon}>
-                <Icon src={ArrowRight} />
-            </View>
-        )}
-    </Pressable>
-);
+            {shouldShowRightArrow && (
+                <View style={styles.createMenuIcon}>
+                    <Icon src={ArrowRight} />
+                </View>
+            )}
+        </Pressable>
+    );
+};
 
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;
