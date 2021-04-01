@@ -42,7 +42,7 @@ function getDefaultAvatar(login = '') {
  * @returns {String}
  */
 function getAvatar(personalDetail, login) {
-    if (personalDetail.avatarThumbnail) {
+    if (personalDetail && personalDetail.avatarThumbnail) {
         return personalDetail.avatarThumbnail;
     }
 
