@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
@@ -10,6 +11,7 @@ import Icon from '../../components/Icon';
 import {getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
+import ONYXKEYS from '../../ONYXKEYS';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -17,10 +19,21 @@ import Navigation from '../../libs/Navigation/Navigation';
 const propTypes = {
     // Is this new IOU for a single request or group bill split?
     hasMultipleParticipants: PropTypes.bool,
+
+    // The personal details of the person who is logged in
+    myPersonalDetails: PropTypes.shape({
+
+        // Preferred Currency Code of the current user
+        preferredCurrencyCode: PropTypes.string,
+
+        // Currency Symbol of the Preferred Currency
+        preferredCurrencySymbol: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     hasMultipleParticipants: false,
+    myPersonalDetails: {preferredCurrencyCode: 'USD', preferredCurrencySymbol: '$'},
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -40,14 +53,20 @@ class IOUModal extends Component {
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
-        this.currencySelected = this.currencySelected.bind(this);
-
+        this.selectCurrency = this.selectCurrency.bind(this);
+        this.setCurrencyMode = this.setCurrencyMode.bind(this);
+        this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
+
         this.state = {
             currentStepIndex: 0,
             participants: [],
             amount: '',
-            selectedCurrency: 'USD',
+            selectedCurrency: {
+                currencyCode: props.myPersonalDetails.preferredCurrencyCode,
+                currencySymbol: props.myPersonalDetails.preferredCurrencySymbol,
+            },
+            currencySelectionMode: false,
             isAmountPageNextButtonDisabled: true,
         };
     }
@@ -63,13 +82,27 @@ class IOUModal extends Component {
      */
 
     getTitleForStep() {
+        if (this.state.currencySelectionMode) {
+            return 'Select Currency';
+        }
         if (this.state.currentStepIndex === 1) {
-            return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.amount}`;
+            return (`${this.props.hasMultipleParticipants ? 'Split'
+                : 'Request'} ${this.state.selectedCurrency.currencySymbol}${this.state.amount}`);
         }
         if (steps[this.state.currentStepIndex] === Steps.IOUAmount) {
             return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
         }
         return steps[this.state.currentStepIndex] || '';
+    }
+
+    /**
+     * Update the currency state
+     *
+     * @param {bool} isCurrencyModeOn
+     */
+    setCurrencyMode(isCurrencyModeOn) {
+        Keyboard.dismiss();
+        this.setState({currencySelectionMode: isCurrencyModeOn});
     }
 
     /**
@@ -132,10 +165,22 @@ class IOUModal extends Component {
     /**
      * Update the currency state
      *
-     * @param {String} selectedCurrency
+     * @param {Object} selectedCurrency
      */
-    currencySelected(selectedCurrency) {
+    selectCurrency(selectedCurrency) {
         this.setState({selectedCurrency});
+    }
+
+    /**
+     * Update the currency state
+     *
+     */
+    confirmCurrencySelection() {
+        Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+            preferredCurrencyCode: this.state.selectedCurrency.currencyCode,
+            preferredCurrencySymbol: this.state.selectedCurrency.currencySymbol,
+        });
+        this.setState({currencySelectionMode: false});
     }
 
     render() {
@@ -176,8 +221,11 @@ class IOUModal extends Component {
                     <IOUAmountPage
                         onStepComplete={this.navigateToNextStep}
                         numberPressed={this.updateAmount}
-                        currencySelected={this.currencySelected}
+                        onCurrencySelected={this.selectCurrency}
                         amount={this.state.amount}
+                        currencySelectionMode={this.state.currencySelectionMode}
+                        onCurrencyConfirm={this.confirmCurrencySelection}
+                        setCurrencySelectionMode={this.setCurrencyMode}
                         selectedCurrency={this.state.selectedCurrency}
                         isNextButtonDisabled={this.state.isAmountPageNextButtonDisabled}
                     />
@@ -206,4 +254,6 @@ IOUModal.propTypes = propTypes;
 IOUModal.defaultProps = defaultProps;
 IOUModal.displayName = 'IOUModal';
 
-export default IOUModal;
+export default withOnyx({
+    myPersonalDetails: {key: ONYXKEYS.MY_PERSONAL_DETAILS},
+})(IOUModal);

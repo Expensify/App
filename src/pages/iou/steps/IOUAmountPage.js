@@ -13,6 +13,7 @@ import themeColors from '../../../styles/themes/default';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import TextInputFocusable from '../../../components/TextInputFocusable';
+import IOUCurrencySelection from './IOUCurrencySelection';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -21,12 +22,20 @@ const propTypes = {
     // Callback to inform parent modal with key pressed
     numberPressed: PropTypes.func.isRequired,
 
-    // Currency selection will be implemented later
-    // eslint-disable-next-line react/no-unused-prop-types
-    currencySelected: PropTypes.func.isRequired,
+    // Callback that sets selectedCurrency in IOUModal
+    onCurrencySelected: PropTypes.func.isRequired,
 
     // User's currency preference
     selectedCurrency: PropTypes.string.isRequired,
+
+    // Whether or not currency selection mode is on
+    currencySelectionMode: PropTypes.bool,
+
+    // Callback that sets currency in Onyx and dismisses the currency mode
+    onCurrencyConfirm: PropTypes.func,
+
+    // Callback to set currency selection mode
+    setCurrencySelectionMode: PropTypes.func,
 
     // Amount value entered by user
     amount: PropTypes.string.isRequired,
@@ -49,7 +58,11 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
+    currencySelectionMode: false,
+    setCurrencySelectionMode: null,
+    onCurrencyConfirm: null,
 };
+
 class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
@@ -65,7 +78,35 @@ class IOUAmountPage extends React.Component {
         }
     }
 
+    /**
+     * Returns the sections needed for the OptionsSelector
+     *
+     * @param {Boolean} maxParticipantsReached
+     * @returns {Array}
+     */
+    getSections() {
+        const sections = [];
+        sections.push({
+            title: undefined,
+            data: this.props.participants,
+            shouldShow: true,
+            indexOffset: 0,
+        });
+
+        return sections;
+    }
+
     render() {
+        if (this.props.currencySelectionMode) {
+            return (
+                <IOUCurrencySelection
+                    onConfirm={this.props.onConfirm}
+                    selectedCurrency={this.props.selectedCurrency}
+                    onCurrencySelected={this.props.onCurrencySelected}
+                    onCurrencyConfirm={this.props.onCurrencyConfirm}
+                />
+            );
+        }
         return (
             <View style={[styles.flex1, styles.pageWrapper]}>
                 {this.props.iou.loading && <ActivityIndicator color={themeColors.text} />}
@@ -77,9 +118,11 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    <Text style={styles.iouAmountText}>
-                        {this.props.selectedCurrency}
-                    </Text>
+                    <TouchableOpacity onPress={() => this.props.setCurrencySelectionMode(true)}>
+                        <Text style={styles.iouAmountText}>
+                            {this.props.selectedCurrency.currencySymbol}
+                        </Text>
+                    </TouchableOpacity>
                     {this.props.isSmallScreenWidth
                         ? <Text style={styles.iouAmountText}>{this.props.amount}</Text>
                         : (
@@ -127,6 +170,8 @@ IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 
-export default withWindowDimensions(withOnyx({
-    iou: {key: ONYXKEYS.IOU},
-})(IOUAmountPage));
+export default withWindowDimensions(
+    withOnyx({
+        iou: {key: ONYXKEYS.IOU},
+    })(IOUAmountPage),
+);

@@ -2,15 +2,15 @@ import React, {Component} from 'react';
 import {Pressable, SectionList, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../styles/styles';
-import {getCurrencyList} from '../../libs/actions/PersonalDetails';
-import ONYXKEYS from '../../ONYXKEYS';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import {getCurrencyListForSections} from '../../libs/OptionsListUtils';
-import Text from '../../components/Text';
-import OptionRow from '../home/sidebar/OptionRow';
-import themeColors from '../../styles/themes/default';
-import TextInputWithFocusStyles from '../../components/TextInputWithFocusStyles';
+import styles from '../../../styles/styles';
+import {getCurrencyList} from '../../../libs/actions/PersonalDetails';
+import ONYXKEYS from '../../../ONYXKEYS';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import {getCurrencyListForSections} from '../../../libs/OptionsListUtils';
+import Text from '../../../components/Text';
+import OptionRow from '../../home/sidebar/OptionRow';
+import themeColors from '../../../styles/themes/default';
+import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
 
 /**
  * IOU Currency selection for selecting currency
