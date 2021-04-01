@@ -10,7 +10,7 @@ import getReportActionContextMenuStyles from '../../../styles/getReportActionCon
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
-import {isReportActionAttachment} from '../../../libs/reportUtils';
+import {isReportMessageAttachment} from '../../../libs/reportUtils';
 
 /**
  * A list of all the context actions in this menu.
@@ -27,10 +27,13 @@ const CONTEXT_ACTIONS = [
         // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (action) => {
-            const lastMessage = _.last(lodashGet(action, 'message', null));
-            const html = lodashGet(lastMessage, 'html', '');
-            const text = lodashGet(lastMessage, 'text', '');
-            if (!isReportActionAttachment(action)) {
+            const message = _.last(lodashGet(action, 'message', null));
+            const html = lodashGet(message, 'html', '');
+            const text = lodashGet(message, 'text', '');
+            const isAttachment = _.has(action, 'isAttachment')
+                ? action.isAttachment
+                : isReportMessageAttachment(text);
+            if (!isAttachment) {
                 Clipboard.setString(text);
             } else {
                 Clipboard.setString(html);

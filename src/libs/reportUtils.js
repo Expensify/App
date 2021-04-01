@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
@@ -15,18 +14,14 @@ function getReportParticipantsTitle(logins) {
 /**
  * Check whether a report action is Attachment is not.
  *
- * @param {Object} reportAction action from a Report
+ * @param {Object} reportMessageText report action's message as text
  * @returns {Boolean}
  */
-function isReportActionAttachment(reportAction) {
-    if (_.has(reportAction, 'isAttachment')) {
-        return reportAction.isAttachment;
-    }
-    const lastMessage = _.last(lodashGet(reportAction, 'message', null));
-    return lodashGet(lastMessage, 'text', '') === '[Attachment]';
+function isReportMessageAttachment(reportMessageText) {
+    return reportMessageText === '[Attachment]';
 }
 
 export {
     getReportParticipantsTitle,
-    isReportActionAttachment,
+    isReportMessageAttachment,
 };
