@@ -865,6 +865,11 @@ const styles = {
         borderColor: 'transparent',
     },
 
+    secondAvatarHovered: {
+        backgroundColor: themeColors.sidebarHover,
+        borderColor: themeColors.sidebarHover,
+    },
+
     secondAvatarSmall: {
         position: 'absolute',
         right: -13,
@@ -915,8 +920,8 @@ const styles = {
     },
 
     focusedAvatar: {
-        backgroundColor: themeColors.pillBG,
-        borderColor: themeColors.pillBG,
+        backgroundColor: themeColors.border,
+        borderColor: themeColors.border,
     },
 
     emptyAvatar: {
@@ -1405,6 +1410,12 @@ function getZoomSizingStyle(isZoomed) {
     };
 }
 
+function getSecondAvatarStyle(parentBGColor) {
+    return {
+        backgroundColor: parentBGColor,
+        borderColor: parentBGColor,
+    };
+}
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1415,4 +1426,5 @@ export {
     getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
+    getSecondAvatarStyle,
 };
