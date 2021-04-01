@@ -38,16 +38,17 @@ class TextInputAutoGrow extends React.Component {
 
     render() {
         const propsWithoutStyles = _.omit(this.props, ['style', 'textStyle']);
+        const widthStyle = {width: Math.max(5, this.state.textInputWidth)};
         return (
             <View>
                 <TextInputFocusable
-                    style={[this.props.style, {width: Math.max(5, this.state.textInputWidth)}]}
+                    style={[this.props.style, widthStyle]}
                     ref={this.props.forwardedRef}
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...propsWithoutStyles}
                 />
                 <Text
-                    style={[this.props.textStyle, styles.invisible, {left: 100000}]}
+                    style={[this.props.textStyle, styles.autoGrowTextInputHiddenText]}
                     onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
                 >
                     {this.props.value}
