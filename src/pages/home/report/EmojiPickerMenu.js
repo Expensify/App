@@ -10,9 +10,6 @@ import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 
 const propTypes = {
-    // Is the picker currently visible?
-    isVisible: PropTypes.bool.isRequired,
-
     // Function to add the selected emoji to the main compose text input
     onEmojiSelected: PropTypes.func.isRequired,
 };
