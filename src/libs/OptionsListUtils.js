@@ -410,11 +410,11 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  *
  * @param {Boolean} hasSelectableOptions
  * @param {Boolean} hasUserToInvite
- * @param {String} searchValue
+ * @param {String} [searchValue]
  * @param {Boolean} [maxParticipantsReached]
  * @return {String}
  */
-function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue = '', maxParticipantsReached = false) {
     if (maxParticipantsReached) {
         return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
     }
