@@ -30,6 +30,7 @@ class ReportView extends React.Component {
                     <ReportActionCompose
                         onSubmit={text => addAction(this.props.reportID, text)}
                         reportID={this.props.reportID}
+                        key={this.props.reportID}
                     />
                 </SwipeableView>
                 <KeyboardSpacer />
