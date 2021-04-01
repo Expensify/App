@@ -18,6 +18,7 @@ import {getReportParticipantsTitle} from '../../libs/reportUtils';
 import OptionRowTitle from './sidebar/OptionRowTitle';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
+import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 
 const propTypes = {
@@ -100,6 +101,7 @@ const HeaderView = (props) => {
                             {props.report.hasOutstandingIOU && (
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
+                            <VideoChatButtonAndMenu />
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}
