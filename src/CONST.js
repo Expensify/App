@@ -9,6 +9,7 @@ const CONST = {
         DEFAULT: 'default',
         HOVERED: 'hovered',
         PRESSED: 'pressed',
+        COMPLETE: 'complete',
     },
     CLOUDFRONT_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
