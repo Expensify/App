@@ -1,10 +1,11 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View, SectionList, Text} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
+import SectionList from './SectionList';
 
 const propTypes = {
     // Style for hovered state
@@ -64,6 +65,9 @@ const propTypes = {
 
     // Whether to show the title tooltip
     showTitleTooltip: PropTypes.bool,
+
+    // Toggle between compact and default view of the option
+    optionMode: PropTypes.oneOf(['compact', 'default']),
 };
 
 const defaultProps = {
@@ -81,6 +85,7 @@ const defaultProps = {
     headerMessage: '',
     innerRef: null,
     showTitleTooltip: false,
+    optionMode: undefined,
 };
 
 class OptionsList extends Component {
@@ -146,6 +151,7 @@ class OptionsList extends Component {
         return (
             <OptionRow
                 option={item}
+                mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
