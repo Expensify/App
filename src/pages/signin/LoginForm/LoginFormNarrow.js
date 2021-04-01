@@ -103,7 +103,7 @@ class LoginFormNarrow extends React.Component {
                         source={welcomeScreenshot}
                     />
                 </View>
-                <WelcomeText />
+                <WelcomeText isSmallText />
             </View>
         );
     }
