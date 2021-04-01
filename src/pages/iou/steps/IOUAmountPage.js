@@ -26,7 +26,10 @@ const propTypes = {
     onCurrencySelected: PropTypes.func.isRequired,
 
     // User's currency preference
-    selectedCurrency: PropTypes.string.isRequired,
+    selectedCurrency: PropTypes.objectOf(PropTypes.shape({
+        currencyCode: PropTypes.string,
+        currencySymbol: PropTypes.string,
+    })).isRequired,
 
     // Whether or not currency selection mode is on
     currencySelectionMode: PropTypes.bool,
