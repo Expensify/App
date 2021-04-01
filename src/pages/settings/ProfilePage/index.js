@@ -139,21 +139,24 @@ class ProfilePage extends Component {
 
     // Get the most validated login of each type
     getLogins(loginList) {
-        return loginList.reduce((logins, currLogin) => {
-            const type = Str.isSMSLogin(currLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
+        return loginList.reduce((logins, currentLogin) => {
+            const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
+            const login = Str.isSMSLogin(currentLogin.partnerUserID)
+                ? Str.removeSMSDomain(currentLogin.partnerUserID) : currentLogin.partnerUserID;
 
-            // If there's already a login type that's validated and/or currLogin isn't valid then return early
-            if (!_.isEmpty(logins[type]) && (logins[type].validatedDate || !currLogin.validatedDate)) {
+            // If there's already a login type that's validated and/or currentLogin isn't valid then return early
+            if ((login !== this.props.myPersonalDetails.login) && !_.isEmpty(logins[type])
+                && (logins[type].validatedDate || !currentLogin.validatedDate)) {
                 return logins;
             }
             return {
                 ...logins,
                 [type]: {
-                    ...currLogin,
+                    ...currentLogin,
                     type,
-                    partnerUserID: Str.isSMSLogin(currLogin.partnerUserID)
-                        ? Str.removeSMSDomain(currLogin.partnerUserID)
-                        : currLogin.partnerUserID,
+                    partnerUserID: Str.isSMSLogin(currentLogin.partnerUserID)
+                        ? Str.removeSMSDomain(currentLogin.partnerUserID)
+                        : currentLogin.partnerUserID,
                 },
             };
         }, {
