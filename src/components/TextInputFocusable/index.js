@@ -8,7 +8,10 @@ const propTypes = {
     maxLines: PropTypes.number,
 
     // The default value of the comment box
-    defaultValue: PropTypes.string.isRequired,
+    defaultValue: PropTypes.string,
+
+    // The value of the comment box
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     // Callback method to handle pasting a file
     onPasteFile: PropTypes.func,
@@ -40,6 +43,8 @@ const propTypes = {
 };
 
 const defaultProps = {
+    defaultValue: undefined,
+    value: undefined,
     maxLines: -1,
     onPasteFile: () => {},
     shouldClear: false,
@@ -71,8 +76,12 @@ class TextInputFocusable extends React.Component {
         this.state = {
             numberOfLines: 1,
             selection: {
-                start: this.props.defaultValue.length,
-                end: this.props.defaultValue.length,
+                start: this.props.defaultValue
+                    ? `${this.props.defaultValue}`.length
+                    : `${this.props.value}`.length,
+                end: this.props.defaultValue
+                    ? `${this.props.defaultValue}`.length
+                    : `${this.props.value}`.length,
             },
         };
     }
@@ -206,6 +215,9 @@ class TextInputFocusable extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
+        const propsWithoutValueOrDefaultValue = this.props.defaultValue
+            ? _.omit(propsWithoutStyles, 'value')
+            : _.omit(propsWithoutStyles, 'defaultValue');
         return (
             <TextInput
                 ref={el => this.textInput = el}
@@ -216,7 +228,7 @@ class TextInputFocusable extends React.Component {
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutStyles}
+                {...propsWithoutValueOrDefaultValue}
                 disabled={this.props.isDisabled}
             />
         );
