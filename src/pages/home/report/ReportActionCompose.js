@@ -64,7 +64,7 @@ class ReportActionCompose extends React.Component {
         this.comment = props.comment;
 
         this.state = {
-            isFocused: false,
+            isFocused: true,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
@@ -72,17 +72,8 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // The first time the component loads the props is empty and the next time it may contain value.
-        // If it does let's update this.comment so that it matches the defaultValue that we show in textInput.
-        if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
-            this.comment = this.props.comment;
-        }
-
-        // When any modal goes from visible to hidden or when the report ID changes, bring focus to the compose field
-        if (
-            (prevProps.modal.isVisible && !this.props.modal.isVisible)
-            || (prevProps.reportID !== this.props.reportID)
-        ) {
+        // When any modal goes from visible to hidden, bring focus to the compose field
+        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.setIsFocused(true);
         }
     }
@@ -255,6 +246,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
+                                    autoFocus
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
