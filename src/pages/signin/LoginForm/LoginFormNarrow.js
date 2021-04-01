@@ -9,9 +9,7 @@ import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import ButtonWithLoader from '../../../components/ButtonWithLoader';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
-import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import ONYXKEYS from '../../../ONYXKEYS';
-import WelcomeText from '../../../components/WelcomeText';
 
 const propTypes = {
     /* Onyx Props */
