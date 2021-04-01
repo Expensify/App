@@ -25,6 +25,7 @@
     "detox-build": "detox build --configuration ios.sim.debug",
     "detox-test": "detox test --configuration ios.sim.debug",
     "gh-actions-build": "./.github/scripts/buildActions.sh",
+    "gh-actions-lint": "./.github/scripts/validateActionsAndWorkflows.sh",
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js"
   },
   "dependencies": {
@@ -99,6 +100,7 @@
     "@testing-library/jest-native": "^3.4.2",
     "@testing-library/react-native": "^7.0.2",
     "@vercel/ncc": "^0.27.0",
+    "ajv-cli": "^5.0.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
     "babel-loader": "^8.1.0",
