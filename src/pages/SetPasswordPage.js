@@ -117,7 +117,6 @@ class SetPasswordPage extends Component {
                             {this.props.account.error}
                         </Text>
                     )}
-                    <WelcomeText />
                 </SignInPageLayout>
             </SafeAreaView>
         );

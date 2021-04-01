@@ -2,7 +2,6 @@ import React from 'react';
 import SignInPageLayoutNarrow from './SignInPageLayoutNarrow';
 import SignInPageLayoutWide from './SignInPageLayoutWide';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import TermsAndLicenses from '../TermsAndLicenses';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
