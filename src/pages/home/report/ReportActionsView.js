@@ -102,7 +102,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-
         // We have switched to a new report
         if (prevProps.reportID !== this.props.reportID) {
             this.reset(prevProps.reportID);
