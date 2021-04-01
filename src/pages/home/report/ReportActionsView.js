@@ -102,12 +102,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // When the last action changes, wait three seconds, then record the max action
-        if (Visibility.isVisible()) {
-            if (prevProps.reportID !== this.props.reportID) {
-                this.unreadTimer = setTimeout(this.scheduledRecordMaxAction, 3000);
-            }
-        }
 
         // We have switched to a new report
         if (prevProps.reportID !== this.props.reportID) {
@@ -126,8 +120,8 @@ class ReportActionsView extends React.Component {
                 this.scrollToListBottom();
             }
 
-            // If we are adding a new action while the report is open, record the max action immediately
-            if (Visibility.isVisible() && prevProps.reportID === this.props.reportID && !this.unreadTimer) {
+            // If we are adding a new action while the chat is open, record the max action immediately
+            if (!this.unreadTimer && Visibility.isVisible()) {
                 this.scheduledRecordMaxAction();
             }
         }
@@ -157,7 +151,7 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Helper function to clean up the timer before setting the max action
+     * Sets the max action after a set delay
      */
     scheduledRecordMaxAction() {
         // Always cancel the existing timer
@@ -182,6 +176,11 @@ class ReportActionsView extends React.Component {
         // Fetch the new set of actions
         fetchActions(this.props.reportID);
         this.newMessageMarkerPosition = -1;
+
+        // Wait three seconds, then record the max action
+        if (Visibility.isVisible()) {
+            this.unreadTimer = setTimeout(this.scheduledRecordMaxAction, 3000);
+        }
     }
 
     /**
