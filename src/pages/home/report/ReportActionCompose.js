@@ -341,7 +341,6 @@ class ReportActionCompose extends React.Component {
                         }}
                     >
                         <EmojiPickerMenu
-                            isVisible={this.state.isEmojiPickerVisible}
                             onEmojiSelected={this.addEmojiToTextBox}
                         />
                     </Popover>
