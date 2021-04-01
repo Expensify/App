@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -64,10 +65,6 @@ function getDisplayName(login, personalDetail) {
 
     if (!userDetails) {
         return userLogin;
-    }
-
-    if (userDetails.displayName) {
-        return userDetails.displayName;
     }
 
     const firstName = userDetails.firstName || '';
@@ -208,9 +205,12 @@ function setPersonalDetails(details) {
         NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
     }
 
+    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
+    const formattedDetails = formatPersonalDetails({[currentUserEmail]: mergedDetails});
+
     // Update the associated onyx keys
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails({[currentUserEmail]: details}));
+    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, formattedDetails[currentUserEmail]);
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedDetails);
 }
 
 /**
