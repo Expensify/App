@@ -13,6 +13,8 @@ import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
 import TermsAndLicenses from './TermsAndLicenses';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,6 +40,8 @@ const propTypes = {
         // Error to display when there is a session error returned
         authToken: PropTypes.string,
     }),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -94,7 +98,9 @@ class SignInPage extends Component {
                             </View>
                         )}
 
-                        <TermsAndLicenses />
+                        {/* Because the Terms and Licenses need to be placed in different parts of the DOM
+                            to display correctly between wide/narrow screens */}
+                        {!this.props.isSmallScreenWidth && <TermsAndLicenses />}
                     </SignInPageLayout>
                 </SafeAreaView>
             </>
@@ -105,8 +111,11 @@ class SignInPage extends Component {
 SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    session: {key: ONYXKEYS.SESSION},
-})(SignInPage);
+export default compose(
+    withOnyx({
+        account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
+        session: {key: ONYXKEYS.SESSION},
+    }),
+    withWindowDimensions,
+)(SignInPage);

@@ -89,45 +89,34 @@ class SetPasswordPage extends Component {
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout>
-                    <View style={[styles.loginFormContainer]}>
-                        <View style={[styles.mb4]}>
-                            <Text style={[styles.formLabel]}>Enter a password:</Text>
-                            <TextInput
-                                style={[styles.textInput]}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                value={this.state.password}
-                                onChangeText={text => this.setState({password: text})}
-                                onSubmitEditing={this.submitForm}
-                                autoFocus
-                            />
-                        </View>
-                        <ButtonWithLoader
-                            text="Set Password"
-                            onClick={this.submitForm}
-                            isLoading={this.props.account.loading}
+                    <View style={[styles.mb4]}>
+                        <Text style={[styles.formLabel]}>Enter a password:</Text>
+                        <TextInput
+                            style={[styles.textInput]}
+                            secureTextEntry
+                            autoCompleteType="password"
+                            textContentType="password"
+                            value={this.state.password}
+                            onChangeText={text => this.setState({password: text})}
+                            onSubmitEditing={this.submitForm}
+                            autoFocus
                         />
-                        {this.state.formError && (
-                            <Text style={[styles.formError]}>
-                                {this.state.formError}
-                            </Text>
-                        )}
-                        {!_.isEmpty(this.props.account.error) && (
-                            <Text style={[styles.formError]}>
-                                {this.props.account.error}
-                            </Text>
-                        )}
-                        {this.props.isSmallScreenWidth && (
-                            <View style={[styles.mt5, styles.mb5]}>
-                                <Image
-                                    resizeMode="contain"
-                                    style={[styles.signinWelcomeScreenshot]}
-                                    source={welcomeScreenshot}
-                                />
-                            </View>
-                        )}
                     </View>
+                    <ButtonWithLoader
+                        text="Set Password"
+                        onClick={this.submitForm}
+                        isLoading={this.props.account.loading}
+                    />
+                    {this.state.formError && (
+                        <Text style={[styles.formError]}>
+                            {this.state.formError}
+                        </Text>
+                    )}
+                    {!_.isEmpty(this.props.account.error) && (
+                        <Text style={[styles.formError]}>
+                            {this.props.account.error}
+                        </Text>
+                    )}
                     <WelcomeText />
                 </SignInPageLayout>
             </SafeAreaView>
