@@ -1,24 +1,20 @@
 import React, {Component} from 'react';
 import {
-    Image,
     SafeAreaView,
     Text,
     TextInput,
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
-import SignInPageLayout from './signin/SignInPageLayout';
-import welcomeScreenshot from '../../assets/images/welcome-screenshot.png';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import WelcomeText from '../components/WelcomeText';
-import ONYXKEYS from '../ONYXKEYS';
+import ExpensifyCashLogo from '../../assets/images/expensify-cash.svg';
 import {setPassword} from '../libs/actions/Session';
+import ONYXKEYS from '../ONYXKEYS';
+import variables from '../styles/variables';
 import ButtonWithLoader from '../components/ButtonWithLoader';
-import compose from '../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,7 +42,6 @@ const propTypes = {
             validateCode: PropTypes.string,
         }),
     }),
-    ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     account: {},
@@ -87,38 +82,45 @@ class SetPasswordPage extends Component {
 
     render() {
         return (
-            <SafeAreaView style={[styles.signInPage]}>
-                <SignInPageLayout>
-                    <View style={[styles.mb4]}>
-                        <Text style={[styles.formLabel]}>Enter a password:</Text>
-                        <TextInput
-                            style={[styles.textInput]}
-                            secureTextEntry
-                            autoCompleteType="password"
-                            textContentType="password"
-                            value={this.state.password}
-                            onChangeText={text => this.setState({password: text})}
-                            onSubmitEditing={this.submitForm}
-                            autoFocus
+            <>
+                <SafeAreaView style={[styles.signInPage]}>
+                    <View style={[styles.signInPageInner]}>
+                        <View style={[styles.signInPageLogo]}>
+                            <ExpensifyCashLogo
+                                width={variables.componentSizeLarge}
+                                height={variables.componentSizeLarge}
+                            />
+                        </View>
+                        <View style={[styles.mb4]}>
+                            <Text style={[styles.formLabel]}>Enter a password</Text>
+                            <TextInput
+                                style={[styles.textInput]}
+                                secureTextEntry
+                                autoCompleteType="password"
+                                textContentType="password"
+                                value={this.state.password}
+                                onChangeText={text => this.setState({password: text})}
+                                onSubmitEditing={this.submitForm}
+                            />
+                        </View>
+                        <ButtonWithLoader
+                            text="Set Password"
+                            onClick={this.submitForm}
+                            isLoading={this.props.account.loading}
                         />
+                        {this.state.formError && (
+                            <Text style={[styles.formError]}>
+                                {this.state.formError}
+                            </Text>
+                        )}
+                        {!_.isEmpty(this.props.account.error) && (
+                            <Text style={[styles.formError]}>
+                                {this.props.account.error}
+                            </Text>
+                        )}
                     </View>
-                    <ButtonWithLoader
-                        text="Set Password"
-                        onClick={this.submitForm}
-                        isLoading={this.props.account.loading}
-                    />
-                    {this.state.formError && (
-                        <Text style={[styles.formError]}>
-                            {this.state.formError}
-                        </Text>
-                    )}
-                    {!_.isEmpty(this.props.account.error) && (
-                        <Text style={[styles.formError]}>
-                            {this.props.account.error}
-                        </Text>
-                    )}
-                </SignInPageLayout>
-            </SafeAreaView>
+                </SafeAreaView>
+            </>
         );
     }
 }
@@ -126,10 +128,7 @@ class SetPasswordPage extends Component {
 SetPasswordPage.propTypes = propTypes;
 SetPasswordPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-    withWindowDimensions,
-)(SetPasswordPage);
+export default withOnyx({
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    account: {key: ONYXKEYS.ACCOUNT},
+})(SetPasswordPage);

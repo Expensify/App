@@ -7,7 +7,6 @@ import styles from '../../../styles/styles';
 import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide.png';
 import variables from '../../../styles/variables';
-import TermsAndLicenses from '../TermsAndLicenses';
 
 const propTypes = {
     // The children to show inside the layout

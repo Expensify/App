@@ -7,7 +7,6 @@ import {fetchAccountDetails} from '../../../libs/actions/Session';
 import styles from '../../../styles/styles';
 import ButtonWithLoader from '../../../components/ButtonWithLoader';
 import ONYXKEYS from '../../../ONYXKEYS';
-import WelcomeText from '../../../components/WelcomeText';
 
 const propTypes = {
     /* Onyx Props */
@@ -93,7 +92,16 @@ class LoginFormWide extends React.Component {
                         </Text>
                     )}
                 </View>
-                <WelcomeText />
+                <View style={props.isSmallScreenWidth ? [] : [styles.mb6, styles.mt6]}>
+                    <Text style={[props.isSmallScreenWidth ? styles.textLabel : styles.textP, styles.textStrong, styles.mb1]}>
+                        With Expensify.cash, chat and payments are the same thing.
+                    </Text>
+                    <Text style={[props.isSmallScreenWidth ? styles.textLabel : styles.textP]}>
+                        Money talks. And now that chat and payments are in one place, it&apos;s also easy.
+                        {' '}
+                        Your payments get to you as fast as you can get your point across.
+                    </Text>
+                </View>
             </>
         );
     }
