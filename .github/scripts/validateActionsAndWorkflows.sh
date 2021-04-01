@@ -15,8 +15,6 @@ curl https://json.schemastore.org/github-workflow.json --output ./tempSchemas/gi
 find ./actions/ -type f -name "*.yml" -print0 | xargs -0 -I file ajv -s ./tempSchemas/github-action.json -d file --strict=false || EXIT_CODE=1
 find ./workflows/ -type f -name "*.yml" -print0 | xargs -0 -I file ajv -s ./tempSchemas/github-workflow.json -d file --strict=false || EXIT_CODE=1
 
-echo $EXIT_CODE
-
 # Cleanup after ourselves and delete the schemas
 rm -rf ./tempSchemas
 
