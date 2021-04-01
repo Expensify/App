@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import Str from 'expensify-common/lib/str';
 import {check, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import {Platform} from 'react-native';
