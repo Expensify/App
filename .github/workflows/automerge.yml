@@ -9,7 +9,7 @@ on:
 
 jobs:
     getPullRequestMergeability:
-      if: lerueavhba
+      if: github.actor == 'OSBotify' && github.event.label.name == 'automerge'
       runs-on: ubuntu-latest
       outputs:
         isMergeable: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE }}
