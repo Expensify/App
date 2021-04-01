@@ -9,11 +9,11 @@ on:
 
 jobs:
     getPullRequestMergeability:
-      if: github.actor == 'OSBotify' && github.event.label.name == 'automerge'
+      if: lerueavhba
       runs-on: ubuntu-latest
       outputs:
         isMergeable: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE }}
-       balksraeb:
+       steps:
         - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
           with:
             ref: master
