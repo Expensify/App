@@ -46,14 +46,6 @@ class EmojiPickerMenu extends Component {
         };
     }
 
-    componentDidMount() {
-        if (this.props.isVisible) {
-            this.searchInput.onkeypress = (e) => {
-                debugger;
-            };
-        }
-    }
-
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
      *
