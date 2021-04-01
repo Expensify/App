@@ -141,9 +141,12 @@ const OptionRow = ({
                                         size={mode === 'compact' ? 'small' : 'default'}
                                         secondAvatarStyle={[
                                             getBackgroundAndBorderStyle(backgroundColor),
-                                            optionIsFocused && getBackgroundAndBorderStyle(focusedBackgroundColor),
+                                            optionIsFocused
+                                                ? getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                : undefined,
                                             hovered && !optionIsFocused
-                                                && getBackgroundAndBorderStyle(hoveredBackgroundColor),
+                                                ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                : undefined,
                                         ]}
                                     />
                                 )
