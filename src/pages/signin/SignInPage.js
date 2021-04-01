@@ -12,7 +12,6 @@ import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
-import TermsAndLicenses from './TermsAndLicenses';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 
@@ -80,7 +79,10 @@ class SignInPage extends Component {
         return (
             <>
                 <SafeAreaView style={[styles.signInPage]}>
-                    <SignInPageLayout>
+                    <SignInPageLayout
+                        showWelcomeText={showLoginForm}
+                        showWelcomeScreenshot={showLoginForm}
+                    >
                         {showLoginForm && <LoginForm />}
 
                         {showPasswordForm && <PasswordForm />}
@@ -97,10 +99,6 @@ class SignInPage extends Component {
                                 )}
                             </View>
                         )}
-
-                        {/* Because the Terms and Licenses need to be placed in different parts of the DOM
-                            to display correctly between wide/narrow screens */}
-                        {!this.props.isSmallScreenWidth && <TermsAndLicenses />}
                     </SignInPageLayout>
                 </SafeAreaView>
             </>

@@ -9,13 +9,26 @@ import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
+import {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
+
+    ...windowDimensionsPropTypes,
+
     // The children to show inside the layout
     children: PropTypes.node.isRequired,
+
+    // Whether we should show the welcome elements
+    showWelcomeText: PropTypes.Boolean,
+    showWelcomeScreenshot: PropTypes.Boolean,
 };
 
-const SignInPageLayoutNarrow = ({children}) => (
+const defaultProps = {
+    showWelcomeText: true,
+    showWelcomeScreenshot: true,
+};
+
+const SignInPageLayoutNarrow = props => (
     <ScrollView>
         <View>
             <View style={[styles.signInPageInnerNative]}>
@@ -30,24 +43,33 @@ const SignInPageLayoutNarrow = ({children}) => (
                 </View>
 
                 <View style={[styles.loginFormContainer]}>
-                    {children}
-                    <View style={[styles.mt5, styles.mb5]}>
-                        <Image
-                            resizeMode="contain"
-                            style={[styles.signinWelcomeScreenshot]}
-                            source={welcomeScreenshot}
-                        />
-                    </View>
-                    <View style={props.isSmallScreenWidth ? [] : [styles.mb6, styles.mt6]}>
-                        <Text style={[props.isSmallScreenWidth ? styles.textLabel : styles.textP, styles.textStrong, styles.mb1]}>
-                            With Expensify.cash, chat and payments are the same thing.
-                        </Text>
-                        <Text style={[props.isSmallScreenWidth ? styles.textLabel : styles.textP]}>
-                            Money talks. And now that chat and payments are in one place, it&apos;s also easy.
-                            {' '}
-                            Your payments get to you as fast as you can get your point across.
-                        </Text>
-                    </View>
+                    {props.children}
+
+                    {props.showWelcomeScreenshot
+                        && (
+                        <View style={[styles.mt5, styles.mb5]}>
+                            <Image
+                                resizeMode="contain"
+                                style={[styles.signinWelcomeScreenshot]}
+                                source={welcomeScreenshot}
+                            />
+                        </View>
+                        )}
+
+                    {props.showWelcomeText
+                        && (
+                        <View>
+                            <Text style={[styles.textLabel, styles.textStrong, styles.mb1]}>
+                                With Expensify.cash, chat and payments are the same thing.
+                            </Text>
+                            <Text style={[styles.textLabel]}>
+                                Money talks. And now that chat and payments are in one place, it&apos;s also easy.
+                                {' '}
+                                Your payments get to you as fast as you can get your point across.
+                            </Text>
+                        </View>
+                        )}
+
                 </View>
                 <TermsAndLicenses />
             </View>
@@ -56,6 +78,7 @@ const SignInPageLayoutNarrow = ({children}) => (
 );
 
 SignInPageLayoutNarrow.propTypes = propTypes;
+SignInPageLayoutNarrow.defaultProps = defaultProps;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
 
