@@ -1,11 +1,12 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionsView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
 import {addAction} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/styles';
+import SwipeableView from '../../../components/SwipeableView';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -25,10 +26,12 @@ class ReportView extends React.Component {
                 <ReportActionsView
                     reportID={this.props.reportID}
                 />
-                <ReportActionCompose
-                    onSubmit={text => addAction(this.props.reportID, text)}
-                    reportID={this.props.reportID}
-                />
+                <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
+                    <ReportActionCompose
+                        onSubmit={text => addAction(this.props.reportID, text)}
+                        reportID={this.props.reportID}
+                    />
+                </SwipeableView>
                 <KeyboardSpacer />
             </View>
         );
