@@ -12,14 +12,11 @@ import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import TextInputFocusable from '../../../components/TextInputFocusable';
+import TextInputAutoGrow from '../../../components/TextInputAutoGrow';
 
 const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
-
-    // Callback to inform parent modal with key pressed
-    numberPressed: PropTypes.func.isRequired,
 
     // Currency selection will be implemented later
     // eslint-disable-next-line react/no-unused-prop-types
@@ -27,12 +24,6 @@ const propTypes = {
 
     // User's currency preference
     selectedCurrency: PropTypes.string.isRequired,
-
-    // Amount value entered by user
-    amount: PropTypes.string.isRequired,
-
-    // To disable/enable Next button based on amount validity
-    isNextButtonDisabled: PropTypes.bool.isRequired,
 
     /* Window Dimensions Props */
     ...windowDimensionsPropTypes,
@@ -54,8 +45,10 @@ class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
 
+        this.onlyAllowNumericValues = this.onlyAllowNumericValues.bind(this);
         this.state = {
-            textInputWidth: 0,
+            amount: '',
+            isNextButtonEnabled: false,
         };
     }
 
@@ -63,6 +56,45 @@ class IOUAmountPage extends React.Component {
         if (this.textInput) {
             this.textInput.focus();
         }
+    }
+
+    /**
+     * Update amount with number or Backspace pressed.
+     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
+     *
+     * @param {String} key
+     * @param {String} event
+     */
+    onlyAllowNumericValues(key, event) {
+        // Prevent reusing synthetic event object, so we can call preventDefault() later.
+        if (event) {
+            event.persist();
+        }
+
+        // Backspace button is pressed
+        if (key === '<' || key === 'Backspace') {
+            if (this.state.amount.length > 0) {
+                this.setState(prevState => ({
+                    amount: prevState.amount.substring(0, prevState.amount.length - 1),
+                    isNextButtonEnabled: prevState.amount.length !== 1,
+                }));
+            }
+            return;
+        }
+        this.setState((prevState) => {
+            const newValue = `${prevState.amount}${key}`;
+            const decimalNumberRegex = new RegExp(/^\d{1,6}(\.\d{0,2})?$/, 'i');
+            if (!decimalNumberRegex.test(newValue)) {
+                if (event) {
+                    event.preventDefault();
+                }
+                return prevState;
+            }
+            return {
+                amount: newValue,
+                isNextButtonEnabled: true,
+            };
+        });
     }
 
     render() {
@@ -81,38 +113,27 @@ class IOUAmountPage extends React.Component {
                         {this.props.selectedCurrency}
                     </Text>
                     {this.props.isSmallScreenWidth
-                        ? <Text style={styles.iouAmountText}>{this.props.amount}</Text>
+                        ? <Text style={styles.iouAmountText}>{this.state.amount}</Text>
                         : (
-                            <View>
-                                <TextInputFocusable
-                                        style={[styles.iouAmountTextInput,
-                                            {width: Math.max(5, this.state.textInputWidth)}]}
-                                        onKeyPress={(event) => {
-                                            this.props.numberPressed(event.key);
-                                            event.preventDefault();
-                                        }}
-                                        ref={el => this.textInput = el}
-                                        defaultValue={this.props.amount}
-                                        textAlign="left"
-                                />
-                                <Text
-                                    style={[styles.iouAmountText, styles.invisible, {left: 100000}]}
-                                    onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
-                                >
-                                    {this.props.amount}
-                                </Text>
-                            </View>
+                            <TextInputAutoGrow
+                                    style={styles.iouAmountTextInput}
+                                    textStyle={styles.iouAmountText}
+                                    onKeyPress={event => this.onlyAllowNumericValues(event.key, event)}
+                                    ref={el => this.textInput = el}
+                                    value={this.state.amount}
+                                    textAlign="left"
+                            />
                         )}
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {this.props.isSmallScreenWidth
-                        ? <BigNumberPad numberPressed={this.props.numberPressed} />
+                        ? <BigNumberPad numberPressed={this.onlyAllowNumericValues} />
                         : <View />}
                     <TouchableOpacity
                             style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
-                                this.props.isNextButtonDisabled ? styles.buttonSuccessDisabled : {}]}
-                            onPress={this.props.onStepComplete}
-                            disabled={this.props.isNextButtonDisabled}
+                                !this.state.isNextButtonEnabled ? styles.buttonSuccessDisabled : {}]}
+                            onPress={() => this.props.onStepComplete(this.state.amount)}
+                            disabled={!this.state.isNextButtonEnabled}
                     >
                         <Text style={[styles.buttonText, styles.buttonSuccessText]}>
                             Next

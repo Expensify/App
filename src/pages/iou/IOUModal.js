@@ -39,16 +39,14 @@ class IOUModal extends Component {
 
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
-        this.updateAmount = this.updateAmount.bind(this);
         this.currencySelected = this.currencySelected.bind(this);
-
         this.addParticipants = this.addParticipants.bind(this);
+
         this.state = {
             currentStepIndex: 0,
             participants: [],
             amount: '',
             selectedCurrency: 'USD',
-            isAmountPageNextButtonDisabled: true,
         };
     }
 
@@ -103,33 +101,6 @@ class IOUModal extends Component {
     }
 
     /**
-     * Update amount with number or Backspace pressed.
-     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
-     *
-     * @param {String} buttonPressed
-     */
-    updateAmount(buttonPressed) {
-        // Backspace button is pressed
-        if (buttonPressed === '<' || buttonPressed === 'Backspace') {
-            if (this.state.amount.length > 0) {
-                this.setState(prevState => ({
-                    amount: prevState.amount.substring(0, prevState.amount.length - 1),
-                    isAmountPageNextButtonDisabled: prevState.amount.length === 1,
-                }));
-            }
-        } else {
-            const decimalNumberRegex = new RegExp(/^\d{1,6}(\.\d{0,2})?$/, 'i');
-            const amount = this.state.amount + buttonPressed;
-            if (decimalNumberRegex.test(amount)) {
-                this.setState({
-                    amount,
-                    isAmountPageNextButtonDisabled: false,
-                });
-            }
-        }
-    }
-
-    /**
      * Update the currency state
      *
      * @param {String} selectedCurrency
@@ -174,12 +145,12 @@ class IOUModal extends Component {
                 </View>
                 {currentStep === Steps.IOUAmount && (
                     <IOUAmountPage
-                        onStepComplete={this.navigateToNextStep}
-                        numberPressed={this.updateAmount}
+                        onStepComplete={(amount) => {
+                            this.setState({amount});
+                            this.navigateToNextStep();
+                        }}
                         currencySelected={this.currencySelected}
-                        amount={this.state.amount}
                         selectedCurrency={this.state.selectedCurrency}
-                        isNextButtonDisabled={this.state.isAmountPageNextButtonDisabled}
                     />
                 )}
                 {currentStep === Steps.IOUParticipants && (
