@@ -7,7 +7,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import styles, {getSecondAvatarStyle} from '../../../styles/styles';
+import styles, {getBackgroundAndBorder, getBackgroundColor} from '../../../styles/styles';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
@@ -121,7 +121,7 @@ const OptionRow = ({
                         styles.justifyContentBetween,
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
-                        {backgroundColor},
+                        getBackgroundColor(backgroundColor),
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
                     ]}
@@ -140,9 +140,10 @@ const OptionRow = ({
                                         avatarImageURLs={option.icons}
                                         size={mode === 'compact' ? 'small' : 'default'}
                                         secondAvatarStyle={[
-                                            getSecondAvatarStyle(backgroundColor),
-                                            optionIsFocused && getSecondAvatarStyle(focusedBackgroundColor),
-                                            hovered && !optionIsFocused && getSecondAvatarStyle(hoveredBackgroundColor),
+                                            getBackgroundAndBorder(backgroundColor),
+                                            optionIsFocused && getBackgroundAndBorder(focusedBackgroundColor),
+                                            hovered && !optionIsFocused
+                                                && getBackgroundAndBorder(hoveredBackgroundColor),
                                         ]}
                                     />
                                 )

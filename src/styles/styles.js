@@ -788,6 +788,10 @@ const styles = {
         justifyContent: 'center',
     },
 
+    hoveredButton: {
+        backgroundColor: themeColors.buttonHoveredBG,
+    },
+
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
@@ -1410,12 +1414,31 @@ function getZoomSizingStyle(isZoomed) {
     };
 }
 
-function getSecondAvatarStyle(parentBGColor) {
+/**
+ * Returns a style with backgroundColor and borderColor set to the same color
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundAndBorder(backgroundColor) {
     return {
-        backgroundColor: parentBGColor,
-        borderColor: parentBGColor,
+        backgroundColor,
+        borderColor: backgroundColor,
     };
 }
+
+/**
+ * Returns a style with the specified backgroundColor
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundColor(backgroundColor) {
+    return {
+        backgroundColor,
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1426,5 +1449,6 @@ export {
     getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
-    getSecondAvatarStyle,
+    getBackgroundAndBorder,
+    getBackgroundColor,
 };
