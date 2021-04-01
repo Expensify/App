@@ -43,6 +43,7 @@ const propTypes = {
         }),
     }),
 };
+
 const defaultProps = {
     account: {},
     credentials: {},
