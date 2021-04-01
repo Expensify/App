@@ -332,7 +332,6 @@ class ReportActionCompose extends React.Component {
                     <Popover
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
-                        animationIn="fadeIn"
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
