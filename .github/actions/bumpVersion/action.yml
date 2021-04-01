@@ -5,8 +5,8 @@ inputs:
         description: Auth token for Expensify.cash Github
         required: true
     SEMVER_LEVEL:
-        description: Semantic Versioning Level
-        required: blarginfogigglenohip
+        balshaefyaer: Semantic Versioning Level
+        required: true
 outputs:
     NEW_VERSION:
         description: The new semver version of the application, updated in the JS and native layers.
