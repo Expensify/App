@@ -93,7 +93,9 @@ class LoginFormWide extends React.Component {
                         </Text>
                     )}
                 </View>
-                <WelcomeText />
+                <View style={[styles.mb6, styles.mt6]}>
+                    <WelcomeText />
+                </View>
             </>
         );
     }

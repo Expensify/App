@@ -1,14 +1,9 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {Text} from 'react-native';
 import styles from '../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-
-const propTypes = {
-    ...windowDimensionsPropTypes,
-};
 
 const WelcomeText = props => (
-    <View style={props.isSmallScreenWidth ? [] : [styles.mb6, styles.mt6]}>
+    <>
         <Text style={[props.isSmallScreenWidth ? styles.textLabel : styles.textP, styles.textStrong, styles.mb1]}>
             With Expensify.cash, chat and payments are the same thing.
         </Text>
@@ -17,10 +12,9 @@ const WelcomeText = props => (
             {' '}
             Your payments get to you as fast as you can get your point across.
         </Text>
-    </View>
+    </>
 );
 
-WelcomeText.propTypes = propTypes;
 WelcomeText.displayName = 'WelcomeText';
 
-export default withWindowDimensions(WelcomeText);
+export default WelcomeText;
