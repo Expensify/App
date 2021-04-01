@@ -11,7 +11,17 @@ function getReportParticipantsTitle(logins) {
     return _.map(logins, login => Str.removeSMSDomain(login)).join(', ');
 }
 
+/**
+ * Check whether a report action is Attachment is not.
+ *
+ * @param {Object} reportMessageText report action's message as text
+ * @returns {Boolean}
+ */
+function isReportMessageAttachment(reportMessageText) {
+    return reportMessageText === '[Attachment]';
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     getReportParticipantsTitle,
+    isReportMessageAttachment,
 };
