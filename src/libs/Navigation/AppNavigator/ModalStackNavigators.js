@@ -14,7 +14,7 @@ import SettingsProfilePage from '../../../pages/settings/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
-import SettingsAddLoginPage from '../../../pages/settings/AddLoginPage';
+import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 
 // Setup the modal stack navigators so we only have to create them once
 const SettingsModalStack = createStackNavigator();
@@ -150,7 +150,7 @@ const SettingsModalStackNavigator = () => (
         />
         <SettingsModalStack.Screen
             name="Settings_Add_Phone"
-            component={SettingsAddLoginPage}
+            component={SettingsAddSecondaryLoginPage}
             options={{
                 ...defaultSubRouteOptions,
                 title: 'Add Phone Number',
@@ -159,7 +159,7 @@ const SettingsModalStackNavigator = () => (
         />
         <SettingsModalStack.Screen
             name="Settings_Add_Email"
-            component={SettingsAddLoginPage}
+            component={SettingsAddSecondaryLoginPage}
             options={{
                 ...defaultSubRouteOptions,
                 title: 'Add Email Address',

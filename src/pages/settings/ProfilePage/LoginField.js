@@ -23,6 +23,7 @@ const propTypes = {
         validatedDate: PropTypes.string,
     }).isRequired,
 };
+
 const LoginField = ({
     label,
     login,
@@ -76,7 +77,7 @@ const LoginField = ({
                     </Text>
                     {!login.validatedDate && (
                         <Pressable
-                            style={styles.button}
+                            style={[styles.button, styles.mb2]}
                             onPress={() => resendValidateCode(login.partnerUserID)}
                         >
                             <Text style={styles.createMenuText}>
