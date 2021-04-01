@@ -52,7 +52,7 @@ const defaultProps = {
     route: {},
 };
 
-class AddLoginPage extends Component {
+class AddSecondaryLoginPage extends Component {
     constructor(props) {
         super(props);
 
@@ -145,12 +145,12 @@ class AddLoginPage extends Component {
     }
 }
 
-AddLoginPage.propTypes = propTypes;
-AddLoginPage.defaultProps = defaultProps;
-AddLoginPage.displayName = 'AddLoginPage';
+AddSecondaryLoginPage.propTypes = propTypes;
+AddSecondaryLoginPage.defaultProps = defaultProps;
+AddSecondaryLoginPage.displayName = 'AddSecondaryLoginPage';
 
 export default withOnyx({
     user: {
         key: ONYXKEYS.USER,
     },
-})(AddLoginPage);
+})(AddSecondaryLoginPage);
