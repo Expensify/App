@@ -104,7 +104,7 @@ function setSecondaryLogin(login, password) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
         } else {
-            const error = lodashGet(response, 'message', 'Unable to validate. Please try again.');
+            const error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
             Onyx.merge(ONYXKEYS.USER, {error});
         }
         return response;
