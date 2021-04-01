@@ -48,7 +48,9 @@ class EmojiPickerMenu extends Component {
 
     componentDidMount() {
         if (this.props.isVisible) {
-            this.searchInput.focus();
+            this.searchInput.onkeypress = (e) => {
+                debugger;
+            };
         }
     }
 

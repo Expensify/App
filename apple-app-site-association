@@ -1,0 +1,16 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "368M544MTT.com.chat.expensify.chat",
+                "paths": [
+                    "/r/*",
+                    "/settings/*",
+                    "/setpassword/*",
+                    "/details/*"
+                ]
+            }
+        ]
+    }
+}

@@ -11,6 +11,8 @@ const CONST = {
         PRESSED: 'pressed',
     },
     CLOUDFRONT_URL,
+    NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
+    NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     UPWORK_URL: 'https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&user_location_match=2',
@@ -59,7 +61,7 @@ const CONST = {
     },
     MESSAGES: {
         // eslint-disable-next-line max-len
-        NO_CONTACTS_FOUND: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
+        NO_PHONE_NUMBER: 'Please enter a phone number including the country code e.g +447814266907',
         MAXIMUM_PARTICIPANTS_REACHED: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     PRIORITY_MODE: {
@@ -83,10 +85,10 @@ const CONST = {
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     PRONOUNS: {
-        THEY_THEM_THEIRS: 'They/them/theirs',
-        SHE_HER_HERS: 'She/her/hers',
-        HE_HIM_HIS: 'He/him/his',
-        ZE_HIR_HIRS: 'Ze/hir/hirs',
+        HE_HIM_HIS: 'He/him',
+        SHE_HER_HERS: 'She/her',
+        THEY_THEM_THEIRS: 'They/them',
+        ZE_HIR_HIRS: 'Ze/hir',
         SELF_SELECT: 'Self-select',
         CALL_ME_BY_MY_NAME: 'Call me by my name',
     },

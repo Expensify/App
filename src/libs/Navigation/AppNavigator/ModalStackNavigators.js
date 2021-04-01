@@ -31,12 +31,14 @@ const defaultSubRouteOptions = {
 const IOUBillStackNavigator = () => (
     <IOUBillModalStack.Navigator
         path={ROUTES.IOU_BILL}
+        screenOptions={{
+            ...defaultSubRouteOptions,
+        }}
     >
         <IOUBillModalStack.Screen
             name="IOU_Bill_Root"
             component={IOUBillPage}
             options={{
-                ...defaultSubRouteOptions,
                 title: 'Split',
             }}
         />
@@ -46,12 +48,14 @@ const IOUBillStackNavigator = () => (
 const IOURequestModalStackNavigator = () => (
     <IOURequestModalStack.Navigator
         path={ROUTES.IOU_REQUEST}
+        screenOptions={{
+            ...defaultSubRouteOptions,
+        }}
     >
         <IOURequestModalStack.Screen
             name="IOU_Request_Root"
             component={IOURequestPage}
             options={{
-                ...defaultSubRouteOptions,
                 title: 'Request',
             }}
         />
@@ -61,12 +65,14 @@ const IOURequestModalStackNavigator = () => (
 const DetailsModalStackNavigator = () => (
     <DetailsModalStack.Navigator
         path={ROUTES.DETAILS}
+        screenOptions={{
+            ...defaultSubRouteOptions,
+        }}
     >
         <DetailsModalStack.Screen
             name="Details_Root"
             component={DetailsPage}
             options={{
-                ...defaultSubRouteOptions,
                 title: 'Details',
             }}
         />
@@ -76,12 +82,14 @@ const DetailsModalStackNavigator = () => (
 const SearchModalStackNavigator = () => (
     <SearchModalStack.Navigator
         path={ROUTES.SEARCH}
+        screenOptions={{
+            ...defaultSubRouteOptions,
+        }}
     >
         <SearchModalStack.Screen
             name="Search_Root"
             component={SearchPage}
             options={{
-                ...defaultSubRouteOptions,
                 title: 'Search',
             }}
         />
@@ -91,12 +99,14 @@ const SearchModalStackNavigator = () => (
 const NewGroupModalStackNavigator = () => (
     <NewGroupModalStack.Navigator
         path={ROUTES.NEW_GROUP}
+        screenOptions={{
+            ...defaultSubRouteOptions,
+        }}
     >
         <NewGroupModalStack.Screen
             name="NewGroup_Root"
             component={NewGroupPage}
             options={{
-                ...defaultSubRouteOptions,
                 title: 'New Group',
             }}
         />
@@ -106,12 +116,14 @@ const NewGroupModalStackNavigator = () => (
 const NewChatModalStackNavigator = () => (
     <NewChatModalStack.Navigator
         path={ROUTES.NEW_CHAT}
+        screenOptions={{
+            ...defaultSubRouteOptions,
+        }}
     >
         <NewChatModalStack.Screen
             name="NewChat_Root"
             component={NewChatPage}
             options={{
-                ...defaultSubRouteOptions,
                 title: 'New Chat',
             }}
         />
@@ -121,46 +133,30 @@ const NewChatModalStackNavigator = () => (
 const SettingsModalStackNavigator = () => (
     <SettingsModalStack.Navigator
         path={ROUTES.SETTINGS}
+        screenOptions={{
+            ...defaultSubRouteOptions,
+            title: 'Settings',
+        }}
     >
         <SettingsModalStack.Screen
             name="Settings_Root"
             component={SettingsInitialPage}
-            options={{
-                ...defaultSubRouteOptions,
-                title: 'Settings',
-            }}
         />
         <SettingsModalStack.Screen
             name="Settings_Profile"
             component={SettingsProfilePage}
-            options={{
-                ...defaultSubRouteOptions,
-                title: 'Settings',
-            }}
         />
         <SettingsModalStack.Screen
             name="Settings_Preferences"
             component={SettingsPreferencesPage}
-            options={{
-                ...defaultSubRouteOptions,
-                title: 'Settings',
-            }}
         />
         <SettingsModalStack.Screen
             name="Settings_Password"
             component={SettingsPasswordPage}
-            options={{
-                ...defaultSubRouteOptions,
-                title: 'Settings',
-            }}
         />
         <SettingsModalStack.Screen
             name="Settings_Payments"
             component={SettingsPaymentsPage}
-            options={{
-                ...defaultSubRouteOptions,
-                title: 'Settings',
-            }}
         />
     </SettingsModalStack.Navigator>
 );
