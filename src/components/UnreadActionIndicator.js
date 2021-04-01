@@ -1,7 +1,7 @@
 import React from 'react';
 import {Animated, View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../styles/styles';
+import styles, {getOpacityStyle} from '../styles/styles';
 import Text from './Text';
 
 const propTypes = {
@@ -13,7 +13,7 @@ const propTypes = {
 const UnreadActionIndicator = props => (
     <Animated.View style={[
         styles.unreadIndicatorContainer,
-        {opacity: props.animatedOpacity},
+        getOpacityStyle(props.animatedOpacity),
     ]}
     >
         <View style={styles.unreadIndicatorLine} />

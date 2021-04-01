@@ -252,6 +252,14 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
+    headerGap: {
+        height: 12,
+    },
+
+    pushTextRight: {
+        left: 100000,
+    },
+
     reportOptions: {
         marginLeft: 8,
     },
@@ -1420,7 +1428,7 @@ function getZoomSizingStyle(isZoomed) {
  * @param {String} backgroundColor
  * @returns {Object}
  */
-function getBackgroundAndBorder(backgroundColor) {
+function getBackgroundAndBorderStyle(backgroundColor) {
     return {
         backgroundColor,
         borderColor: backgroundColor,
@@ -1433,9 +1441,63 @@ function getBackgroundAndBorder(backgroundColor) {
  * @param {String} backgroundColor
  * @returns {Object}
  */
-function getBackgroundColor(backgroundColor) {
+function getBackgroundColorStyle(backgroundColor) {
     return {
         backgroundColor,
+    };
+}
+
+/**
+ * @param {Animated.Value} rotate
+ * @param {Animated.Value} backgroundColor
+ * @returns {Object}
+ */
+function getAnimatedFABStyle(rotate, backgroundColor) {
+    return {
+        transform: [{rotate}],
+        backgroundColor,
+    };
+}
+
+/**
+ * @param {Number} width
+ * @param {Number} height
+ * @returns {Object}
+ */
+function getWidthAndHeightStyle(width, height) {
+    return {
+        width,
+        height,
+    };
+}
+
+/**
+ * @param {Number} opacity
+ * @returns {Object}
+ */
+function getOpacityStyle(opacity) {
+    return {opacity};
+}
+
+/**
+ * @param {Object} params
+ * @returns {Object}
+ */
+function getModalPaddingStyles({
+    shouldAddBottomSafeAreaPadding,
+    shouldAddTopSafeAreaPadding,
+    safeAreaPaddingTop,
+    safeAreaPaddingBottom,
+    modalContainerStylePaddingTop,
+    modalContainerStylePaddingBottom,
+}) {
+    return {
+        paddingTop: shouldAddTopSafeAreaPadding
+            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
+            : modalContainerStylePaddingTop || 0,
+        paddingBottom: shouldAddBottomSafeAreaPadding
+            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
+            : modalContainerStylePaddingBottom || 0,
     };
 }
 
@@ -1449,6 +1511,10 @@ export {
     getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
-    getBackgroundAndBorder,
-    getBackgroundColor,
+    getBackgroundAndBorderStyle,
+    getBackgroundColorStyle,
+    getAnimatedFABStyle,
+    getWidthAndHeightStyle,
+    getOpacityStyle,
+    getModalPaddingStyles,
 };
