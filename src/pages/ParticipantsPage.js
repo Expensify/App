@@ -13,79 +13,78 @@ import OptionsList from '../components/OptionsList';
 import ROUTES from '../ROUTES';
 import CONST from '../CONST';
 
-const matchType = PropTypes.shape({
-    params: PropTypes.shape({
-        // reportID passed via route /participants/:reportID
-        reportID: PropTypes.string,
-    }),
-});
-
-const myPersonalDetailsType = PropTypes.shape({
-    // Display name of the current user from their personal details
-    displayName: PropTypes.string,
-
-    // Avatar URL of the current user from their personal details
-    avatar: PropTypes.string,
-
-    // login of the current user from their personal details
-    login: PropTypes.string,
-});
-
 const propTypes = {
     /* Onyx Props */
     // The personal details of the person who is logged in
-    myPersonalDetails: myPersonalDetailsType.isRequired,
+    myPersonalDetails: PropTypes.shape({
+        // Display name of the current user from their personal details
+        displayName: PropTypes.string,
+
+        // Avatar URL of the current user from their personal details
+        avatar: PropTypes.string,
+
+        // Login of the current user from their personal details
+        login: PropTypes.string,
+    }).isRequired,
 
     // List of reports
     reports: PropTypes.shape({
+        // The list of icons
         icons: PropTypes.arrayOf(PropTypes.string),
+
+        // The report name
         reportName: PropTypes.string,
+
+        // Array of participants
         participants: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
     // Route params
-    route: matchType.isRequired,
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            // Report ID passed via route /participants/:reportID
+            reportID: PropTypes.string,
+        }),
+    }).isRequired,
 
+    // The chat priority mode
     priorityMode: PropTypes.string.isRequired,
 };
 
+/**
+ * Returns all the participants in the active report
+ *
+ * @param {Object} report The active report object
+ * @param {Object} personalDetail The personal detail of the logged user
+ * @return {Array}
+ */
 const getAllParticipants = (report, personalDetail) => {
     const {icons, participants, reportName} = report;
     const displayNames = reportName.split(', ');
 
-    const otherMembers = participants.map((login, index) => (
-        {
+    const members = participants.reduce((list, login, idx) => {
+        list.push({
             alternateText: login,
-            icons: [icons[index]],
-            keyForList: `${index}`,
-            tooltipText: login,
-            text: displayNames[index],
+            displayName: displayNames[idx],
+            icons: [icons[idx]],
+            keyForList: `${idx}`,
             login,
-            displayName: displayNames[index],
-        }
-    ));
+            text: displayNames[idx],
+            tooltipText: login,
+        });
+        return list;
+    }, [{
+        icons: [personalDetail.avatar],
+        text: personalDetail.displayName,
+        login: personalDetail.login,
+        alternateText: personalDetail.login,
+        keyForList: `${participants.length}`,
+        tooltipText: personalDetail.login,
+        displayName: personalDetail.displayName,
+    }]);
 
-    const final = [...otherMembers,
-        {
-            icons: [personalDetail.avatar],
-            text: personalDetail.displayName,
-            login: personalDetail.login,
-            alternateText: personalDetail.login,
-            keyForList: `${otherMembers.length}`,
-            tooltipText: personalDetail.login,
-            displayName: personalDetail.displayName,
-        },
-    ];
-
-    return final.map(item => ({...item, participantsList: [item]}));
+    return members.map(item => ({...item, participantsList: [item]}));
 };
-
-const getSections = participants => ([{
-    title: '',
-    data: participants,
-    shouldShow: true,
-    indexOffset: 0,
-}]);
 
 const ParticipantsPage = ({
     myPersonalDetails, route, reports, priorityMode,
@@ -104,10 +103,12 @@ const ParticipantsPage = ({
                     styles.detailsPageContainer,
                 ]}
             >
-                { participants.length ? (
-
+                { participants.length
+                    && (
                     <OptionsList
-                        sections={getSections(participants)}
+                        sections={[{
+                            title: '', data: participants, shouldShow: true, indexOffset: 0,
+                        }]}
                         onSelectRow={(option) => {
                             Navigation.navigate(ROUTES.getDetailsRoute(option.login));
                         }}
@@ -118,7 +119,7 @@ const ParticipantsPage = ({
                         forceTextUnreadStyle
                         optionHoveredStyle={styles.hoveredComponentBG}
                     />
-                ) : null }
+                    )}
             </View>
         </ScreenWrapper>
     );
