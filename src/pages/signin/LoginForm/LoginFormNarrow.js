@@ -61,7 +61,7 @@ class LoginFormNarrow extends React.Component {
 
     render() {
         return (
-            <View style={[styles.loginFormContainer]}>
+            <>
                 <View style={[styles.mb4]}>
                     <Text style={[styles.formLabel]}>Enter your phone or email:</Text>
                     <TextInput
@@ -95,17 +95,7 @@ class LoginFormNarrow extends React.Component {
                         {this.props.account.error}
                     </Text>
                 )}
-
-                <View style={[styles.mt5, styles.mb5]}>
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.signinWelcomeScreenshot]}
-                        source={welcomeScreenshot}
-                    />
-                </View>
-
-                <WelcomeText />
-            </View>
+            </>
         );
     }
 }
