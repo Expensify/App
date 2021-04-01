@@ -1239,6 +1239,14 @@ const styles = {
         fontSize: variables.iouAmountTextSize,
     }, 0),
 
+    autoGrowTextInputHiddenText: {
+        position: 'absolute',
+        opacity: 0,
+
+        // Using a very large value here makes sure it's out of screen
+        left: 100000,
+    },
+
     noScrollbars: {
         scrollbarWidth: 'none',
     },
