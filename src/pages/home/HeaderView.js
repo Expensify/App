@@ -18,6 +18,8 @@ import {getReportParticipantsTitle} from '../../libs/reportUtils';
 import OptionRowTitle from './sidebar/OptionRowTitle';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
+import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
+import IOUBadge from '../../components/IOUBadge';
 
 const propTypes = {
     // Toggles the navigationMenu open and closed
@@ -90,12 +92,16 @@ const HeaderView = (props) => {
                                 <OptionRowTitle
                                     option={reportOption}
                                     tooltipEnabled
-                                    numberOfLines={2}
+                                    numberOfLines={1}
                                     style={[styles.headerText]}
                                 />
                             </View>
                         </Pressable>
-                        <View style={[styles.reportOptions, styles.flexRow]}>
+                        <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                            {props.report.hasOutstandingIOU && (
+                                <IOUBadge iouReportID={props.report.iouReportID} />
+                            )}
+                            <VideoChatButtonAndMenu />
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}

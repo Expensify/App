@@ -341,6 +341,7 @@ const styles = {
         backgroundColor: themeColors.sidebar,
         padding: 20,
         minHeight: '100%',
+        flex: 1,
     },
 
     signInPageLogo: {
