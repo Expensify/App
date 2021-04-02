@@ -25,7 +25,7 @@ const propTypes = {
     }).isRequired,
 };
 
-export class LoginField extends Component {
+export default class LoginField extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -124,5 +124,3 @@ export class LoginField extends Component {
 
 LoginField.propTypes = propTypes;
 LoginField.displayName = 'LoginField';
-
-export default LoginField;
