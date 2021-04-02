@@ -14,6 +14,12 @@ import {fetchActions} from '../../libs/actions/Report';
 const propTypes = {
     /* The ID of the report this screen should display */
     reportID: PropTypes.string.isRequired,
+
+    /* Todo: extract to `withDrawer` HOC */
+    navigation: PropTypes.shape({
+        addListener: PropTypes.func.isRequired,
+    }).isRequired,
+
 };
 
 class ReportScreen extends React.Component {
@@ -31,6 +37,16 @@ class ReportScreen extends React.Component {
         if (this.reportID) {
             this.fetchReport();
         }
+
+        // Todo: extract to `withDrawer` HOC
+        this.openListener = this.props.navigation.addListener('drawerOpen', () => {
+            this.setState({drawerOpen: true});
+        });
+
+        // Todo: extract to `withDrawer` HOC
+        this.closeListener = this.props.navigation.addListener('drawerClose', () => {
+            this.setState({drawerOpen: false});
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -40,6 +56,11 @@ class ReportScreen extends React.Component {
                 this.fetchReport();
             }
         }
+    }
+
+    componentWillUnmount() {
+        this.openListener();
+        this.closeListener();
     }
 
     // Todo: ask why getters aren't on top?
