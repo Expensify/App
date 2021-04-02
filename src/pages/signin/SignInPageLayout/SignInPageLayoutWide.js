@@ -8,6 +8,7 @@ import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide.png';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
+import WelcomeText from '../../../components/WelcomeText';
 
 const propTypes = {
     // The children to show inside the layout
@@ -49,17 +50,8 @@ const SignInPageLayoutWide = props => (
                 </View>
                 {props.showWelcomeText
                     && (
-                    <View style={[styles.mt6]}>
-                        <View style={[styles.mb6]}>
-                            <Text style={[styles.textP, styles.textStrong, styles.mb1]}>
-                                With Expensify.cash, chat and payments are the same thing.
-                            </Text>
-                            <Text style={[styles.textP]}>
-                                Money talks. And now that chat and payments are in one place, it&apos;s also easy.
-                                {' '}
-                                Your payments get to you as fast as you can get your point across.
-                            </Text>
-                        </View>
+                    <View style={[styles.mt6, styles.mb6]}>
+                        <WelcomeText textSize="large" />
                     </View>
                     )}
                 <TermsAndLicenses />
