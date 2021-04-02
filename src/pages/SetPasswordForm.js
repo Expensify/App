@@ -55,7 +55,7 @@ class SetPasswordForm extends Component {
     constructor(props) {
         super(props);
 
-        this.submitForm = this.submitForm.bind(this);
+        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
             password: '',
@@ -66,7 +66,7 @@ class SetPasswordForm extends Component {
     /**
      * Validate the form and then submit it
      */
-    submitForm() {
+    validateAndSubmitForm() {
         if (!this.state.password.trim()) {
             this.setState({
                 formError: 'Password cannot be blank',
