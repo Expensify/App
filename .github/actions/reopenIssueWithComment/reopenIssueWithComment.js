@@ -12,14 +12,12 @@ function reopenIssueWithComment() {
         issue_number: issueNumber,
         state: 'open',
     })
-        .then(() => {
-            return octokit.rest.issues.createComment({
-                owner: GITHUB_OWNER,
-                repo: EXPENSIFY_CASH_REPO,
-                issue_number: issueNumber,
-                body: core.getInput('COMMENT', {required: true}),
-            });
-        });
+        .then(() => octokit.rest.issues.createComment({
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            issue_number: issueNumber,
+            body: core.getInput('COMMENT', {required: true}),
+        }));
 }
 
 reopenIssueWithComment()
