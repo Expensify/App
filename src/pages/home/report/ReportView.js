@@ -7,36 +7,38 @@ import {addAction} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/styles';
 import SwipeableView from '../../../components/SwipeableView';
+import FullScreenLoadingIndicator from '../../../components/Loading/FullscreenLoading';
 
 const propTypes = {
-    // The ID of the report actions will be created for
+    /* The ID of the report the selected report */
     reportID: PropTypes.number.isRequired,
+
+    /* Is the view ready to be displayed */
+    loaded: PropTypes.bool.isRequired,
+
+    /* Is the report view covered by the drawer */
+    drawerOpen: PropTypes.bool.isRequired,
 };
 
-// This is a PureComponent so that it only re-renders when the reportID changes or when the report changes from
-// active to inactive (or vice versa). This should greatly reduce how often comments are re-rendered.
-class ReportView extends React.Component {
-    shouldComponentUpdate(prevProps) {
-        return this.props.reportID !== prevProps.reportID;
-    }
-
-    render() {
-        return (
-            <View style={[styles.chatContent]}>
-                <ReportActionsView
-                    reportID={this.props.reportID}
-                />
+function ReportView({reportID, drawerOpen, loaded}) {
+    return (
+        <View style={[styles.chatContent]}>
+            {
+                loaded
+                    ? <ReportActionsView reportID={reportID} />
+                    : <FullScreenLoadingIndicator />
+            }
+            {!drawerOpen && (
                 <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
                     <ReportActionCompose
-                        onSubmit={text => addAction(this.props.reportID, text)}
-                        reportID={this.props.reportID}
-                        key={this.props.reportID}
+                        onSubmit={text => addAction(reportID, text)}
+                        reportID={reportID}
                     />
                 </SwipeableView>
-                <KeyboardSpacer />
-            </View>
-        );
-    }
+            )}
+            <KeyboardSpacer />
+        </View>
+    );
 }
 
 ReportView.propTypes = propTypes;
