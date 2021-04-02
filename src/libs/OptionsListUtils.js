@@ -98,7 +98,9 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
 
     return {
         text: report ? report.reportName : personalDetail.displayName,
-        alternateText: (showChatPreviewLine && lastMessageText) ? lastMessageText : personalDetail.login,
+        alternateText: (showChatPreviewLine && lastMessageText)
+            ? lastMessageText
+            : Str.removeSMSDomain(personalDetail.login),
         icons: report ? report.icons : [personalDetail.avatar],
         tooltipText,
         participantsList: personalDetailList,
