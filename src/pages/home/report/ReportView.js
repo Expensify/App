@@ -8,6 +8,7 @@ import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/styles';
 import SwipeableView from '../../../components/SwipeableView';
 import FullScreenLoadingIndicator from '../../../components/Loading/FullscreenLoading';
+import withDrawerState from '../../../components/withDrawerState';
 
 const propTypes = {
     /* The ID of the report the selected report */
@@ -17,10 +18,10 @@ const propTypes = {
     loaded: PropTypes.bool.isRequired,
 
     /* Is the report view covered by the drawer */
-    drawerOpen: PropTypes.bool.isRequired,
+    isDrawerOpen: PropTypes.bool.isRequired,
 };
 
-function ReportView({reportID, drawerOpen, loaded}) {
+function ReportView({reportID, isDrawerOpen, loaded}) {
     return (
         <View style={[styles.chatContent]}>
             {
@@ -28,7 +29,7 @@ function ReportView({reportID, drawerOpen, loaded}) {
                     ? <ReportActionsView reportID={reportID} />
                     : <FullScreenLoadingIndicator />
             }
-            {!drawerOpen && (
+            {!isDrawerOpen && (
                 <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
                     <ReportActionCompose
                         onSubmit={text => addAction(reportID, text)}
@@ -42,4 +43,4 @@ function ReportView({reportID, drawerOpen, loaded}) {
 }
 
 ReportView.propTypes = propTypes;
-export default ReportView;
+export default withDrawerState(ReportView);
