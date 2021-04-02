@@ -109,9 +109,9 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const displayNameToLoginMap = _.map(
+    const displayNamesToTooltips = _.map(
         option.participantsList,
-        participant => ({[participant.displayName]: participant.login}),
+        ({displayName, login}) => ({displayName, tooltip: login}),
     );
 
     return (
@@ -159,10 +159,10 @@ const OptionRow = ({
                             <View style={contentContainerStyles}>
                                 <DisplayNames
                                     fullTitle={option.text}
-                                    displayNameToTooltipMap={displayNameToLoginMap}
+                                    displayNamesToTooltips={displayNamesToTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
-                                    textStyle={displayNameStyle}
+                                    textStyles={displayNameStyle}
                                 />
                                 {option.alternateText ? (
                                     <Text

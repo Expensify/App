@@ -69,7 +69,7 @@ class DisplayNames extends PureComponent {
             // No need for any complex text-splitting, just return a simple text component
             return (
                 <Text
-                    style={this.props.textStyle}
+                    style={this.props.textStyles}
                     numberOfLines={this.props.numberOfLines}
                 >
                     {this.props.fullTitle}
@@ -77,29 +77,29 @@ class DisplayNames extends PureComponent {
             );
         }
 
-        const displayNames = _.keys(this.props.displayNameToTooltipMap);
+        const displayNames = _.flatten(_.map(this.props.displayNamesToTooltips, mapEntry => _.keys(mapEntry)));
         const lastDisplayName = _.last(displayNames);
 
         return (
 
             // Tokenization of string only support 1 numberOfLines on Web
             <Text
-                style={[this.props.textStyle, styles.optionDisplayNameTooltipWrapper]}
+                style={[this.props.textStyles, styles.optionDisplayNameTooltipWrapper]}
                 onLayout={this.setContainerLayout}
                 numberOfLines={1}
                 ref={el => this.containerRef = el}
             >
-                {_.mapObject(this.props.displayNameToTooltipMap, (displayName, tooltipText) => (
-                    <Fragment key={tooltipText}>
+                {_.map(this.props.displayNamesToTooltips, ({displayName, tooltip}, index) => (
+                    <Fragment key={index}>
                         <Tooltip
-                            key={tooltipText}
-                            text={tooltipText}
+                            key={index}
+                            text={tooltip}
                             containerStyle={styles.dInline}
-                            shiftHorizontal={() => this.getTooltipShiftX(tooltipText)}
+                            shiftHorizontal={() => this.getTooltipShiftX(tooltip)}
                         >
                             {/*  // We need to get the refs to all the names which will be used to correct
                                  the horizontal position of the tooltip */}
-                            <Text ref={el => this.childRefs[tooltipText] = el}>
+                            <Text ref={el => this.childRefs[index] = el}>
                                 {displayName}
                             </Text>
                         </Tooltip>

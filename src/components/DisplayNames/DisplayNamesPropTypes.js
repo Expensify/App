@@ -5,7 +5,10 @@ const propTypes = {
     fullTitle: PropTypes.string,
 
     // Array of objects that map display names to their corresponding tooltip
-    displayNameToTooltipMap: PropTypes.object,
+    displayNamesToTooltips: PropTypes.arrayOf(PropTypes.shape({
+        displayName: PropTypes.string,
+        tooltip: PropTypes.string,
+    })),
 
     // Number of lines before wrapping
     numberOfLines: PropTypes.number,
@@ -15,7 +18,7 @@ const propTypes = {
     tooltipEnabled: PropTypes.bool,
 
     // Arbitrary styles of the displayName text
-    textStyle: PropTypes.arrayOf(PropTypes.any),
+    textStyles: PropTypes.arrayOf(PropTypes.any),
 };
 
 const defaultProps = {

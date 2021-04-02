@@ -6,9 +6,9 @@ import {propTypes, defaultProps} from './DisplayNamesPropTypes';
 const DisplayNames = ({
     fullTitle,
     numberOfLines,
-    textStyle,
+    textStyles,
 }) => (
-    <Text style={textStyle} numberOfLines={numberOfLines}>
+    <Text style={textStyles} numberOfLines={numberOfLines}>
         {fullTitle}
     </Text>
 );
