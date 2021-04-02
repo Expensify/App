@@ -109,7 +109,10 @@ class IOUAmountPage extends React.Component {
                             <TextInputAutoGrow
                                     inputStyle={styles.iouAmountTextInput}
                                     textStyle={styles.iouAmountText}
-                                    onKeyPress={event => this.updateAmountIfValidInput(event.key)}
+                                    onKeyPress={(event) => {
+                                        this.updateAmountIfValidInput(event.key);
+                                        event.preventDefault();
+                                    }}
                                     ref={el => this.textInput = el}
                                     value={this.state.amount}
                                     textAlign="left"
