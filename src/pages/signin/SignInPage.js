@@ -78,29 +78,27 @@ class SignInPage extends Component {
 
         return (
             <>
-                <SafeAreaView style={[styles.signInPage]}>
-                    <SignInPageLayout
-                        showWelcomeText={showLoginForm}
-                        showWelcomeScreenshot={showLoginForm}
-                    >
-                        {showLoginForm && <LoginForm />}
+                <SignInPageLayout
+                    showWelcomeText={showLoginForm}
+                    showWelcomeScreenshot={showLoginForm}
+                >
+                    {showLoginForm && <LoginForm />}
 
-                        {showPasswordForm && <PasswordForm />}
+                    {showPasswordForm && <PasswordForm />}
 
-                        {showResendValidationLinkForm && <ResendValidationForm />}
+                    {showResendValidationLinkForm && <ResendValidationForm />}
 
-                        {/* Because of the custom layout of the login form, session errors are displayed differently */}
-                        {!showLoginForm && (
-                            <View>
-                                {this.props.account && !_.isEmpty(this.props.account.error) && (
-                                    <Text style={[styles.formError]}>
-                                        {this.props.account.error}
-                                    </Text>
-                                )}
-                            </View>
-                        )}
-                    </SignInPageLayout>
-                </SafeAreaView>
+                    {/* Because of the custom layout of the login form, session errors are displayed differently */}
+                    {!showLoginForm && (
+                        <View>
+                            {this.props.account && !_.isEmpty(this.props.account.error) && (
+                                <Text style={[styles.formError]}>
+                                    {this.props.account.error}
+                                </Text>
+                            )}
+                        </View>
+                    )}
+                </SignInPageLayout>
             </>
         );
     }
