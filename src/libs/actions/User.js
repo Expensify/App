@@ -104,7 +104,13 @@ function setSecondaryLogin(login, password) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
         } else {
-            const error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
+            let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
+
+            // Replace error with a friendlier message
+            if (error.includes('already belongs to an existing Expensify account.')) {
+                error = 'This login already belongs to an existing Expensify account.';
+            }
+
             Onyx.merge(ONYXKEYS.USER, {error});
         }
         return response;

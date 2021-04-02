@@ -2,7 +2,6 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
 import ROUTES from '../../../ROUTES';
-import CONST from '../../../CONST';
 import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
@@ -149,22 +148,8 @@ const SettingsModalStackNavigator = () => (
             component={SettingsProfilePage}
         />
         <SettingsModalStack.Screen
-            name="Settings_Add_Phone"
+            name="Settings_Add_Seconday_Login"
             component={SettingsAddSecondaryLoginPage}
-            options={{
-                ...defaultSubRouteOptions,
-                title: 'Add Phone Number',
-            }}
-            initialParams={{type: CONST.LOGIN_TYPE.PHONE}}
-        />
-        <SettingsModalStack.Screen
-            name="Settings_Add_Email"
-            component={SettingsAddSecondaryLoginPage}
-            options={{
-                ...defaultSubRouteOptions,
-                title: 'Add Email Address',
-            }}
-            initialParams={{type: CONST.LOGIN_TYPE.EMAIL}}
         />
         <SettingsModalStack.Screen
             name="Settings_Preferences"
