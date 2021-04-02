@@ -7,6 +7,7 @@ import MagnifyingGlass from '../../../assets/images/magnifyingglass.svg';
 import Mail from '../../../assets/images/mail.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
 import Pencil from '../../../assets/images/pencil.svg';
+import Phone from '../../../assets/images/phone.svg';
 import Pin from '../../../assets/images/pin.svg';
 import PinCircle from '../../../assets/images/pin-circle.svg';
 import Plus from '../../../assets/images/plus.svg';
@@ -23,6 +24,7 @@ import Gear from '../../../assets/images/gear.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Lock from '../../../assets/images/lock.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
+import Upload from '../../../assets/images/upload.svg';
 
 export {
     BackArrow,
@@ -35,6 +37,7 @@ export {
     Mail,
     Paperclip,
     Pencil,
+    Phone,
     Pin,
     PinCircle,
     Plus,
@@ -50,4 +53,5 @@ export {
     Wallet,
     Lock,
     ArrowRight,
+    Upload,
 };

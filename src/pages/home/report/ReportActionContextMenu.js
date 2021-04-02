@@ -1,11 +1,16 @@
+import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import {
-    Clipboard, LinkCopy, Mail, Pencil, Trashcan,
+    Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
+import ReportActionPropTypes from './ReportActionPropTypes';
+import Clipboard from '../../../libs/Clipboard';
+import {isReportMessageAttachment} from '../../../libs/reportUtils';
 
 /**
  * A list of all the context actions in this menu.
@@ -14,31 +19,54 @@ const CONTEXT_ACTIONS = [
     // Copy to clipboard
     {
         text: 'Copy to Clipboard',
-        icon: Clipboard,
+        icon: ClipboardIcon,
+        successText: 'Copied!',
+        successIcon: Checkmark,
+
+        // If return value is true, we switch the `text` and `icon` on
+        // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
+        // the `text` and `icon`
+        onPress: (action) => {
+            const message = _.last(lodashGet(action, 'message', null));
+            const html = lodashGet(message, 'html', '');
+            const text = lodashGet(message, 'text', '');
+            const isAttachment = _.has(action, 'isAttachment')
+                ? action.isAttachment
+                : isReportMessageAttachment(text);
+            if (!isAttachment) {
+                Clipboard.setString(text);
+            } else {
+                Clipboard.setString(html);
+            }
+        },
     },
 
     // Copy chat link
     {
         text: 'Copy Link',
         icon: LinkCopy,
+        onPress: () => {},
     },
 
     // Mark as Unread
     {
         text: 'Mark as Unread',
         icon: Mail,
+        onPress: () => {},
     },
 
     // Edit Comment
     {
         text: 'Edit Comment',
         icon: Pencil,
+        onPress: () => {},
     },
 
     // Delete Comment
     {
         text: 'Delete Comment',
         icon: Trashcan,
+        onPress: () => {},
     },
 ];
 
@@ -47,9 +75,8 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     reportID: PropTypes.number.isRequired,
 
-    // The ID of the report action this context menu is attached to.
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportActionID: PropTypes.number.isRequired,
+    // The report action this context menu is attached to.
+    reportAction: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // If true, this component will be a small, row-oriented menu that displays icons but not text.
     // If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
@@ -72,7 +99,10 @@ const ReportActionContextMenu = (props) => {
                 <ReportActionContextMenuItem
                     icon={contextAction.icon}
                     text={contextAction.text}
+                    successIcon={contextAction.successIcon}
+                    successText={contextAction.successText}
                     isMini={props.isMini}
+                    onPress={() => contextAction.onPress(props.reportAction)}
                     key={contextAction.text}
                 />
             ))}
