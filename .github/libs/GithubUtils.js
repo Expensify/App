@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const lodashGet = require('lodash/get');
 const semverParse = require('semver/functions/parse');
 const semverSatisfies = require('semver/functions/satisfies');
 
@@ -308,12 +309,30 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        return this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'PATCH')
-            .then((comparisonURL) => {
-                const sortedPRList = _.sortBy(_.unique(PRList), URL => GithubUtils.getPullRequestNumberFromURL(URL));
+        return Promise.all([
+            this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'PATCH'),
+            this.octokit.pulls.list({
+                owner: GITHUB_OWNER,
+                repo: EXPENSIFY_CASH_REPO,
+                per_page: 100,
+            }),
+        ])
+            .then(results => ({
+                comparisonURL: results[0],
+                automergePRs: _.map(
+                    _.filter(results[1].data, GithubUtils.isAutomergePullRequest),
+                    'html_url',
+                ),
+            }))
+            .then(({comparisonURL, automergePRs}) => {
+                const sortedPRList = _.chain(PRList)
+                    .difference(automergePRs)
+                    .unique()
+                    .sortBy(GithubUtils.getPullRequestNumberFromURL)
+                    .value();
                 const sortedDeployBlockers = _.sortBy(
                     _.unique(deployBlockers),
-                    URL => GithubUtils.getIssueOrPullRequestNumberFromURL(URL),
+                    GithubUtils.getIssueOrPullRequestNumberFromURL,
                 );
 
                 // Tag version and comparison URL
@@ -430,6 +449,17 @@ class GithubUtils {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
         return Number.parseInt(matches[1], 10);
+    }
+
+    /**
+     * Determine if a given pull request is an automerge PR.
+     *
+     * @param {Object} pullRequest
+     * @returns {Boolean}
+     */
+    static isAutomergePullRequest(pullRequest) {
+        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify')
+            && _.contains(_.pluck(pullRequest.labels, 'name'), 'automerge');
     }
 }
 

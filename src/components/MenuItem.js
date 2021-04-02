@@ -5,11 +5,14 @@ import {
 import PropTypes from 'prop-types';
 
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
 import Icon from './Icon';
 import {ArrowRight} from './Icon/Expensicons';
 
 const propTypes = {
+    // Any additional styles to apply
+    // eslint-disable-next-line react/forbid-prop-types
+    wrapperStyle: PropTypes.object,
+
     // Function to fire when component is pressed
     onPress: PropTypes.func.isRequired,
 
@@ -25,6 +28,7 @@ const propTypes = {
 
 const defaultProps = {
     shouldShowRightArrow: false,
+    wrapperStyle: {},
 };
 
 const MenuItem = ({
@@ -32,12 +36,14 @@ const MenuItem = ({
     icon,
     title,
     shouldShowRightArrow,
+    wrapperStyle,
 }) => (
     <Pressable
         onPress={onPress}
         style={({hovered}) => ([
             styles.createMenuItem,
-            hovered && {backgroundColor: themeColors.buttonHoveredBG},
+            hovered && styles.hoveredButton,
+            wrapperStyle,
         ])}
     >
         <View style={styles.flexRow}>

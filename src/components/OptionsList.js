@@ -1,12 +1,16 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View, SectionList, Text} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
+import SectionList from './SectionList';
 
 const propTypes = {
+    // option Background Color
+    optionBackgroundColor: PropTypes.string,
+
     // Style for hovered state
     // eslint-disable-next-line react/forbid-prop-types
     optionHoveredStyle: PropTypes.object,
@@ -70,6 +74,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
     sections: [],
@@ -152,6 +157,7 @@ class OptionsList extends Component {
                 option={item}
                 mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
+                backgroundColor={this.props.optionBackgroundColor}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}
@@ -190,10 +196,7 @@ class OptionsList extends Component {
 
     render() {
         return (
-
-            // need to set a height (0 works in this case) so that the view will scroll on mobile
-            // NOTE: the view will still fill its container since it has flex: 1 on it
-            <View style={[styles.flex1, {height: 0}]}>
+            <View style={[styles.flex1]}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>
