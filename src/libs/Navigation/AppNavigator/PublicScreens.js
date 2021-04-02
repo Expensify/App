@@ -1,7 +1,7 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
-import SetPasswordPage from '../../../pages/SetPasswordPage';
+import SetPasswordForm from '../../../pages/SetPasswordForm';
 
 const RootStack = createStackNavigator();
 const defaultScreenOptions = {
@@ -22,7 +22,7 @@ export default () => (
         <RootStack.Screen
             name="SetPassword"
             options={defaultScreenOptions}
-            component={SetPasswordPage}
+            component={SetPasswordForm}
         />
     </RootStack.Navigator>
 );
