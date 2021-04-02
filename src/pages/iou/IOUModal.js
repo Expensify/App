@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import IOUAmountPage from './steps/IOUAmountPage';
@@ -73,19 +74,10 @@ class IOUModal extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        // Handles edge case when there are no previous user IOU report
-        if (!prevProps.iousReport) { return; }
-
-        // Dismiss modal when the length of transactions for any iousReport changes
-        Object.keys(this.props.iousReport)
-            .forEach((reportKey) => {
-                const prevTransactions = [...prevProps.iousReport[reportKey].transactions];
-                const currentTransactions = [...this.props.iousReport[reportKey].transactions];
-
-                if (prevTransactions.length !== currentTransactions.length) {
-                    return Navigation.dismissModal();
-                }
-            });
+        // if the prevProps isn't equivalent to new prop, dismiss the modal
+        if (!_.isEqual(prevProps.iousReport, this.props.iousReport)) {
+            return Navigation.dismissModal();
+        }
     }
 
     /**
