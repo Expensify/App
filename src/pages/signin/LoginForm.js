@@ -7,11 +7,11 @@ import {
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
-import ButtonWithLoader from '../../../components/ButtonWithLoader';
-import {fetchAccountDetails} from '../../../libs/actions/Session';
-import ONYXKEYS from '../../../ONYXKEYS';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import ButtonWithLoader from '../../components/ButtonWithLoader';
+import {fetchAccountDetails} from '../../libs/actions/Session';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /* Onyx Props */
@@ -30,7 +30,7 @@ const defaultProps = {
     account: {},
 };
 
-class LoginFormNarrow extends React.Component {
+class LoginForm extends React.Component {
     constructor(props) {
         super(props);
 
@@ -74,6 +74,7 @@ class LoginFormNarrow extends React.Component {
                         autoCapitalize="none"
                         placeholder="Phone or Email"
                         placeholderTextColor={themeColors.placeholderText}
+                        autofocus
                     />
                 </View>
                 <View>
@@ -100,9 +101,9 @@ class LoginFormNarrow extends React.Component {
     }
 }
 
-LoginFormNarrow.propTypes = propTypes;
-LoginFormNarrow.defaultProps = defaultProps;
+LoginForm.propTypes = propTypes;
+LoginForm.defaultProps = defaultProps;
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
-})(LoginFormNarrow);
+})(LoginForm);
