@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {Image} from 'react-native';
 import PropTypes from 'prop-types';
@@ -29,12 +28,11 @@ class Avatar extends PureComponent {
 
         return (
             <Image
-                ref={el => this.image = el}
                 source={{uri: this.props.source}}
-                style={_.union([
+                style={[
                     this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
-                    this.props.style,
-                ])}
+                    ...this.props.style,
+                ]}
             />
         );
     }

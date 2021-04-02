@@ -17,6 +17,7 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
+import {isReportMessageAttachment} from '../reportUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -409,7 +410,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: messageText === '[Attachment]',
+        isAttachment: isReportMessageAttachment(messageText),
         loading: false,
     };
 

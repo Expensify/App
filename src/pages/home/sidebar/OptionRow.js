@@ -7,7 +7,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import styles from '../../../styles/styles';
+import styles, {getBackgroundAndBorderStyle, getBackgroundColorStyle} from '../../../styles/styles';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
@@ -15,8 +15,13 @@ import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
 import OptionRowTitle from './OptionRowTitle';
+import IOUBadge from '../../../components/IOUBadge';
+import colors from '../../../styles/colors';
 
 const propTypes = {
+    // Background Color of the Option Row
+    backgroundColor: PropTypes.string,
+
     // Style for hovered state
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
@@ -50,6 +55,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
     showSelectedState: false,
@@ -61,6 +67,7 @@ const defaultProps = {
 };
 
 const OptionRow = ({
+    backgroundColor,
     hoverStyle,
     option,
     optionIsFocused,
@@ -99,7 +106,10 @@ const OptionRow = ({
         styles.sidebarInnerRow,
         styles.justifyContentCenter,
     ]);
-
+    const hoveredBackgroundColor = hoverStyle && hoverStyle.backgroundColor
+        ? hoverStyle.backgroundColor
+        : backgroundColor;
+    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     return (
         <Hoverable>
             {hovered => (
@@ -112,6 +122,7 @@ const OptionRow = ({
                         styles.justifyContentBetween,
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
+                        getBackgroundColorStyle(backgroundColor),
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
                     ]}
@@ -128,14 +139,16 @@ const OptionRow = ({
                                 && (
                                     <MultipleAvatars
                                         avatarImageURLs={option.icons}
-                                        optionIsFocused={optionIsFocused}
                                         size={mode === 'compact' ? 'small' : 'default'}
-                                        styles={hovered && !optionIsFocused && {
-                                            secondAvatar: {
-                                                backgroundColor: themeColors.sidebarHover,
-                                                borderColor: themeColors.sidebarHover,
-                                            },
-                                        }}
+                                        secondAvatarStyle={[
+                                            getBackgroundAndBorderStyle(backgroundColor),
+                                            optionIsFocused
+                                                ? getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                : undefined,
+                                            hovered && !optionIsFocused
+                                                ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                : undefined,
+                                        ]}
                                     />
                                 )
                             }
@@ -145,6 +158,7 @@ const OptionRow = ({
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
                                     style={displayNameStyle}
+                                    reportID={option.reportID}
                                 />
 
                                 {option.alternateText ? (
@@ -173,11 +187,14 @@ const OptionRow = ({
                         </View>
                     </View>
                     {!hideAdditionalOptionStates && (
-                        <View style={[styles.flexRow, styles.pr5]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pencil} />
                                 </View>
+                            )}
+                            {option.hasOutstandingIOU && (
+                                <IOUBadge iouReportID={option.iouReportID} />
                             )}
                             {option.isPinned && (
                                 <View style={styles.ml2}>
@@ -227,6 +244,10 @@ export default memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (prevProps.option.isPinned !== nextProps.option.isPinned) {
+        return false;
+    }
+
+    if (prevProps.option.hasOutstandingIOU !== nextProps.option.hasOutstandingIOU) {
         return false;
     }
 

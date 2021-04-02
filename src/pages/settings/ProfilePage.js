@@ -12,17 +12,19 @@ import moment from 'moment-timezone';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {setPersonalDetails} from '../../libs/actions/PersonalDetails';
+import {setPersonalDetails, setAvatar, deleteAvatar} from '../../libs/actions/PersonalDetails';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Avatar from '../../components/Avatar';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import {DownArrow} from '../../components/Icon/Expensicons';
+import {DownArrow, Upload, Trashcan} from '../../components/Icon/Expensicons';
 import Icon from '../../components/Icon';
 import Checkbox from '../../components/Checkbox';
 import themeColors from '../../styles/themes/default';
+import AttachmentPicker from '../../components/AttachmentPicker';
+import CreateMenu from '../../components/CreateMenu';
 
 const propTypes = {
     /* Onyx Props */
@@ -93,11 +95,13 @@ class ProfilePage extends Component {
             selfSelectedPronouns: initialSelfSelectedPronouns,
             selectedTimezone: timezone.selected || CONST.DEFAULT_TIME_ZONE.selected,
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
+            isEditPhotoMenuVisible: false,
         };
 
         this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
+        this.createMenuItems = this.createMenuItems.bind(this);
     }
 
     setAutomaticTimezone(isAutomaticTimezone) {
@@ -128,6 +132,34 @@ class ProfilePage extends Component {
         });
     }
 
+    createMenuItems(openPicker) {
+        const menuItems = [
+            {
+                icon: Upload,
+                text: 'Upload Photo',
+                onSelected: () => {
+                    setTimeout(() => {
+                        openPicker({
+                            onPicked: setAvatar,
+                        });
+                    }, 10);
+                },
+            },
+        ];
+
+        // If current avatar isn't a default avatar, allow Remove Photo option
+        if (!this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')) {
+            menuItems.push({
+                icon: Trashcan,
+                text: 'Remove Photo',
+                onSelected: () => {
+                    deleteAvatar(this.props.myPersonalDetails.login);
+                },
+            });
+        }
+        return menuItems;
+    }
+
     render() {
         // Determines if the pronouns/selected pronouns have changed
         const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns
@@ -149,11 +181,36 @@ class ProfilePage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
+                <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <Avatar
                         style={[styles.avatarLarge, styles.alignSelfCenter]}
                         source={this.props.myPersonalDetails.avatar}
                     />
+                    <AttachmentPicker>
+                        {({openPicker}) => (
+                            <>
+                                <Pressable
+                                    style={[styles.button, styles.alignSelfCenter, styles.mt3]}
+                                    onPress={() => this.setState({isEditPhotoMenuVisible: true})}
+                                >
+                                    <View style={styles.flexRow}>
+                                        <Icon src={DownArrow} />
+                                        <View style={styles.justifyContentCenter}>
+                                            <Text style={[styles.headerText, styles.ml2]}>
+                                                Edit Photo
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </Pressable>
+                                <CreateMenu
+                                    isVisible={this.state.isEditPhotoMenuVisible}
+                                    onClose={() => this.setState({isEditPhotoMenuVisible: false})}
+                                    onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}
+                                    menuItems={this.createMenuItems(openPicker)}
+                                />
+                            </>
+                        )}
+                    </AttachmentPicker>
                     <Text style={[styles.mt6, styles.mb6, styles.textP]}>
                         Tell us about yourself, we would love to get to know you!
                     </Text>
