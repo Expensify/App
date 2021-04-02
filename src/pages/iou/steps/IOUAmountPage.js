@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {compose} from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
@@ -173,8 +174,9 @@ IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 
-export default withWindowDimensions(
+export default compose(
+    withWindowDimensions,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
-    })(IOUAmountPage),
-);
+    }),
+)(IOUAmountPage);
