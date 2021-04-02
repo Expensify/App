@@ -77,9 +77,6 @@ class DisplayNames extends PureComponent {
             );
         }
 
-        const displayNames = _.flatten(_.map(this.props.displayNamesToTooltips, mapEntry => _.keys(mapEntry)));
-        const lastDisplayName = _.last(displayNames);
-
         return (
 
             // Tokenization of string only support 1 numberOfLines on Web
@@ -95,7 +92,7 @@ class DisplayNames extends PureComponent {
                             key={index}
                             text={tooltip}
                             containerStyle={styles.dInline}
-                            shiftHorizontal={() => this.getTooltipShiftX(tooltip)}
+                            shiftHorizontal={() => this.getTooltipShiftX(index)}
                         >
                             {/*  // We need to get the refs to all the names which will be used to correct
                                  the horizontal position of the tooltip */}
@@ -103,10 +100,10 @@ class DisplayNames extends PureComponent {
                                 {displayName}
                             </Text>
                         </Tooltip>
-                        {displayName !== lastDisplayName && <Text>,&nbsp;</Text>}
+                        {index < this.props.displayNamesToTooltips.length - 1 && <Text>,&nbsp;</Text>}
                     </Fragment>
                 ))}
-                {displayNames.length > 1 && this.state.isEllipsisActive
+                {this.props.displayNamesToTooltips.length > 1 && this.state.isEllipsisActive
                 && (
                     <View style={styles.optionDisplayNameTooltipEllipsis}>
                         <Tooltip text={this.props.fullTitle}>
