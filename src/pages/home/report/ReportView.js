@@ -34,6 +34,7 @@ function ReportView({reportID, isDrawerOpen, loaded}) {
                     <ReportActionCompose
                         onSubmit={text => addAction(reportID, text)}
                         reportID={reportID}
+                        key={reportID}
                     />
                 </SwipeableView>
             )}

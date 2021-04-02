@@ -17,7 +17,6 @@ import AttachmentModal from '../../../components/AttachmentModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
-import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -175,10 +174,6 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        // We want to make sure to disable on small screens because in iOS safari the keyboard up/down buttons will
-        // focus this from the chat switcher.
-        // https://github.com/Expensify/Expensify.cash/issues/1228
-        const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
 
@@ -277,7 +272,6 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={inputDisable}
                                 />
 
                             </>
