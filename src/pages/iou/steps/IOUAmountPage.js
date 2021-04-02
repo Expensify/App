@@ -45,10 +45,9 @@ class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onlyAllowNumericValues = this.onlyAllowNumericValues.bind(this);
+        this.updateAmountIfValidInput = this.updateAmountIfValidInput.bind(this);
         this.state = {
             amount: '',
-            isNextButtonEnabled: false,
         };
     }
 
@@ -63,36 +62,28 @@ class IOUAmountPage extends React.Component {
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      *
      * @param {String} key
-     * @param {String} event
      */
-    onlyAllowNumericValues(key, event) {
-        // Prevent reusing synthetic event object, so we can call preventDefault() later.
-        if (event) {
-            event.persist();
-        }
-
+    updateAmountIfValidInput(key) {
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
                 this.setState(prevState => ({
                     amount: prevState.amount.substring(0, prevState.amount.length - 1),
-                    isNextButtonEnabled: prevState.amount.length !== 1,
                 }));
             }
             return;
         }
+
         this.setState((prevState) => {
             const newValue = `${prevState.amount}${key}`;
+
+            // Regex to validate decimal number with up to 6 digits and 2 decimal numbers
             const decimalNumberRegex = new RegExp(/^\d{1,6}(\.\d{0,2})?$/, 'i');
             if (!decimalNumberRegex.test(newValue)) {
-                if (event) {
-                    event.preventDefault();
-                }
                 return prevState;
             }
             return {
                 amount: newValue,
-                isNextButtonEnabled: true,
             };
         });
     }
@@ -116,9 +107,9 @@ class IOUAmountPage extends React.Component {
                         ? <Text style={styles.iouAmountText}>{this.state.amount}</Text>
                         : (
                             <TextInputAutoGrow
-                                    style={styles.iouAmountTextInput}
+                                    inputStyle={styles.iouAmountTextInput}
                                     textStyle={styles.iouAmountText}
-                                    onKeyPress={event => this.onlyAllowNumericValues(event.key, event)}
+                                    onKeyPress={event => this.updateAmountIfValidInput(event.key)}
                                     ref={el => this.textInput = el}
                                     value={this.state.amount}
                                     textAlign="left"
@@ -127,13 +118,13 @@ class IOUAmountPage extends React.Component {
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {this.props.isSmallScreenWidth
-                        ? <BigNumberPad numberPressed={this.onlyAllowNumericValues} />
+                        ? <BigNumberPad numberPressed={this.updateAmountIfValidInput} />
                         : <View />}
                     <TouchableOpacity
                             style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
-                                !this.state.isNextButtonEnabled ? styles.buttonSuccessDisabled : {}]}
+                                this.state.amount.length === 0 ? styles.buttonSuccessDisabled : {}]}
                             onPress={() => this.props.onStepComplete(this.state.amount)}
-                            disabled={!this.state.isNextButtonEnabled}
+                            disabled={this.state.amount.length === 0}
                     >
                         <Text style={[styles.buttonText, styles.buttonSuccessText]}>
                             Next
