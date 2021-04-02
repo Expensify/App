@@ -116,6 +116,5 @@ export default withOnyx({
     },
     updateAvailable: {
         key: ONYXKEYS.UPDATE_AVAILABLE,
-        initWithStoredValues: false,
     },
 })(Expensify);
