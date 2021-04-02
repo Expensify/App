@@ -143,7 +143,7 @@ class IOUAmountPage extends React.Component {
                                         textAlign="left"
                                 />
                                 <Text
-                                    style={[styles.iouAmountText, styles.invisible, {left: 100000}]}
+                                    style={[styles.iouAmountText, styles.invisible, styles.pushTextRight]}
                                     onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
                                 >
                                     {this.props.amount}

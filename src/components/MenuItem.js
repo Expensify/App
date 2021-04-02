@@ -5,7 +5,6 @@ import {
 import PropTypes from 'prop-types';
 
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
 import Icon from './Icon';
 import {ArrowRight} from './Icon/Expensicons';
 
@@ -43,7 +42,7 @@ const MenuItem = ({
         onPress={onPress}
         style={({hovered}) => ([
             styles.createMenuItem,
-            hovered && {backgroundColor: themeColors.buttonHoveredBG},
+            hovered && styles.hoveredButton,
             wrapperStyle,
         ])}
     >
