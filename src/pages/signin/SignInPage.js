@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {
-    SafeAreaView, Text, View,
+    Text,
+    View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';

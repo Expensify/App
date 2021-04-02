@@ -4,7 +4,6 @@ import {
     ScrollView,
     Text,
     View,
-    SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';

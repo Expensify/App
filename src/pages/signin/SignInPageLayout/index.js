@@ -15,8 +15,7 @@ const SignInPageLayout = props => (
             // eslint-disable-next-line react/jsx-props-no-spreading
             ? <SignInPageLayoutWide {...props}>{props.children}</SignInPageLayoutWide>
             // eslint-disable-next-line react/jsx-props-no-spreading
-            : <SignInPageLayoutNarrow {...props}>{props.children}</SignInPageLayoutNarrow>
-        }
+            : <SignInPageLayoutNarrow {...props}>{props.children}</SignInPageLayoutNarrow>}
     </SafeAreaView>
 );
 
