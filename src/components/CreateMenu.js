@@ -49,7 +49,7 @@ class CreateMenu extends PureComponent {
             [CONST.MENU_ITEM_KEYS.NEW_CHAT]: {
                 icon: ChatBubble,
                 text: 'New Chat',
-                onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
             },
             [CONST.MENU_ITEM_KEYS.NEW_GROUP]: {
                 icon: Users,

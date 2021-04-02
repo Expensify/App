@@ -446,9 +446,8 @@ function getCurrencyListForSections(currencyListObject, searchValue) {
         currencyCode,
     }));
 
-    const filteredOptions = currencyOptions.filter(
-        currencyOption => isSearchStringMatch(searchValue, currencyOption.searchText),
-    );
+    const filteredOptions = currencyOptions.filter(currencyOption => (
+        isSearchStringMatch(searchValue, currencyOption.searchText)));
 
     return {
         // currency options holds a section for those currencies which are not selected

@@ -216,4 +216,6 @@ IOUCurrencySelection.propTypes = propTypes;
 IOUCurrencySelection.defaultProps = defaultProps;
 IOUCurrencySelection.displayName = 'IOUModal';
 
-export default withOnyx({currencyList: {key: ONYXKEYS.CURRENCY_LIST}})(IOUCurrencySelection);
+export default withOnyx({
+    currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+})(IOUCurrencySelection);
