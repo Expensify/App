@@ -25,7 +25,7 @@ function ReportView({reportID, isDrawerOpen, loaded}) {
     return (
         <View style={[styles.chatContent]}>
             {
-                loaded
+                !isDrawerOpen && loaded
                     ? <ReportActionsView reportID={reportID} />
                     : <FullScreenLoadingIndicator />
             }
