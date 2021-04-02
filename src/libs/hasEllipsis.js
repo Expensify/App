@@ -5,7 +5,7 @@
  * @returns {Boolean}
  */
 function hasEllipsis(el) {
-    return el.offsetWidth < el.scrollWidth;
+    return el.offsetWidth && el.scrollWidth && el.offsetWidth < el.scrollWidth;
 }
 
 export default hasEllipsis;

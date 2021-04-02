@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import {participantPropTypes} from '../optionPropTypes';
+import {participantPropTypes} from '../sidebar/optionPropTypes';
 
 const propTypes = {
     // Styles of the title

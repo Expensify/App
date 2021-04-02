@@ -14,7 +14,7 @@ import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
-import OptionRowTitle from './OptionRowTitle';
+import ReportTitle from '../ReportTitle';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
 
@@ -152,7 +152,7 @@ const OptionRow = ({
                                 )
                             }
                             <View style={contentContainerStyles}>
-                                <OptionRowTitle
+                                <ReportTitle
                                     option={option}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}

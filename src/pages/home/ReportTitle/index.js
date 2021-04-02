@@ -4,12 +4,12 @@ import {
     Text,
     View,
 } from 'react-native';
-import {propTypes, defaultProps} from './OptionRowTitleProps';
-import styles from '../../../../styles/styles';
-import Tooltip from '../../../../components/Tooltip';
-import hasEllipsis from '../../../../libs/hasEllipsis';
+import {propTypes, defaultProps} from './ReportTitleProps';
+import styles from '../../../styles/styles';
+import Tooltip from '../../../components/Tooltip';
+import hasEllipsis from '../../../libs/hasEllipsis';
 
-class OptionRowTitle extends PureComponent {
+class ReportTitle extends PureComponent {
     constructor(props) {
         super(props);
         this.containerRef = null;
@@ -116,8 +116,8 @@ class OptionRowTitle extends PureComponent {
         );
     }
 }
-OptionRowTitle.propTypes = propTypes;
-OptionRowTitle.defaultProps = defaultProps;
-OptionRowTitle.displayName = 'OptionRowTitle';
+ReportTitle.propTypes = propTypes;
+ReportTitle.defaultProps = defaultProps;
+ReportTitle.displayName = 'ReportTitle';
 
-export default OptionRowTitle;
+export default ReportTitle;

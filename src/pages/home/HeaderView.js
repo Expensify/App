@@ -15,7 +15,7 @@ import MultipleAvatars from '../../components/MultipleAvatars';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {getReportParticipantsTitle} from '../../libs/reportUtils';
-import OptionRowTitle from './sidebar/OptionRowTitle';
+import ReportTitle from './ReportTitle';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
@@ -92,7 +92,7 @@ const HeaderView = (props) => {
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                             />
                             <View style={[styles.flex1, styles.flexRow]}>
-                                <OptionRowTitle
+                                <ReportTitle
                                     option={reportOption}
                                     tooltipEnabled
                                     numberOfLines={1}

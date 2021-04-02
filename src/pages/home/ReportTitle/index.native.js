@@ -1,9 +1,9 @@
 // As we don't have to show tooltips of the Native platform so we simply render the option title which wraps.
 import React from 'react';
 import {Text} from 'react-native';
-import {propTypes, defaultProps} from './OptionRowTitleProps';
+import {propTypes, defaultProps} from './ReportTitleProps';
 
-const OptionRowTitle = ({
+const ReportTitle = ({
     style,
     option,
     numberOfLines,
@@ -13,8 +13,8 @@ const OptionRowTitle = ({
     </Text>
 );
 
-OptionRowTitle.propTypes = propTypes;
-OptionRowTitle.defaultProps = defaultProps;
-OptionRowTitle.displayName = 'OptionRowTitle';
+ReportTitle.propTypes = propTypes;
+ReportTitle.defaultProps = defaultProps;
+ReportTitle.displayName = 'ReportTitle';
 
-export default OptionRowTitle;
+export default ReportTitle;
