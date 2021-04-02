@@ -1,6 +1,9 @@
 import React from 'react';
 import {
-    Image, Text, View,
+    Image,
+    Text,
+    View,
+    SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
@@ -24,7 +27,7 @@ const defaultProps = {
 };
 
 const SignInPageLayoutWide = props => (
-    <View style={[styles.signInPageInner]}>
+    <SafeAreaView style={[styles.signInPageInner]}>
         <View style={[styles.flex1, styles.flexRow]}>
             <View style={[styles.flex1, styles.w50, styles.alignItemsCenter]}>
                 <View>
@@ -57,7 +60,7 @@ const SignInPageLayoutWide = props => (
                 <TermsAndLicenses />
             </View>
         </View>
-    </View>
+    </SafeAreaView>
 );
 
 SignInPageLayoutWide.propTypes = propTypes;
