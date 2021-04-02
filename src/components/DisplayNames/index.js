@@ -81,7 +81,7 @@ class DisplayNames extends PureComponent {
 
             // Tokenization of string only support 1 numberOfLines on Web
             <Text
-                style={[this.props.textStyles, styles.optionDisplayNameTooltipWrapper]}
+                style={[this.props.textStyles, styles.pRelative]}
                 onLayout={this.setContainerLayout}
                 numberOfLines={1}
                 ref={el => this.containerRef = el}
@@ -105,7 +105,7 @@ class DisplayNames extends PureComponent {
                 ))}
                 {this.props.displayNamesToTooltips.length > 1 && this.state.isEllipsisActive
                 && (
-                    <View style={styles.optionDisplayNameTooltipEllipsis}>
+                    <View style={styles.displayNameTooltipEllipsis}>
                         <Tooltip text={this.props.fullTitle}>
                             {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
                             <Text>....</Text>

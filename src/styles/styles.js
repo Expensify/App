@@ -599,11 +599,7 @@ const styles = {
         flexShrink: 0,
     },
 
-    optionDisplayNameTooltipWrapper: {
-        position: 'relative',
-    },
-
-    optionDisplayNameTooltipEllipsis: {
+    displayNameTooltipEllipsis: {
         position: 'absolute',
         opacity: 0,
         right: 0,
