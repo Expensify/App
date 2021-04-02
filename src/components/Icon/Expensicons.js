@@ -24,6 +24,7 @@ import Gear from '../../../assets/images/gear.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Lock from '../../../assets/images/lock.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
+import Upload from '../../../assets/images/upload.svg';
 
 export {
     BackArrow,
@@ -52,4 +53,5 @@ export {
     Wallet,
     Lock,
     ArrowRight,
+    Upload,
 };

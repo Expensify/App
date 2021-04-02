@@ -8,6 +8,9 @@ import optionPropTypes from './optionPropTypes';
 import SectionList from './SectionList';
 
 const propTypes = {
+    // option Background Color
+    optionBackgroundColor: PropTypes.string,
+
     // Style for hovered state
     // eslint-disable-next-line react/forbid-prop-types
     optionHoveredStyle: PropTypes.object,
@@ -71,6 +74,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
     sections: [],
@@ -153,6 +157,7 @@ class OptionsList extends Component {
                 option={item}
                 mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
+                backgroundColor={this.props.optionBackgroundColor}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}
