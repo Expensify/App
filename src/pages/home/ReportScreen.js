@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import FullScreenLoadingIndicator from '../../components/Loading/FullscreenLoading';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import {fetchActions} from '../../libs/actions/Report';
@@ -66,7 +65,7 @@ class ReportScreen extends React.Component {
 
     // Todo: ask why getters aren't on top?
     get canRenderMainContent() {
-        return !this.state.isLoading && !this.state.error && !this.state.drawerOpen;
+        return !this.state.isLoading && !this.state.error;
     }
 
     get reportID() {
@@ -80,15 +79,6 @@ class ReportScreen extends React.Component {
             error: null,
         });
 
-        /* Todo: it might be good if this method resolves with needed data here
-        *   when online resolve with data from the server
-        *   when offline resolve with local data
-        * E.cash strategy is optimistic response though. Maybe fetchAction can internally
-        * resolve instantly when it can (some onyx data available) and then
-        * push an update to onyx data after actual data is fetched
-        * Another issue for optimistic loading - when data is available
-        * the Chat will try to render immediately which is what's causing the
-        * transition issues in the first place */
         fetchActions(this.reportID)
             .catch((error) => {
                 // Todo: what should we do if fetching fails for some reason
@@ -97,14 +87,12 @@ class ReportScreen extends React.Component {
                 console.error(error);
             })
             .finally(() => {
-                console.debug('[ReportScreen] Fetch complete: ');
+                console.debug('[ReportScreen] Stop loading: ');
                 this.setState({isLoading: false});
             });
     }
 
     render() {
-        const activeReportID = parseInt(this.props.reportID, 10);
-
         return (
             <ScreenWrapper
                 style={[
@@ -114,16 +102,16 @@ class ReportScreen extends React.Component {
                 ]}
             >
                 <HeaderView
-                    reportID={activeReportID}
+                    reportID={this.reportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                 />
 
                 <View style={[styles.dFlex, styles.flex1]}>
-                    {
-                        this.canRenderMainContent
-                            ? <ReportView reportID={activeReportID} />
-                            : <FullScreenLoadingIndicator />
-                    }
+                    <ReportView
+                        loaded={this.canRenderMainContent}
+                        drawerOpen={this.state.drawerOpen}
+                        reportID={this.reportID}
+                    />
                 </View>
             </ScreenWrapper>
         );
