@@ -145,8 +145,7 @@ class ProfilePage extends Component {
     getLogins(loginList) {
         return loginList.reduce((logins, currentLogin) => {
             const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
-            const login = Str.isSMSLogin(currentLogin.partnerUserID)
-                ? Str.removeSMSDomain(currentLogin.partnerUserID) : currentLogin.partnerUserID;
+            const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
             // If there's already a login type that's validated and/or currentLogin isn't valid then return early
             if ((login !== this.props.myPersonalDetails.login) && !_.isEmpty(logins[type])
@@ -158,9 +157,7 @@ class ProfilePage extends Component {
                 [type]: {
                     ...currentLogin,
                     type,
-                    partnerUserID: Str.isSMSLogin(currentLogin.partnerUserID)
-                        ? Str.removeSMSDomain(currentLogin.partnerUserID)
-                        : currentLogin.partnerUserID,
+                    partnerUserID: Str.removeSMSDomain(currentLogin.partnerUserID),
                 },
             };
         }, {

@@ -57,17 +57,17 @@ export default class LoginField extends Component {
             if (!this.props.login.partnerUserID) {
                 note = 'Add your phone number to settle up via Venmo.';
 
-                // Has unvalidated phone number
+            // Has unvalidated phone number
             } else if (!this.props.login.validatedDate) {
                 // eslint-disable-next-line max-len
                 note = 'The number has not yet been validated. Click the button to resend the validation link via text.';
 
-                // Has verified phone number
+            // Has verified phone number
             } else {
                 note = 'Use your phone number to settle up via Venmo.';
             }
 
-            // Has unvalidated email
+        // Has unvalidated email
         } else if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
             note = 'The email has not yet been validated. Click the button to resend the validation link via text.';
         }
