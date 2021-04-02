@@ -1,7 +1,10 @@
 import React from 'react';
 import {
     Image,
-    ScrollView, Text, View,
+    ScrollView,
+    Text,
+    View,
+    SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
@@ -30,8 +33,8 @@ const defaultProps = {
 };
 
 const SignInPageLayoutNarrow = props => (
-    <ScrollView>
-        <View>
+    <SafeAreaView>
+        <ScrollView>
             <View style={[styles.signInPageInnerNative]}>
                 <View style={[styles.signInPageLogoNative]}>
                     <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
@@ -61,8 +64,8 @@ const SignInPageLayoutNarrow = props => (
                 </View>
                 <TermsAndLicenses />
             </View>
-        </View>
-    </ScrollView>
+        </ScrollView>
+    </SafeAreaView>
 );
 
 SignInPageLayoutNarrow.propTypes = propTypes;
