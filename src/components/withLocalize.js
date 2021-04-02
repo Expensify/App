@@ -7,6 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import {translate} from '../libs/translate';
 import DateUtils from '../libs/DateUtils';
 import {toLocalPhone, fromLocalPhone} from '../libs/LocalePhoneNumber';
+import numberFormat from '../libs/numberFormat';
 
 const withLocalizePropTypes = {
     // Current User's preferred locale
@@ -19,8 +20,7 @@ function withLocalizeHOC(WrappedComponent) {
     const withLocalize = (props) => {
         const translations = {
             translate: (phrase, variables) => translate(props.preferredLocale, phrase, variables),
-
-            // numberFormat: (options) => numberFormat(props.preferredLocale, options),
+            numberFormat: (number, options) => numberFormat(props.preferredLocale, number, options),
             timestampToRelative: timestamp => DateUtils.timestampToRelative(props.preferredLocale, timestamp),
             timestampToDateTime: (timestamp, includeTimezone) => DateUtils.timestampToDateTime(
                 props.preferredLocale,
