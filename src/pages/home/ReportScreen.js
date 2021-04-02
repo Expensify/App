@@ -5,11 +5,12 @@ import {View} from 'react-native';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import FullScreenLoadingIndicator from '../../components/Loading/FullscreenLoading';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
+import {fetchActions} from '../../libs/actions/Report';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
-import {fetchActions} from '../../libs/actions/Report';
 
 const propTypes = {
     /* The ID of the report this screen should display */
@@ -29,7 +30,7 @@ class ReportScreen extends React.Component {
         this.state = {
             isLoading: true,
             error: null,
-            drawerOpen: false,
+            drawerOpen: true,
         };
     }
 
@@ -74,7 +75,10 @@ class ReportScreen extends React.Component {
 
     fetchReport() {
         console.debug('[ReportScreen] Fetch started: ');
-        this.setState({isLoading: true, error: null});
+        this.setState({
+            isLoading: true,
+            error: null,
+        });
 
         /* Todo: it might be good if this method resolves with needed data here
         *   when online resolve with data from the server
@@ -113,15 +117,14 @@ class ReportScreen extends React.Component {
                     reportID={activeReportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                 />
-                {
-                    this.canRenderMainContent
-                        ? (
-                            <View style={[styles.dFlex, styles.flex1]}>
-                                <ReportView reportID={activeReportID} />
-                            </View>
-                        )
-                        : null // Todo: add loader here :)
-                }
+
+                <View style={[styles.dFlex, styles.flex1]}>
+                    {
+                        this.canRenderMainContent
+                            ? <ReportView reportID={activeReportID} />
+                            : <FullScreenLoadingIndicator />
+                    }
+                </View>
             </ScreenWrapper>
         );
     }
