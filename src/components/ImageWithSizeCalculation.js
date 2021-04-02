@@ -1,6 +1,7 @@
 import React, {PureComponent} from 'react';
 import {Image} from 'react-native';
 import PropTypes from 'prop-types';
+import styles from '../styles/styles';
 
 const propTypes = {
     // Url for image to display
@@ -69,11 +70,11 @@ class ImageWithSizeCalculation extends PureComponent {
     render() {
         return (
             <Image
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    ...this.props.style,
-                }}
+                style={[
+                    styles.w100,
+                    styles.h100,
+                    this.props.style,
+                ]}
                 source={{uri: this.props.url}}
                 resizeMode="contain"
             />

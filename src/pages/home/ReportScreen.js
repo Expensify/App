@@ -16,7 +16,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    currentlyViewedReportID: 0,
+    currentlyViewedReportID: '0',
 };
 
 const ReportScreen = (props) => {

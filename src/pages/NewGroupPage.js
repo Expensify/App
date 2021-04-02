@@ -176,6 +176,7 @@ class NewGroupPage extends Component {
         const headerMessage = getHeaderMessage(
             this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
+            this.state.searchValue,
             maxParticipantsReached,
         );
         return (
