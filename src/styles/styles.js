@@ -1239,14 +1239,6 @@ const styles = {
         fontSize: variables.iouAmountTextSize,
     }, 0),
 
-    autoGrowTextInputHiddenText: {
-        position: 'absolute',
-        opacity: 0,
-
-        // Using a very large value here makes sure it's out of screen
-        left: 100000,
-    },
-
     noScrollbars: {
         scrollbarWidth: 'none',
     },
@@ -1413,6 +1405,33 @@ function getZoomSizingStyle(isZoomed) {
     };
 }
 
+/**
+ * Returns auto grow text input style
+ *
+ * @param {Number} width
+ * @return {Object}
+ */
+function getAutoGrowTextInputStyle(width) {
+    return {
+        minWidth: 5,
+        width,
+    };
+}
+
+/**
+ * Positions an element to outside of the window and hides it
+ *
+ * @param {Number} windowWidth
+ * @returns {Object}
+ */
+function getHiddenElementOutsideOfWindow(windowWidth) {
+    return {
+        position: 'absolute',
+        opacity: 0,
+        left: windowWidth,
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1423,4 +1442,6 @@ export {
     getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
+    getAutoGrowTextInputStyle,
+    getHiddenElementOutsideOfWindow,
 };

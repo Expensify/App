@@ -11,7 +11,7 @@ const propTypes = {
     defaultValue: PropTypes.string,
 
     // The value of the comment box
-    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    value: PropTypes.string,
 
     // Callback method to handle pasting a file
     onPasteFile: PropTypes.func,
