@@ -197,7 +197,7 @@ class ReportActionCompose extends React.Component {
 
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
-        this.textInput.value = (this.textInput.value || this.comment) + emoji;
+        this.textInput.value = this.comment + emoji;
         this.setIsFocused(true);
         this.updateComment(this.textInput.value);
     }
