@@ -187,15 +187,8 @@ class AttachmentPicker extends Component {
      * Opens the attachment modal
      *
      * @param {function} onPicked A callback that will be called with the selected attachment
-     * @throws {Error} when the `onPicked` parameter is invalid
      */
     open(onPicked) {
-        if (typeof onPicked !== 'function') {
-            throw new Error(
-                `Invalid onPicked parameter. Check the children passed to: ${AttachmentPicker.displayName}`,
-            );
-        }
-
         this.setState({
             isVisible: true,
             result: null,

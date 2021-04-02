@@ -61,7 +61,6 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.focus = this.focus.bind(this);
-        this.blur = this.blur.bind(this);
         this.comment = props.comment;
 
         this.state = {
@@ -112,15 +111,6 @@ class ReportActionCompose extends React.Component {
     focus() {
         if (this.textInput) {
             this.textInput.focus();
-        }
-    }
-
-    /**
-     * Un-focus from the composer text input
-     */
-    blur() {
-        if (this.textInput) {
-            this.textInput.blur();
         }
     }
 
