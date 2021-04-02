@@ -44,11 +44,11 @@ const ScreenWrapper = props => (
             }
 
             return (
-                <View style={_.union([
-                    props.style,
+                <View style={[
+                    ...props.style,
                     styles.flex1,
                     paddingStyle,
-                ])}
+                ]}
                 >
                     <HeaderGap />
                     {// If props.children is a function, call it to provide the insets to the children.
