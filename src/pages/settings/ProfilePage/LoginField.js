@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {Component} from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import {Plus} from '../../../components/Icon/Expensicons';
+import colors from '../../../styles/colors';
+import {Plus, Checkmark} from '../../../components/Icon/Expensicons';
 import Icon from '../../../components/Icon';
 import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
@@ -24,77 +25,102 @@ const propTypes = {
     }).isRequired,
 };
 
-const LoginField = ({
-    label,
-    login,
-    type,
-}) => {
-    let note;
-    if (type === CONST.LOGIN_TYPE.PHONE) {
-        // No phone number
-        if (!login.partnerUserID) {
-            note = 'Add your phone number to settle up via Venmo.';
-
-            // Has unvalidated phone number
-        } else if (!login.validatedDate) {
-            note = 'The number has not yet been validated. Click the button to resend the validation link via text.';
-
-            // Has verified phone number
-        } else {
-            note = 'Use your phone number to settle up via Venmo.';
-        }
-
-        // Has unvalidated email
-    } else if (login.partnerUserID && !login.validatedDate) {
-        note = 'The email has not yet been validated. Click the button to resend the validation link via text.';
+export class LoginField extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            showCheckmarkIcon: false,
+        };
+        this.timeout = null;
+        this.onResendClicked = this.onResendClicked.bind(this);
     }
 
-    return (
-        <View style={styles.mb6}>
-            <Text style={styles.formLabel}>{label}</Text>
-            {!login.partnerUserID ? (
-                <Pressable
-                    style={[styles.createMenuItem, styles.ph0]}
-                    onPress={() => Navigation.navigate(type === CONST.LOGIN_TYPE.PHONE
-                        ? ROUTES.SETTINGS_ADD_PHONE
-                        : ROUTES.SETTINGS_ADD_EMAIL)}
-                >
-                    <View style={styles.flexRow}>
-                        <View style={styles.createMenuIcon}>
-                            <Icon src={Plus} />
+    onResendClicked() {
+        resendValidateCode(this.props.login.partnerUserID);
+        this.setState({showCheckmarkIcon: true});
+
+        // Revert checkmark back to "Resend" after 5seconds
+        if (!this.timeout) {
+            this.timeout = setTimeout(() => {
+                if (this.timeout) {
+                    this.setState({showCheckmarkIcon: false});
+                    this.timeout = null;
+                }
+            }, 5000);
+        }
+    }
+
+    render() {
+        let note;
+        if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
+            // No phone number
+            if (!this.props.login.partnerUserID) {
+                note = 'Add your phone number to settle up via Venmo.';
+
+                // Has unvalidated phone number
+            } else if (!this.props.login.validatedDate) {
+                // eslint-disable-next-line max-len
+                note = 'The number has not yet been validated. Click the button to resend the validation link via text.';
+
+                // Has verified phone number
+            } else {
+                note = 'Use your phone number to settle up via Venmo.';
+            }
+
+            // Has unvalidated email
+        } else if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
+            note = 'The email has not yet been validated. Click the button to resend the validation link via text.';
+        }
+
+        return (
+            <View style={styles.mb6}>
+                <Text style={styles.formLabel}>{this.props.label}</Text>
+                {!this.props.login.partnerUserID ? (
+                    <Pressable
+                        style={[styles.createMenuItem, styles.ph0]}
+                        onPress={() => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
+                    >
+                        <View style={styles.flexRow}>
+                            <View style={styles.createMenuIcon}>
+                                <Icon src={Plus} />
+                            </View>
+                            <View style={styles.justifyContentCenter}>
+                                <Text style={[styles.createMenuText, styles.ml3]}>
+                                    {`Add ${this.props.label}`}
+                                </Text>
+                            </View>
                         </View>
-                        <View style={styles.justifyContentCenter}>
-                            <Text style={[styles.createMenuText, styles.ml3]}>
-                                {`Add ${label}`}
-                            </Text>
-                        </View>
+                    </Pressable>
+                ) : (
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                        <Text style={[styles.textP]} numberOfLines={1}>
+                            {this.props.login.partnerUserID}
+                        </Text>
+                        {!this.props.login.validatedDate && (
+                            <Pressable
+                                style={[styles.button, styles.mb2]}
+                                onPress={this.onResendClicked}
+                            >
+                                {this.state.showCheckmarkIcon ? (
+                                    <Icon fill={colors.black} src={Checkmark} />
+                                ) : (
+                                    <Text style={styles.createMenuText}>
+                                        Resend
+                                    </Text>
+                                )}
+                            </Pressable>
+                        )}
                     </View>
-                </Pressable>
-            ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    <Text style={[styles.textP]} numberOfLines={1}>
-                        {login.partnerUserID}
+                )}
+                {note && (
+                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                        {note}
                     </Text>
-                    {!login.validatedDate && (
-                        <Pressable
-                            style={[styles.button, styles.mb2]}
-                            onPress={() => resendValidateCode(login.partnerUserID)}
-                        >
-                            <Text style={styles.createMenuText}>
-                                Resend
-                            </Text>
-                        </Pressable>
-                    )}
-                </View>
-            )}
-            {note && (
-                <Text style={[styles.textLabel, styles.colorMuted]}>
-                    {note}
-                </Text>
-            )}
-        </View>
-    );
-};
+                )}
+            </View>
+        );
+    }
+}
 
 LoginField.propTypes = propTypes;
 LoginField.displayName = 'LoginField';
