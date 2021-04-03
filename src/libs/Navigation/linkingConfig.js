@@ -71,7 +71,6 @@ export default {
                 },
             },
             Participants: {
-                initialRouteName: 'Participants_Root',
                 screens: {
                     Participants_Root: ROUTES.PARTICIPANTS_WITH_REPORT,
                 },

@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {
     View,
 } from 'react-native';
@@ -11,12 +12,11 @@ import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import OptionsList from '../components/OptionsList';
 import ROUTES from '../ROUTES';
-import CONST from '../CONST';
 
 const propTypes = {
     /* Onyx Props */
     // The personal details of the person who is logged in
-    myPersonalDetails: PropTypes.shape({
+    personalDetails: PropTypes.shape({
         // Display name of the current user from their personal details
         displayName: PropTypes.string,
 
@@ -27,8 +27,8 @@ const propTypes = {
         login: PropTypes.string,
     }).isRequired,
 
-    // List of reports
-    reports: PropTypes.shape({
+    // The active report
+    report: PropTypes.shape({
         // The list of icons
         icons: PropTypes.arrayOf(PropTypes.string),
 
@@ -46,64 +46,50 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
-
-    // The chat priority mode
-    priorityMode: PropTypes.string.isRequired,
 };
 
 /**
  * Returns all the participants in the active report
  *
  * @param {Object} report The active report object
- * @param {Object} personalDetail The personal detail of the logged user
+ * @param {Array} personalDetails The personal details of the users
  * @return {Array}
  */
-const getAllParticipants = (report, personalDetail) => {
-    const {icons, participants, reportName} = report;
-    const displayNames = reportName.split(', ');
+const getAllParticipants = (report, personalDetails) => {
+    const {participants} = report;
 
-    const members = participants.reduce((list, login, idx) => {
-        list.push({
+    return _.map(participants, (login) => {
+        const userPersonalDetail = personalDetails[login];
+
+        return ({
             alternateText: login,
-            displayName: displayNames[idx],
-            icons: [icons[idx]],
-            keyForList: `${idx}`,
+            displayName: userPersonalDetail.displayName,
+            icons: [userPersonalDetail.avatar],
+            keyForList: login,
             login,
-            text: displayNames[idx],
+            text: userPersonalDetail.displayName,
             tooltipText: login,
+            participantsList: [{login, displayName: userPersonalDetail.displayName}],
         });
-        return list;
-    }, [{
-        icons: [personalDetail.avatar],
-        text: personalDetail.displayName,
-        login: personalDetail.login,
-        alternateText: personalDetail.login,
-        keyForList: `${participants.length}`,
-        tooltipText: personalDetail.login,
-        displayName: personalDetail.displayName,
-    }]);
-
-    return members.map(item => ({...item, participantsList: [item]}));
+    });
 };
 
-const ParticipantsPage = ({
-    myPersonalDetails, route, reports, priorityMode,
-}) => {
-    const participants = getAllParticipants(reports[`report_${route.params.reportID}`], myPersonalDetails);
+const ParticipantsPage = ({personalDetails, report}) => {
+    const participants = getAllParticipants(report, personalDetails);
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title="Participants"
+                title="Details"
                 onCloseButtonPress={Navigation.dismissModal}
             />
             <View
                 pointerEvents="box-none"
                 style={[
-                    styles.detailsPageContainer,
+                    styles.containerWithSpaceBetween,
                 ]}
             >
-                { participants.length
+                {participants.length
                     && (
                     <OptionsList
                         sections={[{
@@ -115,7 +101,7 @@ const ParticipantsPage = ({
                         hideSectionHeaders
                         showTitleTooltip
                         disableFocusOptions
-                        optionMode={priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                        optionMode="default"
                         forceTextUnreadStyle
                         optionHoveredStyle={styles.hoveredComponentBG}
                     />
@@ -129,13 +115,10 @@ ParticipantsPage.propTypes = propTypes;
 ParticipantsPage.displayName = 'ParticipantsPage';
 
 export default withOnyx({
-    myPersonalDetails: {
-        key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
     },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    priorityMode: {
-        key: ONYXKEYS.NVP_PRIORITY_MODE,
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
     },
 })(ParticipantsPage);

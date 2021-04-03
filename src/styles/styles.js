@@ -1188,7 +1188,7 @@ const styles = {
         opacity: 0,
     },
 
-    detailsPageContainer: {
+    containerWithSpaceBetween: {
         justifyContent: 'space-between',
         width: '100%',
         flex: 1,

@@ -82,11 +82,9 @@ const HeaderView = (props) => {
                         <Pressable
                             onPress={() => {
                                 if (participants.length === 1) {
-                                    Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
+                                    return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
                                 }
-                                if (participants.length > 1) {
-                                    Navigation.navigate(ROUTES.getParticipantsRoute(props.reportID));
-                                }
+                                Navigation.navigate(ROUTES.getParticipantsRoute(props.reportID));
                             }}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
