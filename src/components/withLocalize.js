@@ -10,12 +10,17 @@ import {toLocalPhone, fromLocalPhone} from '../libs/LocalePhoneNumber';
 import numberFormat from '../libs/numberFormat';
 
 const withLocalizePropTypes = {
-    // Current User's preferred locale
-    preferredLocale: PropTypes.number.isRequired,
+    // Translations functions using current User's preferred locale
+    translations: PropTypes.shape({
+        translate: PropTypes.func.isRequired,
+        numberFormat: PropTypes.func.isRequired,
+        timestampToRelative: PropTypes.func.isRequired,
+        timestampToDateTime: PropTypes.func.isRequired,
+        toLocalPhone: PropTypes.func.isRequired,
+        fromLocalPhone: PropTypes.func.isRequired,
+    }),
 };
-const defaultProps = {
-    preferredLocale: 'en',
-};
+
 function withLocalizeHOC(WrappedComponent) {
     const withLocalize = (props) => {
         const translations = {
@@ -39,7 +44,9 @@ function withLocalizeHOC(WrappedComponent) {
         );
     };
     withLocalize.displayName = `withLocalize(${getComponentDisplayName(WrappedComponent)})`;
-    withLocalize.defaultProps = defaultProps;
+    withLocalize.defaultProps = {
+        preferredLocale: 'en',
+    };
     return withLocalize;
 }
 export default compose(
