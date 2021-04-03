@@ -39,6 +39,9 @@ const CONST = {
             CENTERED: 'centered',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
+            POPOVER_LEFT_DOCKED: 'popover_left_docked',
+            POPOVER_RIGHT_DOCKED: 'popover_right_docked',
+            POPOVER_CENTER_BOTTOM: 'popover_center_bottom',
             RIGHT_DOCKED: 'right_docked',
         },
         ANCHOR_ORIGIN_VERTICAL: {

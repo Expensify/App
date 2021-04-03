@@ -5,6 +5,8 @@ import Popover from './Popover';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import MenuItem from './MenuItem';
+import CONST from '../CONST';
+import {propTypes as ModalPropTypes} from './Modal/ModalPropTypes';
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -15,6 +17,9 @@ const propTypes = {
 
     // Callback to fire when a CreateMenu item is selected
     onItemSelected: PropTypes.func.isRequired,
+
+    // Gives the type of the modal
+    popOverType: ModalPropTypes.type,
 
     // Menu items to be rendered on the list
     menuItems: PropTypes.arrayOf(
@@ -27,6 +32,11 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
 };
+
+const defaultProps = {
+    popOverType: CONST.MODAL.MODAL_TYPE.POPOVER_LEFT_DOCKED,
+};
+
 class CreateMenu extends PureComponent {
     constructor(props) {
         super(props);
@@ -44,6 +54,24 @@ class CreateMenu extends PureComponent {
     }
 
     /**
+     * Get the anchor position using the type of the modal into account
+     * @param {String} type
+     * @returns {Object}
+     */
+    getAnchorPosition(type) {
+        switch (type) {
+            case CONST.MODAL.MODAL_TYPE.POPOVER_LEFT_DOCKED:
+                return styles.createMenuPositionSidebar;
+            case CONST.MODAL.MODAL_TYPE.POPOVER_CENTER_BOTTOM:
+                return styles.createMenuPositionReportCompose;
+            case CONST.MODAL.MODAL_TYPE.POPOVER_RIGHT_DOCKED:
+                return styles.createMenuPositionProfile;
+            default:
+                return styles.createMenuPositionSidebar;
+        }
+    }
+
+    /**
      * After the modal hides, reset the onModalHide to an empty function
      */
     resetOnModalHide() {
@@ -51,6 +79,7 @@ class CreateMenu extends PureComponent {
     }
 
     render() {
+        console.debug(this.props.popOverType, this.getAnchorPosition());
         return (
             <Popover
                 onClose={this.props.onClose}
@@ -59,7 +88,8 @@ class CreateMenu extends PureComponent {
                     this.onModalHide();
                     this.resetOnModalHide();
                 }}
-                anchorPosition={styles.createMenuPosition}
+                anchorPosition={this.getAnchorPosition(this.props.popOverType)}
+                popOverType={this.props.popOverType}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {this.props.menuItems.map(({
@@ -84,5 +114,6 @@ class CreateMenu extends PureComponent {
 }
 
 CreateMenu.propTypes = propTypes;
+CreateMenu.defaultProps = defaultProps;
 CreateMenu.displayName = 'CreateMenu';
 export default withWindowDimensions(CreateMenu);
