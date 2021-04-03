@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
-import styles from '../styles/styles';
+import styles, {getWidthAndHeightStyle} from '../styles/styles';
 
 const propTypes = {
     // Source URL for the preview image
@@ -59,10 +59,7 @@ class ThumbnailImage extends PureComponent {
         return (
             <View
                 style={[
-                    {
-                        width: this.state.thumbnailWidth,
-                        height: this.state.thumbnailHeight,
-                    },
+                    getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight),
                     styles.alignItemsCenter,
                     styles.justifyContentCenter,
                     styles.overflowHidden,

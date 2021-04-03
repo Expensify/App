@@ -3,13 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Popover from './Popover';
 import styles from '../styles/styles';
-import {
-    ChatBubble, Users, Receipt, MoneyCircle, Paperclip,
-} from './Icon/Expensicons';
-import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import CONST from '../CONST';
-import Navigation from '../libs/Navigation/Navigation';
 import MenuItem from './MenuItem';
 
 const propTypes = {
@@ -23,63 +17,22 @@ const propTypes = {
     onItemSelected: PropTypes.func.isRequired,
 
     // Menu items to be rendered on the list
-    menuOptions: PropTypes.arrayOf(
-        PropTypes.oneOf(Object.values(CONST.MENU_ITEM_KEYS)),
+    menuItems: PropTypes.arrayOf(
+        PropTypes.shape({
+            icon: PropTypes.func.isRequired,
+            text: PropTypes.string.isRequired,
+            onSelected: PropTypes.func.isRequired,
+        }),
     ).isRequired,
-
-    // Callback to fire when a AttachmentPicker item is selected
-    onAttachmentPickerSelected: PropTypes.func,
 
     ...windowDimensionsPropTypes,
 };
-
-const defaultProps = {
-    onAttachmentPickerSelected: () => {},
-};
-
 class CreateMenu extends PureComponent {
     constructor(props) {
         super(props);
-
+        this.onModalHide = () => {};
         this.setOnModalHide = this.setOnModalHide.bind(this);
         this.resetOnModalHide = this.resetOnModalHide.bind(this);
-        this.onModalHide = () => {};
-
-        const MENU_ITEMS = {
-            [CONST.MENU_ITEM_KEYS.NEW_CHAT]: {
-                icon: ChatBubble,
-                text: 'New Chat',
-                onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
-            },
-            [CONST.MENU_ITEM_KEYS.NEW_GROUP]: {
-                icon: Users,
-                text: 'New Group',
-                onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
-            },
-            [CONST.MENU_ITEM_KEYS.REQUEST_MONEY]: {
-                icon: MoneyCircle,
-                text: 'Request Money',
-                onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
-            },
-            [CONST.MENU_ITEM_KEYS.SPLIT_BILL]: {
-                icon: Receipt,
-                text: 'Split Bill',
-                onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
-            },
-            [CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]: {
-                icon: Paperclip,
-                text: 'Add Attachment',
-                onSelected: () => this.props.onAttachmentPickerSelected(),
-            },
-        };
-
-        this.menuItemData = props.menuOptions.map(key => ({
-            ...MENU_ITEMS[key],
-            onPress: () => {
-                props.onItemSelected();
-                this.setOnModalHide(() => MENU_ITEMS[key].onSelected());
-            },
-        }));
     }
 
     /**
@@ -109,12 +62,19 @@ class CreateMenu extends PureComponent {
                 anchorPosition={styles.createMenuPosition}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {this.menuItemData.map(({icon, text, onPress}) => (
+                    {this.props.menuItems.map(({
+                        icon,
+                        text,
+                        onSelected = () => {},
+                    }) => (
                         <MenuItem
                             key={text}
                             icon={icon}
                             title={text}
-                            onPress={onPress}
+                            onPress={() => {
+                                this.props.onItemSelected();
+                                this.setOnModalHide(onSelected);
+                            }}
                         />
                     ))}
                 </View>
@@ -124,6 +84,5 @@ class CreateMenu extends PureComponent {
 }
 
 CreateMenu.propTypes = propTypes;
-CreateMenu.defaultProps = defaultProps;
 CreateMenu.displayName = 'CreateMenu';
 export default withWindowDimensions(CreateMenu);
