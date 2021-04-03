@@ -4,7 +4,7 @@ import {Text, View} from 'react-native';
 import {propTypes, defaultProps} from './DisplayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
-import hasEllipsis from '../../libs/hasEllipsis';
+import hasContentWiderThanScrollWidth from '../../libs/hasContentWiderThanScrollWidth';
 
 class DisplayNames extends PureComponent {
     constructor(props) {
@@ -20,7 +20,7 @@ class DisplayNames extends PureComponent {
 
     componentDidMount() {
         this.setState({
-            isEllipsisActive: this.containerRef && hasEllipsis(this.containerRef),
+            isEllipsisActive: this.containerRef && hasContentWiderThanScrollWidth(this.containerRef),
         });
     }
 
