@@ -143,10 +143,10 @@ const OptionRow = ({
                                             getBackgroundAndBorderStyle(backgroundColor),
                                             optionIsFocused
                                                 ? getBackgroundAndBorderStyle(focusedBackgroundColor)
-                                                : undefined,
+                                                : {},
                                             hovered && !optionIsFocused
                                                 ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
-                                                : undefined,
+                                                : {},
                                         ]}
                                     />
                                 )
