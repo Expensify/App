@@ -42,7 +42,7 @@ const DetailsPage = ({personalDetails, route}) => {
             <View
                 pointerEvents="box-none"
                 style={[
-                    styles.detailsPageContainer,
+                    styles.containerWithSpaceBetween,
                 ]}
             >
                 {details ? (
