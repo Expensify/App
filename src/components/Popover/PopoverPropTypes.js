@@ -12,6 +12,8 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }).isRequired,
+
+    popOverType: modalPropTypes.type,
 };
 
 const defaultProps = {

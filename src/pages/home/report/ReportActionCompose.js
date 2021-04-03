@@ -18,6 +18,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
 import Navigation from '../../../libs/Navigation/Navigation';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -218,6 +219,7 @@ class ReportActionCompose extends React.Component {
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
+                                                popOverType={CONST.MODAL.MODAL_TYPE.POPOVER_CENTER_BOTTOM}
                                                 menuItems={[
                                                     {
                                                         icon: Paperclip,

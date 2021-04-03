@@ -6,11 +6,11 @@ import withWindowDimensions from '../withWindowDimensions';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
- * On small screen widths, it uses BottomDocked modal type, and a Popover on wide screen widths.
+ * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 const Popover = props => (
     <Modal
-        type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
+        type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : props.popOverType}
         popoverAnchorPosition={props.anchorPosition}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
