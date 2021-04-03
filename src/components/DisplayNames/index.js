@@ -1,6 +1,9 @@
 import _ from 'underscore';
 import React, {Fragment, PureComponent} from 'react';
-import {Text, View} from 'react-native';
+import {
+    Text,
+    View,
+} from 'react-native';
 import {propTypes, defaultProps} from './DisplayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
@@ -104,14 +107,14 @@ class DisplayNames extends PureComponent {
                     </Fragment>
                 ))}
                 {this.props.displayNamesToTooltips.length > 1 && this.state.isEllipsisActive
-                && (
-                    <View style={styles.displayNameTooltipEllipsis}>
-                        <Tooltip text={this.props.fullTitle}>
-                            {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
-                            <Text>....</Text>
-                        </Tooltip>
-                    </View>
-                )}
+                    && (
+                        <View style={styles.displayNameTooltipEllipsis}>
+                            <Tooltip text={this.props.fullTitle}>
+                                {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
+                                <Text>....</Text>
+                            </Tooltip>
+                        </View>
+                    )}
             </Text>
         );
     }
