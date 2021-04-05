@@ -458,6 +458,13 @@ function getReportChannelName(reportID) {
 }
 
 /**
+ * Get the private pusher channel name for an account.
+ */
+function getAccountChannelName(accountID) {
+    return `private-user-accountID-${accountID}`;
+}
+
+/**
  * Initialize our pusher subscriptions to listen for new report comments
  */
 function subscribeToReportCommentEvents() {
@@ -466,7 +473,7 @@ function subscribeToReportCommentEvents() {
         return;
     }
 
-    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+    const pusherChannelName = getAccountChannelName(currentUserAccountID);
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
     }
@@ -474,6 +481,7 @@ function subscribeToReportCommentEvents() {
     Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
         Log.info('[Report] Handled event sent by Pusher', true, {reportID: pushJSON.reportID});
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+        // TODO: make sure updating pins also works here!
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
@@ -557,6 +565,17 @@ function subscribeToReportTypingEvents(reportID) {
         .catch((error) => {
             Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
         });
+}
+
+function subscribeToReportTogglePinnedEvents(reportID) {
+    console.log('RECEIVED EVENT! WOOPEE!!')
+    debugger;
+    if (!reportID) {
+        return;
+    }
+
+    // const pusherChannelName = getAccountChannelName(currentUserAccountID);
+
 }
 
 /**
@@ -903,6 +922,7 @@ export {
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,
+    subscribeToReportTogglePinnedEvents,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
     saveReportComment,
