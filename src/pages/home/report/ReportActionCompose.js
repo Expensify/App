@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
@@ -217,20 +218,18 @@ class ReportActionCompose extends React.Component {
                                             <CreateMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
-                                                onItemSelected={() => this.setMenuVisibility(false)}
-                                                menuItems={[
-                                                    {
-                                                        icon: Paperclip,
-                                                        text: 'Upload Photo',
-                                                        onSelected: () => {
-                                                            setTimeout(() => {
-                                                                openPicker({
-                                                                    onPicked: file => displayFileInModal({file}),
-                                                                });
-                                                            }, 10);
-                                                        },
-                                                    },
-                                                ]}
+                                                onItemSelected={(item) => {
+                                                    if (item.text === CREATE_MENU_ITEMS.ATTACHMENT.text) {
+                                                        setTimeout(() => {
+                                                            openPicker({
+                                                                onPicked: file => displayFileInModal({file}),
+                                                            });
+
+                                                            this.setMenuVisibility(false);
+                                                        }, 10);
+                                                    }
+                                                }}
+                                                menuItems={Object.values(CREATE_MENU_ITEMS)}
 
                                             /**
                                              * Temporarily hiding IOU Modal options while Modal is incomplete. Will
@@ -299,6 +298,14 @@ class ReportActionCompose extends React.Component {
         );
     }
 }
+
+const CREATE_MENU_ITEMS = {
+    ATTACHMENT: {
+        icon: Paperclip,
+        text: 'Upload Photo',
+        onSelected: () => {},
+    },
+};
 
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
