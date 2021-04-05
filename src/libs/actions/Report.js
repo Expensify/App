@@ -448,6 +448,16 @@ function updateReportWithNewAction(reportID, reportAction) {
 }
 
 /**
+ * Updates a report in the store with a new report action
+ *
+ * @param {Number} reportID
+ * @param {Object} isPinned
+ */
+function updateReportPinnedState(reportID, isPinned) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
+}
+
+/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -459,15 +469,18 @@ function getReportChannelName(reportID) {
 
 /**
  * Get the private pusher channel name for an account.
+ *
+ * @param {String} accountID
+ * @returns {String}
  */
 function getAccountChannelName(accountID) {
     return `private-user-accountID-${accountID}`;
 }
 
 /**
- * Initialize our pusher subscriptions to listen for new report comments
+ * Initialize our pusher subscriptions to listen for new report comments and pin toggles
  */
-function subscribeToReportCommentEvents() {
+function subscribeToReportCommentAndTogglePinnedEvents() {
     // If we don't have the user's accountID yet we can't subscribe so return early
     if (!currentUserAccountID) {
         return;
@@ -478,17 +491,24 @@ function subscribeToReportCommentEvents() {
         return;
     }
 
-    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
-        Log.info('[Report] Handled event sent by Pusher', true, {reportID: pushJSON.reportID});
-        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
-        // TODO: make sure updating pins also works here!
-    }, false,
-    () => {
+    function onResubscribeToAccountChannel() {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    })
-        .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
-        });
+    }
+    function onChannelSubscribeFail(error) {
+        Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
+    }
+
+    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
+        Log.info('[Report] Handled reportComment event sent by Pusher', true, {reportID: pushJSON.reportID});
+        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+    }, false, onResubscribeToAccountChannel)
+        .catch(onChannelSubscribeFail);
+
+    Pusher.subscribe(pusherChannelName, 'reportTogglePinned', (pushJSON) => {
+        Log.info('[Report] Handled reportTogglePinned event sent by Pusher', true, {reportID: pushJSON.reportID});
+        updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned);
+    }, false, onResubscribeToAccountChannel)
+        .catch(onChannelSubscribeFail);
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
         Log.info('[Report] Handled event sent by Airship', true, {reportID});
@@ -565,17 +585,6 @@ function subscribeToReportTypingEvents(reportID) {
         .catch((error) => {
             Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
         });
-}
-
-function subscribeToReportTogglePinnedEvents(reportID) {
-    console.log('RECEIVED EVENT! WOOPEE!!')
-    debugger;
-    if (!reportID) {
-        return;
-    }
-
-    // const pusherChannelName = getAccountChannelName(currentUserAccountID);
-
 }
 
 /**
@@ -844,7 +853,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
  */
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
+    updateReportPinnedState(report.reportID, pinnedValue);
     API.Report_TogglePinned({
         reportID: report.reportID,
         pinnedValue,
@@ -921,8 +930,7 @@ export {
     fetchOrCreateChatReport,
     addAction,
     updateLastReadActionID,
-    subscribeToReportCommentEvents,
-    subscribeToReportTogglePinnedEvents,
+    subscribeToReportCommentAndTogglePinnedEvents,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
     saveReportComment,
