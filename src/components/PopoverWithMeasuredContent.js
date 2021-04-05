@@ -25,6 +25,10 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    // A function with content to measure. This component will use this.props.children by default,
+    // but in the case the children are not displayed, the measurement will not work.
+    measureContent: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -122,7 +126,7 @@ class PopoverWithMeasuredContent extends Component {
                     {...this.props}
                     anchorPosition={this.calculateAdjustedAnchorPosition()}
                 >
-                    {this.props.children}
+                    {this.props.measureContent()}
                 </Popover>
             ) : (
 
