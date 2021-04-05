@@ -6,17 +6,16 @@ module.exports =
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 7978:
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const {GITHUB_OWNER, EXPENSIFY_CASH_REPO} = __nccwpck_require__(7999);
 
-const token = core.getInput('GITHUB_TOKEN', {required: true});
-const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});
-const octokit = github.getOctokit(token, {required: true});
+const run = function () {
+    const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
+    const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
 
-function checkDeployBlockers() {
     return octokit.rest.issues.get({
         owner: GITHUB_OWNER,
         repo: EXPENSIFY_CASH_REPO,
@@ -27,18 +26,16 @@ function checkDeployBlockers() {
             const pattern = /-\s\[\s]/g;
             const matches = pattern.exec(body);
             core.setOutput('HAS_DEPLOY_BLOCKERS', matches !== null);
+
+            return issue.data;
         });
+};
+
+if (require.main === require.cache[eval('__filename')]) {
+    run();
 }
 
-checkDeployBlockers()
-    .then(() => {
-        console.log('The checkDeployBlockers action ran successfully');
-        process.exit(0);
-    })
-    .catch((err) => {
-        console.error('Something went wrong. The checkDeployBlockers action did not run successfully', err);
-        core.setFailed(err);
-    });
+module.exports = run;
 
 
 /***/ }),
