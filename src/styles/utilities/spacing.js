@@ -169,6 +169,10 @@ export default {
         paddingRight: 20,
     },
 
+    pr9: {
+        paddingRight: 32,
+    },
+
     pl5: {
         paddingLeft: 20,
     },

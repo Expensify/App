@@ -1070,22 +1070,6 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
-    reportActionContextMenuBigButton: {
-        ...flex.flexRow,
-        ...flex.alignItemsCenter,
-        ...spacing.p4,
-    },
-
-    reportActionContextMenuText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-        ...spacing.ml4,
-        ...spacing.mr2,
-    },
-
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',

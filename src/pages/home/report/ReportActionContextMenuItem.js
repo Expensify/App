@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, Text} from 'react-native';
+import {Pressable} from 'react-native';
+import MenuItem from '../../../components/MenuItem';
 import Tooltip from '../../../components/Tooltip';
 import Icon from '../../../components/Icon';
 import styles, {getIconFillColor, getButtonBackgroundColorStyle} from '../../../styles/styles';
@@ -73,30 +74,12 @@ class ReportActionContextMenuItem extends Component {
                         </Pressable>
                     </Tooltip>
                 ) : (
-                    <Pressable
+                    <MenuItem
+                        title={text}
+                        icon={icon}
                         onPress={this.triggerPressAndUpdateSuccess}
-                        style={
-                            ({hovered, pressed}) => [
-                                styles.reportActionContextMenuBigButton,
-                                getButtonBackgroundColorStyle(getButtonState(hovered, pressed, this.state.success)),
-                            ]
-                        }
-                    >
-                        {({hovered, pressed}) => (
-                            <>
-                                <Icon
-                                    src={icon}
-                                    fill={getIconFillColor(getButtonState(hovered, pressed, this.state.success))}
-                                />
-                                <Text
-                                    style={styles.reportActionContextMenuText}
-                                    selectable={false}
-                                >
-                                    {text}
-                                </Text>
-                            </>
-                        )}
-                    </Pressable>
+                        wrapperStyle={styles.pr9}
+                    />
                 )
         );
     }
