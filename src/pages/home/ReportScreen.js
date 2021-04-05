@@ -40,18 +40,18 @@ class ReportScreen extends React.Component {
 
     componentDidUpdate(prevProps) {
         // Reports changed, reset and load new data
-        if (this.reportID !== prevProps.route.params.reportID) {
+        if (this.props.route.params.reportID !== prevProps.route.params.reportID) {
             this.fetchReport();
         }
     }
 
     get canRenderMainContent() {
-        return this.reportID && !this.state.isLoading && !this.state.error;
+        return Boolean(this.reportID) && !this.state.isLoading && !this.state.error;
     }
 
     get reportID() {
         const params = this.props.route.params;
-        return params.reportID;
+        return parseInt(params.reportID, 10) || 0;
     }
 
     fetchReport() {
