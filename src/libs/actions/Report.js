@@ -293,8 +293,24 @@ function fetchChatReportsByIDs(chatList) {
             // personal details of all the participants and even link up their avatars to report icons.
             const reportIOUData = {};
             _.each(fetchedReports, (report) => {
-                const simplifiedReport = getSimplifiedReportObject(report);
-                simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
+                // Do not store IOU reports as 'report_' Onyx keys.
+                if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
+                    const simplifiedReport = getSimplifiedReportObject(report);
+                    simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
+                } else if (lodashGet(report, 'reportNameValuePairs.type') === 'iou') {
+                    // If there's a new IOU report, find corresponding chat report and link them
+                    findChatReportID([report.ownerEmail, report.managerEmail]).then((chatReportID) => {
+                        const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.reportID}`;
+                        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+                        Onyx.merge(iouReportKey, getSimplifiedIOUReport(report, chatReportID)); 
+                        const chatReportObject = {};
+                        chatReportObject.iouReportID = report.reportID;
+                        chatReportObject.hasOutstandingIOU = report.stateNum === 1
+                            && report.total !== 0;
+                        Onyx.merge(reportKey, chatReportObject);
+        
+                    });
+                }
             });
 
             _.each(iouReportObjects, (iouReportObject) => {
@@ -308,7 +324,6 @@ function fetchChatReportsByIDs(chatList) {
                 simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
                 simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === 1
                     && iouReportObject.total !== 0;
-                Onyx.merge(iouReportKey, iouReportObject);
             });
 
             // We use mergeCollection such that it updates the collection in one go.
@@ -321,6 +336,22 @@ function fetchChatReportsByIDs(chatList) {
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
 
             return _.map(fetchedReports, report => report.reportID);
+        });
+}
+
+/**
+ * Update chat report for given IOU report
+ *
+ * @param {Object} iouReportObject
+ * @return {void}
+ */
+ function updateChatReportDetails(iouReportObject) {
+    if (!iouReportObject.participants) {
+        return;
+    }
+    findChatReportID([iouReportObject.participants[0], currentUserEmail])
+        .then((chatReportID) => {
+            fetchChatReportsByIDs([chatReportID]);
         });
 }
 
@@ -416,6 +447,11 @@ function updateReportWithNewAction(reportID, reportAction) {
     };
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+
+    // If chat report receives an action with IOU, update IOU object
+    if (reportAction.actionName === 'IOU') {
+        fetchChatReportsByIDs([reportID]);
+    }
 
     if (!ActiveClientManager.isClientTheLeader()) {
         console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
@@ -600,6 +636,29 @@ function fetchOrCreateChatReport(participants) {
 
             // Redirect the logged in person to the new report
             Navigation.navigate(ROUTES.getReportRoute(reportID));
+        });
+}
+
+/**
+ * Get the report ID for a chat report for a specific
+ * set of participants.
+ *
+ * @param {String[]} participants
+ * @returns {Promise} chatReportID
+ */
+ function findChatReportID(participants) {
+    if (participants.length < 2) {
+        throw new Error('fetchOrCreateChatReport() must have at least two participants');
+    }
+
+    return API.CreateChatReport({
+        emailList: participants.join(','),
+    })
+        .then((data) => {
+            if (data.jsonCode !== 200) {
+                throw new Error(data.message);
+            }
+            return data.reportID;
         });
 }
 
@@ -871,6 +930,11 @@ function handleReportChanged(report) {
     // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
     if (report.reportID && report.reportName === undefined) {
         fetchChatReportsByIDs([report.reportID]);
+    }
+
+    // If this is a brand new IOU report, find and link corresponding chat report ID
+    if (report.reportName === CONST.REPORT.ACTIONS.TYPE.IOU && report.chatReportID === undefined) {
+        updateChatReportDetails(report);
     }
 
     // Store the max sequence number for each report

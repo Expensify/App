@@ -897,6 +897,9 @@ const styles = {
     secondAvatarInline: {
         bottom: -3,
         right: -25,
+        borderWidth: 3,
+        borderRadius: 18,
+        borderColor: themeColors.componentBG,
     },
 
     avatarNormal: {
