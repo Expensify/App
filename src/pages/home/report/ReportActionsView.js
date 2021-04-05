@@ -311,7 +311,6 @@ class ReportActionsView extends React.Component {
      * @param {Object} args.item
      * @param {Number} args.index
      * @param {Function} args.onLayout
-     * @param {Boolean} args.needsLayoutCalculation
      *
      * @returns {React.Component}
      */
@@ -319,7 +318,6 @@ class ReportActionsView extends React.Component {
         item,
         index,
         onLayout,
-        needsLayoutCalculation,
     }) {
         return (
 
@@ -335,7 +333,6 @@ class ReportActionsView extends React.Component {
                     action={item.action}
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
-                    needsLayoutCalculation={needsLayoutCalculation}
                 />
             </View>
         );
