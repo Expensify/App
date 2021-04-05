@@ -107,4 +107,6 @@ describe('actions/Report', () => {
                 expect(resultAction.loading).toEqual(false);
             });
     });
+
+    // TODO: it('should update pins when togglePinned event is handled via Pusher');
 });
