@@ -6,7 +6,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import CONST from '../../../CONST';
 import compose from '../../compose';
 import {
-    subscribeToReportCommentEvents,
+    subscribeToReportCommentAndTogglePinnedEvents,
     fetchAll as fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
@@ -66,7 +66,7 @@ class AuthScreens extends React.Component {
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
-        }).then(subscribeToReportCommentEvents);
+        }).then(subscribeToReportCommentAndTogglePinnedEvents);
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
