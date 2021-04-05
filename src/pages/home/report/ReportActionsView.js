@@ -76,6 +76,7 @@ class ReportActionsView extends React.Component {
         // Helper variable that keeps track of the unread action count before it updates to zero
         this.unreadActionCount = 0;
 
+        // Todo: this should come from props and depend on isDrawerOutOfTheWay
         // Helper variable that prevents the unread indicator to show up for new messages
         // received while the report is still active
         this.shouldShowUnreadActionIndicator = true;
@@ -83,6 +84,8 @@ class ReportActionsView extends React.Component {
         this.state = {
             isLoadingMoreChats: false,
         };
+
+        this.updateSortedReportActions(props.reportActions);
     }
 
     componentDidMount() {
@@ -93,11 +96,8 @@ class ReportActionsView extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (nextProps.reportID !== this.props.reportID) {
-            return true;
-        }
-
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            this.updateSortedReportActions(nextProps.reportActions);
             return true;
         }
 
@@ -109,12 +109,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // We have switched to a new report
-        if (prevProps.reportID !== this.props.reportID) {
-            this.reset(prevProps.reportID);
-            return;
-        }
-
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
@@ -215,9 +209,11 @@ class ReportActionsView extends React.Component {
 
     /**
      * Updates and sorts the report actions by sequence number
+     *
+     * @param {Array<{sequenceNumber, actionName}>} reportActions
      */
-    updateSortedReportActions() {
-        this.sortedReportActions = _.chain(this.props.reportActions)
+    updateSortedReportActions(reportActions) {
+        this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU')
             .map((item, index) => ({action: item, index}))
@@ -361,7 +357,6 @@ class ReportActionsView extends React.Component {
         }
 
         this.setUpUnreadActionIndicator();
-        this.updateSortedReportActions();
         return (
             <InvertedFlatList
                 ref={el => this.actionListElement = el}
