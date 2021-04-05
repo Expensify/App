@@ -109,7 +109,8 @@ class AddSecondaryLoginPage extends Component {
                                 value={this.state.login}
                                 onChangeText={login => this.setState({login})}
                                 autoFocus
-                                keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE ? 'phone-pad' : undefined}
+                                keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
+                                    ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
                                 returnKeyType="done"
                             />
                         </View>

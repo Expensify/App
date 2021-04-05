@@ -9,6 +9,7 @@ import ButtonWithLoader from '../../components/ButtonWithLoader';
 import themeColors from '../../styles/themes/default';
 import {signIn} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
 const propTypes = {
@@ -88,7 +89,7 @@ class PasswordForm extends React.Component {
                             placeholderTextColor={themeColors.placeholderText}
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
-                            keyboardType="numeric"
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         />
                     </View>
                 )}
