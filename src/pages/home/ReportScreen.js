@@ -45,7 +45,6 @@ class ReportScreen extends React.Component {
         }
     }
 
-    // Todo: ask why getters aren't on top?
     get canRenderMainContent() {
         return this.reportID && !this.state.isLoading && !this.state.error;
     }
@@ -61,7 +60,6 @@ class ReportScreen extends React.Component {
         // This adds a small fade in transition when the loader appears
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
-        console.debug('[ReportScreen] Fetch started: ');
         this.setState({
             isLoading: true,
             error: null,
@@ -69,15 +67,15 @@ class ReportScreen extends React.Component {
 
         fetchActions(this.reportID)
             .catch((error) => {
-                // Todo: what should we do if fetching fails for some reason
-                // Todo: see what we currently do and do the same here
+                /* Todo: do something here if the user is going to be left with an empty view
+                *   E.g. Alert like "Oops, we couldn't load this conversation. Please Try again"
+                *     button Retry -> this.fetchReport() */
                 this.setState({error});
                 console.error(error);
             })
             .finally(() => {
                 // This adds a small fadeout transition when the loader disappears
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                console.debug('[ReportScreen] Stop loading: ');
                 this.setState({isLoading: false});
             });
     }
