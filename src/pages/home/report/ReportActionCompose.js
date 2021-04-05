@@ -9,7 +9,7 @@ import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
-import {Plus, Send, Emoji} from '../../../components/Icon/Expensicons';
+import {Plus, Send, Emoji, Paperclip} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
@@ -17,7 +17,6 @@ import AttachmentModal from '../../../components/AttachmentModal';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
-import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
@@ -70,7 +69,7 @@ class ReportActionCompose extends React.Component {
         this.comment = props.comment;
 
         this.state = {
-            isFocused: false,
+            isFocused: true,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isEmojiPickerVisible: false,
@@ -85,17 +84,8 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // The first time the component loads the props is empty and the next time it may contain value.
-        // If it does let's update this.comment so that it matches the defaultValue that we show in textInput.
-        if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
-            this.comment = this.props.comment;
-        }
-
-        // When any modal goes from visible to hidden or when the report ID changes, bring focus to the compose field
-        if (
-            (prevProps.modal.isVisible && !this.props.modal.isVisible)
-            || (prevProps.reportID !== this.props.reportID)
-        ) {
+        // When any modal goes from visible to hidden, bring focus to the compose field
+        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.setIsFocused(true);
         }
     }
@@ -268,34 +258,38 @@ class ReportActionCompose extends React.Component {
                                             <CreateMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
-                                                onAttachmentPickerSelected={() => {
-                                                    setTimeout(() => {
-                                                        openPicker({
-                                                            onPicked: (file) => {
-                                                                displayFileInModal({file});
-                                                            },
-                                                        });
-                                                    }, 10);
-                                                }}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
-                                                menuOptions={[CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+                                                menuItems={[
+                                                    {
+                                                        icon: Paperclip,
+                                                        text: 'Upload Photo',
+                                                        onSelected: () => {
+                                                            setTimeout(() => {
+                                                                openPicker({
+                                                                    onPicked: file => displayFileInModal({file}),
+                                                                });
+                                                            }, 10);
+                                                        },
+                                                    },
+                                                ]}
 
-                                                /**
-                                                 * Temporarily hiding IOU Modal options while Modal is incomplete. Will
-                                                 * be replaced by a beta flag once IOUConfirm is completed.
-                                                menuOptions={hasMultipleParticipants
-                                                    ? [
-                                                        CONST.MENU_ITEM_KEYS.SPLIT_BILL,
-                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
-                                                    : [
-                                                        CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
-                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
-                                                */
+                                            /**
+                                             * Temporarily hiding IOU Modal options while Modal is incomplete. Will
+                                             * be replaced by a beta flag once IOUConfirm is completed.
+                                            menuOptions={hasMultipleParticipants
+                                                ? [
+                                                    CONST.MENU_ITEM_KEYS.SPLIT_BILL,
+                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
+                                                : [
+                                                    CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+                                            */
                                             />
                                         </>
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
+                                    autoFocus
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
