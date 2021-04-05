@@ -4,7 +4,7 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import CONFIG from '../../src/CONFIG';
-import {addAction, subscribeToReportCommentEvents} from '../../src/libs/actions/Report';
+import {addAction, subscribeToReportCommentAndTogglePinnedEvents} from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import PushNotification from '../../src/libs/Notification/PushNotification';
 import {signInWithTestUser, fetchPersonalDetailsForTestUser} from '../utils/TestHelper';
@@ -56,7 +56,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                subscribeToReportCommentEvents();
+                subscribeToReportCommentAndTogglePinnedEvents();
                 return waitForPromisesToResolve();
             })
             .then(() => fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
