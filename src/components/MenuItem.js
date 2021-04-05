@@ -3,10 +3,10 @@ import {
     View, Text, Pressable,
 } from 'react-native';
 import PropTypes from 'prop-types';
-
-import styles from '../styles/styles';
+import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles/styles';
 import Icon from './Icon';
 import {ArrowRight} from './Icon/Expensicons';
+import getButtonState from '../libs/getButtonState';
 
 const propTypes = {
     // Any additional styles to apply
@@ -24,11 +24,15 @@ const propTypes = {
 
     // Boolean whether to display the ArrowRight icon
     shouldShowRightArrow: PropTypes.bool,
+
+    // Whether or not the icon should be in the "complete" state
+    shouldShowCompleteIcon: PropTypes.bool,
 };
 
 const defaultProps = {
     shouldShowRightArrow: false,
     wrapperStyle: {},
+    shouldShowCompleteIcon: false,
 };
 
 const MenuItem = ({
@@ -37,29 +41,40 @@ const MenuItem = ({
     title,
     shouldShowRightArrow,
     wrapperStyle,
+    shouldShowCompleteIcon,
 }) => (
     <Pressable
         onPress={onPress}
-        style={({hovered}) => ([
+        style={({hovered, pressed}) => ([
             styles.createMenuItem,
-            hovered && styles.hoveredButton,
+            getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
             wrapperStyle,
         ])}
     >
-        <View style={styles.flexRow}>
-            <View style={styles.createMenuIcon}>
-                <Icon src={icon} />
-            </View>
-            <View style={styles.justifyContentCenter}>
-                <Text style={[styles.createMenuText, styles.ml3]}>
-                    {title}
-                </Text>
-            </View>
-        </View>
-        {shouldShowRightArrow && (
-            <View style={styles.createMenuIcon}>
-                <Icon src={ArrowRight} />
-            </View>
+        {({hovered, pressed}) => (
+            <>
+                <View style={styles.flexRow}>
+                    <View style={styles.createMenuIcon}>
+                        <Icon
+                            src={icon}
+                            fill={getIconFillColor(getButtonState(hovered, pressed, shouldShowCompleteIcon))}
+                        />
+                    </View>
+                    <View style={styles.justifyContentCenter}>
+                        <Text style={[styles.createMenuText, styles.ml3]}>
+                            {title}
+                        </Text>
+                    </View>
+                </View>
+                {shouldShowRightArrow && (
+                    <View style={styles.createMenuIcon}>
+                        <Icon
+                            src={ArrowRight}
+                            fill={getIconFillColor(getButtonState(hovered, pressed, shouldShowCompleteIcon))}
+                        />
+                    </View>
+                )}
+            </>
         )}
     </Pressable>
 );
