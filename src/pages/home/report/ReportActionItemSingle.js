@@ -22,7 +22,7 @@ const propTypes = {
 };
 
 const ReportActionItemSingle = ({action, personalDetails}) => {
-    const {avatar, displayName} = personalDetails[action.actorEmail];
+    const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
 
