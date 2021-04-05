@@ -24,15 +24,11 @@ const propTypes = {
 
     // Boolean whether to display the ArrowRight icon
     shouldShowRightArrow: PropTypes.bool,
-
-    // Whether or not the icon should be in the "complete" state
-    shouldShowCompleteIcon: PropTypes.bool,
 };
 
 const defaultProps = {
     shouldShowRightArrow: false,
     wrapperStyle: {},
-    shouldShowCompleteIcon: false,
 };
 
 const MenuItem = ({
@@ -41,7 +37,6 @@ const MenuItem = ({
     title,
     shouldShowRightArrow,
     wrapperStyle,
-    shouldShowCompleteIcon,
 }) => (
     <Pressable
         onPress={onPress}
@@ -55,10 +50,7 @@ const MenuItem = ({
             <>
                 <View style={styles.flexRow}>
                     <View style={styles.createMenuIcon}>
-                        <Icon
-                            src={icon}
-                            fill={getIconFillColor(getButtonState(hovered, pressed, shouldShowCompleteIcon))}
-                        />
+                        <Icon src={icon} fill={getIconFillColor(getButtonState(hovered, pressed))} />
                     </View>
                     <View style={styles.justifyContentCenter}>
                         <Text style={[styles.createMenuText, styles.ml3]}>
@@ -68,10 +60,7 @@ const MenuItem = ({
                 </View>
                 {shouldShowRightArrow && (
                     <View style={styles.createMenuIcon}>
-                        <Icon
-                            src={ArrowRight}
-                            fill={getIconFillColor(getButtonState(hovered, pressed, shouldShowCompleteIcon))}
-                        />
+                        <Icon src={ArrowRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
                     </View>
                 )}
             </>
