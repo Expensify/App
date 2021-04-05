@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {
-    Text,
-    View,
+    SafeAreaView, Text, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -79,27 +78,29 @@ class SignInPage extends Component {
 
         return (
             <>
-                <SignInPageLayout
-                    showWelcomeText={showLoginForm}
-                    showWelcomeScreenshot={showLoginForm}
-                >
-                    {showLoginForm && <LoginForm />}
+                <SafeAreaView style={[styles.signInPage]}>
+                    <SignInPageLayout
+                        shouldShowWelcomeText={showLoginForm}
+                        shouldShowWelcomeScreenshot={showLoginForm}
+                    >
+                        {showLoginForm && <LoginForm />}
 
-                    {showPasswordForm && <PasswordForm />}
+                        {showPasswordForm && <PasswordForm />}
 
-                    {showResendValidationLinkForm && <ResendValidationForm />}
+                        {showResendValidationLinkForm && <ResendValidationForm />}
 
-                    {/* Because of the custom layout of the login form, session errors are displayed differently */}
-                    {!showLoginForm && (
-                        <View>
-                            {this.props.account && !_.isEmpty(this.props.account.error) && (
-                                <Text style={[styles.formError]}>
-                                    {this.props.account.error}
-                                </Text>
-                            )}
-                        </View>
-                    )}
-                </SignInPageLayout>
+                        {/* Because of the custom layout of the login form, session errors are displayed differently */}
+                        {!showLoginForm && (
+                            <View>
+                                {this.props.account && !_.isEmpty(this.props.account.error) && (
+                                    <Text style={[styles.formError]}>
+                                        {this.props.account.error}
+                                    </Text>
+                                )}
+                            </View>
+                        )}
+                    </SignInPageLayout>
+                </SafeAreaView>
             </>
         );
     }
