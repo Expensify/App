@@ -580,6 +580,7 @@ function SetNameValuePair(parameters) {
 }
 
 /**
+ * @param {Object} parameters
  * @param {Number} parameters.email
  * @returns {Promise}
  */
