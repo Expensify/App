@@ -14,13 +14,13 @@ const propTypes = {
     // The children to show inside the layout
     children: PropTypes.node.isRequired,
 
-    // Whether we should show the welcome elements
+    // Whether we should show the welcome text
     // (the welcome screenshot always displays on wide views)
-    showWelcomeText: PropTypes.Boolean,
+    shouldShowWelcomeText: PropTypes.Boolean,
 };
 
 const defaultProps = {
-    showWelcomeText: true,
+    shouldShowWelcomeText: true,
 };
 
 const SignInPageLayoutWide = props => (
@@ -45,10 +45,10 @@ const SignInPageLayoutWide = props => (
                         Expensify.cash
                     </Text>
                 </View>
-                <View style={[styles.loginFormContainer]}>
+                <View style={[styles.signInPageFormContainer]}>
                     {props.children}
                 </View>
-                {props.showWelcomeText
+                {props.shouldShowWelcomeText
                     && (
                     <View style={[styles.mt6, styles.mb6]}>
                         <WelcomeText textSize="large" />

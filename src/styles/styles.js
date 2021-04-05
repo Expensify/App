@@ -396,7 +396,7 @@ const styles = {
         width: '100%',
     },
 
-    loginFormContainer: {
+    signInPageFormContainer: {
         maxWidth: 295,
         width: '100%',
     },
