@@ -14,7 +14,6 @@ import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
 
@@ -43,8 +42,6 @@ const propTypes = {
         // participants associated with current report
         participants: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -312,5 +309,4 @@ export default compose(
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
-    withWindowDimensions,
 )(ReportActionCompose);
