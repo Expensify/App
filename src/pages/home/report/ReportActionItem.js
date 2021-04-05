@@ -69,7 +69,8 @@ class ReportActionItem extends Component {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
             || !_.isEqual(this.props.action, nextProps.action)
-            || this.props.isMostRecentIOUReport !== nextProps.isMostRecentIOUReport;
+            || this.props.isMostRecentIOUReport !== nextProps.isMostRecentIOUReport
+            || !_.isEqual(this.props.report, nextProps.report);
     }
 
     /**

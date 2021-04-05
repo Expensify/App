@@ -119,7 +119,7 @@ class ReportActionItemIOUPreview extends React.Component {
                     </View>
                     <MultipleAvatars
                         avatarImageURLs={[managerAvatar, ownerAvatar]}
-                        styles={{secondAvatar: styles.secondAvatarInline}}
+                        secondAvatarStyle={[styles.secondAvatarInline]}
                     />
                 </View>
                 {(this.props.iou.managerEmail === sessionEmail) ? (
