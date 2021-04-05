@@ -98,6 +98,10 @@ const CONST = {
         PHONE: 'phone',
         EMAIL: 'email',
     },
+    KEYBOARD_TYPE: {
+        NUMERIC: 'numeric',
+        PHONE_PAD: 'phone-pad',
+    },
 };
 
 export default CONST;
