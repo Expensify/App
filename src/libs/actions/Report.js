@@ -448,10 +448,10 @@ function updateReportWithNewAction(reportID, reportAction) {
 }
 
 /**
- * Updates a report in the store with a new report action
+ * Updates a report in the store with a new report pin state
  *
  * @param {Number} reportID
- * @param {Object} isPinned
+ * @param {Boolean} isPinned
  */
 function updateReportPinnedState(reportID, isPinned) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
