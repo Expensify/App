@@ -252,6 +252,14 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
+    headerGap: {
+        height: 12,
+    },
+
+    pushTextRight: {
+        left: 100000,
+    },
+
     reportOptions: {
         marginLeft: 8,
     },
@@ -786,6 +794,10 @@ const styles = {
         paddingLeft: 6,
         margin: 3,
         justifyContent: 'center',
+    },
+
+    hoveredButton: {
+        backgroundColor: themeColors.buttonHoveredBG,
     },
 
     chatItemAttachButton: {
@@ -1410,12 +1422,85 @@ function getZoomSizingStyle(isZoomed) {
     };
 }
 
-function getSecondAvatarStyle(parentBGColor) {
+/**
+ * Returns a style with backgroundColor and borderColor set to the same color
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundAndBorderStyle(backgroundColor) {
     return {
-        backgroundColor: parentBGColor,
-        borderColor: parentBGColor,
+        backgroundColor,
+        borderColor: backgroundColor,
     };
 }
+
+/**
+ * Returns a style with the specified backgroundColor
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundColorStyle(backgroundColor) {
+    return {
+        backgroundColor,
+    };
+}
+
+/**
+ * @param {Animated.Value} rotate
+ * @param {Animated.Value} backgroundColor
+ * @returns {Object}
+ */
+function getAnimatedFABStyle(rotate, backgroundColor) {
+    return {
+        transform: [{rotate}],
+        backgroundColor,
+    };
+}
+
+/**
+ * @param {Number} width
+ * @param {Number} height
+ * @returns {Object}
+ */
+function getWidthAndHeightStyle(width, height) {
+    return {
+        width,
+        height,
+    };
+}
+
+/**
+ * @param {Number} opacity
+ * @returns {Object}
+ */
+function getOpacityStyle(opacity) {
+    return {opacity};
+}
+
+/**
+ * @param {Object} params
+ * @returns {Object}
+ */
+function getModalPaddingStyles({
+    shouldAddBottomSafeAreaPadding,
+    shouldAddTopSafeAreaPadding,
+    safeAreaPaddingTop,
+    safeAreaPaddingBottom,
+    modalContainerStylePaddingTop,
+    modalContainerStylePaddingBottom,
+}) {
+    return {
+        paddingTop: shouldAddTopSafeAreaPadding
+            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
+            : modalContainerStylePaddingTop || 0,
+        paddingBottom: shouldAddBottomSafeAreaPadding
+            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
+            : modalContainerStylePaddingBottom || 0,
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1426,5 +1511,10 @@ export {
     getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
-    getSecondAvatarStyle,
+    getBackgroundAndBorderStyle,
+    getBackgroundColorStyle,
+    getAnimatedFABStyle,
+    getWidthAndHeightStyle,
+    getOpacityStyle,
+    getModalPaddingStyles,
 };

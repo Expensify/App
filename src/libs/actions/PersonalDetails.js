@@ -43,8 +43,8 @@ function getDefaultAvatar(login = '') {
  * @returns {String}
  */
 function getAvatar(personalDetail, login) {
-    if (personalDetail && personalDetail.avatar) {
-        return personalDetail.avatar.replace(/&d=404$/, '');
+    if (personalDetail && personalDetail.avatarThumbnail) {
+        return personalDetail.avatarThumbnail;
     }
 
     return getDefaultAvatar(login);
@@ -167,7 +167,8 @@ function getFromReportParticipants(reports) {
                 if (report.participants.length > 0) {
                     const avatars = _.map(report.participants, dmParticipant => ({
                         firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
-                        avatar: lodashGet(details, [dmParticipant, 'avatar'], '') || getDefaultAvatar(dmParticipant),
+                        avatar: lodashGet(details, [dmParticipant, 'avatarThumbnail'], '')
+                            || getDefaultAvatar(dmParticipant),
                     }))
                         .sort((first, second) => first.firstName - second.firstName)
                         .map(item => item.avatar);
@@ -227,6 +228,22 @@ function setAvatar(file) {
     });
 }
 
+/**
+ * Deletes the user's avatar image
+ *
+ * @param {String} login
+ */
+function deleteAvatar(login) {
+    // We don't want to save the default avatar URL in the backend since we don't want to allow
+    // users the option of removing the default avatar, instead we'll save an empty string
+    API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
+
+    // Set onyx value to default avatar
+    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+        avatar: getDefaultAvatar(login),
+    });
+}
+
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
 
@@ -237,4 +254,5 @@ export {
     getDefaultAvatar,
     setPersonalDetails,
     setAvatar,
+    deleteAvatar,
 };
