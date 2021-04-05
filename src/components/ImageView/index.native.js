@@ -25,6 +25,12 @@ class ImageView extends PureComponent {
             imageWidth: 100,
             imageHeight: 100,
         };
+
+        this.scaleValue = 1;
+    }
+
+    joetest(vx, scale) {
+        console.log(`joetest vx: ${vx} scale: ${scale}`);
     }
 
     render() {
@@ -45,6 +51,21 @@ class ImageView extends PureComponent {
                     cropHeight={windowHeight}
                     imageWidth={this.state.imageWidth}
                     imageHeight={this.state.imageHeight}
+                    responderRelease={this.joetest}
+                    onStartShouldSetPanResponder={(e) => {
+                        console.log(e);
+                        if (e.nativeEvent.touches.length === 2 || this.scaleValue !== 1) {
+                            console.log(`joetest true. scale: ${this.scaleValue}`);
+                            return true;
+                        } else {
+                            console.log(`joetest false. scale: ${this.scaleValue}`);
+                            return false;
+                        }
+                    }}
+                    onMove={({scale}) => {
+                        console.log(`joetest moving. scale: ${scale}`);
+                        this.scaleValue = scale;
+                    }}
                 >
                     <ImageWithSizeCalculation
                         style={{
