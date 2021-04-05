@@ -13,13 +13,13 @@ export default function withDrawerState(WrappedComponent) {
 
         return (
             <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 isDrawerOpen={isDrawerOpen}
             />
         );
     };
 
-    HOC_Wrapper.displayName = `withWindowDimensions(${getComponentDisplayName(WrappedComponent)})`;
+    HOC_Wrapper.displayName = `withDrawerState(${getComponentDisplayName(WrappedComponent)})`;
     return HOC_Wrapper;
 }
