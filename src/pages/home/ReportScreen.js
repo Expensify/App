@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
+import {LayoutAnimation, View} from 'react-native';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -59,6 +58,9 @@ class ReportScreen extends React.Component {
     fetchReport() {
         if (!this.reportID) { return; }
 
+        // This adds a small fade in transition when the loader appears
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
         console.debug('[ReportScreen] Fetch started: ');
         this.setState({
             isLoading: true,
@@ -73,6 +75,8 @@ class ReportScreen extends React.Component {
                 console.error(error);
             })
             .finally(() => {
+                // This adds a small fadeout transition when the loader disappears
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 console.debug('[ReportScreen] Stop loading: ');
                 this.setState({isLoading: false});
             });
