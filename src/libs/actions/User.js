@@ -129,6 +129,8 @@ function validateLogin(accountID, validateCode) {
             const {authToken, email} = response;
             if (!sessionAuthToken) {
                 createTemporaryLogin(authToken, email);
+            } else {
+                fetch();
             }
         } else {
             const error = lodashGet(response, 'message', 'Unable to validate login.');
