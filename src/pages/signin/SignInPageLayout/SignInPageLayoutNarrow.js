@@ -20,13 +20,13 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     // Whether we should show the welcome elements
-    showWelcomeText: PropTypes.Boolean,
-    showWelcomeScreenshot: PropTypes.Boolean,
+    shouldShowWelcomeText: PropTypes.Boolean,
+    shouldShowWelcomeScreenshot: PropTypes.Boolean,
 };
 
 const defaultProps = {
-    showWelcomeText: true,
-    showWelcomeScreenshot: true,
+    shouldShowWelcomeText: true,
+    shouldShowWelcomeScreenshot: true,
 };
 
 const SignInPageLayoutNarrow = props => (
