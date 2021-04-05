@@ -233,6 +233,7 @@ function setPassword(password, validateCode) {
 }
 
 export {
+    createTemporaryLogin,
     fetchAccountDetails,
     setPassword,
     signIn,

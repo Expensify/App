@@ -4,6 +4,13 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
+import {createTemporaryLogin} from './Session';
+
+let sessionAuthToken = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => sessionAuthToken = val ? val.authToken : '',
+});
 
 /**
  * Changes a password for a given account
@@ -103,6 +110,37 @@ function setSecondaryLogin(login, password) {
     });
 }
 
+/**
+ * Validates a login given an accountID and validation code
+ *
+ * @param {Number} accountID
+ * @param {String} validateCode
+ * @returns {Promise}
+ *
+ */
+function validateLogin(accountID, validateCode) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+
+    return API.ValidateEmail({
+        accountID,
+        validateCode,
+    }).then((response) => {
+        if (response.jsonCode === 200) {
+            const {authToken, email} = response;
+            if (!sessionAuthToken) {
+                createTemporaryLogin(authToken, email);
+            }
+        } else {
+            const error = lodashGet(response, 'message', 'Unable to validate login.');
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+        }
+        return response;
+    }).finally((response) => {
+        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        return response;
+    });
+}
+
 export {
     changePassword,
     getBetas,
@@ -110,4 +148,5 @@ export {
     resendValidateCode,
     setExpensifyNewsStatus,
     setSecondaryLogin,
+    validateLogin,
 };

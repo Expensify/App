@@ -19,6 +19,12 @@ export default () => (
             options={defaultScreenOptions}
             component={SignInPage}
         />
+        {/* If we have a validation code but we're unauthenticated, route to the signin page */}
+        <RootStack.Screen
+            name="ValidateLogin"
+            options={defaultScreenOptions}
+            component={SignInPage}
+        />
         <RootStack.Screen
             name="SetPassword"
             options={defaultScreenOptions}
