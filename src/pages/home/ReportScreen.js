@@ -6,12 +6,16 @@ import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
-import Navigation from '../../libs/Navigation/Navigation';
 import {fetchActions} from '../../libs/actions/Report';
-import ROUTES from '../../ROUTES';
 
 const propTypes = {
-    /* Navigation route context info */
+    /* Navigation api provided by react navigation */
+    navigation: PropTypes.shape({
+        /* Display the drawer programmatically */
+        openDrawer: PropTypes.func.isRequired,
+    }).isRequired,
+
+    /* Navigation route context info provided by react navigation */
     route: PropTypes.shape({
         /* Route specific parameters used on this screen */
         params: PropTypes.shape({
@@ -85,7 +89,7 @@ class ReportScreen extends React.Component {
             >
                 <HeaderView
                     reportID={this.reportID}
-                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                    onNavigationMenuButtonClicked={this.props.navigation.openDrawer}
                 />
 
                 <View style={[styles.dFlex, styles.flex1]}>
