@@ -21,7 +21,7 @@ const propTypes = {
         PropTypes.shape({
             icon: PropTypes.func.isRequired,
             text: PropTypes.string.isRequired,
-            onSelected: PropTypes.func.isRequired,
+            onSelected: PropTypes.func,
         }),
     ).isRequired,
 
@@ -30,24 +30,18 @@ const propTypes = {
 class CreateMenu extends PureComponent {
     constructor(props) {
         super(props);
-        this.onModalHide = () => {};
-        this.setOnModalHide = this.setOnModalHide.bind(this);
-        this.resetOnModalHide = this.resetOnModalHide.bind(this);
+        this.triggerSelectedItem = this.triggerSelectedItem.bind(this);
     }
 
     /**
-     * Sets a new function to execute when the modal hides
-     * @param {Function} callback The function to be called on modal hide
+     * Trigger the selected item `onSelected` callback when the modal closes
      */
-    setOnModalHide(callback) {
-        this.onModalHide = callback;
-    }
+    triggerSelectedItem() {
+        if (this.selectedItem && this.selectedItem.onSelected) {
+            this.selectedItem.onSelected();
+        }
 
-    /**
-     * After the modal hides, reset the onModalHide to an empty function
-     */
-    resetOnModalHide() {
-        this.onModalHide = () => {};
+        this.selectedItem = null;
     }
 
     render() {
@@ -55,25 +49,18 @@ class CreateMenu extends PureComponent {
             <Popover
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
-                onModalHide={() => {
-                    this.onModalHide();
-                    this.resetOnModalHide();
-                }}
+                onModalHide={this.triggerSelectedItem}
                 anchorPosition={styles.createMenuPosition}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {this.props.menuItems.map(({
-                        icon,
-                        text,
-                        onSelected = () => {},
-                    }) => (
+                    {this.props.menuItems.map(item => (
                         <MenuItem
-                            key={text}
-                            icon={icon}
-                            title={text}
+                            key={item.text}
+                            icon={item.icon}
+                            title={item.text}
                             onPress={() => {
-                                this.props.onItemSelected();
-                                this.setOnModalHide(onSelected);
+                                this.props.onItemSelected(item);
+                                this.selectedItem = item;
                             }}
                         />
                     ))}
