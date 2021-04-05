@@ -117,7 +117,7 @@ class ReportActionItem extends Component {
                             <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
                                 <ReportActionContextMenu
                                     reportID={this.props.reportID}
-                                    reportActionID={this.props.action.sequenceNumber}
+                                    reportAction={this.props.action}
                                     isVisible={
                                         hovered
                                         && this.isInReportActionContextMenuBeta()
@@ -131,11 +131,18 @@ class ReportActionItem extends Component {
                                 onClose={this.hidePopover}
                                 anchorPosition={this.popoverAnchorPosition}
                                 animationIn="fadeIn"
+                                measureContent={() => (
+                                    <ReportActionContextMenu
+                                        isVisible
+                                        reportID={-1}
+                                        reportAction={{}}
+                                    />
+                                )}
                             >
                                 <ReportActionContextMenu
                                     isVisible
                                     reportID={this.props.reportID}
-                                    reportActionID={this.props.action.sequenceNumber}
+                                    reportAction={this.props.action}
                                 />
                             </PopoverWithMeasuredContent>
                         </View>
