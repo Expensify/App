@@ -9,15 +9,16 @@ import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import {fetchActions} from '../../libs/actions/Report';
 import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
-    /* The ID of the report this screen should display */
-    reportID: PropTypes.string,
-};
-
-const defaultProps = {
-    reportID: '0',
+    /* Navigation route context info */
+    route: PropTypes.shape({
+        /* Route specific parameters used on this screen */
+        params: PropTypes.shape({
+            /* The ID of the report this screen should display */
+            reportID: PropTypes.string,
+        }).isRequired,
+    }).isRequired,
 };
 
 class ReportScreen extends React.Component {
@@ -36,7 +37,7 @@ class ReportScreen extends React.Component {
 
     componentDidUpdate(prevProps) {
         // Reports changed, reset and load new data
-        if (this.props.reportID !== prevProps.reportID) {
+        if (this.reportID !== prevProps.route.params.reportID) {
             this.fetchReport();
         }
     }
@@ -47,7 +48,8 @@ class ReportScreen extends React.Component {
     }
 
     get reportID() {
-        return parseInt(this.props.reportID, 10);
+        const params = this.props.route.params;
+        return params.reportID;
     }
 
     fetchReport() {
@@ -97,12 +99,5 @@ class ReportScreen extends React.Component {
     }
 }
 
-ReportScreen.displayName = 'ReportScreen';
 ReportScreen.propTypes = propTypes;
-ReportScreen.defaultProps = defaultProps;
-
-export default withOnyx({
-    reportID: {
-        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    },
-})(ReportScreen);
+export default ReportScreen;
