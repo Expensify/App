@@ -57,7 +57,7 @@ class LoginFormWide extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.loginFormContainer]}>
+                <View style={[styles.signInPageFormContainer]}>
                     <View style={[styles.mb4]}>
                         <Text style={[styles.formLabel]}>Enter your phone or email:</Text>
                         <TextInput

@@ -9,24 +9,21 @@ import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
-import {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import WelcomeText from '../../../components/WelcomeText';
 
 const propTypes = {
-
-    ...windowDimensionsPropTypes,
 
     // The children to show inside the layout
     children: PropTypes.node.isRequired,
 
     // Whether we should show the welcome elements
-    showWelcomeText: PropTypes.Boolean,
-    showWelcomeScreenshot: PropTypes.Boolean,
+    shouldShowWelcomeText: PropTypes.Boolean,
+    shouldShowWelcomeScreenshot: PropTypes.Boolean,
 };
 
 const defaultProps = {
-    showWelcomeText: true,
-    showWelcomeScreenshot: true,
+    shouldShowWelcomeText: true,
+    shouldShowWelcomeScreenshot: true,
 };
 
 const SignInPageLayoutNarrow = props => (
@@ -43,10 +40,10 @@ const SignInPageLayoutNarrow = props => (
                     </Text>
                 </View>
 
-                <View style={[styles.loginFormContainer]}>
+                <View style={[styles.signInPageFormContainer]}>
                     {props.children}
 
-                    {props.showWelcomeScreenshot
+                    {props.shouldShowWelcomeScreenshot
                         && (
                         <View style={[styles.mt5, styles.mb5]}>
                             <Image
@@ -57,7 +54,7 @@ const SignInPageLayoutNarrow = props => (
                         </View>
                         )}
 
-                    {props.showWelcomeText && <WelcomeText />}
+                    {props.shouldShowWelcomeText && <WelcomeText />}
                 </View>
                 <TermsAndLicenses />
             </View>
