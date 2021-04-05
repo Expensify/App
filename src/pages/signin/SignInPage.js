@@ -12,8 +12,6 @@ import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,8 +37,6 @@ const propTypes = {
         // Error to display when there is a session error returned
         authToken: PropTypes.string,
     }),
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -80,8 +76,8 @@ class SignInPage extends Component {
             <>
                 <SafeAreaView style={[styles.signInPage]}>
                     <SignInPageLayout
-                        showWelcomeText={showLoginForm}
-                        showWelcomeScreenshot={showLoginForm}
+                        shouldShowWelcomeText={showLoginForm}
+                        shouldShowWelcomeScreenshot={showLoginForm}
                     >
                         {showLoginForm && <LoginForm />}
 
@@ -109,11 +105,8 @@ class SignInPage extends Component {
 SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        session: {key: ONYXKEYS.SESSION},
-    }),
-    withWindowDimensions,
-)(SignInPage);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    session: {key: ONYXKEYS.SESSION},
+})(SignInPage);
