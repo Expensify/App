@@ -266,6 +266,29 @@ function updateIOUReportData(chatReport) {
 }
 
 /**
+ * Get the report ID for a chat report for a specific
+ * set of participants.
+ *
+ * @param {String[]} participants
+ * @returns {Promise} chatReportID
+ */
+function findChatReportID(participants) {
+    if (participants.length < 2) {
+        throw new Error('fetchOrCreateChatReport() must have at least two participants');
+    }
+
+    return API.CreateChatReport({
+        emailList: participants.join(','),
+    })
+        .then((data) => {
+            if (data.jsonCode !== 200) {
+                throw new Error(data.message);
+            }
+            return data.reportID;
+        });
+}
+
+/**
  * Fetches chat reports when provided a list of
  * chat report IDs
  *
@@ -302,13 +325,12 @@ function fetchChatReportsByIDs(chatList) {
                     findChatReportID([report.ownerEmail, report.managerEmail]).then((chatReportID) => {
                         const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.reportID}`;
                         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-                        Onyx.merge(iouReportKey, getSimplifiedIOUReport(report, chatReportID)); 
+                        Onyx.merge(iouReportKey, getSimplifiedIOUReport(report, chatReportID));
                         const chatReportObject = {};
                         chatReportObject.iouReportID = report.reportID;
                         chatReportObject.hasOutstandingIOU = report.stateNum === 1
                             && report.total !== 0;
                         Onyx.merge(reportKey, chatReportObject);
-        
                     });
                 }
             });
@@ -324,7 +346,6 @@ function fetchChatReportsByIDs(chatList) {
                 simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
                 simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === 1
                     && iouReportObject.total !== 0;
-                Onyx.merge(iouReportKey, iouReportObject);
             });
 
             // We use mergeCollection such that it updates the collection in one go.
@@ -346,7 +367,7 @@ function fetchChatReportsByIDs(chatList) {
  * @param {Object} iouReportObject
  * @return {void}
  */
- function updateChatReportDetails(iouReportObject) {
+function updateChatReportDetails(iouReportObject) {
     if (!iouReportObject.participants) {
         return;
     }
@@ -637,29 +658,6 @@ function fetchOrCreateChatReport(participants) {
 
             // Redirect the logged in person to the new report
             Navigation.navigate(ROUTES.getReportRoute(reportID));
-        });
-}
-
-/**
- * Get the report ID for a chat report for a specific
- * set of participants.
- *
- * @param {String[]} participants
- * @returns {Promise} chatReportID
- */
- function findChatReportID(participants) {
-    if (participants.length < 2) {
-        throw new Error('fetchOrCreateChatReport() must have at least two participants');
-    }
-
-    return API.CreateChatReport({
-        emailList: participants.join(','),
-    })
-        .then((data) => {
-            if (data.jsonCode !== 200) {
-                throw new Error(data.message);
-            }
-            return data.reportID;
         });
 }
 
