@@ -91,7 +91,6 @@ function setExpensifyNewsStatus(subscribed) {
  * @param {String} login
  * @param {String} password
  * @returns {Promise}
- *
  */
 function setSecondaryLogin(login, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});

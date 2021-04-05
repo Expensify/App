@@ -39,7 +39,7 @@ export default class LoginField extends Component {
         resendValidateCode(this.props.login.partnerUserID);
         this.setState({showCheckmarkIcon: true});
 
-        // Revert checkmark back to "Resend" after 5seconds
+        // Revert checkmark back to "Resend" after 5 seconds
         if (!this.timeout) {
             this.timeout = setTimeout(() => {
                 if (this.timeout) {
