@@ -98,7 +98,9 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
 
     return {
         text: report ? report.reportName : personalDetail.displayName,
-        alternateText: (showChatPreviewLine && lastMessageText) ? lastMessageText : personalDetail.login,
+        alternateText: (showChatPreviewLine && lastMessageText)
+            ? lastMessageText
+            : Str.removeSMSDomain(personalDetail.login),
         icons: report ? report.icons : [personalDetail.avatar],
         tooltipText,
         participantsList: personalDetailList,
@@ -410,16 +412,21 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  *
  * @param {Boolean} hasSelectableOptions
  * @param {Boolean} hasUserToInvite
+ * @param {String} searchValue
  * @param {Boolean} [maxParticipantsReached]
  * @return {String}
  */
-function getHeaderMessage(hasSelectableOptions, hasUserToInvite, maxParticipantsReached = false) {
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
         return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
-        return CONST.MESSAGES.NO_CONTACTS_FOUND;
+        if (/^\d+$/.test(searchValue)) {
+            return CONST.MESSAGES.NO_PHONE_NUMBER;
+        }
+
+        return searchValue;
     }
 
     return '';
