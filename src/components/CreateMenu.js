@@ -21,7 +21,7 @@ const propTypes = {
         PropTypes.shape({
             icon: PropTypes.func.isRequired,
             text: PropTypes.string.isRequired,
-            onSelected: PropTypes.func,
+            onSelected: PropTypes.func.isRequired,
         }),
     ).isRequired,
 
@@ -37,7 +37,7 @@ class CreateMenu extends PureComponent {
      * Trigger the selected item `onSelected` callback when the modal closes
      */
     triggerSelectedItem() {
-        if (this.selectedItem && this.selectedItem.onSelected) {
+        if (this.selectedItem) {
             this.selectedItem.onSelected();
         }
 
