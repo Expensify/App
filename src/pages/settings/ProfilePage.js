@@ -111,6 +111,9 @@ class ProfilePage extends Component {
         }));
     }
 
+    /**
+     * Update the personal details on the server and in Onyx using an the personal details action
+     */
     updatePersonalDetails() {
         const {
             firstName,
@@ -132,6 +135,12 @@ class ProfilePage extends Component {
         });
     }
 
+    /**
+     * Returns all the
+     * @param {Function} openPicker method that can be called to open a picker when a menu item
+     *      is selected
+     * @returns {Object}
+     */
     createMenuItems(openPicker) {
         const menuItems = [
             {
