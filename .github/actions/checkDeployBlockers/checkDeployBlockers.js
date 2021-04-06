@@ -29,7 +29,7 @@ const run = function () {
                 })
                     .then((comments) => {
                         const lastComment = comments.data[comments.data.length - 1];
-                        const shipItRegex = /:shipit:/g;
+                        const shipItRegex = /^:shipit:/g;
                         hasDeployBlockers = shipItRegex.exec(lastComment.body) === null;
                     });
             }

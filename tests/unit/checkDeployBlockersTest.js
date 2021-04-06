@@ -18,6 +18,7 @@ const mockGetInput = jest.fn().mockImplementation((arg) => {
 
 const mockSetOutput = jest.fn();
 const mockGetIssue = jest.fn();
+const mockListComments = jest.fn();
 
 beforeAll(() => {
     // Mock core module
@@ -29,6 +30,7 @@ beforeAll(() => {
         rest: {
             issues: {
                 get: mockGetIssue,
+                listComments: mockListComments,
             },
         },
     };
@@ -38,6 +40,7 @@ beforeAll(() => {
 afterEach(() => {
     mockSetOutput.mockClear();
     mockGetIssue.mockClear();
+    mockListComments.mockClear();
 });
 
 afterAll(() => {
@@ -49,37 +52,53 @@ describe('checkDeployBlockers', () => {
         data: {
             number: 1,
             title: 'Scott\'s Unfinished QA Checklist',
-            body: '',
+            body: 'Checklist for Deploy #668\r\n'
+            + '- [x] @foo https://github.com/Expensify/Expensify.cash/issues/1',
         },
     };
 
-    describe('checkStatusBasedOnChecklists', () => {
-        test('Test an issue with no checklists ', () => {
+    const baseComments = {
+        data: [
+            {
+                body: 'foo',
+            },
+            {
+                body: 'bar',
+            },
+            {
+                body: ':shipit:',
+            },
+        ],
+    };
+
+    describe('checkForDeployBlockers', () => {
+        test('Test an issue with a checked item and :shipit:', () => {
             mockGetIssue.mockResolvedValue(baseIssue);
+            mockListComments.mockResolvedValue(baseComments);
             return run().then(() => {
                 expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', false);
             });
         });
 
-        test('Test an issue with unchecked items', () => {
-            baseIssue.data.body = 'Checklist for Deploy #668:\r\n'
-                + '- [x] @foo https://github.com/Expensify/Expensify.cash/issues/1\r\n'
-                + '- [ ] @bar https://github.com/Expensify/Expensify.cash/issues/23\r\n'
-                + '- [x] @baz https://github.com/Expensify/Expensify.cash/issues/42';
+        test('Test an issue with an unchecked item and :shipit:', () => {
+            baseIssue.data.body += '\r\n- [ ] @bar https://github.com/Expensify/Expensify.cash/issues/23';
             mockGetIssue.mockResolvedValue(baseIssue);
+            mockListComments.mockResolvedValue(baseComments);
             return run().then(() => {
                 expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
             });
         });
 
-        test('Test an issue with all boxes checked', () => {
+        test('Test an issue with all boxes checked but no :shipit:', () => {
             baseIssue.data.body = 'Checklist for Deploy #668:\r\n'
                 + '- [x] @foo https://github.com/Expensify/Expensify.cash/issues/1\r\n'
                 + '- [x] @bar https://github.com/Expensify/Expensify.cash/issues/23\r\n'
                 + '- [x] @baz https://github.com/Expensify/Expensify.cash/issues/42';
             mockGetIssue.mockResolvedValue(baseIssue);
+            baseComments.data.push({body: 'This issue either has unchecked QA steps or has not yet been stamped with a :shipit: comment. Reopening!'});
+            mockListComments.mockResolvedValue(baseComments);
             return run().then(() => {
-                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', false);
+                expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
             });
         });
     });
