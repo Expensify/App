@@ -16,29 +16,39 @@ const run = function () {
     })
         .then(({data}) => {
             console.log('Checking for unverified PRs or unresolved deploy blockers', data);
-
             const pattern = /-\s\[\s]/g;
             const matches = pattern.exec(data.body);
             hasDeployBlockers = matches !== null;
-        })
-        .then(() => {
-            if (!hasDeployBlockers) {
-                return octokit.issues.listComments({
-                    owner: GITHUB_OWNER,
-                    repo: EXPENSIFY_CASH_REPO,
-                    issue_number: issueNumber,
-                })
-                    .then(({data}) => {
-                        console.log('Verifying that the last comment is :shipit:');
+            if (hasDeployBlockers) {
+                console.log('An unverified PR or unresolved deploy blocker was found.');
+                return {};
+            }
 
-                        const lastComment = data[data.length - 1];
-                        const shipItRegex = /^:shipit:/g;
-                        hasDeployBlockers = shipItRegex.exec(lastComment.body) === null;
-                    });
+            return octokit.issues.listComments({
+                owner: GITHUB_OWNER,
+                repo: EXPENSIFY_CASH_REPO,
+                issue_number: issueNumber,
+            });
+        })
+        .then(({data}) => {
+            if (!data) {
+                return;
+            }
+
+            console.log('Verifying that the last comment is :shipit:');
+            const lastComment = data[data.length - 1];
+            const shipItRegex = /^:shipit:/g;
+            hasDeployBlockers = shipItRegex.exec(lastComment.body) === null;
+            if (hasDeployBlockers) {
+                console.log('The last comment on the issue was not :shipit:');
             }
         })
         .then(() => {
             core.setOutput('HAS_DEPLOY_BLOCKERS', hasDeployBlockers);
+        })
+        .catch((error) => {
+            console.error('A problem occurred while trying to communicate with the GitHub API', error);
+            core.setFailed(error);
         });
 };
 
