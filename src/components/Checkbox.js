@@ -27,17 +27,16 @@ const Checkbox = ({
 }) => (
     <View style={styles.flexRow}>
         <Pressable onPress={() => onClick(!isChecked)}>
-            <View style={[styles.checkboxContainer, isChecked && styles.checkedContainer]}>
-                <Icon src={Checkmark} fill="white" height={14} width={14} />
-            </View>
-        </Pressable>
-        {label && (
-            <Pressable onPress={() => onClick(!isChecked)}>
+            {label ? (
                 <Text style={[styles.ml2, styles.textP]}>
                     {label}
                 </Text>
-            </Pressable>
-        )}
+            ) : (
+                <View style={[styles.checkboxContainer, isChecked && styles.checkedContainer]}>
+                    <Icon src={Checkmark} fill="white" height={14} width={14} />
+                </View>
+            )}
+        </Pressable>
     </View>
 );
 
