@@ -79,8 +79,9 @@ describe('checkDeployBlockers', () => {
         });
 
         test('Test an issue with an unchecked item and :shipit:', () => {
-            baseIssue.data.body += '\r\n- [ ] @bar https://github.com/Expensify/Expensify.cash/issues/23';
-            mockGetIssue.mockResolvedValue(baseIssue);
+            const uncheckedItemIssue = baseIssue;
+            uncheckedItemIssue.data.body += '\r\n- [ ] @bar https://github.com/Expensify/Expensify.cash/issues/23';
+            mockGetIssue.mockResolvedValue(uncheckedItemIssue);
             mockListComments.mockResolvedValue(baseComments);
             return run().then(() => {
                 expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
@@ -88,11 +89,11 @@ describe('checkDeployBlockers', () => {
         });
 
         test('Test an issue with all boxes checked but no :shipit:', () => {
-            baseIssue.data.body = 'Checklist for Deploy #668:\r\n'
-                + '- [x] @foo https://github.com/Expensify/Expensify.cash/issues/1\r\n'
+            const checkedBoxesNoShipitIssue = baseIssue;
+            checkedBoxesNoShipitIssue.data.body = 'Checklist for Deploy #668:\r\n'
                 + '- [x] @bar https://github.com/Expensify/Expensify.cash/issues/23\r\n'
                 + '- [x] @baz https://github.com/Expensify/Expensify.cash/issues/42';
-            mockGetIssue.mockResolvedValue(baseIssue);
+            mockGetIssue.mockResolvedValue(checkedBoxesNoShipitIssue);
             // eslint-disable-next-line max-len
             baseComments.data.push({body: 'This issue either has unchecked QA steps or has not yet been stamped with a :shipit: comment. Reopening!'});
             mockListComments.mockResolvedValue(baseComments);
