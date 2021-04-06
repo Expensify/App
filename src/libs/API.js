@@ -34,6 +34,7 @@ function isAuthTokenRequired(command) {
         'SetPassword',
         'User_SignUp',
         'ResendValidateCode',
+        'ResetPassword',
     ], command);
 }
 
@@ -529,11 +530,22 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function ResendValidateCode(parameters) {
     const commandName = 'ResendValidateCode';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.email
+ * @returns {Promise}
+ */
+function ResetPassword(parameters) {
+    const commandName = 'ResetPassword';
     requireParameters(['email'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
@@ -652,6 +664,7 @@ export {
     Report_TogglePinned,
     Report_UpdateLastRead,
     ResendValidateCode,
+    ResetPassword,
     SetNameValuePair,
     SetPassword,
     UpdateAccount,
