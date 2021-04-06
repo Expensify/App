@@ -229,20 +229,16 @@ class ReportActionCompose extends React.Component {
                                             <CreateMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
-                                                onItemSelected={(item) => {
-                                                    if (item.text === 'Upload Photo') {
-                                                        openPicker({
-                                                            onPicked: file => displayFileInModal({file}),
-                                                        });
-                                                    }
-
-                                                    this.setMenuVisibility(false);
-                                                }}
+                                                onItemSelected={() => this.setMenuVisibility(false)}
                                                 menuItems={[
                                                     {
                                                         icon: Paperclip,
                                                         text: 'Upload Photo',
-                                                        onSelected: () => {},
+                                                        onSelected: () => {
+                                                            openPicker({
+                                                                onPicked: file => displayFileInModal({file}),
+                                                            });
+                                                        },
                                                     },
                                                 ]}
 
