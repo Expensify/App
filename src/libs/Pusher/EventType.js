@@ -5,4 +5,4 @@
 export default {
     REPORT_COMMENT: 'reportComment',
     REPORT_TOGGLE_PINNED: 'reportTogglePinned',
-}
+};
