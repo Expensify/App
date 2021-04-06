@@ -94,6 +94,16 @@ const ParticipantsModalStackNavigator = () => (
                 title: 'Participants',
             }}
         />
+        <DetailsModalStack.Screen
+            name="Details_Root"
+            headerShown={false}
+            path={ROUTES.REPORT_ID}
+            component={DetailsPage}
+            options={{
+                ...defaultSubRouteOptions,
+                title: 'ParticipantsParticipant',
+            }}
+        />
     </ParticipantsModalStack.Navigator>
 );
 

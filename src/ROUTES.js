@@ -26,4 +26,7 @@ export default {
     PARTICIPANTS: 'participants',
     PARTICIPANTS_WITH_REPORT: 'participants/:reportID',
     getParticipantsRoute: reportID => `participants/${reportID}`,
+    REPORT_ID: '/:reportID',
+    PARTICIPANTS_PARTICIPANT_DETAIL: '/participants/:reportID/:login',
+    getParticipantsPartipantDetail: (reportID, login) => `/participants/${reportID}/${login}`,
 };
