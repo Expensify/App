@@ -27,11 +27,9 @@ beforeAll(() => {
 
     // Mock octokit module
     const mocktokit = {
-        rest: {
-            issues: {
-                get: mockGetIssue,
-                listComments: mockListComments,
-            },
+        issues: {
+            get: mockGetIssue,
+            listComments: mockListComments,
         },
     };
     github.getOctokit = jest.fn().mockImplementation(() => mocktokit);
