@@ -16,6 +16,12 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
+      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Wait for any preDeploy version jobs to finish
         uses: tomchv/wait-my-workflow@2da0b8a92211e6d7c9964602b99a7052080a1d61
         with:
@@ -34,12 +40,6 @@ jobs:
           checkName: master
           intervalSeconds: 10
           timeoutSeconds: 150
-
-      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create a new branch
         run: |
