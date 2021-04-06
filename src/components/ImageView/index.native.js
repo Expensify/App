@@ -26,7 +26,7 @@ class ImageView extends PureComponent {
             imageHeight: 100,
         };
 
-        this.scaleValue = 1;
+        this.imageZoomScale = 1;
     }
 
     render() {
@@ -47,9 +47,9 @@ class ImageView extends PureComponent {
                     cropHeight={windowHeight}
                     imageWidth={this.state.imageWidth}
                     imageHeight={this.state.imageHeight}
-                    onStartShouldSetPanResponder={e => e.nativeEvent.touches.length === 2 || this.scaleValue !== 1}
+                    onStartShouldSetPanResponder={e => e.nativeEvent.touches.length === 2 || this.imageZoomScale !== 1}
                     onMove={({scale}) => {
-                        this.scaleValue = scale;
+                        this.imageZoomScale = scale;
                     }}
                 >
                     <ImageWithSizeCalculation
