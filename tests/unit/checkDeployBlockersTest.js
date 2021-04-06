@@ -95,6 +95,7 @@ describe('checkDeployBlockers', () => {
                 + '- [x] @bar https://github.com/Expensify/Expensify.cash/issues/23\r\n'
                 + '- [x] @baz https://github.com/Expensify/Expensify.cash/issues/42';
             mockGetIssue.mockResolvedValue(baseIssue);
+            // eslint-disable-next-line max-len
             baseComments.data.push({body: 'This issue either has unchecked QA steps or has not yet been stamped with a :shipit: comment. Reopening!'});
             mockListComments.mockResolvedValue(baseComments);
             return run().then(() => {
