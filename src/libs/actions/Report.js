@@ -872,6 +872,26 @@ Onyx.connect({
     callback: handleReportChanged,
 });
 
+/**
+ * When a report comment is asked to be deleted this handles it and takes care of that.
+ *
+ * @param {Object} info
+ */
+function handleReportCommentDeleted(info) {
+    if (!info) {
+        return;
+    }
+    if (info.reportID && info.reportActionID) {
+        deleteReportComment(info.reportID, info.reportActionID);
+    }
+}
+
+Onyx.connect({
+    key: ONYXKEYS.REPORT_DELETE_COMMENT,
+    callback: handleReportCommentDeleted,
+});
+
+
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
     fetchAll(false);

@@ -119,8 +119,7 @@ class ReportActionItem extends Component {
                                     reportID={this.props.reportID}
                                     reportActionID={this.props.action.sequenceNumber}
                                     isVisible={
-                                        hovered
-                                        && this.isInReportActionContextMenuBeta()
+                                        hovered // && this.isInReportActionContextMenuBeta()
                                         && !this.state.isPopoverVisible
                                     }
                                     isMini
