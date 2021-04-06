@@ -234,9 +234,9 @@ class ReportActionCompose extends React.Component {
                                                         openPicker({
                                                             onPicked: file => displayFileInModal({file}),
                                                         });
-
-                                                        this.setMenuVisibility(false);
                                                     }
+
+                                                    this.setMenuVisibility(false);
                                                 }}
                                                 menuItems={Object.values(CREATE_MENU_ITEMS)}
 
