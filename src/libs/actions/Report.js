@@ -803,6 +803,7 @@ function addAction(reportID, text, file) {
  */
 function deleteReportComment(reportID, reportActionID) {
     // Mark the report as not having any unread items
+    Log.info('deleteReportComment', true);
     API.Report_EditComment({
         reportID,
         reportActionID,
@@ -912,6 +913,7 @@ Onyx.connect({
  * @param {Object} info
  */
 function handleReportCommentDeleted(info) {
+    Log.info('handleReportCommentDeleted', true);
     if (!info) {
         return;
     }
@@ -921,7 +923,7 @@ function handleReportCommentDeleted(info) {
 }
 
 Onyx.connect({
-    key: ONYXKEYS.REPORT_DELETE_COMMENT,
+    key: ONYXKEYS.COLLECTION.REPORT_DELETE_COMMENT,
     callback: handleReportCommentDeleted,
 });
 
