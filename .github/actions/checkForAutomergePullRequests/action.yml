@@ -1,0 +1,12 @@
+name: 'Check for Automerge PRs'
+description: 'Check for any open PRs with the `automerge` label'
+inputs:
+  GITHUB_TOKEN:
+    description: Auth token for Expensify.cash Github
+    required: true
+outputs:
+  OPEN_PR_FOUND:
+    description: Whether or not any open automerge PRs were found.
+runs:
+  using: 'node12'
+  main: './index.js'

@@ -5,7 +5,7 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 608:
+/***/ 7988:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(4987);
@@ -15,16 +15,26 @@ const GithubUtils = __nccwpck_require__(7999);
 
 const run = function () {
     const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-    const githubUtils = new GithubUtils(octokit);
 
-    return githubUtils.getStagingDeployCash()
-        .then(({labels}) => {
-            console.log(`Found StagingDeployCash with labels: ${_.pluck(labels, 'name')}`);
-            core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐'));
+    console.log('Checking for any open automerge PRs...');
+    return octokit.issues.listForRepo({
+        owner: GithubUtils.GITHUB_OWNER,
+        repo: GithubUtils.EXPENSIFY_CASH_REPO,
+        labels: GithubUtils.AUTOMERGE_LABEL,
+        state: 'open',
+    })
+        .then(({data}) => {
+            if (data.length > 0) {
+                console.log('Found these open automerge pull requests:', _.pluck(data, 'html_url'));
+                core.setOutput('OPEN_PR_FOUND', true);
+            } else {
+                console.log('Found no open automerge pull requests!');
+                core.setOutput('OPEN_PR_FOUND', false);
+            }
         })
         .catch((err) => {
-            console.warn('No open StagingDeployCash found, continuing...', err);
-            core.setOutput('IS_LOCKED', false);
+            console.error('An error occurred trying to find PRs with the `automerge` label:', err);
+            core.setFailed(err);
         });
 };
 
@@ -15469,6 +15479,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(608);
+/******/ 	return __nccwpck_require__(7988);
 /******/ })()
 ;

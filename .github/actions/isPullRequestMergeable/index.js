@@ -78,6 +78,7 @@ const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/
 
 const APPLAUSE_BOT = 'applausebot';
 const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
+const AUTOMERGE_LABEL = 'automerge';
 
 class GithubUtils {
     /**
@@ -531,6 +532,7 @@ module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
 module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
+module.exports.AUTOMERGE_LABEL = AUTOMERGE_LABEL;
 
 
 /***/ }),
