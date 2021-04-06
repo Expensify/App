@@ -1,7 +1,7 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import ImageZoom from 'react-native-image-pan-zoom';
+import ImageZoom, {ImageZoomProps} from 'react-native-image-pan-zoom';
 import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
 import styles, {getWidthAndHeightStyle} from '../../styles/styles';
 import variables from '../../styles/variables';
@@ -27,6 +27,8 @@ class ImageView extends PureComponent {
         };
 
         this.imageZoomScale = 1;
+        this.doubleClickInterval = 1000;
+        this.lastClickTime = 0;
     }
 
     render() {
@@ -47,7 +49,24 @@ class ImageView extends PureComponent {
                     cropHeight={windowHeight}
                     imageWidth={this.state.imageWidth}
                     imageHeight={this.state.imageHeight}
-                    onStartShouldSetPanResponder={e => e.nativeEvent.touches.length === 2 || this.imageZoomScale !== 1}
+                    onStartShouldSetPanResponder={(e) => {
+                        // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
+                        if (e.nativeEvent.touches.length === 2 || this.imageZoomScale !== 1) {
+                            console.log(`joetest returning true case 1`);
+                            return true;
+                        }
+
+                        // If this isn't a double click, ignore the event to let the parent handle it
+                        if (new Date().getTime() - this.lastClickTime >= (this.doubleClickInterval || 0)) {
+                            console.log(`joetest returning false case 2. lastClickTime: ${this.lastClickTime}`);
+                            this.lastClickTime = new Date().getTime();
+                            return false;
+                        }
+
+                        // This is a double click, reset the lastClickTime and let ImageZoom handle the event
+                        console.log(`joetest returning true case 3`);
+                        return true;
+                    }}
                     onMove={({scale}) => {
                         this.imageZoomScale = scale;
                     }}
