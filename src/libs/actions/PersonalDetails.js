@@ -193,6 +193,25 @@ function getFromReportParticipants(reports) {
         });
 }
 
+/**
+ * Merges partial details object into the local store.
+ *
+ * @param {Object} details
+ */
+function mergeLocalPersonalDetails(details) {
+    // We are merging the partial details provided to this method with the existing details we have for the user so
+    // that we don't overwrite any values that may exist in storage.
+    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
+
+    // displayName is a generated field so we'll use the firstName and lastName + login to update it.
+    if (details.firstName || details.lastName) {
+        mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
+    }
+
+    // Update the associated Onyx keys
+    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
+}
 
 /**
  * Sets the personal details object for the current user
@@ -201,22 +220,10 @@ function getFromReportParticipants(reports) {
  */
 function setPersonalDetails(details) {
     API.PersonalDetails_Update({details: JSON.stringify(details)});
-
     if (details.timezone) {
         NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
     }
-
-    // We are merging the partial details provided to this method with the existing details we have for the user so
-    // that we don't overwrite any values that may exist in storage. displayName is a generated field so we'll use the
-    // firstName and lastName + login to update it.
-    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], {
-        ...details,
-        displayName: getDisplayName(currentUserEmail, details),
-    });
-
-    // Update the associated onyx keys
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
+    mergeLocalPersonalDetails(details);
 }
 
 /**
@@ -242,11 +249,7 @@ function deleteAvatar(login) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-
-    // Set onyx value to default avatar
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
-        avatar: getDefaultAvatar(login),
-    });
+    mergeLocalPersonalDetails({avatar: getDefaultAvatar(login)});
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
