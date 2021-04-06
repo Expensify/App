@@ -44,11 +44,13 @@ const RootStack = createCustomModalStackNavigator();
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
+    currentURL: PropTypes.string,
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
+    currentURL: '',
 };
 
 class AuthScreens extends React.Component {
@@ -67,6 +69,13 @@ class AuthScreens extends React.Component {
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         }).then(subscribeToReportCommentEvents);
+
+        // If we have a validation code in our URL ensure we validate the associated login
+        if (this.props.currentURL.includes(`/${ROUTES.VALIDATE_LOGIN}/`)) {
+            // Split the /v/accountID/validateCode URL string into distinct components "", "v", "accountID", "validateCode"
+            const urlArray = this.props.currentURL.split('/');
+            User.validateLogin(Number(urlArray[2]), urlArray[3]);
+        }
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
@@ -190,6 +199,9 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        currentURL: {
+            key: ONYXKEYS.CURRENT_URL,
         },
     }),
 )(AuthScreens);
