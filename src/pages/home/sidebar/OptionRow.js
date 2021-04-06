@@ -7,7 +7,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import styles from '../../../styles/styles';
+import styles, {getBackgroundAndBorderStyle, getBackgroundColorStyle} from '../../../styles/styles';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
@@ -15,8 +15,13 @@ import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
 import OptionRowTitle from './OptionRowTitle';
+import IOUBadge from '../../../components/IOUBadge';
+import colors from '../../../styles/colors';
 
 const propTypes = {
+    // Background Color of the Option Row
+    backgroundColor: PropTypes.string,
+
     // Style for hovered state
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
@@ -44,18 +49,24 @@ const propTypes = {
 
     // Whether to show the title tooltip
     showTitleTooltip: PropTypes.bool,
+
+    // Toggle between compact and default view
+    mode: PropTypes.oneOf(['compact', 'default']),
 };
 
 const defaultProps = {
+    backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
     showSelectedState: false,
     isSelected: false,
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
+    mode: 'default',
 };
 
 const OptionRow = ({
+    backgroundColor,
     hoverStyle,
     option,
     optionIsFocused,
@@ -65,12 +76,39 @@ const OptionRow = ({
     isSelected,
     forceTextUnreadStyle,
     showTitleTooltip,
+    mode,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
     const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
+    const displayNameStyle = mode === 'compact'
+        ? [styles.optionDisplayName, textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
+        : [styles.optionDisplayName, textUnreadStyle];
+    const alternateTextStyle = mode === 'compact'
+        ? [textStyle, styles.optionAlternateText, styles.optionAlternateTextCompact]
+        : [textStyle, styles.optionAlternateText, styles.mt1];
+    const contentContainerStyles = mode === 'compact'
+        ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
+        : [styles.flex1];
+    const sidebarInnerRowStyle = StyleSheet.flatten(mode === 'compact' ? [
+        styles.chatLinkRowPressable,
+        styles.flexGrow1,
+        styles.optionItemAvatarNameWrapper,
+        styles.sidebarInnerRowSmall,
+        styles.justifyContentCenter,
+    ] : [
+        styles.chatLinkRowPressable,
+        styles.flexGrow1,
+        styles.optionItemAvatarNameWrapper,
+        styles.sidebarInnerRow,
+        styles.justifyContentCenter,
+    ]);
+    const hoveredBackgroundColor = hoverStyle && hoverStyle.backgroundColor
+        ? hoverStyle.backgroundColor
+        : backgroundColor;
+    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     return (
         <Hoverable>
             {hovered => (
@@ -83,18 +121,12 @@ const OptionRow = ({
                         styles.justifyContentBetween,
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
+                        getBackgroundColorStyle(backgroundColor),
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
                     ]}
                 >
-                    <View
-                        style={StyleSheet.flatten([
-                            styles.chatLinkRowPressable,
-                            styles.flexGrow1,
-                            styles.optionItemAvatarNameWrapper,
-                            styles.sidebarInnerRow,
-                        ])}
-                    >
+                    <View style={sidebarInnerRowStyle}>
                         <View
                             style={[
                                 styles.flexRow,
@@ -106,21 +138,31 @@ const OptionRow = ({
                                 && (
                                     <MultipleAvatars
                                         avatarImageURLs={option.icons}
-                                        optionIsFocused={optionIsFocused}
+                                        size={mode === 'compact' ? 'small' : 'default'}
+                                        secondAvatarStyle={[
+                                            getBackgroundAndBorderStyle(backgroundColor),
+                                            optionIsFocused
+                                                ? getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                : undefined,
+                                            hovered && !optionIsFocused
+                                                ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                : undefined,
+                                        ]}
                                     />
                                 )
                             }
-                            <View style={[styles.flex1]}>
+                            <View style={contentContainerStyles}>
                                 <OptionRowTitle
                                     option={option}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
-                                    style={[styles.optionDisplayName, textUnreadStyle]}
+                                    style={displayNameStyle}
+                                    reportID={option.reportID}
                                 />
 
                                 {option.alternateText ? (
                                     <Text
-                                        style={[textStyle, styles.optionAlternateText, styles.mt1]}
+                                        style={alternateTextStyle}
                                         numberOfLines={1}
                                     >
                                         {option.alternateText}
@@ -137,11 +179,14 @@ const OptionRow = ({
                         </View>
                     </View>
                     {!hideAdditionalOptionStates && (
-                        <View style={[styles.flexRow, styles.pr5]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pencil} />
                                 </View>
+                            )}
+                            {option.hasOutstandingIOU && (
+                                <IOUBadge iouReportID={option.iouReportID} />
                             )}
                             {option.isPinned && (
                                 <View style={styles.ml2}>
@@ -170,6 +215,10 @@ export default memo(OptionRow, (prevProps, nextProps) => {
         return false;
     }
 
+    if (prevProps.mode !== nextProps.mode) {
+        return false;
+    }
+
     if (prevProps.option.isUnread !== nextProps.option.isUnread) {
         return false;
     }
@@ -183,6 +232,10 @@ export default memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (prevProps.option.isPinned !== nextProps.option.isPinned) {
+        return false;
+    }
+
+    if (prevProps.option.hasOutstandingIOU !== nextProps.option.hasOutstandingIOU) {
         return false;
     }
 

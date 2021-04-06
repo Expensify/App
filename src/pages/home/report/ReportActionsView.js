@@ -223,8 +223,7 @@ class ReportActionsView extends React.Component {
     updateSortedReportActions() {
         this.sortedReportActions = _.chain(this.props.reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'ADDCOMMENT')
-            .filter(action => action.message.text !== '')
+            .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU'|| action.message.text !== '')
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
@@ -282,7 +281,7 @@ class ReportActionsView extends React.Component {
     /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
      * items have been rendered. If the number of actions has changed since it was last rendered, then
-     * scroll the list to the end.
+     * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
     scrollToListBottom() {
         if (this.actionListElement) {
