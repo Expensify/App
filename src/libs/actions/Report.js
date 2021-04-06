@@ -490,7 +490,7 @@ function subscribeToReportCommentAndTogglePinnedEvents() {
 
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT, (pushJSON) => {
         Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID}
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
         );
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     }, false, onResubscribeToAccountChannel)
@@ -500,7 +500,7 @@ function subscribeToReportCommentAndTogglePinnedEvents() {
         Log.info(
             `[Report] Handled ${Pusher.TYPE.REPORT_TOGGLE_PINNED} event sent by Pusher`,
             true,
-            {reportID: pushJSON.reportID}
+            {reportID: pushJSON.reportID},
         );
         updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned);
     }, false, onResubscribeToAccountChannel)
