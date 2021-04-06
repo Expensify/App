@@ -805,10 +805,16 @@ function deleteReportComment(reportID, reportActionID) {
     // Mark the report as not having any unread items
     Log.info('deleteReportComment', true);
     API.Report_EditComment({
+        accountID: currentUserAccountID,
         reportID,
         reportActionID,
         reportComment: '',
-    });
+    }).then(() => {
+        Log.info('deleteReportComment - Then', true);
+    })
+        .catch(() => {
+            Log.info('deleteReportComment - catch', true);
+        });
 }
 
 /**

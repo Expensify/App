@@ -72,7 +72,7 @@ const CONTEXT_ACTIONS = [
 
         onPress: (reportID, action) => {
             Log.info('delete pressed', true);
-            Onyx.merge(ONYXKEYS.COLLECTION.REPORT_DELETE_COMMENT, {reportID, reportActionID: action.sequenceNumber});
+            Onyx.set(ONYXKEYS.COLLECTION.REPORT_DELETE_COMMENT, {reportID, reportActionID: action.sequenceNumber});
         },
     },
 ];
