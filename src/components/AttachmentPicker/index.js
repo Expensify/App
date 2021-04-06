@@ -15,7 +15,6 @@ class AttachmentPicker extends React.Component {
                 <input
                     hidden
                     type="file"
-                    accept="audio/*;video/*;image/*;application/pdf"
                     ref={el => this.fileInput = el}
                     onChange={(e) => {
                         const file = e.target.files[0];
