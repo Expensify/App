@@ -104,6 +104,11 @@ class ProfilePage extends Component {
         this.createMenuItems = this.createMenuItems.bind(this);
     }
 
+    /**
+     * Update the setting in the state for using automatic timezones
+     *
+     * @param {Boolean} isAutomaticTimezone
+     */
     setAutomaticTimezone(isAutomaticTimezone) {
         this.setState(({selectedTimezone}) => ({
             isAutomaticTimezone,
@@ -136,7 +141,8 @@ class ProfilePage extends Component {
     }
 
     /**
-     * Returns all the
+     * Returns all the items for the picker
+     *
      * @param {Function} openPicker method that can be called to open a picker when a menu item
      *      is selected
      * @returns {Object}
