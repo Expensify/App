@@ -473,7 +473,7 @@ function getReportChannelName(reportID) {
  * @param {String} accountID
  * @returns {String}
  */
-function getAccountChannelName(accountID) {
+ function getAccountChannelName(accountID) {
     return `private-user-accountID-${accountID}`;
 }
 
@@ -498,14 +498,14 @@ function subscribeToReportCommentAndTogglePinnedEvents() {
         Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
     }
 
-    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
-        Log.info('[Report] Handled reportComment event sent by Pusher', true, {reportID: pushJSON.reportID});
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT, (pushJSON) => {
+        Log.info(`[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID});
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     }, false, onResubscribeToAccountChannel)
         .catch(onChannelSubscribeFail);
 
-    Pusher.subscribe(pusherChannelName, 'reportTogglePinned', (pushJSON) => {
-        Log.info('[Report] Handled reportTogglePinned event sent by Pusher', true, {reportID: pushJSON.reportID});
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_TOGGLE_PINNED, (pushJSON) => {
+        Log.info(`[Report] Handled ${Pusher.TYPE.REPORT_TOGGLE_PINNED} event sent by Pusher`, true, {reportID: pushJSON.reportID});
         updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned);
     }, false, onResubscribeToAccountChannel)
         .catch(onChannelSubscribeFail);

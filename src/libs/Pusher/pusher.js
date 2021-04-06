@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Pusher from './library';
+import TYPE from './EventType';
 
 let socket;
 const socketEventCallbacks = [];
@@ -423,4 +424,5 @@ export {
     reconnect,
     registerSocketEventCallback,
     registerCustomAuthorizer,
+    TYPE,
 };
