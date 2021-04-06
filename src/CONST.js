@@ -94,6 +94,14 @@ const CONST = {
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+    LOGIN_TYPE: {
+        PHONE: 'phone',
+        EMAIL: 'email',
+    },
+    KEYBOARD_TYPE: {
+        NUMERIC: 'numeric',
+        PHONE_PAD: 'phone-pad',
+    },
 };
 
 export default CONST;

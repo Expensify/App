@@ -530,7 +530,7 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function ResendValidateCode(parameters) {
