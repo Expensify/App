@@ -2,14 +2,14 @@ name: 'Check Deploy blockers'
 description: 'Check a recently closed `ProductionDeployCash` issue for unchecked boxes or a missing `:shipit:` comment'
 inputs:
   GITHUB_TOKEN:
-    description: 'The OS Botify token for this repository'
+    description: Auth token for Expensify.cash Github; necessary for accessing Octokit.
     required: true
   ISSUE_NUMBER:
-    description: 'The number of the recently closed issue'
+    description: The number of the recently closed issue
     required: true
 outputs:
   HAS_DEPLOY_BLOCKERS:
-    description: 'A true/false indicating whether or not a deploy blocker was found.'
+    description: A true/false indicating whether or not a deploy blocker was found.
 runs:
   using: 'node12'
   main: 'index.js'
