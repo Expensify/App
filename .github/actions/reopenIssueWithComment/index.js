@@ -16,27 +16,31 @@ const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}
 const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});
 
 function reopenIssueWithComment() {
-    return octokit.rest.issues.update({
+    console.log(`Reopening issue # ${issueNumber}`);
+    octokit.issues.update({
         owner: GITHUB_OWNER,
         repo: EXPENSIFY_CASH_REPO,
         issue_number: issueNumber,
         state: 'open',
     })
-        .then(() => octokit.rest.issues.createComment({
-            owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
-            issue_number: issueNumber,
-            body: core.getInput('COMMENT', {required: true}),
-        }));
+        .then(() => {
+            console.log(`Commenting on issue # ${issueNumber}`);
+            octokit.issues.createComment({
+                owner: GITHUB_OWNER,
+                repo: EXPENSIFY_CASH_REPO,
+                issue_number: issueNumber,
+                body: core.getInput('COMMENT', {required: true}),
+            });
+        });
 }
 
 reopenIssueWithComment()
     .then(() => {
-        console.log('Issue successfully reopened and commented.');
+        console.log(`Issue # ${issueNumber} successfully reopened and commented.`);
         process.exit(0);
     })
     .catch((err) => {
-        console.error('Something went wrong. The issue was not successfully reopened', err);
+        console.error(`Something went wrong. The issue # ${issueNumber} was not successfully reopened`, err);
         core.setFailed(err);
     });
 
