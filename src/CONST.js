@@ -3,7 +3,6 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const CONST = {
     BETAS: {
         ALL: 'all',
-        REPORT_ACTION_CONTEXT_MENU: 'reportActionContextMenu',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

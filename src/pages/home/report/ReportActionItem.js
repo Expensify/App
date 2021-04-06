@@ -69,9 +69,7 @@ class ReportActionItem extends Component {
     showPopover(event) {
         const nativeEvent = event.nativeEvent || {};
         this.capturePressLocation(nativeEvent);
-        if (this.isInReportActionContextMenuBeta()) {
-            this.setState({isPopoverVisible: true});
-        }
+        this.setState({isPopoverVisible: true});
     }
 
     /**
@@ -98,7 +96,6 @@ class ReportActionItem extends Component {
                                     reportAction={this.props.action}
                                     isVisible={
                                         hovered
-                                        && this.isInReportActionContextMenuBeta()
                                         && !this.state.isPopoverVisible
                                     }
                                     isMini
