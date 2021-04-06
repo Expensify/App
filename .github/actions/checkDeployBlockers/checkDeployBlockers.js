@@ -7,18 +7,19 @@ const run = function () {
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
     let hasDeployBlockers = false;
 
+    console.log(`Fetching issue number ${issueNumber}`);
+
     return octokit.rest.issues.get({
         owner: GITHUB_OWNER,
         repo: EXPENSIFY_CASH_REPO,
         issue_number: issueNumber,
     })
-        .then((issue) => {
-            const body = issue.data.body || '';
-            const pattern = /-\s\[\s]/g;
-            const matches = pattern.exec(body);
-            hasDeployBlockers = matches !== null;
+        .then(({data}) => {
+            console.log('Checking for unverified PRs or unresolved deploy blockers', data);
 
-            return issue.data;
+            const pattern = /-\s\[\s]/g;
+            const matches = pattern.exec(data.body);
+            hasDeployBlockers = matches !== null;
         })
         .then(() => {
             if (!hasDeployBlockers) {
@@ -27,8 +28,10 @@ const run = function () {
                     repo: EXPENSIFY_CASH_REPO,
                     issue_number: issueNumber,
                 })
-                    .then((comments) => {
-                        const lastComment = comments.data[comments.data.length - 1];
+                    .then(({data}) => {
+                        console.log('Verifying that the last comment is :shipit:');
+
+                        const lastComment = data[data.length - 1];
                         const shipItRegex = /^:shipit:/g;
                         hasDeployBlockers = shipItRegex.exec(lastComment.body) === null;
                     });
