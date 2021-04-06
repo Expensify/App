@@ -72,7 +72,8 @@ class AuthScreens extends React.Component {
 
         // If we have a validation code in our URL ensure we validate the associated login
         if (this.props.currentURL.includes(`/${ROUTES.VALIDATE_LOGIN}/`)) {
-            // Split the /v/accountID/validateCode URL string into distinct components "", "v", "accountID", "validateCode"
+            // Split the /v/accountID/validateCode URL string into distinct components
+            // "", "v", "accountID", "validateCode"
             const urlArray = this.props.currentURL.split('/');
             User.validateLogin(Number(urlArray[2]), urlArray[3]);
         }
