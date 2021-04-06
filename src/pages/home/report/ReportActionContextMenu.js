@@ -76,7 +76,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 
     // The report action this context menu is attached to.
-    reportAction: PropTypes.shape(ReportActionPropTypes).isRequired,
+    reportAction: PropTypes.shape(ReportActionPropTypes),
 
     // If true, this component will be a small, row-oriented menu that displays icons but not text.
     // If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
@@ -87,6 +87,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    reportAction: {},
     isMini: false,
     isVisible: false,
 };
