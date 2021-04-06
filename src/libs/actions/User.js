@@ -5,6 +5,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 import {createTemporaryLogin} from './Session';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 let sessionAuthToken = '';
 Onyx.connect({
@@ -131,6 +133,7 @@ function validateLogin(accountID, validateCode) {
                 createTemporaryLogin(authToken, email);
             } else {
                 fetch();
+                Navigation.navigate(ROUTES.SETTINGS_PROFILE);
             }
         } else {
             const error = lodashGet(response, 'message', 'Unable to validate login.');
