@@ -1,12 +1,17 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import Onyx from 'react-native-onyx';
 import {
     Clipboard, LinkCopy, Mail, Pencil, Trashcan,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
+import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
+
+let reportID;
+let reportActionID;
 
 /**
  * A list of all the context actions in this menu.
@@ -48,8 +53,10 @@ const CONTEXT_ACTIONS = [
     {
         text: 'Delete Comment',
         icon: Trashcan,
-        onPress: () => {
+
+        onClick: () => {
             Log.info('delete pressed', true);
+            Onyx.merge(ONYXKEYS.COLLECTION.REPORT_DELETE_COMMENT, {reportID, reportActionID});
         },
     },
 ];
@@ -78,6 +85,8 @@ const defaultProps = {
 
 const ReportActionContextMenu = (props) => {
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini);
+    reportID = props.reportID;
+    reportActionID = props.reportActionID;
     return props.isVisible && (
         <View style={wrapperStyle}>
             {CONTEXT_ACTIONS.map(contextAction => (
@@ -85,7 +94,7 @@ const ReportActionContextMenu = (props) => {
                     icon={contextAction.icon}
                     text={contextAction.text}
                     isMini={props.isMini}
-                    onPress={contextAction.onPress}
+                    onClick={contextAction.onClick}
                 />
             ))}
         </View>

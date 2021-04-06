@@ -29,7 +29,7 @@ function getButtonState(isHovered = false, isPressed = false) {
 const propTypes = {
     icon: PropTypes.elementType.isRequired,
     text: PropTypes.string.isRequired,
-    onPress: PropTypes.func.isRequired,
+    onClick: PropTypes.func.isRequired,
     isMini: PropTypes.bool,
 };
 
@@ -55,7 +55,7 @@ const ReportActionContextMenuItem = (props) => {
             ) : (
                 <Pressable
                     style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}
-                    onPress={props.onPress}
+                    onPress={props.onClick}
                 >
                     {({hovered, pressed}) => (
                         <>

@@ -63,5 +63,6 @@ export default {
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
+        REPORT_DELETE_COMMENT: 'reportDeleteComment_',
     },
 };
