@@ -1294,6 +1294,10 @@ const webViewStyles = {
 
         a: styles.link,
 
+        li: {
+            flexShrink: 1,
+        },
+
         blockquote: {
             borderLeftColor: themeColors.border,
             borderLeftWidth: 4,
