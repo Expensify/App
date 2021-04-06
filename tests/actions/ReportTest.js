@@ -87,7 +87,7 @@ describe('actions/Report', () => {
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
                 const channel = Pusher.getChannel('private-user-accountID-1');
-                channel.emit('reportComment', {
+                channel.emit(Pusher.TYPE.REPORT_COMMENT, {
                     reportID: REPORT_ID,
                     reportAction: {...REPORT_ACTION, clientID},
                 });
