@@ -74,7 +74,7 @@ const getAllParticipants = (report, personalDetails) => {
     });
 };
 
-const ParticipantsPage = ({personalDetails, report}) => {
+const ParticipantsPage = ({personalDetails, report, route}) => {
     const participants = getAllParticipants(report, personalDetails);
 
     return (
@@ -96,7 +96,9 @@ const ParticipantsPage = ({personalDetails, report}) => {
                             title: '', data: participants, shouldShow: true, indexOffset: 0,
                         }]}
                         onSelectRow={(option) => {
-                            Navigation.navigate(ROUTES.getDetailsRoute(option.login));
+                            Navigation.navigate(ROUTES.getParticipantsPartipantDetail(
+                                route.params.reportID, option.login,
+                            ));
                         }}
                         hideSectionHeaders
                         showTitleTooltip
