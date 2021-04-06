@@ -10,7 +10,7 @@ const propTypes = {
     isChecked: PropTypes.bool.isRequired,
 
     // A function that is called when the box/label is clicked on
-    onCheckboxClick: PropTypes.func.isRequired,
+    onClick: PropTypes.func.isRequired,
 
     // Text that appears next to check box
     label: PropTypes.string,
