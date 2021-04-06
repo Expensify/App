@@ -26,7 +26,7 @@ import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import CreateMenu from '../../../components/CreateMenu';
-import Picker from '../../components/Picker';
+import Picker from '../../../components/Picker';
 
 const propTypes = {
     /* Onyx Props */
