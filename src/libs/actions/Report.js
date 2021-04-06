@@ -448,7 +448,7 @@ function updateReportWithNewAction(reportID, reportAction) {
 }
 
 /**
- * Updates a report in the store with a new report pin state
+ * Updates a report in Onyx with a new pinned state.
  *
  * @param {Number} reportID
  * @param {Boolean} isPinned
@@ -468,16 +468,6 @@ function getReportChannelName(reportID) {
 }
 
 /**
- * Get the private pusher channel name for an account.
- *
- * @param {String} accountID
- * @returns {String}
- */
- function getAccountChannelName(accountID) {
-    return `private-user-accountID-${accountID}`;
-}
-
-/**
  * Initialize our pusher subscriptions to listen for new report comments and pin toggles
  */
 function subscribeToReportCommentAndTogglePinnedEvents() {
@@ -486,7 +476,7 @@ function subscribeToReportCommentAndTogglePinnedEvents() {
         return;
     }
 
-    const pusherChannelName = getAccountChannelName(currentUserAccountID);
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
     if (Pusher.isSubscribed(pusherChannelName) || Pusher.isAlreadySubscribing(pusherChannelName)) {
         return;
     }
@@ -847,7 +837,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 }
 
 /**
- * Toggles the pinned state of the report
+ * Toggles the pinned state of the report.
  *
  * @param {Object} report
  */
