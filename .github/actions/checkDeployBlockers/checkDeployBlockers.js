@@ -9,7 +9,7 @@ const run = function () {
 
     console.log(`Fetching issue number ${issueNumber}`);
 
-    return octokit.rest.issues.get({
+    return octokit.issues.get({
         owner: GITHUB_OWNER,
         repo: EXPENSIFY_CASH_REPO,
         issue_number: issueNumber,
@@ -23,7 +23,7 @@ const run = function () {
         })
         .then(() => {
             if (!hasDeployBlockers) {
-                return octokit.rest.issues.listComments({
+                return octokit.issues.listComments({
                     owner: GITHUB_OWNER,
                     repo: EXPENSIFY_CASH_REPO,
                     issue_number: issueNumber,

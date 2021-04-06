@@ -6,13 +6,13 @@ const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}
 const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});
 
 function reopenIssueWithComment() {
-    return octokit.rest.issues.update({
+    return octokit.issues.update({
         owner: GITHUB_OWNER,
         repo: EXPENSIFY_CASH_REPO,
         issue_number: issueNumber,
         state: 'open',
     })
-        .then(() => octokit.rest.issues.createComment({
+        .then(() => octokit.issues.createComment({
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
             issue_number: issueNumber,
