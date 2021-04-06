@@ -223,7 +223,7 @@ class ReportActionsView extends React.Component {
     updateSortedReportActions() {
         this.sortedReportActions = _.chain(this.props.reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU'|| action.message.text !== '')
+            .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU' || action.message.text !== '')
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();

@@ -15,9 +15,6 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
 
-let reportID;
-let reportActionID;
-
 /**
  * A list of all the context actions in this menu.
  */
@@ -32,7 +29,7 @@ const CONTEXT_ACTIONS = [
         // If return value is true, we switch the `text` and `icon` on
         // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
-        onPress: (action) => {
+        onPress: (reportID, action) => {
             const message = _.last(lodashGet(action, 'message', null));
             const html = lodashGet(message, 'html', '');
             const text = lodashGet(message, 'text', '');
@@ -73,9 +70,9 @@ const CONTEXT_ACTIONS = [
         text: 'Delete Comment',
         icon: Trashcan,
 
-        onPress: () => {
+        onPress: (reportID, action) => {
             Log.info('delete pressed', true);
-            Onyx.merge(ONYXKEYS.COLLECTION.REPORT_DELETE_COMMENT, {reportID, reportActionID});
+            Onyx.merge(ONYXKEYS.COLLECTION.REPORT_DELETE_COMMENT, {reportID, reportActionID: action.sequenceNumber});
         },
     },
 ];
@@ -103,8 +100,6 @@ const defaultProps = {
 
 const ReportActionContextMenu = (props) => {
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini);
-    reportID = props.reportID;
-    reportActionID = props.reportActionID;
     return props.isVisible && (
         <View style={wrapperStyle}>
             {CONTEXT_ACTIONS.map(contextAction => (
@@ -115,9 +110,7 @@ const ReportActionContextMenu = (props) => {
                     successText={contextAction.successText}
                     isMini={props.isMini}
                     key={contextAction.text}
-                    onClick={contextAction.onClick}
-                    onPress={() => contextAction.onPress(props.reportAction)}
-                    key={contextAction.text}
+                    onPress={() => contextAction.onPress(props.reportID, props.reportAction)}
                 />
             ))}
         </View>
