@@ -206,12 +206,17 @@ function setPersonalDetails(details) {
         NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
     }
 
-    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
-    const formattedDetails = formatPersonalDetails({[currentUserEmail]: mergedDetails});
+    // We are merging the partial details provided to this method with the existing details we have for the user so
+    // that we don't overwrite any values that may exist in storage. displayName is a generated field so we'll use the
+    // firstName and lastName + login to update it.
+    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], {
+        ...details,
+        displayName: getDisplayName(currentUserEmail, details),
+    });
 
     // Update the associated onyx keys
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, formattedDetails[currentUserEmail]);
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedDetails);
+    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
 }
 
 /**
