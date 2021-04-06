@@ -197,6 +197,7 @@ function getFromReportParticipants(reports) {
  * Merges partial details object into the local store.
  *
  * @param {Object} details
+ * @private
  */
 function mergeLocalPersonalDetails(details) {
     // We are merging the partial details provided to this method with the existing details we have for the user so
