@@ -1,10 +1,10 @@
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Popover from './Popover';
-import styles from '../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import MenuItem from './MenuItem';
+import Popover from '../Popover';
+import styles from '../../styles/styles';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import MenuItem from '../MenuItem';
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -26,8 +26,16 @@ const propTypes = {
     ).isRequired,
 
     ...windowDimensionsPropTypes,
+
+    // Trigger the item `onSelected` action immediately after press or after the modal hides
+    invokeActionImmediately: PropTypes.bool,
 };
-class CreateMenu extends PureComponent {
+
+const defaultProps = {
+    invokeActionImmediately: false,
+};
+
+class BaseCreateMenu extends PureComponent {
     constructor(props) {
         super(props);
         this.triggerSelectedItem = this.triggerSelectedItem.bind(this);
@@ -60,7 +68,11 @@ class CreateMenu extends PureComponent {
                             title={item.text}
                             onPress={() => {
                                 this.props.onItemSelected(item);
-                                this.selectedItem = item;
+                                if (this.props.invokeActionImmediately) {
+                                    item.onSelected();
+                                } else {
+                                    this.selectedItem = item;
+                                }
                             }}
                         />
                     ))}
@@ -70,6 +82,6 @@ class CreateMenu extends PureComponent {
     }
 }
 
-CreateMenu.propTypes = propTypes;
-CreateMenu.displayName = 'CreateMenu';
-export default withWindowDimensions(CreateMenu);
+BaseCreateMenu.propTypes = propTypes;
+BaseCreateMenu.defaultProps = defaultProps;
+export default withWindowDimensions(BaseCreateMenu);
