@@ -225,32 +225,24 @@ const styles = {
         },
     },
 
-    pill: {
+    badge: {
+        backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
-        backgroundColor: themeColors.pillBG,
-        height: variables.componentSizeSmall,
+        height: variables.iconSizeNormal,
         flexDirection: 'row',
-        paddingTop: 6,
-        paddingBottom: 6,
-        paddingLeft: 7,
-        paddingRight: 7,
+        paddingHorizontal: 7,
         alignItems: 'center',
     },
 
-    pillText: {
-        color: themeColors.text,
-        weight: '400',
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
-        marginRight: 4,
-        userSelect: 'none',
-        maxWidth: 144,
-        ...whiteSpace.noWrap,
+    badgeSuccess: {
+        backgroundColor: themeColors.badgeSuccessBG,
     },
 
-    pillCancelIcon: {
-        width: 12,
-        height: 12,
+    badgeText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        ...whiteSpace.noWrap,
     },
 
     headerText: {
@@ -258,6 +250,14 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
+    },
+
+    headerGap: {
+        height: 12,
+    },
+
+    pushTextRight: {
+        left: 100000,
     },
 
     reportOptions: {
@@ -349,6 +349,7 @@ const styles = {
         backgroundColor: themeColors.sidebar,
         padding: 20,
         minHeight: '100%',
+        flex: 1,
     },
 
     signInPageLogo: {
@@ -535,14 +536,20 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
-        paddingRight: 20,
         paddingBottom: 12,
-        paddingLeft: 20,
+    },
+
+    sidebarInnerRowSmall: {
+        height: 52,
+        paddingTop: 12,
+        paddingBottom: 12,
     },
 
     sidebarLinkText: {
@@ -585,6 +592,13 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    optionDisplayNameCompact: {
+        minWidth: 'auto',
+        flexBasis: 'auto',
+        flexGrow: 0,
+        flexShrink: 0,
+    },
+
     optionDisplayNameTooltipWrapper: {
         position: 'relative',
     },
@@ -602,6 +616,12 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
+    },
+
+    optionAlternateTextCompact: {
+        flexShrink: 1,
+        flexGrow: 1,
+        flexBasis: 'auto',
     },
 
     // App Content Wrapper styles
@@ -776,6 +796,10 @@ const styles = {
         justifyContent: 'center',
     },
 
+    hoveredButton: {
+        backgroundColor: themeColors.buttonHoveredBG,
+    },
+
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
@@ -837,12 +861,34 @@ const styles = {
         borderRadius: 24,
     },
 
+    singleAvatarSmall: {
+        height: 18,
+        width: 18,
+        backgroundColor: themeColors.icon,
+        borderRadius: 18,
+    },
+
     secondAvatar: {
         position: 'absolute',
-        right: -13,
-        bottom: -14,
+        right: -18,
+        bottom: -18,
+        borderWidth: 3,
+        borderRadius: 30,
         borderColor: 'transparent',
-        borderWidth: 2,
+    },
+
+    secondAvatarHovered: {
+        backgroundColor: themeColors.sidebarHover,
+        borderColor: themeColors.sidebarHover,
+    },
+
+    secondAvatarSmall: {
+        position: 'absolute',
+        right: -13,
+        bottom: -13,
+        borderWidth: 3,
+        borderRadius: 18,
+        borderColor: 'transparent',
     },
 
     avatarNormal: {
@@ -852,11 +898,11 @@ const styles = {
         borderRadius: variables.componentSizeNormal,
     },
 
-    avatarText: {
+    avatarSmall: {
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
         backgroundColor: themeColors.icon,
-        borderRadius: 24,
-        height: 24,
-        width: 24,
+        borderRadius: variables.avatarSizeSmall,
     },
 
     avatarInnerText: {
@@ -867,6 +913,14 @@ const styles = {
         textAlign: 'center',
     },
 
+    avatarInnerTextSmall: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeExtraSmall,
+        lineHeight: 18,
+        marginLeft: -2,
+        textAlign: 'center',
+    },
+
     avatarSpace: {
         top: 3,
         left: 3,
@@ -874,16 +928,24 @@ const styles = {
 
     avatar: {
         backgroundColor: themeColors.sidebar,
+        borderColor: themeColors.sidebar,
     },
 
     focusedAvatar: {
         backgroundColor: themeColors.border,
+        borderColor: themeColors.border,
     },
 
     emptyAvatar: {
         marginRight: variables.componentSizeNormal - 24,
-        height: 40,
-        width: 40,
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
+    },
+
+    emptyAvatarSmall: {
+        marginRight: variables.componentSizeNormal - 28,
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
     },
 
     modalViewContainer: {
@@ -903,6 +965,13 @@ const styles = {
         paddingLeft: 20,
         height: variables.contentHeaderHeight,
         width: '100%',
+    },
+
+    imageViewContainer: {
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     imageModalPDF: {
@@ -1112,6 +1181,7 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
+        height: '100%',
     },
 
     invisible: {
@@ -1185,6 +1255,10 @@ const styles = {
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
     }, 0),
+
+    noScrollbars: {
+        scrollbarWidth: 'none',
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1322,6 +1396,111 @@ function getNavigationModalCardStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * @param {Boolean} isZoomed
+ * @param {Boolean} isDragging
+ * @return {Object}
+ */
+function getZoomCursorStyle(isZoomed, isDragging) {
+    if (!isZoomed) {
+        return {cursor: 'zoom-in'};
+    }
+
+    return {
+        cursor: isDragging ? 'grabbing' : 'zoom-out',
+    };
+}
+
+/**
+ * @param {Boolean} isZoomed
+ * @return {Object}
+ */
+function getZoomSizingStyle(isZoomed) {
+    return {
+        height: isZoomed ? '250%' : '100%',
+        width: isZoomed ? '250%' : '100%',
+    };
+}
+
+/**
+ * Returns a style with backgroundColor and borderColor set to the same color
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundAndBorderStyle(backgroundColor) {
+    return {
+        backgroundColor,
+        borderColor: backgroundColor,
+    };
+}
+
+/**
+ * Returns a style with the specified backgroundColor
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundColorStyle(backgroundColor) {
+    return {
+        backgroundColor,
+    };
+}
+
+/**
+ * @param {Animated.Value} rotate
+ * @param {Animated.Value} backgroundColor
+ * @returns {Object}
+ */
+function getAnimatedFABStyle(rotate, backgroundColor) {
+    return {
+        transform: [{rotate}],
+        backgroundColor,
+    };
+}
+
+/**
+ * @param {Number} width
+ * @param {Number} height
+ * @returns {Object}
+ */
+function getWidthAndHeightStyle(width, height) {
+    return {
+        width,
+        height,
+    };
+}
+
+/**
+ * @param {Number} opacity
+ * @returns {Object}
+ */
+function getOpacityStyle(opacity) {
+    return {opacity};
+}
+
+/**
+ * @param {Object} params
+ * @returns {Object}
+ */
+function getModalPaddingStyles({
+    shouldAddBottomSafeAreaPadding,
+    shouldAddTopSafeAreaPadding,
+    safeAreaPaddingTop,
+    safeAreaPaddingBottom,
+    modalContainerStylePaddingTop,
+    modalContainerStylePaddingBottom,
+}) {
+    return {
+        paddingTop: shouldAddTopSafeAreaPadding
+            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
+            : modalContainerStylePaddingTop || 0,
+        paddingBottom: shouldAddBottomSafeAreaPadding
+            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
+            : modalContainerStylePaddingBottom || 0,
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1330,4 +1509,12 @@ export {
     getNavigationDrawerStyle,
     getNavigationDrawerType,
     getNavigationModalCardStyle,
+    getZoomCursorStyle,
+    getZoomSizingStyle,
+    getBackgroundAndBorderStyle,
+    getBackgroundColorStyle,
+    getAnimatedFABStyle,
+    getWidthAndHeightStyle,
+    getOpacityStyle,
+    getModalPaddingStyles,
 };

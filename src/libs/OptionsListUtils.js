@@ -86,6 +86,7 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
+    const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
     const lastMessageText = report
         ? (hasMultipleParticipants && lastActorDetails
@@ -97,7 +98,9 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
 
     return {
         text: report ? report.reportName : personalDetail.displayName,
-        alternateText: (showChatPreviewLine && lastMessageText) ? lastMessageText : personalDetail.login,
+        alternateText: (showChatPreviewLine && lastMessageText)
+            ? lastMessageText
+            : Str.removeSMSDomain(personalDetail.login),
         icons: report ? report.icons : [personalDetail.avatar],
         tooltipText,
         participantsList: personalDetailList,
@@ -111,6 +114,8 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, personalDetailList),
         isPinned: lodashGet(report, 'isPinned', false),
+        hasOutstandingIOU,
+        iouReportID: lodashGet(report, 'iouReportID'),
     };
 }
 
@@ -407,16 +412,21 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  *
  * @param {Boolean} hasSelectableOptions
  * @param {Boolean} hasUserToInvite
+ * @param {String} searchValue
  * @param {Boolean} [maxParticipantsReached]
  * @return {String}
  */
-function getHeaderMessage(hasSelectableOptions, hasUserToInvite, maxParticipantsReached = false) {
+function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
         return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
-        return CONST.MESSAGES.NO_CONTACTS_FOUND;
+        if (/^\d+$/.test(searchValue)) {
+            return CONST.MESSAGES.NO_PHONE_NUMBER;
+        }
+
+        return searchValue;
     }
 
     return '';

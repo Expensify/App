@@ -33,6 +33,8 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
             return themeColors.text;
         case CONST.BUTTON_STATES.PRESSED:
             return themeColors.heading;
+        case CONST.BUTTON_STATES.COMPLETE:
+            return themeColors.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
         default:
             return themeColors.icon;

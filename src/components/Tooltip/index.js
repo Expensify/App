@@ -127,6 +127,7 @@ class Tooltip extends PureComponent {
      * Display the tooltip in an animation.
      */
     showTooltip() {
+        this.animation.stopAnimation();
         this.shouldStartShowAnimation = true;
 
         // We have to dynamically calculate the position here as tooltip could have been rendered on some elments
@@ -148,6 +149,7 @@ class Tooltip extends PureComponent {
                     Animated.timing(this.animation, {
                         toValue: 1,
                         duration: 140,
+                        delay: 500,
                     }).start();
                 }
             });
@@ -157,6 +159,7 @@ class Tooltip extends PureComponent {
      * Hide the tooltip in an animation.
      */
     hideTooltip() {
+        this.animation.stopAnimation();
         this.shouldStartShowAnimation = false;
         Animated.timing(this.animation, {
             toValue: 0,
