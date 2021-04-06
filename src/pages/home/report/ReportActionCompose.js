@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity} from 'react-native';
@@ -236,7 +235,9 @@ class ReportActionCompose extends React.Component {
                                                         text: 'Upload Photo',
                                                         onSelected: () => {
                                                             openPicker({
-                                                                onPicked: file => displayFileInModal({file}),
+                                                                onPicked: (file) => {
+                                                                    displayFileInModal({file});
+                                                                },
                                                             });
                                                         },
                                                     },
