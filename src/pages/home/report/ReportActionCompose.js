@@ -230,7 +230,7 @@ class ReportActionCompose extends React.Component {
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={(item) => {
-                                                    if (item.text === CREATE_MENU_ITEMS.ATTACHMENT.text) {
+                                                    if (item.text === 'Upload Photo') {
                                                         openPicker({
                                                             onPicked: file => displayFileInModal({file}),
                                                         });
@@ -238,7 +238,13 @@ class ReportActionCompose extends React.Component {
 
                                                     this.setMenuVisibility(false);
                                                 }}
-                                                menuItems={Object.values(CREATE_MENU_ITEMS)}
+                                                menuItems={[
+                                                    {
+                                                        icon: Paperclip,
+                                                        text: 'Upload Photo',
+                                                        onSelected: () => {},
+                                                    },
+                                                ]}
 
                                             /**
                                              * Temporarily hiding IOU Modal options while Modal is incomplete. Will
@@ -307,14 +313,6 @@ class ReportActionCompose extends React.Component {
         );
     }
 }
-
-const CREATE_MENU_ITEMS = {
-    ATTACHMENT: {
-        icon: Paperclip,
-        text: 'Upload Photo',
-        onSelected: () => {},
-    },
-};
 
 ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
