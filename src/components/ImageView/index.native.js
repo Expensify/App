@@ -29,10 +29,6 @@ class ImageView extends PureComponent {
         this.scaleValue = 1;
     }
 
-    joetest(vx, scale) {
-        console.log(`joetest vx: ${vx} scale: ${scale}`);
-    }
-
     render() {
         // Default windowHeight accounts for the modal header height
         const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
@@ -51,19 +47,8 @@ class ImageView extends PureComponent {
                     cropHeight={windowHeight}
                     imageWidth={this.state.imageWidth}
                     imageHeight={this.state.imageHeight}
-                    responderRelease={this.joetest}
-                    onStartShouldSetPanResponder={(e) => {
-                        console.log(e);
-                        if (e.nativeEvent.touches.length === 2 || this.scaleValue !== 1) {
-                            console.log(`joetest true. scale: ${this.scaleValue}`);
-                            return true;
-                        } else {
-                            console.log(`joetest false. scale: ${this.scaleValue}`);
-                            return false;
-                        }
-                    }}
+                    onStartShouldSetPanResponder={e => e.nativeEvent.touches.length === 2 || this.scaleValue !== 1}
                     onMove={({scale}) => {
-                        console.log(`joetest moving. scale: ${scale}`);
                         this.scaleValue = scale;
                     }}
                 >
