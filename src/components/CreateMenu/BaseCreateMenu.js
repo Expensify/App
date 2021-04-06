@@ -42,7 +42,7 @@ class BaseCreateMenu extends PureComponent {
     }
 
     /**
-     * Trigger the selected item `onSelected` callback when the modal closes
+     * Trigger the selected item `onSelected` callback
      */
     triggerSelectedItem() {
         if (this.selectedItem) {
