@@ -79,10 +79,6 @@ jobs:
       - name: Tag version
         run: git tag ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
-      # TODO: Once we add cherry picking, we will need run this from the deploy workflow
-      - name: 🚀 Push tags to trigger staging deploy 🚀
-        run: git push --tags
-
       - name: Update StagingDeployCash
         uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@master
         with:
