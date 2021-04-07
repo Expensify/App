@@ -76,7 +76,6 @@ class ReportActionsView extends React.Component {
         // Helper variable that keeps track of the unread action count before it updates to zero
         this.unreadActionCount = 0;
 
-        // Todo: this should come from props and depend on isDrawerOutOfTheWay
         // Helper variable that prevents the unread indicator to show up for new messages
         // received while the report is still active
         this.shouldShowUnreadActionIndicator = true;
