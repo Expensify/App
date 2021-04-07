@@ -27,7 +27,7 @@ const propTypes = {
 };
 
 function ReportView(props) {
-    const isDrawerOutOfTheWay = !props.isDrawerOpen || !props.isSmallScreenWidth;
+    const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
 
     return (
         <View key={props.reportID} style={[styles.chatContent]}>
@@ -35,14 +35,13 @@ function ReportView(props) {
 
             <ReportActionsView reportID={props.reportID} />
 
-            {isDrawerOutOfTheWay && (
-                <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
-                    <ReportActionCompose
-                        onSubmit={text => addAction(props.reportID, text)}
-                        reportID={props.reportID}
-                    />
-                </SwipeableView>
-            )}
+            <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
+                <ReportActionCompose
+                    isDisabled={isComposeDisabled}
+                    onSubmit={text => addAction(props.reportID, text)}
+                    reportID={props.reportID}
+                />
+            </SwipeableView>
             <KeyboardSpacer />
         </View>
     );
