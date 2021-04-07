@@ -52,12 +52,12 @@ class ReportActionContextMenu extends React.Component {
                 // If return value is true, we switch the `text` and `icon` on
                 // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
                 // the `text` and `icon`
-                onPress: (reportID, action) => {
-                    const message = _.last(lodashGet(action, 'message', null));
+                onPress: () => {
+                    const message = _.last(lodashGet(this.props.reportAction, 'message', null));
                     const html = lodashGet(message, 'html', '');
                     const text = lodashGet(message, 'text', '');
-                    const isAttachment = _.has(action, 'isAttachment')
-                        ? action.isAttachment
+                    const isAttachment = _.has(this.props.reportAction, 'isAttachment')
+                        ? this.props.reportAction.isAttachment
                         : isReportMessageAttachment(text);
                     if (!isAttachment) {
                         Clipboard.setString(text);
