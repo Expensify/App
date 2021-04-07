@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {LayoutAnimation, View} from 'react-native';
+import {View} from 'react-native';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -66,18 +66,11 @@ class ReportScreen extends React.Component {
     fetchReport() {
         if (!this.getReportID()) { return; }
 
-        // This adds a small fade in transition when the loader appears
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-
         this.setState({isLoading: true});
 
         fetchActions(this.getReportID())
             .catch(console.error)
-            .finally(() => {
-                // This adds a small fadeout transition when the loader disappears
-                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                this.setState({isLoading: false});
-            });
+            .finally(() => this.setState({isLoading: false}));
     }
 
     render() {
