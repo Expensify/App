@@ -5,7 +5,6 @@ import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
-import {fetchActions} from '../../libs/actions/Report';
 
 const propTypes = {
     /* Navigation api provided by react navigation */
@@ -34,13 +33,13 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchReport();
+        this.prepareTransition();
     }
 
     componentDidUpdate(prevProps) {
         // Reports changed, reset and load new data
         if (this.props.route.params.reportID !== prevProps.route.params.reportID) {
-            this.fetchReport();
+            this.prepareTransition();
         }
     }
 
@@ -68,15 +67,12 @@ class ReportScreen extends React.Component {
     }
 
     /**
-     * Load initial data for the current report
      * Configures a small loading transition of fixed time and proceeds with rendering available data
      */
-    fetchReport() {
+    prepareTransition() {
         if (!this.getReportID()) { return; }
 
         this.setState({isLoading: true});
-
-        fetchActions(this.getReportID()).catch(console.error);
 
         clearTimeout(this.loadingTimerId);
         this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 300);
