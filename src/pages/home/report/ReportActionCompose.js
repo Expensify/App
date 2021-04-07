@@ -27,9 +27,6 @@ const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
-    // Should the input focus on mount
-    autoFocus: PropTypes.bool.isRequired,
-
     // Details about any modals being used
     modal: PropTypes.shape({
         // Indicates if there is a modal currently visible or not
@@ -62,7 +59,7 @@ class ReportActionCompose extends React.Component {
         this.comment = props.comment;
 
         this.state = {
-            isFocused: this.props.autoFocus,
+            isFocused: true,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
@@ -243,7 +240,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                    autoFocus={this.props.autoFocus}
+                                    autoFocus
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
