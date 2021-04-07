@@ -799,20 +799,44 @@ function addAction(reportID, text, file) {
  * Deletes a comment from the report, basically sets it as empty string
  *
  * @param {Number} reportID
- * @param {Number} reportActionID
+ * @param {Object} reportAction
  */
-function deleteReportAction(reportID, reportActionID) {
+function deleteReportAction(reportID, reportAction) {
+    // Optimistic Response
+    const reportActionsToMerge = {};
+    const oldMessage = _.copy(reportAction.message);
+    reportActionsToMerge[reportAction.reportActionID] = {
+        ...reportAction,
+        message: [
+            {
+                type: 'COMMENT',
+                html: '',
+                text: '',
+            },
+        ],
+    };
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+
     // Mark the report as not having any unread items
     API.Report_EditComment({
         accountID: currentUserAccountID,
         reportID,
-        reportActionID,
+        reportAction: reportAction.reportActionID,
         reportComment: '',
     }).then(() => {
         Log.info('deleteReportComment - Then', true);
     })
         .catch(() => {
             Log.info('deleteReportComment - catch', true);
+
+            // Reverse Optimistic Response
+            reportActionsToMerge[reportAction.reportActionID] = {
+                ...reportAction,
+                message: oldMessage,
+            };
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
         });
 }
 
