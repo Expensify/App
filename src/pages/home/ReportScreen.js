@@ -44,24 +44,34 @@ class ReportScreen extends React.Component {
         }
     }
 
-    get canRenderMainContent() {
-        return Boolean(this.reportID) && !this.state.isLoading;
+    /**
+     * Get the currently viewed report ID as number
+     *
+     * @returns {Number}
+     */
+    getReportID() {
+        const params = this.props.route.params;
+        return Number.parseInt(params.reportID, 10);
     }
 
-    get reportID() {
-        const params = this.props.route.params;
-        return parseInt(params.reportID, 10) || 0;
+    /**
+     * When reports change there's a brief time content is not ready to be displayed
+     *
+     * @returns {Boolean}
+     */
+    isReadyToDisplayReport() {
+        return !this.state.isLoading && Boolean(this.getReportID());
     }
 
     fetchReport() {
-        if (!this.reportID) { return; }
+        if (!this.getReportID()) { return; }
 
         // This adds a small fade in transition when the loader appears
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
         this.setState({isLoading: true});
 
-        fetchActions(this.reportID)
+        fetchActions(this.getReportID())
             .catch(console.error)
             .finally(() => {
                 // This adds a small fadeout transition when the loader disappears
@@ -80,14 +90,14 @@ class ReportScreen extends React.Component {
                 ]}
             >
                 <HeaderView
-                    reportID={this.reportID}
+                    reportID={this.getReportID()}
                     onNavigationMenuButtonClicked={this.props.navigation.openDrawer}
                 />
 
                 <View style={[styles.dFlex, styles.flex1]}>
                     <ReportView
-                        loaded={this.canRenderMainContent}
-                        reportID={this.reportID}
+                        isReady={this.isReadyToDisplayReport()}
+                        reportID={this.getReportID()}
                     />
                 </View>
             </ScreenWrapper>
