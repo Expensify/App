@@ -21,12 +21,16 @@ const propTypes = {
     /* Set focus to this component the first time it renders. Override this in case you need to set focus on one
     * field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
+
+    /* Prevent edits and interactions like focus for this input. */
+    isDisabled: PropTypes.bool,
 };
 
 const defaultProps = {
     shouldClear: false,
     onClear: () => {},
     autoFocus: false,
+    isDisabled: false,
 };
 
 class TextInputFocusable extends React.Component {
@@ -53,6 +57,7 @@ class TextInputFocusable extends React.Component {
                 ref={el => this.textInput = el}
                 maxHeight={116}
                 rejectResponderTermination={false}
+                editable={!this.props.isDisabled}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}
             />
