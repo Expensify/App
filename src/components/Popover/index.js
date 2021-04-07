@@ -15,6 +15,7 @@ const Popover = props => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         animationIn={props.isSmallScreenWidth ? undefined : props.animationIn}
+        animationOut={props.isSmallScreenWidth ? undefined : props.animationOut}
     />
 );
 

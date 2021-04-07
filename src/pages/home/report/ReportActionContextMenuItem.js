@@ -1,80 +1,93 @@
-import React, {memo} from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, Text} from 'react-native';
+import {Pressable} from 'react-native';
+import MenuItem from '../../../components/MenuItem';
 import Tooltip from '../../../components/Tooltip';
 import Icon from '../../../components/Icon';
-import getReportActionContextMenuItemStyles from '../../../styles/getReportActionContextMenuItemStyles';
-import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
-
-/**
- * Get the string representation of a button's state.
- *
- * @param {Boolean} [isHovered]
- * @param {Boolean} [isPressed]
- * @returns {String}
- */
-function getButtonState(isHovered = false, isPressed = false) {
-    if (isPressed) {
-        return CONST.BUTTON_STATES.PRESSED;
-    }
-
-    if (isHovered) {
-        return CONST.BUTTON_STATES.HOVERED;
-    }
-
-    return CONST.BUTTON_STATES.DEFAULT;
-}
+import styles, {getIconFillColor, getButtonBackgroundColorStyle} from '../../../styles/styles';
+import getButtonState from '../../../libs/getButtonState';
 
 const propTypes = {
     icon: PropTypes.elementType.isRequired,
     text: PropTypes.string.isRequired,
+    successIcon: PropTypes.elementType,
+    successText: PropTypes.string,
     isMini: PropTypes.bool,
+    onPress: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
     isMini: false,
+    successIcon: null,
+    successText: '',
 };
 
-const ReportActionContextMenuItem = (props) => {
-    const {getButtonStyle, getIconFillColor} = getReportActionContextMenuItemStyles(props.isMini);
-    return (
-        props.isMini
-            ? (
-                <Tooltip text={props.text}>
-                    <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
-                        {({hovered, pressed}) => (
-                            <Icon
-                                src={props.icon}
-                                fill={getIconFillColor(getButtonState(hovered, pressed))}
-                            />
-                        )}
-                    </Pressable>
-                </Tooltip>
-            ) : (
-                <Pressable style={({hovered, pressed}) => getButtonStyle(getButtonState(hovered, pressed))}>
-                    {({hovered, pressed}) => (
-                        <>
-                            <Icon
-                                src={props.icon}
-                                fill={getIconFillColor(getButtonState(hovered, pressed))}
-                            />
-                            <Text
-                                style={styles.reportActionContextMenuText}
-                                selectable={false}
-                            >
-                                {props.text}
-                            </Text>
-                        </>
-                    )}
-                </Pressable>
-            )
-    );
-};
+class ReportActionContextMenuItem extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            success: false,
+        };
+        this.triggerPressAndUpdateSuccess = this.triggerPressAndUpdateSuccess.bind(this);
+    }
+
+    /**
+     * Called on button press and mark the run
+     */
+    triggerPressAndUpdateSuccess() {
+        if (this.state.success) {
+            return;
+        }
+        this.props.onPress();
+
+        // We only set the success state when we have icon or text to represent the success state
+        // We may want to replace this check by checking the Result from OnPress Callback in future.
+        if (this.props.successIcon || this.props.successText) {
+            this.setState({
+                success: true,
+            });
+        }
+    }
+
+    render() {
+        const icon = this.state.success ? this.props.successIcon || this.props.icon : this.props.icon;
+        const text = this.state.success ? this.props.successText || this.props.text : this.props.text;
+        return (
+            this.props.isMini
+                ? (
+                    <Tooltip text={text}>
+                        <Pressable
+                            onPress={this.triggerPressAndUpdateSuccess}
+                            style={
+                                ({hovered, pressed}) => [
+                                    styles.reportActionContextMenuMiniButton,
+                                    getButtonBackgroundColorStyle(getButtonState(hovered, pressed, this.state.success)),
+                                ]
+                            }
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    src={icon}
+                                    fill={getIconFillColor(getButtonState(hovered, pressed, this.state.success))}
+                                />
+                            )}
+                        </Pressable>
+                    </Tooltip>
+                ) : (
+                    <MenuItem
+                        title={text}
+                        icon={icon}
+                        onPress={this.triggerPressAndUpdateSuccess}
+                        wrapperStyle={styles.pr9}
+                    />
+                )
+        );
+    }
+}
 
 
 ReportActionContextMenuItem.propTypes = propTypes;
 ReportActionContextMenuItem.defaultProps = defaultProps;
 ReportActionContextMenuItem.displayName = 'ReportActionContextMenuItem';
 
-export default memo(ReportActionContextMenuItem);
+export default ReportActionContextMenuItem;
