@@ -38,6 +38,12 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
+    if (route.startsWith('r/')) {
+        const reportID = route.split('/')[1];
+        navigationRef.current.dispatch(StackActions.push('Report', {reportID}));
+        return;
+    }
+
     linkTo(navigationRef.current, route);
 }
 

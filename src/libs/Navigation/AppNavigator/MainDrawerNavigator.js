@@ -1,5 +1,6 @@
 import React from 'react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
+import {createStackNavigator} from '@react-navigation/stack';
 
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles, {
@@ -16,6 +17,24 @@ const propTypes = {
 };
 
 const Drawer = createDrawerNavigator();
+const ReportStack = createStackNavigator();
+
+const ReportStackNavigator = () => (
+    <ReportStack.Navigator>
+        <ReportStack.Screen
+            name="Report"
+            component={ReportScreen}
+
+            // Providing an empty string here will ensure that the ReportScreen does not show as '/r/undefined'
+            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+            initialParams={{reportID: ''}}
+            options={{
+                cardStyle: styles.navigationScreenCardStyle,
+                headerShown: false,
+            }}
+        />
+    </ReportStack.Navigator>
+);
 
 const MainDrawerNavigator = props => (
     <Drawer.Navigator
@@ -32,16 +51,8 @@ const MainDrawerNavigator = props => (
         )}
     >
         <Drawer.Screen
-            name="Report"
-            component={ReportScreen}
-
-            // Providing an empty string here will ensure that the ReportScreen does not show as '/r/undefined'
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            initialParams={{reportID: ''}}
-            options={{
-                cardStyle: styles.navigationScreenCardStyle,
-                headerShown: false,
-            }}
+            name="DrawerContent"
+            component={ReportStackNavigator}
         />
     </Drawer.Navigator>
 );

@@ -11,11 +11,18 @@ export default {
     config: {
         screens: {
             Home: {
-                path: '',
-                initialRouteName: 'Report',
+                path: 'Home',
                 screens: {
-                    // Report route
-                    Report: ROUTES.REPORT_WITH_ID,
+                    DrawerContent: {
+                        path: 'DrawerContent',
+                        screens: {
+                            // Report route
+                            Report: {
+                                path: ROUTES.REPORT_WITH_ID,
+                                exact: true,
+                            },
+                        },
+                    },
                 },
             },
 
