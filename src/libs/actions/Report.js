@@ -801,9 +801,8 @@ function addAction(reportID, text, file) {
  * @param {Number} reportID
  * @param {Number} reportActionID
  */
-function deleteReportComment(reportID, reportActionID) {
+function deleteReportAction(reportID, reportActionID) {
     // Mark the report as not having any unread items
-    Log.info('deleteReportComment', true);
     API.Report_EditComment({
         accountID: currentUserAccountID,
         reportID,
@@ -913,27 +912,6 @@ Onyx.connect({
     callback: handleReportChanged,
 });
 
-/**
- * When a report comment is asked to be deleted this handles it and takes care of that.
- *
- * @param {Object} info
- */
-function handleReportCommentDeleted(info) {
-    Log.info('handleReportCommentDeleted', true);
-    if (!info) {
-        return;
-    }
-    if (info.reportID && info.reportActionID) {
-        deleteReportComment(info.reportID, info.reportActionID);
-    }
-}
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_DELETE_COMMENT,
-    callback: handleReportCommentDeleted,
-});
-
-
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
     fetchAll(false);
@@ -952,4 +930,5 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     updateCurrentlyViewedReportID,
+    deleteReportAction,
 };

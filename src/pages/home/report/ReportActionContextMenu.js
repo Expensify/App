@@ -2,18 +2,16 @@ import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Log from '../../../libs/Log';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
+import {deleteReportAction} from '../../../libs/actions/Report';
 
 /**
  * A list of all the context actions in this menu.
@@ -69,11 +67,7 @@ const CONTEXT_ACTIONS = [
     {
         text: 'Delete Comment',
         icon: Trashcan,
-
-        onPress: (reportID, action) => {
-            Log.info('delete pressed', true);
-            Onyx.set(ONYXKEYS.COLLECTION.REPORT_DELETE_COMMENT, {reportID, reportActionID: action.sequenceNumber});
-        },
+        onPress: () => deleteReportAction(this.props.reportID, this.props.reportActionID),
     },
 ];
 
