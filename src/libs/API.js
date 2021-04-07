@@ -548,7 +548,7 @@ function ResendValidateCode(parameters) {
  */
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
-    requireParameters(['accountID, password', 'validateCode'], parameters, commandName);
+    requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
