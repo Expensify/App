@@ -37,8 +37,9 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // Reports changed, reset and load new data
-        if (this.props.route.params.reportID !== prevProps.route.params.reportID) {
+        const reportChanged = this.props.route.params.reportID !== prevProps.route.params.reportID;
+
+        if (reportChanged) {
             this.prepareTransition();
         }
     }
