@@ -41,7 +41,9 @@ const propTypes = {
 
     // Route object from navigation
     route: PropTypes.shape({
+        // Params that are passed into the route
         params: PropTypes.shape({
+            // The type of secondary login to be added (email|phone)
             type: PropTypes.string,
         }),
     }),
@@ -69,6 +71,9 @@ class AddSecondaryLoginPage extends Component {
         Onyx.merge(ONYXKEYS.USER, {error: ''});
     }
 
+    /**
+     * Add a secondary login to a user's account
+     */
     submitForm() {
         setSecondaryLogin(this.state.login, this.state.password)
             .then((response) => {
@@ -78,7 +83,11 @@ class AddSecondaryLoginPage extends Component {
             });
     }
 
-    // Determines whether form is valid
+    /**
+     * Determine whether the form is valid
+     *
+     * @returns {Boolean}
+     */
     validateForm() {
         const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
         return !this.state.password || !validationMethod(this.state.login);
