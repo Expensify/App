@@ -44,6 +44,10 @@ class ReportScreen extends React.Component {
         }
     }
 
+    componentWillUnmount() {
+        clearTimeout(this.loadingTimerId);
+    }
+
     /**
      * Get the currently viewed report ID as number
      *
@@ -63,14 +67,19 @@ class ReportScreen extends React.Component {
         return !this.state.isLoading && Boolean(this.getReportID());
     }
 
+    /**
+     * Load initial data for the current report
+     * Configures a small loading transition of fixed time and proceeds with rendering available data
+     */
     fetchReport() {
         if (!this.getReportID()) { return; }
 
         this.setState({isLoading: true});
 
-        fetchActions(this.getReportID())
-            .catch(console.error)
-            .finally(() => this.setState({isLoading: false}));
+        fetchActions(this.getReportID()).catch(console.error);
+
+        clearTimeout(this.loadingTimerId);
+        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 300);
     }
 
     render() {
