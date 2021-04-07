@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
 const {GITHUB_OWNER, EXPENSIFY_CASH_REPO} = require('../../libs/GithubUtils');
@@ -5,7 +6,6 @@ const {GITHUB_OWNER, EXPENSIFY_CASH_REPO} = require('../../libs/GithubUtils');
 const run = function () {
     const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
-    let hasDeployBlockers = false;
 
     console.log(`Fetching issue number ${issueNumber}`);
 
@@ -18,10 +18,10 @@ const run = function () {
             console.log('Checking for unverified PRs or unresolved deploy blockers', data);
             const pattern = /-\s\[\s]/g;
             const matches = pattern.exec(data.body);
-            hasDeployBlockers = matches !== null;
-            if (hasDeployBlockers) {
+            if (matches !== null) {
                 console.log('An unverified PR or unresolved deploy blocker was found.');
-                return {};
+                core.setOutput('HAS_DEPLOY_BLOCKERS', true);
+                return;
             }
 
             return octokit.issues.listComments({
@@ -30,21 +30,18 @@ const run = function () {
                 issue_number: issueNumber,
             });
         })
-        .then(({data}) => {
-            if (!data) {
-                return;
+        .then((issues) => {
+            if (!_.isUndefined(issues)) {
+                console.log('Verifying that the last comment is :shipit:');
+                const lastComment = issues.data[issues.data.length - 1];
+                const shipItRegex = /^:shipit:/g;
+                if (_.isNull(shipItRegex.exec(lastComment.body))) {
+                    core.setOutput('HAS_DEPLOY_BLOCKERS', true);
+                    console.log('The last comment on the issue was not :shipit');
+                    return;
+                }
             }
-
-            console.log('Verifying that the last comment is :shipit:');
-            const lastComment = data[data.length - 1];
-            const shipItRegex = /^:shipit:/g;
-            hasDeployBlockers = shipItRegex.exec(lastComment.body) === null;
-            if (hasDeployBlockers) {
-                console.log('The last comment on the issue was not :shipit:');
-            }
-        })
-        .then(() => {
-            core.setOutput('HAS_DEPLOY_BLOCKERS', hasDeployBlockers);
+            core.setOutput('HAS_DEPLOY_BLOCKERS', false);
         })
         .catch((error) => {
             console.error('A problem occurred while trying to communicate with the GitHub API', error);
