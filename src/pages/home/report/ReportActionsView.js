@@ -285,7 +285,7 @@ class ReportActionsView extends React.Component {
      */
     scrollToListBottom() {
         if (this.actionListElement) {
-            this.actionListElement.scrollToIndex({animated: false, index: 0});
+            this.actionListElement.scrollToOffset({animated: false, offset: 0});
         }
         this.recordMaxAction();
     }
@@ -373,7 +373,7 @@ class ReportActionsView extends React.Component {
                 renderItem={this.renderItem}
                 CellRendererComponent={this.renderCell}
                 contentContainerStyle={[styles.chatContentScrollView]}
-                keyExtractor={item => `${item.action.sequenceNumber}`}
+                keyExtractor={item => `${item.action.timestamp}`}
                 initialRowHeight={32}
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}
