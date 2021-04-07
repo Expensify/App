@@ -17,7 +17,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 
     /* Is the view ready to be displayed */
-    loaded: PropTypes.bool.isRequired,
+    isReady: PropTypes.bool.isRequired,
 
     /* Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -31,7 +31,7 @@ function ReportView(props) {
 
     return (
         <View key={props.reportID} style={[styles.chatContent]}>
-            {!props.loaded && <FullScreenLoadingIndicator />}
+            {!props.isReady && <FullScreenLoadingIndicator />}
 
             <ReportActionsView reportID={props.reportID} />
 
