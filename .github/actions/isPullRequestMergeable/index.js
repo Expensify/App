@@ -345,7 +345,11 @@ class GithubUtils {
                 issueBody += '\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;
             })
-            .catch(err => console.warn('Error generating comparison URL, continuing...', err));
+            .catch(err => console.warn(
+                'Error generating StagingDeployCash issue body!',
+                'Automerge PRs may not be properly filtered out. Continuing...',
+                err,
+            ));
     }
 
     /**
