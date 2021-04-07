@@ -232,7 +232,7 @@ class ReportActionCompose extends React.Component {
                                                 menuItems={[
                                                     {
                                                         icon: Paperclip,
-                                                        text: 'Upload Photo',
+                                                        text: 'Add Attachment',
                                                         onSelected: () => {
                                                             openPicker({
                                                                 onPicked: (file) => {
