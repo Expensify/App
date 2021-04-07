@@ -92,6 +92,7 @@ class ReportActionsView extends React.Component {
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         this.recordMaxAction();
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -170,17 +171,6 @@ class ReportActionsView extends React.Component {
         }
 
         this.shouldShowUnreadActionIndicator = false;
-    }
-
-    /**
-     * Actions to run when the report has been updated
-     * @param {Number} oldReportID
-     */
-    reset(oldReportID) {
-        // Unsubscribe from previous report and resubscribe
-        unsubscribeFromReportChannel(oldReportID);
-        subscribeToReportTypingEvents(this.props.reportID);
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
     /**
