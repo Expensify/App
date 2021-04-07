@@ -8,60 +8,69 @@ const propTypes = {
     // Array of avatar URL
     avatarImageURLs: PropTypes.arrayOf(PropTypes.string),
 
-    // Whether this option is currently in focus so we can modify its style
-    optionIsFocused: PropTypes.bool,
+    // Set the sie of avatars
+    size: PropTypes.oneOf(['default', 'small']),
+
+    // Style for Second Avatar
+    // eslint-disable-next-line react/forbid-prop-types
+    secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
+
 };
 
 const defaultProps = {
     avatarImageURLs: [],
-    optionIsFocused: false,
+    size: 'default',
+    secondAvatarStyle: [styles.secondAvatarHovered],
 };
 
-const MultipleAvatars = ({avatarImageURLs, optionIsFocused}) => {
+const MultipleAvatars = ({
+    avatarImageURLs, size, secondAvatarStyle,
+}) => {
+    const avatarContainerStyles = size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
+    const singleAvatarStyles = size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
+    const secondAvatarStyles = [
+        size === 'small' ? styles.secondAvatarSmall : styles.secondAvatar,
+        ...secondAvatarStyle,
+    ];
+
     if (!avatarImageURLs.length) {
         return null;
     }
 
     if (avatarImageURLs.length === 1) {
         return (
-            <View style={styles.emptyAvatar}>
-                <Avatar source={avatarImageURLs[0]} />
+            <View style={avatarContainerStyles}>
+                <Avatar source={avatarImageURLs[0]} size={size} />
             </View>
         );
     }
 
     return (
-        <View style={styles.emptyAvatar}>
+        <View style={avatarContainerStyles}>
             <View
-                style={styles.singleAvatar}
+                style={singleAvatarStyles}
             >
                 <Image
                     source={{uri: avatarImageURLs[0]}}
-                    style={styles.singleAvatar}
+                    style={singleAvatarStyles}
                 />
                 <View
-                    style={[
-                        styles.singleAvatar,
-                        optionIsFocused ? styles.focusedAvatar : styles.avatar,
-                        styles.secondAvatar,
-                    ]}
+                    style={secondAvatarStyles}
                 >
                     {avatarImageURLs.length === 2 ? (
                         <Image
                             source={{uri: avatarImageURLs[1]}}
-                            style={[
-                                styles.singleAvatar,
-                            ]}
+                            style={singleAvatarStyles}
                         />
                     ) : (
                         <View
-                            style={[
-                                styles.avatarText,
-                            ]}
+                            style={singleAvatarStyles}
                         >
-                            <Text style={styles.avatarInnerText}>
-                                +
-                                {avatarImageURLs.length - 1}
+                            <Text style={size === 'small'
+                                ? styles.avatarInnerTextSmall
+                                : styles.avatarInnerText}
+                            >
+                                {`+${avatarImageURLs.length - 1}`}
                             </Text>
                         </View>
                     )}

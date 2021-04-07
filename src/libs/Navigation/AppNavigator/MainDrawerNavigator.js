@@ -26,6 +26,7 @@ const MainDrawerNavigator = props => (
             props.isSmallScreenWidth,
         )}
         sceneContainerStyle={styles.navigationSceneContainer}
+        edgeWidth={500}
         drawerContent={() => (
             <SidebarScreen />
         )}
