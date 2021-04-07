@@ -31,17 +31,26 @@ const run = function () {
             });
         })
         .then((issues) => {
-            if (!_.isUndefined(issues)) {
-                console.log('Verifying that the last comment is :shipit:');
-                const lastComment = issues.data[issues.data.length - 1];
-                const shipItRegex = /^:shipit:/g;
-                if (_.isNull(shipItRegex.exec(lastComment.body))) {
-                    core.setOutput('HAS_DEPLOY_BLOCKERS', true);
-                    console.log('The last comment on the issue was not :shipit');
-                    return;
-                }
+            if (_.isUndefined(issues)) {
+                return;
             }
-            core.setOutput('HAS_DEPLOY_BLOCKERS', false);
+
+            if (_.isEmpty(issues.data)) {
+                console.log('No comments found on issue');
+                core.setOutput('HAS_DEPLOY_BLOCKERS', true);
+                return;
+            }
+
+            console.log('Verifying that the last comment is :shipit:');
+            const lastComment = issues.data[issues.data.length - 1];
+            const shipItRegex = /^:shipit:/g;
+            if (_.isNull(shipItRegex.exec(lastComment.body))) {
+                console.log('The last comment on the issue was not :shipit');
+                core.setOutput('HAS_DEPLOY_BLOCKERS', true);
+            } else {
+                console.log('Everything looks good, there are no deploy blockers!');
+                core.setOutput('HAS_DEPLOY_BLOCKERS', false);
+            }
         })
         .catch((error) => {
             console.error('A problem occurred while trying to communicate with the GitHub API', error);
