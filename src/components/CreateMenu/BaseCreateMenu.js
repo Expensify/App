@@ -25,21 +25,27 @@ const propTypes = {
         }),
     ).isRequired,
 
-    // Configures when menu item actions should be triggered: as soon as pressed or after the modal is closed
-    executeActionMode: PropTypes.oneOf(['ON_PRESS', 'AFTER_MODAL_CLOSE']),
+    /* Configures when menu item actions are triggered: as soon as pressed or after the modal is closed.
+    * On mobile native we need to wait for the modals to close, while on web as soon as clicked */
+    actionExecutionStrategy: PropTypes.oneOf(['ON_PRESS', 'AFTER_MODAL_CLOSE']),
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    executeActionMode: 'AFTER_MODAL_CLOSE',
+    actionExecutionStrategy: 'AFTER_MODAL_CLOSE',
 };
 
 class BaseCreateMenu extends PureComponent {
+    /**
+     * Select an item and apply action execution strategy
+     *
+     * @param {object} item - an item from this.props.menuItems
+     */
     selectItem(item) {
         this.props.onItemSelected(item);
 
-        switch (this.props.executeActionMode) {
+        switch (this.props.actionExecutionStrategy) {
             case 'ON_PRESS':
                 item.onSelected();
                 this.onModalHide = () => {};
@@ -48,7 +54,7 @@ class BaseCreateMenu extends PureComponent {
                 this.onModalHide = () => item.onSelected();
                 break;
             default:
-                throw new Error(`Unexpected "executeActionMode" prop value: ${this.props.executeActionMode}`);
+                throw new Error(`Unexpected "actionExecutionStrategy" value: ${this.props.actionExecutionStrategy}`);
         }
     }
 
