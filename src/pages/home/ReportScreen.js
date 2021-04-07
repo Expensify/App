@@ -16,7 +16,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    currentlyViewedReportID: 0,
+    currentlyViewedReportID: '0',
 };
 
 const ReportScreen = (props) => {
@@ -38,9 +38,7 @@ const ReportScreen = (props) => {
                 onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
             />
             <View style={[styles.dFlex, styles.flex1]}>
-                <ReportView
-                    reportID={activeReportID}
-                />
+                <ReportView reportID={activeReportID} />
             </View>
         </ScreenWrapper>
     );

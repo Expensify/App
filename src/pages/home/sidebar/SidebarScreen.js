@@ -10,6 +10,7 @@ import ROUTES from '../../../ROUTES';
 import Timing from '../../../libs/actions/Timing';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
+import {ChatBubble, Users} from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     // propTypes for withWindowDimensions
@@ -88,6 +89,29 @@ class SidebarScreen extends Component {
                             onClose={this.toggleCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             onItemSelected={this.onCreateMenuItemSelected}
+                            menuItems={[
+                                {
+                                    icon: ChatBubble,
+                                    text: 'New Chat',
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
+                                },
+                                {
+                                    icon: Users,
+                                    text: 'New Group',
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
+                                },
+                            ]}
+
+                        /**
+                         * Temporarily hiding IOU Modal options while Modal is incomplete. Will
+                         * be replaced by a beta flag once IOUConfirm is completed.
+                        menuOptions={[
+                            CONST.MENU_ITEM_KEYS.NEW_CHAT,
+                            CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                            CONST.MENU_ITEM_KEYS.NEW_GROUP,
+                            CONST.MENU_ITEM_KEYS.SPLIT_BILL,
+                        ]}
+                        */
                         />
                     </>
                 )}

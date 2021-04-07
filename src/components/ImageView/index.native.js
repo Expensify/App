@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
-import styles from '../../styles/styles';
+import styles, {getWidthAndHeightStyle} from '../../styles/styles';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
@@ -47,10 +47,7 @@ class ImageView extends PureComponent {
                     imageHeight={this.state.imageHeight}
                 >
                     <ImageWithSizeCalculation
-                        style={{
-                            width: this.state.imageWidth,
-                            height: this.state.imageHeight,
-                        }}
+                        style={getWidthAndHeightStyle(this.state.imageWidth, this.state.imageHeight)}
                         url={this.props.url}
                         onMeasure={({width, height}) => {
                             let imageWidth = width;

@@ -133,6 +133,7 @@ class SearchPage extends Component {
         const headerMessage = getHeaderMessage(
             (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
             Boolean(this.state.userToInvite),
+            this.state.searchValue,
         );
         return (
             <ScreenWrapper>
@@ -165,6 +166,7 @@ class SearchPage extends Component {
                         headerMessage={headerMessage}
                         hideSectionHeaders
                         hideAdditionalOptionStates
+                        showTitleTooltip
                     />
                 </View>
                 <KeyboardSpacer />

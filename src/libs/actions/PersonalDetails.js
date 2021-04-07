@@ -1,5 +1,6 @@
 import _ from 'underscore';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
+import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -42,8 +43,8 @@ function getDefaultAvatar(login = '') {
  * @returns {String}
  */
 function getAvatar(personalDetail, login) {
-    if (personalDetail && personalDetail.avatar) {
-        return personalDetail.avatar.replace(/&d=404$/, '');
+    if (personalDetail && personalDetail.avatarThumbnail) {
+        return personalDetail.avatarThumbnail;
     }
 
     return getDefaultAvatar(login);
@@ -66,10 +67,6 @@ function getDisplayName(login, personalDetail) {
         return userLogin;
     }
 
-    if (userDetails.displayName) {
-        return userDetails.displayName;
-    }
-
     const firstName = userDetails.firstName || '';
     const lastName = userDetails.lastName || '';
 
@@ -88,6 +85,7 @@ function formatPersonalDetails(personalDetailsList) {
         const avatar = getAvatar(personalDetailsResponse, login);
         const displayName = getDisplayName(login, personalDetailsResponse);
         const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
+        const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
 
         return {
             ...finalObject,
@@ -96,24 +94,10 @@ function formatPersonalDetails(personalDetailsList) {
                 avatar,
                 displayName,
                 pronouns,
+                timezone,
             },
         };
     }, {});
-}
-
-/**
- * Get the timezone of the logged in user
- */
-function fetchTimezone() {
-    API.Get({
-        returnValueList: 'nameValuePairs',
-        name: 'timeZone',
-    })
-        .then((response) => {
-            const timezone = lodashGet(response.nameValuePairs, [CONST.NVP.TIMEZONE], CONST.DEFAULT_TIME_ZONE);
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {timezone});
-        })
-        .catch(error => console.debug('Error fetching user timezone', error));
 }
 
 /**
@@ -124,11 +108,16 @@ function fetch() {
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
-            const allPersonalDetails = formatPersonalDetails(data.personalDetailsList);
+            let myPersonalDetails = {};
+
+            // If personalDetailsList is empty, ensure we set the personal details for the current user
+            const personalDetailsList = _.isEmpty(data.personalDetailsList)
+                ? {[currentUserEmail]: myPersonalDetails}
+                : data.personalDetailsList;
+            const allPersonalDetails = formatPersonalDetails(personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
-            const myPersonalDetails = allPersonalDetails[currentUserEmail]
-                || {avatar: getAvatar(undefined, currentUserEmail)};
+            myPersonalDetails = allPersonalDetails[currentUserEmail];
 
             // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
             myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
@@ -178,7 +167,8 @@ function getFromReportParticipants(reports) {
                 if (report.participants.length > 0) {
                     const avatars = _.map(report.participants, dmParticipant => ({
                         firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
-                        avatar: lodashGet(details, [dmParticipant, 'avatar'], '') || getDefaultAvatar(dmParticipant),
+                        avatar: lodashGet(details, [dmParticipant, 'avatarThumbnail'], '')
+                            || getDefaultAvatar(dmParticipant),
                     }))
                         .sort((first, second) => first.firstName - second.firstName)
                         .map(item => item.avatar);
@@ -203,6 +193,26 @@ function getFromReportParticipants(reports) {
         });
 }
 
+/**
+ * Merges partial details object into the local store.
+ *
+ * @param {Object} details
+ * @private
+ */
+function mergeLocalPersonalDetails(details) {
+    // We are merging the partial details provided to this method with the existing details we have for the user so
+    // that we don't overwrite any values that may exist in storage.
+    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
+
+    // displayName is a generated field so we'll use the firstName and lastName + login to update it.
+    if (details.firstName || details.lastName) {
+        mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
+    }
+
+    // Update the associated Onyx keys
+    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
+}
 
 /**
  * Sets the personal details object for the current user
@@ -211,23 +221,19 @@ function getFromReportParticipants(reports) {
  */
 function setPersonalDetails(details) {
     API.PersonalDetails_Update({details: JSON.stringify(details)});
-
     if (details.timezone) {
         NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
     }
-
-    // Update the associated onyx keys
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, details);
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails({[currentUserEmail]: details}));
+    mergeLocalPersonalDetails(details);
 }
 
 /**
  * Sets the user's avatar image
  *
- * @param {String} base64image
+ * @param {File|Object} file
  */
-function setAvatar(base64image) {
-    API.User_UploadAvatar({base64image}).then((response) => {
+function setAvatar(file) {
+    API.User_UploadAvatar({file}).then((response) => {
         // Once we get the s3url back, update the personal details for the user with the new avatar URL
         if (response.jsonCode === 200) {
             setPersonalDetails({avatar: response.s3url});
@@ -235,15 +241,27 @@ function setAvatar(base64image) {
     });
 }
 
+/**
+ * Deletes the user's avatar image
+ *
+ * @param {String} login
+ */
+function deleteAvatar(login) {
+    // We don't want to save the default avatar URL in the backend since we don't want to allow
+    // users the option of removing the default avatar, instead we'll save an empty string
+    API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
+    mergeLocalPersonalDetails({avatar: getDefaultAvatar(login)});
+}
+
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetch);
 
 export {
     fetch,
-    fetchTimezone,
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,
     setPersonalDetails,
     setAvatar,
+    deleteAvatar,
 };

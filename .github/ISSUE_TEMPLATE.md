@@ -1,4 +1,4 @@
-If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/master/CONTRIBUTING.md) for onboarding!
+If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/master/CONTRIBUTING.md) for onboarding and email contributors@expensify.com to request to join our Slack channel!
 ___
 
 ## Expected Result:
@@ -21,8 +21,8 @@ Where is this issue occurring?
  Android
  Desktop App
  Mobile Web
- 
-**Version Number:** 
+
+**Version Number:**
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
 **Notes/Photos/Videos:** Any additional supporting documentation
-
+**Expensify/Expensify Issue URL:**
