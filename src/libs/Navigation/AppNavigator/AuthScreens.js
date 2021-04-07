@@ -40,6 +40,7 @@ import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
+    IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
@@ -264,6 +265,11 @@ class AuthScreens extends React.Component {
                     options={modalScreenOptions}
                     component={IOUBillStackNavigator}
                     listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="IOU_Details"
+                    options={modalScreenOptions}
+                    component={IOUDetailsModalStackNavigator}
                 />
             </RootStack.Navigator>
         );

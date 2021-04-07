@@ -15,6 +15,7 @@ import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
+import IOUDetailsPage from '../../../pages/iou/IOUDetailsPage';
 
 // Setup the modal stack navigators so we only have to create them once
 const SettingsModalStack = createStackNavigator();
@@ -25,6 +26,7 @@ const DetailsModalStack = createStackNavigator();
 const ReportParticipantsModalStack = createStackNavigator();
 const IOURequestModalStack = createStackNavigator();
 const IOUBillModalStack = createStackNavigator();
+const IOUDetailsModalStack = createStackNavigator();
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -64,6 +66,23 @@ const IOURequestModalStackNavigator = () => (
             }}
         />
     </IOURequestModalStack.Navigator>
+);
+
+const IOUDetailsModalStackNavigator = () => (
+    <IOUDetailsModalStack.Navigator
+        path={ROUTES.IOU_DETAILS}
+        screenOptions={{
+            ...defaultSubRouteOptions,
+        }}
+    >
+        <IOUDetailsModalStack.Screen
+            name="IOU_Details_Route"
+            component={IOUDetailsPage}
+            options={{
+                title: 'Details',
+            }}
+        />
+    </IOUDetailsModalStack.Navigator>
 );
 
 const DetailsModalStackNavigator = () => (
@@ -185,6 +204,7 @@ const SettingsModalStackNavigator = () => (
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
+    IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
