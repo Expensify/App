@@ -17,11 +17,16 @@ const propTypes = {
 
     // When the input has cleared whoever owns this input should know about it
     onClear: PropTypes.func,
+
+    /* Set focus to this component the first time it renders. Override this in case you need to set focus on one
+    * field out of many, or when you want to disable autoFocus */
+    autoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
     shouldClear: false,
     onClear: () => {},
+    autoFocus: false,
 };
 
 class TextInputFocusable extends React.Component {

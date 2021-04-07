@@ -40,7 +40,6 @@ function ReportView(props) {
                     <ReportActionCompose
                         onSubmit={text => addAction(props.reportID, text)}
                         reportID={props.reportID}
-                        autoFocus={!props.isSmallScreenWidth}
                     />
                 </SwipeableView>
             )}
