@@ -20,7 +20,10 @@ const propTypes = {
 
     // Login associated with the user
     login: PropTypes.shape({
+        // Phone/Email associated with user
         partnerUserID: PropTypes.string,
+
+        // Date of when login was validated
         validatedDate: PropTypes.string,
     }).isRequired,
 };
@@ -35,6 +38,9 @@ export default class LoginField extends Component {
         this.onResendClicked = this.onResendClicked.bind(this);
     }
 
+    /**
+     * Resend validation code and show the checkmark icon
+     */
     onResendClicked() {
         resendValidateCode(this.props.login.partnerUserID);
         this.setState({showCheckmarkIcon: true});
