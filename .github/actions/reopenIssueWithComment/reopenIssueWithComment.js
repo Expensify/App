@@ -7,7 +7,7 @@ const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});
 const comment = core.getInput('COMMENT', {required: true});
 
 function reopenIssueWithComment() {
-    console.log(`Reopening issue # ${issueNumber}`);
+    console.log(`Reopening issue #${issueNumber}`);
     octokit.issues.update({
         owner: GITHUB_OWNER,
         repo: EXPENSIFY_CASH_REPO,
@@ -15,7 +15,7 @@ function reopenIssueWithComment() {
         state: 'open',
     })
         .then(() => {
-            console.log(`Commenting on issue # ${issueNumber}`);
+            console.log(`Commenting on issue #${issueNumber}`);
             octokit.issues.createComment({
                 owner: GITHUB_OWNER,
                 repo: EXPENSIFY_CASH_REPO,
@@ -27,10 +27,10 @@ function reopenIssueWithComment() {
 
 reopenIssueWithComment()
     .then(() => {
-        console.log(`Issue # ${issueNumber} successfully reopened and commented: "${comment}"`);
+        console.log(`Issue #${issueNumber} successfully reopened and commented: "${comment}"`);
         process.exit(0);
     })
     .catch((err) => {
-        console.error(`Something went wrong. The issue # ${issueNumber} was not successfully reopened`, err);
+        console.error(`Something went wrong. The issue #${issueNumber} was not successfully reopened`, err);
         core.setFailed(err);
     });
