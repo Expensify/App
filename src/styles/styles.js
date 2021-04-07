@@ -13,6 +13,7 @@ import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
+import CONST from '../CONST';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -1062,14 +1063,11 @@ const styles = {
         borderColor: colors.transparent,
     },
 
-    reportActionContextMenuText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-        ...spacing.ml4,
-        ...spacing.mr2,
+    reportActionContextMenuMiniButton: {
+        ...spacing.p1,
+        ...spacing.mv1,
+        ...spacing.mh1,
+        ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
     settingsPageBackground: {
@@ -1452,6 +1450,44 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Generate a style for the background color of the button, based on its current state.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Object}
+ */
+function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return {backgroundColor: themeColors.buttonHoveredBG};
+        case CONST.BUTTON_STATES.PRESSED:
+            return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return {};
+    }
+}
+
+/**
+ * Generate fill color of an icon based on its state.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Object}
+ */
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return themeColors.text;
+        case CONST.BUTTON_STATES.PRESSED:
+            return themeColors.heading;
+        case CONST.BUTTON_STATES.COMPLETE:
+            return themeColors.iconSuccessFill;
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return themeColors.icon;
+    }
+}
+
+/**
  * @param {Animated.Value} rotate
  * @param {Animated.Value} backgroundColor
  * @returns {Object}
@@ -1517,6 +1553,8 @@ export {
     getZoomSizingStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getButtonBackgroundColorStyle,
+    getIconFillColor,
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
     getOpacityStyle,
