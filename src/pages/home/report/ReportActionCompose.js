@@ -39,6 +39,9 @@ const propTypes = {
         // participants associated with current report
         participants: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
+
+    // Disables the input field. E.g. disable when the drawer is covering the chat
+    isDisabled: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -269,6 +272,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
+                                    isDisabled={this.props.isDisabled}
                                 />
 
                             </>
