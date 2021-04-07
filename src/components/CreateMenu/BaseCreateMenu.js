@@ -25,31 +25,31 @@ const propTypes = {
         }),
     ).isRequired,
 
-    ...windowDimensionsPropTypes,
+    // Configures when menu item actions should be triggered: as soon as pressed or after the modal is closed
+    executeActionMode: PropTypes.oneOf(['ON_PRESS', 'AFTER_MODAL_CLOSE']),
 
-    // Trigger the item `onSelected` action immediately after press or after the modal hides
-    invokeActionImmediately: PropTypes.bool,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    invokeActionImmediately: false,
+    executeActionMode: 'AFTER_MODAL_CLOSE',
 };
 
 class BaseCreateMenu extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.triggerSelectedItem = this.triggerSelectedItem.bind(this);
-    }
+    selectItem(item) {
+        this.props.onItemSelected(item);
 
-    /**
-     * Trigger the selected item `onSelected` callback
-     */
-    triggerSelectedItem() {
-        if (this.selectedItem) {
-            this.selectedItem.onSelected();
+        switch (this.props.executeActionMode) {
+            case 'ON_PRESS':
+                item.onSelected();
+                this.onModalHide = () => {};
+                break;
+            case 'AFTER_MODAL_CLOSE':
+                this.onModalHide = () => item.onSelected();
+                break;
+            default:
+                throw new Error(`Unexpected "executeActionMode" prop value: ${this.props.executeActionMode}`);
         }
-
-        this.selectedItem = null;
     }
 
     render() {
@@ -57,7 +57,7 @@ class BaseCreateMenu extends PureComponent {
             <Popover
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
-                onModalHide={this.triggerSelectedItem}
+                onModalHide={this.onModalHide}
                 anchorPosition={styles.createMenuPosition}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
@@ -66,14 +66,7 @@ class BaseCreateMenu extends PureComponent {
                             key={item.text}
                             icon={item.icon}
                             title={item.text}
-                            onPress={() => {
-                                this.props.onItemSelected(item);
-                                if (this.props.invokeActionImmediately) {
-                                    item.onSelected();
-                                } else {
-                                    this.selectedItem = item;
-                                }
-                            }}
+                            onPress={() => this.selectItem(item)}
                         />
                     ))}
                 </View>
