@@ -13,7 +13,7 @@ import BaseCreateMenu from './BaseCreateMenu';
  */
 function CreateMenu(props) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <BaseCreateMenu {...props} invokeActionImmediately />;
+    return <BaseCreateMenu {...props} executeActionMode="ON_PRESS" />;
 }
 
 export default CreateMenu;
