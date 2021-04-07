@@ -42,7 +42,7 @@ function getBetas() {
  */
 function fetch() {
     API.Get({
-        returnValueList: ['account', 'loginList', 'nameValuePairs'],
+        returnValueList: 'account, loginList, nameValuePairs',
         name: CONST.NVP.PAYPAL_ME_ADDRESS,
     })
         .then((response) => {
