@@ -89,6 +89,11 @@ export default {
                     IOU_Bill_Root: ROUTES.IOU_BILL,
                 },
             },
+            IOU_Details: {
+                screens: {
+                    IOU_Details_Route: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,  
+                },
+            },
         },
     },
 };
