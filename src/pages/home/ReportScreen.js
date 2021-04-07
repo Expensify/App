@@ -30,7 +30,6 @@ class ReportScreen extends React.Component {
 
         this.state = {
             isLoading: true,
-            error: null,
         };
     }
 
@@ -46,7 +45,7 @@ class ReportScreen extends React.Component {
     }
 
     get canRenderMainContent() {
-        return Boolean(this.reportID) && !this.state.isLoading && !this.state.error;
+        return Boolean(this.reportID) && !this.state.isLoading;
     }
 
     get reportID() {
@@ -60,19 +59,10 @@ class ReportScreen extends React.Component {
         // This adds a small fade in transition when the loader appears
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
-        this.setState({
-            isLoading: true,
-            error: null,
-        });
+        this.setState({isLoading: true});
 
         fetchActions(this.reportID)
-            .catch((error) => {
-                /* Todo: do something here if the user is going to be left with an empty view
-                *   E.g. Alert like "Oops, we couldn't load this conversation. Please Try again"
-                *     button Retry -> this.fetchReport() */
-                this.setState({error});
-                console.error(error);
-            })
+            .catch(console.error)
             .finally(() => {
                 // This adds a small fadeout transition when the loader disappears
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
