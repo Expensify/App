@@ -76,10 +76,6 @@ class ReportActionsView extends React.Component {
         // Helper variable that keeps track of the unread action count before it updates to zero
         this.unreadActionCount = 0;
 
-        // Helper variable that prevents the unread indicator to show up for new messages
-        // received while the report is still active
-        this.shouldShowUnreadActionIndicator = true;
-
         this.state = {
             isLoadingMoreChats: false,
         };
@@ -92,7 +88,8 @@ class ReportActionsView extends React.Component {
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         this.recordMaxAction();
-        fetchActions(this.props.reportID).catch(console.error);
+        fetchActions(this.props.reportID);
+        this.setUpUnreadActionIndicator();
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
@@ -155,10 +152,6 @@ class ReportActionsView extends React.Component {
      * a flag to not show it again if the report is still open
      */
     setUpUnreadActionIndicator() {
-        if (!this.shouldShowUnreadActionIndicator) {
-            return;
-        }
-
         this.unreadActionCount = this.props.report.unreadActionCount;
 
         if (this.unreadActionCount > 0) {
@@ -170,8 +163,6 @@ class ReportActionsView extends React.Component {
                 }).start();
             }, 3000));
         }
-
-        this.shouldShowUnreadActionIndicator = false;
     }
 
     /**
