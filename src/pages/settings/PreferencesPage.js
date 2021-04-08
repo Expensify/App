@@ -54,7 +54,7 @@ const PreferencesPage = ({priorityMode, user}) => (
             title="Preferences"
             shouldShowBackButton
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-            onCloseButtonPress={Navigation.dismissModal}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
         />
         <View style={styles.pageWrapper}>
             <View style={[styles.settingsPageBody, styles.mb6]}>

@@ -1,11 +1,33 @@
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {StackActions, DrawerActions} from '@react-navigation/native';
 import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
-
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 
 export const navigationRef = React.createRef();
+
+/**
+ * @returns {Boolean}
+ */
+function canUseBrowserHistory() {
+    return !_.isUndefined(lodashGet(window, 'history'));
+}
+
+/**
+ * Return the reportID in a report route.
+ *
+ * @param {String} route
+ * @returns {String}
+ */
+function getIDInReportRoute(route) {
+    if (!route.startsWith('r/')) {
+        return '';
+    }
+
+    return route.split('/')[1];
+}
 
 /**
  * Opens the LHN drawer.
@@ -38,9 +60,19 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
-    if (route.startsWith('r/')) {
-        const reportID = route.split('/')[1];
-        navigationRef.current.dispatch(StackActions.push('Report', {reportID}));
+    // We are adding an extra check here to see if the reportID exists in our route so that we can push the page onto
+    // the report stack instead of navigate on web. This is due to some variance in how browser history works in
+    // react-navigation on web. If browser history is available then we'll want to push a new report onto the stack.
+    // However, if it's not then we'll just do the default which is replace the report screen state and close the
+    // Sidebar to reveal the report page.
+    const reportIDInRoute = getIDInReportRoute(route);
+    if (reportIDInRoute) {
+        if (canUseBrowserHistory()) {
+            navigationRef.current.dispatch(StackActions.push('Report', {reportID: reportIDInRoute}));
+        } else {
+            navigationRef.current.dispatch(StackActions.replace('Report', {reportID: reportIDInRoute}));
+            navigationRef.current.dispatch(DrawerActions.closeDrawer());
+        }
         return;
     }
 
@@ -49,13 +81,29 @@ function navigate(route = ROUTES.HOME) {
 
 /**
  * Dismisses a screen presented modally and returns us back to the previous view.
+ *
+ * @param {Boolean} shouldOpenDrawer
  */
-function dismissModal() {
+function dismissModal(shouldOpenDrawer = false) {
     // This should take us to the first view of the modal's stack navigator
-    navigationRef.current.dispatch(StackActions.popToTop());
+    navigationRef.current.dispatch((state) => {
+        if (state.routes.length > 1) {
+            return StackActions.popToTop();
+        }
 
-    // From there we can just navigate back and open the drawer
+        // We are already on the last page of a modal so just do nothing here as goBack() will navigate us back to the
+        // main screen
+        return StackActions.pop(0);
+    });
+
+    // From there we can just navigate back to the previous page
     goBack();
+
+    // Any modal launched from the sidebar should open the drawer once dimissed.
+    if (!shouldOpenDrawer) {
+        return;
+    }
+
     openDrawer();
 }
 
