@@ -1268,8 +1268,8 @@ const styles = {
         flexBasis: 'auto',
         paddingLeft: 0,
         paddingRight: 0,
-        marginTop: 1,
-        marginBottom: 1,
+        marginTop: 5,
+        marginBottom: -5,
     },
 
     codeFirstWordStyle: {
