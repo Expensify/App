@@ -1,14 +1,15 @@
 import React from 'react';
 import {
-    Text, TextInput, View,
+    Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import themeColors from '../../styles/themes/default';
-import {signIn} from '../../libs/actions/Session';
+import {signIn, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
 const propTypes = {
@@ -78,6 +79,15 @@ class PasswordForm extends React.Component {
                         autoFocus
                     />
                 </View>
+                <TouchableOpacity
+                    style={[styles.link, styles.mb4]}
+                    onPress={resetPassword}
+                    underlayColor={themeColors.componentBG}
+                >
+                    <Text style={[styles.link]}>
+                        Forgot?
+                    </Text>
+                </TouchableOpacity>
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mb4]}>
                         <Text style={[styles.formLabel]}>Two Factor Code</Text>
@@ -88,7 +98,7 @@ class PasswordForm extends React.Component {
                             placeholderTextColor={themeColors.placeholderText}
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
-                            keyboardType="numeric"
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         />
                     </View>
                 )}
