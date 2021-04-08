@@ -4,6 +4,7 @@ import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
+import Navigation from '../../libs/Navigation/Navigation';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
@@ -84,7 +85,7 @@ class ReportScreen extends React.Component {
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
                     reportID={this.getReportID()}
-                    onNavigationMenuButtonClicked={this.props.navigation.openDrawer}
+                    onNavigationMenuButtonClicked={Navigation.openDrawer}
                 />
 
                 <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
