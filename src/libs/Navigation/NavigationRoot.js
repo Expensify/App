@@ -18,6 +18,7 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import {updateCurrentlyViewedReportID} from '../actions/Report';
 import {setCurrentURL} from '../actions/App';
+import canUseBrowserHistory from './canUseBrowserHistory';
 
 const propTypes = {
     // Whether the current user is logged in with an authToken
@@ -52,16 +53,19 @@ class NavigationRoot extends Component {
 
                 // If we are landing on something other than the report screen or site root then we MUST set the
                 // initial route to the currently viewed report so there some history to navigate back from
-                if (path !== `/${ROUTES.HOME}` && !path.includes(`/${ROUTES.REPORT}`)) {
+                if (canUseBrowserHistory() && !path.includes(`/${ROUTES.REPORT}`)) {
                     const homeRoute = {
                         name: 'Home',
                     };
 
                     if (this.props.currentlyViewedReportID) {
                         homeRoute.params = {
-                            screen: 'Report',
+                            screen: 'DrawerContent',
                             params: {
-                                reportID: this.props.currentlyViewedReportID,
+                                screen: 'Report',
+                                params: {
+                                    reportID: this.props.currentlyViewedReportID,
+                                },
                             },
                         };
                     }

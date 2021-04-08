@@ -1,19 +1,11 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {StackActions, DrawerActions} from '@react-navigation/native';
 import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
+import canUseBrowserHistory from './canUseBrowserHistory';
 
 export const navigationRef = React.createRef();
-
-/**
- * @returns {Boolean}
- */
-function canUseBrowserHistory() {
-    return !_.isUndefined(lodashGet(window, 'history'));
-}
 
 /**
  * Return the reportID in a report route.

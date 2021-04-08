@@ -1,4 +1,5 @@
 import React from 'react';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
@@ -21,7 +22,13 @@ const defaultProps = {
 
 const ReportScreen = (props) => {
     const activeReportID = parseInt(props.currentlyViewedReportID, 10);
+    const routeReportID = parseInt(lodashGet(props, ['route', 'params', 'reportID'], '0'), 10);
+
     if (!activeReportID) {
+        return null;
+    }
+
+    if (routeReportID && (routeReportID !== activeReportID)) {
         return null;
     }
 
