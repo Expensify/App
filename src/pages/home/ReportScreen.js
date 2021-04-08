@@ -94,7 +94,7 @@ class ReportScreen extends React.Component {
                     onNavigationMenuButtonClicked={this.props.navigation.openDrawer}
                 />
 
-                {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
+                <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
 
                 <View style={[styles.dFlex, styles.flex1]}>
                     <ReportView reportID={this.getReportID()} />
