@@ -1,7 +1,7 @@
 import {Component} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import routePropTypes from './routePropTypes';
+import routePropTypes from './validateLinkPropTypes';
 import {validateLogin} from '../libs/actions/User';
 
 const propTypes = {
@@ -25,6 +25,7 @@ export default class ValidateLoginPage extends Component {
     }
 
     render() {
+        // Don't render anything here since we will redirect the user once we've attempted to validate their login
         return null;
     }
 }
