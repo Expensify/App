@@ -16,6 +16,8 @@ const run = function () {
     })
         .then(({data}) => {
             console.log('Checking for unverified PRs or unresolved deploy blockers', data);
+
+            // Check the issue description to see if there are any unfinished/un-QAed items in the checklist.
             const uncheckedBoxRegex = /-\s\[\s]/g;
             const matches = uncheckedBoxRegex.exec(data.body);
             if (matches !== null) {
@@ -34,17 +36,20 @@ const run = function () {
         .then((comments) => {
             console.log('Checking the last comment for the :shipit: seal of approval', comments);
 
+            // If comments is undefined that means we found an unchecked QA item in the
+            // issue description, so there's nothing more to do but return early.
             if (_.isUndefined(comments)) {
                 return;
             }
 
+            // If there are no comments, then we have not yet gotten the :shipit: seal of approval.
             if (_.isEmpty(comments.data)) {
                 console.log('No comments found on issue');
                 core.setOutput('HAS_DEPLOY_BLOCKERS', true);
                 return;
             }
 
-            console.log('Verifying that the last comment is :shipit:');
+            console.log('Verifying that the last comment is the :shipit: seal of approval');
             const lastComment = comments.data.pop();
             const shipItRegex = /^:shipit:/g;
             if (_.isNull(shipItRegex.exec(lastComment.body))) {
