@@ -8,7 +8,7 @@ import compose from '../../../libs/compose';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/styles';
 import SwipeableView from '../../../components/SwipeableView';
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoading';
+import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import withDrawerState from '../../../components/withDrawerState';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 
