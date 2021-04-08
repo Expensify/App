@@ -5,27 +5,130 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 608:
+/***/ 9908:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 const GithubUtils = __nccwpck_require__(7999);
+const promiseWhile = __nccwpck_require__(4502);
+
+/**
+ * The maximum amount of time we'll wait for a new workflow to start after sending the workflow_dispatch event.
+ * @type {number}
+ */
+const NEW_WORKFLOW_TIMEOUT = 120000;
+
+/**
+ * The rate at which we'll poll the GitHub API to check for workflow status changes.
+ * @type {number}
+ */
+const POLL_RATE = 10000;
 
 const run = function () {
     const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
     const githubUtils = new GithubUtils(octokit);
+    const workflow = core.getInput('WORKFLOW', {required: true});
+    const inputs = JSON.parse(core.getInput('INPUTS') || '{}');
 
-    return githubUtils.getStagingDeployCash()
-        .then(({labels}) => {
-            console.log(`Found StagingDeployCash with labels: ${_.pluck(labels, 'name')}`);
-            core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐'));
+    console.log('This action has received the following inputs: ', {workflow, inputs});
+
+    if (_.keys(inputs).length > 10) {
+        const err = new Error('Inputs to the workflow_dispatch event cannot have more than 10 keys, or GitHub will 🤮');
+        console.error(err.message);
+        core.setFailed(err);
+    }
+
+    // GitHub's createWorkflowDispatch returns a 204 No Content, so we need to:
+    // 1) Get the last workflow run
+    // 2) Trigger a new workflow run
+    // 3) Poll the API until a new one appears
+    // 4) Then we can poll and wait for that new workflow run to conclude
+    let previousWorkflowRunID;
+    let newWorkflowRunID;
+    let hasNewWorkflowStarted = false;
+    let workflowCompleted = false;
+    return githubUtils.getLatestWorkflowRunID(workflow)
+        .then((lastWorkflowRunID) => {
+            console.log(`Latest workflow run has ID: ${lastWorkflowRunID}`);
+            previousWorkflowRunID = lastWorkflowRunID;
+
+            console.log(`Dispatching workflow: ${workflow}`);
+            return octokit.actions.createWorkflowDispatch({
+                owner: GithubUtils.GITHUB_OWNER,
+                repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                workflow_id: workflow,
+                ref: github.context.ref,
+                inputs,
+            });
         })
+
         .catch((err) => {
-            console.warn('No open StagingDeployCash found, continuing...', err);
-            core.setOutput('IS_LOCKED', false);
-        });
+            console.error(`Failed to dispatch workflow ${workflow}`, err);
+            core.setFailed(err);
+        })
+
+        // Wait for the new workflow to start
+        .then(() => {
+            let waitTimer = -POLL_RATE;
+            return promiseWhile(
+                () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
+                _.throttle(
+                    () => {
+                        console.log(`:hand: Waiting for a new ${workflow} workflow run to begin...`);
+                        githubUtils.getLatestWorkflowRunID(workflow)
+                            .then((lastWorkflowRunID) => {
+                                newWorkflowRunID = lastWorkflowRunID;
+                                hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
+                            });
+
+                        if (!hasNewWorkflowStarted) {
+                            waitTimer += POLL_RATE;
+                            if (waitTimer < NEW_WORKFLOW_TIMEOUT) {
+                                // eslint-disable-next-line max-len
+                                console.log(`After ${waitTimer} seconds, there's still no new ${workflow} workflow run ☹️`);
+                            } else {
+                                // eslint-disable-next-line max-len
+                                const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT} seconds, the ${workflow} workflow did not start.`);
+                                console.error(err);
+                                core.setFailed(err);
+                            }
+                        }
+                    },
+                    POLL_RATE,
+                ),
+            );
+        })
+
+        // Wait for the new workflow run to finish
+        .then(() => promiseWhile(
+            () => !workflowCompleted,
+            _.throttle(
+                () => {
+                    console.log(`⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
+                    octokit.actions.getWorkflowRun({
+                        owner: GithubUtils.GITHUB_OWNER,
+                        repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                        run_id: newWorkflowRunID,
+                    })
+                        .then(({data}) => {
+                            workflowCompleted = data.status === 'completed' && data.conclusion !== null;
+                            if (workflowCompleted) {
+                                if (data.conclusion === 'success') {
+                                    console.log(`🎉 ${workflow} run ${newWorkflowRunID} completed successfully! 🎉`);
+                                } else {
+                                    // eslint-disable-next-line max-len
+                                    const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunID} finished with conclusion ${data.conclusion}`);
+                                    console.error(err.message);
+                                    core.setFailed(err);
+                                }
+                            }
+                        });
+                },
+                POLL_RATE,
+            ),
+        ));
 };
 
 if (require.main === require.cache[eval('__filename')]) {
@@ -448,6 +551,36 @@ module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
 module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
+
+
+/***/ }),
+
+/***/ 4502:
+/***/ ((module) => {
+
+/**
+ * Simulates a while loop where the condition is determined by the result of a Promise.
+ *
+ * @param {Function} condition
+ * @param {Function} action
+ * @returns {Promise}
+ */
+function promiseWhile(condition, action) {
+    return new Promise((resolve, reject) => {
+        const loop = function () {
+            if (!condition()) {
+                resolve();
+            } else {
+                Promise.resolve(action())
+                    .then(loop)
+                    .catch(reject);
+            }
+        };
+        loop();
+    });
+}
+
+module.exports = promiseWhile;
 
 
 /***/ }),
@@ -13200,6 +13333,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(608);
+/******/ 	return __nccwpck_require__(9908);
 /******/ })()
 ;

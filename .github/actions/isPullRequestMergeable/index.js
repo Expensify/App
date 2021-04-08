@@ -371,6 +371,22 @@ class GithubUtils {
     }
 
     /**
+     * Get the most recent workflow run for the given Expensify.cash workflow.
+     *
+     * @param {String} workflow
+     * @returns {Promise}
+     */
+    getLatestWorkflowRunID(workflow) {
+        console.log(`Fetching Expensify.cash workflow runs for ${workflow}`);
+        return this.octokit.actions.listWorkflowRuns({
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            workflow_id: workflow,
+        })
+            .then(response => lodashGet(response, 'data.workflow_runs[0].id'));
+    }
+
+    /**
      * Generate the well-formatted body of a production release.
      *
      * @param {Array} pullRequests
