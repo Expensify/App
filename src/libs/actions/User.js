@@ -14,6 +14,12 @@ Onyx.connect({
     callback: val => sessionAuthToken = val ? val.authToken : '',
 });
 
+let currentlyViewedReportID = '';
+Onyx.connect({
+    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => currentlyViewedReportID = val,
+});
+
 /**
  * Changes a password for a given account
  *
@@ -135,8 +141,8 @@ function setSecondaryLogin(login, password) {
  * @param {String} validateCode
  */
 function validateLogin(accountID, validateCode) {
-    let isLoggedIn = sessionAuthToken;
-    const redirectRoute = isLoggedIn ? ROUTES.HOME : ROUTES.SIGNIN;
+    let isLoggedIn = !_.isEmpty(sessionAuthToken);
+    const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.SIGNIN;
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
     API.ValidateEmail({

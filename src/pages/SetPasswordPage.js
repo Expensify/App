@@ -15,7 +15,7 @@ import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import variables from '../styles/variables';
 import ButtonWithLoader from '../components/ButtonWithLoader';
-import routePropTypes from './routePropTypes';
+import routePropTypes from './validateLinkPropTypes';
 
 const propTypes = {
     /* Onyx Props */
