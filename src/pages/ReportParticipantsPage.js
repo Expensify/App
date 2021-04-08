@@ -42,7 +42,7 @@ const propTypes = {
     // Route params
     route: PropTypes.shape({
         params: PropTypes.shape({
-            // Report ID passed via route /participants/:reportID
+            // Report ID passed via route r/:reportID/participants
             reportID: PropTypes.string,
         }),
     }).isRequired,
@@ -74,7 +74,7 @@ const getAllParticipants = (report, personalDetails) => {
     });
 };
 
-const ParticipantsPage = ({personalDetails, report, route}) => {
+const ReportParticipantsPage = ({personalDetails, report, route}) => {
     const participants = getAllParticipants(report, personalDetails);
 
     return (
@@ -96,7 +96,7 @@ const ParticipantsPage = ({personalDetails, report, route}) => {
                             title: '', data: participants, shouldShow: true, indexOffset: 0,
                         }]}
                         onSelectRow={(option) => {
-                            Navigation.navigate(ROUTES.getParticipantsPartipantDetail(
+                            Navigation.navigate(ROUTES.getReportParticipantRoute(
                                 route.params.reportID, option.login,
                             ));
                         }}
@@ -113,8 +113,8 @@ const ParticipantsPage = ({personalDetails, report, route}) => {
     );
 };
 
-ParticipantsPage.propTypes = propTypes;
-ParticipantsPage.displayName = 'ParticipantsPage';
+ReportParticipantsPage.propTypes = propTypes;
+ReportParticipantsPage.displayName = 'ParticipantsPage';
 
 export default withOnyx({
     personalDetails: {
@@ -123,4 +123,4 @@ export default withOnyx({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
     },
-})(ParticipantsPage);
+})(ReportParticipantsPage);
