@@ -234,7 +234,7 @@ class ProfilePage extends Component {
                     title="Profile"
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <Avatar

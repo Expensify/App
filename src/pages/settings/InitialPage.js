@@ -92,7 +92,7 @@ const InitialSettingsPage = ({
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title="Settings"
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <View
                 pointerEvents="box-none"

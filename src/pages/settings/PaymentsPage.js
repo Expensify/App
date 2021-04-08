@@ -57,7 +57,7 @@ class PaymentsPage extends React.Component {
                     title="Payments"
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={[styles.flex1, styles.p5]}>
                     <View style={[styles.flex1]}>

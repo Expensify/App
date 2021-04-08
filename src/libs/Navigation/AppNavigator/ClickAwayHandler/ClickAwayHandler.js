@@ -16,7 +16,7 @@ const ClickAwayHandler = (props) => {
     return (
         <Pressable
             style={styles.navigationModalOverlay}
-            onPress={() => Navigation.dismissModal()}
+            onPress={Navigation.dismissModal}
         />
     );
 };

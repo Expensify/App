@@ -139,7 +139,7 @@ class SearchPage extends Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title="Search"
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector

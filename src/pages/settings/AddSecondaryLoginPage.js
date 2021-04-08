@@ -91,7 +91,7 @@ class AddSecondaryLoginPage extends Component {
                     title={this.formType === CONST.LOGIN_TYPE.PHONE ? 'Add Phone Number' : 'Add Email Address'}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
                     <View style={styles.flexGrow1}>

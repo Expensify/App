@@ -73,29 +73,13 @@ function navigate(route = ROUTES.HOME) {
 
 /**
  * Dismisses a screen presented modally and returns us back to the previous view.
- *
- * @param {Boolean} shouldOpenDrawer
  */
-function dismissModal(shouldOpenDrawer = false) {
+function dismissModal() {
     // This should take us to the first view of the modal's stack navigator
-    navigationRef.current.dispatch((state) => {
-        if (state.routes.length > 1) {
-            return StackActions.popToTop();
-        }
+    navigationRef.current.dispatch(StackActions.popToTop());
 
-        // We are already on the last page of a modal so just do nothing here as goBack() will navigate us back to the
-        // main screen
-        return StackActions.pop(0);
-    });
-
-    // From there we can just navigate back to the previous page
+    // From there we can just navigate back and open the drawer
     goBack();
-
-    // Any modal launched from the sidebar should open the drawer once dimissed.
-    if (!shouldOpenDrawer) {
-        return;
-    }
-
     openDrawer();
 }
 
