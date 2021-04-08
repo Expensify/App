@@ -72,8 +72,6 @@ class ReportScreen extends React.Component {
      * Configures a small loading transition of fixed time and proceeds with rendering available data
      */
     prepareTransition() {
-        if (!this.getReportID()) { return; }
-
         this.setState({isLoading: true});
 
         clearTimeout(this.loadingTimerId);
