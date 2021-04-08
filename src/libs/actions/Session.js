@@ -221,19 +221,19 @@ function restartSignin() {
  *
  * @param {String} password
  * @param {String} validateCode
+ * @param {String} accountID
  */
-function setPassword(password, validateCode) {
+function setPassword(password, validateCode, accountID) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
     API.SetPassword({
-        email: credentials.login,
         password,
         validateCode,
+        accountID,
     })
         .then((response) => {
             if (response.jsonCode === 200) {
-                const {authToken, email} = response;
-                createTemporaryLogin(authToken, email);
+                createTemporaryLogin(response.authToken, response.email);
                 return;
             }
 

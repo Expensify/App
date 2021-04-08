@@ -558,7 +558,7 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function ResendValidateCode(parameters) {
@@ -594,11 +594,12 @@ function ResetPassword(parameters) {
  * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
+ * @param {String} parameters.accountID
  * @returns {Promise}
  */
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
-    requireParameters(['email', 'password', 'validateCode'], parameters, commandName);
+    requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
