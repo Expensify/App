@@ -1258,6 +1258,7 @@ const styles = {
     noScrollbars: {
         scrollbarWidth: 'none',
     },
+
     codeWordStyle: {
         borderLeftWidth: 0,
         borderRightWidth: 0,
@@ -1284,6 +1285,14 @@ const styles = {
         borderTopRightRadius: 4,
         borderBottomRightRadius: 4,
         paddingRight: 5,
+    },
+
+    fullScreenLoading: {
+        backgroundColor: themeColors.modalBackdrop,
+        opacity: 0.8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
     },
 };
 
