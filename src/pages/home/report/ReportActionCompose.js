@@ -16,6 +16,8 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
+import withWindowDimensions from '../../../components/withWindowDimensions';
+import withDrawerState from '../../../components/withDrawerState';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -40,8 +42,11 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
-    // Disables the input field. E.g. disable when the drawer is covering the chat
-    isDisabled: PropTypes.bool.isRequired,
+    /* Is the report view covered by the drawer */
+    isDrawerOpen: PropTypes.bool.isRequired,
+
+    /* Is the window width narrow, like on a mobile device */
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -177,6 +182,9 @@ class ReportActionCompose extends React.Component {
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
 
+        // Prevents focusing and showing the keyboard while the drawer is covering the chat.
+        const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
+
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -272,7 +280,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={this.props.isDisabled}
+                                    isDisabled={isComposeDisabled}
                                 />
 
                             </>
@@ -299,6 +307,8 @@ ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
 export default compose(
+    withWindowDimensions,
+    withDrawerState,
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
