@@ -1,8 +1,10 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../styles/styles';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import styles, {webViewStyles} from '../styles/styles';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import RenderHTML from './RenderHTML';
 
@@ -17,7 +19,18 @@ const ReportActionItemIOUQuote = ({action}) => (
             const viewDetails = '<br /><a href="#">View Details</a>';
             const html = `<blockquote>${fragment.text}${viewDetails}</blockquote>`;
             return (
-                <RenderHTML key={`iouQuote-${action.sequenceNumber}-${index}`} html={html} />
+                <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
+                    <View style={[webViewStyles.tagStyles.blockquote]}>
+                        <Text style={[styles.chatItemMessage]}>
+                            {fragment.text}
+                        </Text>
+                        <Text style={[styles.chatItemMessageLink]} onPress={() => {
+                            Navigation.navigate(ROUTES.getIouDetailsRoute('707'));
+                        }}>
+                            View Details
+                        </Text>
+                    </View>
+                </View>
             );
         })}
     </View>
