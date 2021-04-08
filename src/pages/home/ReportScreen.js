@@ -28,6 +28,10 @@ const ReportScreen = (props) => {
         return null;
     }
 
+    // Since multiple ReportScreen can be stacked on top of eachother we don't want to render all of them.
+    // @TODO figure out a better way to manage this since we should only be showing the top screen in this stack, but
+    // can't use isFocused since a modal might also have the focus. This hack also isn't ideal since there could be
+    // multiple screens in the stack. Maybe a custom stack navigator that only renders the top screen in the stack?
     if (routeReportID && (routeReportID !== activeReportID)) {
         return null;
     }
