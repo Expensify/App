@@ -2,6 +2,8 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
     getReportActionItemStyle,
@@ -28,8 +30,6 @@ const propTypes = {
     isMostRecentIOUReport: PropTypes.bool.isRequired,
 
     /* --- Onyx Props --- */
-    // List of betas for the current user.
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     // The report currently being looked at
     report: PropTypes.shape({
@@ -40,7 +40,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: {},
     report: {},
 };
 
@@ -162,10 +161,8 @@ class ReportActionItem extends Component {
 }
 
 ReportActionItem.propTypes = propTypes;
+ReportActionItem.defaultProps = defaultProps;
 export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
     report: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
     },

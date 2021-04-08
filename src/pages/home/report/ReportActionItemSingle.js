@@ -32,7 +32,12 @@ const propTypes = {
     }).isRequired,
 };
 
-const ReportActionItemSingle = ({action, report, isMostRecentIOUReport, personalDetails}) => {
+const ReportActionItemSingle = ({
+    action,
+    report,
+    isMostRecentIOUReport,
+    personalDetails,
+}) => {
     const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
