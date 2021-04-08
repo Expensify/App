@@ -77,7 +77,9 @@ const propTypes = {
 
 const defaultProps = {
     myPersonalDetails: {},
-    user: {},
+    user: {
+        loginList: [],
+    },
 };
 
 const timezones = moment.tz.names()
@@ -135,7 +137,7 @@ class ProfilePage extends Component {
     }
 
     /**
-     * Update the setting in the state for using automatic timezones
+     * Set the form to use automatic timezone
      *
      * @param {Boolean} isAutomaticTimezone
      */
@@ -146,7 +148,12 @@ class ProfilePage extends Component {
         }));
     }
 
-    // Get the most validated login of each type
+    /**
+     * Get the most validated login of each type
+     *
+     * @param {Array} loginList
+     * @returns {Object}
+     */
     getLogins(loginList) {
         return loginList.reduce((logins, currentLogin) => {
             const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
@@ -172,7 +179,7 @@ class ProfilePage extends Component {
     }
 
     /**
-     * Update the personal details on the server and in Onyx using an the personal details action
+     * Submit form to update personal details
      */
     updatePersonalDetails() {
         const {
@@ -196,11 +203,10 @@ class ProfilePage extends Component {
     }
 
     /**
-     * Returns all the items for the picker
+     * Create menu items list for avatar menu
      *
-     * @param {Function} openPicker method that can be called to open a picker when a menu item
-     *      is selected
-     * @returns {Object}
+     * @param {Function} openPicker
+     * @returns {Array}
      */
     createMenuItems(openPicker) {
         const menuItems = [
