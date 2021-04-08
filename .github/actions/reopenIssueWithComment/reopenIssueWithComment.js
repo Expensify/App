@@ -8,7 +8,7 @@ const comment = core.getInput('COMMENT', {required: true});
 
 function reopenIssueWithComment() {
     console.log(`Reopening issue #${issueNumber}`);
-    octokit.issues.update({
+    return octokit.issues.update({
         owner: GITHUB_OWNER,
         repo: EXPENSIFY_CASH_REPO,
         issue_number: issueNumber,
