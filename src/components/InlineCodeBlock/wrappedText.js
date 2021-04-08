@@ -67,18 +67,22 @@ const WrappedText = function (props) {
                         (colText !== '' || (rowText.length === 1 && colText === ''))
                         && (
 
+                            // Outer View is important to vertically center the Text
                             <View
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`${colText}-${colIndex}`}
-                                style={[
-                                    props.wordStyle,
-                                    colIndex === 0 && props.firstWordStyle,
-                                    colIndex === rowText.length - 1 && props.lastWordStyle,
-                                ]}
                             >
-                                <Text style={props.textStyle}>
-                                    {colText + getWordSpace(rowText.length, colIndex)}
-                                </Text>
+                                <View
+                                    style={[
+                                        props.wordStyle,
+                                        colIndex === 0 && props.firstWordStyle,
+                                        colIndex === rowText.length - 1 && props.lastWordStyle,
+                                    ]}
+                                >
+                                    <Text style={props.textStyle}>
+                                        {colText + getWordSpace(rowText.length, colIndex)}
+                                    </Text>
+                                </View>
                             </View>
                         )
                     ))}
