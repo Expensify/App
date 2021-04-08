@@ -16,7 +16,7 @@ function reopenIssueWithComment() {
     })
         .then(() => {
             console.log(`Commenting on issue #${issueNumber}`);
-            octokit.issues.createComment({
+            return octokit.issues.createComment({
                 owner: GITHUB_OWNER,
                 repo: EXPENSIFY_CASH_REPO,
                 issue_number: issueNumber,

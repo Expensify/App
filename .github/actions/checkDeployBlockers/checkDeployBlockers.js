@@ -28,6 +28,7 @@ const run = function () {
                 owner: GITHUB_OWNER,
                 repo: EXPENSIFY_CASH_REPO,
                 issue_number: issueNumber,
+                per_page: 100,
             });
         })
         .then((comments) => {
@@ -44,7 +45,7 @@ const run = function () {
             }
 
             console.log('Verifying that the last comment is :shipit:');
-            const lastComment = comments.data[comments.data.length - 1];
+            const lastComment = comments.data.pop();
             const shipItRegex = /^:shipit:/g;
             if (_.isNull(shipItRegex.exec(lastComment.body))) {
                 console.log('The last comment on the issue was not :shipit');
