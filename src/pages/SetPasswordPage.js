@@ -15,6 +15,7 @@ import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import variables from '../styles/variables';
 import ButtonWithLoader from '../components/ButtonWithLoader';
+import routePropTypes from './routePropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,16 +39,7 @@ const propTypes = {
     }),
 
     // The accountID and validateCode are passed via the URL
-    route: PropTypes.shape({
-        // Each parameter passed via the URL
-        params: PropTypes.shape({
-            // The user's accountID
-            accountID: PropTypes.string,
-
-            // The user's validateCode
-            validateCode: PropTypes.string,
-        }),
-    }),
+    route: PropTypes.objectOf(routePropTypes),
 };
 
 const defaultProps = {

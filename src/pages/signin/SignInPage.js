@@ -5,7 +5,6 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
@@ -14,7 +13,6 @@ import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
 import TermsAndLicenses from './TermsAndLicenses';
-import {validateLogin} from '../../libs/actions/User';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,32 +44,16 @@ const propTypes = {
         // Error to display when there is a session error returned
         authToken: PropTypes.string,
     }),
-
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            validateCode: PropTypes.string,
-        }),
-    }),
 };
 
 const defaultProps = {
     account: {},
     session: {},
     credentials: {},
-    route: {
-        params: {},
-    },
 };
 
 class SignInPage extends Component {
     componentDidMount() {
-        // If we've redirected to the signin page with a validation code, validate the login
-        if (_.isMatch(this.props.route, {name: 'ValidateLogin'})) {
-            const accountID = Number(lodashGet(this.props.route, 'params.accountID', 0));
-            const validateCode = lodashGet(this.props.route, 'params.validateCode', '');
-            validateLogin(accountID, validateCode);
-        }
-
         // Always reset the unread counter to zero on this page
         updateUnread(0);
     }
