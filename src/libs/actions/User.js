@@ -51,7 +51,7 @@ function getBetas() {
  */
 function fetch() {
     API.Get({
-        returnValueList: ['account', 'loginList', 'nameValuePairs'],
+        returnValueList: 'account, loginList, nameValuePairs',
         name: CONST.NVP.PAYPAL_ME_ADDRESS,
     })
         .then((response) => {
@@ -69,10 +69,10 @@ function fetch() {
 /**
  * Resends a validation link to a given login
  *
- * @param {String} email
+ * @param {String} login
  */
-function resendValidateCode(email) {
-    API.ResendValidateCode({email});
+function resendValidateCode(login) {
+    API.ResendValidateCode({email: login});
 }
 
 /**
@@ -99,16 +99,32 @@ function setExpensifyNewsStatus(subscribed) {
  *
  * @param {String} login
  * @param {String} password
+ * @returns {Promise}
  */
 function setSecondaryLogin(login, password) {
-    API.User_SecondaryLogin_Send({
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+
+    return API.User_SecondaryLogin_Send({
         email: login,
         password,
     }).then((response) => {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
+        } else {
+            let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
+
+            // Replace error with a friendlier message
+            if (error.includes('already belongs to an existing Expensify account.')) {
+                error = 'This login already belongs to an existing Expensify account.';
+            }
+
+            Onyx.merge(ONYXKEYS.USER, {error});
         }
+        return response;
+    }).finally((response) => {
+        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        return response;
     });
 }
 

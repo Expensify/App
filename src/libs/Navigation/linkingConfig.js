@@ -46,6 +46,9 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_Add_Seconday_Login: {
+                        path: ROUTES.SETTINGS_ADD_LOGIN,
+                    },
                 },
             },
             NewGroup: {
