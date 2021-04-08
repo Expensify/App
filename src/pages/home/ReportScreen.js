@@ -8,12 +8,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
-    /* Navigation api provided by react navigation */
-    navigation: PropTypes.shape({
-        /* Display the drawer programmatically */
-        openDrawer: PropTypes.func.isRequired,
-    }).isRequired,
-
     /* Navigation route context info provided by react navigation */
     route: PropTypes.shape({
         /* Route specific parameters used on this screen */
