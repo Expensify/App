@@ -49,7 +49,7 @@ function getBetas() {
 /**
  * Fetches the data needed for user settings
  */
-function fetch() {
+function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
         name: CONST.NVP.PAYPAL_ME_ADDRESS,
@@ -133,39 +133,40 @@ function setSecondaryLogin(login, password) {
  *
  * @param {Number} accountID
  * @param {String} validateCode
- * @returns {Promise}
- *
  */
 function validateLogin(accountID, validateCode) {
+    let isLoggedIn = sessionAuthToken;
+    const redirectRoute = isLoggedIn ? ROUTES.HOME : ROUTES.SIGNIN;
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
-    return API.ValidateEmail({
+    API.ValidateEmail({
         accountID,
         validateCode,
     }).then((response) => {
         if (response.jsonCode === 200) {
             const {authToken, email} = response;
-            if (!sessionAuthToken) {
-                createTemporaryLogin(authToken, email);
+
+            // If the user is unauthenticated, generate a login for them with the returned authtoken and sign then in
+            if (isLoggedIn) {
+                getUserDetails();
             } else {
-                fetch();
-                Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+                createTemporaryLogin(authToken, email);
+                isLoggedIn = authToken;
             }
         } else {
             const error = lodashGet(response, 'message', 'Unable to validate login.');
             Onyx.merge(ONYXKEYS.ACCOUNT, {error});
         }
-        return response;
-    }).finally((response) => {
+    }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        return response;
+        Navigation.navigate(redirectRoute);
     });
 }
 
 export {
     changePassword,
     getBetas,
-    fetch,
+    getUserDetails,
     resendValidateCode,
     setExpensifyNewsStatus,
     setSecondaryLogin,

@@ -2,6 +2,7 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
 import SetPasswordPage from '../../../pages/SetPasswordPage';
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 
 const RootStack = createStackNavigator();
 const defaultScreenOptions = {
@@ -19,11 +20,10 @@ export default () => (
             options={defaultScreenOptions}
             component={SignInPage}
         />
-        {/* If we have a validation code but we're unauthenticated, route to the signin page */}
         <RootStack.Screen
             name="ValidateLogin"
             options={defaultScreenOptions}
-            component={SignInPage}
+            component={ValidateLoginPage}
         />
         <RootStack.Screen
             name="SetPassword"
