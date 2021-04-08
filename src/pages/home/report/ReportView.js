@@ -4,45 +4,28 @@ import PropTypes from 'prop-types';
 import ReportActionsView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
 import {addAction} from '../../../libs/actions/Report';
-import compose from '../../../libs/compose';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/styles';
 import SwipeableView from '../../../components/SwipeableView';
-import withDrawerState from '../../../components/withDrawerState';
-import withWindowDimensions from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /* The ID of the report the selected report */
     reportID: PropTypes.number.isRequired,
-
-    /* Is the report view covered by the drawer */
-    isDrawerOpen: PropTypes.bool.isRequired,
-
-    /* Is the window width narrow, like on a mobile device */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
-const ReportView = (props) => {
-    const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
+const ReportView = ({reportID}) => (
+    <View key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
+        <ReportActionsView reportID={reportID} />
 
-    return (
-        <View key={props.reportID} style={[styles.flex1, styles.justifyContentEnd]}>
-            <ReportActionsView reportID={props.reportID} />
-
-            <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
-                <ReportActionCompose
-                    isDisabled={isComposeDisabled}
-                    onSubmit={text => addAction(props.reportID, text)}
-                    reportID={props.reportID}
-                />
-            </SwipeableView>
-            <KeyboardSpacer />
-        </View>
-    );
-};
+        <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
+            <ReportActionCompose
+                onSubmit={text => addAction(reportID, text)}
+                reportID={reportID}
+            />
+        </SwipeableView>
+        <KeyboardSpacer />
+    </View>
+);
 
 ReportView.propTypes = propTypes;
-export default compose(
-    withWindowDimensions,
-    withDrawerState,
-)(ReportView);
+export default ReportView;
