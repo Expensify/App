@@ -1290,11 +1290,12 @@ const styles = {
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
-    marginTop: 4,
-    marginBottom: 4,
     borderColor: themeColors.border,
     backgroundColor: themeColors.textBackground,
+    fontSize: 13,
+    lineHeight: 18,
 };
+
 
 const webViewStyles = {
     // As of react-native-render-html v6, don't declare distinct styles for
