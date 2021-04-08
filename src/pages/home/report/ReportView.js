@@ -8,16 +8,12 @@ import compose from '../../../libs/compose';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/styles';
 import SwipeableView from '../../../components/SwipeableView';
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import withDrawerState from '../../../components/withDrawerState';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /* The ID of the report the selected report */
     reportID: PropTypes.number.isRequired,
-
-    /* Is the view ready to be displayed */
-    isReady: PropTypes.bool.isRequired,
 
     /* Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -31,8 +27,6 @@ function ReportView(props) {
 
     return (
         <View key={props.reportID} style={[styles.chatContent]}>
-            {!props.isReady && <FullScreenLoadingIndicator />}
-
             <ReportActionsView reportID={props.reportID} />
 
             <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
