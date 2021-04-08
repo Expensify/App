@@ -38,6 +38,8 @@ const DetailsPage = ({personalDetails, route}) => {
             <HeaderWithCloseButton
                 title="Details"
                 onCloseButtonPress={Navigation.dismissModal}
+                shouldShowBackButton
+                onBackButtonPress={Navigation.goBack}
             />
             <View
                 pointerEvents="box-none"

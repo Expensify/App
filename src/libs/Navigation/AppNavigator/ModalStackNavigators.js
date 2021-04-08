@@ -14,7 +14,7 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
-import ParticipantsPage from '../../../pages/ParticipantsPage';
+import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 
 // Setup the modal stack navigators so we only have to create them once
 const SettingsModalStack = createStackNavigator();
@@ -22,7 +22,7 @@ const NewChatModalStack = createStackNavigator();
 const NewGroupModalStack = createStackNavigator();
 const SearchModalStack = createStackNavigator();
 const DetailsModalStack = createStackNavigator();
-const ParticipantsModalStack = createStackNavigator();
+const ReportParticipantsModalStack = createStackNavigator();
 const IOURequestModalStack = createStackNavigator();
 const IOUBillModalStack = createStackNavigator();
 
@@ -82,29 +82,21 @@ const DetailsModalStackNavigator = () => (
     </DetailsModalStack.Navigator>
 );
 
-const ParticipantsModalStackNavigator = () => (
-    <ParticipantsModalStack.Navigator
-        path={ROUTES.PARTICIPANTS}
-    >
-        <ParticipantsModalStack.Screen
+const ReportParticipantsModalStackNavigator = () => (
+    <ReportParticipantsModalStack.Navigator screenOptions={{...defaultSubRouteOptions}}>
+        <ReportParticipantsModalStack.Screen
             name="Participants_Root"
-            component={ParticipantsPage}
+            component={ReportParticipantsPage}
             options={{
-                ...defaultSubRouteOptions,
-                title: 'Participants',
+                title: 'Report Participants',
             }}
         />
         <DetailsModalStack.Screen
             name="Details_Root"
             headerShown={false}
-            path={ROUTES.REPORT_ID}
             component={DetailsPage}
-            options={{
-                ...defaultSubRouteOptions,
-                title: 'ParticipantsParticipant',
-            }}
         />
-    </ParticipantsModalStack.Navigator>
+    </ReportParticipantsModalStack.Navigator>
 );
 
 const SearchModalStackNavigator = () => (
@@ -197,7 +189,7 @@ export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     DetailsModalStackNavigator,
-    ParticipantsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
