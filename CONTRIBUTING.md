@@ -54,7 +54,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 5. Pause at this step until Expensify provides feedback on your proposal (do not begin coding or creating a pull request yet). 
 6. If your solution proposal is accepted, Expensify will hire you on Upwork and assign the GitHub issue to you. 
 
-#### Begin coding your solution in a pull reuqest
+#### Begin coding your solution in a pull request
 7. When you are ready to start, fork the repository and create a new branch.
 8. Before you begin writing any code, please be aware that we require all commits to be [signed](https://docs.github.com/en/github/authenticating-to-github/signing-commits). The easiest way to do that is to [generate a new GPG key](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-gpg-key) and [add it to your Github account](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-gpg-key-to-your-github-account). Once you've done that, you can automatically sign all your commits by adding the following to your `.gitconfig`:
     ```
