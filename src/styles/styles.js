@@ -1258,6 +1258,33 @@ const styles = {
     noScrollbars: {
         scrollbarWidth: 'none',
     },
+    codeWordStyle: {
+        borderLeftWidth: 0,
+        borderRightWidth: 0,
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+        flexBasis: 'auto',
+        paddingLeft: 0,
+        paddingRight: 0,
+        marginTop: 1,
+        marginBottom: 1,
+    },
+
+    codeFirstWordStyle: {
+        borderLeftWidth: 1,
+        borderTopLeftRadius: 4,
+        borderBottomLeftRadius: 4,
+        paddingLeft: 5,
+    },
+
+    codeLastWordStyle: {
+        borderRightWidth: 1,
+        borderTopRightRadius: 4,
+        borderBottomRightRadius: 4,
+        paddingRight: 5,
+    },
 };
 
 const baseCodeTagStyles = {
