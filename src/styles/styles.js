@@ -118,6 +118,7 @@ const styles = {
     },
 
     buttonSmall: {
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeSmall,
         paddingTop: 6,
         paddingRight: 10,
@@ -1270,13 +1271,15 @@ const styles = {
     iouPreviewBox: {
         borderColor: themeColors.border,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadiusNormal,
-        padding: 15,
-        marginTop: 15,
+        borderRadius: variables.componentBorderRadiusCard,
+        padding: 20,
+        marginTop: 16,
+        maxWidth: 400,
+        width: '100%',
     },
 
-    normalRadius: {
-        borderRadius: variables.componentBorderRadius,
+    iouPreviewBoxAvatar: {
+        marginRight: -10,
     },
 
     noScrollbars: {

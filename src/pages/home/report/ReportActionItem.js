@@ -39,11 +39,12 @@ const propTypes = {
 
         // IOU report ID associated with current report
         iouReportID: PropTypes.number,
-    }).isRequired,
+    }),
 };
 
 const defaultProps = {
     betas: {},
+    report: {},
 };
 
 class ReportActionItem extends Component {

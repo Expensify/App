@@ -6,7 +6,6 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Text from './Text';
 import MultipleAvatars from './MultipleAvatars';
 import styles from '../styles/styles';
@@ -27,9 +26,6 @@ const propTypes = {
         // Whether there is an outstanding amount in IOU
         hasOutstandingIOU: PropTypes.bool,
     }).isRequired,
-
-    /* Window Dimensions Props */
-    ...windowDimensionsPropTypes,
 
     /* --- Onyx Props --- */
     // Active IOU Report for current report
@@ -104,11 +100,11 @@ class ReportActionItemIOUPreview extends React.Component {
         const managerAvatar = lodashGet(this.props.personalDetails, [this.props.iou.managerEmail, 'avatar'], '');
         const ownerAvatar = lodashGet(this.props.personalDetails, [this.props.iou.ownerEmail, 'avatar'], '');
         const sessionEmail = lodashGet(this.props.session, 'email', null);
-        const cachedTotal = this.props.iou.cachedTotal.replace(/[()]/g, '');
+        const cachedTotal = this.props.iou.cachedTotal ? this.props.iou.cachedTotal.replace(/[()]/g, '') : '';
 
         return (
-            <View style={[styles.iouPreviewBox, {width: this.props.isSmallScreenWidth ? '100%' : '50%'}]}>
-                <View style={[styles.flexRow]}>
+            <View style={styles.iouPreviewBox}>
+                <View style={styles.flexRow}>
                     <View style={styles.flex1}>
                         <Text style={styles.h1}>{cachedTotal}</Text>
                         <Text style={styles.mt2}>
@@ -117,10 +113,12 @@ class ReportActionItemIOUPreview extends React.Component {
                             {ownerName}
                         </Text>
                     </View>
-                    <MultipleAvatars
-                        avatarImageURLs={[managerAvatar, ownerAvatar]}
-                        secondAvatarStyle={[styles.secondAvatarInline]}
-                    />
+                    <View style={styles.iouPreviewBoxAvatar}>
+                        <MultipleAvatars
+                            avatarImageURLs={[managerAvatar, ownerAvatar]}
+                            secondAvatarStyle={[styles.secondAvatarInline]}
+                        />
+                    </View>
                 </View>
                 {(this.props.iou.managerEmail === sessionEmail) ? (
                     this.createPayButton()
@@ -149,7 +147,7 @@ ReportActionItemIOUPreview.propTypes = propTypes;
 ReportActionItemIOUPreview.defaultProps = defaultProps;
 ReportActionItemIOUPreview.displayName = 'ReportActionItemIOUPreview';
 
-export default withWindowDimensions(withOnyx({
+export default withOnyx({
     iou: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`,
     },
@@ -159,4 +157,4 @@ export default withWindowDimensions(withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
-})(ReportActionItemIOUPreview));
+})(ReportActionItemIOUPreview);
