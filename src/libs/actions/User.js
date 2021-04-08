@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
-import {setCurrentURL} from './App';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
@@ -152,10 +151,10 @@ function validateLogin(accountID, validateCode) {
         if (response.jsonCode === 200) {
             const {email} = response;
 
-            // If the user is unauthenticated, generate a login for them with the returned authtoken and sign then in
             if (isLoggedIn) {
                 getUserDetails();
             } else {
+                // Let the user know we've successfully validated their login
                 const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
                 Onyx.merge(ONYXKEYS.ACCOUNT, {success});
             }
@@ -165,7 +164,6 @@ function validateLogin(accountID, validateCode) {
         }
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        setCurrentURL(redirectRoute);
         Navigation.navigate(redirectRoute);
     });
 }
