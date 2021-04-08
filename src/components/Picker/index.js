@@ -2,7 +2,8 @@ import React from 'react';
 import RNPickerSelect from 'react-native-picker-select';
 
 import styles from '../../styles/styles';
-import * as pickerPropTypes from './pickerPropTypes';
+import pickerDisabledStyles from './pickerDisabledStyles';
+import * as pickerPropTypes from './PickerPropTypes';
 
 const Picker = ({
     onChange,
@@ -15,10 +16,7 @@ const Picker = ({
     <RNPickerSelect
         onValueChange={onChange}
         items={items}
-        style={useDisabledStyles ? {
-            ...styles.picker,
-            inputWeb: [styles.picker.inputWeb, styles.textInput, styles.disabledTextInput],
-        } : styles.picker}
+        style={useDisabledStyles ? pickerDisabledStyles : styles.picker}
         useNativeAndroidPickerStyle={false}
         placeholder={placeholder}
         value={value}
