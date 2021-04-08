@@ -2,9 +2,6 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
     getReportActionItemStyle,
@@ -61,7 +58,6 @@ class ReportActionItem extends Component {
             vertical: 0,
         };
 
-        this.isInReportActionContextMenuBeta = this.isInReportActionContextMenuBeta.bind(this);
         this.showPopover = this.showPopover.bind(this);
         this.hidePopover = this.hidePopover.bind(this);
     }
@@ -72,16 +68,6 @@ class ReportActionItem extends Component {
             || !_.isEqual(this.props.action, nextProps.action)
             || this.props.isMostRecentIOUReport !== nextProps.isMostRecentIOUReport
             || !_.isEqual(this.props.report, nextProps.report);
-    }
-
-    /**
-     * Is the current user in the ReportActionContextMenu beta?
-     *
-     * @returns {Boolean}
-     */
-    isInReportActionContextMenuBeta() {
-        return _.contains(this.props.betas, CONST.BETAS.REPORT_ACTION_CONTEXT_MENU)
-            || _.contains(this.props.betas, CONST.BETAS.ALL);
     }
 
     /**
@@ -104,9 +90,7 @@ class ReportActionItem extends Component {
     showPopover(event) {
         const nativeEvent = event.nativeEvent || {};
         this.capturePressLocation(nativeEvent);
-        if (this.isInReportActionContextMenuBeta()) {
-            this.setState({isPopoverVisible: true});
-        }
+        this.setState({isPopoverVisible: true});
     }
 
     /**
@@ -145,7 +129,6 @@ class ReportActionItem extends Component {
                                     reportAction={this.props.action}
                                     isVisible={
                                         hovered
-                                        && this.isInReportActionContextMenuBeta()
                                         && !this.state.isPopoverVisible
                                     }
                                     isMini
@@ -179,8 +162,6 @@ class ReportActionItem extends Component {
 }
 
 ReportActionItem.propTypes = propTypes;
-ReportActionItem.defaultProps = defaultProps;
-
 export default withOnyx({
     betas: {
         key: ONYXKEYS.BETAS,

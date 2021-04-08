@@ -61,6 +61,7 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.focus = this.focus.bind(this);
         this.comment = props.comment;
 
         this.state = {
@@ -74,7 +75,7 @@ class ReportActionCompose extends React.Component {
     componentDidUpdate(prevProps) {
         // When any modal goes from visible to hidden, bring focus to the compose field
         if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
-            this.setIsFocused(true);
+            this.focus();
         }
     }
 
@@ -85,9 +86,6 @@ class ReportActionCompose extends React.Component {
      */
     setIsFocused(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
-        if (shouldHighlight && this.textInput) {
-            this.textInput.focus();
-        }
     }
 
     /**
@@ -100,12 +98,21 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Updates the visiblity state of the menu
+     * Updates the visibility state of the menu
      *
      * @param {Boolean} isMenuVisible
      */
     setMenuVisibility(isMenuVisible) {
         this.setState({isMenuVisible});
+    }
+
+    /**
+     * Focus the composer text input
+     */
+    focus() {
+        if (this.textInput) {
+            this.textInput.focus();
+        }
     }
 
     /**
@@ -209,6 +216,10 @@ class ReportActionCompose extends React.Component {
                                                 onPress={(e) => {
                                                     e.preventDefault();
                                                     this.setMenuVisibility(true);
+
+                                                    /* Keep last focus inside the input so that focus is restored
+                                                     on modal close. Otherwise breaks modal 2 modal transition */
+                                                    this.focus();
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
@@ -224,11 +235,11 @@ class ReportActionCompose extends React.Component {
                                                         icon: Paperclip,
                                                         text: 'Upload Photo',
                                                         onSelected: () => {
-                                                            setTimeout(() => {
-                                                                openPicker({
-                                                                    onPicked: file => displayFileInModal({file}),
-                                                                });
-                                                            }, 10);
+                                                            openPicker({
+                                                                onPicked: (file) => {
+                                                                    displayFileInModal({file});
+                                                                },
+                                                            });
                                                         },
                                                     },
                                                 ]}
