@@ -1,7 +1,7 @@
 import {Component} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import routePropTypes from './validateLinkPropTypes';
+import {routePropTypes} from './validateLinkPropTypes';
 import {validateLogin} from '../libs/actions/User';
 
 const propTypes = {
