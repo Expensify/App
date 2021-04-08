@@ -28,6 +28,7 @@ const styles = {
     link: {
         color: themeColors.link,
         textDecorationColor: themeColors.link,
+        fontFamily: fontFamily.GTA,
     },
 
     h1: {
