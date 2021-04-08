@@ -95,7 +95,7 @@ class SetPasswordPage extends Component {
         return (
             <>
                 <View style={[styles.signInPage]}>
-                    <SafeAreaView >
+                    <SafeAreaView>
                         <View style={[styles.signInPageInner]}>
                             <View style={[styles.signInPageLogo]}>
                                 <ExpensifyCashLogo
