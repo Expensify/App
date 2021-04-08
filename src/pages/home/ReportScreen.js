@@ -5,6 +5,7 @@ import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Navigation api provided by react navigation */
@@ -63,8 +64,8 @@ class ReportScreen extends React.Component {
      *
      * @returns {Boolean}
      */
-    isReadyToDisplayReport() {
-        return !this.state.isLoading && Boolean(this.getReportID());
+    shouldShowLoader() {
+        return this.state.isLoading || !this.getReportID();
     }
 
     /**
@@ -93,11 +94,10 @@ class ReportScreen extends React.Component {
                     onNavigationMenuButtonClicked={this.props.navigation.openDrawer}
                 />
 
+                {this.shouldShowLoader() && <FullScreenLoadingIndicator />}
+
                 <View style={[styles.dFlex, styles.flex1]}>
-                    <ReportView
-                        isReady={this.isReadyToDisplayReport()}
-                        reportID={this.getReportID()}
-                    />
+                    <ReportView reportID={this.getReportID()} />
                 </View>
             </ScreenWrapper>
         );
