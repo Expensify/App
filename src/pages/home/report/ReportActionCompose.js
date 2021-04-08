@@ -40,7 +40,7 @@ const propTypes = {
 
         // participants associated with current report
         participants: PropTypes.arrayOf(PropTypes.string),
-    }).isRequired,
+    }),
 
     ...windowDimensionsPropTypes,
 };
@@ -48,6 +48,7 @@ const propTypes = {
 const defaultProps = {
     comment: '',
     modal: {},
+    report: {},
 };
 
 class ReportActionCompose extends React.Component {

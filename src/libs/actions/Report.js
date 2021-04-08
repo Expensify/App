@@ -274,7 +274,7 @@ function updateIOUReportData(chatReport) {
  */
 function findChatReportID(participants) {
     if (participants.length < 2) {
-        throw new Error('fetchOrCreateChatReport() must have at least two participants');
+        throw new Error('findChatReportID() must have at least two participants.');
     }
 
     return API.CreateChatReport({
