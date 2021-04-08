@@ -320,18 +320,6 @@ function fetchChatReportsByIDs(chatList) {
                 if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
                     const simplifiedReport = getSimplifiedReportObject(report);
                     simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
-                } else if (lodashGet(report, 'reportNameValuePairs.type') === 'iou') {
-                    // If there's a new IOU report, find corresponding chat report and link them
-                    findChatReportID([report.ownerEmail, report.managerEmail]).then((chatReportID) => {
-                        const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.reportID}`;
-                        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-                        Onyx.merge(iouReportKey, getSimplifiedIOUReport(report, chatReportID));
-                        const chatReportObject = {};
-                        chatReportObject.iouReportID = report.reportID;
-                        chatReportObject.hasOutstandingIOU = report.stateNum === 1
-                            && report.total !== 0;
-                        Onyx.merge(reportKey, chatReportObject);
-                    });
                 }
             });
 
@@ -362,6 +350,63 @@ function fetchChatReportsByIDs(chatList) {
 }
 
 /**
+ * Updates chat and IOU data in Onyx with data from API
+ * for given chat or IOU report ID.
+ *
+ * @param {Number} reportID
+ */
+function updateIOUAndChatReportData(reportID) {
+    API.Get({
+        returnValueList: 'reportStuff',
+        reportIDList: reportID,
+        shouldLoadOptionalKeys: true,
+        includePinnedReports: true,
+    })
+        .then(({reports}) => {
+            if (reports.length === 0) {
+                return;
+            }
+            const report = Object.values(reports)[0];
+            if (lodashGet(report, 'reportNameValuePairs.type') === 'chat') {
+                // This is a chat report, find corresponding IOU report and link them
+                updateIOUReportData(report).then((iouReportObject) => {
+                    let chatReportObject = {};
+                    if (iouReportObject) {
+                        const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+                        Onyx.merge(iouReportKey, iouReportObject);
+                        chatReportObject = {
+                            iouReportID: iouReportObject.reportID,
+                            hasOutstandingIOU: iouReportObject.stateNum === 1
+                                && iouReportObject.total !== 0,
+                        };
+                    } else {
+                        chatReportObject = {
+                            iouReportID: undefined,
+                            hasOutstandingIOU: false,
+                        };
+                    }
+                    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+                    Onyx.merge(reportKey, chatReportObject);
+                });
+            } else if (lodashGet(report, 'reportNameValuePairs.type') === 'iou') {
+                // If this is an IOU report, find corresponding chat report and link them
+                findChatReportID([report.ownerEmail, report.managerEmail]).then((chatReportID) => {
+                    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.reportID}`;
+                    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+                    const simplifiedReport = {
+                        iouReportID: report.reportID,
+                        hasOutstandingIOU: report.stateNum === 1
+                            && report.total !== 0,
+                    };
+                    const iouReportObject = getSimplifiedIOUReport(report, chatReportID);
+                    Onyx.merge(iouReportKey, iouReportObject);
+                    Onyx.merge(reportKey, simplifiedReport);
+                });
+            }
+        });
+}
+
+/**
  * Update chat report for given IOU report
  *
  * @param {Object} iouReportObject
@@ -372,9 +417,7 @@ function updateChatReportDetails(iouReportObject) {
         return;
     }
     findChatReportID([iouReportObject.participants[0], currentUserEmail])
-        .then((chatReportID) => {
-            fetchChatReportsByIDs([chatReportID]);
-        });
+        .then(chatReportID => updateIOUAndChatReportData(chatReportID));
 }
 
 /**
@@ -471,8 +514,8 @@ function updateReportWithNewAction(reportID, reportAction) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
 
     // If chat report receives an action with IOU, update IOU object
-    if (reportAction.actionName === 'IOU') {
-        fetchChatReportsByIDs([reportID]);
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+        updateIOUAndChatReportData(reportID);
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -928,7 +971,7 @@ function handleReportChanged(report) {
     // A report can be missing a name if a comment is received via pusher event
     // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
     if (report.reportID && report.reportName === undefined) {
-        fetchChatReportsByIDs([report.reportID]);
+        updateIOUAndChatReportData(report.reportID);
     }
 
     // If this is a brand new IOU report, find and link corresponding chat report ID
