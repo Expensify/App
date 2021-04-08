@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -82,13 +81,7 @@ class ReportScreen extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper
-                style={[
-                    styles.appContent,
-                    styles.flex1,
-                    styles.flexColumn,
-                ]}
-            >
+            <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
                     reportID={this.getReportID()}
                     onNavigationMenuButtonClicked={this.props.navigation.openDrawer}
@@ -96,9 +89,7 @@ class ReportScreen extends React.Component {
 
                 <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
 
-                <View style={[styles.dFlex, styles.flex1]}>
-                    <ReportView reportID={this.getReportID()} />
-                </View>
+                <ReportView reportID={this.getReportID()} />
             </ScreenWrapper>
         );
     }

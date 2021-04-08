@@ -22,11 +22,11 @@ const propTypes = {
     isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
-function ReportView(props) {
+const ReportView = (props) => {
     const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
 
     return (
-        <View key={props.reportID} style={[styles.chatContent]}>
+        <View key={props.reportID} style={[styles.flex1, styles.justifyContentEnd]}>
             <ReportActionsView reportID={props.reportID} />
 
             <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
@@ -39,7 +39,7 @@ function ReportView(props) {
             <KeyboardSpacer />
         </View>
     );
-}
+};
 
 ReportView.propTypes = propTypes;
 export default compose(
