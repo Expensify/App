@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Fragment, PureComponent} from 'react';
 import {Text, View} from 'react-native';
-import {propTypes, defaultProps} from './DisplayNamesPropTypes';
+import {propTypes, defaultProps} from './displayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
 
