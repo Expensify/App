@@ -76,13 +76,11 @@ class ReportActionsView extends React.Component {
         // Helper variable that keeps track of the unread action count before it updates to zero
         this.unreadActionCount = 0;
 
-        // Helper variable that prevents the unread indicator to show up for new messages
-        // received while the report is still active
-        this.shouldShowUnreadActionIndicator = true;
-
         this.state = {
             isLoadingMoreChats: false,
         };
+
+        this.updateSortedReportActions(props.reportActions);
     }
 
     componentDidMount() {
@@ -91,14 +89,13 @@ class ReportActionsView extends React.Component {
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         this.recordMaxAction();
         fetchActions(this.props.reportID);
+        this.setUpUnreadActionIndicator();
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (nextProps.reportID !== this.props.reportID) {
-            return true;
-        }
-
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            this.updateSortedReportActions(nextProps.reportActions);
             return true;
         }
 
@@ -110,12 +107,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // We have switched to a new report
-        if (prevProps.reportID !== this.props.reportID) {
-            this.reset(prevProps.reportID);
-            return;
-        }
-
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
@@ -161,10 +152,6 @@ class ReportActionsView extends React.Component {
      * a flag to not show it again if the report is still open
      */
     setUpUnreadActionIndicator() {
-        if (!this.shouldShowUnreadActionIndicator) {
-            return;
-        }
-
         this.unreadActionCount = this.props.report.unreadActionCount;
 
         if (this.unreadActionCount > 0) {
@@ -176,22 +163,6 @@ class ReportActionsView extends React.Component {
                 }).start();
             }, 3000));
         }
-
-        this.shouldShowUnreadActionIndicator = false;
-    }
-
-    /**
-     * Actions to run when the report has been updated
-     * @param {Number} oldReportID
-     */
-    reset(oldReportID) {
-        // Unsubscribe from previous report and resubscribe
-        unsubscribeFromReportChannel(oldReportID);
-        subscribeToReportTypingEvents(this.props.reportID);
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
-
-        // Fetch the new set of actions
-        fetchActions(this.props.reportID);
     }
 
     /**
@@ -219,9 +190,11 @@ class ReportActionsView extends React.Component {
 
     /**
      * Updates and sorts the report actions by sequence number
+     *
+     * @param {Array<{sequenceNumber, actionName}>} reportActions
      */
-    updateSortedReportActions() {
-        this.sortedReportActions = _.chain(this.props.reportActions)
+    updateSortedReportActions(reportActions) {
+        this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU')
             .map((item, index) => ({action: item, index}))
@@ -319,7 +292,6 @@ class ReportActionsView extends React.Component {
      * @param {Object} args.item
      * @param {Number} args.index
      * @param {Function} args.onLayout
-     * @param {Boolean} args.needsLayoutCalculation
      *
      * @returns {React.Component}
      */
@@ -327,7 +299,6 @@ class ReportActionsView extends React.Component {
         item,
         index,
         onLayout,
-        needsLayoutCalculation,
     }) {
         return (
 
@@ -343,7 +314,6 @@ class ReportActionsView extends React.Component {
                     action={item.action}
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
-                    needsLayoutCalculation={needsLayoutCalculation}
                 />
             </View>
         );
@@ -365,7 +335,6 @@ class ReportActionsView extends React.Component {
         }
 
         this.setUpUnreadActionIndicator();
-        this.updateSortedReportActions();
         return (
             <InvertedFlatList
                 ref={el => this.actionListElement = el}
