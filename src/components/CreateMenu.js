@@ -3,9 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Popover from './Popover';
 import styles from '../styles/styles';
-import {ChatBubble, Users} from './Icon/Expensicons';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import MenuItem from './MenuItem';
 
@@ -19,16 +16,23 @@ const propTypes = {
     // Callback to fire when a CreateMenu item is selected
     onItemSelected: PropTypes.func.isRequired,
 
+    // Menu items to be rendered on the list
+    menuItems: PropTypes.arrayOf(
+        PropTypes.shape({
+            icon: PropTypes.func.isRequired,
+            text: PropTypes.string.isRequired,
+            onSelected: PropTypes.func.isRequired,
+        }),
+    ).isRequired,
+
     ...windowDimensionsPropTypes,
 };
-
 class CreateMenu extends PureComponent {
     constructor(props) {
         super(props);
-
+        this.onModalHide = () => {};
         this.setOnModalHide = this.setOnModalHide.bind(this);
         this.resetOnModalHide = this.resetOnModalHide.bind(this);
-        this.onModalHide = () => {};
     }
 
     /**
@@ -47,27 +51,6 @@ class CreateMenu extends PureComponent {
     }
 
     render() {
-        // This format allows to set individual callbacks to each item
-        // while including mutual callbacks first
-        const menuItemData = [
-            {
-                icon: ChatBubble,
-                text: 'New Chat',
-                onPress: () => this.setOnModalHide(() => Navigation.navigate(ROUTES.NEW_CHAT)),
-            },
-            {
-                icon: Users,
-                text: 'New Group',
-                onPress: () => this.setOnModalHide(() => Navigation.navigate(ROUTES.NEW_GROUP)),
-            },
-        ].map(item => ({
-            ...item,
-            onPress: () => {
-                this.props.onItemSelected();
-                item.onPress();
-            },
-        }));
-
         return (
             <Popover
                 onClose={this.props.onClose}
@@ -79,12 +62,19 @@ class CreateMenu extends PureComponent {
                 anchorPosition={styles.createMenuPosition}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {menuItemData.map(({icon, text, onPress}) => (
+                    {this.props.menuItems.map(({
+                        icon,
+                        text,
+                        onSelected = () => {},
+                    }) => (
                         <MenuItem
                             key={text}
                             icon={icon}
                             title={text}
-                            onPress={onPress}
+                            onPress={() => {
+                                this.props.onItemSelected();
+                                this.setOnModalHide(onSelected);
+                            }}
                         />
                     ))}
                 </View>

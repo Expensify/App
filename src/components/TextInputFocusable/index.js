@@ -37,6 +37,10 @@ const propTypes = {
 
     // Whether or not this TextInput is disabled.
     isDisabled: PropTypes.bool,
+
+    /* Set focus to this component the first time it renders. Override this in case you need to set focus on one
+    * field out of many, or when you want to disable autoFocus */
+    autoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -49,6 +53,7 @@ const defaultProps = {
     onDragLeave: () => {},
     onDrop: () => {},
     isDisabled: false,
+    autoFocus: false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -110,7 +115,6 @@ class TextInputFocusable extends React.Component {
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
-            this.moveCursorToEnd();
         }
     }
 
@@ -196,19 +200,6 @@ class TextInputFocusable extends React.Component {
             this.setState({
                 numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight),
             });
-        });
-    }
-
-    /**
-     * Move cursor to end by setting start and end
-     * to length of the input value.
-     */
-    moveCursorToEnd() {
-        this.setState({
-            selection: {
-                start: this.props.defaultValue.length,
-                end: this.props.defaultValue.length,
-            },
         });
     }
 

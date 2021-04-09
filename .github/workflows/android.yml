@@ -44,17 +44,18 @@ jobs:
               env:
                   LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+            - name: Set version in ENV
+              run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+\d\+' android/app/build.gradle | awk '{ print $2 }')" >> $GITHUB_ENV
+
             - name: Run Fastlane beta
               if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
               run: bundle exec fastlane android beta
 
-            # TODO: uncomment when we want to release iOS to production
             - name: Run Fastlane production
-#              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'false' == 'true' }}
+              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
               run: bundle exec fastlane android production
               env:
-                VERSION: ${{ env.VERSION }}
+                VERSION: ${{ env.VERSION_CODE }}
 
             # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
             # the other workflows with the same changes
@@ -71,28 +72,6 @@ jobs:
                           color: "#DB4545",
                           pretext: `<!here>`,
                           text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-                        }]
-                      }
-              env:
-                  GITHUB_TOKEN: ${{ github.token }}
-                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-            - name: Set version in ENV
-              if: ${{ success() }}
-              run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
-
-            - uses: 8398a7/action-slack@v3
-              name: QA Slack notification
-              if: ${{ success() }}
-              with:
-                  status: custom
-                  fields: workflow, repo
-                  custom_payload: |
-                      {
-                        channel: '#qa',
-                        attachments: [{
-                          color: "#39AA56",
-                          text: `*Expensify Chat :expensifychat:* ${process.env.AS_WORKFLOW} version *${{ env.VERSION }}* was deployed, please start *regression testing*: https://git.io/JUb0r`,
                         }]
                       }
               env:

@@ -18,6 +18,8 @@ import {getSidebarOptions} from '../../../libs/OptionsListUtils';
 import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import CONST from '../../../CONST';
+import {participantPropTypes} from './optionPropTypes';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -41,11 +43,7 @@ const propTypes = {
     draftComments: PropTypes.objectOf(PropTypes.string),
 
     // List of users' personal details
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        avatar: PropTypes.string.isRequired,
-        displayName: PropTypes.string.isRequired,
-    })),
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
@@ -148,8 +146,11 @@ class SidebarLinks extends React.Component {
                         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
                         this.props.onLinkClick();
                     }}
+                    optionBackgroundColor={themeColors.sidebar}
                     hideSectionHeaders
+                    showTitleTooltip
                     disableFocusOptions={this.props.isSmallScreenWidth}
+                    optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                 />
                 <KeyboardSpacer />
             </View>
@@ -181,7 +182,7 @@ export default compose(
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
         priorityMode: {
-            key: ONYXKEYS.PRIORITY_MODE,
+            key: ONYXKEYS.NVP_PRIORITY_MODE,
         },
     }),
 )(SidebarLinks);

@@ -1,7 +1,13 @@
 import ROUTES from '../../ROUTES';
 
 export default {
-    prefixes: ['expensify-cash://', 'https://expensify.cash', 'https://www.expensify.cash', 'http://localhost'],
+    prefixes: [
+        'expensify-cash://',
+        'https://expensify.cash',
+        'https://www.expensify.cash',
+        'https://staging.expensify.cash',
+        'http://localhost',
+    ],
     config: {
         screens: {
             Home: {
@@ -19,11 +25,9 @@ export default {
 
             // Modal Screens
             Settings: {
-                path: ROUTES.SETTINGS,
-                initialRouteName: 'Settings_Root',
                 screens: {
                     Settings_Root: {
-                        path: '',
+                        path: ROUTES.SETTINGS,
                     },
                     Settings_Preferences: {
                         path: ROUTES.SETTINGS_PREFERENCES,
@@ -41,47 +45,39 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_Add_Seconday_Login: {
+                        path: ROUTES.SETTINGS_ADD_LOGIN,
+                    },
                 },
             },
             NewGroup: {
-                path: ROUTES.NEW_GROUP,
-                initialRouteName: 'NewGroup_Root',
                 screens: {
-                    NewGroup_Root: '',
+                    NewGroup_Root: ROUTES.NEW_GROUP,
                 },
             },
             NewChat: {
-                path: ROUTES.NEW_CHAT,
-                initialRouteName: 'NewChat_Root',
                 screens: {
-                    NewChat_Root: '',
+                    NewChat_Root: ROUTES.NEW_CHAT,
                 },
             },
             Search: {
-                path: ROUTES.SEARCH,
-                initialRouteName: 'Search_Root',
                 screens: {
-                    Search_Root: '',
+                    Search_Root: ROUTES.SEARCH,
                 },
             },
-            Profile: {
-                initialRouteName: 'Profile_Root',
+            Details: {
                 screens: {
-                    Profile_Root: ROUTES.PROFILE_WITH_LOGIN,
+                    Details_Root: ROUTES.DETAILS_WITH_LOGIN,
                 },
             },
             IOU_Request: {
-                path: ROUTES.IOU_REQUEST,
-                initialRouteName: 'IOU_Request_Root',
                 screens: {
-                    IOU_Request_Root: '',
+                    IOU_Request_Root: ROUTES.IOU_REQUEST,
                 },
             },
             IOU_Bill: {
-                path: ROUTES.IOU_BILL,
-                initialRouteName: 'IOU_Bill_Root',
                 screens: {
-                    IOU_Bill_Root: '',
+                    IOU_Bill_Root: ROUTES.IOU_BILL,
                 },
             },
         },

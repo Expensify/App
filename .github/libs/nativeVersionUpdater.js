@@ -1,5 +1,4 @@
-const {promisify} = require('util');
-const exec = promisify(require('child_process').exec);
+const {execSync} = require('child_process');
 const fs = require('fs').promises;
 const path = require('path');
 const getMajorVersion = require('semver/functions/major');
@@ -74,19 +73,19 @@ exports.updateAndroidVersion = function updateAndroidVersion(versionName, versio
  * Updates the CFBundleShortVersionString and the CFBundleVersion.
  *
  * @param {String} version
- * @returns {Promise}
+ * @returns {String}
  */
 exports.updateiOSVersion = function updateiOSVersion(version) {
     const shortVersion = version.split('-')[0];
     const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
     console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
 
-    // Pass back the cfVersion in the return array so we can set the NEW_IOS_VERSION in ios.yml
-    return Promise.all([
-        cfVersion,
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`),
-        exec(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`),
-    ]);
+    // Update Plists
+    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`);
+    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`);
+    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`);
+    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`);
+
+    // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
+    return cfVersion;
 };

@@ -11,6 +11,7 @@ import ButtonWithLoader from '../../../components/ButtonWithLoader';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import ONYXKEYS from '../../../ONYXKEYS';
+import WelcomeText from '../../../components/WelcomeText';
 
 const propTypes = {
     /* Onyx Props */
@@ -72,7 +73,7 @@ class LoginFormNarrow extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         placeholder="Phone or Email"
-                        placeholderTextColor={themeColors.textSupporting}
+                        placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
                 <View>
@@ -102,17 +103,7 @@ class LoginFormNarrow extends React.Component {
                         source={welcomeScreenshot}
                     />
                 </View>
-
-                <View>
-                    <Text style={[styles.textLabel, styles.textStrong, styles.mb1]}>
-                        With Expensify.cash, chat and payments are the same thing.
-                    </Text>
-                    <Text style={[styles.textLabel]}>
-                        Money talks. And now that chat and payments are in one place, it&apos;s also easy.
-                        {' '}
-                        Your payments get to you as fast as you can get your point across.
-                    </Text>
-                </View>
+                <WelcomeText />
             </View>
         );
     }

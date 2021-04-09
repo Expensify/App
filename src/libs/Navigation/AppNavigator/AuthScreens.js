@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {createStackNavigator} from '@react-navigation/stack';
-
 import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -23,8 +21,11 @@ import CONFIG from '../../../CONFIG';
 import {fetchCountryCodeByRequestIP} from '../../actions/GeoLocation';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
-import {getBetas} from '../../actions/User';
+import * as User from '../../actions/User';
+import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
+import modalCardStyleInterpolator from './modalCardStyleInterpolator';
+import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -33,14 +34,25 @@ import MainDrawerNavigator from './MainDrawerNavigator';
 import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
-    ProfileModalStackNavigator,
+    DetailsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
 
-const RootStack = createStackNavigator();
+const RootStack = createCustomModalStackNavigator();
+
+// When modal screen gets focused, update modal visibility in Onyx
+// https://reactnavigation.org/docs/navigation-events/
+const modalScreenListeners = {
+    focus: () => {
+        setModalVisibility(true);
+    },
+    beforeRemove: () => {
+        setModalVisibility(false);
+    },
+};
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
@@ -69,10 +81,10 @@ class AuthScreens extends React.Component {
         }).then(subscribeToReportCommentEvents);
 
         // Fetch some data we need on initialization
-        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.PRIORITY_MODE, 'default');
+        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
-        PersonalDetails.fetchTimezone();
-        getBetas();
+        User.fetch();
+        User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
@@ -85,8 +97,8 @@ class AuthScreens extends React.Component {
                 return;
             }
             PersonalDetails.fetch();
-            PersonalDetails.fetchTimezone();
-            getBetas();
+            User.fetch();
+            User.getBetas();
         }, 1000 * 60 * 30);
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
@@ -116,8 +128,14 @@ class AuthScreens extends React.Component {
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-        };
+            cardStyleInterpolator: modalCardStyleInterpolator,
+            animationEnabled: true,
+            gestureDirection: 'horizontal',
 
+            // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
+            // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
+            isModal: true,
+        };
         return (
             <RootStack.Navigator
                 mode="modal"
@@ -141,36 +159,43 @@ class AuthScreens extends React.Component {
                     name="Settings"
                     options={modalScreenOptions}
                     component={SettingsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="NewChat"
                     options={modalScreenOptions}
                     component={NewChatModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="NewGroup"
                     options={modalScreenOptions}
                     component={NewGroupModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Search"
                     options={modalScreenOptions}
                     component={SearchModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="Profile"
+                    name="Details"
                     options={modalScreenOptions}
-                    component={ProfileModalStackNavigator}
+                    component={DetailsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
                     options={modalScreenOptions}
                     component={IOURequestModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Bill"
                     options={modalScreenOptions}
                     component={IOUBillStackNavigator}
+                    listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
         );
