@@ -109,7 +109,7 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const displayNamesToTooltips = _.map(
+    const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, login}) => ({displayName, tooltip: login}),
     );
@@ -159,7 +159,7 @@ const OptionRow = ({
                             <View style={contentContainerStyles}>
                                 <DisplayNames
                                     fullTitle={option.text}
-                                    displayNamesToTooltips={displayNamesToTooltips}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
                                     textStyles={displayNameStyle}
