@@ -48,6 +48,7 @@ class ReportActionContextMenu extends React.Component {
                 icon: ClipboardIcon,
                 successText: 'Copied!',
                 successIcon: Checkmark,
+        		shouldShow: true,
 
                 // If return value is true, we switch the `text` and `icon` on
                 // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -71,6 +72,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Copy Link',
                 icon: LinkCopy,
+        		shouldShow: false,
                 onPress: () => {},
             },
 
@@ -78,6 +80,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Mark as Unread',
                 icon: Mail,
+        		shouldShow: false,
                 onPress: () => {},
             },
 
@@ -85,6 +88,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Edit Comment',
                 icon: Pencil,
+        		shouldShow: false,
                 onPress: () => {},
             },
 
@@ -92,6 +96,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Delete Comment',
                 icon: Trashcan,
+        		shouldShow: true,
                 onPress: () => deleteReportAction(this.props.reportID, this.props.reportAction),
             },
         ];
@@ -102,7 +107,7 @@ class ReportActionContextMenu extends React.Component {
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {this.CONTEXT_ACTIONS.map(contextAction => (
+                {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
