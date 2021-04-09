@@ -26,17 +26,21 @@ import Lock from '../../../assets/images/lock.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import Emoji from '../../../assets/images/emoji.svg';
 import Upload from '../../../assets/images/upload.svg';
+import Camera from '../../../assets/images/camera.svg';
+import Gallery from '../../../assets/images/gallery.svg';
 
 export {
     ArrowRight,
     BackArrow,
     DownArrow,
+    Camera,
     ChatBubble,
     Checkmark,
     Clipboard,
     Close,
     Download,
     Emoji,
+    Gallery,
     Gear,
     LinkCopy,
     Lock,

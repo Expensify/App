@@ -149,6 +149,10 @@ export default {
         paddingVertical: 12,
     },
 
+    ph0: {
+        paddingHorizontal: 0,
+    },
+
     ph2: {
         paddingHorizontal: 8,
     },
@@ -171,6 +175,10 @@ export default {
 
     pr5: {
         paddingRight: 20,
+    },
+
+    pr9: {
+        paddingRight: 32,
     },
 
     pl5: {
