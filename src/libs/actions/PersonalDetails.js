@@ -67,14 +67,14 @@ function getDisplayName(login, personalDetail) {
         return userLogin;
     }
 
-    if (userDetails.displayName) {
-        return userDetails.displayName;
-    }
-
     const firstName = userDetails.firstName || '';
     const lastName = userDetails.lastName || '';
+    const fullName = (`${firstName} ${lastName}`).trim();
+    if (fullName) {
+        return fullName;
+    }
 
-    return (`${firstName} ${lastName}`).trim() || userLogin;
+    return userDetails.displayName || userLogin;
 }
 
 /**
