@@ -88,9 +88,15 @@ function formatPersonalDetails(personalDetailsList) {
         const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
         const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
 
-        // Update the users timezone if they have it set to automatic
+        // Update the users timezone when necessary if they have it set to automatic
         if (login === currentUserEmail && _.isObject(timezone) && timezone.automatic) {
-            timezone.selected = moment.tz.guess(true);
+            const currentTimezone = moment.tz.guess(true);
+
+            // We've obtained a different timezone, so update the requisite NVP
+            if (timezone.selected !== currentTimezone) {
+                timezone.selected = currentTimezone;
+                NameValuePair.set(CONST.NVP.TIMEZONE, timezone);
+            }
         }
 
         return {
