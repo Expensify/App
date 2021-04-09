@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
@@ -12,72 +13,7 @@ import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Re
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
-
-/**
- * A list of all the context actions in this menu.
- */
-const CONTEXT_ACTIONS = [
-    // Copy to clipboard
-    {
-        text: 'Copy to Clipboard',
-        icon: ClipboardIcon,
-        successText: 'Copied!',
-        successIcon: Checkmark,
-        shouldShow: true,
-
-        // If return value is true, we switch the `text` and `icon` on
-        // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
-        // the `text` and `icon`
-        onPress: (action) => {
-            const message = _.last(lodashGet(action, 'message', null));
-            const html = lodashGet(message, 'html', '');
-            const text = lodashGet(message, 'text', '');
-            const isAttachment = _.has(action, 'isAttachment')
-                ? action.isAttachment
-                : isReportMessageAttachment(text);
-            if (!isAttachment) {
-                Clipboard.setString(text);
-            } else {
-                Clipboard.setString(html);
-            }
-        },
-    },
-
-    // Copy chat link
-    {
-        text: 'Copy Link',
-        icon: LinkCopy,
-        shouldShow: false,
-        onPress: () => {},
-    },
-
-    // Mark as Unread
-    {
-        text: 'Mark as Unread',
-        icon: Mail,
-        shouldShow: false,
-        onPress: () => {},
-    },
-
-    // Edit Comment
-    {
-        text: 'Edit Comment',
-        icon: Pencil,
-        shouldShow: false,
-        onPress: () => {
-            editReportComment(this.props.reportID, this.props.reportAction, "blah blah Yuwen test 21");
-            saveReportActionDraft(this.props.reportID, this.props.reportAction.reportActionID, "blah blah Yuwen test 21");
-        },
-    },
-
-    // Delete Comment
-    {
-        text: 'Delete Comment',
-        icon: Trashcan,
-        shouldShow: false,
-        onPress: () => {},
-    },
-];
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -93,33 +29,114 @@ const propTypes = {
 
     // Controls the visibility of this component.
     isVisible: PropTypes.bool,
+
+    /* Onyx Props */
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Email of the logged in person
+        email: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     isMini: false,
     isVisible: false,
+    session: {},
 };
 
-const ReportActionContextMenu = (props) => {
-    const wrapperStyle = getReportActionContextMenuStyles(props.isMini);
-    return props.isVisible && (
-        <View style={wrapperStyle}>
-            {CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow && (
-                <ReportActionContextMenuItem
-                    icon={contextAction.icon}
-                    text={contextAction.text}
-                    successIcon={contextAction.successIcon}
-                    successText={contextAction.successText}
-                    isMini={props.isMini}
-                    onPress={() => contextAction.onPress(props.reportAction)}
-                    key={contextAction.text}
-                />
-            ))}
-        </View>
-    );
-};
+class ReportActionContextMenu extends React.Component {
+    /**
+     * A list of all the context actions in this menu.
+     */
+    CONTEXT_ACTIONS = [
+        // Copy to clipboard
+        {
+            text: 'Copy to Clipboard',
+            icon: ClipboardIcon,
+            successText: 'Copied!',
+            successIcon: Checkmark,
+            shouldShow: true,
+
+            // If return value is true, we switch the `text` and `icon` on
+            // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
+            // the `text` and `icon`
+            onPress: (action) => {
+                const message = _.last(lodashGet(action, 'message', null));
+                const html = lodashGet(message, 'html', '');
+                const text = lodashGet(message, 'text', '');
+                const isAttachment = _.has(action, 'isAttachment')
+                    ? action.isAttachment
+                    : isReportMessageAttachment(text);
+                if (!isAttachment) {
+                    Clipboard.setString(text);
+                } else {
+                    Clipboard.setString(html);
+                }
+            },
+        },
+
+        // Copy chat link
+        {
+            text: 'Copy Link',
+            icon: LinkCopy,
+            shouldShow: false,
+            onPress: () => {},
+        },
+
+        // Mark as Unread
+        {
+            text: 'Mark as Unread',
+            icon: Mail,
+            shouldShow: false,
+            onPress: () => {},
+        },
+
+        // Edit Comment
+        {
+            text: 'Edit Comment',
+            icon: Pencil,
+            shouldShow: this.props.reportAction.actorEmail === this.props.session.email,
+            onPress: () => {
+                editReportComment(this.props.reportID, this.props.reportAction, "blah blah Yuwen test 21");
+                saveReportActionDraft(this.props.reportID, this.props.reportAction.reportActionID, "blah blah Yuwen test 21");
+            },
+        },
+
+        // Delete Comment
+        {
+            text: 'Delete Comment',
+            icon: Trashcan,
+            shouldShow: false,
+            onPress: () => {},
+        },
+    ];
+
+
+    render() {
+        const wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
+        return this.props.isVisible && (
+            <View style={wrapperStyle}>
+                {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow && (
+                    <ReportActionContextMenuItem
+                        icon={contextAction.icon}
+                        text={contextAction.text}
+                        successIcon={contextAction.successIcon}
+                        successText={contextAction.successText}
+                        isMini={this.props.isMini}
+                        onPress={() => contextAction.onPress(this.props.reportAction)}
+                        key={contextAction.text}
+                    />
+                ))}
+            </View>
+        );
+    }
+}
 
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
 
-export default ReportActionContextMenu;
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(ReportActionContextMenu);
