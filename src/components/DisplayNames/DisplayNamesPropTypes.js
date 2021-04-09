@@ -5,7 +5,7 @@ const propTypes = {
     fullTitle: PropTypes.string,
 
     // Array of objects that map display names to their corresponding tooltip
-    displayNamesToTooltips: PropTypes.arrayOf(PropTypes.shape({
+    displayNamesWithTooltips: PropTypes.arrayOf(PropTypes.shape({
         // The name to display in bold
         displayName: PropTypes.string,
 

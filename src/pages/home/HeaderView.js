@@ -54,7 +54,7 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
-    const displayNamesToTooltips = _.map(
+    const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
         ({displayName, login}) => ({displayName, tooltip: login}),
     );
@@ -94,7 +94,7 @@ const HeaderView = (props) => {
                             <View style={[styles.flex1, styles.flexRow]}>
                                 <DisplayNames
                                     fullTitle={getReportParticipantsTitle(participants)}
-                                    displayNamesToTooltips={displayNamesToTooltips}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
