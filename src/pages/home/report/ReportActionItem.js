@@ -15,7 +15,6 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
-import ReportActionItemEdit from './ReportActionItemEdit';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -91,17 +90,15 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        return this.props.draftMessage ? (
-            <ReportActionItemEdit action={this.props.action} draftMessage={this.props.draftMessage} />
-        ) : (
+        return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
                     {hovered => (
                         <View>
                             <View style={getReportActionItemStyle(hovered)}>
                                 {!this.props.displayAsGroup
-                                    ? <ReportActionItemSingle action={this.props.action} />
-                                    : <ReportActionItemGrouped action={this.props.action} />}
+                                    ? <ReportActionItemSingle action={this.props.action} draftMessage={this.props.draftMessage} reportID={this.props.reportID} />
+                                    : <ReportActionItemGrouped action={this.props.action} draftMessage={this.props.draftMessage} reportID={this.props.reportID} />}
                             </View>
                             <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
                                 <ReportActionContextMenu

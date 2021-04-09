@@ -9,7 +9,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
-import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
+import {saveReportActionDraft} from '../../../libs/actions/Report';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
@@ -95,10 +95,10 @@ class ReportActionContextMenu extends React.Component {
         {
             text: 'Edit Comment',
             icon: Pencil,
-            shouldShow: this.props.reportAction.actorEmail === this.props.session.email,
+            shouldShow: this.props.reportAction.actorEmail === this.props.session.email
+                && !isReportMessageAttachment(this.getActionText()),
             onPress: () => {
-                editReportComment(this.props.reportID, this.props.reportAction, "blah blah Yuwen test 21");
-                saveReportActionDraft(this.props.reportID, this.props.reportAction.reportActionID, "blah blah Yuwen test 21");
+                saveReportActionDraft(this.props.reportID, this.props.reportAction.reportActionID, this.getActionText());
             },
         },
 
@@ -111,6 +111,10 @@ class ReportActionContextMenu extends React.Component {
         },
     ];
 
+    getActionText() {
+        const message = _.last(lodashGet(this.props.reportAction, 'message', null));
+        return lodashGet(message, 'text', '');
+    }
 
     render() {
         const wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);

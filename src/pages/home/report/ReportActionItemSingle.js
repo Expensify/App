@@ -12,6 +12,7 @@ import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
 import ONYXKEYS from '../../../ONYXKEYS';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 
 const propTypes = {
     // All the data of the action
@@ -19,9 +20,13 @@ const propTypes = {
 
     // All of the personalDetails
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+
+    draftMessage: PropTypes.string.isRequired,
+
+    reportID: PropTypes.number.isRequired,
 };
 
-const ReportActionItemSingle = ({action, personalDetails}) => {
+const ReportActionItemSingle = ({action, personalDetails, draftMessage, reportID}) => {
     const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
@@ -52,7 +57,9 @@ const ReportActionItemSingle = ({action, personalDetails}) => {
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
-                <ReportActionItemMessage action={action} />
+                {_.isEmpty(draftMessage)
+                    ? <ReportActionItemMessage action={action} />
+                    : <ReportActionItemMessageEdit action={action} draftMessage={draftMessage} reportID={reportID} />}
             </View>
         </View>
     );
