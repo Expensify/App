@@ -37,8 +37,14 @@ const propTypes = {
         password: PropTypes.string,
     }),
 
+    // The accountID and validateCode are passed via the URL
     route: PropTypes.shape({
+        // Each parameter passed via the URL
         params: PropTypes.shape({
+            // The user's accountID
+            accountID: PropTypes.string,
+
+            // The user's validateCode
             validateCode: PropTypes.string,
         }),
     }),
@@ -78,7 +84,11 @@ class SetPasswordPage extends Component {
         this.setState({
             formError: null,
         });
-        setPassword(this.state.password, lodashGet(this.props.route, 'params.validateCode', ''));
+        setPassword(
+            this.state.password,
+            lodashGet(this.props.route, 'params.validateCode', ''),
+            lodashGet(this.props.route, 'params.accountID', ''),
+        );
     }
 
     render() {
