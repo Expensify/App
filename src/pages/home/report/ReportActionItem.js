@@ -15,6 +15,9 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
+import ReportActionItemIOUPreview from '../../../components/ReportActionItemIOUPreview';
+import ReportActionItemMessage from './ReportActionItemMessage';
+
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -27,7 +30,7 @@ const propTypes = {
     displayAsGroup: PropTypes.bool.isRequired,
 
     // Is this the most recent IOU Action?
-    isMostRecentIOUReport: PropTypes.bool.isRequired,
+    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     /* --- Onyx Props --- */
 
@@ -65,7 +68,7 @@ class ReportActionItem extends Component {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
             || !_.isEqual(this.props.action, nextProps.action)
-            || this.props.isMostRecentIOUReport !== nextProps.isMostRecentIOUReport
+            || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || !_.isEqual(this.props.report, nextProps.report);
     }
 
@@ -100,6 +103,15 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        const message = this.props.action.actionName === 'IOU'
+            ? (
+                <ReportActionItemIOUPreview
+                    report={this.props.report}
+                    action={this.props.action}
+                    isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
+                />
+            )
+            : <ReportActionItemMessage action={this.props.action} />;
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
@@ -110,15 +122,12 @@ class ReportActionItem extends Component {
                                     ? (
                                         <ReportActionItemSingle
                                             action={this.props.action}
-                                            report={this.props.report}
-                                            isMostRecentIOUReport={this.props.isMostRecentIOUReport}
+                                            message={message}
                                         />
                                     )
                                     : (
                                         <ReportActionItemGrouped
-                                            action={this.props.action}
-                                            report={this.props.report}
-                                            isMostRecentIOUReport={this.props.isMostRecentIOUReport}
+                                            message={message}
                                         />
                                     )}
                             </View>

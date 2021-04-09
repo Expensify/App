@@ -4,13 +4,11 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import ReportActionItemMessage from './ReportActionItemMessage';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
-import ReportActionItemIOUPreview from '../../../components/ReportActionItemIOUPreview';
 import ONYXKEYS from '../../../ONYXKEYS';
 import personalDetailsPropType from '../../personalDetailsPropType';
 
@@ -18,25 +16,17 @@ const propTypes = {
     // All the data of the action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // Is this the most recent IOU Action?
-    isMostRecentIOUReport: PropTypes.bool.isRequired,
-
     // All of the personalDetails
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 
-    // The report currently being looked at
-    report: PropTypes.shape({
-
-        // IOU report ID associated with current report
-        iouReportID: PropTypes.number,
-    }).isRequired,
+    // Message view component for this action
+    message: PropTypes.element.isRequired,
 };
 
 const ReportActionItemSingle = ({
     action,
-    report,
-    isMostRecentIOUReport,
     personalDetails,
+    message,
 }) => {
     const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
@@ -68,15 +58,7 @@ const ReportActionItemSingle = ({
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
-                {action.actionName === 'IOU'
-                    ? (
-                        <ReportActionItemIOUPreview
-                            report={report}
-                            action={action}
-                            isMostRecentIOUReport={isMostRecentIOUReport}
-                        />
-                    )
-                    : <ReportActionItemMessage action={action} />}
+                {message}
             </View>
         </View>
     );

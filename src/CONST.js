@@ -31,6 +31,10 @@ const CONST = {
                 IOU: 'IOU',
             },
         },
+        TYPE: {
+            CHAT: 'chat',
+            IOU: 'iou',
+        },
     },
     MODAL: {
         MODAL_TYPE: {
