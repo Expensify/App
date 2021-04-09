@@ -1,0 +1,102 @@
+name: Create a new version
+
+on:
+  workflow_dispatch:
+    inputs:
+      SEMVER_LEVEL:
+        description: One of {BUILD, PATCH, MINOR, MAJOR}
+        required: true
+
+jobs:
+  createNewVersion:
+    if: github.actor == 'OSBotify'
+    runs-on: macos-latest
+
+    steps:
+      # Version: 2.3.4
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up git
+        run: |
+          git fetch
+          git checkout master
+          git config user.name OSBotify
+
+      - name: Create new branch
+        run: |
+          git checkout -b version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
+          git push --set-upstream origin version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
+
+      - name: Generate version
+        id: bumpVersion
+        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          SEMVER_LEVLE: ${{ github.event.inputs.SEMVER_LEVEL }}
+
+      - name: Commit new version
+        run: |
+          git add \
+            ./package.json \
+            ./package-lock.json \
+            ./android/app/build.gradle \
+            ./ios/ExpensifyCash/Info.plist \
+            ./ios/ExpensifyCashTests/Info.plist
+          git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+
+      - name: Create Pull Request (master)
+        id: createPullRequest
+        uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
+        with:
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          author: OSBotify <reactnative@expensify.com>
+          base: master
+          branch: version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
+          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on master
+          body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
+          labels: automerge
+
+      # TODO: this won't work unless https://github.com/hmarr/auto-approve-action/pull/186 is merged or we point at a fork
+      - name: Check for an auto approve
+        # Version: 2.0.0
+        uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.createPullRequest.outputs.pull-request-number }}
+
+      # TODO: need to update this action to take a pull-request-number
+      - name: Check for an auto merge
+        # Version: 0.12.0
+        uses: pascalgn/automerge-action@c9bd1823770819dc8fb8a5db2d11a3a95fbe9b07
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+      # the other workflows with the same change
+      - uses: 8398a7/action-slack@v3
+        name: Job failed Slack notification
+        if: ${{ failure() }}
+        with:
+          status: custom
+          fields: workflow, repo
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!here>`,
+                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
