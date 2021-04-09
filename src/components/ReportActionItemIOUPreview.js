@@ -15,7 +15,7 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // Is this the most recent IOU Action?
-    isMostRecentIOUReport: PropTypes.bool.isRequired,
+    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     // The report currently being looked at
     report: PropTypes.shape({
@@ -58,90 +58,65 @@ const defaultProps = {
     iou: {},
 };
 
-class ReportActionItemIOUPreview extends React.Component {
-    /**
-     * Creates IOU preview pay button.
-     *
-     * @returns {View}
-     */
-    createPayButton() {
-        return (
-            <TouchableOpacity
-                style={[styles.buttonSmall, styles.normalRadius, styles.buttonSuccess, styles.mt6]}
-            >
-                <Text
-                    style={[
-                        styles.buttonSmallText,
-                        styles.buttonSuccessText,
-                    ]}
-                >
-                    Pay
-                </Text>
-            </TouchableOpacity>
-        );
-    }
+const ReportActionItemIOUPreview = ({
+    action,
+    isMostRecentIOUReportAction,
+    report,
+    iou,
+    personalDetails,
+    session,
+}) => {
+    const managerName = lodashGet(personalDetails, [iou.managerEmail, 'displayName'], iou.managerEmail);
+    const ownerName = lodashGet(personalDetails, [iou.ownerEmail, 'displayName'], iou.ownerEmail);
+    const managerAvatar = lodashGet(personalDetails, [iou.managerEmail, 'avatar'], '');
+    const ownerAvatar = lodashGet(personalDetails, [iou.ownerEmail, 'avatar'], '');
+    const sessionEmail = lodashGet(session, 'email', null);
+    const cachedTotal = iou.cachedTotal ? iou.cachedTotal.replace(/[()]/g, '') : '';
 
-    /**
-     * Creates IOU preview box view if outstanding amount is not 0.
-     *
-     * @returns {View}
-     */
-    createPreviewBox() {
-        const managerName = lodashGet(
-            this.props.personalDetails,
-            [this.props.iou.managerEmail, 'displayName'],
-            this.props.iou.managerEmail,
-        );
-        const ownerName = lodashGet(
-            this.props.personalDetails,
-            [this.props.iou.ownerEmail, 'displayName'],
-            this.props.iou.ownerEmail,
-        );
-        const managerAvatar = lodashGet(this.props.personalDetails, [this.props.iou.managerEmail, 'avatar'], '');
-        const ownerAvatar = lodashGet(this.props.personalDetails, [this.props.iou.ownerEmail, 'avatar'], '');
-        const sessionEmail = lodashGet(this.props.session, 'email', null);
-        const cachedTotal = this.props.iou.cachedTotal ? this.props.iou.cachedTotal.replace(/[()]/g, '') : '';
-
-        return (
-            <View style={styles.iouPreviewBox}>
-                <View style={styles.flexRow}>
-                    <View style={styles.flex1}>
-                        <Text style={styles.h1}>{cachedTotal}</Text>
-                        <Text style={styles.mt2}>
-                            {managerName}
-                            {' owes '}
-                            {ownerName}
-                        </Text>
-                    </View>
-                    <View style={styles.iouPreviewBoxAvatar}>
-                        <MultipleAvatars
-                            avatarImageURLs={[managerAvatar, ownerAvatar]}
-                            secondAvatarStyle={[styles.secondAvatarInline]}
-                        />
-                    </View>
-                </View>
-                {(this.props.iou.managerEmail === sessionEmail) ? (
-                    this.createPayButton()
+    return (
+        <View>
+            <ReportActionItemIOUQuote action={action} />
+            {isMostRecentIOUReportAction
+                    && report.hasOutstandingIOU
+                    && iou ? (
+                        <View style={styles.iouPreviewBox}>
+                            <View style={styles.flexRow}>
+                                <View style={styles.flex1}>
+                                    <Text style={styles.h1}>{cachedTotal}</Text>
+                                    <Text style={styles.mt2}>
+                                        {managerName}
+                                        {' owes '}
+                                        {ownerName}
+                                    </Text>
+                                </View>
+                                <View style={styles.iouPreviewBoxAvatar}>
+                                    <MultipleAvatars
+                                        avatarImageURLs={[managerAvatar, ownerAvatar]}
+                                        secondAvatarStyle={[styles.secondAvatarInline]}
+                                    />
+                                </View>
+                            </View>
+                            {(iou.managerEmail === sessionEmail) ? (
+                                <TouchableOpacity
+                                    style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.buttonSmallText,
+                                            styles.buttonSuccessText,
+                                        ]}
+                                    >
+                                        Pay
+                                    </Text>
+                                </TouchableOpacity>
+                            )
+                                : null}
+                        </View>
                 )
-                    : null}
-            </View>
-        );
-    }
-
-    render() {
-        return (
-            <View>
-                <ReportActionItemIOUQuote action={this.props.action} />
-                {this.props.isMostRecentIOUReport
-                    && this.props.report.hasOutstandingIOU
-                    && this.props.iou ? (
-                        this.createPreviewBox()
-                    )
-                    : null}
-            </View>
-        );
-    }
-}
+                : null}
+        </View>
+    );
+};
 
 ReportActionItemIOUPreview.propTypes = propTypes;
 ReportActionItemIOUPreview.defaultProps = defaultProps;

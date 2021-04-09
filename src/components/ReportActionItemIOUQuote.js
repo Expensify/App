@@ -13,7 +13,7 @@ const propTypes = {
 
 const ReportActionItemIOUQuote = ({action}) => (
     <View style={[styles.chatItemMessage]}>
-        {_.map(_.compact(action.message), (fragment, index) => {
+        {_.map(action.message, (fragment, index) => {
             const viewDetails = '<br /><a href="#">View Details</a>';
             const html = `<blockquote>${fragment.text}${viewDetails}</blockquote>`;
             return (

@@ -1273,7 +1273,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
-        maxWidth: 400,
+        maxWidth: 300,
         width: '100%',
     },
 

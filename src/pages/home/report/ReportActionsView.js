@@ -279,18 +279,15 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Checks whether given sequence number belongs to the most recent IOU Report
+     * Finds and updates most recent IOU report action number
      *
-     * @param {Number} actionSequenceNumber
-     * @returns {Boolean}
      */
-    isMostRecentIOUReport(actionSequenceNumber) {
-        const mostRecentIOUReportSequenceNumber = _.chain(this.props.reportActions)
+    updateMostRecentIOUReportActionNumber() {
+        this.mostRecentIOUReportSequenceNumber = _.chain(this.props.reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'IOU')
             .max(action => action.sequenceNumber)
             .value().sequenceNumber;
-        return actionSequenceNumber === mostRecentIOUReportSequenceNumber;
     }
 
     /**
@@ -359,7 +356,7 @@ class ReportActionsView extends React.Component {
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
                     needsLayoutCalculation={needsLayoutCalculation}
-                    isMostRecentIOUReport={this.isMostRecentIOUReport(item.action.sequenceNumber)}
+                    isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 />
             </View>
         );
@@ -382,6 +379,7 @@ class ReportActionsView extends React.Component {
 
         this.setUpUnreadActionIndicator();
         this.updateSortedReportActions();
+        this.updateMostRecentIOUReportActionNumber();
         return (
             <InvertedFlatList
                 ref={el => this.actionListElement = el}
