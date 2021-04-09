@@ -1284,6 +1284,14 @@ const styles = {
     noScrollbars: {
         scrollbarWidth: 'none',
     },
+
+    fullScreenLoading: {
+        backgroundColor: themeColors.modalBackdrop,
+        opacity: 0.8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
 };
 
 const baseCodeTagStyles = {
