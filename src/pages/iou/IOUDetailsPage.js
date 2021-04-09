@@ -18,25 +18,29 @@ const matchType = PropTypes.shape({
     }),
 });
 
+const defaultProps = {
+    iouReport: {},
+};
+
 const propTypes = {
     /* Onyx Props */
-    // ID for the iouReport that is displayed
-    iouReportID: PropTypes.number,
-
     // Route params
     route: matchType.isRequired,
+
+    // IOU Report data object
+    iouReport: PropTypes.shape({
+        // The total amount in cents
+        total: PropTypes.number,
+    }),
 };
 
 class IOUDetailsPage extends Component {
     constructor(props) {
         super(props);
-
-        console.debug('jules: init ', this.props);
     }
 
     render() {
-        console.debug('jules: route: ', this.props.route);
-        console.debug('jules: iouReportID: ', this.props.route.params.iouReportID);
+        console.debug('jules: props: ', this.props);
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -60,9 +64,10 @@ class IOUDetailsPage extends Component {
 
 IOUDetailsPage.propTypes = propTypes;
 IOUDetailsPage.displayName = 'IOUDetailsPage';
+IOUDetailsPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
+    iouReport: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
     },
 })(IOUDetailsPage);
