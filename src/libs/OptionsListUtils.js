@@ -293,6 +293,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && personalDetailsOptions.length === 0
             && _.every(selectedOptions, option => option.login !== searchValue)
             && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
+            && (searchValue !== CONST.EMAIL.CHRONOS || isInChronosBeta)
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
         // current users international code based on their IP address.
@@ -304,15 +305,6 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
-    }
-
-    if (!isInChronosBeta && searchValue === 'chronos@expensify.com') {
-        userToInvite = null;
-        return {
-            personalDetails: [],
-            recentReports: [],
-            userToInvite,
-        };
     }
 
     return {

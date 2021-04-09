@@ -102,6 +102,9 @@ const CONST = {
         NUMERIC: 'numeric',
         PHONE_PAD: 'phone-pad',
     },
+    EMAIL: {
+        CHRONOS: 'chronos@expensify.com',
+    },
 };
 
 export default CONST;
