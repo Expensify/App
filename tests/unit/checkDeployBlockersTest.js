@@ -69,7 +69,7 @@ describe('checkDeployBlockers', () => {
         ],
     };
 
-    describe('checkForDeployBlockers', () => {
+    describe('checkDeployBlockers', () => {
         test('Test an issue with a checked item and :shipit:', () => {
             mockGetIssue.mockResolvedValue(baseIssue);
             mockListComments.mockResolvedValue(baseComments);
