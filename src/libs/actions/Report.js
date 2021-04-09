@@ -917,7 +917,7 @@ function editReportComment(reportID, reportAction, htmlForNewComment) {
 }
 
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
 
 export {
