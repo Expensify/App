@@ -1269,8 +1269,8 @@ const styles = {
         flexBasis: 'auto',
         paddingLeft: 0,
         paddingRight: 0,
-        marginTop: 6,
-        marginBottom: -5,
+        marginTop: 2,
+        bottom: -5,
     },
 
     codeFirstWordStyle: {
@@ -1302,7 +1302,6 @@ const baseCodeTagStyles = {
     borderColor: themeColors.border,
     backgroundColor: themeColors.textBackground,
     fontSize: 13,
-    lineHeight: 18,
 };
 
 
