@@ -6,7 +6,10 @@ const propTypes = {
 
     // Array of objects that map display names to their corresponding tooltip
     displayNamesToTooltips: PropTypes.arrayOf(PropTypes.shape({
+        // The name to display in bold
         displayName: PropTypes.string,
+
+        // The tooltip to show when the associated name is hovered
         tooltip: PropTypes.string,
     })),
 
