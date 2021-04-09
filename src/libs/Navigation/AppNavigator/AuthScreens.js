@@ -1,9 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import moment from 'moment';
 import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -29,7 +26,6 @@ import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-import personalDetailsPropType from '../../../pages/personalDetailsPropType';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -60,13 +56,11 @@ const modalScreenListeners = {
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
-    myPersonalDetails: PropTypes.objectOf(personalDetailsPropType),
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
-    myPersonalDetails: {},
 };
 
 class AuthScreens extends React.Component {
@@ -106,13 +100,6 @@ class AuthScreens extends React.Component {
             User.fetch();
             User.getBetas();
         }, 1000 * 60 * 30);
-
-        // Update the users timezone if they have it set to automatic
-        const timezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        if (_.isObject(timezone) && timezone.automatic) {
-            timezone.selected = moment.tz.guess();
-            PersonalDetails.setPersonalDetails({timezone});
-        }
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -222,9 +209,6 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
-        },
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(AuthScreens);

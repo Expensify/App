@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
 import CONST from '../../CONST';
@@ -86,6 +87,11 @@ function formatPersonalDetails(personalDetailsList) {
         const displayName = getDisplayName(login, personalDetailsResponse);
         const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
         const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
+
+        // Update the users timezone if they have it set to automatic
+        if (login === currentUserEmail && _.isObject(timezone) && timezone.automatic) {
+            timezone.selected = moment.tz.guess(true);
+        }
 
         return {
             ...finalObject,
