@@ -16,8 +16,10 @@ const run = function () {
     })
         .then(({data}) => {
             console.log('Checking for unverified PRs or unresolved deploy blockers', data);
-            const pattern = /-\s\[\s]/g;
-            const matches = pattern.exec(data.body);
+
+            // Check the issue description to see if there are any unfinished/un-QAed items in the checklist.
+            const uncheckedBoxRegex = /-\s\[\s]/g;
+            const matches = uncheckedBoxRegex.exec(data.body);
             if (matches !== null) {
                 console.log('An unverified PR or unresolved deploy blocker was found.');
                 core.setOutput('HAS_DEPLOY_BLOCKERS', true);
@@ -28,21 +30,27 @@ const run = function () {
                 owner: GITHUB_OWNER,
                 repo: EXPENSIFY_CASH_REPO,
                 issue_number: issueNumber,
+                per_page: 100,
             });
         })
-        .then((issues) => {
-            if (_.isUndefined(issues)) {
+        .then((comments) => {
+            console.log('Checking the last comment for the :shipit: seal of approval', comments);
+
+            // If comments is undefined that means we found an unchecked QA item in the
+            // issue description, so there's nothing more to do but return early.
+            if (_.isUndefined(comments)) {
                 return;
             }
 
-            if (_.isEmpty(issues.data)) {
+            // If there are no comments, then we have not yet gotten the :shipit: seal of approval.
+            if (_.isEmpty(comments.data)) {
                 console.log('No comments found on issue');
                 core.setOutput('HAS_DEPLOY_BLOCKERS', true);
                 return;
             }
 
-            console.log('Verifying that the last comment is :shipit:');
-            const lastComment = issues.data[issues.data.length - 1];
+            console.log('Verifying that the last comment is the :shipit: seal of approval');
+            const lastComment = comments.data.pop();
             const shipItRegex = /^:shipit:/g;
             if (_.isNull(shipItRegex.exec(lastComment.body))) {
                 console.log('The last comment on the issue was not :shipit');
