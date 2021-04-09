@@ -73,7 +73,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ steps.createPullRequest.outputs.pull-request-number }}
 
-      # TODO: need to update this action to take a pull-request-number
+      # TODO: this won't work unless https://github.com/pascalgn/automerge-action/pull/149 is merges or we point at a fork
       - name: Check for an auto merge
         # Version: 0.12.0
         uses: pascalgn/automerge-action@c9bd1823770819dc8fb8a5db2d11a3a95fbe9b07
