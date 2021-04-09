@@ -12,6 +12,7 @@ import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
+import TermsAndLicenses from './TermsAndLicenses';
 
 const propTypes = {
     /* Onyx Props */
@@ -23,6 +24,12 @@ const propTypes = {
 
         // Error to display when there is an account error returned
         error: PropTypes.string,
+
+        // Weather or not the account is validated
+        validated: PropTypes.bool,
+
+        // Weather or not the account is validated
+        forgotPassword: PropTypes.bool,
     }),
 
     // The credentials of the person signing in
@@ -56,21 +63,24 @@ class SignInPage extends Component {
         // - A login has not been entered yet
         const showLoginForm = !this.props.credentials.login;
 
+        const validAccount = this.props.account.accountExists
+            && this.props.account.validated
+            && !this.props.account.forgotPassword;
+
         // Show the password form if
         // - A login has been entered
         // - AND a GitHub username has been entered OR they already have access to expensify cash
-        // - AND an account exists already for this login
+        // - AND an account exists and is validated for this login
         // - AND a password hasn't been entered yet
         const showPasswordForm = this.props.credentials.login
-            && this.props.account.accountExists
+            && validAccount
             && !this.props.credentials.password;
 
         // Show the resend validation link form if
         // - A login has been entered
         // - AND a GitHub username has been entered OR they already have access to this app
-        // - AND an account did not exist for that login
-        const showResendValidationLinkForm = this.props.credentials.login
-            && !this.props.account.accountExists;
+        // - AND an account did not exist or is not validated for that login
+        const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
         return (
             <>
@@ -92,6 +102,8 @@ class SignInPage extends Component {
                                 )}
                             </View>
                         )}
+
+                        <TermsAndLicenses />
                     </SignInPageLayout>
                 </SafeAreaView>
             </>

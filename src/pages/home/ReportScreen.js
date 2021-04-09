@@ -1,56 +1,93 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
-    // id of the most recently viewed report
-    currentlyViewedReportID: PropTypes.string,
+    /* Navigation route context info provided by react navigation */
+    route: PropTypes.shape({
+        /* Route specific parameters used on this screen */
+        params: PropTypes.shape({
+            /* The ID of the report this screen should display */
+            reportID: PropTypes.string,
+        }).isRequired,
+    }).isRequired,
 };
 
-const defaultProps = {
-    currentlyViewedReportID: 0,
-};
+class ReportScreen extends React.Component {
+    constructor(props) {
+        super(props);
 
-const ReportScreen = (props) => {
-    const activeReportID = parseInt(props.currentlyViewedReportID, 10);
-    if (!activeReportID) {
-        return null;
+        this.state = {
+            isLoading: true,
+        };
     }
 
-    return (
-        <ScreenWrapper
-            style={[
-                styles.appContent,
-                styles.flex1,
-                styles.flexColumn,
-            ]}
-        >
-            <HeaderView
-                reportID={activeReportID}
-                onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
-            />
-            <View style={[styles.dFlex, styles.flex1]}>
-                <ReportView
-                    reportID={activeReportID}
-                />
-            </View>
-        </ScreenWrapper>
-    );
-};
+    componentDidMount() {
+        this.prepareTransition();
+    }
 
-ReportScreen.displayName = 'ReportScreen';
+    componentDidUpdate(prevProps) {
+        const reportChanged = this.props.route.params.reportID !== prevProps.route.params.reportID;
+
+        if (reportChanged) {
+            this.prepareTransition();
+        }
+    }
+
+    componentWillUnmount() {
+        clearTimeout(this.loadingTimerId);
+    }
+
+    /**
+     * Get the currently viewed report ID as number
+     *
+     * @returns {Number}
+     */
+    getReportID() {
+        const params = this.props.route.params;
+        return Number.parseInt(params.reportID, 10);
+    }
+
+    /**
+     * When reports change there's a brief time content is not ready to be displayed
+     *
+     * @returns {Boolean}
+     */
+    shouldShowLoader() {
+        return this.state.isLoading || !this.getReportID();
+    }
+
+    /**
+     * Configures a small loading transition of fixed time and proceeds with rendering available data
+     */
+    prepareTransition() {
+        this.setState({isLoading: true});
+
+        clearTimeout(this.loadingTimerId);
+        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 300);
+    }
+
+    render() {
+        return (
+            <ScreenWrapper style={[styles.appContent, styles.flex1]}>
+                <HeaderView
+                    reportID={this.getReportID()}
+                    onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
+                />
+
+                <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
+
+                <ReportView reportID={this.getReportID()} />
+            </ScreenWrapper>
+        );
+    }
+}
+
 ReportScreen.propTypes = propTypes;
-ReportScreen.defaultProps = defaultProps;
-export default withOnyx({
-    currentlyViewedReportID: {
-        key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-    },
-})(ReportScreen);
+export default ReportScreen;

@@ -14,15 +14,24 @@ import Icon from '../../components/Icon';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import {DownArrow} from '../../components/Icon/Expensicons';
+import {setExpensifyNewsStatus} from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import Switch from '../../components/Switch';
 
 const propTypes = {
     // The chat priority mode
     priorityMode: PropTypes.string,
+
+    // The details about the user that is signed in
+    user: PropTypes.shape({
+        // Whether or not the user is subscribed to news updates
+        expensifyNewsStatus: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    user: {},
 };
 
 const priorityModes = {
@@ -33,21 +42,36 @@ const priorityModes = {
     },
     gsd: {
         value: CONST.PRIORITY_MODE.GSD,
-        label: 'GSD',
-        description: 'This will only display unread and pinned chats, all sorted alphabetically. Get Shit Done.',
+        label: '#focus',
+        description: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
     },
 };
 
-const PreferencesPage = ({priorityMode}) => (
+
+const PreferencesPage = ({priorityMode, user}) => (
     <ScreenWrapper>
         <HeaderWithCloseButton
             title="Preferences"
             shouldShowBackButton
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-            onCloseButtonPress={() => Navigation.dismissModal()}
+            onCloseButtonPress={Navigation.dismissModal}
         />
         <View style={styles.pageWrapper}>
             <View style={[styles.settingsPageBody, styles.mb6]}>
+                <Text style={[styles.formLabel]} numberOfLines={1}>Notifications</Text>
+                <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
+                    <View style={styles.flex4}>
+                        <Text>
+                            Receive relevant feature updates and Expensify news
+                        </Text>
+                    </View>
+                    <View style={[styles.flex1, styles.alignItemsEnd]}>
+                        <Switch
+                            isOn={user.expensifyNewsStatus ?? true}
+                            onToggle={setExpensifyNewsStatus}
+                        />
+                    </View>
+                </View>
                 <Text style={[styles.formLabel]} numberOfLines={1}>
                     Priority Mode
                 </Text>
@@ -56,7 +80,7 @@ const PreferencesPage = ({priorityMode}) => (
                     {/* placeholder from appearing as a selection option. */}
                     <RNPickerSelect
                         onValueChange={
-                            mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.PRIORITY_MODE)
+                            mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
                         }
                         items={Object.values(priorityModes)}
                         style={styles.picker}
@@ -80,6 +104,9 @@ PreferencesPage.displayName = 'PreferencesPage';
 
 export default withOnyx({
     priorityMode: {
-        key: ONYXKEYS.PRIORITY_MODE,
+        key: ONYXKEYS.NVP_PRIORITY_MODE,
+    },
+    user: {
+        key: ONYXKEYS.USER,
     },
 })(PreferencesPage);

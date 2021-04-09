@@ -13,6 +13,14 @@ export default {
         margin: 8,
     },
 
+    m4: {
+        margin: 16,
+    },
+
+    m5: {
+        margin: 20,
+    },
+
     mh1: {
         marginHorizontal: 4,
     },
@@ -141,6 +149,10 @@ export default {
         paddingVertical: 12,
     },
 
+    ph0: {
+        paddingHorizontal: 0,
+    },
+
     ph2: {
         paddingHorizontal: 8,
     },
@@ -159,6 +171,10 @@ export default {
 
     pr5: {
         paddingRight: 20,
+    },
+
+    pr9: {
+        paddingRight: 32,
     },
 
     pl5: {

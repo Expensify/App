@@ -34,6 +34,7 @@ function isAuthTokenRequired(command) {
         'SetPassword',
         'User_SignUp',
         'ResendValidateCode',
+        'ResetPassword',
     ], command);
 }
 
@@ -62,8 +63,7 @@ function addDefaultValuesToParameters(command, parameters) {
         finalParameters.authToken = authToken;
     }
 
-    // Always set referer to https://expensify.cash/
-    finalParameters.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+    finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
 
     // This application does not save its authToken in cookies like the classic Expensify app.
     // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
@@ -543,7 +543,7 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function ResendValidateCode(parameters) {
@@ -554,13 +554,25 @@ function ResendValidateCode(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.email
+ * @returns {Promise}
+ */
+function ResetPassword(parameters) {
+    const commandName = 'ResetPassword';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
+ * @param {String} parameters.accountID
  * @returns {Promise}
  */
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
-    requireParameters(['email', 'password', 'validateCode'], parameters, commandName);
+    requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -596,12 +608,12 @@ function User_SecondaryLogin_Send(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.base64image
+ * @param {File|Object} parameters.file
  * @returns {Promise}
  */
 function User_UploadAvatar(parameters) {
     const commandName = 'User_UploadAvatar';
-    requireParameters(['base64image'], parameters, commandName);
+    requireParameters(['file'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -618,7 +630,6 @@ function SetNameValuePair(parameters) {
 }
 
 /**
- *
  * @param {Object} parameters
  * @param {String[]} data
  * @returns {Promise}
@@ -634,6 +645,17 @@ function Mobile_GetConstants(parameters) {
     return Network.post(commandName, finalParameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.debtorEmail
+ * @returns {Promise}
+ */
+function GetIOUReport(parameters) {
+    const commandName = 'GetIOUReport';
+    requireParameters(['debtorEmail'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     getAuthToken,
     Authenticate,
@@ -643,6 +665,7 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
+    GetIOUReport,
     GetRequestCountryCode,
     Graphite_Timer,
     Log,
@@ -656,6 +679,7 @@ export {
     Report_EditComment,
     Report_UpdateLastRead,
     ResendValidateCode,
+    ResetPassword,
     SetNameValuePair,
     SetPassword,
     UpdateAccount,
