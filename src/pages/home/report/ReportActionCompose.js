@@ -14,12 +14,12 @@ import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
-import Navigation from '../../../libs/Navigation/Navigation';
 import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
+import withWindowDimensions from '../../../components/withWindowDimensions';
+import withDrawerState from '../../../components/withDrawerState';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -44,7 +44,11 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
-    ...windowDimensionsPropTypes,
+    /* Is the report view covered by the drawer */
+    isDrawerOpen: PropTypes.bool.isRequired,
+
+    /* Is the window width narrow, like on a mobile device */
+    isSmallScreenWidth: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -66,6 +70,7 @@ class ReportActionCompose extends React.Component {
         this.showEmojiPicker = this.showEmojiPicker.bind(this);
         this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.focus = this.focus.bind(this);
         this.comment = props.comment;
 
         this.state = {
@@ -86,7 +91,7 @@ class ReportActionCompose extends React.Component {
     componentDidUpdate(prevProps) {
         // When any modal goes from visible to hidden, bring focus to the compose field
         if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
-            this.setIsFocused(true);
+            this.focus();
         }
     }
 
@@ -97,9 +102,6 @@ class ReportActionCompose extends React.Component {
      */
     setIsFocused(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
-        if (shouldHighlight && this.textInput) {
-            this.textInput.focus();
-        }
     }
 
     /**
@@ -112,12 +114,21 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Updates the visiblity state of the menu
+     * Updates the visibility state of the menu
      *
      * @param {Boolean} isMenuVisible
      */
     setMenuVisibility(isMenuVisible) {
         this.setState({isMenuVisible});
+    }
+
+    /**
+     * Focus the composer text input
+     */
+    focus() {
+        if (this.textInput) {
+            this.textInput.focus();
+        }
     }
 
     /**
@@ -216,12 +227,11 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        // We want to make sure to disable on small screens because in iOS safari the keyboard up/down buttons will
-        // focus this from the chat switcher.
-        // https://github.com/Expensify/Expensify.cash/issues/1228
-        const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
+
+        // Prevents focusing and showing the keyboard while the drawer is covering the chat.
+        const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
 
         return (
             <View style={[styles.chatItemCompose]}>
@@ -249,6 +259,10 @@ class ReportActionCompose extends React.Component {
                                                 onPress={(e) => {
                                                     e.preventDefault();
                                                     this.setMenuVisibility(true);
+
+                                                    /* Keep last focus inside the input so that focus is restored
+                                                     on modal close. Otherwise breaks modal 2 modal transition */
+                                                    this.focus();
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
@@ -264,11 +278,11 @@ class ReportActionCompose extends React.Component {
                                                         icon: Paperclip,
                                                         text: 'Upload Photo',
                                                         onSelected: () => {
-                                                            setTimeout(() => {
-                                                                openPicker({
-                                                                    onPicked: file => displayFileInModal({file}),
-                                                                });
-                                                            }, 10);
+                                                            openPicker({
+                                                                onPicked: (file) => {
+                                                                    displayFileInModal({file});
+                                                                },
+                                                            });
                                                         },
                                                     },
                                                 ]}
@@ -318,7 +332,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={inputDisable}
+                                    isDisabled={isComposeDisabled}
                                 />
 
                             </>
@@ -374,6 +388,8 @@ ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
 export default compose(
+    withWindowDimensions,
+    withDrawerState,
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
@@ -385,5 +401,4 @@ export default compose(
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
-    withWindowDimensions,
 )(ReportActionCompose);
