@@ -19,7 +19,7 @@ export default {
     IOU_BILL: 'iou/split',
     SEARCH: 'search',
     SIGNIN: 'signin',
-    SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:validateCode',
+    SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
     DETAILS_WITH_LOGIN: 'details/:login',
     getDetailsRoute: login => `details/${login}`,
