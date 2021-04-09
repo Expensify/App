@@ -805,7 +805,7 @@ function deleteReportAction(reportID, reportAction) {
     // Optimistic Response
     const reportActionsToMerge = {};
     const oldMessage = {...reportAction.message};
-    reportActionsToMerge[reportAction.reportActionID] = {
+    reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
         message: [
             {
@@ -822,7 +822,7 @@ function deleteReportAction(reportID, reportAction) {
     API.Report_EditComment({
         accountID: currentUserAccountID,
         reportID,
-        reportAction: reportAction.reportActionID,
+        reportActionID: reportAction.sequenceNumber,
         reportComment: '',
     }).then(() => {
         Log.info('deleteReportComment - Then', true);
@@ -831,7 +831,7 @@ function deleteReportAction(reportID, reportAction) {
             Log.info('deleteReportComment - catch', true);
 
             // Reverse Optimistic Response
-            reportActionsToMerge[reportAction.reportActionID] = {
+            reportActionsToMerge[reportAction.sequenceNumber] = {
                 ...reportAction,
                 message: oldMessage,
             };
