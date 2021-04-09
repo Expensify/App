@@ -6,7 +6,6 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import styles, {webViewStyles} from '../styles/styles';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
-import RenderHTML from './RenderHTML';
 
 const propTypes = {
     // All the data of the action
