@@ -804,7 +804,7 @@ function addAction(reportID, text, file) {
 function deleteReportAction(reportID, reportAction) {
     // Optimistic Response
     const reportActionsToMerge = {};
-    const oldMessage = _.copy(reportAction.message);
+    const oldMessage = {...reportAction.message};
     reportActionsToMerge[reportAction.reportActionID] = {
         ...reportAction,
         message: [
