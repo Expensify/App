@@ -77,7 +77,7 @@ const CONST = {
         TIMEZONE: 'timeZone',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
-    DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: true},
+    DEFAULT_ACCOUNT_DATA: {error: '', success: ''},
     PRONOUNS: {
         HE_HIM_HIS: 'He/him',
         SHE_HER_HERS: 'She/her',

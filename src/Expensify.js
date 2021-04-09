@@ -22,7 +22,7 @@ Onyx.init({
 
         // Clear any loading and error messages so they do not appear on app startup
         [ONYXKEYS.SESSION]: {loading: false},
-        [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
+        [ONYXKEYS.ACCOUNT]: {...CONST.DEFAULT_ACCOUNT_DATA, ...{loading: false}},
         [ONYXKEYS.NETWORK]: {isOffline: false},
         [ONYXKEYS.IOU]: {loading: false},
     },
