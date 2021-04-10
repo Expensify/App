@@ -70,11 +70,8 @@ function getDisplayName(login, personalDetail) {
     const firstName = userDetails.firstName || '';
     const lastName = userDetails.lastName || '';
     const fullName = (`${firstName} ${lastName}`).trim();
-    if (fullName) {
-        return fullName;
-    }
 
-    return userDetails.displayName || userLogin;
+    return fullName || userLogin;
 }
 
 /**
