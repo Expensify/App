@@ -88,7 +88,7 @@ class DisplayNames extends PureComponent {
                 numberOfLines={1}
                 ref={el => this.containerRef = el}
             >
-                {_.map(this.props.displayNamesToTooltips, ({displayName, tooltip}, index) => (
+                {_.map(this.props.displayNamesWithTooltips, ({displayName, tooltip}, index) => (
                     <Fragment key={index}>
                         <Tooltip
                             key={index}
@@ -102,10 +102,10 @@ class DisplayNames extends PureComponent {
                                 {displayName}
                             </Text>
                         </Tooltip>
-                        {index < this.props.displayNamesToTooltips.length - 1 && <Text>,&nbsp;</Text>}
+                        {index < this.props.displayNamesWithTooltips.length - 1 && <Text>,&nbsp;</Text>}
                     </Fragment>
                 ))}
-                {this.props.displayNamesToTooltips.length > 1 && this.state.isEllipsisActive
+                {this.props.displayNamesWithTooltips.length > 1 && this.state.isEllipsisActive
                     && (
                         <View style={styles.displayNameTooltipEllipsis}>
                             <Tooltip text={this.props.fullTitle}>
