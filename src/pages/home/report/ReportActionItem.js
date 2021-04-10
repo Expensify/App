@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
@@ -67,6 +67,7 @@ class ReportActionItem extends Component {
      * @param {Object} [event] - A press event.
      */
     showPopover(event) {
+        Keyboard.dismiss();
         const nativeEvent = event.nativeEvent || {};
         this.capturePressLocation(nativeEvent);
         this.setState({isPopoverVisible: true});
@@ -81,7 +82,7 @@ class ReportActionItem extends Component {
 
     render() {
         return (
-            <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
+            <PressableWithSecondaryInteraction onPress={Keyboard.dismiss} onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
                     {hovered => (
                         <View>

@@ -344,6 +344,7 @@ class ReportActionsView extends React.Component {
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
+                keyboardShouldPersistTaps="handled"
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={this.state.isLoadingMoreChats
