@@ -147,11 +147,23 @@ const renderers = {
 };
 
 const propTypes = {
+    // Raw HTML string
     html: PropTypes.string.isRequired,
+
+    // If true, prints the parsing result from htmlparser2 and render-html after the initial render
     debug: PropTypes.bool,
+
+    // Default props for Text elements
+    // eslint-disable-next-line react/forbid-prop-types
+    defaultTextProps: PropTypes.object,
 };
 
-const RenderHTML = ({html, debug = false}) => {
+const defaultProps = {
+    debug: false,
+    defaultTextProps: {},
+};
+
+const RenderHTML = ({html, debug, defaultTextProps}) => {
     const {width} = useWindowDimensions();
     const containerWidth = width * 0.8;
     return (
@@ -168,6 +180,7 @@ const RenderHTML = ({html, debug = false}) => {
                 width: MAX_IMG_DIMENSIONS,
                 height: MAX_IMG_DIMENSIONS,
             }}
+            defaultTextProps={defaultTextProps}
             html={html}
             debug={debug}
         />
@@ -176,8 +189,6 @@ const RenderHTML = ({html, debug = false}) => {
 
 RenderHTML.displayName = 'RenderHTML';
 RenderHTML.propTypes = propTypes;
-RenderHTML.defaultProps = {
-    debug: false,
-};
+RenderHTML.defaultProps = defaultProps;
 
 export default RenderHTML;

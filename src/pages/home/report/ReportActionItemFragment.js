@@ -3,9 +3,9 @@ import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
+import ReportActionItemCommentFragment from './ReportActionItemCommentFragment';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 
@@ -48,11 +48,7 @@ class ReportActionItemFragment extends React.PureComponent {
                 }
 
                 // Only render HTML if we have html in the fragment
-                return fragment.html !== fragment.text ? (
-                    <RenderHTML html={fragment.html} debug={false} />
-                ) : (
-                    <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
-                );
+                return <ReportActionItemCommentFragment html={fragment.html} text={fragment.text} />;
             case 'TEXT':
                 return (
                     <Tooltip text={tooltipText}>
