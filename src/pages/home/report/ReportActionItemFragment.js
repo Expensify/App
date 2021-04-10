@@ -1,13 +1,12 @@
 import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import ReportActionItemCommentFragment from './ReportActionItemCommentFragment';
+import ReportActionItemTextFragment from './ReportActionItemTextFragment';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import Text from '../../../components/Text';
-import Tooltip from '../../../components/Tooltip';
 
 const propTypes = {
     // The message fragment needing to be displayed
@@ -50,16 +49,7 @@ class ReportActionItemFragment extends React.PureComponent {
                 // Only render HTML if we have html in the fragment
                 return <ReportActionItemCommentFragment html={fragment.html} text={fragment.text} />;
             case 'TEXT':
-                return (
-                    <Tooltip text={tooltipText}>
-                        <Text
-                            selectable
-                            style={[styles.chatItemMessageHeaderSender]}
-                        >
-                            {Str.htmlDecode(fragment.text)}
-                        </Text>
-                    </Tooltip>
-                );
+                return <ReportActionItemTextFragment text={fragment.text} tooltip={tooltipText} />;
             case 'LINK':
                 return <Text>LINK</Text>;
             case 'INTEGRATION_COMMENT':
