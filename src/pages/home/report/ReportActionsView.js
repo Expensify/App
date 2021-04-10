@@ -71,7 +71,6 @@ class ReportActionsView extends React.Component {
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
         this.timers = [];
-        this.unreadIndicatorOpacity = new Animated.Value(1);
 
         // Helper variable that keeps track of the unread action count before it updates to zero
         this.unreadActionCount = 0;
@@ -89,7 +88,7 @@ class ReportActionsView extends React.Component {
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         this.recordMaxAction();
         fetchActions(this.props.reportID);
-        this.setUpUnreadActionIndicator();
+        this.initialUnreadActionCount = this.props.report.unreadActionCount;
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
@@ -143,25 +142,6 @@ class ReportActionsView extends React.Component {
     onVisibilityChange() {
         if (Visibility.isVisible()) {
             this.timers.push(setTimeout(this.recordMaxAction, 3000));
-        }
-    }
-
-    /**
-     * Checks if the unreadActionIndicator should be shown.
-     * If it does, starts a timeout for the fading out animation and creates
-     * a flag to not show it again if the report is still open
-     */
-    setUpUnreadActionIndicator() {
-        this.unreadActionCount = this.props.report.unreadActionCount;
-
-        if (this.unreadActionCount > 0) {
-            this.unreadIndicatorOpacity = new Animated.Value(1);
-            this.timers.push(setTimeout(() => {
-                Animated.timing(this.unreadIndicatorOpacity, {
-                    toValue: 0,
-                    useNativeDriver: false,
-                }).start();
-            }, 3000));
         }
     }
 
@@ -232,8 +212,7 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * When the bottom of the list is reached, this is triggered, so it's a little different than recording the max
-     * action when scrolled
+     * Recorded when the report first opens and when the list is scrolled to the bottom
      */
     recordMaxAction() {
         const reportActions = lodashGet(this.props, 'reportActions', {});
@@ -306,8 +285,8 @@ class ReportActionsView extends React.Component {
         // <InvertedFlatList /> are implemented on native and web/desktop which leads to
         // the unread indicator on native to render below the message instead of above it.
             <View>
-                {this.unreadActionCount > 0 && index === this.unreadActionCount - 1 && (
-                    <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
+                {this.initialUnreadActionCount > 0 && index === this.initialUnreadActionCount - 1 && (
+                    <UnreadActionIndicator />
                 )}
                 <ReportActionItem
                     reportID={this.props.reportID}
@@ -334,7 +313,6 @@ class ReportActionsView extends React.Component {
             );
         }
 
-        this.setUpUnreadActionIndicator();
         return (
             <InvertedFlatList
                 ref={el => this.actionListElement = el}
