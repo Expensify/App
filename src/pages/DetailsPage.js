@@ -19,6 +19,9 @@ const matchType = PropTypes.shape({
     params: PropTypes.shape({
         // login passed via route /details/:login
         login: PropTypes.string,
+
+        // report ID passed
+        reportID: PropTypes.string,
     }),
 });
 
@@ -38,7 +41,7 @@ const DetailsPage = ({personalDetails, route}) => {
             <HeaderWithCloseButton
                 title="Details"
                 onCloseButtonPress={Navigation.dismissModal}
-                shouldShowBackButton
+                shouldShowBackButton={!!route.params.reportID}
                 onBackButtonPress={Navigation.goBack}
             />
             <View

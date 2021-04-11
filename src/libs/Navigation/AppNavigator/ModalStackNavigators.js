@@ -85,7 +85,7 @@ const DetailsModalStackNavigator = () => (
 const ReportParticipantsModalStackNavigator = () => (
     <ReportParticipantsModalStack.Navigator screenOptions={{...defaultSubRouteOptions}}>
         <ReportParticipantsModalStack.Screen
-            name="Participants_Root"
+            name="Participants_Details"
             component={ReportParticipantsPage}
             options={{
                 title: 'Report Participants',
@@ -93,7 +93,6 @@ const ReportParticipantsModalStackNavigator = () => (
         />
         <DetailsModalStack.Screen
             name="Details_Root"
-            headerShown={false}
             component={DetailsPage}
         />
     </ReportParticipantsModalStack.Navigator>

@@ -72,7 +72,7 @@ export default {
             },
             Participants: {
                 screens: {
-                    Participants_Root: ROUTES.REPORT_PARTICIPANTS,
+                    Participants_Details: ROUTES.REPORT_PARTICIPANTS,
                     Details_Root: ROUTES.REPORT_PARTICIPANT,
                 },
             },

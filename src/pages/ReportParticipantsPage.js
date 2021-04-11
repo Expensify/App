@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -12,20 +13,12 @@ import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import OptionsList from '../components/OptionsList';
 import ROUTES from '../ROUTES';
+import personalDetailsPropType from './personalDetailsPropType';
 
 const propTypes = {
     /* Onyx Props */
     // The personal details of the person who is logged in
-    personalDetails: PropTypes.shape({
-        // Display name of the current user from their personal details
-        displayName: PropTypes.string,
-
-        // Avatar URL of the current user from their personal details
-        avatar: PropTypes.string,
-
-        // Login of the current user from their personal details
-        login: PropTypes.string,
-    }).isRequired,
+    personalDetails: personalDetailsPropType.isRequired,
 
     // The active report
     report: PropTypes.shape({
@@ -52,7 +45,7 @@ const propTypes = {
  * Returns all the participants in the active report
  *
  * @param {Object} report The active report object
- * @param {Array} personalDetails The personal details of the users
+ * @param {Object} personalDetails The personal details of the users
  * @return {Array}
  */
 const getAllParticipants = (report, personalDetails) => {
@@ -60,16 +53,17 @@ const getAllParticipants = (report, personalDetails) => {
 
     return _.map(participants, (login) => {
         const userPersonalDetail = personalDetails[login];
+        const userLogin = Str.removeSMSDomain(login);
 
         return ({
-            alternateText: login,
+            alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
             icons: [userPersonalDetail.avatar],
             keyForList: login,
-            login,
+            login: userLogin,
             text: userPersonalDetail.displayName,
-            tooltipText: login,
-            participantsList: [{login, displayName: userPersonalDetail.displayName}],
+            tooltipText: userLogin,
+            participantsList: [{login: userLogin, displayName: userPersonalDetail.displayName}],
         });
     });
 };
