@@ -191,8 +191,8 @@ class IOUConfirmPage extends Component {
     render() {
         const sections = this.getSections();
         return (
-            <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
-                <View>
+            <View style={[styles.flex1, styles.w100]}>
+                <View style={[styles.flex1]}>
                     <OptionsList
                         sections={sections}
                         disableArrowKeysActions
