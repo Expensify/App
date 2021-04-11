@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import IOUAmountPage from './steps/IOUAmountPage';
@@ -21,16 +20,20 @@ const propTypes = {
     // Is this new IOU for a single request or group bill split?
     hasMultipleParticipants: PropTypes.bool,
 
-    /* Onyx Props */
-    iousReport: PropTypes.objectOf(PropTypes.shape({
-        currency: PropTypes.string,
-        managerEmail: PropTypes.string,
-        ownerEmail: PropTypes.string,
-        reportID: PropTypes.number,
-        transactions: PropTypes.arrayOf(PropTypes.shape({
-            transactionID: PropTypes.string,
-        })),
-    })).isRequired,
+    // Holds data related to IOU view state, rather than the underlying IOU data.
+    iou: PropTypes.shape({
+
+        // Whether or not the IOU step is loading (creating the IOU Report)
+        loading: PropTypes.bool,
+
+        // Whether or not transaction creation has started
+        creatingIOUTransaction: PropTypes.bool,
+
+        // Whether or not transaction creation has resulted to error
+        error: PropTypes.bool,
+    }).isRequired,
+
+
 };
 
 const defaultProps = {
@@ -62,6 +65,8 @@ class IOUModal extends Component {
         this.state = {
             currentStepIndex: 0,
             participants: [],
+
+            // amount is currency in decimal format
             amount: '',
             selectedCurrency: 'USD',
             isAmountPageNextButtonDisabled: true,
@@ -74,9 +79,9 @@ class IOUModal extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        // if the prevProps isn't equivalent to new prop, dismiss the modal
-        if (!_.isEqual(prevProps.iousReport, this.props.iousReport)) {
-            return Navigation.dismissModal();
+        // Successfully close the modal if transaction creation has ended and theree is no error
+        if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
+            Navigation.dismissModal();
         }
     }
 
@@ -277,4 +282,5 @@ export default withOnyx({
     iousReport: {
         key: ONYXKEYS.COLLECTION.REPORT_IOUS,
     },
+    iou: {key: ONYXKEYS.IOU},
 })(IOUModal);

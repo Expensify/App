@@ -3,16 +3,16 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {TextInput} from 'react-native-gesture-handler';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import styles from '../../../../styles/styles';
-import Text from '../../../../components/Text';
-import themeColors from '../../../../styles/themes/default';
+import ONYXKEYS from '../../../ONYXKEYS';
+import styles from '../../../styles/styles';
+import Text from '../../../components/Text';
+import themeColors from '../../../styles/themes/default';
 import {
     getDisplayOptionFromMyPersonalDetail,
     getDisplayOptionsFromParticipants,
-} from '../../../../libs/OptionsListUtils';
-import ButtonWithLoader from '../../../../components/ButtonWithLoader';
-import OptionsList from '../../../../components/OptionsList';
+} from '../../../libs/OptionsListUtils';
+import ButtonWithLoader from '../../../components/ButtonWithLoader';
+import OptionsList from '../../../components/OptionsList';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -23,6 +23,9 @@ const propTypes = {
 
     // comment value from IOUModal
     comment: PropTypes.string,
+
+    // Should we request a single or multiple participant selection from user
+    hasMultipleParticipants: PropTypes.bool.isRequired,
 
     // IOU amount
     iouAmount: PropTypes.string.isRequired,
@@ -76,7 +79,7 @@ const defaultProps = {
     comment: '',
 };
 
-class IOUConfirmSplitPage extends Component {
+class IOUConfirmPage extends Component {
     /**
      * Returns the sections needed for the OptionsSelector
      *
@@ -86,26 +89,38 @@ class IOUConfirmSplitPage extends Component {
     getSections() {
         const sections = [];
 
-        const formattedMyPersonalDetails = getDisplayOptionFromMyPersonalDetail(this.props.myPersonalDetails,
+        if (this.props.hasMultipleParticipants) {
+            const formattedMyPersonalDetails = getDisplayOptionFromMyPersonalDetail(this.props.myPersonalDetails,
 
-            // convert from cent to bigger form
-            `$${this.calculateAmount(true) / 100}`);
-        const formattedParticipants = getDisplayOptionsFromParticipants(this.props.participants,
-            `$${this.calculateAmount() / 100}`);
+                // convert from cent to bigger form
+                `$${this.calculateAmount(true) / 100}`);
+            const formattedParticipants = getDisplayOptionsFromParticipants(this.props.participants,
+                `$${this.calculateAmount() / 100}`);
 
-        sections.push({
-            title: 'WHO PAID?',
-            data: formattedMyPersonalDetails,
-            shouldShow: true,
-            indexOffset: 0,
-        });
-        sections.push({
-            title: 'WHO WAS THERE?',
-            data: formattedParticipants,
-            shouldShow: true,
-            indexOffset: 0,
-        });
+            sections.push({
+                title: 'WHO PAID?',
+                data: formattedMyPersonalDetails,
+                shouldShow: true,
+                indexOffset: 0,
+            });
+            sections.push({
+                title: 'WHO WAS THERE?',
+                data: formattedParticipants,
+                shouldShow: true,
+                indexOffset: 0,
+            });
+        } else {
+        // $ should be replaced by currency symbol once available
+            const formattedParticipants = getDisplayOptionsFromParticipants(this.props.participants,
+                `$${this.props.iouAmount}`);
 
+            sections.push({
+                title: 'TO',
+                data: formattedParticipants,
+                shouldShow: true,
+                indexOffset: 0,
+            });
+        }
         return sections;
     }
 
@@ -183,9 +198,9 @@ class IOUConfirmSplitPage extends Component {
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
-                        canSelectMultipleOptions
+                        canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         disableFocusOptions
-                        selectedOptions={this.getAllOptionsAsSelected()}
+                        selectedOptions={this.props.hasMultipleParticipants && this.getAllOptionsAsSelected()}
                     />
                     <View>
                         <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
@@ -205,11 +220,19 @@ class IOUConfirmSplitPage extends Component {
                 <View style={[styles.ph5, styles.pb3]}>
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
-                        text="Split"
-                        onClick={() => this.props.onConfirm({
-                            splits: this.getSplits(),
-                            participants: this.getParticipants(),
-                        })}
+                        text={this.props.hasMultipleParticipants ? 'Split' : `Request $${this.props.iouAmount}`}
+                        onClick={() => {
+                            if (this.props.hasMultipleParticipants) {
+                                this.props.onConfirm({
+                                    splits: this.getSplits(),
+                                    participants: this.getParticipants(),
+                                });
+                            } else {
+                                this.props.onConfirm({
+                                    debtorEmail: this.props.participants[0].login,
+                                });
+                            }
+                        }}
                     />
                 </View>
             </View>
@@ -217,9 +240,9 @@ class IOUConfirmSplitPage extends Component {
     }
 }
 
-IOUConfirmSplitPage.displayName = 'IOUConfirmSplitPage';
-IOUConfirmSplitPage.propTypes = propTypes;
-IOUConfirmSplitPage.defaultProps = defaultProps;
+IOUConfirmPage.displayName = 'IOUConfirmPage';
+IOUConfirmPage.propTypes = propTypes;
+IOUConfirmPage.defaultProps = defaultProps;
 
 export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
@@ -229,4 +252,4 @@ export default withOnyx({
     myPersonalDetails: {
         key: ONYXKEYS.MY_PERSONAL_DETAILS,
     },
-})(IOUConfirmSplitPage);
+})(IOUConfirmPage);
