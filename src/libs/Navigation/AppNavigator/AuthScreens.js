@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import moment from 'moment';
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -40,6 +43,21 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
+
+Onyx.connect({
+    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    callback: (val) => {
+        const timezone = lodashGet(val, 'timezone', {});
+        const currentTimezone = moment.tz.guess(true);
+
+        // If the current timezone is different than the user's timezone, and their timezone is set to automatic
+        // then update their timezone.
+        if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
+            timezone.selected = currentTimezone;
+            PersonalDetails.setPersonalDetails({timezone});
+        }
+    },
+});
 
 const RootStack = createCustomModalStackNavigator();
 
