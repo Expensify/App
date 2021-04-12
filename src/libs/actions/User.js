@@ -27,7 +27,7 @@ Onyx.connect({
  * @returns {Promise}
  */
 function changePassword(oldPassword, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, ...{loading: true}});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.ChangePassword({oldPassword, password})
         .then((response) => {
@@ -107,7 +107,7 @@ function setExpensifyNewsStatus(subscribed) {
  * @returns {Promise}
  */
 function setSecondaryLogin(login, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, ...{loading: true}});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.User_SecondaryLogin_Send({
         email: login,
@@ -142,7 +142,7 @@ function setSecondaryLogin(login, password) {
 function validateLogin(accountID, validateCode) {
     const isLoggedIn = !_.isEmpty(sessionAuthToken);
     const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.SIGNIN;
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, ...{loading: true}});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     API.ValidateEmail({
         accountID,
