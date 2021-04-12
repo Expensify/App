@@ -15,6 +15,8 @@ import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import IOUCurrencySelection from './IOUCurrencySelection';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -31,15 +33,6 @@ const propTypes = {
         currencyCode: PropTypes.string,
         currencySymbol: PropTypes.string,
     })).isRequired,
-
-    // Whether or not currency selection mode is on
-    currencySelectionMode: PropTypes.bool,
-
-    // Callback that sets currency in Onyx and dismisses the currency mode
-    onCurrencyConfirm: PropTypes.func,
-
-    // Callback to set currency selection mode
-    setCurrencySelectionMode: PropTypes.func,
 
     // Amount value entered by user
     amount: PropTypes.string.isRequired,
@@ -62,9 +55,6 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
-    currencySelectionMode: false,
-    setCurrencySelectionMode: null,
-    onCurrencyConfirm: null,
 };
 
 class IOUAmountPage extends React.Component {
@@ -122,7 +112,7 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    <TouchableOpacity onPress={() => this.props.setCurrencySelectionMode(true)}>
+                    <TouchableOpacity onPress={() => Navigation.navigate(ROUTES.IOU_CURRENCY)}>
                         <Text style={styles.iouAmountText}>
                             {this.props.selectedCurrency.currencySymbol}
                         </Text>

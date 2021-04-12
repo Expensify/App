@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
-import {View, TouchableOpacity, Keyboard} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
@@ -53,9 +53,6 @@ class IOUModal extends Component {
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
-        this.selectCurrency = this.selectCurrency.bind(this);
-        this.setCurrencyMode = this.setCurrencyMode.bind(this);
-        this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
 
         this.state = {
@@ -66,13 +63,22 @@ class IOUModal extends Component {
                 currencyCode: props.myPersonalDetails.preferredCurrencyCode,
                 currencySymbol: props.myPersonalDetails.preferredCurrencySymbol,
             },
-            currencySelectionMode: false,
             isAmountPageNextButtonDisabled: true,
         };
     }
 
     componentDidMount() {
         getPreferredCurrency();
+    }
+
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.myPersonalDetails.preferredCurrencyCode !== this.props.myPersonalDetails.preferredCurrencyCode) {
+            this.updateSelectedCurrency({
+                currencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
+                currencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
+            });
+        }
     }
 
     /**
@@ -82,9 +88,6 @@ class IOUModal extends Component {
      */
 
     getTitleForStep() {
-        if (this.state.currencySelectionMode) {
-            return 'Select Currency';
-        }
         if (this.state.currentStepIndex === 1) {
             return (`${this.props.hasMultipleParticipants ? 'Split'
                 : 'Request'} ${this.state.selectedCurrency.currencySymbol}${this.state.amount}`);
@@ -96,13 +99,13 @@ class IOUModal extends Component {
     }
 
     /**
-     * Update the currency state
-     *
-     * @param {bool} isCurrencyModeOn
+     * Navigate to the next IOU step if possible
+     * @param {Object} selectedCurrency
      */
-    setCurrencyMode(isCurrencyModeOn) {
-        Keyboard.dismiss();
-        this.setState({currencySelectionMode: isCurrencyModeOn});
+    updateSelectedCurrency(selectedCurrency) {
+        this.setState({
+            selectedCurrency,
+        });
     }
 
     /**
@@ -162,26 +165,6 @@ class IOUModal extends Component {
         }
     }
 
-    /**
-     * Update the currency state
-     *
-     * @param {Object} selectedCurrency
-     */
-    selectCurrency(selectedCurrency) {
-        this.setState({selectedCurrency});
-    }
-
-    /**
-     * Update the currency state
-     *
-     */
-    confirmCurrencySelection() {
-        Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
-            preferredCurrencyCode: this.state.selectedCurrency.currencyCode,
-            preferredCurrencySymbol: this.state.selectedCurrency.currencySymbol,
-        });
-        this.setState({currencySelectionMode: false});
-    }
 
     render() {
         const currentStep = steps[this.state.currentStepIndex];
@@ -223,9 +206,6 @@ class IOUModal extends Component {
                         numberPressed={this.updateAmount}
                         onCurrencySelected={this.selectCurrency}
                         amount={this.state.amount}
-                        currencySelectionMode={this.state.currencySelectionMode}
-                        onCurrencyConfirm={this.confirmCurrencySelection}
-                        setCurrencySelectionMode={this.setCurrencyMode}
                         selectedCurrency={this.state.selectedCurrency}
                         isNextButtonDisabled={this.state.isAmountPageNextButtonDisabled}
                     />

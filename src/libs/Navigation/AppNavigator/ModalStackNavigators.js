@@ -14,6 +14,7 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
+import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 
 // Setup the modal stack navigators so we only have to create them once
 const SettingsModalStack = createStackNavigator();
@@ -23,6 +24,7 @@ const SearchModalStack = createStackNavigator();
 const DetailsModalStack = createStackNavigator();
 const IOURequestModalStack = createStackNavigator();
 const IOUBillModalStack = createStackNavigator();
+const IOUCurrencyStack = createStackNavigator();
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -44,6 +46,23 @@ const IOUBillStackNavigator = () => (
             }}
         />
     </IOUBillModalStack.Navigator>
+);
+
+const IOUCurrencyNavigator = () => (
+    <IOUCurrencyStack.Navigator
+        path={ROUTES.IOU_BILL}
+        screenOptions={{
+            ...defaultSubRouteOptions,
+        }}
+    >
+        <IOUCurrencyStack.Screen
+            name="IOU_Currency_Root"
+            component={IOUCurrencySelection}
+            options={{
+                title: 'Select Currency',
+            }}
+        />
+    </IOUCurrencyStack.Navigator>
 );
 
 const IOURequestModalStackNavigator = () => (
@@ -174,4 +193,5 @@ export {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
+    IOUCurrencyNavigator,
 };

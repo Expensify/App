@@ -80,6 +80,11 @@ export default {
                     IOU_Bill_Root: ROUTES.IOU_BILL,
                 },
             },
+            IOU_Currency: {
+                screens: {
+                    IOU_Currency_Root: ROUTES.IOU_CURRENCY,
+                },
+            },
         },
     },
 };

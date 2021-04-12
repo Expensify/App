@@ -39,6 +39,7 @@ import {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
+    IOUCurrencyNavigator,
 } from './ModalStackNavigators';
 
 const RootStack = createCustomModalStackNavigator();
@@ -196,6 +197,12 @@ class AuthScreens extends React.Component {
                     name="IOU_Bill"
                     options={modalScreenOptions}
                     component={IOUBillStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="IOU_Currency"
+                    options={modalScreenOptions}
+                    component={IOUCurrencyNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
