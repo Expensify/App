@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import {getCurrencyList} from '../../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../../ONYXKEYS';
-import ScreenWrapper from '../../../components/ScreenWrapper';
 import {getCurrencyListForSections} from '../../../libs/OptionsListUtils';
 import Text from '../../../components/Text';
 import OptionRow from '../../home/sidebar/OptionRow';
@@ -154,60 +153,58 @@ class IOUCurrencySelection extends Component {
     render() {
         const sections = this.getSections();
         return (
-            <ScreenWrapper>
-                {() => (
-                    <>
-                        <View style={[styles.flex1, styles.w100]}>
-                            <View style={[styles.ph5, styles.pv3]}>
-                                <TextInputWithFocusStyles
-                                    styleFocusIn={[styles.textInputReversedFocus]}
-                                    ref={el => this.textInput = el}
-                                    style={[styles.textInput]}
-                                    value={this.state.searchValue}
-                                    onChangeText={(searchValue = '') => {
-                                        const {currencyOptions} = getCurrencyListForSections(
-                                            this.props.currencyList,
-                                            searchValue,
-                                        );
-                                        this.setState({
-                                            searchValue,
-                                            currencyData: currencyOptions,
-                                        });
-                                    }}
-                                    placeholder="Search"
-                                    placeholderTextColor={themeColors.placeholderText}
-                                />
-                            </View>
-                            <SectionList
-                                bounces={false}
-                                indicatorStyle="white"
-                                keyboardShouldPersistTaps="always"
-                                showsVerticalScrollIndicator={false}
-                                sections={sections}
-                                keyExtractor={this.extractKey}
-                                stickySectionHeadersEnabled={false}
-                                renderItem={this.renderItem}
-                                renderSectionHeader={this.renderSectionHeader}
-                            />
-                            <View style={[styles.ph5, styles.pb5]}>
-                                <Pressable
-                                    onPress={this.props.onCurrencyConfirm}
-                                    style={({hovered}) => [
-                                        styles.button,
-                                        styles.buttonSuccess,
-                                        styles.w100,
-                                        hovered && styles.buttonSuccessHovered,
-                                    ]}
-                                >
-                                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                        Confirm
-                                    </Text>
-                                </Pressable>
-                            </View>
-                        </View>
-                    </>
-                )}
-            </ScreenWrapper>
+            <View style={[styles.flex1, styles.w100]}>
+                <View style={[styles.flex1]}>
+                    <View style={[styles.ph5, styles.pv3]}>
+                        <TextInputWithFocusStyles
+                            styleFocusIn={[styles.textInputReversedFocus]}
+                            ref={el => this.textInput = el}
+                            style={[styles.textInput]}
+                            value={this.state.searchValue}
+                            onChangeText={(searchValue = '') => {
+                                const {currencyOptions} = getCurrencyListForSections(
+                                    this.props.currencyList,
+                                    searchValue,
+                                );
+                                this.setState({
+                                    searchValue,
+                                    currencyData: currencyOptions,
+                                });
+                            }}
+                            placeholder="Search"
+                            placeholderTextColor={themeColors.placeholderText}
+                        />
+                    </View>
+                    <View style={[styles.flex1]}>
+                        <SectionList
+                            bounces={false}
+                            indicatorStyle="white"
+                            keyboardShouldPersistTaps="always"
+                            showsVerticalScrollIndicator={false}
+                            sections={sections}
+                            keyExtractor={this.extractKey}
+                            stickySectionHeadersEnabled={false}
+                            renderItem={this.renderItem}
+                            renderSectionHeader={this.renderSectionHeader}
+                        />
+                    </View>
+                </View>
+                <View style={[styles.ph5, styles.pb5]}>
+                    <Pressable
+                        onPress={this.props.onCurrencyConfirm}
+                        style={({hovered}) => [
+                            styles.button,
+                            styles.buttonSuccess,
+                            styles.w100,
+                            hovered && styles.buttonSuccessHovered,
+                        ]}
+                    >
+                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                            Confirm
+                        </Text>
+                    </Pressable>
+                </View>
+            </View>
         );
     }
 }
