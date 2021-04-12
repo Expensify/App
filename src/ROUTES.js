@@ -17,6 +17,7 @@ export default {
     getReportRoute: reportID => `r/${reportID}`,
     IOU_REQUEST: 'iou/request',
     IOU_BILL: 'iou/split',
+    IOU_CURRENCY: 'iou/currency',
     SEARCH: 'search',
     SIGNIN: 'signin',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',

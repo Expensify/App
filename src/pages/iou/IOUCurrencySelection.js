@@ -1,29 +1,21 @@
 import React, {Component} from 'react';
 import {Pressable, SectionList, View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/styles';
-import {getCurrencyList} from '../../../libs/actions/PersonalDetails';
-import ONYXKEYS from '../../../ONYXKEYS';
-import {getCurrencyListForSections} from '../../../libs/OptionsListUtils';
-import Text from '../../../components/Text';
-import OptionRow from '../../home/sidebar/OptionRow';
-import themeColors from '../../../styles/themes/default';
-import TextInputWithFocusStyles from '../../../components/TextInputWithFocusStyles';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import styles from '../../styles/styles';
+import {getCurrencyList} from '../../libs/actions/PersonalDetails';
+import ONYXKEYS from '../../ONYXKEYS';
+import {getCurrencyListForSections} from '../../libs/OptionsListUtils';
+import Text from '../../components/Text';
+import OptionRow from '../home/sidebar/OptionRow';
+import themeColors from '../../styles/themes/default';
+import TextInputWithFocusStyles from '../../components/TextInputWithFocusStyles';
+import Navigation from '../../libs/Navigation/Navigation';
 
 /**
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
-
-    // Callback that sets selectedCurrency in IOUModal
-    onCurrencySelected: PropTypes.func.isRequired,
-
-    // Callback that sets currency in Onyx and dismisses the currency mode
-    onCurrencyConfirm: PropTypes.func,
-
-    // User's currency preference
-    selectedCurrency: PropTypes.string.isRequired,
 
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
@@ -46,7 +38,6 @@ const propTypes = {
 const defaultProps = {
     myPersonalDetails: {preferredCurrencyCode: 'USD', preferredCurrencySymbol: '$'},
     currencyList: {},
-    onCurrencyConfirm: null,
 };
 
 class IOUCurrencySelection extends Component {
@@ -59,7 +50,12 @@ class IOUCurrencySelection extends Component {
         this.state = {
             searchValue: '',
             currencyData: currencyOptions,
+            selectedCurrency: {
+                currencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
+                currencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
+            },
         };
+        this.toggleOption = this.toggleOption.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.getSections = this.getSections.bind(this);
     }
@@ -103,9 +99,11 @@ class IOUCurrencySelection extends Component {
      *
      */
     toggleOption(currencyCode) {
-        this.props.onCurrencySelected({
-            currencyCode,
-            currencySymbol: this.props.currencyList[currencyCode].symbol,
+        this.setState({
+            selectedCurrency: {
+                currencyCode,
+                currencySymbol: this.props.currencyList[currencyCode].symbol,
+            },
         });
     }
 
@@ -124,7 +122,7 @@ class IOUCurrencySelection extends Component {
                 mode="compact"
                 option={item}
                 onSelectRow={() => this.toggleOption(item.currencyCode)}
-                isSelected={item.currencyCode === this.props.selectedCurrency.currencyCode}
+                isSelected={item.currencyCode === this.state.selectedCurrency.currencyCode}
                 showSelectedState
                 hideAdditionalOptionStates
             />
@@ -191,7 +189,13 @@ class IOUCurrencySelection extends Component {
                 </View>
                 <View style={[styles.ph5, styles.pb5]}>
                     <Pressable
-                        onPress={this.props.onCurrencyConfirm}
+                        onPress={() => {
+                            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+                                preferredCurrencyCode: this.state.selectedCurrency.currencyCode,
+                                preferredCurrencySymbol: this.state.selectedCurrency.currencySymbol,
+                            });
+                            Navigation.goBack();
+                        }}
                         style={({hovered}) => [
                             styles.button,
                             styles.buttonSuccess,
@@ -215,4 +219,5 @@ IOUCurrencySelection.displayName = 'IOUModal';
 
 export default withOnyx({
     currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+    myPersonalDetails: {key: ONYXKEYS.MY_PERSONAL_DETAILS},
 })(IOUCurrencySelection);
