@@ -94,43 +94,45 @@ class SetPasswordPage extends Component {
     render() {
         return (
             <>
-                <SafeAreaView style={[styles.signInPage]}>
-                    <View style={[styles.signInPageInner]}>
-                        <View style={[styles.signInPageLogo]}>
-                            <ExpensifyCashLogo
-                                width={variables.componentSizeLarge}
-                                height={variables.componentSizeLarge}
+                <View style={[styles.signInPage]}>
+                    <SafeAreaView>
+                        <View style={[styles.signInPageInner]}>
+                            <View style={[styles.signInPageLogo]}>
+                                <ExpensifyCashLogo
+                                    width={variables.componentSizeLarge}
+                                    height={variables.componentSizeLarge}
+                                />
+                            </View>
+                            <View style={[styles.mb4]}>
+                                <Text style={[styles.formLabel]}>Enter a password</Text>
+                                <TextInput
+                                    style={[styles.textInput]}
+                                    secureTextEntry
+                                    autoCompleteType="password"
+                                    textContentType="password"
+                                    value={this.state.password}
+                                    onChangeText={text => this.setState({password: text})}
+                                    onSubmitEditing={this.submitForm}
+                                />
+                            </View>
+                            <ButtonWithLoader
+                                text="Set Password"
+                                onClick={this.submitForm}
+                                isLoading={this.props.account.loading}
                             />
+                            {this.state.formError && (
+                                <Text style={[styles.formError]}>
+                                    {this.state.formError}
+                                </Text>
+                            )}
+                            {!_.isEmpty(this.props.account.error) && (
+                                <Text style={[styles.formError]}>
+                                    {this.props.account.error}
+                                </Text>
+                            )}
                         </View>
-                        <View style={[styles.mb4]}>
-                            <Text style={[styles.formLabel]}>Enter a password</Text>
-                            <TextInput
-                                style={[styles.textInput]}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                value={this.state.password}
-                                onChangeText={text => this.setState({password: text})}
-                                onSubmitEditing={this.submitForm}
-                            />
-                        </View>
-                        <ButtonWithLoader
-                            text="Set Password"
-                            onClick={this.submitForm}
-                            isLoading={this.props.account.loading}
-                        />
-                        {this.state.formError && (
-                            <Text style={[styles.formError]}>
-                                {this.state.formError}
-                            </Text>
-                        )}
-                        {!_.isEmpty(this.props.account.error) && (
-                            <Text style={[styles.formError]}>
-                                {this.props.account.error}
-                            </Text>
-                        )}
-                    </View>
-                </SafeAreaView>
+                    </SafeAreaView>
+                </View>
             </>
         );
     }

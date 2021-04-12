@@ -12,7 +12,6 @@ import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
-import TermsAndLicenses from './TermsAndLicenses';
 
 const propTypes = {
     /* Onyx Props */
@@ -85,7 +84,10 @@ class SignInPage extends Component {
         return (
             <>
                 <SafeAreaView style={[styles.signInPage]}>
-                    <SignInPageLayout>
+                    <SignInPageLayout
+                        shouldShowWelcomeText={showLoginForm}
+                        shouldShowWelcomeScreenshot={showLoginForm}
+                    >
                         {showLoginForm && <LoginForm />}
 
                         {showPasswordForm && <PasswordForm />}
@@ -102,8 +104,6 @@ class SignInPage extends Component {
                                 )}
                             </View>
                         )}
-
-                        <TermsAndLicenses />
                     </SignInPageLayout>
                 </SafeAreaView>
             </>
