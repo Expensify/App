@@ -4,7 +4,7 @@ import {View, TouchableOpacity, Pressable} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/styles';
+import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -22,6 +22,7 @@ import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
+import getButtonState from '../../../libs/getButtonState';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -356,16 +357,16 @@ class ReportActionCompose extends React.Component {
                         />
                     </Popover>
                     <Pressable
-                        style={({hovered}) => ([
+                        style={({hovered, pressed}) => ([
                             styles.chatItemEmojiButton,
-                            hovered && styles.hoveredButton,
+                            getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                         ])}
                         onPress={this.showEmojiPicker}
                     >
-                        {({hovered}) => (
+                        {({hovered, pressed}) => (
                             <Icon
                                 src={Emoji}
-                                fill={hovered ? themeColors.text : themeColors.icon}
+                                fill={getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         )}
                     </Pressable>
