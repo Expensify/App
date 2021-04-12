@@ -7,7 +7,6 @@ import {fetchAccountDetails} from '../../../libs/actions/Session';
 import styles from '../../../styles/styles';
 import ButtonWithLoader from '../../../components/ButtonWithLoader';
 import ONYXKEYS from '../../../ONYXKEYS';
-import WelcomeText from '../../../components/WelcomeText';
 
 const propTypes = {
     /* Onyx Props */
@@ -61,49 +60,44 @@ class LoginFormWide extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.loginFormContainer]}>
-                    <View style={[styles.mb4]}>
-                        <Text style={[styles.formLabel]}>Enter your phone or email:</Text>
-                        <TextInput
-                            style={[styles.textInput]}
-                            value={this.state.login}
-                            autoCompleteType="email"
-                            textContentType="username"
-                            onChangeText={text => this.setState({login: text})}
-                            onSubmitEditing={this.validateAndSubmitForm}
-                            autoCapitalize="none"
-                            placeholder="Phone or Email"
-                            autoFocus
-                        />
-                    </View>
-                    <View>
-                        <ButtonWithLoader
-                            text="Continue"
-                            isLoading={this.props.account.loading}
-                            onClick={this.validateAndSubmitForm}
-                        />
-                    </View>
-
-                    {this.state.formError && (
-                        <Text style={[styles.formError]}>
-                            {this.state.formError}
-                        </Text>
-                    )}
-
-                    {!_.isEmpty(this.props.account.error) && (
-                        <Text style={[styles.formError]}>
-                            {this.props.account.error}
-                        </Text>
-                    )}
-                    {!_.isEmpty(this.props.account.success) && (
-                        <Text style={[styles.formSuccess]}>
-                            {this.props.account.success}
-                        </Text>
-                    )}
+                <View style={[styles.mb4]}>
+                    <Text style={[styles.formLabel]}>Enter your phone or email:</Text>
+                    <TextInput
+                        style={[styles.textInput]}
+                        value={this.state.login}
+                        autoCompleteType="email"
+                        textContentType="username"
+                        onChangeText={text => this.setState({login: text})}
+                        onSubmitEditing={this.validateAndSubmitForm}
+                        autoCapitalize="none"
+                        placeholder="Phone or Email"
+                        autoFocus
+                    />
                 </View>
-                <View style={[styles.mb6, styles.mt6]}>
-                    <WelcomeText textSize="large" />
+                <View>
+                    <ButtonWithLoader
+                        text="Continue"
+                        isLoading={this.props.account.loading}
+                        onClick={this.validateAndSubmitForm}
+                    />
                 </View>
+
+                {this.state.formError && (
+                    <Text style={[styles.formError]}>
+                        {this.state.formError}
+                    </Text>
+                )}
+
+                {!_.isEmpty(this.props.account.error) && (
+                    <Text style={[styles.formError]}>
+                        {this.props.account.error}
+                    </Text>
+                )}
+                {!_.isEmpty(this.props.account.success) && (
+                    <Text style={[styles.formSuccess]}>
+                        {this.props.account.success}
+                    </Text>
+                )}
             </>
         );
     }
