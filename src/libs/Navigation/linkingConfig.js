@@ -22,6 +22,7 @@ export default {
             // Public Routes
             SignIn: ROUTES.SIGNIN,
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
+            ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
 
             // Modal Screens
             Settings: {
