@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {Animated, Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {
@@ -48,7 +48,7 @@ class ReportActionContextMenu extends React.Component {
                 icon: ClipboardIcon,
                 successText: 'Copied!',
                 successIcon: Checkmark,
-        		shouldShow: true,
+                shouldShow: true,
 
                 // If return value is true, we switch the `text` and `icon` on
                 // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -72,7 +72,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Copy Link',
                 icon: LinkCopy,
-        		shouldShow: false,
+                shouldShow: false,
                 onPress: () => {},
             },
 
@@ -80,7 +80,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Mark as Unread',
                 icon: Mail,
-        		shouldShow: false,
+                shouldShow: false,
                 onPress: () => {},
             },
 
@@ -88,7 +88,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Edit Comment',
                 icon: Pencil,
-        		shouldShow: false,
+                shouldShow: false,
                 onPress: () => {},
             },
 
@@ -96,7 +96,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Delete Comment',
                 icon: Trashcan,
-        		shouldShow: true,
+                shouldShow: true,
                 onPress: () => deleteReportAction(this.props.reportID, this.props.reportAction),
             },
         ];
