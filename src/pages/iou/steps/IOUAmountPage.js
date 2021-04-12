@@ -115,7 +115,6 @@ class IOUAmountPage extends React.Component {
                                     }}
                                     ref={el => this.textInput = el}
                                     value={this.state.amount}
-                                    textAlign="left"
                             />
                         )}
                 </View>
