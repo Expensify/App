@@ -56,11 +56,16 @@ const modalScreenListeners = {
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
+
+    /* The initial report for the home screen */
+    initialReportID: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
+    initialReportID: null,
 };
 
 class AuthScreens extends React.Component {
@@ -69,6 +74,10 @@ class AuthScreens extends React.Component {
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+
+        if (props.initialReportID) {
+            this.setInitialHomeParams(props.initialReportID);
+        }
     }
 
     componentDidMount() {
@@ -109,9 +118,18 @@ class AuthScreens extends React.Component {
         }, ['meta'], true);
     }
 
-    shouldComponentUpdate(prevProps) {
-        if (prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
             return true;
+        }
+
+        // Update initialHomeParams only once
+        if (!this.initialHomeParams) {
+            // Either we have a reportID or fetchAllReports resolved with no reports. Otherwise keep waiting
+            if (nextProps.initialReportID || nextProps.initialReportID === '') {
+                this.setInitialHomeParams(nextProps.initialReportID);
+                return true;
+            }
         }
 
         return false;
@@ -124,7 +142,22 @@ class AuthScreens extends React.Component {
         this.interval = null;
     }
 
+    /**
+     * Setting the initial params would update the URL in the address bar to correctly
+     * It would also setup correct initial state for the Home screen
+     *
+     * @param {String} reportID
+     */
+    setInitialHomeParams(reportID) {
+        this.initialHomeParams = {
+            screen: 'Report',
+            params: {reportID},
+        };
+    }
+
     render() {
+        if (!this.initialHomeParams) { return null; }
+
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
@@ -147,6 +180,7 @@ class AuthScreens extends React.Component {
                         headerShown: false,
                         title: 'Expensify.cash',
                     }}
+                    initialParams={this.initialHomeParams}
                     component={MainDrawerNavigator}
                 />
 
@@ -209,6 +243,9 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        initialReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(AuthScreens);
