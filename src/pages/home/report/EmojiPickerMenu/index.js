@@ -34,7 +34,7 @@ class EmojiPickerMenu extends Component {
         // If more emojis are ever added to emojis.js this will need to be updated or things will break
         this.unfilteredHeaderIndices = [0, 34, 60, 88, 99, 121, 148];
 
-        this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300, false);
+        this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.renderItem = this.renderItem.bind(this);
 
         this.state = {
