@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import moment from 'moment';
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -22,6 +25,7 @@ import {fetchCountryCodeByRequestIP} from '../../actions/GeoLocation';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
+import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
@@ -40,7 +44,33 @@ import {
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
 
+Onyx.connect({
+    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    callback: (val) => {
+        const timezone = lodashGet(val, 'timezone', {});
+        const currentTimezone = moment.tz.guess(true);
+
+        // If the current timezone is different than the user's timezone, and their timezone is set to automatic
+        // then update their timezone.
+        if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
+            timezone.selected = currentTimezone;
+            PersonalDetails.setPersonalDetails({timezone});
+        }
+    },
+});
+
 const RootStack = createCustomModalStackNavigator();
+
+// When modal screen gets focused, update modal visibility in Onyx
+// https://reactnavigation.org/docs/navigation-events/
+const modalScreenListeners = {
+    focus: () => {
+        setModalVisibility(true);
+    },
+    beforeRemove: () => {
+        setModalVisibility(false);
+    },
+};
 
 const propTypes = {
     network: PropTypes.shape({isOffline: PropTypes.bool}),
@@ -147,36 +177,43 @@ class AuthScreens extends React.Component {
                     name="Settings"
                     options={modalScreenOptions}
                     component={SettingsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="NewChat"
                     options={modalScreenOptions}
                     component={NewChatModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="NewGroup"
                     options={modalScreenOptions}
                     component={NewGroupModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Search"
                     options={modalScreenOptions}
                     component={SearchModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Details"
                     options={modalScreenOptions}
                     component={DetailsModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
                     options={modalScreenOptions}
                     component={IOURequestModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="IOU_Bill"
                     options={modalScreenOptions}
                     component={IOUBillStackNavigator}
+                    listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
         );
