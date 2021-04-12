@@ -196,7 +196,13 @@ class ReportActionsView extends React.Component {
     updateSortedReportActions(reportActions) {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU' || action.message.text !== '')
+            .filter((action) => {
+                const message = _.last(lodashGet(action, 'message', null));
+                const html = lodashGet(message, 'html', '');
+                const text = lodashGet(message, 'text', '');
+                return ((html !== '' || text !== '') && action.actionName === 'ADDCOMMENT')
+                    || action.actionName === 'IOU';
+            })
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
