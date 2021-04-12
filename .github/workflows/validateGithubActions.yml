@@ -1,4 +1,4 @@
-name: Verify Github Action Builds
+name: Validate Github Actions
 
 on:
     pull_request:
@@ -25,4 +25,8 @@ jobs:
 
             # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
             # because that would be a sign that the PR author did not rebuild the Github Actions
-            - run: ./.github/scripts/verifyActions.sh
+            - name: Verify Javascript Action Builds
+              run: ./.github/scripts/verifyActions.sh
+
+            - name: Validate actions and workflows
+              run: npm run gh-actions-validate
