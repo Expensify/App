@@ -31,7 +31,7 @@ class EmojiPickerMenu extends Component {
         // This is the indices of each category of emojis
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index
-        // If this emojis are ever added to emojis.js this will need to be updated or things will break
+        // If more emojis are ever added to emojis.js this will need to be updated or things will break
         this.unfilteredHeaderIndices = [0, 34, 60, 88, 99, 121, 148];
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300, false);
