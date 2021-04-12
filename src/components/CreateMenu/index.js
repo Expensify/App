@@ -1,5 +1,6 @@
 import React from 'react';
 import BaseCreateMenu from './BaseCreateMenu';
+import createMenuPropTypes from './CreateMenuPropTypes';
 
 /**
  * The web implementation of the menu needs to trigger actions before the popup closes
@@ -11,9 +12,17 @@ import BaseCreateMenu from './BaseCreateMenu';
  * @param {Object} props
  * @returns {React.ReactElement}
  */
-function CreateMenu(props) {
+const CreateMenu = (props) => {
+    // Trigger the item's `onSelect` action as soon as clicked
+    const selectItem = (item) => {
+        item.onSelected();
+        props.onItemSelected(item);
+    };
+
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <BaseCreateMenu {...props} actionExecutionStrategy="ON_PRESS" />;
-}
+    return <BaseCreateMenu {...props} onItemSelected={selectItem} />;
+};
+
+CreateMenu.propTypes = createMenuPropTypes;
 
 export default CreateMenu;
