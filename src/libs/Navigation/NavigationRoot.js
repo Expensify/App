@@ -38,6 +38,8 @@ class NavigationRoot extends Component {
             loading: true,
             initialState: undefined,
         };
+
+        this.handleStateChange = this.handleStateChange.bind(this);
     }
 
     componentDidMount() {
@@ -82,6 +84,26 @@ class NavigationRoot extends Component {
     }
 
     /**
+     * Intercept state changes and perform different logic
+     * @param {NavigationState} state
+     */
+    handleStateChange(state) {
+        if (!state) {
+            return;
+        }
+
+        const path = getPathFromState(state, linkingConfig.config);
+        if (path.includes(ROUTES.REPORT)) {
+            const reportID = Number(_.last(path.split('/')));
+            if (reportID && !_.isNaN(reportID)) {
+                updateCurrentlyViewedReportID(reportID);
+            }
+        }
+
+        setCurrentURL(path);
+    }
+
+    /**
      * Render some fallback content until the navigation is ready
      * @returns {JSX.Element}
      */
@@ -98,21 +120,7 @@ class NavigationRoot extends Component {
         return (
             <NavigationContainer
                 initialState={this.state.initialState}
-                onStateChange={(state) => {
-                    if (!state) {
-                        return;
-                    }
-
-                    const path = getPathFromState(state, linkingConfig.config);
-                    if (path.includes(ROUTES.REPORT)) {
-                        const reportID = Number(_.last(path.split('/')));
-                        if (reportID && !_.isNaN(reportID)) {
-                            updateCurrentlyViewedReportID(reportID);
-                        }
-                    }
-
-                    setCurrentURL(path);
-                }}
+                onStateChange={this.handleStateChange}
                 ref={navigationRef}
                 linking={linkingConfig}
                 documentTitle={{
