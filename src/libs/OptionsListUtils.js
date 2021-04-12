@@ -433,7 +433,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 }
 
 /**
- * Returns the personal details for an array of logins
+ * Returns the currency list for sections display
  *
  * @param {Object} currencyListObject
  * @param {String} searchValue
@@ -452,7 +452,7 @@ function getCurrencyListForSections(currencyListObject, searchValue) {
         isSearchStringMatch(searchValue, currencyOption.searchText)));
 
     return {
-        // currency options holds a section for those currencies which are not selected
+        // returns filtered options i.e. options with string match if search text is entered
         currencyOptions: filteredOptions,
     };
 }
