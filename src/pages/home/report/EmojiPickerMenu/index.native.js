@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {View, FlatList, Text} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import CONST from '../../../../CONST';
 import styles from '../../../../styles/styles';
 import emojis from '../../../../../assets/emojis';
@@ -16,9 +15,6 @@ class EmojiPickerMenu extends Component {
     constructor(props) {
         super(props);
 
-        // Ref for the emoji search input
-        this.searchInput = undefined;
-
         // This is the number of columns in each row of the picker.
         // Because of how flatList implements these rows, each row is an index rather than each element
         // For this reason to make headers work, we need to have the header be the only rendered element in its row
@@ -32,40 +28,7 @@ class EmojiPickerMenu extends Component {
         // If this emojis are ever added to emojis.js this will need to be updated or things will break
         this.unfilteredHeaderIndices = [0, 34, 60, 88, 99, 121, 148];
 
-        this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300, false);
         this.renderItem = this.renderItem.bind(this);
-
-        this.state = {
-            filteredEmojis: emojis,
-            headerIndices: this.unfilteredHeaderIndices,
-        };
-    }
-
-    /**
-     * Filter the entire list of emojis to only emojis that have the search term in their keywords
-     *
-     * @param {String} searchTerm
-     */
-    filterEmojis(searchTerm) {
-        const normalizedSearchTerm = searchTerm.toLowerCase();
-        if (normalizedSearchTerm === '') {
-            // There are no headers when searching, so we need to re-make them sticky when there is no search term
-            this.setState({filteredEmojis: emojis, headerIndices: this.unfilteredHeaderIndices});
-            return;
-        }
-        const newFilteredEmojiList = [];
-        _.each(emojis, (emoji) => {
-            if (emoji.header || emoji.code === CONST.EMOJI_SPACER) {
-                return;
-            }
-
-            if (_.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))) {
-                newFilteredEmojiList.push(emoji);
-            }
-        });
-
-        // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
-        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: []});
     }
 
     /**
@@ -101,13 +64,12 @@ class EmojiPickerMenu extends Component {
         return (
             <View style={styles.emojiPickerContainer}>
                 <FlatList
-                    data={this.state.filteredEmojis}
+                    data={emojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
                     numColumns={this.numColumns}
                     style={styles.emojiPickerList}
-                    extraData={this.state.filteredEmojis}
-                    stickyHeaderIndices={this.state.headerIndices}
+                    stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
             </View>
         );
