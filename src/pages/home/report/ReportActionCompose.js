@@ -83,7 +83,7 @@ class ReportActionCompose extends React.Component {
             isEmojiPickerVisible: false,
             isMenuVisible: false,
 
-            // The horizontal and vertical position (relative to the screen) where the emoji popover will display.
+            // The horizontal and vertical position (relative to the window) where the emoji popover will display.
             emojiPopoverAnchorPosition: {
                 horizontal: 0,
                 vertical: 0,
