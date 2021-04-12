@@ -9,14 +9,14 @@ import createMenuPropTypes from './CreateMenuPropTypes';
 
 const propTypes = {
     // Callback fired when the menu is completely closed
-    onModalHide: PropTypes.func,
+    onMenuHide: PropTypes.func,
 
     ...createMenuPropTypes,
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    onModalHide: () => {},
+    onMenuHide: () => {},
 };
 
 class BaseCreateMenu extends PureComponent {
@@ -25,7 +25,7 @@ class BaseCreateMenu extends PureComponent {
             <Popover
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
-                onModalHide={this.props.onModalHide}
+                onModalHide={this.props.onMenuHide}
                 anchorPosition={styles.createMenuPosition}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>

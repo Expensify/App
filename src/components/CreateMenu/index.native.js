@@ -9,15 +9,15 @@ import createMenuPropTypes from './CreateMenuPropTypes';
  */
 class CreateMenu extends Component {
     /**
-     * Set the item's `onSelected` action to fire after the modal closes
+     * Set the item's `onSelected` action to fire after the menu popup closes
      * @param {{onSelected: function}} item
      */
     selectItem(item) {
-        this.onModalHide = () => {
+        this.onMenuHide = () => {
             item.onSelected();
 
-            // Clean up so that open and cancel does not trigger the same action
-            this.onModalHide = () => {};
+            // Clean up: open and immediately cancel should not re-trigger the last action
+            this.onMenuHide = () => {};
         };
 
         this.props.onItemSelected(item);
@@ -28,7 +28,7 @@ class CreateMenu extends Component {
             <BaseCreateMenu
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
-                onModalHide={this.onModalHide}
+                onMenuHide={this.onMenuHide}
                 onItemSelected={item => this.selectItem(item)}
             />
         );
