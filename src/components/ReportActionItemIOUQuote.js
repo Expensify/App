@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import {getIOUReportDetailFromTransactionID} from '../libs/actions/IOU';
 import styles, {webViewStyles} from '../styles/styles';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 
@@ -24,7 +25,14 @@ const ReportActionItemIOUQuote = ({action}) => (
                             {fragment.text}
                         </Text>
                         <Text style={[styles.chatItemMessageLink]} onPress={() => {
-                            Navigation.navigate(ROUTES.getIouDetailsRoute('707'));
+                            if (!action.originalMessage) {
+                                console.error('reportAction `originalMessage` data not provided.');
+                            }
+                            if (action.originalMessage.IOUTransactionID) {
+                                getIOUReportDetailFromTransactionID(action.originalMessage.IOUTransactionID);
+                            } else if (action.originalMessage.IOUReportID) {
+                                Navigation.navigate(ROUTES.getIouDetailsRoute(action.originalMessage.IOUReportID));
+                            }
                         }}>
                             View Details
                         </Text>
