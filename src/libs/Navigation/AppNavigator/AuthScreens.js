@@ -53,7 +53,7 @@ Onyx.connect({
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
         // then update their timezone.
         if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
-            timezone.selected = moment.tz.guess(true);
+            timezone.selected = currentTimezone;
             PersonalDetails.setPersonalDetails({timezone});
         }
     },
