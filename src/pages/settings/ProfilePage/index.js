@@ -77,7 +77,9 @@ const propTypes = {
 
 const defaultProps = {
     myPersonalDetails: {},
-    user: {},
+    user: {
+        loginList: [],
+    },
 };
 
 const timezones = moment.tz.names()
@@ -134,6 +136,11 @@ class ProfilePage extends Component {
         }
     }
 
+    /**
+     * Set the form to use automatic timezone
+     *
+     * @param {Boolean} isAutomaticTimezone
+     */
     setAutomaticTimezone(isAutomaticTimezone) {
         this.setState(({selectedTimezone}) => ({
             isAutomaticTimezone,
@@ -141,7 +148,12 @@ class ProfilePage extends Component {
         }));
     }
 
-    // Get the most validated login of each type
+    /**
+     * Get the most validated login of each type
+     *
+     * @param {Array} loginList
+     * @returns {Object}
+     */
     getLogins(loginList) {
         return loginList.reduce((logins, currentLogin) => {
             const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
@@ -166,6 +178,9 @@ class ProfilePage extends Component {
         });
     }
 
+    /**
+     * Submit form to update personal details
+     */
     updatePersonalDetails() {
         const {
             firstName,
@@ -187,6 +202,12 @@ class ProfilePage extends Component {
         });
     }
 
+    /**
+     * Create menu items list for avatar menu
+     *
+     * @param {Function} openPicker
+     * @returns {Array}
+     */
     createMenuItems(openPicker) {
         const menuItems = [
             {

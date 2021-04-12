@@ -42,8 +42,8 @@ const priorityModes = {
     },
     gsd: {
         value: CONST.PRIORITY_MODE.GSD,
-        label: 'GSD',
-        description: 'This will only display unread and pinned chats, all sorted alphabetically. Get Shit Done.',
+        label: '#focus',
+        description: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
     },
 };
 
