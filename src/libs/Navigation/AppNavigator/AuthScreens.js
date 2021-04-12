@@ -33,6 +33,9 @@ import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
 
+// Validate login page
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
+
 // Modal Stack Navigators
 import {
     IOUBillStackNavigator,
@@ -73,7 +76,11 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
-    network: PropTypes.shape({isOffline: PropTypes.bool}),
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    }),
     ...windowDimensionsPropTypes,
 };
 
@@ -101,7 +108,7 @@ class AuthScreens extends React.Component {
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
-        User.fetch();
+        User.getUserDetails();
         User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
@@ -115,7 +122,7 @@ class AuthScreens extends React.Component {
                 return;
             }
             PersonalDetails.fetch();
-            User.fetch();
+            User.getUserDetails();
             User.getBetas();
         }, 1000 * 60 * 30);
 
@@ -166,6 +173,14 @@ class AuthScreens extends React.Component {
                         title: 'Expensify.cash',
                     }}
                     component={MainDrawerNavigator}
+                />
+                <RootStack.Screen
+                    name="ValidateLogin"
+                    options={{
+                        headerShown: false,
+                        title: 'Expensify.cash',
+                    }}
+                    component={ValidateLoginPage}
                 />
 
                 {/* These are the various modal routes */}
