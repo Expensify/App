@@ -34,6 +34,7 @@ function isAuthTokenRequired(command) {
         'SetPassword',
         'User_SignUp',
         'ResendValidateCode',
+        'ResetPassword',
     ], command);
 }
 
@@ -62,8 +63,7 @@ function addDefaultValuesToParameters(command, parameters) {
         finalParameters.authToken = authToken;
     }
 
-    // Always set referer to https://expensify.cash/
-    finalParameters.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+    finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
 
     // This application does not save its authToken in cookies like the classic Expensify app.
     // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
@@ -530,7 +530,7 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function ResendValidateCode(parameters) {
@@ -541,13 +541,25 @@ function ResendValidateCode(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.email
+ * @returns {Promise}
+ */
+function ResetPassword(parameters) {
+    const commandName = 'ResetPassword';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
+ * @param {String} parameters.accountID
  * @returns {Promise}
  */
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
-    requireParameters(['email', 'password', 'validateCode'], parameters, commandName);
+    requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -653,6 +665,7 @@ export {
     Report_TogglePinned,
     Report_UpdateLastRead,
     ResendValidateCode,
+    ResetPassword,
     SetNameValuePair,
     SetPassword,
     UpdateAccount,

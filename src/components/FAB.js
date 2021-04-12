@@ -3,7 +3,7 @@ import {Pressable, Animated, Easing} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
 import {Plus} from './Icon/Expensicons';
-import styles from '../styles/styles';
+import styles, {getAnimatedFABStyle} from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
@@ -68,7 +68,7 @@ class FAB extends PureComponent {
                 onPress={this.props.onPress}
                 style={[
                     styles.floatingActionButton,
-                    {transform: [{rotate}], backgroundColor},
+                    getAnimatedFABStyle(rotate, backgroundColor),
                 ]}
             >
                 <AnimatedIcon src={Plus} fill={fill} />

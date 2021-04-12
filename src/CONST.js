@@ -3,14 +3,16 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const CONST = {
     BETAS: {
         ALL: 'all',
-        REPORT_ACTION_CONTEXT_MENU: 'reportActionContextMenu',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
         HOVERED: 'hovered',
         PRESSED: 'pressed',
+        COMPLETE: 'complete',
     },
     CLOUDFRONT_URL,
+    NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
+    NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     UPWORK_URL: 'https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&user_location_match=2',
@@ -59,7 +61,7 @@ const CONST = {
     },
     MESSAGES: {
         // eslint-disable-next-line max-len
-        NO_CONTACTS_FOUND: 'Don\'t see who you\'re looking for? Type their email or phone number to invite them to chat.',
+        NO_PHONE_NUMBER: 'Please enter a phone number including the country code e.g +447814266907',
         MAXIMUM_PARTICIPANTS_REACHED: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     PRIORITY_MODE: {
@@ -69,13 +71,6 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'API is offline',
     },
-    MENU_ITEM_KEYS: {
-        NEW_CHAT: 'NewChat',
-        NEW_GROUP: 'NewGroup',
-        REQUEST_MONEY: 'RequestMoney',
-        SPLIT_BILL: 'SplitBill',
-        ATTACHMENT_PICKER: 'AttachmentPicker',
-    },
     NVP: {
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
@@ -83,10 +78,10 @@ const CONST = {
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     PRONOUNS: {
-        THEY_THEM_THEIRS: 'They/them/theirs',
-        SHE_HER_HERS: 'She/her/hers',
-        HE_HIM_HIS: 'He/him/his',
-        ZE_HIR_HIRS: 'Ze/hir/hirs',
+        HE_HIM_HIS: 'He/him',
+        SHE_HER_HERS: 'She/her',
+        THEY_THEM_THEIRS: 'They/them',
+        ZE_HIR_HIRS: 'Ze/hir',
         SELF_SELECT: 'Self-select',
         CALL_ME_BY_MY_NAME: 'Call me by my name',
     },
@@ -98,6 +93,14 @@ const CONST = {
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+    LOGIN_TYPE: {
+        PHONE: 'phone',
+        EMAIL: 'email',
+    },
+    KEYBOARD_TYPE: {
+        NUMERIC: 'numeric',
+        PHONE_PAD: 'phone-pad',
+    },
 };
 
 export default CONST;

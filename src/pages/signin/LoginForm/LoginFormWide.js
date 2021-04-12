@@ -57,54 +57,39 @@ class LoginFormWide extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.loginFormContainer]}>
-                    <View style={[styles.mb4]}>
-                        <Text style={[styles.formLabel]}>Enter your phone or email:</Text>
-                        <TextInput
-                            style={[styles.textInput]}
-                            value={this.state.login}
-                            autoCompleteType="email"
-                            textContentType="username"
-                            onChangeText={text => this.setState({login: text})}
-                            onSubmitEditing={this.validateAndSubmitForm}
-                            autoCapitalize="none"
-                            placeholder="Phone or Email"
-                            autoFocus
-                        />
-                    </View>
-                    <View>
-                        <ButtonWithLoader
-                            text="Continue"
-                            isLoading={this.props.account.loading}
-                            onClick={this.validateAndSubmitForm}
-                        />
-                    </View>
-
-                    {this.state.formError && (
-                        <Text style={[styles.formError]}>
-                            {this.state.formError}
-                        </Text>
-                    )}
-
-                    {!_.isEmpty(this.props.account.error) && (
-                        <Text style={[styles.formError]}>
-                            {this.props.account.error}
-                        </Text>
-                    )}
+                <View style={[styles.mb4]}>
+                    <Text style={[styles.formLabel]}>Enter your phone or email:</Text>
+                    <TextInput
+                        style={[styles.textInput]}
+                        value={this.state.login}
+                        autoCompleteType="email"
+                        textContentType="username"
+                        onChangeText={text => this.setState({login: text})}
+                        onSubmitEditing={this.validateAndSubmitForm}
+                        autoCapitalize="none"
+                        placeholder="Phone or Email"
+                        autoFocus
+                    />
+                </View>
+                <View>
+                    <ButtonWithLoader
+                        text="Continue"
+                        isLoading={this.props.account.loading}
+                        onClick={this.validateAndSubmitForm}
+                    />
                 </View>
 
-                <View style={[styles.mt6]}>
-                    <View style={[styles.mb6]}>
-                        <Text style={[styles.textP, styles.textStrong, styles.mb1]}>
-                            With Expensify.cash, chat and payments are the same thing.
-                        </Text>
-                        <Text style={[styles.textP]}>
-                            Money talks. And now that chat and payments are in one place, it&apos;s also easy.
-                            {' '}
-                            Your payments get to you as fast as you can get your point across.
-                        </Text>
-                    </View>
-                </View>
+                {this.state.formError && (
+                    <Text style={[styles.formError]}>
+                        {this.state.formError}
+                    </Text>
+                )}
+
+                {!_.isEmpty(this.props.account.error) && (
+                    <Text style={[styles.formError]}>
+                        {this.props.account.error}
+                    </Text>
+                )}
             </>
         );
     }
