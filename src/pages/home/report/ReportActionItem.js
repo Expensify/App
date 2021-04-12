@@ -116,7 +116,7 @@ class ReportActionItem extends Component {
                                     <ReportActionContextMenu
                                         isVisible
                                         reportID={-1}
-                                        reportAction={{}}
+                                        reportAction={this.props.action}
                                     />
                                 )}
                             >
