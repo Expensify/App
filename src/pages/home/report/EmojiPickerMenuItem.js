@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Pressable, Text} from 'react-native';
-import styles from '../../../styles/styles';
+import styles, {getButtonBackgroundColorStyle} from '../../../styles/styles';
+import getButtonState from '../../../libs/getButtonState';
 
 const propTypes = {
     // The unicode that is used to display the emoji
@@ -14,9 +15,9 @@ const propTypes = {
 const EmojiPickerMenuItem = props => (
     <Pressable
         onPress={() => props.onPress(props.emoji)}
-        style={({hovered}) => ([
+        style={({hovered, pressed}) => ([
             styles.emojiItem,
-            hovered && styles.hoveredButton,
+            getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
         ])}
     >
         <Text style={styles.emojiText}>{props.emoji}</Text>
