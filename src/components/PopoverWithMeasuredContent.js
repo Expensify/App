@@ -126,7 +126,7 @@ class PopoverWithMeasuredContent extends Component {
                     {...this.props}
                     anchorPosition={this.calculateAdjustedAnchorPosition()}
                 >
-                    {this.props.measureContent()}
+                    {this.props.children}
                 </Popover>
             ) : (
 
