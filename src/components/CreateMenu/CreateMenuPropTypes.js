@@ -13,8 +13,13 @@ const createMenuPropTypes = {
     // Menu items to be rendered on the list
     menuItems: PropTypes.arrayOf(
         PropTypes.shape({
-            icon: PropTypes.func.isRequired,
+            // An icon element displayed on the left side
+            icon: PropTypes.elementType.isRequired,
+
+            // Text label
             text: PropTypes.string.isRequired,
+
+            // A callback triggered when this item is selected
             onSelected: PropTypes.func.isRequired,
         }),
     ).isRequired,
