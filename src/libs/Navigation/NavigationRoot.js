@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {ActivityIndicator, Linking, View} from 'react-native';
+import {Linking} from 'react-native';
 import PropTypes from 'prop-types';
 import {
     getStateFromPath,
@@ -14,10 +14,9 @@ import AppNavigator from './AppNavigator';
 import getPathName from './getPathName';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import {updateCurrentlyViewedReportID} from '../actions/Report';
 import {setCurrentURL} from '../actions/App';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     // Whether the current user is logged in with an authToken
@@ -82,13 +81,17 @@ class NavigationRoot extends Component {
             });
     }
 
+    /**
+     * Render some fallback content until the navigation is ready
+     * @returns {JSX.Element}
+     */
+    renderFallback() {
+        return <FullScreenLoadingIndicator visible />;
+    }
+
     render() {
         if (this.state.loading) {
-            return (
-                <View style={[styles.flex1, styles.h100, styles.justifyContentCenter]}>
-                    <ActivityIndicator size="large" color={themeColors.spinner} />
-                </View>
-            );
+            return this.renderFallback();
         }
 
         // If we are on web, desktop, or a widescreen width we will use our custom navigator to create the wider layout
