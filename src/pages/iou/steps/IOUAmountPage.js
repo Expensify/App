@@ -14,7 +14,6 @@ import themeColors from '../../../styles/themes/default';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import TextInputFocusable from '../../../components/TextInputFocusable';
-import IOUCurrencySelection from './IOUCurrencySelection';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 
@@ -24,9 +23,6 @@ const propTypes = {
 
     // Callback to inform parent modal with key pressed
     numberPressed: PropTypes.func.isRequired,
-
-    // Callback that sets selectedCurrency in IOUModal
-    onCurrencySelected: PropTypes.func.isRequired,
 
     // User's currency preference
     selectedCurrency: PropTypes.objectOf(PropTypes.shape({
@@ -91,16 +87,6 @@ class IOUAmountPage extends React.Component {
     }
 
     render() {
-        if (this.props.currencySelectionMode) {
-            return (
-                <IOUCurrencySelection
-                    onConfirm={this.props.onConfirm}
-                    selectedCurrency={this.props.selectedCurrency}
-                    onCurrencySelected={this.props.onCurrencySelected}
-                    onCurrencyConfirm={this.props.onCurrencyConfirm}
-                />
-            );
-        }
         return (
             <View style={[styles.flex1, styles.pageWrapper]}>
                 {this.props.iou.loading && <ActivityIndicator color={themeColors.text} />}
