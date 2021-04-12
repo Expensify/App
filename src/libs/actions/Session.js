@@ -201,7 +201,7 @@ function resendValidationLink() {
  */
 function resetPassword() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
-    API.ResetPassword({email: credentials.login})
+    API.ResendValidateCode({email: credentials.login})
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
