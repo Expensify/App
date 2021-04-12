@@ -54,24 +54,6 @@ class CreateMenu extends PureComponent {
     }
 
     /**
-     * Get the anchor position using the type of the modal into account
-     * @param {String} type
-     * @returns {Object}
-     */
-    getAnchorPosition(type) {
-        switch (type) {
-            case CONST.MODAL.MODAL_TYPE.POPOVER_LEFT_DOCKED:
-                return styles.createMenuPositionSidebar;
-            case CONST.MODAL.MODAL_TYPE.POPOVER_CENTER_BOTTOM:
-                return styles.createMenuPositionReportCompose;
-            case CONST.MODAL.MODAL_TYPE.POPOVER_RIGHT_DOCKED:
-                return styles.createMenuPositionProfile;
-            default:
-                return styles.createMenuPositionSidebar;
-        }
-    }
-
-    /**
      * After the modal hides, reset the onModalHide to an empty function
      */
     resetOnModalHide() {
@@ -79,7 +61,6 @@ class CreateMenu extends PureComponent {
     }
 
     render() {
-        console.debug(this.props.popOverType, this.getAnchorPosition());
         return (
             <Popover
                 onClose={this.props.onClose}
@@ -88,7 +69,6 @@ class CreateMenu extends PureComponent {
                     this.onModalHide();
                     this.resetOnModalHide();
                 }}
-                anchorPosition={this.getAnchorPosition(this.props.popOverType)}
                 popOverType={this.props.popOverType}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>

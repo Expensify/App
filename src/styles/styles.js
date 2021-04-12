@@ -506,7 +506,7 @@ const styles = {
 
     createMenuPositionReportCompose: {
         left: 18 + variables.sideBarWidth,
-        bottom: 100,
+        bottom: 75,
     },
 
     createMenuContainer: {

@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import CONST from '../../CONST';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
@@ -19,15 +20,7 @@ const propTypes = {
     onModalHide: PropTypes.func,
 
     // Style of modal to display
-    type: PropTypes.oneOf([
-        CONST.MODAL.MODAL_TYPE.CONFIRM,
-        CONST.MODAL.MODAL_TYPE.CENTERED,
-        CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
-        CONST.MODAL.MODAL_TYPE.POPOVER_CENTER_BOTTOM,
-        CONST.MODAL.MODAL_TYPE.POPOVER_LEFT_DOCKED,
-        CONST.MODAL.MODAL_TYPE.POPOVER_RIGHT_DOCKED,
-        CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-    ]),
+    type: PropTypes.oneOf(_.values(CONST.MODAL.MODAL_TYPE)),
 
     // A react-native-animatable animation definition for the modal display animation.
     animationIn: PropTypes.oneOfType([
