@@ -37,6 +37,9 @@ const propTypes = {
     report: PropTypes.shape({
         // Number of actions unread
         unreadActionCount: PropTypes.number,
+
+        // The largest sequenceNumber on this report
+        maxSequenceNumber: PropTypes.number,
     }),
 
     // Array of report actions for this report
@@ -52,6 +55,7 @@ const propTypes = {
 const defaultProps = {
     report: {
         unreadActionCount: 0,
+        maxSequenceNumber: 0,
     },
     reportActions: {},
     session: {},
@@ -70,8 +74,9 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = [];
         this.timers = [];
 
-        // Helper variable that keeps track of the unread action count before it updates to zero
-        this.unreadActionCount = 0;
+        this.initialNewMarkerPosition = props.report.unreadActionCount === 0
+            ? 0
+            : (props.report.maxSequenceNumber + 1) - props.report.unreadActionCount;
 
         this.state = {
             isLoadingMoreChats: false,
@@ -86,7 +91,6 @@ class ReportActionsView extends React.Component {
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         this.recordMaxAction();
         fetchActions(this.props.reportID);
-        this.initialUnreadActionCount = this.props.report.unreadActionCount;
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
@@ -288,9 +292,8 @@ class ReportActionsView extends React.Component {
                     action={item.action}
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
-                    shouldDisplayNewIndicator={this.initialUnreadActionCount > 0
-                            && index === this.initialUnreadActionCount - 1
-                    }
+                    shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
+                        && item.action.sequenceNumber === this.initialNewMarkerPosition}
                 />
             </View>
         );
