@@ -39,24 +39,6 @@ class TextInputAutoGrow extends React.Component {
         };
     }
 
-    /**
-     * Text input component doesn't support auto grow by default. We're using a hidden text input to achieve that.
-     * This text view is used to calculate width of the input value given textStyle in this component.
-     * This text component is intentionally positioned out of the screen.
-     *
-     * @returns {Text}
-     */
-    getHiddenTextView() {
-        return (
-            <Text
-                style={[this.props.textStyle, getHiddenElementOutsideOfWindow(this.props.windowWidth)]}
-                onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
-            >
-                {this.props.value}
-            </Text>
-        );
-    }
-
     render() {
         const propsWithoutStyles = _.omit(
             this.props,
@@ -70,7 +52,18 @@ class TextInputAutoGrow extends React.Component {
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...propsWithoutStyles}
                 />
-                {this.getHiddenTextView()}
+                {/*
+                Text input component doesn't support auto grow by default.
+                We're using a hidden text input to achieve that.
+                This text view is used to calculate width of the input value given textStyle in this component.
+                This text component is intentionally positioned out of the screen.
+                */}
+                <Text
+                    style={[this.props.textStyle, getHiddenElementOutsideOfWindow(this.props.windowWidth)]}
+                    onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
+                >
+                    {this.props.value}
+                </Text>
             </View>
         );
     }

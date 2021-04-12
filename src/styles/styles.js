@@ -1231,12 +1231,14 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
     },
 
     iouAmountTextInput: addOutlineWidth({
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
     }, 0),
 
     noScrollbars: {

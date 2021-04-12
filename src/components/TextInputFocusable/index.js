@@ -43,8 +43,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    defaultValue: undefined,
-    value: undefined,
+    defaultValue: '',
+    value: '',
     maxLines: -1,
     onPasteFile: () => {},
     shouldClear: false,
