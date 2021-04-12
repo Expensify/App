@@ -10,7 +10,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
-import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import {
     fetchActions,
     updateLastReadActionID,
@@ -280,18 +279,18 @@ class ReportActionsView extends React.Component {
     }) {
         return (
 
-        // Using <View /> instead of a Fragment because there is a difference between how
-        // <InvertedFlatList /> are implemented on native and web/desktop which leads to
-        // the unread indicator on native to render below the message instead of above it.
+            // Using <View /> instead of a Fragment because there is a difference between how <InvertedFlatList /> are
+            // implemented on native and web/desktop which leads to the unread indicator on native to render below the
+            // message instead of above it.
             <View>
-                {this.initialUnreadActionCount > 0 && index === this.initialUnreadActionCount - 1 && (
-                    <UnreadActionIndicator />
-                )}
                 <ReportActionItem
                     reportID={this.props.reportID}
                     action={item.action}
                     displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                     onLayout={onLayout}
+                    shouldDisplayNewIndicator={this.initialUnreadActionCount > 0
+                            && index === this.initialUnreadActionCount - 1
+                    }
                 />
             </View>
         );
