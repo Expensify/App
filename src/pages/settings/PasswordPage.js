@@ -67,7 +67,7 @@ class PasswordPage extends Component {
                     title="Change Password"
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={Navigation.dismissModal}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <View style={styles.flexGrow1}>
