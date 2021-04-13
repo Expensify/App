@@ -7,17 +7,21 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import styles from '../../../styles/styles';
+import styles, {getBackgroundAndBorderStyle, getBackgroundColorStyle} from '../../../styles/styles';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
-import OptionRowTitle from './OptionRowTitle';
+import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
+import colors from '../../../styles/colors';
 
 const propTypes = {
+    // Background Color of the Option Row
+    backgroundColor: PropTypes.string,
+
     // Style for hovered state
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
@@ -51,6 +55,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    backgroundColor: colors.white,
     hoverStyle: styles.sidebarLinkHover,
     hideAdditionalOptionStates: false,
     showSelectedState: false,
@@ -61,6 +66,7 @@ const defaultProps = {
 };
 
 const OptionRow = ({
+    backgroundColor,
     hoverStyle,
     option,
     optionIsFocused,
@@ -99,6 +105,14 @@ const OptionRow = ({
         styles.sidebarInnerRow,
         styles.justifyContentCenter,
     ]);
+    const hoveredBackgroundColor = hoverStyle && hoverStyle.backgroundColor
+        ? hoverStyle.backgroundColor
+        : backgroundColor;
+    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const displayNamesWithTooltips = _.map(
+        option.participantsList,
+        ({displayName, login}) => ({displayName, tooltip: login}),
+    );
 
     return (
         <Hoverable>
@@ -112,6 +126,7 @@ const OptionRow = ({
                         styles.justifyContentBetween,
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
+                        getBackgroundColorStyle(backgroundColor),
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
                     ]}
@@ -128,26 +143,27 @@ const OptionRow = ({
                                 && (
                                     <MultipleAvatars
                                         avatarImageURLs={option.icons}
-                                        optionIsFocused={optionIsFocused}
                                         size={mode === 'compact' ? 'small' : 'default'}
-                                        styles={(hovered && !optionIsFocused) ? {
-                                            secondAvatar: {
-                                                backgroundColor: themeColors.sidebarHover,
-                                                borderColor: themeColors.sidebarHover,
-                                            },
-                                        } : undefined}
+                                        secondAvatarStyle={[
+                                            getBackgroundAndBorderStyle(backgroundColor),
+                                            optionIsFocused
+                                                ? getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                : undefined,
+                                            hovered && !optionIsFocused
+                                                ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                : undefined,
+                                        ]}
                                     />
                                 )
                             }
                             <View style={contentContainerStyles}>
-                                <OptionRowTitle
-                                    option={option}
+                                <DisplayNames
+                                    fullTitle={option.text}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
-                                    style={displayNameStyle}
-                                    reportID={option.reportID}
+                                    textStyles={displayNameStyle}
                                 />
-
                                 {option.alternateText ? (
                                     <Text
                                         style={alternateTextStyle}

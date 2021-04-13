@@ -4,7 +4,7 @@ import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import styles, {getSafeAreaPadding} from '../../styles/styles';
+import styles, {getModalPaddingStyles, getSafeAreaPadding} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import {propTypes, defaultProps} from './ModalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
@@ -102,17 +102,21 @@ class BaseModal extends PureComponent {
                             paddingBottom: safeAreaPaddingBottom,
                         } = getSafeAreaPadding(insets);
 
+                        const modalPaddingStyles = getModalPaddingStyles({
+                            safeAreaPaddingTop,
+                            safeAreaPaddingBottom,
+                            shouldAddBottomSafeAreaPadding,
+                            shouldAddTopSafeAreaPadding,
+                            modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
+                            modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                        });
+
                         return (
                             <View
                                 style={{
                                     ...styles.defaultModalContainer,
                                     ...modalContainerStyle,
-                                    paddingTop: shouldAddTopSafeAreaPadding
-                                        ? (modalContainerStyle.paddingTop || 0) + safeAreaPaddingTop
-                                        : modalContainerStyle.paddingTop || 0,
-                                    paddingBottom: shouldAddBottomSafeAreaPadding
-                                        ? (modalContainerStyle.paddingBottom || 0) + safeAreaPaddingBottom
-                                        : modalContainerStyle.paddingBottom || 0,
+                                    ...modalPaddingStyles,
                                 }}
                             >
                                 {this.props.children}

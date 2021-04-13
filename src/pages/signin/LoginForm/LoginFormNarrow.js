@@ -1,6 +1,8 @@
 import React from 'react';
 import {
-    Image, Text, TextInput, View,
+    Text,
+    TextInput,
+    View,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -9,7 +11,6 @@ import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import ButtonWithLoader from '../../../components/ButtonWithLoader';
 import {fetchAccountDetails} from '../../../libs/actions/Session';
-import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
@@ -19,6 +20,9 @@ const propTypes = {
     account: PropTypes.shape({
         // An error message to display to the user
         error: PropTypes.string,
+
+        // Success message to display when necessary
+        success: PropTypes.string,
 
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
@@ -60,7 +64,7 @@ class LoginFormNarrow extends React.Component {
 
     render() {
         return (
-            <View style={[styles.loginFormContainer]}>
+            <>
                 <View style={[styles.mb4]}>
                     <Text style={[styles.formLabel]}>Enter your phone or email:</Text>
                     <TextInput
@@ -94,26 +98,12 @@ class LoginFormNarrow extends React.Component {
                         {this.props.account.error}
                     </Text>
                 )}
-
-                <View style={[styles.mt5, styles.mb5]}>
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.signinWelcomeScreenshot]}
-                        source={welcomeScreenshot}
-                    />
-                </View>
-
-                <View>
-                    <Text style={[styles.textLabel, styles.textStrong, styles.mb1]}>
-                        With Expensify.cash, chat and payments are the same thing.
+                {!_.isEmpty(this.props.account.success) && (
+                    <Text style={[styles.formSuccess]}>
+                        {this.props.account.success}
                     </Text>
-                    <Text style={[styles.textLabel]}>
-                        Money talks. And now that chat and payments are in one place, it&apos;s also easy.
-                        {' '}
-                        Your payments get to you as fast as you can get your point across.
-                    </Text>
-                </View>
-            </View>
+                )}
+            </>
         );
     }
 }

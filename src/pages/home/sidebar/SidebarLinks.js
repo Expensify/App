@@ -19,6 +19,7 @@ import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import CONST from '../../../CONST';
 import {participantPropTypes} from './optionPropTypes';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     // Toggles the navigation menu open and closed
@@ -145,6 +146,7 @@ class SidebarLinks extends React.Component {
                         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
                         this.props.onLinkClick();
                     }}
+                    optionBackgroundColor={themeColors.sidebar}
                     hideSectionHeaders
                     showTitleTooltip
                     disableFocusOptions={this.props.isSmallScreenWidth}
