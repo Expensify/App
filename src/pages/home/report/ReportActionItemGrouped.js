@@ -16,7 +16,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 };
 
-const ReportActionItemGrouped = ({action, draftMessage}) => (
+const ReportActionItemGrouped = ({action, draftMessage, reportID}) => (
     <View style={[styles.chatItem]}>
         <View style={[styles.chatItemRightGrouped]}>
             {_.isEmpty(draftMessage)
