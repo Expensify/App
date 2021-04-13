@@ -16,7 +16,7 @@ const propTypes = {
 
     // Whether we should show the welcome text
     // (the welcome screenshot always displays on wide views)
-    shouldShowWelcomeText: PropTypes.Boolean,
+    shouldShowWelcomeText: PropTypes.bool,
 };
 
 const defaultProps = {
