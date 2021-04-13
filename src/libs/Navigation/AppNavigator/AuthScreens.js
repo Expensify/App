@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import moment from 'moment';
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -30,6 +33,9 @@ import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
 
+// Validate login page
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
+
 // Modal Stack Navigators
 import {
     IOUBillStackNavigator,
@@ -40,6 +46,21 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
+
+Onyx.connect({
+    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    callback: (val) => {
+        const timezone = lodashGet(val, 'timezone', {});
+        const currentTimezone = moment.tz.guess(true);
+
+        // If the current timezone is different than the user's timezone, and their timezone is set to automatic
+        // then update their timezone.
+        if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
+            timezone.selected = currentTimezone;
+            PersonalDetails.setPersonalDetails({timezone});
+        }
+    },
+});
 
 const RootStack = createCustomModalStackNavigator();
 
@@ -55,7 +76,11 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
-    network: PropTypes.shape({isOffline: PropTypes.bool}),
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    }),
     ...windowDimensionsPropTypes,
 };
 
@@ -83,7 +108,7 @@ class AuthScreens extends React.Component {
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
-        User.fetch();
+        User.getUserDetails();
         User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
@@ -97,7 +122,7 @@ class AuthScreens extends React.Component {
                 return;
             }
             PersonalDetails.fetch();
-            User.fetch();
+            User.getUserDetails();
             User.getBetas();
         }, 1000 * 60 * 30);
 
@@ -148,6 +173,14 @@ class AuthScreens extends React.Component {
                         title: 'Expensify.cash',
                     }}
                     component={MainDrawerNavigator}
+                />
+                <RootStack.Screen
+                    name="ValidateLogin"
+                    options={{
+                        headerShown: false,
+                        title: 'Expensify.cash',
+                    }}
+                    component={ValidateLoginPage}
                 />
 
                 {/* These are the various modal routes */}

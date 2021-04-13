@@ -14,6 +14,7 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
+import positioning from './utilities/positioning';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -22,6 +23,7 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
+    ...positioning,
     ...wordBreak,
     ...whiteSpace,
 
@@ -398,7 +400,7 @@ const styles = {
         width: '100%',
     },
 
-    loginFormContainer: {
+    signInPageFormContainer: {
         maxWidth: 295,
         width: '100%',
     },
@@ -601,11 +603,7 @@ const styles = {
         flexShrink: 0,
     },
 
-    optionDisplayNameTooltipWrapper: {
-        position: 'relative',
-    },
-
-    optionDisplayNameTooltipEllipsis: {
+    displayNameTooltipEllipsis: {
         position: 'absolute',
         opacity: 0,
         right: 0,
