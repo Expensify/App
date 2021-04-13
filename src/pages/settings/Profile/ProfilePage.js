@@ -214,11 +214,9 @@ class ProfilePage extends Component {
                 icon: Upload,
                 text: 'Upload Photo',
                 onSelected: () => {
-                    setTimeout(() => {
-                        openPicker({
-                            onPicked: setAvatar,
-                        });
-                    }, 10);
+                    openPicker({
+                        onPicked: setAvatar,
+                    });
                 },
             },
         ];

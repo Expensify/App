@@ -17,7 +17,7 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     // Icon to display on the left side of component
-    icon: PropTypes.func.isRequired,
+    icon: PropTypes.elementType.isRequired,
 
     // Text to display for the item
     title: PropTypes.string.isRequired,
