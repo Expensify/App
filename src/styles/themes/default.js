@@ -33,7 +33,6 @@ export default {
     badgeSuccessBG: colors.green,
     buttonDisabledBG: colors.gray2,
     buttonHoveredBG: colors.gray1,
-    buttonPressedBG: colors.gray2,
     spinner: colors.gray4,
     unreadIndicator: colors.green,
     placeholderText: colors.gray3,

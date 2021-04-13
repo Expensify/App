@@ -13,8 +13,6 @@ import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
-import CONST from '../CONST';
-import positioning from './utilities/positioning';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -23,14 +21,12 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
-    ...positioning,
     ...wordBreak,
     ...whiteSpace,
 
     link: {
         color: themeColors.link,
         textDecorationColor: themeColors.link,
-        fontFamily: fontFamily.GTA,
     },
 
     h1: {
@@ -603,7 +599,11 @@ const styles = {
         flexShrink: 0,
     },
 
-    displayNameTooltipEllipsis: {
+    optionDisplayNameTooltipWrapper: {
+        position: 'relative',
+    },
+
+    optionDisplayNameTooltipEllipsis: {
         position: 'absolute',
         opacity: 0,
         right: 0,
@@ -1062,11 +1062,14 @@ const styles = {
         borderColor: colors.transparent,
     },
 
-    reportActionContextMenuMiniButton: {
-        ...spacing.p1,
-        ...spacing.mv1,
-        ...spacing.mh1,
-        ...{borderRadius: variables.componentBorderRadiusSmall},
+    reportActionContextMenuText: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+        ...spacing.ml4,
+        ...spacing.mr2,
     },
 
     settingsPageBackground: {
@@ -1256,14 +1259,6 @@ const styles = {
     noScrollbars: {
         scrollbarWidth: 'none',
     },
-
-    fullScreenLoading: {
-        backgroundColor: themeColors.modalBackdrop,
-        opacity: 0.8,
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 10,
-    },
 };
 
 const baseCodeTagStyles = {
@@ -1298,10 +1293,6 @@ const webViewStyles = {
         },
 
         a: styles.link,
-
-        li: {
-            flexShrink: 1,
-        },
 
         blockquote: {
             borderLeftColor: themeColors.border,
@@ -1457,44 +1448,6 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
- * Generate a style for the background color of the button, based on its current state.
- *
- * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @returns {Object}
- */
-function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
-    switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
-            return {backgroundColor: themeColors.buttonHoveredBG};
-        case CONST.BUTTON_STATES.PRESSED:
-            return {backgroundColor: themeColors.buttonPressedBG};
-        case CONST.BUTTON_STATES.DEFAULT:
-        default:
-            return {};
-    }
-}
-
-/**
- * Generate fill color of an icon based on its state.
- *
- * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @returns {Object}
- */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
-    switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
-            return themeColors.text;
-        case CONST.BUTTON_STATES.PRESSED:
-            return themeColors.heading;
-        case CONST.BUTTON_STATES.COMPLETE:
-            return themeColors.iconSuccessFill;
-        case CONST.BUTTON_STATES.DEFAULT:
-        default:
-            return themeColors.icon;
-    }
-}
-
-/**
  * @param {Animated.Value} rotate
  * @param {Animated.Value} backgroundColor
  * @returns {Object}
@@ -1560,8 +1513,6 @@ export {
     getZoomSizingStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
-    getButtonBackgroundColorStyle,
-    getIconFillColor,
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
     getOpacityStyle,

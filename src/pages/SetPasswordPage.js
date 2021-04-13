@@ -9,7 +9,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../../assets/images/expensify-cash.svg';
 import {setPassword} from '../libs/actions/Session';
@@ -38,8 +37,11 @@ const propTypes = {
         password: PropTypes.string,
     }),
 
-    // The accountID and validateCode are passed via the URL
-    route: PropTypes.objectOf(validateLinkPropTypes),
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            validateCode: PropTypes.string,
+        }),
+    }),
 };
 
 const defaultProps = {
@@ -76,55 +78,49 @@ class SetPasswordPage extends Component {
         this.setState({
             formError: null,
         });
-        setPassword(
-            this.state.password,
-            lodashGet(this.props.route, 'params.validateCode', ''),
-            lodashGet(this.props.route, 'params.accountID', ''),
-        );
+        setPassword(this.state.password, lodashGet(this.props.route, 'params.validateCode', ''));
     }
 
     render() {
         return (
             <>
-                <View style={[styles.signInPage]}>
-                    <SafeAreaView>
-                        <View style={[styles.signInPageInner]}>
-                            <View style={[styles.signInPageLogo]}>
-                                <ExpensifyCashLogo
-                                    width={variables.componentSizeLarge}
-                                    height={variables.componentSizeLarge}
-                                />
-                            </View>
-                            <View style={[styles.mb4]}>
-                                <Text style={[styles.formLabel]}>Enter a password</Text>
-                                <TextInput
-                                    style={[styles.textInput]}
-                                    secureTextEntry
-                                    autoCompleteType="password"
-                                    textContentType="password"
-                                    value={this.state.password}
-                                    onChangeText={text => this.setState({password: text})}
-                                    onSubmitEditing={this.submitForm}
-                                />
-                            </View>
-                            <ButtonWithLoader
-                                text="Set Password"
-                                onClick={this.submitForm}
-                                isLoading={this.props.account.loading}
+                <SafeAreaView style={[styles.signInPage]}>
+                    <View style={[styles.signInPageInner]}>
+                        <View style={[styles.signInPageLogo]}>
+                            <ExpensifyCashLogo
+                                width={variables.componentSizeLarge}
+                                height={variables.componentSizeLarge}
                             />
-                            {this.state.formError && (
-                                <Text style={[styles.formError]}>
-                                    {this.state.formError}
-                                </Text>
-                            )}
-                            {!_.isEmpty(this.props.account.error) && (
-                                <Text style={[styles.formError]}>
-                                    {this.props.account.error}
-                                </Text>
-                            )}
                         </View>
-                    </SafeAreaView>
-                </View>
+                        <View style={[styles.mb4]}>
+                            <Text style={[styles.formLabel]}>Enter a password</Text>
+                            <TextInput
+                                style={[styles.textInput]}
+                                secureTextEntry
+                                autoCompleteType="password"
+                                textContentType="password"
+                                value={this.state.password}
+                                onChangeText={text => this.setState({password: text})}
+                                onSubmitEditing={this.submitForm}
+                            />
+                        </View>
+                        <ButtonWithLoader
+                            text="Set Password"
+                            onClick={this.submitForm}
+                            isLoading={this.props.account.loading}
+                        />
+                        {this.state.formError && (
+                            <Text style={[styles.formError]}>
+                                {this.state.formError}
+                            </Text>
+                        )}
+                        {!_.isEmpty(this.props.account.error) && (
+                            <Text style={[styles.formError]}>
+                                {this.props.account.error}
+                            </Text>
+                        )}
+                    </View>
+                </SafeAreaView>
             </>
         );
     }

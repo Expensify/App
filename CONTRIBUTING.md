@@ -11,7 +11,7 @@ You can create as many accounts as needed in order to test your changes directly
 This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/master/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
 
 ## Asking Questions
-If you have any general questions, please ask in the #expensify-open-source Slack channel. To request an invite to the channel, just email contributors@expensify.com with the subject `Slack Channel Invite` and we'll send you an invite! The Expensify team will not be able to respond to direct messages in Slack.
+If you have any general questions, please ask in the #expensify-contributors Slack channel. To request an invite to the channel, just email contributors@expensify.com with the subject `Slack Channel Invite` and we'll send you an invite! The Expensify team will not be able to respond to direct messages in Slack.
 
 If you are hired for an Upwork job and have any job-specific questions, please ask in the GitHub issue or pull request. This will ensure that the person addressing your question has as much context as possible.
 
@@ -82,7 +82,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 #### Timeline expectations and asking for help along the way 
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself. 
 - Please keep the conversation in GitHub, and do not ping individual reviewers in Slack or Upwork to get their attention.
-- Pull Request reviews can sometimes take a few days. If your pull request has not been addressed after four days please let us know via the #expensify-open-source Slack channel.
+- Pull Request reviews can sometimes take a few days. If your pull request has not been addressed after four days please let us know via the #expensify-contributors Slack channel.
 
 #### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](STYLE.md). Please refer to our Style Guide before asking for a review.

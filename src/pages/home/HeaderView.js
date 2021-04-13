@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
@@ -16,7 +15,7 @@ import MultipleAvatars from '../../components/MultipleAvatars';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {getReportParticipantsTitle} from '../../libs/reportUtils';
-import DisplayNames from '../../components/DisplayNames';
+import OptionRowTitle from './sidebar/OptionRowTitle';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
@@ -54,10 +53,11 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
-    const displayNamesWithTooltips = _.map(
-        getPersonalDetailsForLogins(participants, props.personalDetails),
-        ({displayName, login}) => ({displayName, tooltip: login}),
-    );
+    const reportOption = {
+        text: lodashGet(props.report, 'reportName', ''),
+        tooltipText: getReportParticipantsTitle(participants),
+        participantsList: getPersonalDetailsForLogins(participants, props.personalDetails),
+    };
 
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
@@ -92,12 +92,11 @@ const HeaderView = (props) => {
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                             />
                             <View style={[styles.flex1, styles.flexRow]}>
-                                <DisplayNames
-                                    fullTitle={getReportParticipantsTitle(participants)}
-                                    displayNamesWithTooltips={displayNamesWithTooltips}
+                                <OptionRowTitle
+                                    option={reportOption}
                                     tooltipEnabled
                                     numberOfLines={1}
-                                    textStyles={[styles.headerText]}
+                                    style={[styles.headerText]}
                                 />
                             </View>
                         </Pressable>

@@ -14,7 +14,7 @@ import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
-import DisplayNames from '../../../components/DisplayNames';
+import OptionRowTitle from './OptionRowTitle';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
 
@@ -109,11 +109,6 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const displayNamesWithTooltips = _.map(
-        option.participantsList,
-        ({displayName, login}) => ({displayName, tooltip: login}),
-    );
-
     return (
         <Hoverable>
             {hovered => (
@@ -157,13 +152,14 @@ const OptionRow = ({
                                 )
                             }
                             <View style={contentContainerStyles}>
-                                <DisplayNames
-                                    fullTitle={option.text}
-                                    displayNamesWithTooltips={displayNamesWithTooltips}
+                                <OptionRowTitle
+                                    option={option}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
-                                    textStyles={displayNameStyle}
+                                    style={displayNameStyle}
+                                    reportID={option.reportID}
                                 />
+
                                 {option.alternateText ? (
                                     <Text
                                         style={alternateTextStyle}

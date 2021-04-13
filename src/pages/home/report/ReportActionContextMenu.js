@@ -22,7 +22,6 @@ const CONTEXT_ACTIONS = [
         icon: ClipboardIcon,
         successText: 'Copied!',
         successIcon: Checkmark,
-        shouldShow: true,
 
         // If return value is true, we switch the `text` and `icon` on
         // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -46,7 +45,6 @@ const CONTEXT_ACTIONS = [
     {
         text: 'Copy Link',
         icon: LinkCopy,
-        shouldShow: false,
         onPress: () => {},
     },
 
@@ -54,7 +52,6 @@ const CONTEXT_ACTIONS = [
     {
         text: 'Mark as Unread',
         icon: Mail,
-        shouldShow: false,
         onPress: () => {},
     },
 
@@ -62,7 +59,6 @@ const CONTEXT_ACTIONS = [
     {
         text: 'Edit Comment',
         icon: Pencil,
-        shouldShow: false,
         onPress: () => {},
     },
 
@@ -70,7 +66,6 @@ const CONTEXT_ACTIONS = [
     {
         text: 'Delete Comment',
         icon: Trashcan,
-        shouldShow: false,
         onPress: () => {},
     },
 ];
@@ -81,7 +76,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 
     // The report action this context menu is attached to.
-    reportAction: PropTypes.shape(ReportActionPropTypes),
+    reportAction: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // If true, this component will be a small, row-oriented menu that displays icons but not text.
     // If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
@@ -92,7 +87,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reportAction: {},
     isMini: false,
     isVisible: false,
 };
@@ -101,7 +95,7 @@ const ReportActionContextMenu = (props) => {
     const wrapperStyle = getReportActionContextMenuStyles(props.isMini);
     return props.isVisible && (
         <View style={wrapperStyle}>
-            {CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow && (
+            {CONTEXT_ACTIONS.map(contextAction => (
                 <ReportActionContextMenuItem
                     icon={contextAction.icon}
                     text={contextAction.text}

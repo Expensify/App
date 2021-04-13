@@ -7,7 +7,6 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import Timing from './Timing';
-import CONST from '../../CONST';
 
 let credentials = {};
 Onyx.connect({
@@ -77,7 +76,7 @@ function signOut() {
  * @param {String} login
  */
 function fetchAccountDetails(login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
     API.GetAccountStatus({email: login})
         .then((response) => {
@@ -88,8 +87,6 @@ function fetchAccountDetails(login) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     accountExists: response.accountExists,
                     requiresTwoFactorAuth: response.requiresTwoFactorAuth,
-                    validated: response.validated,
-                    forgotPassword: false,
                 });
 
                 if (!response.accountExists) {
@@ -165,7 +162,7 @@ function createTemporaryLogin(authToken, email) {
  * @param {String} [twoFactorAuthCode]
  */
 function signIn(password, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
     API.Authenticate({
         useExpensifyLogin: true,
@@ -198,17 +195,6 @@ function resendValidationLink() {
 }
 
 /**
- * User forgot the password so let's send them the link to reset their password
- */
-function resetPassword() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
-    API.ResetPassword({email: credentials.login})
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
-}
-
-/**
  * Restart the sign in process by clearing everything from Onyx
  */
 function restartSignin() {
@@ -222,19 +208,19 @@ function restartSignin() {
  *
  * @param {String} password
  * @param {String} validateCode
- * @param {String} accountID
  */
-function setPassword(password, validateCode, accountID) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+function setPassword(password, validateCode) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
 
     API.SetPassword({
+        email: credentials.login,
         password,
         validateCode,
-        accountID,
     })
         .then((response) => {
             if (response.jsonCode === 200) {
-                createTemporaryLogin(response.authToken, response.email);
+                const {authToken, email} = response;
+                createTemporaryLogin(authToken, email);
                 return;
             }
 
@@ -252,6 +238,5 @@ export {
     signIn,
     signOut,
     resendValidationLink,
-    resetPassword,
     restartSignin,
 };

@@ -22,9 +22,6 @@ const propTypes = {
         // An error message to display to the user
         error: PropTypes.string,
 
-        // Success message to display when necessary
-        success: PropTypes.string,
-
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
     }),
@@ -48,7 +45,7 @@ class PasswordPage extends Component {
     }
 
     componentWillUnmount() {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {error: ''});
     }
 
     handleChangePassword() {

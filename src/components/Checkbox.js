@@ -10,7 +10,7 @@ const propTypes = {
     isChecked: PropTypes.bool.isRequired,
 
     // A function that is called when the box/label is clicked on
-    onClick: PropTypes.func.isRequired,
+    onCheckboxClick: PropTypes.func.isRequired,
 
     // Text that appears next to check box
     label: PropTypes.string,
@@ -22,17 +22,17 @@ const defaultProps = {
 
 const Checkbox = ({
     isChecked,
-    onClick,
+    onCheckboxClick,
     label,
 }) => (
     <View style={styles.flexRow}>
-        <Pressable onPress={() => onClick(!isChecked)}>
+        <Pressable onPress={() => onCheckboxClick(!isChecked)}>
             <View style={[styles.checkboxContainer, isChecked && styles.checkedContainer]}>
                 <Icon src={Checkmark} fill="white" height={14} width={14} />
             </View>
         </Pressable>
         {label && (
-            <Pressable onPress={() => onClick(!isChecked)}>
+            <Pressable onPress={() => onCheckboxClick(!isChecked)}>
                 <Text style={[styles.ml2, styles.textP]}>
                     {label}
                 </Text>

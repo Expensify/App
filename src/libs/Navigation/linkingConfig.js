@@ -22,7 +22,6 @@ export default {
             // Public Routes
             SignIn: ROUTES.SIGNIN,
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
-            ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
 
             // Modal Screens
             Settings: {
@@ -45,9 +44,6 @@ export default {
                     Settings_Profile: {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
-                    },
-                    Settings_Add_Seconday_Login: {
-                        path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
                 },
             },

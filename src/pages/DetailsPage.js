@@ -13,7 +13,25 @@ import Avatar from '../components/Avatar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
-import personalDetailsPropType from './personalDetailsPropType';
+
+const personalDetailsType = PropTypes.shape({
+    // Display name of the current user from their personal details
+    displayName: PropTypes.string,
+
+    // Avatar URL of the current user from their personal details
+    avatar: PropTypes.string,
+
+    // login of the current user from their personal details
+    login: PropTypes.string,
+
+    // pronouns of the current user from their personal details
+    pronouns: PropTypes.string,
+
+    // timezone of the current user from their personal details
+    timezone: PropTypes.shape({
+        selected: PropTypes.string,
+    }),
+});
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -25,7 +43,7 @@ const matchType = PropTypes.shape({
 const propTypes = {
     /* Onyx Props */
     // The personal details of the person who is logged in
-    personalDetails: personalDetailsPropType.isRequired,
+    personalDetails: personalDetailsType.isRequired,
 
     // Route params
     route: matchType.isRequired,
