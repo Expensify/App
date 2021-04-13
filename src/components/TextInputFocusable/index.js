@@ -40,6 +40,10 @@ const propTypes = {
 
     // Whether or not this TextInput is disabled.
     isDisabled: PropTypes.bool,
+
+    /* Set focus to this component the first time it renders. Override this in case you need to set focus on one
+    * field out of many, or when you want to disable autoFocus */
+    autoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -54,6 +58,7 @@ const defaultProps = {
     onDragLeave: () => {},
     onDrop: () => {},
     isDisabled: false,
+    autoFocus: false,
 };
 
 const IMAGE_EXTENSIONS = {

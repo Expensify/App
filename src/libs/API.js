@@ -34,6 +34,8 @@ function isAuthTokenRequired(command) {
         'SetPassword',
         'User_SignUp',
         'ResendValidateCode',
+        'ResetPassword',
+        'ValidateEmail',
     ], command);
 }
 
@@ -400,6 +402,17 @@ function GetAccountStatus(parameters) {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.debtorEmail
+ * @returns {Promise}
+ */
+function GetIOUReport(parameters) {
+    const commandName = 'GetIOUReport';
+    requireParameters(['debtorEmail'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
  * @returns {Promise}
  */
 function GetRequestCountryCode() {
@@ -422,6 +435,22 @@ function Log(parameters) {
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     return Network.post(commandName, {...parameters, forceNetworkRequest: true});
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String[]} data
+ * @returns {Promise}
+ */
+function Mobile_GetConstants(parameters) {
+    const commandName = 'Mobile_GetConstants';
+    requireParameters(['data'], parameters, commandName);
+
+    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
+    const finalParameters = parameters;
+    finalParameters.data = JSON.stringify(parameters.data);
+
+    return Network.post(commandName, finalParameters);
 }
 
 /**
@@ -529,7 +558,7 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Number} parameters.email
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function ResendValidateCode(parameters) {
@@ -540,13 +569,37 @@ function ResendValidateCode(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.name
+ * @param {String} parameters.value
+ * @returns {Promise}
+ */
+function SetNameValuePair(parameters) {
+    const commandName = 'SetNameValuePair';
+    requireParameters(['name', 'value'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.email
+ * @returns {Promise}
+ */
+function ResetPassword(parameters) {
+    const commandName = 'ResetPassword';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.password
  * @param {String} parameters.validateCode
+ * @param {String} parameters.accountID
  * @returns {Promise}
  */
 function SetPassword(parameters) {
     const commandName = 'SetPassword';
-    requireParameters(['email', 'password', 'validateCode'], parameters, commandName);
+    requireParameters(['accountID', 'password', 'validateCode'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -593,40 +646,13 @@ function User_UploadAvatar(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.name
- * @param {String} parameters.value
+ * @param {Number} parameters.accountID
+ * @param {String} parameters.validateCode
  * @returns {Promise}
  */
-function SetNameValuePair(parameters) {
-    const commandName = 'SetNameValuePair';
-    requireParameters(['name', 'value'], parameters, commandName);
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String[]} data
- * @returns {Promise}
- */
-function Mobile_GetConstants(parameters) {
-    const commandName = 'Mobile_GetConstants';
-    requireParameters(['data'], parameters, commandName);
-
-    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
-    const finalParameters = parameters;
-    finalParameters.data = JSON.stringify(parameters.data);
-
-    return Network.post(commandName, finalParameters);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.debtorEmail
- * @returns {Promise}
- */
-function GetIOUReport(parameters) {
-    const commandName = 'GetIOUReport';
-    requireParameters(['debtorEmail'], parameters, commandName);
+function ValidateEmail(parameters) {
+    const commandName = 'ValidateEmail';
+    requireParameters(['accountID', 'validateCode'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -652,6 +678,7 @@ export {
     Report_TogglePinned,
     Report_UpdateLastRead,
     ResendValidateCode,
+    ResetPassword,
     SetNameValuePair,
     SetPassword,
     UpdateAccount,
@@ -660,4 +687,5 @@ export {
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     reauthenticate,
+    ValidateEmail,
 };

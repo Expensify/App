@@ -13,6 +13,8 @@ import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
+import CONST from '../CONST';
+import positioning from './utilities/positioning';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -21,12 +23,14 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
+    ...positioning,
     ...wordBreak,
     ...whiteSpace,
 
     link: {
         color: themeColors.link,
         textDecorationColor: themeColors.link,
+        fontFamily: fontFamily.GTA,
     },
 
     h1: {
@@ -252,6 +256,14 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
+    headerGap: {
+        height: 12,
+    },
+
+    pushTextRight: {
+        left: 100000,
+    },
+
     reportOptions: {
         marginLeft: 8,
     },
@@ -388,7 +400,7 @@ const styles = {
         width: '100%',
     },
 
-    loginFormContainer: {
+    signInPageFormContainer: {
         maxWidth: 295,
         width: '100%',
     },
@@ -591,11 +603,7 @@ const styles = {
         flexShrink: 0,
     },
 
-    optionDisplayNameTooltipWrapper: {
-        position: 'relative',
-    },
-
-    optionDisplayNameTooltipEllipsis: {
+    displayNameTooltipEllipsis: {
         position: 'absolute',
         opacity: 0,
         right: 0,
@@ -788,6 +796,10 @@ const styles = {
         justifyContent: 'center',
     },
 
+    hoveredButton: {
+        backgroundColor: themeColors.buttonHoveredBG,
+    },
+
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
@@ -865,6 +877,11 @@ const styles = {
         borderColor: 'transparent',
     },
 
+    secondAvatarHovered: {
+        backgroundColor: themeColors.sidebarHover,
+        borderColor: themeColors.sidebarHover,
+    },
+
     secondAvatarSmall: {
         position: 'absolute',
         right: -13,
@@ -915,8 +932,8 @@ const styles = {
     },
 
     focusedAvatar: {
-        backgroundColor: themeColors.pillBG,
-        borderColor: themeColors.pillBG,
+        backgroundColor: themeColors.border,
+        borderColor: themeColors.border,
     },
 
     emptyAvatar: {
@@ -1045,14 +1062,11 @@ const styles = {
         borderColor: colors.transparent,
     },
 
-    reportActionContextMenuText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-        ...spacing.ml4,
-        ...spacing.mr2,
+    reportActionContextMenuMiniButton: {
+        ...spacing.p1,
+        ...spacing.mv1,
+        ...spacing.mh1,
+        ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
     settingsPageBackground: {
@@ -1244,6 +1258,14 @@ const styles = {
     noScrollbars: {
         scrollbarWidth: 'none',
     },
+
+    fullScreenLoading: {
+        backgroundColor: themeColors.modalBackdrop,
+        opacity: 0.8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1278,6 +1300,10 @@ const webViewStyles = {
         },
 
         a: styles.link,
+
+        li: {
+            flexShrink: 1,
+        },
 
         blockquote: {
             borderLeftColor: themeColors.border,
@@ -1421,6 +1447,93 @@ function getAutoGrowTextInputStyle(width) {
 }
 
 /**
+ * Returns a style with backgroundColor and borderColor set to the same color
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundAndBorderStyle(backgroundColor) {
+    return {
+        backgroundColor,
+        borderColor: backgroundColor,
+    };
+}
+
+/**
+ * Returns a style with the specified backgroundColor
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundColorStyle(backgroundColor) {
+    return {
+        backgroundColor,
+    };
+}
+
+/**
+ * Generate a style for the background color of the button, based on its current state.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Object}
+ */
+function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return {backgroundColor: themeColors.buttonHoveredBG};
+        case CONST.BUTTON_STATES.PRESSED:
+            return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return {};
+    }
+}
+
+/**
+ * Generate fill color of an icon based on its state.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Object}
+ */
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return themeColors.text;
+        case CONST.BUTTON_STATES.PRESSED:
+            return themeColors.heading;
+        case CONST.BUTTON_STATES.COMPLETE:
+            return themeColors.iconSuccessFill;
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return themeColors.icon;
+    }
+}
+
+/**
+ * @param {Animated.Value} rotate
+ * @param {Animated.Value} backgroundColor
+ * @returns {Object}
+ */
+function getAnimatedFABStyle(rotate, backgroundColor) {
+    return {
+        transform: [{rotate}],
+        backgroundColor,
+    };
+}
+
+/**
+ * @param {Number} width
+ * @param {Number} height
+ * @returns {Object}
+ */
+function getWidthAndHeightStyle(width, height) {
+    return {
+        width,
+        height,
+    };
+}
+
+/**
  * Positions an element to outside of the window and hides it
  *
  * @param {Number} windowWidth
@@ -1431,6 +1544,36 @@ function getHiddenElementOutsideOfWindow(windowWidth) {
         position: 'absolute',
         opacity: 0,
         left: windowWidth,
+    };
+}
+
+/**
+ * @param {Number} opacity
+ * @returns {Object}
+ */
+function getOpacityStyle(opacity) {
+    return {opacity};
+}
+
+/**
+ * @param {Object} params
+ * @returns {Object}
+ */
+function getModalPaddingStyles({
+    shouldAddBottomSafeAreaPadding,
+    shouldAddTopSafeAreaPadding,
+    safeAreaPaddingTop,
+    safeAreaPaddingBottom,
+    modalContainerStylePaddingTop,
+    modalContainerStylePaddingBottom,
+}) {
+    return {
+        paddingTop: shouldAddTopSafeAreaPadding
+            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
+            : modalContainerStylePaddingTop || 0,
+        paddingBottom: shouldAddBottomSafeAreaPadding
+            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
+            : modalContainerStylePaddingBottom || 0,
     };
 }
 
@@ -1446,4 +1589,12 @@ export {
     getZoomSizingStyle,
     getAutoGrowTextInputStyle,
     getHiddenElementOutsideOfWindow,
+    getBackgroundAndBorderStyle,
+    getBackgroundColorStyle,
+    getButtonBackgroundColorStyle,
+    getIconFillColor,
+    getAnimatedFABStyle,
+    getWidthAndHeightStyle,
+    getOpacityStyle,
+    getModalPaddingStyles,
 };

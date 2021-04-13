@@ -133,12 +133,13 @@ class SearchPage extends Component {
         const headerMessage = getHeaderMessage(
             (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
             Boolean(this.state.userToInvite),
+            this.state.searchValue,
         );
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title="Search"
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector

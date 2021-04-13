@@ -1,11 +1,9 @@
 import React, {PureComponent} from 'react';
-import {
-    Pressable, Animated, Easing, KeyboardAvoidingView, Platform,
-} from 'react-native';
+import {Pressable, Animated, Easing} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
 import {Plus} from './Icon/Expensicons';
-import styles from '../styles/styles';
+import styles, {getAnimatedFABStyle} from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
@@ -66,17 +64,15 @@ class FAB extends PureComponent {
         });
 
         return (
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'position' : 'height'}>
-                <AnimatedPressable
-                    onPress={this.props.onPress}
-                    style={[
-                        styles.floatingActionButton,
-                        {transform: [{rotate}], backgroundColor},
-                    ]}
-                >
-                    <AnimatedIcon src={Plus} fill={fill} />
-                </AnimatedPressable>
-            </KeyboardAvoidingView>
+            <AnimatedPressable
+                onPress={this.props.onPress}
+                style={[
+                    styles.floatingActionButton,
+                    getAnimatedFABStyle(rotate, backgroundColor),
+                ]}
+            >
+                <AnimatedIcon src={Plus} fill={fill} />
+            </AnimatedPressable>
         );
     }
 }
