@@ -1,12 +1,9 @@
-import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {getPathFromState, NavigationContainer} from '@react-navigation/native';
 import {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
-import ROUTES from '../../ROUTES';
-import {updateCurrentlyViewedReportID} from '../actions/Report';
 import {setCurrentURL} from '../actions/App';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
@@ -32,13 +29,6 @@ class NavigationRoot extends Component {
         }
 
         const path = getPathFromState(state, linkingConfig.config);
-        if (path.includes(ROUTES.REPORT)) {
-            const reportID = Number(_.last(path.split('/')));
-            if (reportID && !_.isNaN(reportID)) {
-                updateCurrentlyViewedReportID(reportID);
-            }
-        }
-
         setCurrentURL(path);
     }
 
