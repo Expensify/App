@@ -37,7 +37,7 @@ const DetailsPage = ({personalDetails, route}) => {
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title="Details"
-                onCloseButtonPress={Navigation.dismissModal}
+                onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <View
                 pointerEvents="box-none"
