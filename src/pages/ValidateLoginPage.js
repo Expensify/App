@@ -1,5 +1,4 @@
 import {Component} from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import {validateLogin} from '../libs/actions/User';
@@ -8,7 +7,7 @@ const propTypes = {
     /* Onyx Props */
 
     // The accountID and validateCode are passed via the URL
-    route: PropTypes.objectOf(validateLinkPropTypes),
+    route: validateLinkPropTypes,
 };
 
 const defaultProps = {

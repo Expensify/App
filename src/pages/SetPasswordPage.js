@@ -39,7 +39,7 @@ const propTypes = {
     }),
 
     // The accountID and validateCode are passed via the URL
-    route: PropTypes.objectOf(validateLinkPropTypes),
+    route: validateLinkPropTypes,
 };
 
 const defaultProps = {
