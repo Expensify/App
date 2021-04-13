@@ -4,10 +4,7 @@ import styles from '../styles/styles';
 import Text from './Text';
 
 const UnreadActionIndicator = () => (
-    <View style={[
-        styles.unreadIndicatorContainer,
-    ]}
-    >
+    <View style={styles.unreadIndicatorContainer}>
         <View style={styles.unreadIndicatorLine} />
         <Text style={styles.unreadIndicatorText}>
             NEW
