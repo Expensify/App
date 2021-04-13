@@ -75,6 +75,9 @@ class ReportScreen extends React.Component {
         this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 300);
     }
 
+    /**
+     * Persists the currently viewed report id
+     */
     storeCurrentlyViewedReport() {
         const reportID = this.getReportID();
         updateCurrentlyViewedReportID(reportID);
