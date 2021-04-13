@@ -65,7 +65,7 @@ class PasswordForm extends React.Component {
 
     render() {
         return (
-            <View style={[styles.loginFormContainer]}>
+            <>
                 <View style={[styles.mb4]}>
                     <Text style={[styles.formLabel]}>Password</Text>
                     <TextInput
@@ -115,7 +115,7 @@ class PasswordForm extends React.Component {
                         {this.state.formError}
                     </Text>
                 )}
-            </View>
+            </>
         );
     }
 }
