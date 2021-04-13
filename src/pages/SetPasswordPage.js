@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../../assets/images/expensify-cash.svg';
 import {setPassword} from '../libs/actions/Session';
@@ -38,16 +39,7 @@ const propTypes = {
     }),
 
     // The accountID and validateCode are passed via the URL
-    route: PropTypes.shape({
-        // Each parameter passed via the URL
-        params: PropTypes.shape({
-            // The user's accountID
-            accountID: PropTypes.string,
-
-            // The user's validateCode
-            validateCode: PropTypes.string,
-        }),
-    }),
+    route: validateLinkPropTypes,
 };
 
 const defaultProps = {
