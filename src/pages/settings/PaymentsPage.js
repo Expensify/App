@@ -9,7 +9,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Text from '../../components/Text';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import NameValuePair from '../../libs/actions/NameValuePair';
-import {fetch} from '../../libs/actions/User';
+import {getUserDetails} from '../../libs/actions/User';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 
@@ -32,7 +32,7 @@ class PaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        fetch();
+        getUserDetails();
     }
 
     componentDidUpdate(prevProps) {
