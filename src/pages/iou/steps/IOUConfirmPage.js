@@ -1,18 +1,6 @@
-import React, {Component} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import {TextInput} from 'react-native-gesture-handler';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import themeColors from '../../../styles/themes/default';
-import {
-    getDisplayOptionFromMyPersonalDetail,
-    getDisplayOptionsFromParticipants,
-} from '../../../libs/OptionsListUtils';
-import ButtonWithLoader from '../../../components/ButtonWithLoader';
-import OptionsList from '../../../components/OptionsList';
+import IOUConfirmationList from '../../../components/IOUConfirmationList';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -50,206 +38,28 @@ const propTypes = {
         participantsList: PropTypes.arrayOf(PropTypes.object),
     })).isRequired,
 
-    /* Onyx Props */
-
-    // The personal details of the person who is logged in
-    myPersonalDetails: PropTypes.shape({
-
-        // Display name of the current user from their personal details
-        displayName: PropTypes.string,
-
-        // Avatar URL of the current user from their personal details
-        avatar: PropTypes.string,
-
-        // Primary login of the user
-        login: PropTypes.string,
-    }).isRequired,
-
-    // Holds data related to IOU view state, rather than the underlying IOU data.
-    iou: PropTypes.shape({
-
-        // Whether or not the IOU step is loading (creating the IOU Report)
-        loading: PropTypes.bool,
-    }),
 };
 
 const defaultProps = {
-    iou: {},
     onUpdateComment: null,
     comment: '',
 };
 
-class IOUConfirmPage extends Component {
-    /**
-     * Returns the sections needed for the OptionsSelector
-     *
-     * @param {Boolean} maxParticipantsReached
-     * @returns {Array}
-     */
-    getSections() {
-        const sections = [];
+const IOUConfirmPage = props => (
+    <IOUConfirmationList
+        hasMultipleParticipants={props.hasMultipleParticipants}
+        participants={props.participants}
+        comment={props.comment}
+        onUpdateComment={props.onUpdateComment}
+        selectedCurrency={props.selectedCurrency}
+        iouAmount={props.iouAmount}
+        onConfirm={props.onConfirm}
+    />
+);
 
-        if (this.props.hasMultipleParticipants) {
-            const formattedMyPersonalDetails = getDisplayOptionFromMyPersonalDetail(this.props.myPersonalDetails,
-
-                // convert from cent to bigger form
-                `$${this.calculateAmount(true) / 100}`);
-            const formattedParticipants = getDisplayOptionsFromParticipants(this.props.participants,
-                `$${this.calculateAmount() / 100}`);
-
-            sections.push({
-                title: 'WHO PAID?',
-                data: formattedMyPersonalDetails,
-                shouldShow: true,
-                indexOffset: 0,
-            });
-            sections.push({
-                title: 'WHO WAS THERE?',
-                data: formattedParticipants,
-                shouldShow: true,
-                indexOffset: 0,
-            });
-        } else {
-        // $ should be replaced by currency symbol once available
-            const formattedParticipants = getDisplayOptionsFromParticipants(this.props.participants,
-                `$${this.props.iouAmount}`);
-
-            sections.push({
-                title: 'TO',
-                data: formattedParticipants,
-                shouldShow: true,
-                indexOffset: 0,
-            });
-        }
-        return sections;
-    }
-
-    /**
-     * Gets splits for the transaction
-     *
-     * @returns {Array}
-     */
-    getSplits() {
-        const splits = this.props.participants.map(participant => ({
-            email: participant.login,
-
-            // we should send in cents to API
-            amount: this.calculateAmount(),
-        }));
-
-        splits.push({
-            email: this.props.myPersonalDetails.login,
-
-            // the user is default and we should send in cents to API
-            amount: this.calculateAmount(true),
-        });
-        return splits;
-    }
-
-    /**
-     * Gets participants list for a report
-     *
-     * @returns {Array}
-     */
-    getParticipants() {
-        const participants = this.props.participants.map(participant => participant.login);
-        participants.push(this.props.myPersonalDetails.login);
-        return participants;
-    }
-
-    /**
-     * Returns selected options with all participant logins
-     * @returns {Array}
-     */
-    getAllOptionsAsSelected() {
-        return [...this.props.participants,
-            getDisplayOptionFromMyPersonalDetail(this.props.myPersonalDetails)];
-    }
-
-    /**
-     * Calculates the amount per user
-     * @param {Boolean} isDefaultUser
-     * @returns {Number}
-     */
-    calculateAmount(isDefaultUser = false) {
-        // convert to cents before working with iouAmount to avoid
-        // javascript subtraction with decimal problem
-        const iouAmount = Math.round(parseFloat(this.props.iouAmount * 100));
-        const totalParticipants = this.props.participants.length + 1;
-
-        const amountPerPerson = Math.round(iouAmount / totalParticipants);
-
-        const sumAmount = amountPerPerson * totalParticipants;
-
-        const difference = iouAmount - sumAmount;
-
-        if (!isDefaultUser) { return amountPerPerson; }
-
-        return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
-    }
-
-    render() {
-        const sections = this.getSections();
-        return (
-            <View style={[styles.flex1, styles.w100]}>
-                <View style={[styles.flex1]}>
-                    <OptionsList
-                        sections={sections}
-                        disableArrowKeysActions
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                        canSelectMultipleOptions={this.props.hasMultipleParticipants}
-                        disableFocusOptions
-                        selectedOptions={this.props.hasMultipleParticipants && this.getAllOptionsAsSelected()}
-                    />
-                    <View>
-                        <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                            WHAT&apos;S IT FOR?
-                        </Text>
-                    </View>
-                    <View style={[styles.ph5]}>
-                        <TextInput
-                            style={[styles.textInput]}
-                            value={this.props.comment}
-                            onChangeText={this.props.onUpdateComment}
-                            placeholder="Optional"
-                            placeholderTextColor={themeColors.placeholderText}
-                        />
-                    </View>
-                </View>
-                <View style={[styles.ph5, styles.pb3]}>
-                    <ButtonWithLoader
-                        isLoading={this.props.iou.loading}
-                        text={this.props.hasMultipleParticipants ? 'Split' : `Request $${this.props.iouAmount}`}
-                        onClick={() => {
-                            if (this.props.hasMultipleParticipants) {
-                                this.props.onConfirm({
-                                    splits: this.getSplits(),
-                                    participants: this.getParticipants(),
-                                });
-                            } else {
-                                this.props.onConfirm({
-                                    debtorEmail: this.props.participants[0].login,
-                                });
-                            }
-                        }}
-                    />
-                </View>
-            </View>
-        );
-    }
-}
 
 IOUConfirmPage.displayName = 'IOUConfirmPage';
 IOUConfirmPage.propTypes = propTypes;
 IOUConfirmPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    iou: {key: ONYXKEYS.IOU},
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    myPersonalDetails: {
-        key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    },
-})(IOUConfirmPage);
+export default IOUConfirmPage;

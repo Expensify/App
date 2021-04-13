@@ -644,6 +644,8 @@ function GetIOUReport(parameters) {
 }
 
 /**
+ * Create a new IOUTransaction
+ *
  * @param {Object} parameters
  * @param {String} parameters.comment
  * @param {Array} parameters.debtorEmail
@@ -658,6 +660,8 @@ function CreateIOUTransaction(parameters) {
 }
 
 /**
+ * Create a new IOU Split
+ *
  * @param {Object} parameters
  * @param {String} parameters.splits
  * @param {String} parameters.currency
