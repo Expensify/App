@@ -23,7 +23,7 @@ jobs:
 
       - name: Reopen and comment on issue
         if: ${{ steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
-        uses: Expensify/Expensify.cash/.github/actions/reopenIssueWithComments@master
+        uses: Expensify/Expensify.cash/.github/actions/reopenIssueWithComment@master
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -36,8 +36,8 @@ jobs:
     runs-on: ubuntu-latest
 
     # Note: Anyone with Triage access to the Expensify.cash repo can trigger a production deploy
-    needs: checkForDeployBlockers
-    if: ${{ needs.checkForDeployBlockers.outputs.hasDeployBlockers == 'false' }}
+    needs: checkDeployBlockers
+    if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
@@ -86,8 +86,8 @@ jobs:
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
     runs-on: macos-latest
-    needs: checkForDeployBlockers
-    if: ${{ needs.checkForDeployBlockers.outputs.hasDeployBlockers == 'false' }}
+    needs: checkDeployBlockers
+    if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f

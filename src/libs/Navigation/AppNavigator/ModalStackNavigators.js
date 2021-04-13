@@ -9,7 +9,7 @@ import DetailsPage from '../../../pages/DetailsPage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
 import SettingsInitialPage from '../../../pages/settings/InitialPage';
-import SettingsProfilePage from '../../../pages/settings/ProfilePage';
+import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';

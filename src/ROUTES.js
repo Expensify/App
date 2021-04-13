@@ -27,4 +27,6 @@ export default {
     getReportParticipantsRoute: reportID => `r/${reportID}/participants`,
     REPORT_PARTICIPANT: 'r/:reportID/participants/:login',
     getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
+    VALIDATE_LOGIN: 'v',
+    VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
 };
