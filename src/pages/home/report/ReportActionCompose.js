@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, TouchableOpacity, InteractionManager} from 'react-native';
+import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -16,11 +17,9 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
-import withNavigationContext, {navigationContextPropTypes} from '../../../components/withNavigationContext';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
-import getPlatform from '../../../libs/getPlatform';
-import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -51,7 +50,8 @@ const propTypes = {
     /* Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
-    ...navigationContextPropTypes,
+    // Is composer screen focused
+    isFocused: PropTypes.bool.isRequired,
 
 };
 
@@ -72,10 +72,10 @@ class ReportActionCompose extends React.Component {
         this.setIsFocused = this.setIsFocused.bind(this);
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
-        this.autoFocusEnabled = getPlatform() === 'desktop' || (getPlatform() === 'web' && !canUseTouchScreen());
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
-            isFocused: this.autoFocusEnabled,
+            isFocused: this.shouldFocusInputOnScreenFocus,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
@@ -83,11 +83,10 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // We want to manually set the focus only when.
-        //  1) Auto focus is enabled(we are on desktop/Desktop Web).
-        //  1) Screen is focsued.
-        //  2) When any modal goes from visible to hidden &
-        if (this.autoFocusEnabled && this.props.isScreenFocused
+        // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
+        // We avoid doing this on native platforms since the software keyboard popping
+        // open creates a jarring and broken UX.
+        if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.setIsFocused(true);
             this.focus();
@@ -126,6 +125,8 @@ class ReportActionCompose extends React.Component {
      */
     focus() {
         if (this.textInput) {
+            // There could be other animations running while we trigger manual focus.
+            // This prevents focus from making those animations janky.
             InteractionManager.runAfterInteractions(() => {
                 this.textInput.focus();
             });
@@ -276,7 +277,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                    autoFocus={this.autoFocusEnabled}
+                                    autoFocus={this.shouldFocusInputOnScreenFocus}
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
@@ -334,6 +335,7 @@ ReportActionCompose.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
+    withNavigationFocus,
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
@@ -345,5 +347,4 @@ export default compose(
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
-    withNavigationContext,
 )(ReportActionCompose);
