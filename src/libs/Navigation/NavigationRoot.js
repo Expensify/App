@@ -19,14 +19,14 @@ class NavigationRoot extends Component {
     constructor(props) {
         super(props);
 
-        this.handleStateChange = this.handleStateChange.bind(this);
+        this.parseAndStoreRoute = this.parseAndStoreRoute.bind(this);
     }
 
     /**
      * Intercept state changes and perform different logic
      * @param {NavigationState} state
      */
-    handleStateChange(state) {
+    parseAndStoreRoute(state) {
         if (!state) {
             return;
         }
@@ -46,7 +46,7 @@ class NavigationRoot extends Component {
         return (
             <NavigationContainer
                 fallback={<FullScreenLoadingIndicator visible />}
-                onStateChange={this.handleStateChange}
+                onStateChange={this.parseAndStoreRoute}
                 ref={navigationRef}
                 linking={linkingConfig}
                 documentTitle={{
