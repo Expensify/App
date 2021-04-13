@@ -105,6 +105,8 @@ const CONST = {
         NUMERIC: 'numeric',
         PHONE_PAD: 'phone-pad',
     },
+
+    EMOJI_PICKER_SIZE: 360,
 };
 
 export default CONST;
