@@ -79,6 +79,7 @@ class ReportActionContextMenuItem extends Component {
                         icon={icon}
                         onPress={this.triggerPressAndUpdateSuccess}
                         wrapperStyle={styles.pr9}
+                        success={this.state.success}
                     />
                 )
         );
