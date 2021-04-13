@@ -23,7 +23,7 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
-import CONST from '../../../CONST'
+import CONST from '../../../CONST';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -342,13 +342,15 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
+                    {
+
+                        // There is no way to disable animations and they are really laggy, because there are so many
+                        // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
+                    }
                     <Popover
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
                         hideModalContentWhileAnimating
-
-                        // There is no way to disable animations and they are really laggy, because there are so many
-                        // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
                         animationInTiming={1}
                         animationOutTiming={1}
                         anchorPosition={{
