@@ -6,7 +6,6 @@ import {
     TextInput,
     Pressable,
 } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment-timezone';
 import _ from 'underscore';
@@ -27,6 +26,7 @@ import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import CreateMenu from '../../../components/CreateMenu';
+import Picker from '../../../components/Picker';
 
 const propTypes = {
     /* Onyx Props */
@@ -313,17 +313,15 @@ class ProfilePage extends Component {
                     <View style={styles.mb6}>
                         <Text style={[styles.mb1, styles.formLabel]}>Preferred Pronouns</Text>
                         <View style={styles.mb1}>
-                            <RNPickerSelect
-                                onValueChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
+                            <Picker
+                                onChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
                                 items={this.pronounDropdownValues}
-                                style={styles.picker}
-                                useNativeAndroidPickerStyle={false}
                                 placeholder={{
                                     value: '',
                                     label: 'Select your pronouns',
                                 }}
                                 value={this.state.pronouns}
-                                Icon={() => <Icon src={DownArrow} />}
+                                icon={() => <Icon src={DownArrow} />}
                             />
                         </View>
                         {this.state.pronouns === CONST.PRONOUNS.SELF_SELECT && (
@@ -340,27 +338,19 @@ class ProfilePage extends Component {
                     <LoginField label="Phone Number" type="phone" login={this.state.logins.phone} />
                     <View style={styles.mb3}>
                         <Text style={[styles.mb1, styles.formLabel]}>Timezone</Text>
-                        <RNPickerSelect
-                            onValueChange={selectedTimezone => this.setState({selectedTimezone})}
+                        <Picker
+                            onChange={selectedTimezone => this.setState({selectedTimezone})}
                             items={timezones}
-                            style={this.state.isAutomaticTimezone ? {
-                                ...styles.picker,
-                                inputIOS: [styles.picker.inputIOS, styles.textInput, styles.disabledTextInput],
-                                inputAndroid: [
-                                    styles.picker.inputAndroid, styles.textInput, styles.disabledTextInput,
-                                ],
-                                inputWeb: [styles.picker.inputWeb, styles.textInput, styles.disabledTextInput],
-                            } : styles.picker}
-                            useNativeAndroidPickerStyle={false}
+                            useDisabledStyles={this.state.isAutomaticTimezone}
                             value={this.state.selectedTimezone}
-                            Icon={() => <Icon src={DownArrow} />}
+                            icon={() => <Icon src={DownArrow} />}
                             disabled={this.state.isAutomaticTimezone}
                         />
                     </View>
                     <Checkbox
                         label="Set my timezone automatically"
                         isChecked={this.state.isAutomaticTimezone}
-                        onCheckboxClick={this.setAutomaticTimezone}
+                        onClick={this.setAutomaticTimezone}
                     />
                 </View>
                 <View style={[styles.ph5, styles.pb5]}>
