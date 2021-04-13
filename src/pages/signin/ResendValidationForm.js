@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
-import {resendValidationLink, resetPassword} from '../../libs/actions/Session';
+import {resendValidationLink} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
@@ -16,9 +16,6 @@ const propTypes = {
     account: PropTypes.shape({
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
-
-        // Weather or not the account is validated
-        validated: PropTypes.bool,
     }),
 };
 
@@ -51,13 +48,7 @@ class ResendValidationForm extends React.Component {
             formSuccess: 'Link has been re-sent',
         });
 
-        if (!this.props.account.validated) {
-            resendValidationLink();
-            console.debug('Account is unvalidated: Sending validation link.');
-        } else {
-            resetPassword();
-            console.debug('Account forgot password: Sending reset password link.');
-        }
+        resendValidationLink();
 
         this.successMessageTimer = setTimeout(() => {
             this.setState({formSuccess: ''});
@@ -69,7 +60,7 @@ class ResendValidationForm extends React.Component {
             <>
                 <View>
                     <Text style={[styles.textP]}>
-                        We&apos;ve sent you a magic sign in link – just click on it to log in!
+                        Please validate your account by clicking on the link we just sent you.
                     </Text>
                 </View>
                 <View style={[styles.mt4]}>

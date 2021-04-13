@@ -6,7 +6,6 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
-import CONST from './CONST';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
@@ -22,7 +21,7 @@ Onyx.init({
 
         // Clear any loading and error messages so they do not appear on app startup
         [ONYXKEYS.SESSION]: {loading: false},
-        [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
+        [ONYXKEYS.ACCOUNT]: {loading: false, error: ''},
         [ONYXKEYS.NETWORK]: {isOffline: false},
         [ONYXKEYS.IOU]: {loading: false},
     },

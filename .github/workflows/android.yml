@@ -44,9 +44,6 @@ jobs:
               env:
                   LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-            - name: Set version in ENV
-              run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+\d\+' android/app/build.gradle | awk '{ print $2 }')" >> $GITHUB_ENV
-
             - name: Run Fastlane beta
               if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
               run: bundle exec fastlane android beta
@@ -55,7 +52,7 @@ jobs:
               if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
               run: bundle exec fastlane android production
               env:
-                VERSION: ${{ env.VERSION_CODE }}
+                VERSION: ${{ env.VERSION }}
 
             # These Slack steps are duplicated in all workflows, if you make a change to this step, make sure to update all
             # the other workflows with the same changes
@@ -77,3 +74,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ github.token }}
                   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+            - name: Set version in ENV
+              if: ${{ success() }}
+              run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV

@@ -10,14 +10,12 @@ ACTIONS_DIR="$(dirname "$(dirname "$0")")/actions"
 # List of paths to all JS files that implement our GH Actions
 declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/bumpVersion/bumpVersion.js"
-    "$ACTIONS_DIR/checkDeployBlockers/checkDeployBlockers.js"
     "$ACTIONS_DIR/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy.js"
     "$ACTIONS_DIR/getReleaseBody/getReleaseBody.js"
     "$ACTIONS_DIR/getReleasePullRequestList/getReleasePullRequestList.js"
     "$ACTIONS_DIR/isPullRequestMergeable/isPullRequestMergeable.js"
     "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.js"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.js"
-    "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.js"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

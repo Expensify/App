@@ -1,11 +1,35 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
-import MenuItem from '../../../components/MenuItem';
+import {Pressable, Text} from 'react-native';
 import Tooltip from '../../../components/Tooltip';
 import Icon from '../../../components/Icon';
-import styles, {getIconFillColor, getButtonBackgroundColorStyle} from '../../../styles/styles';
-import getButtonState from '../../../libs/getButtonState';
+import getReportActionContextMenuItemStyles from '../../../styles/getReportActionContextMenuItemStyles';
+import CONST from '../../../CONST';
+import styles from '../../../styles/styles';
+
+/**
+ * Get the string representation of a button's state.
+ *
+ * @param {Boolean} [isHovered]
+ * @param {Boolean} [isPressed]
+ * @param {Boolean} [isComplete]
+ * @returns {String}
+ */
+function getButtonState(isHovered = false, isPressed = false, isComplete = false) {
+    if (isComplete) {
+        return CONST.BUTTON_STATES.COMPLETE;
+    }
+
+    if (isPressed) {
+        return CONST.BUTTON_STATES.PRESSED;
+    }
+
+    if (isHovered) {
+        return CONST.BUTTON_STATES.HOVERED;
+    }
+
+    return CONST.BUTTON_STATES.DEFAULT;
+}
 
 const propTypes = {
     icon: PropTypes.elementType.isRequired,
@@ -50,6 +74,7 @@ class ReportActionContextMenuItem extends Component {
     }
 
     render() {
+        const {getButtonStyle, getIconFillColor} = getReportActionContextMenuItemStyles(this.props.isMini);
         const icon = this.state.success ? this.props.successIcon || this.props.icon : this.props.icon;
         const text = this.state.success ? this.props.successText || this.props.text : this.props.text;
         return (
@@ -59,10 +84,9 @@ class ReportActionContextMenuItem extends Component {
                         <Pressable
                             onPress={this.triggerPressAndUpdateSuccess}
                             style={
-                                ({hovered, pressed}) => [
-                                    styles.reportActionContextMenuMiniButton,
-                                    getButtonBackgroundColorStyle(getButtonState(hovered, pressed, this.state.success)),
-                                ]
+                                ({hovered, pressed}) => getButtonStyle(
+                                    getButtonState(hovered, pressed, this.state.success),
+                                )
                             }
                         >
                             {({hovered, pressed}) => (
@@ -74,12 +98,29 @@ class ReportActionContextMenuItem extends Component {
                         </Pressable>
                     </Tooltip>
                 ) : (
-                    <MenuItem
-                        title={text}
-                        icon={icon}
+                    <Pressable
                         onPress={this.triggerPressAndUpdateSuccess}
-                        wrapperStyle={styles.pr9}
-                    />
+                        style={
+                            ({hovered, pressed}) => getButtonStyle(
+                                getButtonState(hovered, pressed, this.state.success),
+                            )
+                        }
+                    >
+                        {({hovered, pressed}) => (
+                            <>
+                                <Icon
+                                    src={icon}
+                                    fill={getIconFillColor(getButtonState(hovered, pressed, this.state.success))}
+                                />
+                                <Text
+                                    style={styles.reportActionContextMenuText}
+                                    selectable={false}
+                                >
+                                    {text}
+                                </Text>
+                            </>
+                        )}
+                    </Pressable>
                 )
         );
     }

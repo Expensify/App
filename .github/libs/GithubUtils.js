@@ -1,5 +1,7 @@
 const _ = require('underscore');
 const lodashGet = require('lodash/get');
+const semverParse = require('semver/functions/parse');
+const semverSatisfies = require('semver/functions/satisfies');
 
 const GITHUB_OWNER = 'Expensify';
 const EXPENSIFY_CASH_REPO = 'Expensify.cash';
@@ -60,6 +62,11 @@ class GithubUtils {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
             const tag = issue.body.match(versionRegex)[0].replace(/`/g, '');
+
+            // eslint-disable-next-line max-len
+            const compareURLRegex = new RegExp(`${EXPENSIFY_CASH_URL}/compare/${versionRegex.source}\\.\\.\\.${versionRegex.source}`, 'g');
+            const comparisonURL = issue.body.match(compareURLRegex)[0];
+
             return {
                 title: issue.title,
                 url: issue.url,
@@ -67,6 +74,7 @@ class GithubUtils {
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 tag,
+                comparisonURL,
             };
         } catch (exception) {
             throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue with correct data.`);
@@ -139,6 +147,71 @@ class GithubUtils {
             _.union(unresolvedDeployBlockers, resolvedDeployBlockers),
             'number',
         );
+    }
+
+    /**
+     * Generate a comparison URL between two versions following the semverLevel passed
+     *
+     * @param {String} repoSlug - The slug of the repository: <owner>/<repository_name>
+     * @param {String} tag - The tag to compare first the previous semverLevel
+     * @param {String} semverLevel - The semantic versioning MAJOR, MINOR, PATCH and BUILD
+     * @return {Promise} the url generated
+     * @throws {Error} If the request to the Github API fails.
+     */
+    generateVersionComparisonURL(repoSlug, tag, semverLevel) {
+        return new Promise((resolve, reject) => {
+            const getComparisonURL = (previousTag, currentTag) => (
+                `${EXPENSIFY_CASH_URL}/compare/${previousTag}...${currentTag}`
+            );
+
+            const [repoOwner, repoName] = repoSlug.split('/');
+            const tagSemver = semverParse(tag);
+
+            return this.octokit.repos.listTags({
+                owner: repoOwner,
+                repo: repoName,
+            })
+                .then(githubResponse => githubResponse.data.some(({name: repoTag}) => {
+                    if (semverLevel === 'MAJOR'
+                        && semverSatisfies(repoTag, `<${tagSemver.major}.x.x`, {includePrerelease: true})
+                    ) {
+                        resolve(getComparisonURL(repoTag, tagSemver));
+                        return true;
+                    }
+
+                    if (semverLevel === 'MINOR'
+                        && semverSatisfies(
+                            repoTag,
+                            `<${tagSemver.major}.${tagSemver.minor}.x`,
+                            {includePrerelease: true},
+                        )
+                    ) {
+                        resolve(getComparisonURL(repoTag, tagSemver));
+                        return true;
+                    }
+
+                    if (semverLevel === 'PATCH'
+                        && semverSatisfies(repoTag, `<${tagSemver}`, {includePrerelease: true})
+                    ) {
+                        resolve(getComparisonURL(repoTag, tagSemver));
+                        return true;
+                    }
+
+                    if (semverLevel === 'BUILD'
+                        && repoTag !== tagSemver.version
+                        && semverSatisfies(
+                            repoTag,
+                            `<=${tagSemver.major}.${tagSemver.minor}.${tagSemver.patch}`,
+                            {includePrerelease: true},
+                        )
+                    ) {
+                        resolve(getComparisonURL(repoTag, tagSemver));
+                        return true;
+                    }
+                    return false;
+                }))
+                .catch(githubError => reject(githubError));
+        });
     }
 
     /**
@@ -236,16 +309,22 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        return this.octokit.pulls.list({
-            owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
-            per_page: 100,
-        })
-            .then(({data}) => {
-                const automergePRs = _.pluck(
-                    _.filter(data, GithubUtils.isAutomergePullRequest),
+        return Promise.all([
+            this.generateVersionComparisonURL(`${GITHUB_OWNER}/${EXPENSIFY_CASH_REPO}`, tag, 'PATCH'),
+            this.octokit.pulls.list({
+                owner: GITHUB_OWNER,
+                repo: EXPENSIFY_CASH_REPO,
+                per_page: 100,
+            }),
+        ])
+            .then(results => ({
+                comparisonURL: results[0],
+                automergePRs: _.map(
+                    _.filter(results[1].data, GithubUtils.isAutomergePullRequest),
                     'html_url',
-                );
+                ),
+            }))
+            .then(({comparisonURL, automergePRs}) => {
                 const sortedPRList = _.chain(PRList)
                     .difference(automergePRs)
                     .unique()
@@ -257,8 +336,8 @@ class GithubUtils {
                 );
 
                 // Tag version and comparison URL
-                // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n`;
+                issueBody += `**Compare Changes:** ${comparisonURL}\r\n`;
 
                 // PR list
                 if (!_.isEmpty(PRList)) {
@@ -279,13 +358,11 @@ class GithubUtils {
                 }
 
                 issueBody += '\r\ncc @Expensify/applauseleads\r\n';
+
                 return issueBody;
             })
-            .catch(err => console.warn(
-                'Error generating StagingDeployCash issue body!',
-                'Automerge PRs may not be properly filtered out. Continuing...',
-                err,
-            ));
+            // eslint-disable-next-line no-console
+            .catch(err => console.warn('Error generating comparison URL, continuing...', err));
     }
 
     /**

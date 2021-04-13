@@ -8,8 +8,7 @@
                     "/r/*",
                     "/settings/*",
                     "/setpassword/*",
-                    "/details/*",
-                    "/v/*",
+                    "/details/*"
                 ]
             }
         ]
