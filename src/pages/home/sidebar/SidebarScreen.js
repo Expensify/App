@@ -93,12 +93,12 @@ class SidebarScreen extends Component {
                                 {
                                     icon: ChatBubble,
                                     text: 'New Chat',
-                                    onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
                                 {
                                     icon: Users,
                                     text: 'New Group',
-                                    onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
                             ]}
 
