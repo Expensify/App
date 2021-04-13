@@ -345,6 +345,9 @@ class ReportActionCompose extends React.Component {
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
                         hideModalContentWhileAnimating
+
+                        // There is no way to disable animations and they are really laggy, because there are so many
+                        // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
                         animationInTiming={1}
                         animationOutTiming={1}
                         anchorPosition={{
