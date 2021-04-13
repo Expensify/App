@@ -267,4 +267,4 @@ jobs:
     if: ${{ always() }}
     needs: [android, desktop, iOS, web]
     steps:
-      - run: echo "Status android = ${{needs.android.result}}, desktop = ${{needs.desktop.result}}, iOS = ${{needs.iOS.result}}, web = ${{needs.web.result}}"
+      - run: echo "Status android = ${{ needs.android.result }}, desktop = ${{ needs.desktop.result }}, iOS = ${{ needs.iOS.result }}, web = ${{ needs.web.result }}"
