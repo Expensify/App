@@ -353,13 +353,13 @@ function getNewChatOptions(
 }
 
 /**
- * Build the options for the New Chat view
+ * Build the IOUConfirmation options for showing MyPersonalDetail
  *
  * @param {Object} myPersonalDetail
  * @param {String} amountText
  * @returns {Array}
  */
-function getDisplayOptionFromMyPersonalDetail(
+function getIOUConfirmationOptionsFromMyPersonalDetail(
     myPersonalDetail,
     amountText,
 ) {
@@ -372,13 +372,13 @@ function getDisplayOptionFromMyPersonalDetail(
 }
 
 /**
- * Build the options for the New Chat view
+ * Build the IOUConfirmationOptions for showing participants
  *
  * @param {Array} participants
  * @param {String} amountText
  * @returns {Array}
  */
-function getDisplayOptionsFromParticipants(
+function getIOUConfirmationOptionsFromParticipants(
     participants, amountText,
 ) {
     return participants.map(participant => ({
@@ -473,6 +473,6 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
-    getDisplayOptionFromMyPersonalDetail,
-    getDisplayOptionsFromParticipants,
+    getIOUConfirmationOptionsFromMyPersonalDetail,
+    getIOUConfirmationOptionsFromParticipants,
 };

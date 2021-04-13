@@ -22,10 +22,6 @@ const propTypes = {
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
     iou: PropTypes.shape({
-
-        // Whether or not the IOU step is loading (creating the IOU Report)
-        loading: PropTypes.bool,
-
         // Whether or not transaction creation has started
         creatingIOUTransaction: PropTypes.bool,
 
@@ -79,7 +75,7 @@ class IOUModal extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        // Successfully close the modal if transaction creation has ended and theree is no error
+        // Successfully close the modal if transaction creation has ended and there is no error
         if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
             Navigation.dismissModal();
         }
@@ -96,7 +92,7 @@ class IOUModal extends Component {
         if (currentStepIndex === 1 || currentStepIndex === 2) {
             return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.amount}`;
         }
-        if (steps[currentStepIndex] === Steps.IOUAmount) {
+        if (currentStepIndex === 0) {
             return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
         }
         return steps[currentStepIndex] || '';
@@ -179,30 +175,34 @@ class IOUModal extends Component {
         this.setState({selectedCurrency});
     }
 
-    closeModal() {
-        Navigation.dismissModal();
-    }
-
-    createTransaction({debtorEmail, splits, participants}) {
-        if (debtorEmail) {
-            return createIOUTransaction({
+    createTransaction({splits}) {
+        if (splits) {
+            return createIOUSplit({
                 comment: this.state.comment,
 
                 // should send in cents to API
                 amount: this.state.amount * 100,
                 currency: this.state.selectedCurrency,
-                debtorEmail,
-                setIsTransactionComplete: this.setIsTransactionComplete,
+                splits,
             });
         }
-        return createIOUSplit({
+
+        console.debug({
             comment: this.state.comment,
 
             // should send in cents to API
             amount: this.state.amount * 100,
             currency: this.state.selectedCurrency,
-            splits,
-            participants,
+            debtorEmail: this.state.participants[0].login,
+        });
+
+        return createIOUTransaction({
+            comment: this.state.comment,
+
+            // should send in cents to API
+            amount: this.state.amount * 100,
+            currency: this.state.selectedCurrency,
+            debtorEmail: this.state.participants[0].login,
         });
     }
 

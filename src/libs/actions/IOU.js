@@ -16,6 +16,36 @@ function getPreferredCurrency() {
     }, 1600);
 }
 
+function setNewIOUReportObjects(reportIds) {
+    return API.Get({
+        returnValueList: 'reportStuff',
+        reportIDList: reportIds,
+        shouldLoadOptionalKeys: true,
+        includePinnedReports: true,
+    })
+        .then(({reports}) => _.map(reports, getSimplifiedIOUReport))
+        .then((iouReportObjects) => {
+            const reportIOUData = {};
+
+            if (iouReportObjects.length === 1) {
+                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObjects[0].reportID}`;
+                return Onyx.merge(iouReportKey,
+                    getSimplifiedIOUReport(iouReportObjects[0]));
+            }
+
+            _.each(iouReportObjects, (iouReportObject) => {
+                if (!iouReportObject) {
+                    return;
+                }
+                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+                reportIOUData[iouReportKey] = iouReportObject;
+            });
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, {...reportIOUData});
+        })
+        .catch(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: true}))
+        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: false}));
+}
+
 /**
  * Creates IOUSplit Transaction
  * @param {Object} parameters
@@ -28,65 +58,39 @@ function createIOUTransaction({
     comment, amount, currency, debtorEmail,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
-    let iouReportID = '';
     API.CreateIOUTransaction({
         comment,
         amount,
         currency,
         debtorEmail,
     })
-        .then((data) => {
-            iouReportID = data.reportID;
-            return iouReportID;
-        })
-        .then(reportID => API.Get({
-            returnValueList: 'reportStuff',
-            reportIDList: reportID,
-            shouldLoadOptionalKeys: true,
-            includePinnedReports: true,
-        }))
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
-
-            const iouReportData = response.reports[iouReportID];
-            if (!iouReportData) {
-                throw new Error(`No iouReportData found for reportID ${iouReportID}`);
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-                getSimplifiedIOUReport(iouReportData));
-            Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: false});
-        })
-        .catch((error) => {
-            Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: true});
-            throw new Error(`[Report] Failed to populate IOU Collection: ${error.message}`);
-        });
+        .then(data => data.reportID)
+        .then(reportID => setNewIOUReportObjects([reportID]));
 }
 
 /**
  * Creates IOUSplit Transaction
  * @param {Object} parameters
- * @param {Array} parameters.participants
  * @param {Array} parameters.splits
  * @param {String} parameters.comment
  * @param {String} parameters.amount
  * @param {String} parameters.currency
  */
 function createIOUSplit({
-    participants,
     comment,
     amount,
     currency,
     splits,
 }) {
-    let reportIDs = [];
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+
     API.CreateChatReport({
-        emailList: participants.join(','),
+        emailList: splits.map(participant => participant.email).join(','),
     })
-        .then(data => data.reportID)
+        .then((data) => {
+            console.debug(data);
+            return data.reportID;
+        })
         .then(reportID => API.CreateIOUSplit({
             splits: JSON.stringify(splits),
             currency,
@@ -94,35 +98,8 @@ function createIOUSplit({
             comment,
             reportID,
         }))
-        .then((data) => {
-            reportIDs = data.reportIDList;
-            return reportIDs;
-        })
-        .then(reportIDList => API.Get({
-            returnValueList: 'reportStuff',
-            reportIDList,
-            shouldLoadOptionalKeys: true,
-            includePinnedReports: true,
-        }))
-        .then(({reports}) => _.map(reports, getSimplifiedIOUReport))
-        .then((iouReportObjects) => {
-            const reportIOUData = {};
-            _.each(iouReportObjects, (iouReportObject) => {
-                if (!iouReportObject) {
-                    return;
-                }
-                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
-                reportIOUData[iouReportKey] = iouReportObject;
-            });
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, {...reportIOUData});
-        })
-        .then(() => {
-            Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: false});
-        })
-        .catch((error) => {
-            console.debug(`Error: ${error.message}`);
-            Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: true});
-        });
+        .then(data => data.reportIDList)
+        .then(reportIDList => setNewIOUReportObjects(reportIDList));
 }
 
 export {
