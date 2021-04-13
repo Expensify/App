@@ -90,7 +90,6 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View>
-                            {this.props.shouldDisplayNewIndicator && <UnreadActionIndicator />}
                             <View style={getReportActionItemStyle(hovered)}>
                                 {!this.props.displayAsGroup
                                     ? <ReportActionItemSingle action={this.props.action} />
