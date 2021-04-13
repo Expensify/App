@@ -21,6 +21,9 @@ const propTypes = {
         // An error message to display to the user
         error: PropTypes.string,
 
+        // Success message to display when necessary
+        success: PropTypes.string,
+
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
     }),
@@ -94,6 +97,11 @@ class LoginForm extends React.Component {
                 {!_.isEmpty(this.props.account.error) && (
                     <Text style={[styles.formError]}>
                         {this.props.account.error}
+                    </Text>
+                )}
+                {!_.isEmpty(this.props.account.success) && (
+                    <Text style={[styles.formSuccess]}>
+                        {this.props.account.success}
                     </Text>
                 )}
             </>

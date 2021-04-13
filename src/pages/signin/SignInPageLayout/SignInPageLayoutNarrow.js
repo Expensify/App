@@ -20,8 +20,8 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     // Whether we should show the welcome elements
-    shouldShowWelcomeText: PropTypes.Boolean,
-    shouldShowWelcomeScreenshot: PropTypes.Boolean,
+    shouldShowWelcomeText: PropTypes.bool,
+    shouldShowWelcomeScreenshot: PropTypes.bool,
 };
 
 const defaultProps = {
