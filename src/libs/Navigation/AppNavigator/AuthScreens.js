@@ -75,9 +75,7 @@ class AuthScreens extends React.Component {
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
 
-        if (props.initialReportID) {
-            this.setInitialHomeParams(props.initialReportID);
-        }
+        this.initialReportID = props.initialReportID;
     }
 
     componentDidMount() {
@@ -123,11 +121,11 @@ class AuthScreens extends React.Component {
             return true;
         }
 
-        // Update initialHomeParams only once
-        if (!this.initialHomeParams) {
+        // Skip when `this.initialReportID` is already assigned. We no longer want to update it
+        if (!this.initialReportID) {
             // Either we have a reportID or fetchAllReports resolved with no reports. Otherwise keep waiting
             if (nextProps.initialReportID || nextProps.initialReportID === '') {
-                this.setInitialHomeParams(nextProps.initialReportID);
+                this.initialReportID = nextProps.initialReportID;
                 return true;
             }
         }
@@ -142,21 +140,11 @@ class AuthScreens extends React.Component {
         this.interval = null;
     }
 
-    /**
-     * Setting the initial params would update the URL in the address bar to correctly
-     * It would also setup correct initial state for the Home screen
-     *
-     * @param {String} reportID
-     */
-    setInitialHomeParams(reportID) {
-        this.initialHomeParams = {
-            screen: 'Report',
-            params: {reportID},
-        };
-    }
-
     render() {
-        if (!this.initialHomeParams) { return null; }
+        // Wait to resolve initial Home route params.
+        if (!this.initialReportID) {
+            return null;
+        }
 
         const modalScreenOptions = {
             headerShown: false,
@@ -180,7 +168,12 @@ class AuthScreens extends React.Component {
                         headerShown: false,
                         title: 'Expensify.cash',
                     }}
-                    initialParams={this.initialHomeParams}
+                    initialParams={{
+                        screen: 'Report',
+                        params: {
+                            reportID: this.initialReportID,
+                        },
+                    }}
                     component={MainDrawerNavigator}
                 />
 
