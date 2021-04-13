@@ -164,7 +164,7 @@ class IOUModal extends Component {
                         <Header title={this.getTitleForStep()} />
                         <View style={[styles.reportOptions, styles.flexRow]}>
                             <TouchableOpacity
-                                onPress={Navigation.dismissModal}
+                                onPress={() => Navigation.dismissModal()}
                                 style={[styles.touchableButtonImage]}
                             >
                                 <Icon src={Close} />
