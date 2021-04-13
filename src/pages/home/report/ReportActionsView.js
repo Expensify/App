@@ -26,7 +26,6 @@ import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
-import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -273,31 +272,21 @@ class ReportActionsView extends React.Component {
      * @param {Object} args
      * @param {Object} args.item
      * @param {Number} args.index
-     * @param {Function} args.onLayout
      *
      * @returns {React.Component}
      */
     renderItem({
         item,
         index,
-        onLayout,
     }) {
         return (
-
-            // Using <View /> instead of a Fragment because there is a difference between how <InvertedFlatList /> are
-            // implemented on native and web/desktop which leads to the unread indicator on native to render below the
-            // message instead of above it.
-            <View>
-                <UnreadActionIndicator zIndex={this.sortedReportActions.length} />
-                <ReportActionItem
-                    reportID={this.props.reportID}
-                    action={item.action}
-                    displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                    onLayout={onLayout}
-                    shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
-                        && item.action.sequenceNumber === this.initialNewMarkerPosition}
-                />
-            </View>
+            <ReportActionItem
+                reportID={this.props.reportID}
+                action={item.action}
+                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
+                    && item.action.sequenceNumber === this.initialNewMarkerPosition}
+            />
         );
     }
 

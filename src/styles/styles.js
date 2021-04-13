@@ -833,7 +833,7 @@ const styles = {
         left: 0,
         top: 0,
         bottom: 0,
-        zIndex: variables.zIndexTop,
+        zIndex: 2,
     },
 
     navigationModalOverlay: {
