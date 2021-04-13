@@ -40,9 +40,9 @@ const DetailsPage = ({personalDetails, route}) => {
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title="Details"
-                onCloseButtonPress={Navigation.dismissModal}
                 shouldShowBackButton={!!route.params.reportID}
                 onBackButtonPress={Navigation.goBack}
+                onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <View
                 pointerEvents="box-none"
