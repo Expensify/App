@@ -24,11 +24,15 @@ const propTypes = {
 
     // Boolean whether to display the ArrowRight icon
     shouldShowRightArrow: PropTypes.bool,
+
+    // A boolean flag that gives the icon a green fill if true
+    success: PropTypes.bool,
 };
 
 const defaultProps = {
     shouldShowRightArrow: false,
     wrapperStyle: {},
+    success: false,
 };
 
 const MenuItem = ({
@@ -37,6 +41,7 @@ const MenuItem = ({
     title,
     shouldShowRightArrow,
     wrapperStyle,
+    success,
 }) => (
     <Pressable
         onPress={onPress}
@@ -50,7 +55,7 @@ const MenuItem = ({
             <>
                 <View style={styles.flexRow}>
                     <View style={styles.createMenuIcon}>
-                        <Icon src={icon} fill={getIconFillColor(getButtonState(hovered, pressed))} />
+                        <Icon src={icon} fill={getIconFillColor(getButtonState(hovered, pressed, success))} />
                     </View>
                     <View style={styles.justifyContentCenter}>
                         <Text style={[styles.createMenuText, styles.ml3]}>
