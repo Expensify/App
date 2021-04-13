@@ -55,16 +55,12 @@ class EmojiPickerMenu extends Component {
             this.setState({filteredEmojis: emojis, headerIndices: this.unfilteredHeaderIndices});
             return;
         }
-        const newFilteredEmojiList = [];
-        _.each(emojis, (emoji) => {
-            if (emoji.header || emoji.code === CONST.EMOJI_SPACER) {
-                return;
-            }
 
-            if (_.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))) {
-                newFilteredEmojiList.push(emoji);
-            }
-        });
+        const newFilteredEmojiList = _.filter(emojis, emoji => (
+            !emoji.header
+            && emoji.code !== CONST.EMOJI_SPACER
+            && _.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))
+        ));
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: []});
