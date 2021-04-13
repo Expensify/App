@@ -69,8 +69,9 @@ function getDisplayName(login, personalDetail) {
 
     const firstName = userDetails.firstName || '';
     const lastName = userDetails.lastName || '';
+    const fullName = (`${firstName} ${lastName}`).trim();
 
-    return (`${firstName} ${lastName}`).trim() || userLogin;
+    return fullName || userLogin;
 }
 
 /**
@@ -86,6 +87,8 @@ function formatPersonalDetails(personalDetailsList) {
         const displayName = getDisplayName(login, personalDetailsResponse);
         const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
         const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
+        const firstName = lodashGet(personalDetailsResponse, 'firstName', '');
+        const lastName = lodashGet(personalDetailsResponse, 'lastName', '');
 
         return {
             ...finalObject,
@@ -93,6 +96,8 @@ function formatPersonalDetails(personalDetailsList) {
                 login,
                 avatar,
                 displayName,
+                firstName,
+                lastName,
                 pronouns,
                 timezone,
             },
