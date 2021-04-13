@@ -1151,7 +1151,7 @@ const styles = {
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
-        zIndex: variables.zIndexMiddle,
+        zIndex: 1,
     },
 
     unreadIndicatorLine: {

@@ -26,6 +26,7 @@ import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
+import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -246,8 +247,8 @@ class ReportActionsView extends React.Component {
 
     /**
      * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
-     *  higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
-     *  rows is hidden beneath other rows.
+     * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
+     * rows is hidden beneath other rows.
      *
      * @param {Object} index - The ReportAction item in the FlatList.
      * @param {Object|Array} style – The default styles of the CellRendererComponent provided by the CellRenderer.
@@ -287,6 +288,7 @@ class ReportActionsView extends React.Component {
             // implemented on native and web/desktop which leads to the unread indicator on native to render below the
             // message instead of above it.
             <View>
+                <UnreadActionIndicator zIndex={this.sortedReportActions.length} />
                 <ReportActionItem
                     reportID={this.props.reportID}
                     action={item.action}
