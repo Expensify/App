@@ -23,6 +23,7 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
+import CONST from '../../../CONST'
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -351,8 +352,8 @@ class ReportActionCompose extends React.Component {
                         animationInTiming={1}
                         animationOutTiming={1}
                         anchorPosition={{
-                            top: this.state.emojiPopoverAnchorPosition.vertical - 360,
-                            left: this.state.emojiPopoverAnchorPosition.horizontal - 360,
+                            top: this.state.emojiPopoverAnchorPosition.vertical - CONST.EMOJI_PICKER_SIZE,
+                            left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
                         }}
                     >
                         <EmojiPickerMenu
