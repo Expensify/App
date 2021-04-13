@@ -59,7 +59,7 @@ const getAllParticipants = (report, personalDetails) => {
             alternateText: userLogin,
             displayName: userPersonalDetail.displayName,
             icons: [userPersonalDetail.avatar],
-            keyForList: login,
+            keyForList: userLogin,
             login: userLogin,
             text: userPersonalDetail.displayName,
             tooltipText: userLogin,
