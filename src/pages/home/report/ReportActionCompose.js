@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -19,6 +19,8 @@ import CreateMenu from '../../../components/CreateMenu';
 import withNavigationContext, {navigationContextPropTypes} from '../../../components/withNavigationContext';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
+import getPlatform from '../../../libs/getPlatform';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -70,9 +72,10 @@ class ReportActionCompose extends React.Component {
         this.setIsFocused = this.setIsFocused.bind(this);
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
+        this.autoFocusEnabled = getPlatform() === 'desktop' || (getPlatform() === 'web' && !canUseTouchScreen());
 
         this.state = {
-            isFocused: true,
+            isFocused: this.autoFocusEnabled,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
@@ -80,10 +83,14 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // When any modal goes from visible to hidden or when the report ID changes,
-        // bring focus to the compose field only when the screen is focused.
-        if (this.props.isScreenFocused && prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        // We want to manually set the focus only when.
+        //  1) Auto focus is enabled(we are on desktop/Desktop Web).
+        //  1) Screen is focsued.
+        //  2) When any modal goes from visible to hidden &
+        if (this.autoFocusEnabled && this.props.isScreenFocused
+            && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.setIsFocused(true);
+            this.focus();
         }
     }
 
@@ -119,7 +126,9 @@ class ReportActionCompose extends React.Component {
      */
     focus() {
         if (this.textInput) {
-            this.textInput.focus();
+            InteractionManager.runAfterInteractions(() => {
+                this.textInput.focus();
+            });
         }
     }
 
@@ -267,7 +276,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                    autoFocus
+                                    autoFocus={this.autoFocusEnabled}
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
