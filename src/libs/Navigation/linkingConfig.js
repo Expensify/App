@@ -16,7 +16,12 @@ export default {
                 screens: {
                     // Report route
                     Report: ROUTES.REPORT_WITH_ID,
-                    Report_Wth_ID_And_Action_ID: ROUTES.REPORT_WITH_ID_AND_ACTION_ID,
+                },
+            },
+            Report_With_ActionID: {
+                // path: ROUTES.HOME,
+                screens: {
+                    Report_With_ActionID_Root: ROUTES.REPORT_WITH_ID_AND_ACTION_ID,
                 },
             },
 

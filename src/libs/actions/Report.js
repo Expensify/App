@@ -637,6 +637,7 @@ function fetchChatReports() {
  * @returns {Promise}
  */
 function fetchActions(reportID, offset) {
+    debugger;
     const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
 
     if (!_.isNumber(reportActionsOffset)) {

@@ -31,8 +31,10 @@ const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
-    /* Onyx Props */
+    // The reportActionID of the specific message.
+    reportActionID: PropTypes.number,
 
+    /* Onyx Props */
     // The report currently being looked at
     report: PropTypes.shape({
         // Number of actions unread
@@ -57,6 +59,7 @@ const defaultProps = {
         unreadActionCount: 0,
         maxSequenceNumber: 0,
     },
+    reportActionID: undefined,
     reportActions: {},
     session: {},
 };
@@ -90,7 +93,7 @@ class ReportActionsView extends React.Component {
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         this.recordMaxAction();
-        fetchActions(this.props.reportID);
+        fetchActions(this.props.reportID, this.props.reportActionID);
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
@@ -242,6 +245,13 @@ class ReportActionsView extends React.Component {
             this.actionListElement.scrollToIndex({animated: false, index: 0});
         }
         this.recordMaxAction();
+    }
+
+    scrollToReportActionID() {
+        debugger;
+        if (this.actionListElement) {
+            this.actionListElement.scrollToIndex({animated: false, index: 0});
+        }
     }
 
     /**

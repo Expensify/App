@@ -101,6 +101,7 @@ class AuthScreens extends React.Component {
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
 
         this.initialReportID = props.initialReportID;
+        this.initialReportActionID = props.initialReportActionID;
     }
 
     componentDidMount() {
@@ -155,6 +156,14 @@ class AuthScreens extends React.Component {
             }
         }
 
+        if (!this.initialReportActionID) {
+            // Either we have a reportID or fetchAllReports resolved with no reports. Otherwise keep waiting
+            if (nextProps.initialReportActionID || nextProps.initialReportActionID === '') {
+                this.initialReportActionID = nextProps.initialReportActionID;
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -197,6 +206,21 @@ class AuthScreens extends React.Component {
                         screen: 'Report',
                         params: {
                             reportID: this.initialReportID,
+                        },
+                    }}
+                    component={MainDrawerNavigator}
+                />
+                <RootStack.Screen
+                    name="Report_With_ActionID"
+                    options={{
+                        headerShown: false,
+                        title: 'Expensify.cash',
+                    }}
+                    initialParams={{
+                        screen: 'Report_With_ActionID_Root',
+                        params: {
+                            reportID: this.initialReportID,
+                            reportActionID: this.initialReportActionID,
                         },
                     }}
                     component={MainDrawerNavigator}
