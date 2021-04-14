@@ -220,9 +220,13 @@ class TextInputFocusable extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
-        const propsWithoutValueOrDefaultValue = this.props.defaultValue
-            ? _.omit(propsWithoutStyles, 'value')
-            : _.omit(propsWithoutStyles, 'defaultValue');
+        let propsWithoutValueOrDefaultValue = propsWithoutStyles;
+        if (this.props.defaultValue || !this.props.value) {
+            propsWithoutValueOrDefaultValue = _.omit(propsWithoutValueOrDefaultValue, 'value');
+        }
+        if (!this.props.defaultValue) {
+            propsWithoutValueOrDefaultValue = _.omit(propsWithoutValueOrDefaultValue, 'defaultValue');
+        }
         return (
             <TextInput
                 ref={el => this.textInput = el}
