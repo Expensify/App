@@ -46,6 +46,7 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
+import SCREENS from '../../../SCREENS';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -194,7 +195,7 @@ class AuthScreens extends React.Component {
                         title: 'Expensify.cash',
                     }}
                     initialParams={{
-                        screen: 'Report',
+                        screen: SCREENS.REPORT,
                         params: {
                             reportID: this.initialReportID,
                         },
