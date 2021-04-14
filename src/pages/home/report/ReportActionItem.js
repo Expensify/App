@@ -18,7 +18,6 @@ import ReportActionContextMenu from './ReportActionContextMenu';
 import ReportActionItemIOUPreview from '../../../components/ReportActionItemIOUPreview';
 import ReportActionItemMessage from './ReportActionItemMessage';
 
-
 const propTypes = {
     // The ID of the report this action is on.
     reportID: PropTypes.number.isRequired,

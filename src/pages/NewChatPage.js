@@ -6,7 +6,7 @@ import OptionsSelector from '../components/OptionsSelector';
 import {getNewChatOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import {fetchOrCreateChatReportAndRedirect} from '../libs/actions/Report';
+import {fetchOrCreateChatReportAndNavigate} from '../libs/actions/Report';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -97,7 +97,7 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createNewChat(option) {
-        fetchOrCreateChatReportAndRedirect([
+        fetchOrCreateChatReportAndNavigate([
             this.props.session.email,
             option.login,
         ]);
