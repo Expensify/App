@@ -14,6 +14,7 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
+import positioning from './utilities/positioning';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -22,6 +23,7 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
+    ...positioning,
     ...wordBreak,
     ...whiteSpace,
 
@@ -402,7 +404,7 @@ const styles = {
         width: '100%',
     },
 
-    loginFormContainer: {
+    signInPageFormContainer: {
         maxWidth: 295,
         width: '100%',
     },
@@ -605,11 +607,7 @@ const styles = {
         flexShrink: 0,
     },
 
-    optionDisplayNameTooltipWrapper: {
-        position: 'relative',
-    },
-
-    optionDisplayNameTooltipEllipsis: {
+    displayNameTooltipEllipsis: {
         position: 'absolute',
         opacity: 0,
         right: 0,
@@ -832,14 +830,6 @@ const styles = {
     chatSwticherPillWrapper: {
         marginTop: 5,
         marginRight: 4,
-    },
-
-    navigationMenuOpenAbsolute: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        zIndex: 2,
     },
 
     navigationModalOverlay: {
@@ -1165,6 +1155,7 @@ const styles = {
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
+        zIndex: 1,
     },
 
     unreadIndicatorLine: {
@@ -1259,12 +1250,14 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
     },
 
     iouAmountTextInput: addOutlineWidth({
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
     }, 0),
 
     iouPreviewBox: {
@@ -1286,11 +1279,19 @@ const styles = {
     },
 
     fullScreenLoading: {
-        backgroundColor: themeColors.modalBackdrop,
+        backgroundColor: themeColors.componentBG,
         opacity: 0.8,
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 10,
+    },
+
+    hiddenElementOutsideOfWindow: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        opacity: 0,
+        transform: 'translateX(-100%)',
     },
 };
 
@@ -1460,6 +1461,19 @@ function getZoomSizingStyle(isZoomed) {
 }
 
 /**
+ * Returns auto grow text input style
+ *
+ * @param {Number} width
+ * @return {Object}
+ */
+function getAutoGrowTextInputStyle(width) {
+    return {
+        minWidth: 5,
+        width,
+    };
+}
+
+/**
  * Returns a style with backgroundColor and borderColor set to the same color
  *
  * @param {String} backgroundColor
@@ -1547,14 +1561,6 @@ function getWidthAndHeightStyle(width, height) {
 }
 
 /**
- * @param {Number} opacity
- * @returns {Object}
- */
-function getOpacityStyle(opacity) {
-    return {opacity};
-}
-
-/**
  * @param {Object} params
  * @returns {Object}
  */
@@ -1586,12 +1592,12 @@ export {
     getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
+    getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
-    getOpacityStyle,
     getModalPaddingStyles,
 };

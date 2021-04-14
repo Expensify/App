@@ -7,6 +7,7 @@ import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import {updateCurrentlyViewedReportID} from '../../libs/actions/Report';
 
 const propTypes = {
     /* Navigation route context info provided by react navigation */
@@ -37,6 +38,7 @@ class ReportScreen extends React.Component {
 
         if (reportChanged) {
             this.prepareTransition();
+            this.storeCurrentlyViewedReport();
         }
     }
 
@@ -71,6 +73,14 @@ class ReportScreen extends React.Component {
 
         clearTimeout(this.loadingTimerId);
         this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 300);
+    }
+
+    /**
+     * Persists the currently viewed report id
+     */
+    storeCurrentlyViewedReport() {
+        const reportID = this.getReportID();
+        updateCurrentlyViewedReportID(reportID);
     }
 
     render() {

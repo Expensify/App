@@ -115,7 +115,7 @@ class NewChatPage extends Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title="New Chat"
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector

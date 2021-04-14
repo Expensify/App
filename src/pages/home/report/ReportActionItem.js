@@ -17,6 +17,7 @@ import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
 import ReportActionItemIOUPreview from '../../../components/ReportActionItemIOUPreview';
 import ReportActionItemMessage from './ReportActionItemMessage';
+import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -30,6 +31,9 @@ const propTypes = {
 
     // Is this the most recent IOU Action?
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
+
+    // Should we display the new indicator on top of the comment?
+    shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 
     /* --- Onyx Props --- */
 
@@ -66,9 +70,10 @@ class ReportActionItem extends Component {
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
-            || !_.isEqual(this.props.action, nextProps.action)
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
-            || !_.isEqual(this.props.report, nextProps.report);
+            || !_.isEqual(this.props.report, nextProps.report)
+            || (this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator)
+            || !_.isEqual(this.props.action, nextProps.action);
     }
 
     /**
@@ -116,6 +121,9 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View>
+                            {!hovered && this.props.shouldDisplayNewIndicator && (
+                                <UnreadActionIndicator />
+                            )}
                             <View style={getReportActionItemStyle(hovered)}>
                                 {!this.props.displayAsGroup
                                     ? (
@@ -150,7 +158,7 @@ class ReportActionItem extends Component {
                                     <ReportActionContextMenu
                                         isVisible
                                         reportID={-1}
-                                        reportAction={{}}
+                                        reportAction={this.props.action}
                                     />
                                 )}
                             >
