@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const FabPropTypes = {
+const fabPropTypes = {
     // Callback to fire on request to toggle the FAB
     onPress: PropTypes.func.isRequired,
 
@@ -8,4 +8,4 @@ const FabPropTypes = {
     isActive: PropTypes.bool.isRequired,
 };
 
-export default FabPropTypes;
+export default fabPropTypes;
