@@ -15,6 +15,7 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
+import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -25,6 +26,9 @@ const propTypes = {
 
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
+
+    // Should we display the new indicator on top of the comment?
+    shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 
     /* --- Onyx Props --- */
     // Draft message - if this is set the comment is in 'edit' mode
@@ -57,7 +61,8 @@ class ReportActionItem extends Component {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
             || !_.isEqual(this.props.action, nextProps.action)
-            || this.props.draftMessage !== nextProps.draftMessage;
+            || this.props.draftMessage !== nextProps.draftMessage
+            || (this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator);
     }
 
     /**
@@ -96,10 +101,24 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View>
+                            {!hovered && this.props.shouldDisplayNewIndicator && (
+                                <UnreadActionIndicator />
+                            )}
                             <View style={getReportActionItemStyle(hovered || this.props.draftMessage)}>
                                 {!this.props.displayAsGroup
-                                    ? <ReportActionItemSingle action={this.props.action} draftMessage={this.props.draftMessage} reportID={this.props.reportID} />
-                                    : <ReportActionItemGrouped action={this.props.action} draftMessage={this.props.draftMessage} reportID={this.props.reportID} />}
+                                    ? (
+                                        <ReportActionItemSingle
+                                            action={this.props.action}
+                                            draftMessage={this.props.draftMessage}
+                                            reportID={this.props.reportID}
+                                        />
+                                    ) : (
+                                        <ReportActionItemGrouped
+                                            action={this.props.action}
+                                            draftMessage={this.props.draftMessage}
+                                            reportID={this.props.reportID}
+                                        />
+                                    )}
                             </View>
                             <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
                                 <ReportActionContextMenu
