@@ -3,6 +3,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
 import SetPasswordPage from '../../../pages/SetPasswordPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
+import SCREENS from '../../../SCREENS';
 
 const RootStack = createStackNavigator();
 const defaultScreenOptions = {
@@ -16,7 +17,7 @@ const defaultScreenOptions = {
 export default () => (
     <RootStack.Navigator>
         <RootStack.Screen
-            name="SignIn"
+            name={SCREENS.SIGN_IN}
             options={defaultScreenOptions}
             component={SignInPage}
         />

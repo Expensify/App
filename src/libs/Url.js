@@ -1,5 +1,5 @@
 /**
- * Add / to the end of any URL if not already present
+ * Add / to the end of any URL if not present
  * @param {String} url
  * @returns {String}
  */
