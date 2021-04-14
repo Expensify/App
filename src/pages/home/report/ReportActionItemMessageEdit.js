@@ -25,6 +25,7 @@ class ReportActionItemMessageEdit extends React.Component {
         this.deleteDraft = this.deleteDraft.bind(this);
         this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000, false);
         this.publishDraft = this.publishDraft.bind(this);
+        this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
 
         this.state = {
             draft: this.props.draftMessage,
@@ -37,8 +38,9 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} newDraft
      */
     updateDraft(newDraft) {
-        this.setState({draft: newDraft});
-        this.debouncedSaveDraft(newDraft);
+        const trimmedNewDraft = newDraft.trim();
+        this.setState({draft: trimmedNewDraft});
+        this.debouncedSaveDraft(trimmedNewDraft);
     }
 
     deleteDraft() {
@@ -54,6 +56,16 @@ class ReportActionItemMessageEdit extends React.Component {
         this.deleteDraft();
     }
 
+    triggerSaveOrCancel(e) {
+        if (e && e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.publishDraft();
+        } else if (e && e.key === 'Escape') {
+            e.preventDefault();
+            this.deleteDraft();
+        }
+    }
+
     render() {
         return (
             <View style={[styles.chatItemMessage]}>
@@ -61,6 +73,7 @@ class ReportActionItemMessageEdit extends React.Component {
                     multiline
                     ref={el => this.textInput = el}
                     onChangeText={this.updateDraft} // Debounced saveDraftComment
+                    onKeyPress={this.triggerSaveOrCancel}
                     defaultValue={this.props.draftMessage}
                     maxLines={16} // This is the same that slack has
                     style={[styles.textInput, styles.flex0]}

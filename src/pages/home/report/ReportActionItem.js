@@ -96,7 +96,7 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View>
-                            <View style={getReportActionItemStyle(hovered)}>
+                            <View style={getReportActionItemStyle(hovered || this.props.draftMessage)}>
                                 {!this.props.displayAsGroup
                                     ? <ReportActionItemSingle action={this.props.action} draftMessage={this.props.draftMessage} reportID={this.props.reportID} />
                                     : <ReportActionItemGrouped action={this.props.action} draftMessage={this.props.draftMessage} reportID={this.props.reportID} />}
