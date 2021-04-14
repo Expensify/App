@@ -18,10 +18,10 @@ const propTypes = {
     // Callback to inform parent modal of success
     onConfirm: PropTypes.func.isRequired,
 
-    // callback to update comment from IOUModal
+    // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
 
-    // comment value from IOUModal
+    // Comment value from IOUModal
     comment: PropTypes.string,
 
     // Should we request a single or multiple participant selection from user
@@ -31,7 +31,7 @@ const propTypes = {
     iouAmount: PropTypes.string.isRequired,
 
     // Selected currency from the user
-    // remove eslint disable after currency symbol is available
+    // Remove eslint disable after currency symbol is available
     // eslint-disable-next-line react/no-unused-prop-types
     selectedCurrency: PropTypes.string.isRequired,
 
@@ -93,9 +93,12 @@ class IOUConfirmationList extends Component {
             const formattedMyPersonalDetails = getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
 
-                // convert from cent to bigger form
+                // Convert from cent to bigger form
+                // USD is temporary and there must be support for other currencies in the future
                 `$${this.calculateAmount(true) / 100}`,
             );
+
+            // Cents is temporary and there must be support for other currencies in the future
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
                 `$${this.calculateAmount() / 100}`);
 
@@ -112,7 +115,7 @@ class IOUConfirmationList extends Component {
                 indexOffset: 0,
             });
         } else {
-        // $ should be replaced by currency symbol once available
+        // $ Should be replaced by currency symbol once available
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
                 `$${this.props.iouAmount}`);
 
@@ -135,14 +138,16 @@ class IOUConfirmationList extends Component {
         const splits = this.props.participants.map(participant => ({
             email: participant.login,
 
-            // we should send in cents to API
+            // We should send in cents to API
+            // Cents is temporary and there must be support for other currencies in the future
             amount: this.calculateAmount(),
         }));
 
         splits.push({
             email: this.props.myPersonalDetails.login,
 
-            // the user is default and we should send in cents to API
+            // The user is default and we should send in cents to API
+            // USD is temporary and there must be support for other currencies in the future
             amount: this.calculateAmount(true),
         });
         return splits;
@@ -160,7 +165,7 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * Returns selected options with all participant logins
+     * Returns selected options with all participant logins -- there is checkmark for every row in List for split flow
      * @returns {Array}
      */
     getAllOptionsAsSelected() {
@@ -174,26 +179,29 @@ class IOUConfirmationList extends Component {
      * @returns {Number}
      */
     calculateAmount(isDefaultUser = false) {
-        // convert to cents before working with iouAmount to avoid
-        // javascript subtraction with decimal problem
+        // Convert to cents before working with iouAmount to avoid
+        // javascript subtraction with decimal problem -- when dealing with decimals,
+        // because they are encoded as IEEE 754 floating point numbers, some of the decimal
+        // numbers cannot be represented with perfect accuracy.
+        // Cents is temporary and there must be support for other currencies in the future
         const iouAmount = Math.round(parseFloat(this.props.iouAmount * 100));
         const totalParticipants = this.props.participants.length + 1;
         const amountPerPerson = Math.round(iouAmount / totalParticipants);
-        const sumAmount = amountPerPerson * totalParticipants;
-        const difference = iouAmount - sumAmount;
 
         if (!isDefaultUser) { return amountPerPerson; }
+
+        const sumAmount = amountPerPerson * totalParticipants;
+        const difference = iouAmount - sumAmount;
 
         return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
     }
 
     render() {
-        const sections = this.getSections();
         return (
             <View style={[styles.flex1, styles.w100]}>
                 <View style={[styles.flex1]}>
                     <OptionsList
-                        sections={sections}
+                        sections={this.getSections()}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
@@ -222,9 +230,7 @@ class IOUConfirmationList extends Component {
                         text={this.props.hasMultipleParticipants ? 'Split' : `Request $${this.props.iouAmount}`}
                         onClick={() => {
                             if (this.props.hasMultipleParticipants) {
-                                this.props.onConfirm({
-                                    splits: this.getSplits(),
-                                });
+                                this.props.onConfirm({splits: this.getSplits()});
                             } else {
                                 this.props.onConfirm({});
                             }
