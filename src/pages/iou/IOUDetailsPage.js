@@ -1,12 +1,13 @@
 import React, {Component} from 'react';
+import _ from 'underscore';
 import {
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
-import Text from '../../components/Text';
 import ONYXKEYS from '../../ONYXKEYS';
+import TransactionItem from '../../components/TransactionItem';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
@@ -52,7 +53,6 @@ class IOUDetailsPage extends Component {
     }
 
     render() {
-        console.debug('jules: props: ', this.props);
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -65,12 +65,12 @@ class IOUDetailsPage extends Component {
                         styles.detailsPageContainer,
                     ]}
                 >
-                    <Text style={[styles.formLabel, styles.mb2]}>
-                        {`IOU Details: ${this.props.route.params.iouReportID}`}
-                        {`\n\n${JSON.stringify(this.props.iouReport)}`}
-                    </Text>
+                    {_.map(this.props.iouReport.transactions, (transaction) => (
+                        <TransactionItem transaction={transaction} />
+                    ))}
                     
-                    {/* Reuse Preview Component here! */}
+                    {/* Reuse Preview Component here? */}
+
                     <ButtonWithLoader
                         text="I'll settle up elsewhere"
                         isLoading={this.props.loading}
