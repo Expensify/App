@@ -10,8 +10,9 @@ export default {
         'http://localhost',
     ],
     config: {
+        initialRouteName: SCREENS.HOME,
         screens: {
-            Home: {
+            [SCREENS.HOME]: {
                 path: ROUTES.HOME,
                 initialRouteName: SCREENS.REPORT,
                 screens: {
