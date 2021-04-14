@@ -2,8 +2,7 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {getAutoGrowTextInputStyle, getHiddenElementOutsideOfWindow} from '../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import styles, {getAutoGrowTextInputStyle} from '../styles/styles';
 import TextInputFocusable from './TextInputFocusable';
 
 const propTypes = {
@@ -21,16 +20,13 @@ const propTypes = {
     // Styles to apply to the text input
     // eslint-disable-next-line react/forbid-prop-types
     textStyle: PropTypes.object.isRequired,
-
-    /* Window Dimensions Props */
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     inputStyle: {},
 };
 
-class TextInputAutoGrow extends React.Component {
+class TextInputAutoWidth extends React.Component {
     constructor(props) {
         super(props);
 
@@ -40,10 +36,7 @@ class TextInputAutoGrow extends React.Component {
     }
 
     render() {
-        const propsWithoutStyles = _.omit(
-            this.props,
-            ['inputStyle', 'textStyle', Object.keys(windowDimensionsPropTypes)],
-        );
+        const propsWithoutStyles = _.omit(this.props, ['inputStyle', 'textStyle']);
         return (
             <View>
                 <TextInputFocusable
@@ -59,7 +52,7 @@ class TextInputAutoGrow extends React.Component {
                 This text component is intentionally positioned out of the screen.
                 */}
                 <Text
-                    style={[this.props.textStyle, getHiddenElementOutsideOfWindow(this.props.windowWidth)]}
+                    style={[this.props.textStyle, styles.hiddenElementOutsideOfWindow]}
                     onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
                 >
                     {this.props.value}
@@ -69,12 +62,10 @@ class TextInputAutoGrow extends React.Component {
     }
 }
 
-TextInputAutoGrow.propTypes = propTypes;
-TextInputAutoGrow.defaultProps = defaultProps;
-
-const TextInputAutoGrowWithWindowDimensions = withWindowDimensions(TextInputAutoGrow);
+TextInputAutoWidth.propTypes = propTypes;
+TextInputAutoWidth.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <TextInputAutoGrowWithWindowDimensions {...props} forwardedRef={ref} />
+    <TextInputAutoWidth {...props} forwardedRef={ref} />
 ));

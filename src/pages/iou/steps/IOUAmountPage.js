@@ -12,7 +12,7 @@ import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import TextInputAutoGrow from '../../../components/TextInputAutoGrow';
+import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -78,7 +78,7 @@ class IOUAmountPage extends React.Component {
             const newValue = `${prevState.amount}${key}`;
 
             // Regex to validate decimal number with up to 6 digits and 2 decimal numbers
-            const decimalNumberRegex = new RegExp(/^\d{1,6}(\.\d{0,2})?$/, 'i');
+            const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
             if (!decimalNumberRegex.test(newValue)) {
                 return prevState;
             }
@@ -106,7 +106,7 @@ class IOUAmountPage extends React.Component {
                     {this.props.isSmallScreenWidth
                         ? <Text style={styles.iouAmountText}>{this.state.amount}</Text>
                         : (
-                            <TextInputAutoGrow
+                            <TextInputAutoWidth
                                     inputStyle={styles.iouAmountTextInput}
                                     textStyle={styles.iouAmountText}
                                     onKeyPress={(event) => {

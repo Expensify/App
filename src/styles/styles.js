@@ -1266,6 +1266,14 @@ const styles = {
         alignItems: 'center',
         zIndex: 10,
     },
+
+    hiddenElementOutsideOfWindow: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        opacity: 0,
+        transform: 'translateX(-100%)',
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1534,20 +1542,6 @@ function getWidthAndHeightStyle(width, height) {
 }
 
 /**
- * Positions an element to outside of the window and hides it
- *
- * @param {Number} windowWidth
- * @returns {Object}
- */
-function getHiddenElementOutsideOfWindow(windowWidth) {
-    return {
-        position: 'absolute',
-        opacity: 0,
-        left: windowWidth,
-    };
-}
-
-/**
  * @param {Number} opacity
  * @returns {Object}
  */
@@ -1588,7 +1582,6 @@ export {
     getZoomCursorStyle,
     getZoomSizingStyle,
     getAutoGrowTextInputStyle,
-    getHiddenElementOutsideOfWindow,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getButtonBackgroundColorStyle,
