@@ -16,7 +16,12 @@ function getPreferredCurrency() {
     }, 1600);
 }
 
-function setNewIOUReportObjects(reportIds) {
+/**
+ * @param {Array} reportIds
+ * @returns {Promise}
+ * Gets the IOU Reports for new transaction
+ */
+function getIOUReportsForNewTransaction(reportIds) {
     return API.Get({
         returnValueList: 'reportStuff',
         reportIDList: reportIds,
@@ -65,7 +70,7 @@ function createIOUTransaction({
         debtorEmail,
     })
         .then(data => data.reportID)
-        .then(reportID => setNewIOUReportObjects([reportID]));
+        .then(reportID => getIOUReportsForNewTransaction([reportID]));
 }
 
 /**
@@ -99,7 +104,7 @@ function createIOUSplit({
             reportID,
         }))
         .then(data => data.reportIDList)
-        .then(reportIDList => setNewIOUReportObjects(reportIDList));
+        .then(reportIDList => getIOUReportsForNewTransaction(reportIDList));
 }
 
 export {
