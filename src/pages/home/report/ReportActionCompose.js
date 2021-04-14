@@ -88,6 +88,9 @@ class ReportActionCompose extends React.Component {
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+        this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
+
+        this.emojiSearchInput = null;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -250,6 +253,10 @@ class ReportActionCompose extends React.Component {
         this.setTextInputShouldClear(true);
     }
 
+    focusEmojiSearchInput() {
+        this.emojiSearchInput.focus();
+    }
+
     render() {
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
@@ -370,6 +377,7 @@ class ReportActionCompose extends React.Component {
                     <Popover
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
+                        onModalShow={this.focusEmojiSearchInput}
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
@@ -380,6 +388,7 @@ class ReportActionCompose extends React.Component {
                     >
                         <EmojiPickerMenu
                             onEmojiSelected={this.addEmojiToTextBox}
+                            ref={el => this.emojiSearchInput = el}
                         />
                     </Popover>
                     <Pressable

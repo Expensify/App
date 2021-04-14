@@ -12,6 +12,11 @@ import TextInputFocusable from '../../../../components/TextInputFocusable';
 const propTypes = {
     // Function to add the selected emoji to the main compose text input
     onEmojiSelected: PropTypes.func.isRequired,
+    forwardedRef: PropTypes.func,
+};
+
+const defaultProps = {
+    forwardedRef: () => {},
 };
 
 class EmojiPickerMenu extends Component {
@@ -41,6 +46,16 @@ class EmojiPickerMenu extends Component {
             filteredEmojis: emojis,
             headerIndices: this.unfilteredHeaderIndices,
         };
+    }
+
+    componentDidMount() {
+        // This callback prop is used by the parent component using the constructor to
+        // get a ref to the inner textInput element e.g. if we do
+        // <constructor ref={el => this.textInput = el} /> this will not
+        // return a ref to the component, but rather the HTML element by default
+        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+            this.props.forwardedRef(this.searchInput);
+        }
     }
 
     /**
@@ -124,5 +139,9 @@ class EmojiPickerMenu extends Component {
 }
 
 EmojiPickerMenu.propTypes = propTypes;
+EmojiPickerMenu.defaultProps = defaultProps;
 
-export default EmojiPickerMenu;
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <EmojiPickerMenu {...props} forwardedRef={ref} />
+));
