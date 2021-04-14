@@ -11,7 +11,7 @@ export default {
     config: {
         screens: {
             Home: {
-                path: '',
+                path: ROUTES.HOME,
                 initialRouteName: 'Report',
                 screens: {
                     // Report route
