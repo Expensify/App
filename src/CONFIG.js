@@ -2,23 +2,12 @@ import lodashGet from 'lodash/get';
 import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';
-
-/**
- * Let's make everyone's life just a bit easier by adding / to the end of any config URL's if it's not already present
- * @param {String} url
- * @returns {String}
- */
-function wrapWithBackslash(url) {
-    if (!url.endsWith('/')) {
-        return `${url}/`;
-    }
-    return url;
-}
+import {addTrailingForwardSlash} from './libs/Url';
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
-const expensifyCashURL = wrapWithBackslash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://expensify.cash/'));
-const expensifyURL = wrapWithBackslash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
-const ngrokURL = wrapWithBackslash(lodashGet(Config, 'NGROK_URL', ''));
+const expensifyCashURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://expensify.cash/'));
+const expensifyURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
+const ngrokURL = addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
