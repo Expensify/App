@@ -12,6 +12,8 @@ import themeColors from '../../styles/themes/default';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {fetchAccountDetails} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -27,6 +29,8 @@ const propTypes = {
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
     }),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -77,7 +81,7 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         placeholder="Phone or Email"
                         placeholderTextColor={themeColors.placeholderText}
-                        autofocus
+                        autofocus={!this.props.isSmallScreenWidth}
                     />
                 </View>
                 <View>
@@ -112,6 +116,9 @@ class LoginForm extends React.Component {
 LoginForm.propTypes = propTypes;
 LoginForm.defaultProps = defaultProps;
 
-export default withOnyx({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(LoginForm);
+export default compose(
+    withOnyx({
+        account: {key: ONYXKEYS.ACCOUNT},
+    }),
+    withWindowDimensions,
+)(LoginForm);
