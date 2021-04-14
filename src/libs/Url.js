@@ -10,19 +10,7 @@ function addTrailingForwardSlash(url) {
     return url;
 }
 
-/**
- * Add / to the start of any URL if not already present
- * @param {String} url
- * @returns {String}
- */
-function addLeadingForwardSlash(url) {
-    if (!url.startsWith('/')) {
-        return `/${url}`;
-    }
-    return url;
-}
-
 export {
+    // eslint-disable-next-line import/prefer-default-export
     addTrailingForwardSlash,
-    addLeadingForwardSlash,
 };
