@@ -79,16 +79,16 @@ class ReportActionItemMessageEdit extends React.Component {
                     style={[styles.textInput, styles.flex0]}
                 />
                 <View style={[styles.flexRow, styles.mt1]}>
-                    <TouchableOpacity style={[styles.button, styles.mr2]}>
+                    <Pressable style={[styles.button, styles.mr2]}>
                         <Text style={[styles.buttonText]} onPress={this.deleteDraft}>
                             Cancel
                         </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.buttonSuccess]}>
+                    </Pressable>
+                    <Pressable style={[styles.button, styles.buttonSuccess]}>
                         <Text style={[styles.buttonText, styles.buttonSuccessText]} onPress={this.publishDraft}>
                             Save Changes
                         </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                 </View>
             </View>
         );
