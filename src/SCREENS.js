@@ -3,6 +3,7 @@
  * navigation. But there are situations where we may need to access screen names directly.
  */
 export default {
+    HOME: 'Home',
     REPORT: 'Report',
     SIGN_IN: 'SignIn',
 };
