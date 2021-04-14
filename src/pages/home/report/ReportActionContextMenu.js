@@ -36,6 +36,9 @@ const propTypes = {
         // Email of the logged in person
         email: PropTypes.string,
     }),
+
+    // Draft message - if this is set the comment is in 'edit' mode
+    draftMessage: PropTypes.string,
 };
 
 const defaultProps = {
@@ -98,7 +101,11 @@ class ReportActionContextMenu extends React.Component {
             shouldShow: this.props.reportAction.actorEmail === this.props.session.email
                 && !isReportMessageAttachment(this.getActionText()),
             onPress: () => {
-                saveReportActionDraft(this.props.reportID, this.props.reportAction.reportActionID, this.getActionText());
+                saveReportActionDraft(
+                    this.props.reportID,
+                    this.props.reportAction.reportActionID,
+                    _.isEmpty(this.props.draftMessage) ? this.getActionText() : '',
+                );
             },
         },
 
@@ -142,5 +149,8 @@ ReportActionContextMenu.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    draftMessage: {
+        key: ({reportID, reportAction}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportAction.reportActionID}`,
     },
 })(ReportActionContextMenu);
