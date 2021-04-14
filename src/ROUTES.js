@@ -23,6 +23,10 @@ export default {
     DETAILS: 'details',
     DETAILS_WITH_LOGIN: 'details/:login',
     getDetailsRoute: login => `details/${login}`,
+    REPORT_PARTICIPANTS: 'r/:reportID/participants',
+    getReportParticipantsRoute: reportID => `r/${reportID}/participants`,
+    REPORT_PARTICIPANT: 'r/:reportID/participants/:login',
+    getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
 };
