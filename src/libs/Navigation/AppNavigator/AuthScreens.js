@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import moment from 'moment';
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -30,6 +33,9 @@ import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
 
+// Validate login page
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
+
 // Modal Stack Navigators
 import {
     IOUBillStackNavigator,
@@ -40,6 +46,21 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
+
+Onyx.connect({
+    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    callback: (val) => {
+        const timezone = lodashGet(val, 'timezone', {});
+        const currentTimezone = moment.tz.guess(true);
+
+        // If the current timezone is different than the user's timezone, and their timezone is set to automatic
+        // then update their timezone.
+        if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
+            timezone.selected = currentTimezone;
+            PersonalDetails.setPersonalDetails({timezone});
+        }
+    },
+});
 
 const RootStack = createCustomModalStackNavigator();
 
@@ -55,12 +76,21 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
-    network: PropTypes.shape({isOffline: PropTypes.bool}),
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    }),
+
+    // The initial report for the home screen
+    initialReportID: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
+    initialReportID: null,
 };
 
 class AuthScreens extends React.Component {
@@ -69,6 +99,8 @@ class AuthScreens extends React.Component {
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+
+        this.initialReportID = props.initialReportID;
     }
 
     componentDidMount() {
@@ -83,7 +115,7 @@ class AuthScreens extends React.Component {
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         PersonalDetails.fetch();
-        User.fetch();
+        User.getUserDetails();
         User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
@@ -97,7 +129,7 @@ class AuthScreens extends React.Component {
                 return;
             }
             PersonalDetails.fetch();
-            User.fetch();
+            User.getUserDetails();
             User.getBetas();
         }, 1000 * 60 * 30);
 
@@ -109,9 +141,18 @@ class AuthScreens extends React.Component {
         }, ['meta'], true);
     }
 
-    shouldComponentUpdate(prevProps) {
-        if (prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
             return true;
+        }
+
+        // Skip when `this.initialReportID` is already assigned. We no longer want to update it
+        if (!this.initialReportID) {
+            // Either we have a reportID or fetchAllReports resolved with no reports. Otherwise keep waiting
+            if (nextProps.initialReportID || nextProps.initialReportID === '') {
+                this.initialReportID = nextProps.initialReportID;
+                return true;
+            }
         }
 
         return false;
@@ -125,6 +166,11 @@ class AuthScreens extends React.Component {
     }
 
     render() {
+        // Wait to resolve initial Home route params.
+        if (!this.initialReportID) {
+            return null;
+        }
+
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
@@ -147,7 +193,21 @@ class AuthScreens extends React.Component {
                         headerShown: false,
                         title: 'Expensify.cash',
                     }}
+                    initialParams={{
+                        screen: 'Report',
+                        params: {
+                            reportID: this.initialReportID,
+                        },
+                    }}
                     component={MainDrawerNavigator}
+                />
+                <RootStack.Screen
+                    name="ValidateLogin"
+                    options={{
+                        headerShown: false,
+                        title: 'Expensify.cash',
+                    }}
+                    component={ValidateLoginPage}
                 />
 
                 {/* These are the various modal routes */}
@@ -209,6 +269,9 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        initialReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(AuthScreens);

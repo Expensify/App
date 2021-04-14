@@ -183,7 +183,7 @@ class NewGroupPage extends Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title="New Group"
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
