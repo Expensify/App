@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import CONFIG from '../../../CONFIG';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
@@ -46,8 +47,14 @@ const CONTEXT_ACTIONS = [
     {
         text: 'Copy Link',
         icon: LinkCopy,
-        shouldShow: false,
-        onPress: () => {},
+        shouldShow: true,
+        successText: 'Link Copied!',
+        onPress: (action, reportID) => {
+            // debugger;
+            const link = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH + 'r/' + reportID + '/' + lodashGet(action, 'sequenceNumber', null);
+            console.log(link);
+            Clipboard.setString(link);
+        },
     },
 
     // Mark as Unread
@@ -108,7 +115,7 @@ const ReportActionContextMenu = (props) => {
                     successIcon={contextAction.successIcon}
                     successText={contextAction.successText}
                     isMini={props.isMini}
-                    onPress={() => contextAction.onPress(props.reportAction)}
+                    onPress={() => contextAction.onPress(props.reportAction, props.reportID)}
                     key={contextAction.text}
                 />
             ))}

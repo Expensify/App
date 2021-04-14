@@ -16,6 +16,7 @@ export default {
                 screens: {
                     // Report route
                     Report: ROUTES.REPORT_WITH_ID,
+                    Report_Wth_ID_And_Sequence_Number: ROUTES.REPORT_WITH_ID_AND_SEQUENCE_NUMBER,
                 },
             },
 
