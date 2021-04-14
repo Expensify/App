@@ -806,13 +806,13 @@ const styles = {
     emojiPickerList: {
         height: 300,
         width: '100%',
-        paddingHorizontal: 16,
+        ...spacing.ph4,
     },
 
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
-        paddingVertical: 12,
+        ...spacing.pv3,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
@@ -823,10 +823,8 @@ const styles = {
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.iconSizeLarge,
-        paddingTop: 4,
-        paddingBottom: 4,
-        paddingRight: 8,
-        paddingLeft: 8,
+        ...spacing.pv1,
+        ...spacing.ph2,
     },
 
     emojiItem: {
