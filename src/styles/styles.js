@@ -400,7 +400,7 @@ const styles = {
         width: '100%',
     },
 
-    loginFormContainer: {
+    signInPageFormContainer: {
         maxWidth: 295,
         width: '100%',
     },
@@ -828,14 +828,6 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationMenuOpenAbsolute: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        zIndex: 2,
-    },
-
     navigationModalOverlay: {
         position: 'absolute',
         width: '100%',
@@ -1151,6 +1143,7 @@ const styles = {
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
+        zIndex: 1,
     },
 
     unreadIndicatorLine: {
@@ -1519,14 +1512,6 @@ function getWidthAndHeightStyle(width, height) {
 }
 
 /**
- * @param {Number} opacity
- * @returns {Object}
- */
-function getOpacityStyle(opacity) {
-    return {opacity};
-}
-
-/**
  * @param {Object} params
  * @returns {Object}
  */
@@ -1564,6 +1549,5 @@ export {
     getIconFillColor,
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
-    getOpacityStyle,
     getModalPaddingStyles,
 };
