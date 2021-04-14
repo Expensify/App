@@ -60,7 +60,7 @@ const getAllParticipants = (report, personalDetails) => {
             displayName: userPersonalDetail.displayName,
             icons: [userPersonalDetail.avatar],
             keyForList: userLogin,
-            login: userLogin,
+            login,
             text: userPersonalDetail.displayName,
             tooltipText: userLogin,
             participantsList: [{login: userLogin, displayName: userPersonalDetail.displayName}],

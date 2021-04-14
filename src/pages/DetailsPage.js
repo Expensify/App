@@ -36,11 +36,16 @@ const propTypes = {
 
 const DetailsPage = ({personalDetails, route}) => {
     const details = personalDetails[route.params.login];
+
+    // If we have a reportID param this means that we
+    // arrived here via the ParticipantsPage and should be allowed to navigate back to it
+    const shouldShowBackButton = Boolean(route.params.reportID);
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title="Details"
-                shouldShowBackButton={!!route.params.reportID}
+                shouldShowBackButton={shouldShowBackButton}
                 onBackButtonPress={Navigation.goBack}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
