@@ -99,7 +99,7 @@ class IOUModal extends Component {
     }
 
     /**
-     * Navigate to the next IOU step if possible
+     * Update the selected currency
      * @param {Object} selectedCurrency
      */
     updateSelectedCurrency(selectedCurrency) {

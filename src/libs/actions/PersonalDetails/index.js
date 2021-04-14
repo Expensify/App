@@ -232,20 +232,21 @@ function setPersonalDetails(details) {
 }
 
 /**
- * Fetches the preferred currency for the current user
- *
+ * Fetches the Currency preferences based on location
+ * @param {bool} onLocation
  * @param {Object} details
  */
-function fetchCurrencyPreferences() {
+function fetchCurrencyPreferences(onLocation) {
     let coords = {};
     let currency = '';
-
-    Geolocation.getCurrentPosition((position) => {
-        coords = {
-            longitude: position.coords.longitude,
-            latitude: position.coords.latitude,
-        };
-    });
+    if (onLocation) {
+        Geolocation.getCurrentPosition((position) => {
+            coords = {
+                longitude: position.coords.longitude,
+                latitude: position.coords.latitude,
+            };
+        });
+    }
 
     API.GetPreferredCurrency({...coords})
         .then((data) => {
@@ -265,7 +266,7 @@ function fetchCurrencyPreferences() {
 }
 
 /**
- * Gets the preferred currency for the current user
+ * Gets the currency list from the network
  *
  * @param {Object} details
  */

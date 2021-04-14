@@ -50,7 +50,7 @@ const IOUBillStackNavigator = () => (
 
 const IOUCurrencyNavigator = () => (
     <IOUCurrencyStack.Navigator
-        path={ROUTES.IOU_BILL}
+        path={ROUTES.IOU_CURRENCY}
         screenOptions={{
             ...defaultSubRouteOptions,
         }}
