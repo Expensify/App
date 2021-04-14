@@ -47,7 +47,7 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
-    const reportID = ROUTES.getReportIDFromRoute(route);
+    const {reportID} = ROUTES.parseReportRouteParams(route);
     if (reportID) {
         navigationRef.current.navigate(SCREENS.REPORT, {reportID});
         return;

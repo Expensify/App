@@ -1,3 +1,6 @@
+import lodashGet from 'lodash/get';
+import {addTrailingForwardSlash} from './libs/Url';
+
 /**
  * This is a file containing constants for all of the routes we want to be able to go to
  */
@@ -31,12 +34,16 @@ export default {
 
     /**
      * @param {String} route
-     * @returns {Number}
+     * @returns {Object}
      */
-    getReportIDFromRoute: (route) => {
-        if (!route.startsWith(`${REPORT}/`)) {
-            return '';
+    parseReportRouteParams: (route) => {
+        if (!route.startsWith(addTrailingForwardSlash(REPORT))) {
+            return {};
         }
-        return Number(route.split('/')[1]);
+
+        const pathSegments = route.split('/');
+        return {
+            reportID: lodashGet(pathSegments, 1),
+        };
     },
 };
