@@ -39,7 +39,7 @@ const propTypes = {
     loading: PropTypes.bool
 };
 
-class IOUDetailsPage extends Component {
+class IOUDetailsModal extends Component {
     constructor(props) {
         super(props);
 
@@ -82,12 +82,12 @@ class IOUDetailsPage extends Component {
     }
 }
 
-IOUDetailsPage.propTypes = propTypes;
-IOUDetailsPage.displayName = 'IOUDetailsPage';
-IOUDetailsPage.defaultProps = defaultProps;
+IOUDetailsModal.propTypes = propTypes;
+IOUDetailsModal.displayName = 'IOUDetailsModal';
+IOUDetailsModal.defaultProps = defaultProps;
 
 export default withOnyx({
     iouReport: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
     },
-})(IOUDetailsPage);
+})(IOUDetailsModal);
