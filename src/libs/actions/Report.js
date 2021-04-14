@@ -897,7 +897,6 @@ NetworkConnection.onReconnect(() => {
 });
 
 function editReportComment(reportID, reportAction, htmlForNewComment) {
-    debugger;
     // Optimistically update the report action with the new message
     const sequenceNumber = reportAction.sequenceNumber;
     const newReportAction = {...reportAction};

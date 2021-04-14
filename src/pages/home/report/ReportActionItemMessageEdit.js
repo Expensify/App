@@ -6,6 +6,7 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
+import {TouchableOpacity} from 'react-native-web';
 
 const propTypes = {
     // All the data of the action
@@ -62,19 +63,19 @@ class ReportActionItemMessageEdit extends React.Component {
                     onChangeText={this.updateDraft} // Debounced saveDraftComment
                     defaultValue={this.props.draftMessage}
                     maxLines={16} // This is the same that slack has
-                    style={[styles.textInputCompose, styles.flex4]}
+                    style={[styles.textInput, styles.flex0]}
                 />
-                <View>
-                    <Pressable>
-                        <Text onPress={this.deleteDraft}>
+                <View style={[styles.flexRow, styles.mt1]}>
+                    <TouchableOpacity style={[styles.button, styles.mr2]}>
+                        <Text style={[styles.buttonText]} onPress={this.deleteDraft}>
                             Cancel
                         </Text>
-                    </Pressable>
-                    <Pressable>
-                        <Text onPress={this.publishDraft}>
-                            Save
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.button, styles.buttonSuccess]}>
+                        <Text style={[styles.buttonText, styles.buttonSuccessText]} onPress={this.publishDraft}>
+                            Save Changes
                         </Text>
-                    </Pressable>
+                    </TouchableOpacity>
                 </View>
             </View>
         );
