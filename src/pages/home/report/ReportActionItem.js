@@ -139,7 +139,7 @@ class ReportActionItem extends Component {
                                 measureContent={() => (
                                     <ReportActionContextMenu
                                         isVisible
-                                        reportID={-1}
+                                        reportID={this.props.reportID}
                                         reportAction={this.props.action}
                                     />
                                 )}
