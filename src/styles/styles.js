@@ -14,6 +14,7 @@ import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
+import positioning from './utilities/positioning';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -22,6 +23,7 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
+    ...positioning,
     ...wordBreak,
     ...whiteSpace,
 
@@ -398,7 +400,7 @@ const styles = {
         width: '100%',
     },
 
-    loginFormContainer: {
+    signInPageFormContainer: {
         maxWidth: 295,
         width: '100%',
     },
@@ -601,11 +603,7 @@ const styles = {
         flexShrink: 0,
     },
 
-    optionDisplayNameTooltipWrapper: {
-        position: 'relative',
-    },
-
-    optionDisplayNameTooltipEllipsis: {
+    displayNameTooltipEllipsis: {
         position: 'absolute',
         opacity: 0,
         right: 0,
@@ -828,14 +826,6 @@ const styles = {
     chatSwticherPillWrapper: {
         marginTop: 5,
         marginRight: 4,
-    },
-
-    navigationMenuOpenAbsolute: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        zIndex: 2,
     },
 
     navigationModalOverlay: {
@@ -1153,6 +1143,7 @@ const styles = {
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
+        zIndex: 1,
     },
 
     unreadIndicatorLine: {
@@ -1521,14 +1512,6 @@ function getWidthAndHeightStyle(width, height) {
 }
 
 /**
- * @param {Number} opacity
- * @returns {Object}
- */
-function getOpacityStyle(opacity) {
-    return {opacity};
-}
-
-/**
  * @param {Object} params
  * @returns {Object}
  */
@@ -1566,6 +1549,5 @@ export {
     getIconFillColor,
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
-    getOpacityStyle,
     getModalPaddingStyles,
 };
