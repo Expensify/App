@@ -751,16 +751,6 @@ const styles = {
         display: 'flex',
     },
 
-    chatItemEdit: {
-        backgroundColor: themeColors.buttonSuccessHoveredBG,
-        display: 'flex',
-        flexDirection: 'row',
-        paddingTop: 8,
-        paddingBottom: 8,
-        paddingLeft: 20,
-        paddingRight: 20,
-    },
-
     chatItemComposeBoxColor: {
         borderColor: themeColors.border,
     },

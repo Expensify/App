@@ -56,7 +56,8 @@ class ReportActionItem extends Component {
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
-            || !_.isEqual(this.props.action, nextProps.action);
+            || !_.isEqual(this.props.action, nextProps.action)
+            || this.props.draftMessage !== nextProps.draftMessage;
     }
 
     /**
