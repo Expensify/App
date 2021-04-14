@@ -238,13 +238,13 @@ function setPersonalDetails(details) {
 
 /**
  * Fetches the Currency preferences based on location
- * @param {bool} onLocation
+ * @param {bool} withLocation
  * @param {Object} details
  */
-function fetchCurrencyPreferences(onLocation) {
+function fetchCurrencyPreferences(withLocation) {
     let coords = {};
     let currency = '';
-    if (onLocation) {
+    if (withLocation) {
         Geolocation.getCurrentPosition((position) => {
             coords = {
                 longitude: position.coords.longitude,
