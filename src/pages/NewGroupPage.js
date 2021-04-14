@@ -7,7 +7,7 @@ import OptionsSelector from '../components/OptionsSelector';
 import {getNewGroupOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import {fetchOrCreateChatReportAndRedirect} from '../libs/actions/Report';
+import {fetchOrCreateChatReportAndNavigate} from '../libs/actions/Report';
 import CONST from '../CONST';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
@@ -126,7 +126,7 @@ class NewGroupPage extends Component {
         if (userLogins.length < 1) {
             return;
         }
-        fetchOrCreateChatReportAndRedirect([this.props.session.email, ...userLogins]);
+        fetchOrCreateChatReportAndNavigate([this.props.session.email, ...userLogins]);
     }
 
     /**

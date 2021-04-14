@@ -2,7 +2,9 @@ import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
@@ -66,19 +68,31 @@ const ReportActionItemIOUPreview = ({
     personalDetails,
     session,
 }) => {
-    const managerName = lodashGet(personalDetails, [iou.managerEmail, 'displayName'], iou.managerEmail);
-    const ownerName = lodashGet(personalDetails, [iou.ownerEmail, 'displayName'], iou.ownerEmail);
+    const managerName = lodashGet(
+        personalDetails,
+        [iou.managerEmail, 'displayName'],
+        iou.managerEmail ? Str.removeSMSDomain(iou.managerEmail) : '',
+    );
+    const ownerName = lodashGet(
+        personalDetails,
+        [iou.ownerEmail, 'displayName'],
+        iou.ownerEmail ? Str.removeSMSDomain(iou.ownerEmail) : '',
+    );
     const managerAvatar = lodashGet(personalDetails, [iou.managerEmail, 'avatar'], '');
     const ownerAvatar = lodashGet(personalDetails, [iou.ownerEmail, 'avatar'], '');
     const sessionEmail = lodashGet(session, 'email', null);
     const cachedTotal = iou.cachedTotal ? iou.cachedTotal.replace(/[()]/g, '') : '';
+
+    // Pay button should be visible to manager person in the report
+    // Check if the currently logged in user is the manager.
+    const isPayButtonVisible = iou.managerEmail === sessionEmail;
 
     return (
         <View>
             <ReportActionItemIOUQuote action={action} />
             {isMostRecentIOUReportAction
                     && report.hasOutstandingIOU
-                    && iou ? (
+                    && !_.isEmpty(iou) && (
                         <View style={styles.iouPreviewBox}>
                             <View style={styles.flexRow}>
                                 <View style={styles.flex1}>
@@ -96,7 +110,7 @@ const ReportActionItemIOUPreview = ({
                                     />
                                 </View>
                             </View>
-                            {(iou.managerEmail === sessionEmail) ? (
+                            {isPayButtonVisible && (
                                 <TouchableOpacity
                                     style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
                                 >
@@ -109,11 +123,9 @@ const ReportActionItemIOUPreview = ({
                                         Pay
                                     </Text>
                                 </TouchableOpacity>
-                            )
-                                : null}
+                            )}
                         </View>
-                )
-                : null}
+            )}
         </View>
     );
 };

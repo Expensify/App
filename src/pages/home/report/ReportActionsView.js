@@ -81,7 +81,7 @@ class ReportActionsView extends React.Component {
         };
 
         this.updateSortedReportActions(props.reportActions);
-        this.updateMostRecentIOUReportActionNumber();
+        this.updateMostRecentIOUReportActionNumber(props.reportActions);
     }
 
     componentDidMount() {
@@ -97,7 +97,7 @@ class ReportActionsView extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.updateSortedReportActions(nextProps.reportActions);
-            this.updateMostRecentIOUReportActionNumber();
+            this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
             return true;
         }
 
@@ -256,9 +256,10 @@ class ReportActionsView extends React.Component {
     /**
      * Finds and updates most recent IOU report action number
      *
+     * @param {Array<{sequenceNumber, actionName}>} reportActions
      */
-    updateMostRecentIOUReportActionNumber() {
-        this.mostRecentIOUReportSequenceNumber = _.chain(this.props.reportActions)
+    updateMostRecentIOUReportActionNumber(reportActions) {
+        this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'IOU')
             .max(action => action.sequenceNumber)
