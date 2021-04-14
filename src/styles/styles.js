@@ -1251,7 +1251,7 @@ const styles = {
     },
 
     fullScreenLoading: {
-        backgroundColor: themeColors.modalBackdrop,
+        backgroundColor: themeColors.componentBG,
         opacity: 0.8,
         justifyContent: 'center',
         alignItems: 'center',
