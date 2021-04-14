@@ -26,7 +26,10 @@ const propTypes = {
 
     // User's currency preference
     selectedCurrency: PropTypes.objectOf(PropTypes.shape({
+        // Currency code for the selected currency
         currencyCode: PropTypes.string,
+
+        // Currency symbol for the selected currency
         currencySymbol: PropTypes.string,
     })).isRequired,
 

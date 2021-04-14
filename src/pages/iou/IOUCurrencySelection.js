@@ -3,7 +3,7 @@ import {Pressable, SectionList, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
-import {getCurrencyList} from '../../libs/actions/PersonalDetails';
+import {fetchCurrencyPreferences, getCurrencyList} from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import {getCurrencyListForSections} from '../../libs/OptionsListUtils';
 import Text from '../../components/Text';
@@ -31,8 +31,13 @@ const propTypes = {
 
     // The currency list constant object from Onyx
     currencyList: PropTypes.objectOf(PropTypes.shape({
+        // Symbol for the currency
         symbol: PropTypes.string,
+
+        // Name of the currency
         name: PropTypes.string,
+
+        // ISO4217 Code for the currency
         ISO4217: PropTypes.string,
     })),
 };
@@ -63,6 +68,7 @@ class IOUCurrencySelection extends Component {
     }
 
     componentDidMount() {
+        fetchCurrencyPreferences(true);
         getCurrencyList();
     }
 
