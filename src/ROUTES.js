@@ -43,7 +43,7 @@ export default {
 
         const pathSegments = route.split('/');
         return {
-            reportID: lodashGet(pathSegments, 1),
+            reportID: Number(lodashGet(pathSegments, 1, 0)),
         };
     },
 };
