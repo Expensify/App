@@ -1,6 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity, Pressable, InteractionManager} from 'react-native';
+import {
+    View,
+    TouchableOpacity,
+    Pressable,
+    InteractionManager,
+} from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
