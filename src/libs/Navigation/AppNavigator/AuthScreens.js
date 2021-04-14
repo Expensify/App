@@ -190,7 +190,7 @@ class AuthScreens extends React.Component {
             >
                 {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
                 <RootStack.Screen
-                    name="Home"
+                    name={SCREENS.HOME}
                     options={{
                         headerShown: false,
                         title: 'Expensify.cash',
