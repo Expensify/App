@@ -1,4 +1,6 @@
+import {getStateFromPath} from '@react-navigation/native';
 import ROUTES from '../../ROUTES';
+import {addLeadingForwardSlash} from '../Url';
 
 export default {
     prefixes: [
@@ -8,6 +10,20 @@ export default {
         'https://staging.expensify.cash',
         'http://localhost',
     ],
+    getStateFromPath: (path, options) => {
+        const state = getStateFromPath(path, options);
+
+        // If we land on a deep link that is not the Home or Report route we will must push a Home route to the bottom
+        // of the stack so that we don't end up with a white background and nowhere to navigate back from.
+        if (path !== addLeadingForwardSlash(ROUTES.HOME)
+            && !path.startsWith(addLeadingForwardSlash(ROUTES.REPORT))
+        ) {
+            state.routes.unshift({name: 'Home', params: undefined});
+            return state;
+        }
+
+        return state;
+    },
     config: {
         screens: {
             Home: {
