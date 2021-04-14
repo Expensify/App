@@ -94,4 +94,5 @@ export default {
     navigate,
     dismissModal,
     isDrawerOpen,
+    goBack,
 };
