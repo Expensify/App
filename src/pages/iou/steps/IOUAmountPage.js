@@ -77,7 +77,7 @@ class IOUAmountPage extends React.Component {
         this.setState((prevState) => {
             const newValue = `${prevState.amount}${key}`;
 
-            // Regex to validate decimal number with up to 6 digits and 2 decimal numbers
+            // Regex to validate decimal number with up to 3 decimal numbers
             const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
             if (!decimalNumberRegex.test(newValue)) {
                 return prevState;
