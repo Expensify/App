@@ -1,6 +1,9 @@
 /**
  * This is a file containing constants for all of the routes we want to be able to go to
  */
+
+const REPORT = 'r';
+
 export default {
     HOME: '',
     SETTINGS: 'settings',
@@ -12,7 +15,7 @@ export default {
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
-    REPORT: 'r',
+    REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
     IOU_REQUEST: 'iou/request',
@@ -25,4 +28,15 @@ export default {
     getDetailsRoute: login => `details/${login}`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
+
+    /**
+     * @param {String} route
+     * @returns {Number}
+     */
+    getReportIDFromRoute: (route) => {
+        if (!route.startsWith(`${REPORT}/`)) {
+            return '';
+        }
+        return Number(route.split('/')[1]);
+    },
 };
