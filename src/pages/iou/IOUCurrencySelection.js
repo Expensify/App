@@ -162,7 +162,7 @@ class IOUCurrencySelection extends Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title="Select a currency"
-                    onCloseButtonPress={() => Navigation.goBack()}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={[styles.flex1, styles.w100]}>
                     <View style={[styles.flex1]}>
@@ -207,7 +207,7 @@ class IOUCurrencySelection extends Component {
                                     preferredCurrencyCode: this.state.selectedCurrency.currencyCode,
                                     preferredCurrencySymbol: this.state.selectedCurrency.currencySymbol,
                                 });
-                                Navigation.goBack();
+                                Navigation.dismissModal();
                             }}
                             style={({hovered}) => [
                                 styles.button,
