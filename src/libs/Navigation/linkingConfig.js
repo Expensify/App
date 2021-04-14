@@ -15,8 +15,12 @@ export default {
                 path: ROUTES.HOME,
                 initialRouteName: SCREENS.REPORT,
                 screens: {
-                    // Report route
-                    [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
+                    ReportStack: {
+                        screens: {
+                            // Report route
+                            [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
+                        },
+                    },
                 },
             },
 

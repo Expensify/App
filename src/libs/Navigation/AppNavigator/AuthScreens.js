@@ -196,9 +196,12 @@ class AuthScreens extends React.Component {
                         title: 'Expensify.cash',
                     }}
                     initialParams={{
-                        screen: SCREENS.REPORT,
+                        screen: 'ReportStack',
                         params: {
-                            reportID: this.initialReportID,
+                            screen: SCREENS.REPORT,
+                            params: {
+                                reportID: this.initialReportID,
+                            },
                         },
                     }}
                     component={MainDrawerNavigator}

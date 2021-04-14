@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {StackActions, DrawerActions} from '@react-navigation/native';
 import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
+import canPushReportScreen from './canPushReportScreen';
 
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
@@ -49,7 +50,12 @@ function navigate(route = ROUTES.HOME) {
 
     const {reportID} = ROUTES.parseReportRouteParams(route);
     if (reportID) {
-        navigationRef.current.navigate(SCREENS.REPORT, {reportID});
+        if (canPushReportScreen()) {
+            navigationRef.current.dispatch(StackActions.push(SCREENS.REPORT, {reportID}));
+        } else {
+            navigationRef.current.navigate(SCREENS.REPORT, {reportID});
+            navigationRef.current.dispatch(DrawerActions.closeDrawer());
+        }
         return;
     }
 
