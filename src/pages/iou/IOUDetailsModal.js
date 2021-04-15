@@ -14,6 +14,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import compose from '../../libs/compose';
+import {settleIOUReport} from '../../libs/actions/IOU';
 import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
 
 const matchType = PropTypes.shape({
@@ -56,6 +57,7 @@ class IOUDetailsModal extends Component {
 
         this.state = {
             loading: false,
+            settlementType: 'Elsewhere'
         }
 
         this.performIOUSettlement = this.performIOUSettlement.bind(this);
@@ -69,6 +71,10 @@ class IOUDetailsModal extends Component {
     }
 
     performIOUSettlement() {
+        settleIOUReport({
+            reportID: this.props.route.params.iouReportID,
+            paymentMethodType: this.state.settlementType,
+        });
         this.setState({
             loading: true,
         });
