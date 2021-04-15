@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import TransactionItem from '../../components/TransactionItem';
@@ -44,6 +45,11 @@ const propTypes = {
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
     loading: PropTypes.bool,
+    // Session info for the currently logged in user.
+    session: PropTypes.shape({
+        // Currently logged in user email
+        email: PropTypes.string,
+    }).isRequired,
 };
 
 class IOUDetailsModal extends Component {
@@ -84,11 +90,12 @@ class IOUDetailsModal extends Component {
 
                     {/* Reuse Preview Component here? */}
 
+                    {(this.props.iouReport.managerEmail === sessionEmail &&
                     <ButtonWithLoader
                         text="I'll settle up elsewhere"
                         isLoading={this.props.loading}
                         onClick={this.performIOUSettlement}
-                    />
+                    />)}
                 </View>
             </ScreenWrapper>
         );
@@ -104,10 +111,13 @@ export default compose(
         iouReport: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
         },
-    }),
-    withOnyx({
-        reportActions: {
-            key: ({iouReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.chatReportID}`,
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
+    // withOnyx({
+    //     reportActions: {
+    //         key: ({iouReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.chatReportID}`,
+    //     },
+    // }),
 )(IOUDetailsModal);
