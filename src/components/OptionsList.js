@@ -80,7 +80,7 @@ const defaultProps = {
     optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
-    listContainerStyles: [],
+    listContainerStyles: undefined,
     sections: [],
     focusedIndex: 0,
     selectedOptions: [],
