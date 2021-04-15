@@ -94,7 +94,6 @@ jobs:
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          SHOULD_DEPLOY_PRODUCTION: true
 
       - name: Build staging desktop app
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
@@ -106,7 +105,6 @@ jobs:
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          SHOULD_DEPLOY_PRODUCTION: false
 
   iOS:
     name: Build and deploy iOS
