@@ -126,9 +126,30 @@ function settleIOUReport({
        });
 }
 
+/**
+ * Retrieve an IOU report using a transactionID, then navigate to the page.
+ */
+ function getIOUReportDetailFromTransactionID(transactionID) {
+    API.Get({
+        returnValueList: 'transactionList',
+        transactionID: transactionID,
+    })
+        .then(data => {
+            const chatReportID = data.transactionList[0].reportID;
+            if (!chatReportID) {
+                return;
+            }
+            Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID));
+        })
+        .catch((error) => {
+            console.error('Error retrieving Transaction: ', error);
+        });
+}
+
 export {
     getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
-    settleIOUReport,
+    getIOUReportDetailFromTransactionID,
+    settleIOUReport
 }
