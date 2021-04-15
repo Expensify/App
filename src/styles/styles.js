@@ -494,9 +494,19 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    createMenuPosition: {
+    createMenuPositionSidebar: {
         left: 18,
         bottom: 100,
+    },
+
+    createMenuPositionProfile: {
+        right: 18,
+        top: 100,
+    },
+
+    createMenuPositionReportCompose: {
+        left: 18 + variables.sideBarWidth,
+        bottom: 75,
     },
 
     createMenuContainer: {
