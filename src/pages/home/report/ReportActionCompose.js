@@ -17,6 +17,7 @@ import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
+import CONST from '../../../CONST';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
@@ -247,6 +248,7 @@ class ReportActionCompose extends React.Component {
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
+                                                popOverType={CONST.MODAL.MODAL_TYPE.POPOVER_CENTER_BOTTOM}
                                                 menuItems={[
                                                     {
                                                         icon: Paperclip,
