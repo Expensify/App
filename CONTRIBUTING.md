@@ -2,13 +2,13 @@
 Welcome! Thanks for checking out Expensify.cash and for taking the time to contribute!
 
 ## Getting Started
-If you would like to become an Expensify.cash contributor, the first step is to read this document in it's entirety. The second step is to review the README guidelines [here](https://github.com/Expensify/Expensify.cash/blob/master/README.md) for a general overview of the code repository (i.e. how to run the app locally, testing, storage, etc). Please read both documents before asking questions, as it may be covered within the documentation.
+If you would like to become an Expensify.cash contributor, the first step is to read this document in it's entirety. The second step is to review the README guidelines [here](https://github.com/Expensify/Expensify.cash/blob/main/README.md) for a general overview of the code repository (i.e. how to run the app locally, testing, storage, etc). Please read both documents before asking questions, as it may be covered within the documentation.
 
 #### Test Accounts
 You can create as many accounts as needed in order to test your changes directly from [expensify.cash](https://expensify.cash/). An initial account can be created when logging in for the first time, and additional accounts can be invited by entering a valid email or phone in the "Find or start a chat" input then tapping the avatar.
 
 ## Code of Conduct
-This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/master/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
+This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
 
 ## Asking Questions
 If you have any general questions, please ask in the #expensify-open-source Slack channel. To request an invite to the channel, just email contributors@expensify.com with the subject `Slack Channel Invite` and we'll send you an invite! The Expensify team will not be able to respond to direct messages in Slack.
@@ -39,7 +39,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
     6. Pause on this step until a member of the Expensify team responds on your issue with next steps.
 
 ## Working on an Expensify.cash Jobs
-*Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/Expensify.cash/blob/master/README.md)*.
+*Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/Expensify.cash/blob/main/README.md)*.
 
 #### Express interest for the job on Upwork.com
 
@@ -73,7 +73,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 
 #### Submit your pull request for final request
 12. When you are ready to submit your pull request for final review, make sure the following checks pass:
-	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/master/CLA.md) by following the CLA bot instructions that will be posted on your PR
+	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/main/CLA.md) by following the CLA bot instructions that will be posted on your PR
 	2. Tests - All tests must pass before a merge of a pull request
 	3. Lint - All code must pass lint checks before a merge of a pull request
 13. Please never force push when a PR review has already started (because this messes with the PR review history)
