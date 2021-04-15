@@ -12,7 +12,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import compose from '../../libscompose';
+import compose from '../../libs/compose';
 import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
 
 const matchType = PropTypes.shape({
@@ -43,7 +43,7 @@ const propTypes = {
 
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
-    loading: PropTypes.bool
+    loading: PropTypes.bool,
 };
 
 class IOUDetailsModal extends Component {
@@ -81,7 +81,7 @@ class IOUDetailsModal extends Component {
                     {_.map(this.props.iouReport.transactions, (transaction) => (
                         <TransactionItem transaction={transaction} />
                     ))}
-                    
+
                     {/* Reuse Preview Component here? */}
 
                     <ButtonWithLoader
@@ -100,14 +100,14 @@ IOUDetailsModal.displayName = 'IOUDetailsModal';
 IOUDetailsModal.defaultProps = defaultProps;
 
 export default compose(
-	withOnyx({
+    withOnyx({
         iouReport: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
         },
-	}),
-	withOnyx({
+    }),
+    withOnyx({
         reportActions: {
-            key: ({iouReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.iouReportID}`,
+            key: ({iouReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.chatReportID}`,
         },
-	}),
+    }),
 )(IOUDetailsModal);
