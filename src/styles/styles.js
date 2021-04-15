@@ -13,6 +13,8 @@ import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
+import CONST from '../CONST';
+import positioning from './utilities/positioning';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -21,12 +23,14 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
+    ...positioning,
     ...wordBreak,
     ...whiteSpace,
 
     link: {
         color: themeColors.link,
         textDecorationColor: themeColors.link,
+        fontFamily: fontFamily.GTA,
     },
 
     h1: {
@@ -225,32 +229,24 @@ const styles = {
         },
     },
 
-    pill: {
+    badge: {
+        backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
-        backgroundColor: themeColors.pillBG,
-        height: variables.componentSizeSmall,
+        height: variables.iconSizeNormal,
         flexDirection: 'row',
-        paddingTop: 6,
-        paddingBottom: 6,
-        paddingLeft: 7,
-        paddingRight: 7,
+        paddingHorizontal: 7,
         alignItems: 'center',
     },
 
-    pillText: {
-        color: themeColors.text,
-        weight: '400',
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
-        marginRight: 4,
-        userSelect: 'none',
-        maxWidth: 144,
-        ...whiteSpace.noWrap,
+    badgeSuccess: {
+        backgroundColor: themeColors.badgeSuccessBG,
     },
 
-    pillCancelIcon: {
-        width: 12,
-        height: 12,
+    badgeText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        ...whiteSpace.noWrap,
     },
 
     headerText: {
@@ -258,6 +254,14 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
+    },
+
+    headerGap: {
+        height: 12,
+    },
+
+    pushTextRight: {
+        left: 100000,
     },
 
     reportOptions: {
@@ -349,6 +353,7 @@ const styles = {
         backgroundColor: themeColors.sidebar,
         padding: 20,
         minHeight: '100%',
+        flex: 1,
     },
 
     signInPageLogo: {
@@ -395,7 +400,7 @@ const styles = {
         width: '100%',
     },
 
-    loginFormContainer: {
+    signInPageFormContainer: {
         maxWidth: 295,
         width: '100%',
     },
@@ -535,14 +540,20 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
-        paddingRight: 20,
         paddingBottom: 12,
-        paddingLeft: 20,
+    },
+
+    sidebarInnerRowSmall: {
+        height: 52,
+        paddingTop: 12,
+        paddingBottom: 12,
     },
 
     sidebarLinkText: {
@@ -585,11 +596,14 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-    optionDisplayNameTooltipWrapper: {
-        position: 'relative',
+    optionDisplayNameCompact: {
+        minWidth: 'auto',
+        flexBasis: 'auto',
+        flexGrow: 0,
+        flexShrink: 0,
     },
 
-    optionDisplayNameTooltipEllipsis: {
+    displayNameTooltipEllipsis: {
         position: 'absolute',
         opacity: 0,
         right: 0,
@@ -602,6 +616,12 @@ const styles = {
         fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
+    },
+
+    optionAlternateTextCompact: {
+        flexShrink: 1,
+        flexGrow: 1,
+        flexBasis: 'auto',
     },
 
     // App Content Wrapper styles
@@ -776,6 +796,10 @@ const styles = {
         justifyContent: 'center',
     },
 
+    hoveredButton: {
+        backgroundColor: themeColors.buttonHoveredBG,
+    },
+
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
@@ -804,14 +828,6 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationMenuOpenAbsolute: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        zIndex: 2,
-    },
-
     navigationModalOverlay: {
         position: 'absolute',
         width: '100%',
@@ -837,12 +853,34 @@ const styles = {
         borderRadius: 24,
     },
 
+    singleAvatarSmall: {
+        height: 18,
+        width: 18,
+        backgroundColor: themeColors.icon,
+        borderRadius: 18,
+    },
+
     secondAvatar: {
         position: 'absolute',
-        right: -13,
-        bottom: -14,
+        right: -18,
+        bottom: -18,
+        borderWidth: 3,
+        borderRadius: 30,
         borderColor: 'transparent',
-        borderWidth: 2,
+    },
+
+    secondAvatarHovered: {
+        backgroundColor: themeColors.sidebarHover,
+        borderColor: themeColors.sidebarHover,
+    },
+
+    secondAvatarSmall: {
+        position: 'absolute',
+        right: -13,
+        bottom: -13,
+        borderWidth: 3,
+        borderRadius: 18,
+        borderColor: 'transparent',
     },
 
     avatarNormal: {
@@ -852,11 +890,11 @@ const styles = {
         borderRadius: variables.componentSizeNormal,
     },
 
-    avatarText: {
+    avatarSmall: {
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
         backgroundColor: themeColors.icon,
-        borderRadius: 24,
-        height: 24,
-        width: 24,
+        borderRadius: variables.avatarSizeSmall,
     },
 
     avatarInnerText: {
@@ -867,6 +905,14 @@ const styles = {
         textAlign: 'center',
     },
 
+    avatarInnerTextSmall: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeExtraSmall,
+        lineHeight: 18,
+        marginLeft: -2,
+        textAlign: 'center',
+    },
+
     avatarSpace: {
         top: 3,
         left: 3,
@@ -874,16 +920,24 @@ const styles = {
 
     avatar: {
         backgroundColor: themeColors.sidebar,
+        borderColor: themeColors.sidebar,
     },
 
     focusedAvatar: {
         backgroundColor: themeColors.border,
+        borderColor: themeColors.border,
     },
 
     emptyAvatar: {
         marginRight: variables.componentSizeNormal - 24,
-        height: 40,
-        width: 40,
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
+    },
+
+    emptyAvatarSmall: {
+        marginRight: variables.componentSizeNormal - 28,
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
     },
 
     modalViewContainer: {
@@ -903,6 +957,13 @@ const styles = {
         paddingLeft: 20,
         height: variables.contentHeaderHeight,
         width: '100%',
+    },
+
+    imageViewContainer: {
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     imageModalPDF: {
@@ -993,14 +1054,11 @@ const styles = {
         borderColor: colors.transparent,
     },
 
-    reportActionContextMenuText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-        ...spacing.ml4,
-        ...spacing.mr2,
+    reportActionContextMenuMiniButton: {
+        ...spacing.p1,
+        ...spacing.mv1,
+        ...spacing.mh1,
+        ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
     settingsPageBackground: {
@@ -1085,6 +1143,7 @@ const styles = {
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
+        zIndex: 1,
     },
 
     unreadIndicatorLine: {
@@ -1112,6 +1171,7 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
+        height: '100%',
     },
 
     invisible: {
@@ -1119,7 +1179,7 @@ const styles = {
         opacity: 0,
     },
 
-    detailsPageContainer: {
+    containerWithSpaceBetween: {
         justifyContent: 'space-between',
         width: '100%',
         flex: 1,
@@ -1178,13 +1238,35 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
     },
 
     iouAmountTextInput: addOutlineWidth({
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
     }, 0),
+
+    noScrollbars: {
+        scrollbarWidth: 'none',
+    },
+
+    fullScreenLoading: {
+        backgroundColor: themeColors.componentBG,
+        opacity: 0.8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+
+    hiddenElementOutsideOfWindow: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        opacity: 0,
+        transform: 'translateX(-100%)',
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1219,6 +1301,10 @@ const webViewStyles = {
         },
 
         a: styles.link,
+
+        li: {
+            flexShrink: 1,
+        },
 
         blockquote: {
             borderLeftColor: themeColors.border,
@@ -1322,6 +1408,154 @@ function getNavigationModalCardStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * @param {Boolean} isZoomed
+ * @param {Boolean} isDragging
+ * @return {Object}
+ */
+function getZoomCursorStyle(isZoomed, isDragging) {
+    if (!isZoomed) {
+        return {cursor: 'zoom-in'};
+    }
+
+    return {
+        cursor: isDragging ? 'grabbing' : 'zoom-out',
+    };
+}
+
+/**
+ * @param {Boolean} isZoomed
+ * @return {Object}
+ */
+function getZoomSizingStyle(isZoomed) {
+    return {
+        height: isZoomed ? '250%' : '100%',
+        width: isZoomed ? '250%' : '100%',
+    };
+}
+
+/**
+ * Returns auto grow text input style
+ *
+ * @param {Number} width
+ * @return {Object}
+ */
+function getAutoGrowTextInputStyle(width) {
+    return {
+        minWidth: 5,
+        width,
+    };
+}
+
+/**
+ * Returns a style with backgroundColor and borderColor set to the same color
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundAndBorderStyle(backgroundColor) {
+    return {
+        backgroundColor,
+        borderColor: backgroundColor,
+    };
+}
+
+/**
+ * Returns a style with the specified backgroundColor
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundColorStyle(backgroundColor) {
+    return {
+        backgroundColor,
+    };
+}
+
+/**
+ * Generate a style for the background color of the button, based on its current state.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Object}
+ */
+function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return {backgroundColor: themeColors.buttonHoveredBG};
+        case CONST.BUTTON_STATES.PRESSED:
+            return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return {};
+    }
+}
+
+/**
+ * Generate fill color of an icon based on its state.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Object}
+ */
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return themeColors.text;
+        case CONST.BUTTON_STATES.PRESSED:
+            return themeColors.heading;
+        case CONST.BUTTON_STATES.COMPLETE:
+            return themeColors.iconSuccessFill;
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return themeColors.icon;
+    }
+}
+
+/**
+ * @param {Animated.Value} rotate
+ * @param {Animated.Value} backgroundColor
+ * @returns {Object}
+ */
+function getAnimatedFABStyle(rotate, backgroundColor) {
+    return {
+        transform: [{rotate}],
+        backgroundColor,
+    };
+}
+
+/**
+ * @param {Number} width
+ * @param {Number} height
+ * @returns {Object}
+ */
+function getWidthAndHeightStyle(width, height) {
+    return {
+        width,
+        height,
+    };
+}
+
+/**
+ * @param {Object} params
+ * @returns {Object}
+ */
+function getModalPaddingStyles({
+    shouldAddBottomSafeAreaPadding,
+    shouldAddTopSafeAreaPadding,
+    safeAreaPaddingTop,
+    safeAreaPaddingBottom,
+    modalContainerStylePaddingTop,
+    modalContainerStylePaddingBottom,
+}) {
+    return {
+        paddingTop: shouldAddTopSafeAreaPadding
+            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
+            : modalContainerStylePaddingTop || 0,
+        paddingBottom: shouldAddBottomSafeAreaPadding
+            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
+            : modalContainerStylePaddingBottom || 0,
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1330,4 +1564,14 @@ export {
     getNavigationDrawerStyle,
     getNavigationDrawerType,
     getNavigationModalCardStyle,
+    getZoomCursorStyle,
+    getZoomSizingStyle,
+    getAutoGrowTextInputStyle,
+    getBackgroundAndBorderStyle,
+    getBackgroundColorStyle,
+    getButtonBackgroundColorStyle,
+    getIconFillColor,
+    getAnimatedFABStyle,
+    getWidthAndHeightStyle,
+    getModalPaddingStyles,
 };

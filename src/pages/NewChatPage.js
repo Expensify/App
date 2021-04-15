@@ -108,13 +108,14 @@ class NewChatPage extends Component {
         const headerMessage = getHeaderMessage(
             this.state.personalDetails.length !== 0,
             Boolean(this.state.userToInvite),
+            this.state.searchValue,
         );
 
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title="New Chat"
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector

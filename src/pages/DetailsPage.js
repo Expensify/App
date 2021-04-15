@@ -13,37 +13,22 @@ import Avatar from '../components/Avatar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
-
-const personalDetailsType = PropTypes.shape({
-    // Display name of the current user from their personal details
-    displayName: PropTypes.string,
-
-    // Avatar URL of the current user from their personal details
-    avatar: PropTypes.string,
-
-    // login of the current user from their personal details
-    login: PropTypes.string,
-
-    // pronouns of the current user from their personal details
-    pronouns: PropTypes.string,
-
-    // timezone of the current user from their personal details
-    timezone: PropTypes.shape({
-        selected: PropTypes.string,
-    }),
-});
+import personalDetailsPropType from './personalDetailsPropType';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
         // login passed via route /details/:login
         login: PropTypes.string,
+
+        // report ID passed
+        reportID: PropTypes.string,
     }),
 });
 
 const propTypes = {
     /* Onyx Props */
     // The personal details of the person who is logged in
-    personalDetails: personalDetailsType.isRequired,
+    personalDetails: personalDetailsPropType.isRequired,
 
     // Route params
     route: matchType.isRequired,
@@ -51,16 +36,23 @@ const propTypes = {
 
 const DetailsPage = ({personalDetails, route}) => {
     const details = personalDetails[route.params.login];
+
+    // If we have a reportID param this means that we
+    // arrived here via the ParticipantsPage and should be allowed to navigate back to it
+    const shouldShowBackButton = Boolean(route.params.reportID);
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title="Details"
-                onCloseButtonPress={Navigation.dismissModal}
+                shouldShowBackButton={shouldShowBackButton}
+                onBackButtonPress={Navigation.goBack}
+                onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <View
                 pointerEvents="box-none"
                 style={[
-                    styles.detailsPageContainer,
+                    styles.containerWithSpaceBetween,
                 ]}
             >
                 {details ? (

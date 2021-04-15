@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
@@ -15,9 +16,11 @@ import MultipleAvatars from '../../components/MultipleAvatars';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {getReportParticipantsTitle} from '../../libs/reportUtils';
-import OptionRowTitle from './sidebar/OptionRowTitle';
+import DisplayNames from '../../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
+import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
+import IOUBadge from '../../components/IOUBadge';
 
 const propTypes = {
     // Toggles the navigationMenu open and closed
@@ -51,11 +54,10 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
-    const reportOption = {
-        text: lodashGet(props.report, 'reportName', ''),
-        tooltipText: getReportParticipantsTitle(participants),
-        participantsList: getPersonalDetailsForLogins(participants, props.personalDetails),
-    };
+    const displayNamesWithTooltips = _.map(
+        getPersonalDetailsForLogins(participants, props.personalDetails),
+        ({displayName, login}) => ({displayName, tooltip: login}),
+    );
 
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
@@ -80,22 +82,31 @@ const HeaderView = (props) => {
                         <Pressable
                             onPress={() => {
                                 if (participants.length === 1) {
-                                    Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
+                                    return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
                                 }
+                                Navigation.navigate(ROUTES.getReportParticipantsRoute(props.reportID));
                             }}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
-                            <MultipleAvatars avatarImageURLs={props.report.icons} />
+                            <MultipleAvatars
+                                avatarImageURLs={props.report.icons}
+                                secondAvatarStyle={[styles.secondAvatarHovered]}
+                            />
                             <View style={[styles.flex1, styles.flexRow]}>
-                                <OptionRowTitle
-                                    option={reportOption}
+                                <DisplayNames
+                                    fullTitle={getReportParticipantsTitle(participants)}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
-                                    numberOfLines={2}
-                                    style={[styles.headerText]}
+                                    numberOfLines={1}
+                                    textStyles={[styles.headerText]}
                                 />
                             </View>
                         </Pressable>
-                        <View style={[styles.reportOptions, styles.flexRow]}>
+                        <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                            {props.report.hasOutstandingIOU && (
+                                <IOUBadge iouReportID={props.report.iouReportID} />
+                            )}
+                            <VideoChatButtonAndMenu />
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}

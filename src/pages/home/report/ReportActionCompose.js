@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, InteractionManager} from 'react-native';
+import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -9,16 +10,16 @@ import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
-import {Plus, Send} from '../../../components/Icon/Expensicons';
+import {Plus, Send, Paperclip} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
-import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
+import withWindowDimensions from '../../../components/withWindowDimensions';
+import withDrawerState from '../../../components/withDrawerState';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -43,7 +44,15 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
-    ...windowDimensionsPropTypes,
+    /* Is the report view covered by the drawer */
+    isDrawerOpen: PropTypes.bool.isRequired,
+
+    /* Is the window width narrow, like on a mobile device */
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    // Is composer screen focused
+    isFocused: PropTypes.bool.isRequired,
+
 };
 
 const defaultProps = {
@@ -61,10 +70,12 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.focus = this.focus.bind(this);
         this.comment = props.comment;
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
-            isFocused: false,
+            isFocused: this.shouldFocusInputOnScreenFocus,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
@@ -72,18 +83,13 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // The first time the component loads the props is empty and the next time it may contain value.
-        // If it does let's update this.comment so that it matches the defaultValue that we show in textInput.
-        if (this.props.comment && prevProps.comment === '' && prevProps.comment !== this.props.comment) {
-            this.comment = this.props.comment;
-        }
-
-        // When any modal goes from visible to hidden or when the report ID changes, bring focus to the compose field
-        if (
-            (prevProps.modal.isVisible && !this.props.modal.isVisible)
-            || (prevProps.reportID !== this.props.reportID)
-        ) {
+        // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
+        // We avoid doing this on native platforms since the software keyboard popping
+        // open creates a jarring and broken UX.
+        if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
+            && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.setIsFocused(true);
+            this.focus();
         }
     }
 
@@ -94,9 +100,6 @@ class ReportActionCompose extends React.Component {
      */
     setIsFocused(shouldHighlight) {
         this.setState({isFocused: shouldHighlight});
-        if (shouldHighlight && this.textInput) {
-            this.textInput.focus();
-        }
     }
 
     /**
@@ -109,12 +112,25 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Updates the visiblity state of the menu
+     * Updates the visibility state of the menu
      *
      * @param {Boolean} isMenuVisible
      */
     setMenuVisibility(isMenuVisible) {
         this.setState({isMenuVisible});
+    }
+
+    /**
+     * Focus the composer text input
+     */
+    focus() {
+        if (this.textInput) {
+            // There could be other animations running while we trigger manual focus.
+            // This prevents focus from making those animations janky.
+            InteractionManager.runAfterInteractions(() => {
+                this.textInput.focus();
+            });
+        }
     }
 
     /**
@@ -185,12 +201,11 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        // We want to make sure to disable on small screens because in iOS safari the keyboard up/down buttons will
-        // focus this from the chat switcher.
-        // https://github.com/Expensify/Expensify.cash/issues/1228
-        const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
+
+        // Prevents focusing and showing the keyboard while the drawer is covering the chat.
+        const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
 
         return (
             <View style={[styles.chatItemCompose]}>
@@ -218,6 +233,10 @@ class ReportActionCompose extends React.Component {
                                                 onPress={(e) => {
                                                     e.preventDefault();
                                                     this.setMenuVisibility(true);
+
+                                                    /* Keep last focus inside the input so that focus is restored
+                                                     on modal close. Otherwise breaks modal 2 modal transition */
+                                                    this.focus();
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
@@ -227,34 +246,38 @@ class ReportActionCompose extends React.Component {
                                             <CreateMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
-                                                onAttachmentPickerSelected={() => {
-                                                    setTimeout(() => {
-                                                        openPicker({
-                                                            onPicked: (file) => {
-                                                                displayFileInModal({file});
-                                                            },
-                                                        });
-                                                    }, 10);
-                                                }}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
-                                                menuOptions={[CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+                                                menuItems={[
+                                                    {
+                                                        icon: Paperclip,
+                                                        text: 'Add Attachment',
+                                                        onSelected: () => {
+                                                            openPicker({
+                                                                onPicked: (file) => {
+                                                                    displayFileInModal({file});
+                                                                },
+                                                            });
+                                                        },
+                                                    },
+                                                ]}
 
-                                                /**
-                                                 * Temporarily hiding IOU Modal options while Modal is incomplete. Will
-                                                 * be replaced by a beta flag once IOUConfirm is completed.
-                                                menuOptions={hasMultipleParticipants
-                                                    ? [
-                                                        CONST.MENU_ITEM_KEYS.SPLIT_BILL,
-                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
-                                                    : [
-                                                        CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
-                                                        CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
-                                                */
+                                            /**
+                                             * Temporarily hiding IOU Modal options while Modal is incomplete. Will
+                                             * be replaced by a beta flag once IOUConfirm is completed.
+                                            menuOptions={hasMultipleParticipants
+                                                ? [
+                                                    CONST.MENU_ITEM_KEYS.SPLIT_BILL,
+                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
+                                                : [
+                                                    CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
+                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
+                                            */
                                             />
                                         </>
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
+                                    autoFocus={this.shouldFocusInputOnScreenFocus}
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
@@ -283,7 +306,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={inputDisable}
+                                    isDisabled={isComposeDisabled}
                                 />
 
                             </>
@@ -310,6 +333,9 @@ ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
 export default compose(
+    withWindowDimensions,
+    withDrawerState,
+    withNavigationFocus,
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
@@ -321,5 +347,4 @@ export default compose(
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
-    withWindowDimensions,
 )(ReportActionCompose);
