@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
+import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
@@ -48,10 +49,17 @@ class ReportActionItemFragment extends React.PureComponent {
                 }
 
                 // Only render HTML if we have html in the fragment
-                return fragment.html !== fragment.text ? (
-                    <RenderHTML html={fragment.html} debug={false} />
-                ) : (
-                    <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
+                return (
+                    <View style={styles.flexRow}>
+                        {fragment.html !== fragment.text ? (
+                            <RenderHTML html={fragment.html} debug={false} />
+                        ) : (
+                            <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
+                        )}
+                        {fragment.isEdited
+                            ? <Text style={[styles.ml1]} fontSize={variables.fontSizeSmall} color={themeColors.textSupporting}>(edited)</Text>
+                            : null}
+                    </View>
                 );
             case 'TEXT':
                 return (
