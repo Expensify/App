@@ -9,6 +9,8 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import {withNavigationFocus} from '@react-navigation/compat';
+
 import Text from '../../../components/Text';
 import {
     fetchActions,
@@ -26,6 +28,7 @@ import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -50,6 +53,10 @@ const propTypes = {
         // Email of the logged in person
         email: PropTypes.string,
     }),
+
+    // Tells us if the ReportScreen this view is inside is focused or not. Focused means that it is the top screen in
+    // the stack of reports and there are no other screens like modals above it
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -65,6 +72,7 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
+        this.teardown = undefined;
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
@@ -86,17 +94,17 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidMount() {
-        AppState.addEventListener('change', this.onVisibilityChange);
-        subscribeToReportTypingEvents(this.props.reportID);
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
-        this.recordMaxAction();
-        fetchActions(this.props.reportID);
+        this.teardown = this.setup();
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.updateSortedReportActions(nextProps.reportActions);
+            return true;
+        }
+
+        if (nextProps.isFocused !== this.props.isFocused) {
             return true;
         }
 
@@ -108,7 +116,20 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // The last sequenceNumber of the same report has changed.
+        if (this.props.isFocused && !prevProps.isFocused) {
+            if (!this.teardown) {
+                this.teardown = this.setup();
+            }
+        }
+
+        if (!this.props.isFocused && prevProps.isFocused) {
+            if (this.teardown) {
+                this.teardown();
+                this.teardown = undefined;
+            }
+        }
+
+        // The last sequenceNumber of the report has changed
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
@@ -128,14 +149,11 @@ class ReportActionsView extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.keyboardEvent) {
-            this.keyboardEvent.remove();
+        if (!this.teardown) {
+            return;
         }
 
-        AppState.removeEventListener('change', this.onVisibilityChange);
-
-        _.each(this.timers, timer => clearTimeout(timer));
-        unsubscribeFromReportChannel(this.props.reportID);
+        this.teardown();
     }
 
     /**
@@ -145,6 +163,30 @@ class ReportActionsView extends React.Component {
         if (Visibility.isVisible()) {
             this.timers.push(setTimeout(this.recordMaxAction, 3000));
         }
+    }
+
+    /**
+     * Setup all event event listeners, subscriptions, etc and return a function to clean them up after.
+     *
+     * @returns {Function}
+     */
+    setup() {
+        AppState.addEventListener('change', this.onVisibilityChange);
+        subscribeToReportTypingEvents(this.props.reportID);
+        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        this.recordMaxAction();
+        fetchActions(this.props.reportID);
+
+        return () => {
+            if (this.keyboardEvent) {
+                this.keyboardEvent.remove();
+            }
+
+            AppState.removeEventListener('change', this.onVisibilityChange);
+
+            _.each(this.timers, timer => clearTimeout(timer));
+            unsubscribeFromReportChannel(this.props.reportID);
+        };
     }
 
     /**
@@ -327,15 +369,18 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-    reportActions: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        canEvict: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ReportActionsView);
+export default compose(
+    withNavigationFocus,
+    withOnyx({
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        },
+        reportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            canEvict: false,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(ReportActionsView);

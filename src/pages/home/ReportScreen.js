@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withNavigationFocus} from '@react-navigation/compat';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -19,9 +18,6 @@ const propTypes = {
             reportID: PropTypes.string,
         }).isRequired,
     }).isRequired,
-
-    /* Is this screen currently focused */
-    isFocused: PropTypes.bool.isRequired,
 };
 
 class ReportScreen extends React.Component {
@@ -89,10 +85,6 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        if (!this.props.isFocused) {
-            return null;
-        }
-
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
@@ -109,4 +101,4 @@ class ReportScreen extends React.Component {
 }
 
 ReportScreen.propTypes = propTypes;
-export default withNavigationFocus(ReportScreen);
+export default ReportScreen;
