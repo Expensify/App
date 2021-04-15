@@ -110,7 +110,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
             animationIn = 'slideInUp';
             animationOut = 'slideOutDown';
             break;
-        case CONST.MODAL.MODAL_TYPE.POPOVER_LEFT_DOCKED:
+        case CONST.MODAL.MODAL_TYPE.POPOVER:
             modalStyle = {
                 ...modalStyle,
                 ...popoverAnchorPosition,
@@ -131,56 +131,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
 
             hideBackdrop = true;
             swipeDirection = undefined;
-            animationIn = 'fadeInLeft';
-            animationOut = 'fadeOutLeft';
-            break;
-        case CONST.MODAL.MODAL_TYPE.POPOVER_RIGHT_DOCKED:
-            modalStyle = {
-                ...modalStyle,
-                ...popoverAnchorPosition,
-                ...{
-                    position: 'absolute',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                },
-            };
-            modalContainerStyle = {
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: themeColors.border,
-                justifyContent: 'center',
-                overflow: 'hidden',
-                boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
-            };
-
-            hideBackdrop = true;
-            swipeDirection = undefined;
-            animationIn = 'fadeInRight';
-            animationOut = 'fadeOutRight';
-            break;
-        case CONST.MODAL.MODAL_TYPE.POPOVER_CENTER_BOTTOM:
-            modalStyle = {
-                ...modalStyle,
-                ...popoverAnchorPosition,
-                ...{
-                    position: 'absolute',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                },
-            };
-            modalContainerStyle = {
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: themeColors.border,
-                justifyContent: 'center',
-                overflow: 'hidden',
-                boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
-            };
-
-            hideBackdrop = true;
-            swipeDirection = undefined;
-            animationIn = 'fadeInUp';
-            animationOut = 'fadeOutDown';
+            animationIn = 'fadeIn';
+            animationOut = 'fadeOut';
             break;
         case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
             modalStyle = {
