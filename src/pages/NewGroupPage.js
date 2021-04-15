@@ -176,13 +176,14 @@ class NewGroupPage extends Component {
         const headerMessage = getHeaderMessage(
             this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
+            this.state.searchValue,
             maxParticipantsReached,
         );
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title="New Group"
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector

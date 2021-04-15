@@ -1,12 +1,16 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View, SectionList, Text} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
+import SectionList from './SectionList';
 
 const propTypes = {
+    // option Background Color
+    optionBackgroundColor: PropTypes.string,
+
     // Style for hovered state
     // eslint-disable-next-line react/forbid-prop-types
     optionHoveredStyle: PropTypes.object,
@@ -64,9 +68,13 @@ const propTypes = {
 
     // Whether to show the title tooltip
     showTitleTooltip: PropTypes.bool,
+
+    // Toggle between compact and default view of the option
+    optionMode: PropTypes.oneOf(['compact', 'default']),
 };
 
 const defaultProps = {
+    optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
     sections: [],
@@ -81,6 +89,7 @@ const defaultProps = {
     headerMessage: '',
     innerRef: null,
     showTitleTooltip: false,
+    optionMode: undefined,
 };
 
 class OptionsList extends Component {
@@ -146,7 +155,9 @@ class OptionsList extends Component {
         return (
             <OptionRow
                 option={item}
+                mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
+                backgroundColor={this.props.optionBackgroundColor}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
                         && this.props.focusedIndex === (index + section.indexOffset)}
@@ -185,7 +196,7 @@ class OptionsList extends Component {
 
     render() {
         return (
-            <View style={[styles.flex1]}>
+            <View style={[styles.flexGrow0]}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>

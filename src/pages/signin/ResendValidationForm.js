@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
-import {resendValidationLink} from '../../libs/actions/Session';
+import {resendValidationLink, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
@@ -16,6 +16,9 @@ const propTypes = {
     account: PropTypes.shape({
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
+
+        // Weather or not the account is validated
+        validated: PropTypes.bool,
     }),
 };
 
@@ -48,7 +51,13 @@ class ResendValidationForm extends React.Component {
             formSuccess: 'Link has been re-sent',
         });
 
-        resendValidationLink();
+        if (!this.props.account.validated) {
+            resendValidationLink();
+            console.debug('Account is unvalidated: Sending validation link.');
+        } else {
+            resetPassword();
+            console.debug('Account forgot password: Sending reset password link.');
+        }
 
         this.successMessageTimer = setTimeout(() => {
             this.setState({formSuccess: ''});
@@ -57,10 +66,10 @@ class ResendValidationForm extends React.Component {
 
     render() {
         return (
-            <View style={[styles.loginFormContainer]}>
+            <>
                 <View>
                     <Text style={[styles.textP]}>
-                        Please validate your account by clicking on the link we just sent you.
+                        We&apos;ve sent you a magic sign in link – just click on it to log in!
                     </Text>
                 </View>
                 <View style={[styles.mt4]}>
@@ -77,7 +86,7 @@ class ResendValidationForm extends React.Component {
                         {this.state.formSuccess}
                     </Text>
                 )}
-            </View>
+            </>
         );
     }
 }

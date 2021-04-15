@@ -1,4 +1,5 @@
 import ROUTES from '../../ROUTES';
+import SCREENS from '../../SCREENS';
 
 export default {
     prefixes: [
@@ -9,27 +10,27 @@ export default {
         'http://localhost',
     ],
     config: {
+        initialRouteName: SCREENS.HOME,
         screens: {
-            Home: {
-                path: '',
-                initialRouteName: 'Report',
+            [SCREENS.HOME]: {
+                path: ROUTES.HOME,
+                initialRouteName: SCREENS.REPORT,
                 screens: {
                     // Report route
-                    Report: ROUTES.REPORT_WITH_ID,
+                    [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
                 },
             },
 
             // Public Routes
             SignIn: ROUTES.SIGNIN,
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
+            ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
 
             // Modal Screens
             Settings: {
-                path: ROUTES.SETTINGS,
-                initialRouteName: 'Settings_Root',
                 screens: {
                     Settings_Root: {
-                        path: '',
+                        path: ROUTES.SETTINGS,
                     },
                     Settings_Preferences: {
                         path: ROUTES.SETTINGS_PREFERENCES,
@@ -47,47 +48,45 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_Add_Seconday_Login: {
+                        path: ROUTES.SETTINGS_ADD_LOGIN,
+                    },
                 },
             },
             NewGroup: {
-                path: ROUTES.NEW_GROUP,
-                initialRouteName: 'NewGroup_Root',
                 screens: {
-                    NewGroup_Root: '',
+                    NewGroup_Root: ROUTES.NEW_GROUP,
                 },
             },
             NewChat: {
-                path: ROUTES.NEW_CHAT,
-                initialRouteName: 'NewChat_Root',
                 screens: {
-                    NewChat_Root: '',
+                    NewChat_Root: ROUTES.NEW_CHAT,
                 },
             },
             Search: {
-                path: ROUTES.SEARCH,
-                initialRouteName: 'Search_Root',
                 screens: {
-                    Search_Root: '',
+                    Search_Root: ROUTES.SEARCH,
                 },
             },
             Details: {
-                initialRouteName: 'Details_Root',
                 screens: {
                     Details_Root: ROUTES.DETAILS_WITH_LOGIN,
                 },
             },
-            IOU_Request: {
-                path: ROUTES.IOU_REQUEST,
-                initialRouteName: 'IOU_Request_Root',
+            Participants: {
                 screens: {
-                    IOU_Request_Root: '',
+                    ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS,
+                    ReportParticipants_Details: ROUTES.REPORT_PARTICIPANT,
+                },
+            },
+            IOU_Request: {
+                screens: {
+                    IOU_Request_Root: ROUTES.IOU_REQUEST,
                 },
             },
             IOU_Bill: {
-                path: ROUTES.IOU_BILL,
-                initialRouteName: 'IOU_Bill_Root',
                 screens: {
-                    IOU_Bill_Root: '',
+                    IOU_Bill_Root: ROUTES.IOU_BILL,
                 },
             },
         },
