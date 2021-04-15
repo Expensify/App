@@ -75,6 +75,7 @@ class IOUDetailsModal extends Component {
     }
 
     render() {
+        const sessionEmail = lodashGet(this.props.session, 'email', null);
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
