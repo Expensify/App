@@ -221,6 +221,11 @@ class ReportActionCompose extends React.Component {
         this.setState({isEmojiPickerVisible: false});
     }
 
+    /**
+     * Callback for the emoji picker to add whatever emoji is chosen into the main input
+     *
+     * @param {String} emoji
+     */
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
         this.textInput.value = this.comment + emoji;
