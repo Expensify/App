@@ -12,6 +12,8 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import compose from '../../libscompose';
+import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -21,7 +23,10 @@ const matchType = PropTypes.shape({
 });
 
 const defaultProps = {
-    iouReport: {},
+    iouReport: {
+        chatReportID: 0,
+    },
+    reportActions: {},
     loading: false,
 };
 
@@ -32,9 +37,11 @@ const propTypes = {
 
     // IOU Report data object
     iouReport: PropTypes.shape({
-        // The total amount in cents
-        total: PropTypes.number,
+        // TODODODODODODODOODODODODODODODODOOD
+        chatReportID: PropTypes.number,
     }),
+
+    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
     loading: PropTypes.bool
 };
@@ -44,6 +51,12 @@ class IOUDetailsModal extends Component {
         super(props);
 
         this.performIOUSettlement = this.performIOUSettlement.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.reportActions !== this.props.reportActions) {
+            console.debug('juless: reportActions: ', this.props.reportActions);
+        }
     }
 
     performIOUSettlement() {
@@ -86,8 +99,15 @@ IOUDetailsModal.propTypes = propTypes;
 IOUDetailsModal.displayName = 'IOUDetailsModal';
 IOUDetailsModal.defaultProps = defaultProps;
 
-export default withOnyx({
-    iouReport: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
-    },
-})(IOUDetailsModal);
+export default compose(
+	withOnyx({
+        iouReport: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
+        },
+	}),
+	withOnyx({
+        reportActions: {
+            key: ({iouReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.iouReportID}`,
+        },
+	}),
+)(IOUDetailsModal);
