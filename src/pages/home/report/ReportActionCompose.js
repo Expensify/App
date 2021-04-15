@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, InteractionManager} from 'react-native';
+import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -18,6 +19,7 @@ import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -47,6 +49,10 @@ const propTypes = {
 
     /* Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    // Is composer screen focused
+    isFocused: PropTypes.bool.isRequired,
+
 };
 
 const defaultProps = {
@@ -66,9 +72,10 @@ class ReportActionCompose extends React.Component {
         this.setIsFocused = this.setIsFocused.bind(this);
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.state = {
-            isFocused: true,
+            isFocused: this.shouldFocusInputOnScreenFocus,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
@@ -76,8 +83,12 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // When any modal goes from visible to hidden, bring focus to the compose field
-        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
+        // We avoid doing this on native platforms since the software keyboard popping
+        // open creates a jarring and broken UX.
+        if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
+            && prevProps.modal.isVisible && !this.props.modal.isVisible) {
+            this.setIsFocused(true);
             this.focus();
         }
     }
@@ -114,7 +125,11 @@ class ReportActionCompose extends React.Component {
      */
     focus() {
         if (this.textInput) {
-            this.textInput.focus();
+            // There could be other animations running while we trigger manual focus.
+            // This prevents focus from making those animations janky.
+            InteractionManager.runAfterInteractions(() => {
+                this.textInput.focus();
+            });
         }
     }
 
@@ -235,7 +250,7 @@ class ReportActionCompose extends React.Component {
                                                 menuItems={[
                                                     {
                                                         icon: Paperclip,
-                                                        text: 'Upload Photo',
+                                                        text: 'Add Attachment',
                                                         onSelected: () => {
                                                             openPicker({
                                                                 onPicked: (file) => {
@@ -262,7 +277,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                    autoFocus
+                                    autoFocus={this.shouldFocusInputOnScreenFocus}
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
@@ -320,6 +335,7 @@ ReportActionCompose.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
+    withNavigationFocus,
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,

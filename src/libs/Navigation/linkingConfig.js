@@ -1,4 +1,5 @@
 import ROUTES from '../../ROUTES';
+import SCREENS from '../../SCREENS';
 
 export default {
     prefixes: [
@@ -9,13 +10,14 @@ export default {
         'http://localhost',
     ],
     config: {
+        initialRouteName: SCREENS.HOME,
         screens: {
-            Home: {
-                path: '',
-                initialRouteName: 'Report',
+            [SCREENS.HOME]: {
+                path: ROUTES.HOME,
+                initialRouteName: SCREENS.REPORT,
                 screens: {
                     // Report route
-                    Report: ROUTES.REPORT_WITH_ID,
+                    [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
                 },
             },
 
@@ -69,6 +71,12 @@ export default {
             Details: {
                 screens: {
                     Details_Root: ROUTES.DETAILS_WITH_LOGIN,
+                },
+            },
+            Participants: {
+                screens: {
+                    ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS,
+                    ReportParticipants_Details: ROUTES.REPORT_PARTICIPANT,
                 },
             },
             IOU_Request: {
