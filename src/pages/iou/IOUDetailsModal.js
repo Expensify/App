@@ -84,7 +84,7 @@ class IOUDetailsModal extends Component {
                 <View
                     pointerEvents="box-none"
                     style={[
-                        styles.detailsPageContainer,
+                        styles.detailsPageContainer, styles.p5
                     ]}
                 >
                     {_.map(this.props.iouReport.transactions, (transaction) => (
