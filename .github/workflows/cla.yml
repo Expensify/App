@@ -33,7 +33,7 @@ jobs:
               with:
                   path-to-signatures: '${{ github.repository }}/cla.json'
                   path-to-document: 'https://github.com/${{ github.repository }}/blob/main/CLA.md'
-                  branch: 'main'
+                  branch: 'master'
                   remote-organization-name: 'Expensify'
                   remote-repository-name: 'CLA'
                   lock-pullrequest-aftermerge: false
