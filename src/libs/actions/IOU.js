@@ -107,8 +107,28 @@ function createIOUSplit({
         .then(reportIDList => getIOUReportsForNewTransaction(reportIDList));
 }
 
+/**
+ * Settles an IOU Report
+ */
+function settleIOUReport({
+   reportID, paymentMethodType,
+}) {
+   //Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+   console.debug('juless: settleIOUReport', {'reportID': reportID, 'paymentType': paymentMethodType});
+   return;
+
+   API.PayIOU({
+       reportID,
+       paymentMethodType,
+   })
+       .then(data => {
+           console.debug('juless: IOU Settled: ', data);
+       });
+}
+
 export {
     getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
-};
+    settleIOUReport,
+}
