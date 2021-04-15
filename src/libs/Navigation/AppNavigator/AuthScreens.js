@@ -41,11 +41,13 @@ import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     DetailsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
+import SCREENS from '../../../SCREENS';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -81,11 +83,16 @@ const propTypes = {
         // Is the network currently offline or not
         isOffline: PropTypes.bool,
     }),
+
+    // The initial report for the home screen
+    initialReportID: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
+    initialReportID: null,
 };
 
 class AuthScreens extends React.Component {
@@ -94,6 +101,8 @@ class AuthScreens extends React.Component {
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+
+        this.initialReportID = props.initialReportID;
     }
 
     componentDidMount() {
@@ -134,9 +143,18 @@ class AuthScreens extends React.Component {
         }, ['meta'], true);
     }
 
-    shouldComponentUpdate(prevProps) {
-        if (prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
             return true;
+        }
+
+        // Skip when `this.initialReportID` is already assigned. We no longer want to update it
+        if (!this.initialReportID) {
+            // Either we have a reportID or fetchAllReports resolved with no reports. Otherwise keep waiting
+            if (nextProps.initialReportID || nextProps.initialReportID === '') {
+                this.initialReportID = nextProps.initialReportID;
+                return true;
+            }
         }
 
         return false;
@@ -150,6 +168,11 @@ class AuthScreens extends React.Component {
     }
 
     render() {
+        // Wait to resolve initial Home route params.
+        if (!this.initialReportID) {
+            return null;
+        }
+
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
@@ -167,10 +190,16 @@ class AuthScreens extends React.Component {
             >
                 {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
                 <RootStack.Screen
-                    name="Home"
+                    name={SCREENS.HOME}
                     options={{
                         headerShown: false,
                         title: 'Expensify.cash',
+                    }}
+                    initialParams={{
+                        screen: SCREENS.REPORT,
+                        params: {
+                            reportID: this.initialReportID,
+                        },
                     }}
                     component={MainDrawerNavigator}
                 />
@@ -219,6 +248,11 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name="Participants"
+                    options={modalScreenOptions}
+                    component={ReportParticipantsModalStackNavigator}
+                />
+                <RootStack.Screen
                     name="IOU_Request"
                     options={modalScreenOptions}
                     component={IOURequestModalStackNavigator}
@@ -242,6 +276,9 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        initialReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(AuthScreens);
