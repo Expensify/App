@@ -28,7 +28,6 @@ const defaultProps = {
         chatReportID: 0,
     },
     reportActions: {},
-    loading: false,
 };
 
 const propTypes = {
@@ -44,7 +43,6 @@ const propTypes = {
 
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
-    loading: PropTypes.bool,
     // Session info for the currently logged in user.
     session: PropTypes.shape({
         // Currently logged in user email
@@ -56,10 +54,15 @@ class IOUDetailsModal extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            loading: false,
+        }
+
         this.performIOUSettlement = this.performIOUSettlement.bind(this);
     }
 
     componentDidUpdate(prevProps) {
+        console.debug('juless props: ', this.props);
         if (prevProps.reportActions !== this.props.reportActions) {
             console.debug('juless: reportActions: ', this.props.reportActions);
         }
@@ -93,7 +96,7 @@ class IOUDetailsModal extends Component {
                     {(this.props.iouReport.managerEmail === sessionEmail &&
                     <ButtonWithLoader
                         text="I'll settle up elsewhere"
-                        isLoading={this.props.loading}
+                        isLoading={this.state.loading}
                         onClick={this.performIOUSettlement}
                     />)}
                 </View>
