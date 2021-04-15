@@ -33,7 +33,7 @@ const propTypes = {
     optionIsFocused: PropTypes.bool.isRequired,
 
     // A function that is called when an option is selected. Selected option is passed as a param
-    onSelectRow: PropTypes.func.isRequired,
+    onSelectRow: PropTypes.func,
 
     // A flag to indicate whether to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
@@ -63,6 +63,7 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     mode: 'default',
+    onSelectRow: null,
 };
 
 const OptionRow = ({
@@ -173,6 +174,13 @@ const OptionRow = ({
                                     </Text>
                                 ) : null}
                             </View>
+                            {option.descriptiveText ? (
+                                <View style={[styles.flexWrap]}>
+                                    <Text style={[styles.textLabel]}>
+                                        {option.descriptiveText}
+                                    </Text>
+                                </View>
+                            ) : null}
                             {showSelectedState && (
                                 <View style={[styles.selectCircle]}>
                                     {isSelected && (
@@ -228,6 +236,10 @@ export default memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (prevProps.option.alternateText !== nextProps.option.alternateText) {
+        return false;
+    }
+
+    if (prevProps.option.descriptiveText !== nextProps.option.descriptiveText) {
         return false;
     }
 
