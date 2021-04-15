@@ -27,9 +27,7 @@ const MainDrawerNavigator = props => (
         )}
         sceneContainerStyle={styles.navigationSceneContainer}
         edgeWidth={500}
-        drawerContent={() => (
-            <SidebarScreen />
-        )}
+        drawerContent={() => <SidebarScreen />}
     >
         <Drawer.Screen
             name="Report"
