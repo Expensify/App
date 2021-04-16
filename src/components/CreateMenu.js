@@ -5,8 +5,6 @@ import Popover from './Popover';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import MenuItem from './MenuItem';
-import CONST from '../CONST';
-import {propTypes as ModalPropTypes} from './Modal/ModalPropTypes';
 
 const propTypes = {
     // Callback to fire on request to modal close
@@ -18,9 +16,6 @@ const propTypes = {
     // Callback to fire when a CreateMenu item is selected
     onItemSelected: PropTypes.func.isRequired,
 
-    // Gives the type of the modal
-    popOverType: ModalPropTypes.type,
-
     // Menu items to be rendered on the list
     menuItems: PropTypes.arrayOf(
         PropTypes.shape({
@@ -30,11 +25,32 @@ const propTypes = {
         }),
     ).isRequired,
 
+    // The anchor position of the CreateMenu popover
+    anchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+    }).isRequired,
+
+    // A react-native-animatable animation definition for the modal display animation.
+    animationIn: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
+
+    // A react-native-animatable animation definition for the modal hide animation.
+    animationOut: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    popOverType: CONST.MODAL.MODAL_TYPE.POPOVER_LEFT_DOCKED,
+    animationIn: 'fadeIn',
+    animationOut: 'fadeOut',
 };
 
 class CreateMenu extends PureComponent {
@@ -63,13 +79,15 @@ class CreateMenu extends PureComponent {
     render() {
         return (
             <Popover
+                anchorPosition={this.props.anchorPosition}
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
                 onModalHide={() => {
                     this.onModalHide();
                     this.resetOnModalHide();
                 }}
-                popOverType={this.props.popOverType}
+                animationIn={this.props.animationIn}
+                animationOut={this.props.animationOut}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {this.props.menuItems.map(({
@@ -95,5 +113,5 @@ class CreateMenu extends PureComponent {
 
 CreateMenu.propTypes = propTypes;
 CreateMenu.defaultProps = defaultProps;
-CreateMenu.displayName = 'CreateMenu';
+
 export default withWindowDimensions(CreateMenu);
