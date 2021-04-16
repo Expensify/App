@@ -10,6 +10,8 @@ import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
+import openURLInNewTab from '../../../libs/openURLInNewTab/index.native';
+import CONST from '../../../CONST';
 
 const propTypes = {
 
@@ -55,6 +57,18 @@ const SignInPageLayoutNarrow = props => (
                         )}
 
                     {props.shouldShowWelcomeText && <WelcomeText />}
+                    <View>
+                        <Text style={[styles.textLabel, styles.mt6]}>
+                            View our open jobs on
+                            {' '}
+                            <Text
+                                style={[styles.link]}
+                                onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
+                            >
+                                Upwork!
+                            </Text>
+                        </Text>
+                    </View>
                 </View>
                 <TermsAndLicenses />
             </View>
