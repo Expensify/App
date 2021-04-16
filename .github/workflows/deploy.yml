@@ -2,13 +2,13 @@ name: Deploy code to staging or production
 
 on:
   push:
-    branches: [production]
+    branches: [staging, production]
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     outputs:
-      isAutomergePR: ${{ steps.isAutomergePR.outputs.IS_AUTOMERGE_PR }}
+      isVersionBumpPR: ${{ steps.isVersionBumpPR.outputs.IS_AUTOMERGE_PR }}
 
     steps:
       - name: Get merged pull request
@@ -18,13 +18,31 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if merged pull request was an automatic version bump PR
-        id: isAutomergePR
+        id: isVersionBumpPR
         run: echo "::set-output name=IS_AUTOMERGE_PR::${{ contains(steps.getMergedPullRequest.outputs.labels, 'automerge') && github.actor == 'OSBotify' }}"
+
+  deployStaging:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: ${{ needs.validate.outputs.isVersionBumpPR === 'true' && github.ref == 'refs/heads/staging' }}
+
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: staging
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Tag version
+        run: git tag $(npm run print-version --silent)
+
+      - name: 🚀 Push tags to trigger staging deploy 🚀
+        run: git push --tags
 
   deployProduction:
     runs-on: ubuntu-latest
     needs: validate
-    if: ${{ needs.validate.outputs.isAutomergePR == 'true' && github.ref == 'refs/heads/production' }}
+    if: ${{ needs.validate.outputs.isVersionBumpPR == 'true' && github.ref == 'refs/heads/production' }}
 
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f

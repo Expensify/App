@@ -78,12 +78,9 @@ jobs:
           workflow_file_name: createNewVersion.yml
           inputs: '{SEMVER_LEVEL: BUILD}'
 
+      # TODO: only need to create this tag because of how the GitUtils work
       - name: Tag version
         run: git tag ${{ steps.bumpVersion.outputs.NEW_VERSION }}
-
-      #TODO: Once we add cherry picking, we will need run this from elsewhere
-      - name: 🚀 Push tags to trigger staging deploy 🚀
-        run: git push --tags
 
       - name: Update StagingDeployCash
         uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
