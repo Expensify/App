@@ -17,8 +17,8 @@ const propTypes = {
             /* The ID of the report this screen should display */
             reportID: PropTypes.string,
 
-            /* The ID of the report this screen should display */
-            reportActionID: PropTypes.string,
+            /* The sequence number of the report action */
+            sequenceNumber: PropTypes.string,
         }).isRequired,
     }).isRequired,
 };
@@ -66,7 +66,7 @@ class ReportScreen extends React.Component {
      */
     getReportActionID() {
         const params = this.props.route.params;
-        return Number.parseInt(params.reportActionID, 10);
+        return Number.parseInt(params.sequenceNumber, 10);
     }
 
     /**
@@ -98,7 +98,7 @@ class ReportScreen extends React.Component {
 
     render() {
         console.log("Over here, the reportID: "+this.getReportID());
-        console.log("Over here, the reportActionID: "+this.getReportActionID());
+        console.log("Over here, the sequenceNumber: "+this.getReportActionID());
 
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
@@ -109,7 +109,7 @@ class ReportScreen extends React.Component {
 
                 <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
 
-                <ReportView reportID={this.getReportID()} reportActionID={this.getReportActionID()} />
+                <ReportView reportID={this.getReportID()} sequenceNumber={this.getReportActionID()} />
             </ScreenWrapper>
         );
     }

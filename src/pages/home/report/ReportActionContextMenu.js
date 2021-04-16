@@ -51,7 +51,7 @@ const CONTEXT_ACTIONS = [
         successText: 'Link Copied!',
         onPress: (action, reportID) => {
             debugger;
-            const link = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH + 'r/' + reportID + '/' + lodashGet(action, 'reportActionID', null);
+            const link = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH + 'r/' + reportID + '/' + lodashGet(action, 'sequenceNumber', null);
             console.log(link);
             Clipboard.setString(link);
         },

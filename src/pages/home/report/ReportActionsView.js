@@ -31,8 +31,8 @@ const propTypes = {
     // The ID of the report actions will be created for
     reportID: PropTypes.number.isRequired,
 
-    // The reportActionID of the specific message.
-    reportActionID: PropTypes.number,
+    // The sequenceNumber of the specific message.
+    sequenceNumber: PropTypes.number,
 
     /* Onyx Props */
     // The report currently being looked at
@@ -59,7 +59,7 @@ const defaultProps = {
         unreadActionCount: 0,
         maxSequenceNumber: 0,
     },
-    reportActionID: undefined,
+    sequenceNumber: undefined,
     reportActions: {},
     session: {},
 };
@@ -93,8 +93,10 @@ class ReportActionsView extends React.Component {
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         this.recordMaxAction();
-        fetchActions(this.props.reportID, this.props.reportActionID);
+        // fetchActions(this.props.reportID, !_.isNumber(this.props.sequenceNumber) ? undefined : this.props.sequenceNumber);
+        fetchActions(this.props.reportID);
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
+        setTimeout(() => this.scrollToReportActionID(1), 5000);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -247,10 +249,20 @@ class ReportActionsView extends React.Component {
         this.recordMaxAction();
     }
 
-    scrollToReportActionID() {
+    scrollToReportActionID(sequenceNumber) {
         debugger;
         if (this.actionListElement) {
-            this.actionListElement.scrollToIndex({animated: false, index: 0});
+            const maxVisibleSequenceNumber = _.chain(this.props.reportActions)
+
+                // We want to avoid marking any pending actions as read since
+                // 1. Any action ID that hasn't been delivered by the server is a temporary action ID.
+                // 2. We already set a comment someone has authored as the lastReadActionID_<accountID> rNVP on the server
+                // and should sync it locally when we handle it via Pusher or Airship
+                .reject(action => action.loading)
+                .pluck('sequenceNumber')
+                .max()
+                .value();
+            this.actionListElement.scrollToIndex({animated: true, index: 65});
         }
     }
 

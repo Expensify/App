@@ -211,13 +211,13 @@ class AuthScreens extends React.Component {
                     component={MainDrawerNavigator}
                 />
                 <RootStack.Screen
-                    name="Report_With_ActionID"
+                    name="Report_With_Sequence_Number"
                     options={{
                         headerShown: false,
                         title: 'Expensify.cash',
                     }}
                     initialParams={{
-                        screen: 'Report_With_ActionID_Root',
+                        screen: 'Report_With_Sequence_Number_Root',
                         params: {
                             reportID: this.initialReportID,
                             reportActionID: this.initialReportActionID,

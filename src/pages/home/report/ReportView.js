@@ -13,9 +13,9 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 };
 
-const ReportView = ({reportID, reportActionID}) => (
+const ReportView = ({reportID, sequenceNumber}) => (
     <View key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
-        <ReportActionsView reportID={reportID} reportActionID={reportActionID} />
+        <ReportActionsView reportID={reportID} sequenceNumber={sequenceNumber} />
 
         <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
             <ReportActionCompose

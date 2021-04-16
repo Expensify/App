@@ -18,10 +18,10 @@ export default {
                     Report: ROUTES.REPORT_WITH_ID,
                 },
             },
-            Report_With_ActionID: {
+            Report_With_Sequence_Number: {
                 // path: ROUTES.HOME,
                 screens: {
-                    Report_With_ActionID_Root: ROUTES.REPORT_WITH_ID_AND_ACTION_ID,
+                    Report_With_Sequence_Number_Root: ROUTES.REPORT_WITH_ID_AND_SEQUENCE_NUMBER,
                 },
             },
 
