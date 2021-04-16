@@ -110,10 +110,13 @@ function fetch() {
         .then((data) => {
             let myPersonalDetails = {};
 
-            // If personalDetailsList is empty, ensure we set the personal details for the current user
-            const personalDetailsList = _.isEmpty(data.personalDetailsList)
-                ? {[currentUserEmail]: myPersonalDetails}
-                : data.personalDetailsList;
+            // If personalDetailsList does not have the current user ensure we initialize their details with an empty
+            // object at least
+            const personalDetailsList = _.isEmpty(data.personalDetailsList) ? {} : data.personalDetailsList;
+            if (!personalDetailsList[currentUserEmail]) {
+                personalDetailsList[currentUserEmail] = {};
+            }
+
             const allPersonalDetails = formatPersonalDetails(personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
