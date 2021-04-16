@@ -38,7 +38,7 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
 let message = `🚀 [Deployed](${workflowURL}) 🚀 to 
     ${isProd ? 'production' : 'staging'} on ${date.toDateString()} at ${date.toTimeString()}`;
 
-message += `\n\n platform | result \n- --|--- \n android|${androidResult} \n desktop|${desktopResult}`;
+message += `\n\n platform | result \n ---|--- \n android|${androidResult} \n desktop|${desktopResult}`;
 message += `\n iOS|${iOSResult} \n web|${webResult}`;
 
 /**
