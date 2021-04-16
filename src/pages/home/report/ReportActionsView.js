@@ -68,7 +68,6 @@ class ReportActionsView extends React.Component {
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
-        this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
@@ -89,7 +88,7 @@ class ReportActionsView extends React.Component {
         AppState.addEventListener('change', this.onVisibilityChange);
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
-        this.recordMaxAction();
+        updateLastReadActionID(this.props.reportID);
         fetchActions(this.props.reportID);
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
@@ -122,7 +121,7 @@ class ReportActionsView extends React.Component {
             // When the last action changes, wait three seconds, then record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
             if (Visibility.isVisible()) {
-                this.timers.push(setTimeout(this.recordMaxAction, 3000));
+                this.timers.push(setTimeout(() => updateLastReadActionID(this.props.reportID), 3000));
             }
         }
     }
@@ -143,7 +142,7 @@ class ReportActionsView extends React.Component {
      */
     onVisibilityChange() {
         if (Visibility.isVisible()) {
-            this.timers.push(setTimeout(this.recordMaxAction, 3000));
+            this.timers.push(setTimeout(() => updateLastReadActionID(this.props.reportID), 3000));
         }
     }
 
@@ -214,25 +213,6 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Recorded when the report first opens and when the list is scrolled to the bottom
-     */
-    recordMaxAction() {
-        const reportActions = lodashGet(this.props, 'reportActions', {});
-        const maxVisibleSequenceNumber = _.chain(reportActions)
-
-            // We want to avoid marking any pending actions as read since
-            // 1. Any action ID that hasn't been delivered by the server is a temporary action ID.
-            // 2. We already set a comment someone has authored as the lastReadActionID_<accountID> rNVP on the server
-            // and should sync it locally when we handle it via Pusher or Airship
-            .reject(action => action.loading)
-            .pluck('sequenceNumber')
-            .max()
-            .value();
-
-        updateLastReadActionID(this.props.reportID, maxVisibleSequenceNumber);
-    }
-
-    /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
      * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
@@ -241,7 +221,7 @@ class ReportActionsView extends React.Component {
         if (this.actionListElement) {
             this.actionListElement.scrollToIndex({animated: false, index: 0});
         }
-        this.recordMaxAction();
+        updateLastReadActionID(this.props.reportID);
     }
 
     /**

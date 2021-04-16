@@ -49,6 +49,9 @@ const typingWatchTimers = {};
 // Keeps track of the max sequence number for each report
 const reportMaxSequenceNumbers = {};
 
+// Keeps track of the max sequence number for each report excluding loading actions
+const reportMaxSequenceNumbersNotLoading = {};
+
 // Keeps track of the last read for each report
 const lastReadSequenceNumbers = {};
 
@@ -800,21 +803,18 @@ function addAction(reportID, text, file) {
  * network layer handle the delayed write.
  *
  * @param {Number} reportID
- * @param {Number} sequenceNumber
+ * @param {Number} [sequenceNumber]
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
-    const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
-    if (sequenceNumber < currentMaxSequenceNumber) {
-        return;
-    }
+    const lastReadSequenceNumber = sequenceNumber || reportMaxSequenceNumbersNotLoading[reportID];
 
-    setLocalLastRead(reportID, sequenceNumber);
+    setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
-        sequenceNumber,
+        sequenceNumber: lastReadSequenceNumber,
     });
 }
 
@@ -874,6 +874,21 @@ function handleReportChanged(report) {
 
     // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
+
+    // Store the max sequence number for each report excluding loading actions
+    Onyx.connect({
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+        callback: actions => reportMaxSequenceNumbersNotLoading[report.reportID] = _.chain(actions)
+
+            // We want to avoid marking any pending actions as read since
+            // 1. Any action ID that hasn't been delivered by the server is a temporary action ID.
+            // 2. We already set a comment someone has authored as the lastReadActionID_<accountID> rNVP on the server
+            // and should sync it locally when we handle it via Pusher or Airship
+            .reject(action => action.loading)
+            .pluck('sequenceNumber')
+            .max()
+            .value(),
+    });
 
     // Store optimistic actions IDs for each report
     optimisticReportActionIDs[report.reportID] = report.optimisticReportActionIDs;
