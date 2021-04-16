@@ -100,7 +100,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
                 borderTopLeftRadius: 20,
                 borderTopRightRadius: 20,
                 paddingTop: 12,
-                paddingBottom: 12,
                 justifyContent: 'center',
                 overflow: 'hidden',
             };
@@ -131,8 +130,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
 
             hideBackdrop = true;
             swipeDirection = undefined;
-            animationIn = 'fadeInLeft';
-            animationOut = 'fadeOutLeft';
+            animationIn = 'fadeIn';
+            animationOut = 'fadeOut';
             break;
         case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
             modalStyle = {
