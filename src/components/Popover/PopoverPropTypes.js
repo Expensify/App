@@ -12,9 +12,6 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }).isRequired,
-
-    // Describes what type of pop over is it - based on the position
-    popOverType: modalPropTypes.type,
 };
 
 const defaultProps = {
