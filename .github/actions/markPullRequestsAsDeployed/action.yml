@@ -19,10 +19,10 @@ inputs:
         description: "Desktop job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
     IOS:
-        description: "Desktop job result ('success', 'failure', 'cancelled', or 'skipped')"
+        description: "iOS job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
     WEB:
-        description: "Desktop job result ('success', 'failure', 'cancelled', or 'skipped')"
+        description: "Web job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
 runs:
     using: "node12"
