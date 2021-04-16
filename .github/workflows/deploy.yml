@@ -19,7 +19,7 @@ jobs:
 
       - name: Check if merged pull request was an automatic version bump PR
         id: isVersionBumpPR
-        run: echo "::set-output name=IS_AUTOMERGE_PR::${{ contains(steps.getMergedPullRequest.outputs.labels, 'automerge') && github.actor == 'OSBotify' }}"
+        run: echo "::set-output name=IS_AUTOMERGE_PR::${{ github.actor == 'OSBotify' }}"
 
   deployStaging:
     runs-on: ubuntu-latest
