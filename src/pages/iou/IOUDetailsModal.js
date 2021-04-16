@@ -94,18 +94,28 @@ class IOUDetailsModal extends Component {
                         styles.detailsPageContainer, styles.p5
                     ]}
                 >
-                    {_.map(this.props.iouReport.transactions, (transaction) => (
-                        <TransactionItem transaction={transaction} />
-                    ))}
-
-                    {/* Reuse Preview Component here? */}
-
+                    {_.map(this.props.iouReport.transactions, (transaction) => {
+                        const actionForTransaction = _.find(this.props.reportActions, (action) => {
+                            if (action && action.originalMessage) {
+                                return action.originalMessage.IOUTransactionID == transaction.transactionID;
+                            }
+                            return false;
+                        });
+                        return (
+                            <TransactionItem
+                                transaction={transaction}
+                                action={actionForTransaction}
+                            />
+                        );
+                    })}
                     {(this.props.iouReport.managerEmail === sessionEmail &&
-                    <ButtonWithLoader
-                        text="I'll settle up elsewhere"
-                        isLoading={this.state.loading}
-                        onClick={this.performIOUSettlement}
-                    />)}
+                    (
+                        <ButtonWithLoader
+                            text="I'll settle up elsewhere"
+                            isLoading={this.state.loading}
+                            onClick={this.performIOUSettlement}
+                        />)
+                    )}
                 </View>
             </ScreenWrapper>
         );
