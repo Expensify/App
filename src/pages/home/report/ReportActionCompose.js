@@ -224,11 +224,23 @@ class ReportActionCompose extends React.Component {
         this.setState({isEmojiPickerVisible: false});
     }
 
+    /**
+     * Hide the emoji picker modal and add the selected emoji to the main text input.
+     *
+     * @param {String} emoji
+     */
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
         this.textInput.value = this.comment + emoji;
         this.setIsFocused(true);
         this.updateComment(this.textInput.value);
+    }
+
+    /**
+     * Focus the search input in the emoji picker.
+     */
+    focusEmojiSearchInput() {
+        this.emojiSearchInput.focus();
     }
 
     /**
@@ -251,10 +263,6 @@ class ReportActionCompose extends React.Component {
         this.props.onSubmit(trimmedComment);
         this.updateComment('');
         this.setTextInputShouldClear(true);
-    }
-
-    focusEmojiSearchInput() {
-        this.emojiSearchInput.focus();
     }
 
     render() {
