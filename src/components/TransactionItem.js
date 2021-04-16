@@ -2,8 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Text, View} from 'react-native';
 import styles, {webViewStyles} from '../styles/styles';
+import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 
 const propTypes = {
+    action: PropTypes.shape(ReportActionPropTypes),
+
     // Transaction to display
     transaction: PropTypes.shape({
 
@@ -27,6 +30,7 @@ const defaultProps = {
 const TransactionItem = props => (
     <View style={[webViewStyles.tagStyles.blockquote]}>
         <Text style={[styles.chatItemMessage]}>
+            {/* TODO: display preview component! */}
             {`Requested : ${props.transaction.currency} ${props.transaction.amount} --  ${props.transaction.comment}`}
         </Text>
     </View>
