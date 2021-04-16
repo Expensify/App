@@ -32,9 +32,11 @@ const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: 
 const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
 const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
-let message = `🚀 Deployed 🚀 to ${
-    isProd ? 'production' : 'staging'
-} on ${date.toDateString()} at ${date.toTimeString()}`;
+const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}
+    /actions/runs/${process.env.GITHUB_RUN_ID}`;
+
+let message = `🚀 [Deployed](${workflowURL}) 🚀 to 
+    ${isProd ? 'production' : 'staging'} on ${date.toDateString()} at ${date.toTimeString()}`;
 
 message += `\n\n platform | result \n- --|--- \n android|${androidResult} \n desktop|${desktopResult}`;
 message += `\n iOS|${iOSResult} \n web|${webResult}`;
