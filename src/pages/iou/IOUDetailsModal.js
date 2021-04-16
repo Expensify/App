@@ -15,7 +15,7 @@ import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import compose from '../../libs/compose';
 import {settleIOUReport} from '../../libs/actions/IOU';
-import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
+import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -28,7 +28,7 @@ const defaultProps = {
     iouReport: {
         chatReportID: 0,
     },
-    reportActions: {},
+    reportActions: [],
 };
 
 const propTypes = {
@@ -42,7 +42,7 @@ const propTypes = {
         chatReportID: PropTypes.number,
     }),
 
-    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(ReportActionPropTypes)),
 
     // Session info for the currently logged in user.
     session: PropTypes.shape({
@@ -57,8 +57,8 @@ class IOUDetailsModal extends Component {
 
         this.state = {
             loading: false,
-            settlementType: 'Elsewhere'
-        }
+            settlementType: 'Elsewhere',
+        };
 
         this.performIOUSettlement = this.performIOUSettlement.bind(this);
     }
@@ -125,9 +125,10 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
     }),
-    // withOnyx({
-    //     reportActions: {
-    //         key: ({iouReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.chatReportID}`,
-    //     },
-    // }),
+    withOnyx({
+        reportActions: {
+            key: ({iouReport}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.chatReportID}`,
+            canEvict: false,
+        },
+    }),
 )(IOUDetailsModal);
