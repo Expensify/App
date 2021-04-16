@@ -33,7 +33,7 @@ jobs:
 
       - name: Check if merged pull request was an automatic version bump PR
         id: isVersionBumpPR
-        run: echo "::set-output name=IS_VERSION_BUMP_PR::${{ contains(steps.getMergedPullRequest.outputs.labels, 'automerge') && github.actor == 'OSBotify' }}"
+        run: echo "::set-output name=IS_VERSION_BUMP_PR::${{ github.actor == 'OSBotify' }}"
 
   skipDeploy:
     runs-on: ubuntu-latest
@@ -132,7 +132,6 @@ jobs:
         with:
           source_branch: main
           destination_branch: staging
-          pr_label: automerge
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           pr_title: Update version to ${{ env.STAGING_VERSION }} on staging
           pr_body: Update version to ${{ env.STAGING_VERSION }}
