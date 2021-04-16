@@ -1,7 +1,7 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import ImageZoom, {ImageZoomProps} from 'react-native-image-pan-zoom';
+import ImageZoom from 'react-native-image-pan-zoom';
 import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
 import styles, {getWidthAndHeightStyle} from '../../styles/styles';
 import variables from '../../styles/variables';
@@ -26,8 +26,10 @@ class ImageView extends PureComponent {
             imageHeight: 100,
         };
 
+        // Use the default double click interval from the ImageZoom library
+        // https://github.com/ascoders/react-native-image-zoom/blob/master/src/image-zoom/image-zoom.type.ts#L79
+        this.doubleClickInterval = 175;
         this.imageZoomScale = 1;
-        this.doubleClickInterval = 1000;
         this.lastClickTime = 0;
     }
 
