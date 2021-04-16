@@ -45,27 +45,33 @@ class ImageView extends PureComponent {
                 ]}
             >
                 <ImageZoom
+                    ref={el => this.zoom = el}
                     cropWidth={this.props.windowWidth}
                     cropHeight={windowHeight}
                     imageWidth={this.state.imageWidth}
                     imageHeight={this.state.imageHeight}
                     onStartShouldSetPanResponder={(e) => {
+                        const isDoubleClick = new Date().getTime() - this.lastClickTime <= this.doubleClickInterval;
+                        this.lastClickTime = new Date().getTime();
+
                         // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
                         if (e.nativeEvent.touches.length === 2 || this.imageZoomScale !== 1) {
-                            console.log(`joetest returning true case 1`);
                             return true;
                         }
 
-                        // If this isn't a double click, ignore the event to let the parent handle it
-                        if (new Date().getTime() - this.lastClickTime >= (this.doubleClickInterval || 0)) {
-                            console.log(`joetest returning false case 2. lastClickTime: ${this.lastClickTime}`);
-                            this.lastClickTime = new Date().getTime();
-                            return false;
+                        // When we have a double click and the zoom scale is 1 then programmatically zoom the image
+                        // but let the tap fall through to the parent so we can register a swipe down to dismiss
+                        if (isDoubleClick) {
+                            this.zoom.centerOn({
+                                x: 0,
+                                y: 0,
+                                scale: 2,
+                                duration: 100,
+                            });
                         }
 
-                        // This is a double click, reset the lastClickTime and let ImageZoom handle the event
-                        console.log(`joetest returning true case 3`);
-                        return true;
+                        // We must be either swiping down or double tapping since we are at zoom scale 1
+                        return false;
                     }}
                     onMove={({scale}) => {
                         this.imageZoomScale = scale;
