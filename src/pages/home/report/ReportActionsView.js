@@ -40,6 +40,9 @@ const propTypes = {
 
         // The largest sequenceNumber on this report
         maxSequenceNumber: PropTypes.number,
+
+        // The timestamp of the last message on this report
+        lastMessageTimestamp: PropTypes.number,
     }),
 
     // Array of report actions for this report
@@ -94,16 +97,18 @@ class ReportActionsView extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        console.log('called');
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            console.log('this');
             this.updateSortedReportActions(nextProps.reportActions);
             return true;
-        } else if (nextProps.report.unreadActionCount !== this.props.report.unreadActionCount
+        }
+        if (nextProps.report.unreadActionCount !== this.props.report.unreadActionCount
             && nextProps.report.lastMessageTimestamp === this.props.report.lastMessageTimestamp
+            && (!lastItem(nextProps.reportActions) || !lastItem(nextProps.reportActions).loading)
             && nextProps.report.unreadActionCount !== 0) {
-            console.log(this.props);
-            console.log(nextProps);
+            // We just  want to set the marker if a message has been marked as unread manually. To avoid moving the
+            // marker when new messages come in, we check whether the last action is loading (which would mean the user
+            // just sent a message themself) and if the timestamps match (which would mean they received a message from
+            // other chat participant).
             this.newMarkerPosition = (nextProps.report.maxSequenceNumber + 1) - nextProps.report.unreadActionCount;
             return true;
         }
