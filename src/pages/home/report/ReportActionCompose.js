@@ -314,7 +314,9 @@ class ReportActionCompose extends React.Component {
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
-                                                popOverType={CONST.MODAL.MODAL_TYPE.POPOVER_CENTER_BOTTOM}
+                                                anchorPosition={styles.createMenuPositionReportActionCompose}
+                                                animationIn="fadeInUp"
+                                                animationOut="fadeOutDown"
                                                 menuItems={[
                                                     {
                                                         icon: Paperclip,

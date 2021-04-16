@@ -31,6 +31,12 @@ const propTypes = {
         PropTypes.object,
     ]),
 
+    // A react-native-animatable animation definition for the modal hide animation.
+    animationOut: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
+
     // The anchor position of a popover modal. Has no effect on other modal types.
     popoverAnchorPosition: PropTypes.shape({
         top: PropTypes.number,
@@ -48,6 +54,7 @@ const defaultProps = {
     onModalHide: () => {},
     onModalShow: () => {},
     animationIn: null,
+    animationOut: null,
     popoverAnchorPosition: {},
 };
 
