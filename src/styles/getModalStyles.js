@@ -79,10 +79,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
                 width: isSmallScreenWidth ? '100%' : windowWidth - 40,
             };
 
-            // The default swipe direction is swipeDown and by
-            // setting this to undefined we effectively disable the
-            // ability to swipe our modal
-            swipeDirection = ['down'];
+            // Allow this modal to be dismissed with a swipe down or swipe right
+            swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
             shouldAddTopSafeAreaPadding = true;
