@@ -1,4 +1,5 @@
 import ROUTES from '../../ROUTES';
+import SCREENS from '../../SCREENS';
 
 export default {
     prefixes: [
@@ -9,13 +10,14 @@ export default {
         'http://localhost',
     ],
     config: {
+        initialRouteName: SCREENS.HOME,
         screens: {
-            Home: {
+            [SCREENS.HOME]: {
                 path: ROUTES.HOME,
-                initialRouteName: 'Report',
+                initialRouteName: SCREENS.REPORT,
                 screens: {
                     // Report route
-                    Report: ROUTES.REPORT_WITH_ID,
+                    [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
                 },
             },
 
