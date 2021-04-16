@@ -23,7 +23,7 @@ const octokit = github.getOctokit(token);
 const githubUtils = new GithubUtils(octokit);
 
 function getDeployTableMessage(platformResult) {
-    const emoji = platformResult === 'success ' ? '✅' : '❌';
+    const emoji = platformResult === 'success' ? '✅' : '❌';
     return platformResult + emoji;
 }
 
