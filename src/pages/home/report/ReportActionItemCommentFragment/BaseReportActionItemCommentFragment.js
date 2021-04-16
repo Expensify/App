@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import reportActionItemCommentFragmentPropTypes from './reportActionItemCommentFragmentPropTypes';
 import RenderHTML from '../../../../components/RenderHTML';
+import Text from '../../../../components/Text';
 
 const propTypes = {
     ...reportActionItemCommentFragmentPropTypes,
