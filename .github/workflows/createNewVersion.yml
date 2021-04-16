@@ -12,6 +12,9 @@ jobs:
     if: github.actor == 'OSBotify'
     runs-on: macos-latest
 
+    outputs:
+      PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pull-request-number }}
+
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
@@ -65,20 +68,40 @@ jobs:
           body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
           labels: automerge
 
-      # TODO: this won't work unless https://github.com/hmarr/auto-approve-action/pull/186 is merged or we point at a fork
-      - name: Check for an auto approve
-        # Version: 2.0.0
-        uses: hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd
+      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+      # the other workflows with the same change
+      - uses: 8398a7/action-slack@v3
+        name: Job failed Slack notification
+        if: ${{ failure() }}
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          pull-request-number: ${{ steps.createPullRequest.outputs.pull-request-number }}
-
-      # TODO: this won't work unless https://github.com/pascalgn/automerge-action/pull/149 is merges or we point at a fork
-      - name: Check for an auto merge
-        # Version: 0.12.0
-        uses: pascalgn/automerge-action@c9bd1823770819dc8fb8a5db2d11a3a95fbe9b07
+          status: custom
+          fields: workflow, repo
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!here>`,
+                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+              }]
+            }
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Note: This is a separate job because trigger-workflow-and-wait doesn't work on a macOS runner
+  updateMain:
+    needs: createNewVersion
+    runs-on: ubuntu-latest
+    steps:
+      - name: Automerge the version-bump PR to update main
+        uses: convictional/trigger-workflow-and-wait@6acf1632a9a81ff2ee5a5a809d6c0fa519eeed3e
+        with:
+          owner: Expensify
+          repo: Expensify.cash
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          workflow_file_name: automerge.yml
+          inputs: '{PULL_REQUEST_NUMBER: ${{ needs.createNewVersion.outputs.PULL_REQUEST_NUMBER }} }'
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
