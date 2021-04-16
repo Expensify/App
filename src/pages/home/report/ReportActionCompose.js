@@ -240,7 +240,9 @@ class ReportActionCompose extends React.Component {
      * Focus the search input in the emoji picker.
      */
     focusEmojiSearchInput() {
-        this.emojiSearchInput.focus();
+        if (this.emojiSearchInput) {
+            this.emojiSearchInput.focus();
+        }
     }
 
     /**
