@@ -806,6 +806,48 @@ const styles = {
         justifyContent: 'center',
     },
 
+    emojiPickerContainer: {
+        backgroundColor: themeColors.componentBG,
+        minWidth: CONST.EMOJI_PICKER_SIZE,
+    },
+
+    emojiPickerList: {
+        height: 300,
+        width: '100%',
+        ...spacing.ph4,
+    },
+
+    emojiHeaderStyle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv3,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    // Emoji Picker Styles
+    emojiText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.iconSizeLarge,
+        ...spacing.pv1,
+        ...spacing.ph2,
+    },
+
+    emojiItem: {
+        width: '12.5%',
+        textAlign: 'center',
+    },
+
+    chatItemEmojiButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
+        margin: 3,
+        justifyContent: 'center',
+    },
+
     hoveredButton: {
         backgroundColor: themeColors.buttonHoveredBG,
     },

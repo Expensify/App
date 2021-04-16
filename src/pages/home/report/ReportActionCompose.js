@@ -1,24 +1,35 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity, InteractionManager} from 'react-native';
+import {
+    View,
+    TouchableOpacity,
+    Pressable,
+    InteractionManager,
+} from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/styles';
+import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
-import {Plus, Send, Paperclip} from '../../../components/Icon/Expensicons';
+import {
+    Plus, Send, Emoji, Paperclip,
+} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
+import Popover from '../../../components/Popover';
+import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
+import getButtonState from '../../../libs/getButtonState';
+import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
@@ -63,6 +74,7 @@ const defaultProps = {
 class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
+
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -70,6 +82,9 @@ class ReportActionCompose extends React.Component {
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.showEmojiPicker = this.showEmojiPicker.bind(this);
+        this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
+        this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
@@ -78,7 +93,14 @@ class ReportActionCompose extends React.Component {
             isFocused: this.shouldFocusInputOnScreenFocus,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
+            isEmojiPickerVisible: false,
             isMenuVisible: false,
+
+            // The horizontal and vertical position (relative to the window) where the emoji popover will display.
+            emojiPopoverAnchorPosition: {
+                horizontal: 0,
+                vertical: 0,
+            },
         };
     }
 
@@ -176,6 +198,39 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
             this.submitForm();
         }
+    }
+
+    /**
+     * Show the ReportActionContextMenu modal popover.
+     *
+     * @param {Object} [event] - A press event.
+     */
+    showEmojiPicker(event) {
+        this.textInput.blur();
+        this.state.emojiPopoverAnchorPosition = {
+            horizontal: event.nativeEvent.pageX,
+            vertical: event.nativeEvent.pageY,
+        };
+        this.setState({isEmojiPickerVisible: true});
+    }
+
+    /**
+     * Hide the ReportActionContextMenu modal popover.
+     */
+    hideEmojiPicker() {
+        this.setState({isEmojiPickerVisible: false});
+    }
+
+    /**
+     * Callback for the emoji picker to add whatever emoji is chosen into the main input
+     *
+     * @param {String} emoji
+     */
+    addEmojiToTextBox(emoji) {
+        this.hideEmojiPicker();
+        this.textInput.value = this.comment + emoji;
+        this.setIsFocused(true);
+        this.updateComment(this.textInput.value);
     }
 
     /**
@@ -315,6 +370,40 @@ class ReportActionCompose extends React.Component {
                             </>
                         )}
                     </AttachmentModal>
+                    {
+
+                        // There is no way to disable animations and they are really laggy, because there are so many
+                        // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
+                    }
+                    <Popover
+                        isVisible={this.state.isEmojiPickerVisible}
+                        onClose={this.hideEmojiPicker}
+                        hideModalContentWhileAnimating
+                        animationInTiming={1}
+                        animationOutTiming={1}
+                        anchorPosition={{
+                            top: this.state.emojiPopoverAnchorPosition.vertical - CONST.EMOJI_PICKER_SIZE,
+                            left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
+                        }}
+                    >
+                        <EmojiPickerMenu
+                            onEmojiSelected={this.addEmojiToTextBox}
+                        />
+                    </Popover>
+                    <Pressable
+                        style={({hovered, pressed}) => ([
+                            styles.chatItemEmojiButton,
+                            getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+                        ])}
+                        onPress={this.showEmojiPicker}
+                    >
+                        {({hovered, pressed}) => (
+                            <Icon
+                                src={Emoji}
+                                fill={getIconFillColor(getButtonState(hovered, pressed))}
+                            />
+                        )}
+                    </Pressable>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton,
                             this.state.isCommentEmpty
