@@ -28,7 +28,7 @@ jobs:
       - name: Set up git
         run: |
           git fetch
-          git checkout master
+          git checkout main
           git config user.name OSBotify
 
       - name: Create new branch
@@ -38,7 +38,7 @@ jobs:
 
       - name: Generate version
         id: bumpVersion
-        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
+        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           SEMVER_LEVLE: ${{ github.event.inputs.SEMVER_LEVEL }}
@@ -53,15 +53,15 @@ jobs:
             ./ios/ExpensifyCashTests/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
-      - name: Create Pull Request (master)
+      - name: Create Pull Request (main)
         id: createPullRequest
         uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           author: OSBotify <reactnative@expensify.com>
-          base: master
+          base: main
           branch: version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
-          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on master
+          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on main
           body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
           labels: automerge
 
