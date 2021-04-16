@@ -337,7 +337,7 @@ function setLocalLastRead(reportID, sequenceNumber) {
 
     // Update the report optimistically
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: 0,
+        unreadActionCount: Math.max(reportMaxSequenceNumbers[reportID] - sequenceNumber, 0),
         lastVisitedTimestamp: Date.now(),
     });
 }

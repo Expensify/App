@@ -73,7 +73,7 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = [];
         this.timers = [];
 
-        this.initialNewMarkerPosition = props.report.unreadActionCount === 0
+        this.newMarkerPosition = props.report.unreadActionCount === 0
             ? 0
             : (props.report.maxSequenceNumber + 1) - props.report.unreadActionCount;
 
@@ -96,6 +96,10 @@ class ReportActionsView extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.updateSortedReportActions(nextProps.reportActions);
+            return true;
+        } else if (nextProps.report.unreadActionCount !== this.props.report.unreadActionCount
+            && nextProps.report.unreadActionCount !== 0) {
+            this.newMarkerPosition = (nextProps.report.maxSequenceNumber + 1) - nextProps.report.unreadActionCount;
             return true;
         }
 
@@ -264,8 +268,10 @@ class ReportActionsView extends React.Component {
                 reportID={this.props.reportID}
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
-                    && item.action.sequenceNumber === this.initialNewMarkerPosition}
+                shouldDisplayNewIndicator={this.newMarkerPosition > 0
+                    && item.action.sequenceNumber === this.newMarkerPosition}
+                onMarkAsUnread={() => updateLastReadActionID(this.props.reportID,
+                    item.action.sequenceNumber - 1)}
             />
         );
     }
