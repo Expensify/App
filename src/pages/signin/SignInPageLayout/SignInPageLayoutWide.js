@@ -9,6 +9,8 @@ import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
+import openURLInNewTab from '../../../libs/openURLInNewTab';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // The children to show inside the layout
@@ -54,6 +56,22 @@ const SignInPageLayoutWide = props => (
                         <WelcomeText textSize="large" />
                     </View>
                     )}
+                <View>
+                    <Text style={[styles.textLabel]}>
+                        Enter your GitHub handle on the next page to skip the wait and join our dev-only beta;
+                        {' '}
+                        help build tomorrow and
+                        {' '}
+                        <Text
+                            style={[styles.link]}
+                            onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
+                        >
+                            earn cash
+                        </Text>
+                        {' '}
+                        today!
+                    </Text>
+                </View>
                 <TermsAndLicenses />
             </View>
         </View>
