@@ -94,11 +94,16 @@ class ReportActionsView extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        console.log('called');
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            console.log('this');
             this.updateSortedReportActions(nextProps.reportActions);
             return true;
         } else if (nextProps.report.unreadActionCount !== this.props.report.unreadActionCount
+            && nextProps.report.lastMessageTimestamp === this.props.report.lastMessageTimestamp
             && nextProps.report.unreadActionCount !== 0) {
+            console.log(this.props);
+            console.log(nextProps);
             this.newMarkerPosition = (nextProps.report.maxSequenceNumber + 1) - nextProps.report.unreadActionCount;
             return true;
         }
