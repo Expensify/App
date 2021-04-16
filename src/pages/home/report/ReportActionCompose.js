@@ -225,7 +225,7 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Hide the emoji picker modal and add the selected emoji to the main text input.
+     * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
      */
@@ -314,6 +314,7 @@ class ReportActionCompose extends React.Component {
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
+                                                popOverType={CONST.MODAL.MODAL_TYPE.POPOVER_CENTER_BOTTOM}
                                                 menuItems={[
                                                     {
                                                         icon: Paperclip,
