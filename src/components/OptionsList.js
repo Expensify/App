@@ -80,7 +80,7 @@ const defaultProps = {
     optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
-    listContainerStyles: undefined,
+    listContainerStyles: [styles.flex1],
     sections: [],
     focusedIndex: 0,
     selectedOptions: [],
@@ -200,7 +200,7 @@ class OptionsList extends Component {
 
     render() {
         return (
-            <View style={[...(this.props.listContainerStyles ? this.props.listContainerStyles : [styles.flex1])]}>
+            <View style={[this.props.listContainerStyles]}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>
