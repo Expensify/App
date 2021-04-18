@@ -19,15 +19,8 @@ const propTypes = {
     // Is this the most recent IOU Action?
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
-    // The report currently being looked at
-    report: PropTypes.shape({
-
-        // IOU report ID associated with current report
-        iouReportID: PropTypes.number,
-
-        // Whether there is an outstanding amount in IOU
-        hasOutstandingIOU: PropTypes.bool,
-    }).isRequired,
+    // Whether there is an outstanding amount in IOU
+    hasOutstandingIOU: PropTypes.bool.isRequired,
 
     /* --- Onyx Props --- */
     // Active IOU Report for current report
@@ -63,7 +56,7 @@ const defaultProps = {
 const ReportActionItemIOUPreview = ({
     action,
     isMostRecentIOUReportAction,
-    report,
+    hasOutstandingIOU,
     iou,
     personalDetails,
     session,
@@ -85,13 +78,13 @@ const ReportActionItemIOUPreview = ({
 
     // Pay button should be visible to manager person in the report
     // Check if the currently logged in user is the manager.
-    const isPayButtonVisible = iou.managerEmail === sessionEmail;
+    const isCurrentUserManager = iou.managerEmail === sessionEmail;
 
     return (
         <View>
             <ReportActionItemIOUQuote action={action} />
             {isMostRecentIOUReportAction
-                    && report.hasOutstandingIOU
+                    && hasOutstandingIOU
                     && !_.isEmpty(iou) && (
                         <View style={styles.iouPreviewBox}>
                             <View style={styles.flexRow}>
@@ -110,7 +103,7 @@ const ReportActionItemIOUPreview = ({
                                     />
                                 </View>
                             </View>
-                            {isPayButtonVisible && (
+                            {isCurrentUserManager && (
                                 <TouchableOpacity
                                     style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
                                 >
@@ -136,7 +129,7 @@ ReportActionItemIOUPreview.displayName = 'ReportActionItemIOUPreview';
 
 export default withOnyx({
     iou: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`,
+        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,

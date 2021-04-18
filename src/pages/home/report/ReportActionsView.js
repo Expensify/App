@@ -40,6 +40,12 @@ const propTypes = {
 
         // The largest sequenceNumber on this report
         maxSequenceNumber: PropTypes.number,
+
+        // Whether there is an outstanding amount in IOU
+        hasOutstandingIOU: PropTypes.bool.isRequired,
+
+        // IOU report ID associated with current report
+        iouReportID: PropTypes.number,
     }),
 
     // Array of report actions for this report
@@ -302,6 +308,8 @@ class ReportActionsView extends React.Component {
                 shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
                     && item.action.sequenceNumber === this.initialNewMarkerPosition}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
+                iouReportID={this.props.report.iouReportID}
+                hasOutstandingIOU={this.props.report.hasOutstandingIOU}
             />
         );
     }

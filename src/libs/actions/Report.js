@@ -237,8 +237,10 @@ function fetchIOUReportData(chatReport) {
     }).then((response) => {
         iouReportID = response.reportID || 0;
         if (response.jsonCode !== 200) {
-            throw new Error(response.message);
-        } else if (iouReportID === 0) {
+            console.error(response.message);
+            return;
+        }
+        if (iouReportID === 0) {
             // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
             // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
             // been settled then there's nothing more to do.
@@ -258,39 +260,19 @@ function fetchIOUReportData(chatReport) {
         }
 
         if (response.jsonCode !== 200) {
-            throw new Error(response.message);
+            console.error(response.message);
+            return;
         }
 
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
-            throw new Error(`No iouReportData found for reportID ${iouReportID}`);
+            console.error(`No iouReportData found for reportID ${iouReportID}`);
+            return;
         }
         return getSimplifiedIOUReport(iouReportData, chatReport.reportID);
     }).catch((error) => {
         console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
     });
-}
-
-/**
- * Get the report ID for a chat report for a specific set of participants.
- *
- * @param {String[]} participants
- * @returns {Promise} chatReportID
- */
-function findChatReportID(participants) {
-    if (participants.length < 2) {
-        throw new Error('findChatReportID() must have at least two participants.');
-    }
-
-    return API.CreateChatReport({
-        emailList: participants.join(','),
-    })
-        .then((data) => {
-            if (data.jsonCode !== 200) {
-                throw new Error(data.message);
-            }
-            return data.reportID;
-        });
 }
 
 /**
@@ -352,7 +334,7 @@ function fetchChatReportsByIDs(chatList) {
 }
 
 /**
- * Update stored IOU object for given IOU and chat report ID
+ * Given IOU and chat report ID fetches most recent IOU data from API and update stored data in Onyx.
  *
  * @param {Number} iouReportID
  * @param {Number} chatReportID
@@ -369,12 +351,14 @@ function updateIOUReportData(iouReportID, chatReportID) {
         }
 
         if (response.jsonCode !== 200) {
-            throw new Error(response.message);
+            console.error(response.message);
+            return;
         }
 
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
-            throw new Error(`No iouReportData found for reportID ${iouReportID}`);
+            console.error(`No iouReportData found for reportID ${iouReportID}`);
+            return;
         }
         const iouReportObject = getSimplifiedIOUReport(iouReportData, chatReportID);
         const chatReportObject = {
@@ -393,37 +377,34 @@ function updateIOUReportData(iouReportID, chatReportID) {
 }
 
 /**
- * Update stored IOU object for given chat report ID
+ * Given chat report ID finds active IOU report ID via GetIOUReport API call
  *
  * @param {Number} chatReportID
+ * @returns {Promise}
  */
-function updateIOUReportDataForChatReport(chatReportID) {
+function fetchIOUReportID(chatReportID) {
     const chatReport = lodashGet(allReports, chatReportID);
-    let iouReportID = lodashGet(chatReport, 'iouReportID');
-
-    if (iouReportID) {
-        updateIOUReportData(iouReportID, chatReportID);
-        return;
-    }
-
     const participants = chatReport.participants;
     if (participants.length !== 1) {
-        throw new Error('chatReport doesn\'t have any participant.');
+        console.error('chatReport doesn\'t have any participant.');
+        return;
     }
-    API.GetIOUReport({
+    return API.GetIOUReport({
         debtorEmail: participants[0],
     }).then((response) => {
-        iouReportID = response.reportID || 0;
+        const iouReportID = response.reportID || 0;
         if (response.jsonCode !== 200) {
-            throw new Error(response.message);
-        } else if (iouReportID === 0) {
+            console.error(response.message);
+            return;
+        }
+        if (iouReportID === 0) {
             // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
             // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
             // been settled then there's nothing more to do.
             console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
             return;
         }
-        updateIOUReportData(iouReportID, chatReportID);
+        return iouReportID;
     });
 }
 
@@ -522,7 +503,13 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     // If chat report receives an action with IOU, update IOU object
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-        updateIOUReportDataForChatReport(reportID);
+        const chatReport = lodashGet(allReports, reportID);
+        const iouReportID = lodashGet(chatReport, 'iouReportID');
+        if (iouReportID) {
+            updateIOUReportData(iouReportID, reportID);
+        } else {
+            fetchIOUReportID(reportID).then(iouID => updateIOUReportData(iouID, reportID));
+        }
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -685,18 +672,35 @@ function unsubscribeFromReportChannel(reportID) {
 
 /**
  * Get the report ID for a chat report for a specific
- * set of participants and navigate to it.
+ * set of participants and navigate to it if wanted.
  *
  * @param {String[]} participants
+ * @param {Boolean} shouldNavigate
+ * @returns {Promise}
  */
-function fetchOrCreateChatReportAndNavigate(participants) {
-    findChatReportID(participants).then((reportID) => {
-        // Merge report into Onyx
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
+function fetchOrCreateChatReport(participants, shouldNavigate = true) {
+    if (participants.length < 2) {
+        throw new Error('fetchOrCreateChatReport() must have at least two participants.');
+    }
 
-        // Redirect the logged in person to the new report
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
-    });
+    return API.CreateChatReport({
+        emailList: participants.join(','),
+    })
+        .then((data) => {
+            if (data.jsonCode !== 200) {
+                console.error(data.message);
+                return;
+            }
+
+            // Merge report into Onyx
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, {reportID: data.reportID});
+
+            if (shouldNavigate) {
+                // Redirect the logged in person to the new report
+                Navigation.navigate(ROUTES.getReportRoute(data.reportID));
+            }
+            return data.reportID;
+        });
 }
 
 /**
@@ -719,7 +723,7 @@ function fetchChatReports() {
                 // The string cast here is necessary as Get rvl='chatList' may return an int
                 fetchChatReportsByIDs(String(response.chatList).split(','));
             } else {
-                fetchOrCreateChatReportAndNavigate([currentUserEmail, 'concierge@expensify.com']);
+                fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
             }
 
             return response.chatList;
@@ -996,7 +1000,7 @@ NetworkConnection.onReconnect(() => {
 export {
     fetchAll,
     fetchActions,
-    fetchOrCreateChatReportAndNavigate,
+    fetchOrCreateChatReport,
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,

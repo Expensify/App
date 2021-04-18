@@ -10,7 +10,7 @@ import KeyboardSpacer from '../components/KeyboardSpacer';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import {fetchOrCreateChatReportAndNavigate} from '../libs/actions/Report';
+import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
@@ -121,7 +121,7 @@ class SearchPage extends Component {
                 Navigation.navigate(ROUTES.getReportRoute(option.reportID));
             });
         } else {
-            fetchOrCreateChatReportAndNavigate([
+            fetchOrCreateChatReport([
                 this.props.session.email,
                 option.login,
             ]);

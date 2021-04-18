@@ -2,8 +2,6 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
     getReportActionItemStyle,
@@ -32,21 +30,18 @@ const propTypes = {
     // Is this the most recent IOU Action?
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
+    // Whether there is an outstanding amount in IOU
+    hasOutstandingIOU: PropTypes.bool.isRequired,
+
+    // IOU report ID associated with current report
+    iouReportID: PropTypes.number,
+
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
-
-    /* --- Onyx Props --- */
-
-    // The report currently being looked at
-    report: PropTypes.shape({
-
-        // IOU report ID associated with current report
-        iouReportID: PropTypes.number,
-    }),
 };
 
 const defaultProps = {
-    report: {},
+    iouReportID: undefined,
 };
 
 class ReportActionItem extends Component {
@@ -71,7 +66,8 @@ class ReportActionItem extends Component {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
-            || !_.isEqual(this.props.report, nextProps.report)
+            || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
+            || this.props.iouReportID !== nextProps.iouReportID
             || (this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator)
             || !_.isEqual(this.props.action, nextProps.action);
     }
@@ -107,10 +103,11 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        const message = this.props.action.actionName === 'IOU'
+        const children = this.props.action.actionName === 'IOU'
             ? (
                 <ReportActionItemIOUPreview
-                    report={this.props.report}
+                    iouReportID={this.props.iouReportID}
+                    hasOutstandingIOU={this.props.hasOutstandingIOU}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                 />
@@ -127,15 +124,14 @@ class ReportActionItem extends Component {
                             <View style={getReportActionItemStyle(hovered)}>
                                 {!this.props.displayAsGroup
                                     ? (
-                                        <ReportActionItemSingle
-                                            action={this.props.action}
-                                            message={message}
-                                        />
+                                        <ReportActionItemSingle action={this.props.action}>
+                                            {children}
+                                        </ReportActionItemSingle>
                                     )
                                     : (
-                                        <ReportActionItemGrouped
-                                            message={message}
-                                        />
+                                        <ReportActionItemGrouped>
+                                            {children}
+                                        </ReportActionItemGrouped>
                                     )}
                             </View>
                             <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
@@ -178,8 +174,4 @@ class ReportActionItem extends Component {
 
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
-export default withOnyx({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-})(ReportActionItem);
+export default ReportActionItem;
