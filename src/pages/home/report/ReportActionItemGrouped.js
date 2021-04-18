@@ -4,15 +4,14 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 
 const propTypes = {
-
-    // Message view component for this action
-    message: PropTypes.element.isRequired,
+    // Children view component for this action item
+    children: PropTypes.node.isRequired,
 };
 
-const ReportActionItemGrouped = ({message}) => (
+const ReportActionItemGrouped = ({children}) => (
     <View style={[styles.chatItem]}>
         <View style={[styles.chatItemRightGrouped]}>
-            {message}
+            {children}
         </View>
     </View>
 );

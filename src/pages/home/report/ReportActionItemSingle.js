@@ -19,14 +19,14 @@ const propTypes = {
     // All of the personalDetails
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 
-    // Message view component for this action
-    message: PropTypes.element.isRequired,
+    // Children view component for this action item
+    children: PropTypes.node.isRequired,
 };
 
 const ReportActionItemSingle = ({
     action,
     personalDetails,
-    message,
+    children,
 }) => {
     const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
@@ -58,7 +58,7 @@ const ReportActionItemSingle = ({
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
-                {message}
+                {children}
             </View>
         </View>
     );
