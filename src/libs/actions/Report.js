@@ -933,4 +933,6 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     updateCurrentlyViewedReportID,
+    getSimplifiedIOUReport,
+    getSimplifiedReportObject,
 };

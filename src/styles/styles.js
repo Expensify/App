@@ -13,6 +13,8 @@ import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
+import CONST from '../CONST';
+import positioning from './utilities/positioning';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -21,12 +23,14 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
+    ...positioning,
     ...wordBreak,
     ...whiteSpace,
 
     link: {
         color: themeColors.link,
         textDecorationColor: themeColors.link,
+        fontFamily: fontFamily.GTA,
     },
 
     h1: {
@@ -396,7 +400,7 @@ const styles = {
         width: '100%',
     },
 
-    loginFormContainer: {
+    signInPageFormContainer: {
         maxWidth: 295,
         width: '100%',
     },
@@ -490,9 +494,19 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    createMenuPosition: {
+    createMenuPositionSidebar: {
         left: 18,
         bottom: 100,
+    },
+
+    createMenuPositionProfile: {
+        right: 18,
+        top: 100,
+    },
+
+    createMenuPositionReportActionCompose: {
+        left: 18 + variables.sideBarWidth,
+        bottom: 75,
     },
 
     createMenuContainer: {
@@ -599,11 +613,7 @@ const styles = {
         flexShrink: 0,
     },
 
-    optionDisplayNameTooltipWrapper: {
-        position: 'relative',
-    },
-
-    optionDisplayNameTooltipEllipsis: {
+    displayNameTooltipEllipsis: {
         position: 'absolute',
         opacity: 0,
         right: 0,
@@ -796,6 +806,48 @@ const styles = {
         justifyContent: 'center',
     },
 
+    emojiPickerContainer: {
+        backgroundColor: themeColors.componentBG,
+        minWidth: CONST.EMOJI_PICKER_SIZE,
+    },
+
+    emojiPickerList: {
+        height: 300,
+        width: '100%',
+        ...spacing.ph4,
+    },
+
+    emojiHeaderStyle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv3,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    // Emoji Picker Styles
+    emojiText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.iconSizeLarge,
+        ...spacing.pv1,
+        ...spacing.ph2,
+    },
+
+    emojiItem: {
+        width: '12.5%',
+        textAlign: 'center',
+    },
+
+    chatItemEmojiButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
+        margin: 3,
+        justifyContent: 'center',
+    },
+
     hoveredButton: {
         backgroundColor: themeColors.buttonHoveredBG,
     },
@@ -826,14 +878,6 @@ const styles = {
     chatSwticherPillWrapper: {
         marginTop: 5,
         marginRight: 4,
-    },
-
-    navigationMenuOpenAbsolute: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        zIndex: 2,
     },
 
     navigationModalOverlay: {
@@ -1062,14 +1106,11 @@ const styles = {
         borderColor: colors.transparent,
     },
 
-    reportActionContextMenuText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
-        fontWeight: fontWeightBold,
-        textAlign: 'center',
-        ...spacing.ml4,
-        ...spacing.mr2,
+    reportActionContextMenuMiniButton: {
+        ...spacing.p1,
+        ...spacing.mv1,
+        ...spacing.mh1,
+        ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
     settingsPageBackground: {
@@ -1154,6 +1195,7 @@ const styles = {
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
+        zIndex: 1,
     },
 
     unreadIndicatorLine: {
@@ -1189,7 +1231,7 @@ const styles = {
         opacity: 0,
     },
 
-    detailsPageContainer: {
+    containerWithSpaceBetween: {
         justifyContent: 'space-between',
         width: '100%',
         flex: 1,
@@ -1248,16 +1290,34 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
     },
 
     iouAmountTextInput: addOutlineWidth({
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
     }, 0),
 
     noScrollbars: {
         scrollbarWidth: 'none',
+    },
+
+    fullScreenLoading: {
+        backgroundColor: themeColors.componentBG,
+        opacity: 0.8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+
+    hiddenElementOutsideOfWindow: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        opacity: 0,
+        transform: 'translateX(-100%)',
     },
 };
 
@@ -1293,6 +1353,10 @@ const webViewStyles = {
         },
 
         a: styles.link,
+
+        li: {
+            flexShrink: 1,
+        },
 
         blockquote: {
             borderLeftColor: themeColors.border,
@@ -1423,6 +1487,19 @@ function getZoomSizingStyle(isZoomed) {
 }
 
 /**
+ * Returns auto grow text input style
+ *
+ * @param {Number} width
+ * @return {Object}
+ */
+function getAutoGrowTextInputStyle(width) {
+    return {
+        minWidth: 5,
+        width,
+    };
+}
+
+/**
  * Returns a style with backgroundColor and borderColor set to the same color
  *
  * @param {String} backgroundColor
@@ -1448,6 +1525,44 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Generate a style for the background color of the button, based on its current state.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Object}
+ */
+function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return {backgroundColor: themeColors.buttonHoveredBG};
+        case CONST.BUTTON_STATES.PRESSED:
+            return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return {};
+    }
+}
+
+/**
+ * Generate fill color of an icon based on its state.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Object}
+ */
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return themeColors.text;
+        case CONST.BUTTON_STATES.PRESSED:
+            return themeColors.heading;
+        case CONST.BUTTON_STATES.COMPLETE:
+            return themeColors.iconSuccessFill;
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return themeColors.icon;
+    }
+}
+
+/**
  * @param {Animated.Value} rotate
  * @param {Animated.Value} backgroundColor
  * @returns {Object}
@@ -1469,14 +1584,6 @@ function getWidthAndHeightStyle(width, height) {
         width,
         height,
     };
-}
-
-/**
- * @param {Number} opacity
- * @returns {Object}
- */
-function getOpacityStyle(opacity) {
-    return {opacity};
 }
 
 /**
@@ -1511,10 +1618,12 @@ export {
     getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
+    getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getButtonBackgroundColorStyle,
+    getIconFillColor,
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
-    getOpacityStyle,
     getModalPaddingStyles,
 };
