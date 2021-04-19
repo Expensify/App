@@ -150,6 +150,7 @@ class ReportActionItem extends Component {
                                 onClose={this.hidePopover}
                                 anchorPosition={this.popoverAnchorPosition}
                                 animationIn="fadeIn"
+                                animationOutTiming={1}
                                 measureContent={() => (
                                     <ReportActionContextMenu
                                         isVisible
@@ -159,7 +160,7 @@ class ReportActionItem extends Component {
                                 )}
                             >
                                 <ReportActionContextMenu
-                                    isVisible={this.state.isPopoverVisible}
+                                    isVisible
                                     reportID={this.props.reportID}
                                     reportAction={this.props.action}
                                 />

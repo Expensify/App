@@ -47,8 +47,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    defaultValue: '',
-    value: '',
+    defaultValue: undefined,
+    value: undefined,
     maxLines: -1,
     onPasteFile: () => {},
     shouldClear: false,
@@ -78,15 +78,15 @@ class TextInputFocusable extends React.Component {
     constructor(props) {
         super(props);
 
+        const initialValue = props.defaultValue
+            ? `${props.defaultValue}`
+            : `${props.value || ''}`;
+
         this.state = {
             numberOfLines: 1,
             selection: {
-                start: this.props.defaultValue
-                    ? `${this.props.defaultValue}`.length
-                    : `${this.props.value}`.length,
-                end: this.props.defaultValue
-                    ? `${this.props.defaultValue}`.length
-                    : `${this.props.value}`.length,
+                start: initialValue.length,
+                end: initialValue.length,
             },
         };
     }
@@ -220,9 +220,6 @@ class TextInputFocusable extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
-        const propsWithoutValueOrDefaultValue = this.props.defaultValue
-            ? _.omit(propsWithoutStyles, 'value')
-            : _.omit(propsWithoutStyles, 'defaultValue');
         return (
             <TextInput
                 ref={el => this.textInput = el}
@@ -233,7 +230,7 @@ class TextInputFocusable extends React.Component {
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutValueOrDefaultValue}
+                {...propsWithoutStyles}
                 disabled={this.props.isDisabled}
             />
         );
