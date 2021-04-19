@@ -950,4 +950,6 @@ export {
     togglePinnedState,
     updateCurrentlyViewedReportID,
     deleteReportAction,
+    getSimplifiedIOUReport,
+    getSimplifiedReportObject,
 };

@@ -9,11 +9,12 @@ import DetailsPage from '../../../pages/DetailsPage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
 import SettingsInitialPage from '../../../pages/settings/InitialPage';
-import SettingsProfilePage from '../../../pages/settings/ProfilePage';
+import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
+import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 
 // Setup the modal stack navigators so we only have to create them once
 const SettingsModalStack = createStackNavigator();
@@ -21,6 +22,7 @@ const NewChatModalStack = createStackNavigator();
 const NewGroupModalStack = createStackNavigator();
 const SearchModalStack = createStackNavigator();
 const DetailsModalStack = createStackNavigator();
+const ReportParticipantsModalStack = createStackNavigator();
 const IOURequestModalStack = createStackNavigator();
 const IOUBillModalStack = createStackNavigator();
 
@@ -78,6 +80,19 @@ const DetailsModalStackNavigator = () => (
             }}
         />
     </DetailsModalStack.Navigator>
+);
+
+const ReportParticipantsModalStackNavigator = () => (
+    <ReportParticipantsModalStack.Navigator screenOptions={{...defaultSubRouteOptions}}>
+        <ReportParticipantsModalStack.Screen
+            name="ReportParticipants_Root"
+            component={ReportParticipantsPage}
+        />
+        <ReportParticipantsModalStack.Screen
+            name="ReportParticipants_Details"
+            component={DetailsPage}
+        />
+    </ReportParticipantsModalStack.Navigator>
 );
 
 const SearchModalStackNavigator = () => (
@@ -170,6 +185,7 @@ export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     DetailsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
