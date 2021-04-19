@@ -266,3 +266,22 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       - run: echo "Status android = ${{ needs.android.result }}, desktop = ${{ needs.desktop.result }}, iOS = ${{ needs.iOS.result }}, web = ${{ needs.web.result }}"
+
+      - name: Get Release Pull Request List
+        id: getReleasePRList
+        uses: Expensify/Expensify.cash/.github/actions/getReleasePullRequestList@main
+        with:
+          TAG: ${{ $(npm run print-version --silent) }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Comment on issues
+        id: getReleasePRList
+        uses: Expensify/Expensify.cash/.github/actions/markPullRequestsAsDeployed@main
+        with:
+          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
+          IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ANDROID: ${{ needs.android.result }}
+          DESKTOP: ${{ needs.desktop.result }}
+          IOS: ${{ needs.iOS.result }}
+          WEB: ${{ needs.web.result }}
