@@ -46,11 +46,11 @@ class ReportTypingIndicator extends React.Component {
         // Decide on the Text element that will hold the display based on the number of users that are typing.
         switch (numUsersTyping) {
             case 0:
-                return <View style={[styles.typingIndicator]} />;
+                return <View style={[styles.chatItemComposeSecondaryRow]} />;
             case 1:
                 return (
-                    <View style={[styles.typingIndicator]}>
-                        <Text style={[styles.typingIndicatorSubText]}>
+                    <View style={[styles.chatItemComposeSecondaryRow]}>
+                        <Text style={[styles.chatItemComposeSecondaryRowSubText]}>
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
                             {' is typing...'}
                         </Text>
@@ -58,8 +58,8 @@ class ReportTypingIndicator extends React.Component {
                 );
             case 2:
                 return (
-                    <View style={[styles.typingIndicator]}>
-                        <Text style={[styles.typingIndicatorSubText]}>
+                    <View style={[styles.chatItemComposeSecondaryRow]}>
+                        <Text style={[styles.chatItemComposeSecondaryRowSubText]}>
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
                             {' and '}
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[1])}</Text>
@@ -69,8 +69,8 @@ class ReportTypingIndicator extends React.Component {
                 );
             default:
                 return (
-                    <View style={[styles.typingIndicator]}>
-                        <Text style={[styles.typingIndicatorSubText]}>
+                    <View style={[styles.chatItemComposeSecondaryRow]}>
+                        <Text style={[styles.chatItemComposeSecondaryRowSubText]}>
                             <Text style={[styles.textStrong]}>Multiple users</Text>
                             {' are typing...'}
                         </Text>
