@@ -63,8 +63,8 @@ function navigate(route = ROUTES.HOME) {
  */
 function dismissModal(shouldOpenDrawer = false) {
     const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
-      ? shouldOpenDrawer
-      : false;
+        ? shouldOpenDrawer
+        : false;
 
     // This should take us to the first view of the modal's stack navigator
     navigationRef.current.dispatch((state) => {
@@ -101,7 +101,7 @@ function isDrawerOpen() {
  * @param {string} name
  */
 function push(name) {
-    navigationRef.current.dispatch(StackActions.push(name));
+  navigationRef.current.dispatch(StackActions.push(name));
 }
 
 export default {
