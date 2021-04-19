@@ -36,7 +36,7 @@ const data = [
         Merge pull request #1555 from SameeraMadushan/sameera-IsAppInstalledLogic
         fix: set pdf width on large screens
         [IS-1500] Fixed compose field alignment issue`,
-        result: ['1521', '1563', '1557', '1562', '1515', '1560', '1555'],
+        result: ['1521', '1557', '1515', '1555'],
     },
     {
         gitLog: `Return to old hash-based deploy instrcutions
