@@ -426,10 +426,9 @@ class ReportActionCompose extends React.Component {
                 </View>
                 {this.props.network.isOffline ? (
                     <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <Text style={[
-                            styles.chatItemComposeSecondaryRowSubText,
+                        <View style={[
+                            styles.chatItemComposeSecondaryRowOffset,
                             styles.flexRow,
-                            styles.dFlex,
                             styles.alignItemsCenter]}
                         >
                             <Icon
@@ -437,10 +436,10 @@ class ReportActionCompose extends React.Component {
                                 width={variables.iconSizeExtraSmall}
                                 height={variables.iconSizeExtraSmall}
                             />
-                            <Text style={[styles.ml2]}>
-                                You appear to be Offline.
+                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                                You appear to be offline.
                             </Text>
-                        </Text>
+                        </View>
                     </View>
                 ) : <ReportTypingIndicator reportID={this.props.reportID} />}
             </View>
