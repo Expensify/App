@@ -818,7 +818,7 @@ function deleteReportAction(reportID, reportAction) {
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
 
-    // Mark the report as not having any unread items
+    // Try to delete the comment by calling the API
     API.Report_EditComment({
         reportID,
         reportActionID: reportAction.sequenceNumber,
