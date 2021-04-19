@@ -57,31 +57,35 @@ const defaultProps = {
 const menuItems = [
     {
         title: 'Profile',
+        name: 'Settings_Profile',
         icon: Profile,
         route: ROUTES.SETTINGS_PROFILE,
     },
     {
         title: 'Preferences',
+        name: 'Settings_Preferences',
         icon: Gear,
         route: ROUTES.SETTINGS_PREFERENCES,
     },
     {
         title: 'Change Password',
+        name: 'Settings_Password',
         icon: Lock,
         route: ROUTES.SETTINGS_PASSWORD,
     },
     {
         title: 'Payments',
+        name: 'Settings_Payments',
         icon: Wallet,
         route: ROUTES.SETTINGS_PAYMENTS,
     },
 ];
 
 const InitialSettingsPage = ({
-    myPersonalDetails,
-    network,
-    session,
-}) => {
+                                 myPersonalDetails,
+                                 network,
+                                 session,
+                             }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
@@ -89,86 +93,86 @@ const InitialSettingsPage = ({
         return null;
     }
     return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title="Settings"
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
-            <View
-                pointerEvents="box-none"
-                style={[
-                    styles.settingsPageBackground,
-                ]}
-            >
-                <View style={styles.w100}>
-                    <View style={styles.pageWrapper}>
+      <ScreenWrapper>
+          <HeaderWithCloseButton
+            title="Settings"
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+          />
+          <View
+            pointerEvents="box-none"
+            style={[
+                styles.settingsPageBackground,
+            ]}
+          >
+              <View style={styles.w100}>
+                  <View style={styles.pageWrapper}>
 
-                        <View style={[styles.mb3]}>
-                            <AvatarWithIndicator
-                                size="large"
-                                source={myPersonalDetails.avatar}
-                                isActive={network.isOffline === false}
-                            />
-                        </View>
-                        <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
-                            {myPersonalDetails.displayName
-                                ? myPersonalDetails.displayName
-                                : Str.removeSMSDomain(session.email)}
-                        </Text>
-                        {myPersonalDetails.displayName && (
+                      <View style={[styles.mb3]}>
+                          <AvatarWithIndicator
+                            size="large"
+                            source={myPersonalDetails.avatar}
+                            isActive={network.isOffline === false}
+                          />
+                      </View>
+                      <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
+                          {myPersonalDetails.displayName
+                            ? myPersonalDetails.displayName
+                            : Str.removeSMSDomain(session.email)}
+                      </Text>
+                      {myPersonalDetails.displayName && (
                         <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
                             {Str.removeSMSDomain(session.email)}
                         </Text>
-                        )}
-                    </View>
-                    {menuItems.map(item => (
-                        <MenuItem
-                            key={item.title}
-                            title={item.title}
-                            icon={item.icon}
-                            onPress={() => Navigation.navigate(item.route)}
-                            shouldShowRightArrow
-                        />
-                    ))}
-                    <View style={[styles.ph5]}>
-                        <TouchableOpacity
-                            onPress={signOut}
-                            style={[styles.button, styles.w100, styles.mt5]}
-                        >
-                            <Text style={[styles.buttonText]}>
-                                Sign Out
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                <View style={[styles.sidebarFooter]}>
-                    <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        v
-                        {version}
-                    </Text>
-                    <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        Read the
-                        {' '}
-                        <Text
-                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => openURLInNewTab(CONST.TERMS_URL)}
-                        >
-                            terms of service
-                        </Text>
-                        {' '}
-                        and
-                        {' '}
-                        <Text
-                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
-                        >
-                            privacy policy
-                        </Text>
-                        .
-                    </Text>
-                </View>
-            </View>
-        </ScreenWrapper>
+                      )}
+                  </View>
+                  {menuItems.map(item => (
+                    <MenuItem
+                      key={item.title}
+                      title={item.title}
+                      icon={item.icon}
+                      onPress={() => Navigation.push(item.name)}
+                      shouldShowRightArrow
+                    />
+                  ))}
+                  <View style={[styles.ph5]}>
+                      <TouchableOpacity
+                        onPress={signOut}
+                        style={[styles.button, styles.w100, styles.mt5]}
+                      >
+                          <Text style={[styles.buttonText]}>
+                              Sign Out
+                          </Text>
+                      </TouchableOpacity>
+                  </View>
+              </View>
+              <View style={[styles.sidebarFooter]}>
+                  <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
+                      v
+                      {version}
+                  </Text>
+                  <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
+                      Read the
+                      {' '}
+                      <Text
+                        style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                        onPress={() => openURLInNewTab(CONST.TERMS_URL)}
+                      >
+                          terms of service
+                      </Text>
+                      {' '}
+                      and
+                      {' '}
+                      <Text
+                        style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                        onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
+                      >
+                          privacy policy
+                      </Text>
+                      .
+                  </Text>
+              </View>
+          </View>
+      </ScreenWrapper>
     );
 };
 
