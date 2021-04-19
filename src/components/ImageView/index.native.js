@@ -25,6 +25,12 @@ class ImageView extends PureComponent {
             imageWidth: 100,
             imageHeight: 100,
         };
+
+        // Use the default double click interval from the ImageZoom library
+        // https://github.com/ascoders/react-native-image-zoom/blob/master/src/image-zoom/image-zoom.type.ts#L79
+        this.doubleClickInterval = 175;
+        this.imageZoomScale = 1;
+        this.lastClickTime = 0;
     }
 
     render() {
@@ -41,10 +47,37 @@ class ImageView extends PureComponent {
                 ]}
             >
                 <ImageZoom
+                    ref={el => this.zoom = el}
                     cropWidth={this.props.windowWidth}
                     cropHeight={windowHeight}
                     imageWidth={this.state.imageWidth}
                     imageHeight={this.state.imageHeight}
+                    onStartShouldSetPanResponder={(e) => {
+                        const isDoubleClick = new Date().getTime() - this.lastClickTime <= this.doubleClickInterval;
+                        this.lastClickTime = new Date().getTime();
+
+                        // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
+                        if (e.nativeEvent.touches.length === 2 || this.imageZoomScale !== 1) {
+                            return true;
+                        }
+
+                        // When we have a double click and the zoom scale is 1 then programmatically zoom the image
+                        // but let the tap fall through to the parent so we can register a swipe down to dismiss
+                        if (isDoubleClick) {
+                            this.zoom.centerOn({
+                                x: 0,
+                                y: 0,
+                                scale: 2,
+                                duration: 100,
+                            });
+                        }
+
+                        // We must be either swiping down or double tapping since we are at zoom scale 1
+                        return false;
+                    }}
+                    onMove={({scale}) => {
+                        this.imageZoomScale = scale;
+                    }}
                 >
                     <ImageWithSizeCalculation
                         style={getWidthAndHeightStyle(this.state.imageWidth, this.state.imageHeight)}

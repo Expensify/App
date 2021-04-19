@@ -198,9 +198,10 @@ class IOUConfirmationList extends Component {
 
     render() {
         return (
-            <View style={[styles.flex1, styles.w100]}>
+            <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
                     <OptionsList
+                        listContainerStyles={[styles.flexGrow0]}
                         sections={this.getSections()}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
