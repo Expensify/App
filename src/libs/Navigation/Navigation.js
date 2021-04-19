@@ -101,7 +101,7 @@ function isDrawerOpen() {
  * @param {string} name
  */
 function push(name) {
-  navigationRef.current.dispatch(StackActions.push(name));
+    navigationRef.current.dispatch(StackActions.push(name));
 }
 
 export default {
