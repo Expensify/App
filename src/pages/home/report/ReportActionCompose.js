@@ -281,7 +281,7 @@ class ReportActionCompose extends React.Component {
                     >
                         {({displayFileInModal}) => (
                             <>
-                                <AttachmentPicker onModalHide={this.focus}>
+                                <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
                                             <TouchableOpacity

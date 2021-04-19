@@ -20,14 +20,6 @@ const propTypes = {
      * </AttachmentPicker>
      * */
     children: PropTypes.func.isRequired,
-
-    // A function to execute when the attachment picker modal is closed
-    onModalHide: PropTypes.func,
 };
 
-const defaultProps = {
-    onModalHide: () => {},
-};
-
-
-export {propTypes, defaultProps};
+export default propTypes;
