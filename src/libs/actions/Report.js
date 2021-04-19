@@ -820,7 +820,6 @@ function deleteReportAction(reportID, reportAction) {
 
     // Mark the report as not having any unread items
     API.Report_EditComment({
-        accountID: currentUserAccountID,
         reportID,
         reportActionID: reportAction.sequenceNumber,
         reportComment: '',

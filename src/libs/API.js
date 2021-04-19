@@ -565,7 +565,7 @@ function Report_UpdateLastRead(parameters) {
  */
 function Report_EditComment(parameters) {
     const commandName = 'Report_EditComment';
-    requireParameters(['accountID', 'reportID', 'reportActionID', 'reportComment'], parameters, commandName);
+    requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
