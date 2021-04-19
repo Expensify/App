@@ -42,7 +42,7 @@ class ReportActionContextMenu extends React.Component {
         /**
          * A list of all the context actions in this menu.
          */
-        this.CONTEXT_ACTIONS = [
+        this.contextActions = [
             // Copy to clipboard
             {
                 text: 'Copy to Clipboard',
@@ -108,7 +108,7 @@ class ReportActionContextMenu extends React.Component {
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow && (
+                {this.contextActions.map(contextAction => contextAction.shouldShow && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
