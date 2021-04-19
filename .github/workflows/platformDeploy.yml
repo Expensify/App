@@ -265,6 +265,13 @@ jobs:
     if: ${{ always() }}
     needs: [android, desktop, iOS, web]
     steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+
       - run: echo "Status android = ${{ needs.android.result }}, desktop = ${{ needs.desktop.result }}, iOS = ${{ needs.iOS.result }}, web = ${{ needs.web.result }}"
 
       - name: Set version
