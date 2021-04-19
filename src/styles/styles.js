@@ -494,9 +494,19 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    createMenuPosition: {
+    createMenuPositionSidebar: {
         left: 18,
         bottom: 100,
+    },
+
+    createMenuPositionProfile: {
+        right: 18,
+        top: 100,
+    },
+
+    createMenuPositionReportActionCompose: {
+        left: 18 + variables.sideBarWidth,
+        bottom: 75,
     },
 
     createMenuContainer: {
@@ -792,6 +802,48 @@ const styles = {
         paddingRight: 6,
         paddingBottom: 6,
         paddingLeft: 6,
+        margin: 3,
+        justifyContent: 'center',
+    },
+
+    emojiPickerContainer: {
+        backgroundColor: themeColors.componentBG,
+        minWidth: CONST.EMOJI_PICKER_SIZE,
+    },
+
+    emojiPickerList: {
+        height: 300,
+        width: '100%',
+        ...spacing.ph4,
+    },
+
+    emojiHeaderStyle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv3,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    // Emoji Picker Styles
+    emojiText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.iconSizeLarge,
+        ...spacing.pv1,
+        ...spacing.ph2,
+    },
+
+    emojiItem: {
+        width: '12.5%',
+        textAlign: 'center',
+    },
+
+    chatItemEmojiButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
         margin: 3,
         justifyContent: 'center',
     },
