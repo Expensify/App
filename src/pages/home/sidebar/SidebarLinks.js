@@ -3,6 +3,8 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import RNBootSplash from 'react-native-bootsplash';
+
 import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
@@ -83,8 +85,17 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
+    constructor(props) {
+        super(props);
+        this.hideBootScreen = this.hideBootScreen.bind(this);
+    }
+
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
+    }
+
+    hideBootScreen() {
+        RNBootSplash.hide({fade: true});
     }
 
     render() {
@@ -151,6 +162,7 @@ class SidebarLinks extends React.Component {
                     showTitleTooltip
                     disableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                    onLayout={this.hideBootScreen}
                 />
                 <KeyboardSpacer />
             </View>

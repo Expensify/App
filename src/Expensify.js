@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import RNBootSplash from 'react-native-bootsplash';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
@@ -78,6 +79,12 @@ class Expensify extends PureComponent {
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx()
             .then(() => {
+                // When we don't have an authToken we'll want to show the sign in screen immediately so we'll hide our
+                // boot screen right away
+                if (!this.getAuthToken()) {
+                    RNBootSplash.hide({fade: true});
+                }
+
                 this.setState({isOnyxMigrated: true});
             });
     }
@@ -88,6 +95,17 @@ class Expensify extends PureComponent {
         if (currentAccountID && (currentAccountID !== previousAccountID)) {
             PushNotification.register(currentAccountID);
         }
+
+        // If we previously had no authToken and now have an authToken we'll want to reshow the boot splash screen so
+        // that we can remove it again once the content is ready
+        const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
+        if (this.getAuthToken() && !previousAuthToken) {
+            RNBootSplash.show({fade: true});
+        }
+    }
+
+    getAuthToken() {
+        return lodashGet(this.props, 'session.authToken', null);
     }
 
     render() {
@@ -97,13 +115,11 @@ class Expensify extends PureComponent {
                 <View style={styles.genericView} />
             );
         }
-
-        const authToken = lodashGet(this.props, 'session.authToken', null);
         return (
             <>
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
                 {this.props.updateAvailable ? <UpdateAppModal /> : null}
-                <NavigationRoot authenticated={Boolean(authToken)} />
+                <NavigationRoot authenticated={Boolean(this.getAuthToken())} />
             </>
         );
     }
