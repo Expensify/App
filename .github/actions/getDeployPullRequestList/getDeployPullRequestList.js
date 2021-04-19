@@ -56,5 +56,8 @@ getTagsOrReleases(isProductionDeploy)
 
         return GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
     })
-    .then(pullRequestList => core.setOutput('PR_LIST', pullRequestList))
+    .then((pullRequestList) => {
+        console.log(`Found the pull request list: ${pullRequestList}`);
+        return core.setOutput('PR_LIST', pullRequestList);
+    })
     .catch(error => core.setFailed(error));
