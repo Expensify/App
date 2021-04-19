@@ -278,6 +278,9 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+    },
+
+    chatItemComposeSecondaryRowOffset: {
         marginLeft: 48,
     },
 
