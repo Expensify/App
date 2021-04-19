@@ -26,3 +26,5 @@ Where is this issue occurring?
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
 **Notes/Photos/Videos:** Any additional supporting documentation
 **Expensify/Expensify Issue URL:**
+
+[View all open jobs on Upwork](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2)
