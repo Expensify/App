@@ -1,47 +1,65 @@
 import React from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import ButtonWithLoader from '../../../components/ButtonWithLoader';
+import IOUConfirmationList from '../../../components/IOUConfirmationList';
 
 const propTypes = {
     // Callback to inform parent modal of success
     onConfirm: PropTypes.func.isRequired,
 
+    // callback to update comment from IOUModal
+    onUpdateComment: PropTypes.func,
+
+    // comment value from IOUModal
+    comment: PropTypes.string,
+
+    // Should we request a single or multiple participant selection from user
+    hasMultipleParticipants: PropTypes.bool.isRequired,
+
     // IOU amount
-    iouAmount: PropTypes.number.isRequired,
+    iouAmount: PropTypes.string.isRequired,
 
-    /* Onyx Props */
+    // Selected currency from the user
+    // remove eslint disable after currency symbol is available
+    // eslint-disable-next-line react/no-unused-prop-types
+    selectedCurrency: PropTypes.string.isRequired,
 
-    // Holds data related to IOU view state, rather than the underlying IOU data.
-    iou: PropTypes.shape({
+    // Selected participants from IOUMOdal with login
+    participants: PropTypes.arrayOf(PropTypes.shape({
+        login: PropTypes.string.isRequired,
+        alternateText: PropTypes.string,
+        hasDraftComment: PropTypes.bool,
+        icons: PropTypes.arrayOf(PropTypes.string),
+        searchText: PropTypes.string,
+        text: PropTypes.string,
+        keyForList: PropTypes.string,
+        isPinned: PropTypes.bool,
+        isUnread: PropTypes.bool,
+        reportID: PropTypes.number,
+        participantsList: PropTypes.arrayOf(PropTypes.object),
+    })).isRequired,
 
-        // Whether or not the IOU step is loading (creating the IOU Report)
-        loading: PropTypes.bool,
-    }),
 };
 
 const defaultProps = {
-    iou: {},
+    onUpdateComment: null,
+    comment: '',
 };
 
 const IOUConfirmPage = props => (
-    <View style={styles.pageWrapper}>
-        <ButtonWithLoader
-            style={[styles.button, styles.w100]}
-            text={`Request $${props.iouAmount}`}
-            isLoading={props.iou.loading}
-            onClick={props.onConfirm}
-        />
-    </View>
+    <IOUConfirmationList
+        hasMultipleParticipants={props.hasMultipleParticipants}
+        participants={props.participants}
+        comment={props.comment}
+        onUpdateComment={props.onUpdateComment}
+        selectedCurrency={props.selectedCurrency}
+        iouAmount={props.iouAmount}
+        onConfirm={props.onConfirm}
+    />
 );
+
 
 IOUConfirmPage.displayName = 'IOUConfirmPage';
 IOUConfirmPage.propTypes = propTypes;
 IOUConfirmPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    iou: {key: ONYXKEYS.IOU},
-})(IOUConfirmPage);
+export default IOUConfirmPage;

@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
@@ -17,6 +16,7 @@ import {DownArrow} from '../../components/Icon/Expensicons';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
+import Picker from '../../components/Picker';
 
 const propTypes = {
     // The chat priority mode
@@ -54,7 +54,7 @@ const PreferencesPage = ({priorityMode, user}) => (
             title="Preferences"
             shouldShowBackButton
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-            onCloseButtonPress={Navigation.dismissModal}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
         />
         <View style={styles.pageWrapper}>
             <View style={[styles.settingsPageBody, styles.mb6]}>
@@ -76,18 +76,13 @@ const PreferencesPage = ({priorityMode, user}) => (
                     Priority Mode
                 </Text>
                 <View style={[styles.mb2]}>
-                    {/* empty object in placeholder below to prevent default */}
-                    {/* placeholder from appearing as a selection option. */}
-                    <RNPickerSelect
-                        onValueChange={
+                    <Picker
+                        onChange={
                             mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
                         }
                         items={Object.values(priorityModes)}
-                        style={styles.picker}
-                        useNativeAndroidPickerStyle={false}
-                        placeholder={{}}
                         value={priorityMode}
-                        Icon={() => <Icon src={DownArrow} />}
+                        icon={() => <Icon src={DownArrow} />}
                     />
                 </View>
                 <Text style={[styles.textLabel, styles.colorMuted]}>
