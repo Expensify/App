@@ -74,6 +74,9 @@ const propTypes = {
 
     // Toggle between compact and default view of the option
     optionMode: PropTypes.oneOf(['compact', 'default']),
+
+    // Optional callback to pass to the SectionList so we can listen for the layout of this component
+    onLayout: PropTypes.func,
 };
 
 const defaultProps = {
@@ -94,6 +97,7 @@ const defaultProps = {
     innerRef: null,
     showTitleTooltip: false,
     optionMode: undefined,
+    onLayout: () => {},
 };
 
 class OptionsList extends Component {
@@ -222,6 +226,7 @@ class OptionsList extends Component {
                     renderItem={this.renderItem}
                     renderSectionHeader={this.renderSectionHeader}
                     extraData={this.props.focusedIndex}
+                    onLayout={this.props.onLayout}
                 />
             </View>
         );
