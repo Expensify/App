@@ -19,6 +19,12 @@ const inputTag = core.getInput('TAG', {required: true});
 const isProductionDeploy = JSON.parse(core.getInput('IS_PRODUCTION_DEPLOY', {required: false}));
 const itemToFetch = isProductionDeploy ? 'release' : 'tag';
 
+/**
+ * Gets either releases or tags for a GitHub repo
+ *
+ * @param {boolean} fetchReleases
+ * @returns {*}
+ */
 function getTagsOrReleases(fetchReleases) {
     if (fetchReleases) {
         return octokit.repos.listReleases({
