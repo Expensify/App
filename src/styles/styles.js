@@ -268,13 +268,13 @@ const styles = {
         marginLeft: 8,
     },
 
-    typingIndicator: {
+    chatItemComposeSecondaryRow: {
         height: 15,
         marginBottom: 5,
         marginTop: 5,
     },
 
-    typingIndicatorSubText: {
+    chatItemComposeSecondaryRowSubText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
@@ -749,6 +749,10 @@ const styles = {
         marginBottom: -2,
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
+    },
+
+    chatItemUnsentMessage: {
+        opacity: 0.6,
     },
 
     chatItemCompose: {
