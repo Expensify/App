@@ -22,9 +22,24 @@ const date = new Date();
 const octokit = github.getOctokit(token);
 const githubUtils = new GithubUtils(octokit);
 
+/**
+ * Return a nicely formatted message for the table based on the result of the GitHub action job
+ *
+ * @param {string} platformResult
+ * @returns {string}
+ */
 function getDeployTableMessage(platformResult) {
-    const emoji = platformResult === 'success' ? '✅' : '❌';
-    return platformResult + emoji;
+    switch (platformResult) {
+        case 'success':
+            return `${platformResult} ✅`;
+        case 'cancelled':
+            return `${platformResult} 🔪`;
+        case 'skipped':
+            return `${platformResult} 🚫`;
+        case 'failure':
+        default:
+            return `${platformResult} ❌`;
+    }
 }
 
 const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
@@ -38,8 +53,8 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
 let message = `🚀 [Deployed](${workflowURL}) 🚀 to 
     ${isProd ? 'production' : 'staging'} on ${date.toDateString()} at ${date.toTimeString()}`;
 
-message += `\n\n platform | result \n ---|--- \n android|${androidResult} \n desktop|${desktopResult}`;
-message += `\n iOS|${iOSResult} \n web|${webResult}`;
+message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
+message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
 /**
  * Create comment on each pull request

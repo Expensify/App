@@ -12,9 +12,24 @@ const date = new Date();
 const octokit = github.getOctokit(token);
 const githubUtils = new GithubUtils(octokit);
 
+/**
+ * Return a nicely formatted message for the table based on the result of the GitHub action job
+ *
+ * @param {string} platformResult
+ * @returns {string}
+ */
 function getDeployTableMessage(platformResult) {
-    const emoji = platformResult === 'success' ? '✅' : '❌';
-    return platformResult + emoji;
+    switch (platformResult) {
+        case 'success':
+            return `${platformResult} ✅`;
+        case 'cancelled':
+            return `${platformResult} 🔪`;
+        case 'skipped':
+            return `${platformResult} 🚫`;
+        case 'failure':
+        default:
+            return `${platformResult} ❌`;
+    }
 }
 
 const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
