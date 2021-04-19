@@ -266,6 +266,8 @@ jobs:
     needs: [android, desktop, iOS, web]
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v1
