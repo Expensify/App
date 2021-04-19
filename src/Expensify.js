@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import RNBootSplash from 'react-native-bootsplash';
+
+import BootSplash from './libs/BootSplash';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
@@ -53,6 +54,9 @@ const propTypes = {
 
     // Whether a new update is available and ready to install.
     updateAvailable: PropTypes.bool,
+
+    // Whether the initial data needed to render the app is ready
+    appDataLoaded: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -61,6 +65,7 @@ const defaultProps = {
         accountID: null,
     },
     updateAvailable: false,
+    appDataLoaded: false,
 };
 
 class Expensify extends PureComponent {
@@ -82,7 +87,7 @@ class Expensify extends PureComponent {
                 // When we don't have an authToken we'll want to show the sign in screen immediately so we'll hide our
                 // boot screen right away
                 if (!this.getAuthToken()) {
-                    RNBootSplash.hide({fade: true});
+                    BootSplash.hide({fade: true});
                 }
 
                 this.setState({isOnyxMigrated: true});
@@ -100,7 +105,18 @@ class Expensify extends PureComponent {
         // that we can remove it again once the content is ready
         const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
         if (this.getAuthToken() && !previousAuthToken) {
-            RNBootSplash.show({fade: true});
+            BootSplash.show({fade: true});
+        }
+
+        if (this.getAuthToken() && this.props.appDataLoaded) {
+            BootSplash.getVisibilityStatus()
+                .then((value) => {
+                    if (value !== 'visible') {
+                        return;
+                    }
+
+                    BootSplash.hide({fade: true});
+                });
         }
     }
 
@@ -134,5 +150,8 @@ export default withOnyx({
     updateAvailable: {
         key: ONYXKEYS.UPDATE_AVAILABLE,
         initWithStoredValues: false,
+    },
+    appDataLoaded: {
+        key: ONYXKEYS.APP_DATA_LOADED,
     },
 })(Expensify);

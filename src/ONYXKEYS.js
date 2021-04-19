@@ -9,6 +9,9 @@ export default {
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
 
+    // A key that is set when we are still waiting for the initial round of reports to load
+    APP_DATA_LOADED: 'appDataLoaded',
+
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
     // What the active route is for our navigator. Global route that determines what views to display.
