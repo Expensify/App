@@ -1,5 +1,5 @@
 import React from 'react';
-import propTypes from './AttachmentPickerPropTypes';
+import {propTypes, defaultProps} from './AttachmentPickerPropTypes';
 
 /**
  * This component renders a function as a child and
@@ -40,4 +40,5 @@ class AttachmentPicker extends React.Component {
 }
 
 AttachmentPicker.propTypes = propTypes;
+AttachmentPicker.defaultProps = defaultProps;
 export default AttachmentPicker;
