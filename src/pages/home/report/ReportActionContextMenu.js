@@ -12,6 +12,8 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
 import {deleteReportAction} from '../../../libs/actions/Report';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -27,12 +29,19 @@ const propTypes = {
 
     // Controls the visibility of this component.
     isVisible: PropTypes.bool,
+
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Email of the logged in person
+        email: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     reportAction: {},
     isMini: false,
     isVisible: false,
+    session: {},
 };
 
 class ReportActionContextMenu extends React.Component {
@@ -97,7 +106,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Delete Comment',
                 icon: Trashcan,
-                shouldShow: true,
+                shouldShow: this.props.reportAction.actorEmail === this.props.session.email,
                 onPress: () => deleteReportAction(this.props.reportID, this.props.reportAction),
             },
         ];
@@ -127,4 +136,8 @@ class ReportActionContextMenu extends React.Component {
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
 
-export default ReportActionContextMenu;
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(ReportActionContextMenu);
