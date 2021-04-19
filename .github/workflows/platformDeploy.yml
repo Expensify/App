@@ -274,7 +274,7 @@ jobs:
         id: getReleasePRList
         uses: Expensify/Expensify.cash/.github/actions/getReleasePullRequestList@main
         with:
-          TAG: ${{ env.VERSION }}
+          TAG: ${{ $(npm run print-version --silent) }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Comment on issues
