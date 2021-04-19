@@ -6,25 +6,27 @@ import {
     TextInput,
     Pressable,
 } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment-timezone';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import {setPersonalDetails, setAvatar, deleteAvatar} from '../../libs/actions/PersonalDetails';
-import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import Avatar from '../../components/Avatar';
-import styles from '../../styles/styles';
-import Text from '../../components/Text';
-import {DownArrow, Upload, Trashcan} from '../../components/Icon/Expensicons';
-import Icon from '../../components/Icon';
-import Checkbox from '../../components/Checkbox';
-import themeColors from '../../styles/themes/default';
-import AttachmentPicker from '../../components/AttachmentPicker';
-import CreateMenu from '../../components/CreateMenu';
+import _ from 'underscore';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import {setPersonalDetails, setAvatar, deleteAvatar} from '../../../libs/actions/PersonalDetails';
+import ROUTES from '../../../ROUTES';
+import ONYXKEYS from '../../../ONYXKEYS';
+import CONST from '../../../CONST';
+import Avatar from '../../../components/Avatar';
+import styles from '../../../styles/styles';
+import Text from '../../../components/Text';
+import Icon from '../../../components/Icon';
+import Checkbox from '../../../components/Checkbox';
+import themeColors from '../../../styles/themes/default';
+import LoginField from './LoginField';
+import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
+import AttachmentPicker from '../../../components/AttachmentPicker';
+import CreateMenu from '../../../components/CreateMenu';
+import Picker from '../../../components/Picker';
 
 const propTypes = {
     /* Onyx Props */
@@ -55,10 +57,29 @@ const propTypes = {
             automatic: PropTypes.bool,
         }),
     }),
+
+    // The details about the user that is signed in
+    user: PropTypes.shape({
+        // Whether or not the user is subscribed to news updates
+        loginList: PropTypes.arrayOf(PropTypes.shape({
+
+            // Value of partner name
+            partnerName: PropTypes.string,
+
+            // Phone/Email associated with user
+            partnerUserID: PropTypes.string,
+
+            // Date of when login was validated
+            validatedDate: PropTypes.string,
+        })),
+    }),
 };
 
 const defaultProps = {
     myPersonalDetails: {},
+    user: {
+        loginList: [],
+    },
 };
 
 const timezones = moment.tz.names()
@@ -70,7 +91,6 @@ const timezones = moment.tz.names()
 class ProfilePage extends Component {
     constructor(props) {
         super(props);
-
         const {
             firstName,
             lastName,
@@ -95,15 +115,32 @@ class ProfilePage extends Component {
             selfSelectedPronouns: initialSelfSelectedPronouns,
             selectedTimezone: timezone.selected || CONST.DEFAULT_TIME_ZONE.selected,
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
+            logins: this.getLogins(props.user.loginList),
             isEditPhotoMenuVisible: false,
         };
 
         this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
+        this.getLogins = this.getLogins.bind(this);
         this.createMenuItems = this.createMenuItems.bind(this);
     }
 
+    componentDidUpdate(prevProps) {
+        // Recalculate logins if loginList has changed
+        if (this.props.user.loginList !== prevProps.user.loginList) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({
+                logins: this.getLogins(this.props.user.loginList),
+            });
+        }
+    }
+
+    /**
+     * Set the form to use automatic timezone
+     *
+     * @param {Boolean} isAutomaticTimezone
+     */
     setAutomaticTimezone(isAutomaticTimezone) {
         this.setState(({selectedTimezone}) => ({
             isAutomaticTimezone,
@@ -111,6 +148,39 @@ class ProfilePage extends Component {
         }));
     }
 
+    /**
+     * Get the most validated login of each type
+     *
+     * @param {Array} loginList
+     * @returns {Object}
+     */
+    getLogins(loginList) {
+        return loginList.reduce((logins, currentLogin) => {
+            const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
+            const login = Str.removeSMSDomain(currentLogin.partnerUserID);
+
+            // If there's already a login type that's validated and/or currentLogin isn't valid then return early
+            if ((login !== this.props.myPersonalDetails.login) && !_.isEmpty(logins[type])
+                && (logins[type].validatedDate || !currentLogin.validatedDate)) {
+                return logins;
+            }
+            return {
+                ...logins,
+                [type]: {
+                    ...currentLogin,
+                    type,
+                    partnerUserID: Str.removeSMSDomain(currentLogin.partnerUserID),
+                },
+            };
+        }, {
+            phone: {},
+            email: {},
+        });
+    }
+
+    /**
+     * Submit form to update personal details
+     */
     updatePersonalDetails() {
         const {
             firstName,
@@ -132,17 +202,21 @@ class ProfilePage extends Component {
         });
     }
 
+    /**
+     * Create menu items list for avatar menu
+     *
+     * @param {Function} openPicker
+     * @returns {Array}
+     */
     createMenuItems(openPicker) {
         const menuItems = [
             {
                 icon: Upload,
                 text: 'Upload Photo',
                 onSelected: () => {
-                    setTimeout(() => {
-                        openPicker({
-                            onPicked: setAvatar,
-                        });
-                    }, 10);
+                    openPicker({
+                        onPicked: setAvatar,
+                    });
                 },
             },
         ];
@@ -179,7 +253,7 @@ class ProfilePage extends Component {
                     title="Profile"
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={Navigation.dismissModal}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <Avatar
@@ -207,6 +281,9 @@ class ProfilePage extends Component {
                                     onClose={() => this.setState({isEditPhotoMenuVisible: false})}
                                     onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}
                                     menuItems={this.createMenuItems(openPicker)}
+                                    anchorPosition={styles.createMenuPositionProfile}
+                                    animationIn="fadeInRight"
+                                    animationOut="fadeOutRight"
                                 />
                             </>
                         )}
@@ -239,17 +316,15 @@ class ProfilePage extends Component {
                     <View style={styles.mb6}>
                         <Text style={[styles.mb1, styles.formLabel]}>Preferred Pronouns</Text>
                         <View style={styles.mb1}>
-                            <RNPickerSelect
-                                onValueChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
+                            <Picker
+                                onChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
                                 items={this.pronounDropdownValues}
-                                style={styles.picker}
-                                useNativeAndroidPickerStyle={false}
                                 placeholder={{
                                     value: '',
                                     label: 'Select your pronouns',
                                 }}
                                 value={this.state.pronouns}
-                                Icon={() => <Icon src={DownArrow} />}
+                                icon={() => <Icon src={DownArrow} />}
                             />
                         </View>
                         {this.state.pronouns === CONST.PRONOUNS.SELF_SELECT && (
@@ -262,42 +337,23 @@ class ProfilePage extends Component {
                         />
                         )}
                     </View>
-                    <View style={styles.mb6}>
-                        <Text style={[styles.mb1, styles.formLabel]}>
-                            {Str.isSMSLogin(this.props.myPersonalDetails.login)
-                                ? 'Phone Number' : 'Email Address'}
-                        </Text>
-                        <TextInput
-                            style={[styles.textInput, styles.disabledTextInput]}
-                            value={Str.isSMSLogin(this.props.myPersonalDetails.login)
-                                ? Str.removeSMSDomain(this.props.myPersonalDetails.login)
-                                : this.props.myPersonalDetails.login}
-                            editable={false}
-                        />
-                    </View>
+                    <LoginField label="Email Address" type="email" login={this.state.logins.email} />
+                    <LoginField label="Phone Number" type="phone" login={this.state.logins.phone} />
                     <View style={styles.mb3}>
                         <Text style={[styles.mb1, styles.formLabel]}>Timezone</Text>
-                        <RNPickerSelect
-                            onValueChange={selectedTimezone => this.setState({selectedTimezone})}
+                        <Picker
+                            onChange={selectedTimezone => this.setState({selectedTimezone})}
                             items={timezones}
-                            style={this.state.isAutomaticTimezone ? {
-                                ...styles.picker,
-                                inputIOS: [styles.picker.inputIOS, styles.textInput, styles.disabledTextInput],
-                                inputAndroid: [
-                                    styles.picker.inputAndroid, styles.textInput, styles.disabledTextInput,
-                                ],
-                                inputWeb: [styles.picker.inputWeb, styles.textInput, styles.disabledTextInput],
-                            } : styles.picker}
-                            useNativeAndroidPickerStyle={false}
+                            useDisabledStyles={this.state.isAutomaticTimezone}
                             value={this.state.selectedTimezone}
-                            Icon={() => <Icon src={DownArrow} />}
+                            icon={() => <Icon src={DownArrow} />}
                             disabled={this.state.isAutomaticTimezone}
                         />
                     </View>
                     <Checkbox
                         label="Set my timezone automatically"
                         isChecked={this.state.isAutomaticTimezone}
-                        onCheckboxClick={this.setAutomaticTimezone}
+                        onClick={this.setAutomaticTimezone}
                     />
                 </View>
                 <View style={[styles.ph5, styles.pb5]}>
@@ -329,5 +385,8 @@ ProfilePage.displayName = 'ProfilePage';
 export default withOnyx({
     myPersonalDetails: {
         key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    },
+    user: {
+        key: ONYXKEYS.USER,
     },
 })(ProfilePage);

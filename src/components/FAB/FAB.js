@@ -1,26 +1,18 @@
 import React, {PureComponent} from 'react';
 import {
-    Pressable, Animated, Easing, KeyboardAvoidingView, Platform,
+    Pressable, Animated, Easing,
 } from 'react-native';
-import PropTypes from 'prop-types';
-import Icon from './Icon';
-import {Plus} from './Icon/Expensicons';
-import styles, {getAnimatedFABStyle} from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import Icon from '../Icon';
+import {Plus} from '../Icon/Expensicons';
+import styles, {getAnimatedFABStyle} from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import fabPropTypes from './fabPropTypes';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 AnimatedPressable.displayName = 'AnimatedPressable';
-
-const propTypes = {
-    // Callback to fire on request to toggle the FAB
-    onPress: PropTypes.func.isRequired,
-
-    // Current state (active or not active) of the component
-    isActive: PropTypes.bool.isRequired,
-};
 
 class FAB extends PureComponent {
     constructor(props) {
@@ -66,20 +58,18 @@ class FAB extends PureComponent {
         });
 
         return (
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'position' : 'height'}>
-                <AnimatedPressable
-                    onPress={this.props.onPress}
-                    style={[
-                        styles.floatingActionButton,
-                        getAnimatedFABStyle(rotate, backgroundColor),
-                    ]}
-                >
-                    <AnimatedIcon src={Plus} fill={fill} />
-                </AnimatedPressable>
-            </KeyboardAvoidingView>
+            <AnimatedPressable
+                onPress={this.props.onPress}
+                style={[
+                    styles.floatingActionButton,
+                    getAnimatedFABStyle(rotate, backgroundColor),
+                ]}
+            >
+                <AnimatedIcon src={Plus} fill={fill} />
+            </AnimatedPressable>
         );
     }
 }
 
-FAB.propTypes = propTypes;
+FAB.propTypes = fabPropTypes;
 export default FAB;
