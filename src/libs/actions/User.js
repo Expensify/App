@@ -4,6 +4,20 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+
+let sessionAuthToken = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => sessionAuthToken = val ? val.authToken : '',
+});
+
+let currentlyViewedReportID = '';
+Onyx.connect({
+    key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+    callback: val => currentlyViewedReportID = val || '',
+});
 
 /**
  * Changes a password for a given account
@@ -13,7 +27,7 @@ import CONST from '../../CONST';
  * @returns {Promise}
  */
 function changePassword(oldPassword, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.ChangePassword({oldPassword, password})
         .then((response) => {
@@ -40,7 +54,7 @@ function getBetas() {
 /**
  * Fetches the data needed for user settings
  */
-function fetch() {
+function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
         name: CONST.NVP.PAYPAL_ME_ADDRESS,
@@ -93,7 +107,7 @@ function setExpensifyNewsStatus(subscribed) {
  * @returns {Promise}
  */
 function setSecondaryLogin(login, password) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.User_SecondaryLogin_Send({
         email: login,
@@ -119,11 +133,47 @@ function setSecondaryLogin(login, password) {
     });
 }
 
+/**
+ * Validates a login given an accountID and validation code
+ *
+ * @param {Number} accountID
+ * @param {String} validateCode
+ */
+function validateLogin(accountID, validateCode) {
+    const isLoggedIn = !_.isEmpty(sessionAuthToken);
+    const redirectRoute = isLoggedIn ? ROUTES.getReportRoute(currentlyViewedReportID) : ROUTES.SIGNIN;
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+
+    API.ValidateEmail({
+        accountID,
+        validateCode,
+    }).then((response) => {
+        if (response.jsonCode === 200) {
+            const {email} = response;
+
+            if (isLoggedIn) {
+                getUserDetails();
+            } else {
+                // Let the user know we've successfully validated their login
+                const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
+                Onyx.merge(ONYXKEYS.ACCOUNT, {success});
+            }
+        } else {
+            const error = lodashGet(response, 'message', 'Unable to validate login.');
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+        }
+    }).finally(() => {
+        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        Navigation.navigate(redirectRoute);
+    });
+}
+
 export {
     changePassword,
     getBetas,
-    fetch,
+    getUserDetails,
     resendValidateCode,
     setExpensifyNewsStatus,
     setSecondaryLogin,
+    validateLogin,
 };
