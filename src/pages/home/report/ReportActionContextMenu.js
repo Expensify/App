@@ -11,7 +11,7 @@ import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
-import {deleteReportAction} from '../../../libs/actions/Report';
+import {deleteReportComment} from '../../../libs/actions/Report';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 
@@ -107,7 +107,7 @@ class ReportActionContextMenu extends React.Component {
                 text: 'Delete Comment',
                 icon: Trashcan,
                 shouldShow: this.props.reportAction.actorEmail === this.props.session.email,
-                onPress: () => deleteReportAction(this.props.reportID, this.props.reportAction),
+                onPress: () => deleteReportComment(this.props.reportID, this.props.reportAction),
             },
         ];
 
