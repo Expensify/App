@@ -14,6 +14,7 @@ import {fetchAccountDetails} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
+import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     /* Onyx Props */
@@ -81,6 +82,7 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         placeholder="Phone or Email"
                         placeholderTextColor={themeColors.placeholderText}
+                        autofocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
                 <View>
