@@ -82,7 +82,7 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         placeholder="Phone or Email"
                         placeholderTextColor={themeColors.placeholderText}
-                        autofocus={canFocusInputOnScreenFocus()}
+                        autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
                 <View>
