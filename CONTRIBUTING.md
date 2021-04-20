@@ -19,7 +19,7 @@ If you are hired for an Upwork job and have any job-specific questions, please a
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account and apply for a job in the [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Payment for your contributions will be made no less than 7 days after the pull request is merged to allow for regression testing. We hire one contributor for each Upwork job. New Expensify.cash contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. 
+We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account and apply for a job in the [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Payment for your contributions will be made no less than 7 days after the pull request is merged to allow for regression testing. We hire one contributor for each Upwork job. New Expensify.cash contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. If you have not received payment after 8 days of the PR being deployed to production, please email contributors@expensify.com referencing the GH issue and your GH handle. 
 
 ## Finding Expensify.cash Jobs
 There are two ways you can find an Expensify.cash job that you can contribute to: 
@@ -54,7 +54,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 5. Pause at this step until Expensify provides feedback on your proposal (do not begin coding or creating a pull request yet). 
 6. If your solution proposal is accepted, Expensify will hire you on Upwork and assign the GitHub issue to you. 
 
-#### Begin coding your solution in a pull reuqest
+#### Begin coding your solution in a pull request
 7. When you are ready to start, fork the repository and create a new branch.
 8. Before you begin writing any code, please be aware that we require all commits to be [signed](https://docs.github.com/en/github/authenticating-to-github/signing-commits). The easiest way to do that is to [generate a new GPG key](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-gpg-key) and [add it to your Github account](https://docs.github.com/en/github/authenticating-to-github/adding-a-new-gpg-key-to-your-github-account). Once you've done that, you can automatically sign all your commits by adding the following to your `.gitconfig`:
     ```
