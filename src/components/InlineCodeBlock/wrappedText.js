@@ -1,31 +1,20 @@
 import React, {Fragment} from 'react';
 import {Text, View} from 'react-native';
 import PropTypes from 'prop-types';
-
-/**
- * Return the space if we have not reached end of line
- *
- * @param {Number} textLen
- * @param {Number} currentIndex
- * @returns {String}
- */
-function getWordSpace(textLen, currentIndex) {
-    return currentIndex !== textLen - 1 ? ' ' : '';
-}
+import styles from '../../styles/styles';
 
 /**
  * Breaks the text into matrix
- * for eg: My Name \n is Rajat
+ * for eg: My Name  is Rajat
  *  [
- *    [My, Name],
- *    [is, Rajat]
+ *    [My,'',Name,'','',is,'',Rajat],
  *  ]
  *
  * @param {String} text
  * @returns {Array<String[]>}
  */
 function getTextMatrix(text) {
-    return text.split('\n').map(row => row.split(' '));
+    return text.split('\n').map(row => row.split(/(\s)/));
 }
 const propTypes = {
     // Required text
@@ -54,7 +43,7 @@ const defaultProps = {
     firstWordStyle: {},
     lastWordStyle: {},
 };
-const WrappedText = function (props) {
+const WrappedText = (props) => {
     const textMatrix = getTextMatrix(props.children);
     return (
         <>
@@ -64,27 +53,23 @@ const WrappedText = function (props) {
                     key={`${rowText}-${rowIndex}`}
                 >
                     {rowText.map((colText, colIndex) => (
-                        (colText !== '' || (rowText.length === 1 && colText === ''))
-                        && (
 
-                            // Outer View is important to vertically center the Text
-                            <View
+                        // Outer View is important to vertically center the Text
+                        <View
                                 // eslint-disable-next-line react/no-array-index-key
-                                key={`${colText}-${colIndex}`}
+                            key={`${colText}-${colIndex}`}
+                            style={styles.codeWordWrapper}
+                        >
+                            <View
+                                style={[
+                                    props.wordStyle,
+                                    colIndex === 0 && props.firstWordStyle,
+                                    colIndex === rowText.length - 1 && props.lastWordStyle,
+                                ]}
                             >
-                                <View
-                                    style={[
-                                        props.wordStyle,
-                                        colIndex === 0 && props.firstWordStyle,
-                                        colIndex === rowText.length - 1 && props.lastWordStyle,
-                                    ]}
-                                >
-                                    <Text style={props.textStyle}>
-                                        {colText + getWordSpace(rowText.length, colIndex)}
-                                    </Text>
-                                </View>
+                                <Text style={props.textStyle}>{colText}</Text>
                             </View>
-                        )
+                        </View>
                     ))}
                 </Fragment>
             ))}

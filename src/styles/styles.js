@@ -1259,6 +1259,10 @@ const styles = {
         scrollbarWidth: 'none',
     },
 
+    codeWordWrapper: {
+        height: 10,
+    },
+
     codeWordStyle: {
         borderLeftWidth: 0,
         borderRightWidth: 0,
@@ -1269,8 +1273,9 @@ const styles = {
         flexBasis: 'auto',
         paddingLeft: 0,
         paddingRight: 0,
-        marginTop: 2,
-        bottom: -5,
+        justifyContent: 'center',
+        marginVertical: -2,
+        top: -1,
     },
 
     codeFirstWordStyle: {
@@ -1373,6 +1378,7 @@ const webViewStyles = {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
+        lineHeight: 20,
     },
 };
 
