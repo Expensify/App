@@ -24,38 +24,40 @@ import Gear from '../../../assets/images/gear.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Lock from '../../../assets/images/lock.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
+import Emoji from '../../../assets/images/emoji.svg';
 import Upload from '../../../assets/images/upload.svg';
 import Camera from '../../../assets/images/camera.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 
 export {
+    ArrowRight,
     BackArrow,
     DownArrow,
+    Camera,
     ChatBubble,
+    Checkmark,
     Clipboard,
     Close,
+    Download,
+    Emoji,
+    Gallery,
+    Gear,
     LinkCopy,
+    Lock,
     MagnifyingGlass,
     Mail,
+    MoneyCircle,
     Paperclip,
     Pencil,
     Phone,
     Pin,
     PinCircle,
     Plus,
+    Profile,
+    Receipt,
     Send,
     Trashcan,
-    Users,
-    Checkmark,
-    Receipt,
-    MoneyCircle,
-    Download,
-    Profile,
-    Gear,
-    Wallet,
-    Lock,
-    ArrowRight,
     Upload,
-    Camera,
-    Gallery,
+    Users,
+    Wallet,
 };
