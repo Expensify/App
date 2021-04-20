@@ -1,29 +1,16 @@
 import React from 'react';
-import {Animated, View} from 'react-native';
-import PropTypes from 'prop-types';
-import styles, {getOpacityStyle} from '../styles/styles';
+import {View} from 'react-native';
+import styles from '../styles/styles';
 import Text from './Text';
 
-const propTypes = {
-    // Animated opacity
-    // eslint-disable-next-line react/forbid-prop-types
-    animatedOpacity: PropTypes.object.isRequired,
-};
-
-const UnreadActionIndicator = props => (
-    <Animated.View style={[
-        styles.unreadIndicatorContainer,
-        getOpacityStyle(props.animatedOpacity),
-    ]}
-    >
+const UnreadActionIndicator = () => (
+    <View style={styles.unreadIndicatorContainer}>
         <View style={styles.unreadIndicatorLine} />
         <Text style={styles.unreadIndicatorText}>
             NEW
         </Text>
-    </Animated.View>
+    </View>
 );
 
-UnreadActionIndicator.propTypes = propTypes;
 UnreadActionIndicator.displayName = 'UnreadActionIndicator';
-
 export default UnreadActionIndicator;
