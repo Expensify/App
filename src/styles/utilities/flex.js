@@ -52,6 +52,10 @@ export default {
         alignItems: 'flex-end',
     },
 
+    alignItemsStart: {
+        alignItems: 'start',
+    },
+
     flexWrap: {
         flexWrap: 'wrap',
     },
