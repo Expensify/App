@@ -26,7 +26,7 @@ class EmojiPickerMenu extends Component {
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index
         // If this emojis are ever added to emojis.js this will need to be updated or things will break
-        this.unfilteredHeaderIndices = [0, 34, 60, 88, 99, 121, 148];
+        this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.renderItem = this.renderItem.bind(this);
     }
