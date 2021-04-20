@@ -14,7 +14,7 @@ import {Pencil, PinCircle, Checkmark} from '../../../components/Icon/Expensicons
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
-import OptionRowTitle from './OptionRowTitle';
+import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
 
@@ -33,7 +33,7 @@ const propTypes = {
     optionIsFocused: PropTypes.bool.isRequired,
 
     // A function that is called when an option is selected. Selected option is passed as a param
-    onSelectRow: PropTypes.func.isRequired,
+    onSelectRow: PropTypes.func,
 
     // A flag to indicate whether to show additional optional states, such as pin and draft icons
     hideAdditionalOptionStates: PropTypes.bool,
@@ -63,6 +63,7 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     mode: 'default',
+    onSelectRow: null,
 };
 
 const OptionRow = ({
@@ -109,6 +110,11 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const displayNamesWithTooltips = _.map(
+        option.participantsList,
+        ({displayName, login}) => ({displayName, tooltip: login}),
+    );
+
     return (
         <Hoverable>
             {hovered => (
@@ -152,14 +158,13 @@ const OptionRow = ({
                                 )
                             }
                             <View style={contentContainerStyles}>
-                                <OptionRowTitle
-                                    option={option}
+                                <DisplayNames
+                                    fullTitle={option.text}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
-                                    style={displayNameStyle}
-                                    reportID={option.reportID}
+                                    textStyles={displayNameStyle}
                                 />
-
                                 {option.alternateText ? (
                                     <Text
                                         style={alternateTextStyle}
@@ -169,6 +174,13 @@ const OptionRow = ({
                                     </Text>
                                 ) : null}
                             </View>
+                            {option.descriptiveText ? (
+                                <View style={[styles.flexWrap]}>
+                                    <Text style={[styles.textLabel]}>
+                                        {option.descriptiveText}
+                                    </Text>
+                                </View>
+                            ) : null}
                             {showSelectedState && (
                                 <View style={[styles.selectCircle]}>
                                     {isSelected && (
@@ -224,6 +236,10 @@ export default memo(OptionRow, (prevProps, nextProps) => {
     }
 
     if (prevProps.option.alternateText !== nextProps.option.alternateText) {
+        return false;
+    }
+
+    if (prevProps.option.descriptiveText !== nextProps.option.descriptiveText) {
         return false;
     }
 
