@@ -16,6 +16,7 @@ import styles from '../../styles/styles';
 function getTextMatrix(text) {
     return text.split('\n').map(row => row.split(/(\s)/));
 }
+
 const propTypes = {
     // Required text
     children: PropTypes.string.isRequired,
@@ -37,12 +38,14 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     lastWordStyle: PropTypes.object,
 };
+
 const defaultProps = {
     textStyle: {},
     wordStyle: {},
     firstWordStyle: {},
     lastWordStyle: {},
 };
+
 const WrappedText = (props) => {
     const textMatrix = getTextMatrix(props.children);
     return (
@@ -76,6 +79,7 @@ const WrappedText = (props) => {
         </>
     );
 };
+
 WrappedText.propTypes = propTypes;
 WrappedText.defaultProps = defaultProps;
 WrappedText.displayName = 'WrappedText';
