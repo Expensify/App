@@ -110,25 +110,6 @@ function createIOUSplit({
 }
 
 /**
- * Settles an IOU Report
- */
-function settleIOUReport({
-    reportID, paymentMethodType,
-}) {
-    // Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
-    console.debug('juless: settleIOUReport', {reportID, paymentMethodType});
-    return;
-
-    API.PayIOU({
-        reportID,
-        paymentMethodType,
-    })
-        .then((data) => {
-            console.debug('juless: IOU Settled: ', data);
-        });
-}
-
-/**
  * Retrieve an IOU report using a transactionID, then navigate to the page.
  * @param {Int} transactionID
  */
@@ -149,10 +130,46 @@ function getIOUReportDetailFromTransactionID(transactionID) {
         });
 }
 
+/**
+ * Settles an IOU Report
+ */
+ function settleIOUReport({
+    reportID, paymentMethodType,
+}) {
+    // Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+    console.debug('juless: settleIOUReport', {reportID, paymentMethodType});
+
+    API.PayIOU({
+        reportID,
+        paymentMethodType,
+    })
+        .then((data) => {
+            console.debug('juless: IOU Settled: ', data);
+        });
+}
+
+/**
+ * Decline or cancel a transaction
+ */
+ function rejectTransaction({
+    reportID, transactionID, comment
+}) {
+    console.debug('juless: rejectTransaction', {reportID, transactionID, comment});
+
+    API.RejectTransaction({
+        reportID,
+        transactionID,
+        comment,
+    }).then((data) => {
+        console.debug('juless: rejectedTransaction response: ', data);
+    });
+}
+
 export {
     getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
     getIOUReportDetailFromTransactionID,
+    rejectTransaction,
     settleIOUReport,
 };

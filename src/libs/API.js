@@ -515,6 +515,12 @@ function Push_Authenticate(parameters) {
     return Network.post(commandName, parameters);
 }
 
+function RejectTransaction(parameters) {
+    const commandName = 'RejectTransaction';
+    requireParameters(['reportID', 'transactionID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 /**
  * @param {Object} parameters
  * @param {String} parameters.reportComment
@@ -719,6 +725,7 @@ export {
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Push_Authenticate,
+    RejectTransaction,
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,

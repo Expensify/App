@@ -143,6 +143,8 @@ class IOUDetailsModal extends Component {
                             <TransactionItem
                                 transaction={transaction}
                                 action={actionForTransaction}
+                                iouReportID={}
+                                transactionID={}
                             />
                         );
                     })}
