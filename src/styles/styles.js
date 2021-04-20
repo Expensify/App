@@ -1306,7 +1306,6 @@ const baseCodeTagStyles = {
     borderRadius: 5,
     borderColor: themeColors.border,
     backgroundColor: themeColors.textBackground,
-    fontSize: 13,
 };
 
 
@@ -1362,9 +1361,9 @@ const webViewStyles = {
             ...baseCodeTagStyles,
             paddingLeft: 5,
             paddingRight: 5,
-            paddingBottom: 2,
-            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
+            lineHeight: 18,
+            fontSize: 13,
         },
 
         img: {
@@ -1377,8 +1376,8 @@ const webViewStyles = {
     baseFontStyle: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
-        lineHeight: 20,
     },
 };
 
