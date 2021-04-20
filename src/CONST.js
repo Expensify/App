@@ -108,6 +108,12 @@ const CONST = {
     },
 
     EMOJI_PICKER_SIZE: 360,
+
+    ENVIRONMENT: {
+        DEV: 'DEV',
+        STAGING: 'STAGING',
+        PRODUCTION: 'PRODUCTION',
+    },
 };
 
 export default CONST;
