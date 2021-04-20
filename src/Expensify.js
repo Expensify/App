@@ -56,7 +56,7 @@ const propTypes = {
     updateAvailable: PropTypes.bool,
 
     // Whether the initial data needed to render the app is ready
-    appDataLoaded: PropTypes.bool,
+    initialReportDataLoaded: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -65,7 +65,7 @@ const defaultProps = {
         accountID: null,
     },
     updateAvailable: false,
-    appDataLoaded: false,
+    initialReportDataLoaded: false,
 };
 
 class Expensify extends PureComponent {
@@ -108,7 +108,7 @@ class Expensify extends PureComponent {
             BootSplash.show({fade: true});
         }
 
-        if (this.getAuthToken() && this.props.appDataLoaded) {
+        if (this.getAuthToken() && this.props.initialReportDataLoaded) {
             BootSplash.getVisibilityStatus()
                 .then((value) => {
                     if (value !== 'visible') {
@@ -151,7 +151,7 @@ export default withOnyx({
         key: ONYXKEYS.UPDATE_AVAILABLE,
         initWithStoredValues: false,
     },
-    appDataLoaded: {
-        key: ONYXKEYS.APP_DATA_LOADED,
+    initialReportDataLoaded: {
+        key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
     },
 })(Expensify);

@@ -315,7 +315,7 @@ function fetchChatReportsByIDs(chatList) {
             // than updating props for each report and re-rendering had merge been used.
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
-            Onyx.merge(ONYXKEYS.APP_DATA_LOADED, true);
+            Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
