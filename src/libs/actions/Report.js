@@ -201,14 +201,72 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
 }
 
 /**
- * Fetches the updated data for an IOU Report and updates the IOU collection in Onyx
+ * Given IOU and chat report ID fetches most recent IOU data from API.
+ *
+ * @param {Number} iouReportID
+ * @param {Number} chatReportID
+ * @returns {Promise}
+ */
+function fetchIOUReport(iouReportID, chatReportID) {
+    return API.Get({
+        returnValueList: 'reportStuff',
+        reportIDList: iouReportID,
+        shouldLoadOptionalKeys: true,
+        includePinnedReports: true,
+    }).then((response) => {
+        if (!response) {
+            return;
+        }
+        if (response.jsonCode !== 200) {
+            console.error(response.message);
+            return;
+        }
+        const iouReportData = response.reports[iouReportID];
+        if (!iouReportData) {
+            console.error(`No iouReportData found for reportID ${iouReportID}`);
+            return;
+        }
+        return getSimplifiedIOUReport(iouReportData, chatReportID);
+    }).catch((error) => {
+        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
+    });
+}
+
+/**
+ * Given debtorEmail finds active IOU report ID via GetIOUReport API call
+ *
+ * @param {String} debtorEmail
+ * @returns {Promise}
+ */
+function fetchIOUReportID(debtorEmail) {
+    return API.GetIOUReport({
+        debtorEmail,
+    }).then((response) => {
+        const iouReportID = response.reportID || 0;
+        if (response.jsonCode !== 200) {
+            console.error(response.message);
+            return;
+        }
+        if (iouReportID === 0) {
+            // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
+            // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
+            // been settled then there's nothing more to do.
+            console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+            return;
+        }
+        return iouReportID;
+    });
+}
+
+/**
+ * Given chatReport object, fetches the updated data for an IOU Report if there is an active IOU report
  *
  * @param {Object} chatReport
  * @param {Object[]} chatReport.reportActionList
  * @param {Number} chatReport.reportID
  * @return {Promise}
  */
-function fetchIOUReportData(chatReport) {
+function fetchIOUReportDataForChatReport(chatReport) {
     const reportActionList = chatReport.reportActionList || [];
     const containsIOUAction = _.any(reportActionList,
         reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
@@ -228,51 +286,8 @@ function fetchIOUReportData(chatReport) {
         return;
     }
 
-    // Since the Chat and the IOU are different reports with different reportIDs, and GetIOUReport only returns the
-    // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`.
-    // Note: GetIOUReport does not return IOU reports that have been settled.
-    let iouReportID = 0;
-    return API.GetIOUReport({
-        debtorEmail: participants[0],
-    }).then((response) => {
-        iouReportID = response.reportID || 0;
-        if (response.jsonCode !== 200) {
-            console.error(response.message);
-            return;
-        }
-        if (iouReportID === 0) {
-            // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
-            // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
-            // been settled then there's nothing more to do.
-            console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
-            return;
-        }
-
-        return API.Get({
-            returnValueList: 'reportStuff',
-            reportIDList: iouReportID,
-            shouldLoadOptionalKeys: true,
-            includePinnedReports: true,
-        });
-    }).then((response) => {
-        if (!response) {
-            return;
-        }
-
-        if (response.jsonCode !== 200) {
-            console.error(response.message);
-            return;
-        }
-
-        const iouReportData = response.reports[iouReportID];
-        if (!iouReportData) {
-            console.error(`No iouReportData found for reportID ${iouReportID}`);
-            return;
-        }
-        return getSimplifiedIOUReport(iouReportData, chatReport.reportID);
-    }).catch((error) => {
-        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
-    });
+    return fetchIOUReportID(participants[0])
+        .then(iouReportID => fetchIOUReport(iouReportID, chatReport.reportID));
 }
 
 /**
@@ -294,7 +309,7 @@ function fetchChatReportsByIDs(chatList) {
         .then(({reports}) => {
             Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reports;
-            return Promise.all(_.map(fetchedReports, fetchIOUReportData));
+            return Promise.all(_.map(fetchedReports, fetchIOUReportDataForChatReport));
         })
         .then((iouReportObjects) => {
             // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
@@ -340,27 +355,7 @@ function fetchChatReportsByIDs(chatList) {
  * @param {Number} chatReportID
  */
 function updateIOUReportData(iouReportID, chatReportID) {
-    API.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: iouReportID,
-        shouldLoadOptionalKeys: true,
-        includePinnedReports: true,
-    }).then((response) => {
-        if (!response) {
-            return;
-        }
-
-        if (response.jsonCode !== 200) {
-            console.error(response.message);
-            return;
-        }
-
-        const iouReportData = response.reports[iouReportID];
-        if (!iouReportData) {
-            console.error(`No iouReportData found for reportID ${iouReportID}`);
-            return;
-        }
-        const iouReportObject = getSimplifiedIOUReport(iouReportData, chatReportID);
+    fetchIOUReport(iouReportID, chatReportID).then((iouReportObject) => {
         const chatReportObject = {
             hasOutstandingIOU: iouReportObject.stateNum === 1
                 && iouReportObject.total !== 0,
@@ -373,38 +368,6 @@ function updateIOUReportData(iouReportID, chatReportID) {
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
         Onyx.merge(iouReportKey, iouReportObject);
         Onyx.merge(reportKey, chatReportObject);
-    });
-}
-
-/**
- * Given chat report ID finds active IOU report ID via GetIOUReport API call
- *
- * @param {Number} chatReportID
- * @returns {Promise}
- */
-function fetchIOUReportID(chatReportID) {
-    const chatReport = lodashGet(allReports, chatReportID);
-    const participants = chatReport.participants;
-    if (participants.length !== 1) {
-        console.error('chatReport doesn\'t have any participant.');
-        return;
-    }
-    return API.GetIOUReport({
-        debtorEmail: participants[0],
-    }).then((response) => {
-        const iouReportID = response.reportID || 0;
-        if (response.jsonCode !== 200) {
-            console.error(response.message);
-            return;
-        }
-        if (iouReportID === 0) {
-            // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
-            // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
-            // been settled then there's nothing more to do.
-            console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
-            return;
-        }
-        return iouReportID;
     });
 }
 
@@ -507,8 +470,9 @@ function updateReportWithNewAction(reportID, reportAction) {
         const iouReportID = lodashGet(chatReport, 'iouReportID');
         if (iouReportID) {
             updateIOUReportData(iouReportID, reportID);
-        } else {
-            fetchIOUReportID(reportID).then(iouID => updateIOUReportData(iouID, reportID));
+        } else if (!chatReport || chatReport.participants.length === 1) {
+            fetchIOUReportID(chatReport ? chatReport.participants[0] : reportAction.actorEmail)
+                .then(iouID => updateIOUReportData(iouID, reportID));
         }
     }
 
