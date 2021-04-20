@@ -4,6 +4,7 @@ import { View, Text, Pressable } from 'react-native-web';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemIOUPreview from '../components/ReportActionItemIOUPreview';
 import styles from '../styles/styles';
+import {rejectTransaction} from '../libs/actions/IOU';
 
 const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
@@ -39,7 +40,13 @@ class TransactionItem extends Component {
     }
 
     removeTransaction() {
+        // TODO: delegate to parent
         console.debug('removeTransaction');
+        rejectTransaction({
+            reportID: 999,
+            transactionID: 999999,
+            comment: 'NO!'
+        });
     }
 
     render() {
