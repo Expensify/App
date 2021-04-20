@@ -13,6 +13,7 @@ import {createIOUSplit, createIOUTransaction, getPreferredCurrency} from '../../
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
+import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -34,6 +35,18 @@ const propTypes = {
 
         // Whether or not transaction creation has resulted to error
         error: PropTypes.bool,
+    }).isRequired,
+
+    // Personal details of all the users
+    personalDetails: PropTypes.objectOf({
+        // Primary login of participant
+        login: PropTypes.string,
+
+        // Display Name of participant
+        displayName: PropTypes.string,
+
+        // Avatar url of participant
+        avatar: PropTypes.string,
     }).isRequired,
 };
 
@@ -62,10 +75,18 @@ class IOUModal extends Component {
         this.updateComment = this.updateComment.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
+        const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
+            .map(personalDetails => ({
+                login: personalDetails.login,
+                text: personalDetails.displayName,
+                alternateText: personalDetails.login,
+                icons: [personalDetails.avatar],
+                keyForList: personalDetails.login,
+            }));
 
         this.state = {
             currentStepIndex: 0,
-            participants,
+            participants: participantsWithDetails,
 
             // amount is currency in decimal format
             amount: '',
@@ -269,5 +290,10 @@ export default withOnyx({
     iousReport: {
         key: ONYXKEYS.COLLECTION.REPORT_IOUS,
     },
-    iou: {key: ONYXKEYS.IOU},
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
+    },
 })(IOUModal);
