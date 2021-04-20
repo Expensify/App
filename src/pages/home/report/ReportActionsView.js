@@ -42,7 +42,7 @@ const propTypes = {
         maxSequenceNumber: PropTypes.number,
 
         // Whether there is an outstanding amount in IOU
-        hasOutstandingIOU: PropTypes.bool.isRequired,
+        hasOutstandingIOU: PropTypes.bool,
 
         // IOU report ID associated with current report
         iouReportID: PropTypes.number,
@@ -62,6 +62,7 @@ const defaultProps = {
     report: {
         unreadActionCount: 0,
         maxSequenceNumber: 0,
+        hasOutstandingIOU: false,
     },
     reportActions: {},
     session: {},
@@ -109,6 +110,11 @@ class ReportActionsView extends React.Component {
         }
 
         if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
+            return true;
+        }
+
+        if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU
+            || this.props.report.iouReportID !== nextProps.report.iouReportID) {
             return true;
         }
 
