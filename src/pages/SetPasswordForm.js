@@ -78,7 +78,11 @@ class SetPasswordForm extends Component {
         this.setState({
             formError: null,
         });
-        setPassword(this.state.password, lodashGet(this.props.route, 'params.validateCode', ''));
+        setPassword(
+            this.state.password,
+            lodashGet(this.props.route, 'params.validateCode', ''),
+            lodashGet(this.props.route, 'params.accountID', ''),
+        );
     }
 
     render() {
@@ -88,13 +92,13 @@ class SetPasswordForm extends Component {
                     <Text style={[styles.formLabel]}>Enter a password:</Text>
                     <TextInput
                         style={[styles.textInput]}
-                        value={this.state.login}
-                        autoCompleteType="email"
-                        textContentType="username"
-                        onChangeText={text => this.setState({login: text})}
+                        value={this.state.password}
+                        secureTextEntry
+                        autoCompleteType="password"
+                        textContentType="password"
+                        onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
-                        placeholder="Phone or Email"
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
                     />
