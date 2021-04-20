@@ -11,6 +11,9 @@ const propTypes = {
     // option Background Color
     optionBackgroundColor: PropTypes.string,
 
+    // option flexStyle for the options list container
+    listContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
     // Style for hovered state
     // eslint-disable-next-line react/forbid-prop-types
     optionHoveredStyle: PropTypes.object,
@@ -77,6 +80,7 @@ const defaultProps = {
     optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
+    listContainerStyles: [styles.flex1],
     sections: [],
     focusedIndex: 0,
     selectedOptions: [],
@@ -196,7 +200,7 @@ class OptionsList extends Component {
 
     render() {
         return (
-            <View style={[styles.flex1]}>
+            <View style={this.props.listContainerStyles}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>
