@@ -335,7 +335,6 @@ function fetchChatReportsByIDs(chatList) {
  */
 function setLocalLastRead(reportID, sequenceNumber, saveNewMarkerPosition) {
     lastReadSequenceNumbers[reportID] = sequenceNumber;
-    console.log('this got caled');
 
     // Update the report optimistically
     if (saveNewMarkerPosition) {
@@ -346,7 +345,7 @@ function setLocalLastRead(reportID, sequenceNumber, saveNewMarkerPosition) {
         });
     } else {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            unreadActionCount: Math.max(reportMaxSequenceNumbers[reportID] - sequenceNumber, 0),
+            unreadActionCount: 0,
             lastVisitedTimestamp: Date.now(),
         });
     }

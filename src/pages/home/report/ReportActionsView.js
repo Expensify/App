@@ -41,6 +41,7 @@ const propTypes = {
         // The largest sequenceNumber on this report
         maxSequenceNumber: PropTypes.number,
 
+        // The current position of the new marker
         newMarkerPosition: PropTypes.number,
     }),
 
@@ -74,7 +75,6 @@ class ReportActionsView extends React.Component {
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
         this.timers = [];
-
         const newMarkerPosition = props.report.unreadActionCount === 0
             ? 0
             : props.report.maxSequenceNumber - props.report.unreadActionCount;
@@ -104,7 +104,8 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextProps.report.newMarkerPosition > 0 && nextProps.report.newMarkerPosition !== this.props.report.newMarkerPosition) {
+        if (nextProps.report.newMarkerPosition > 0
+            && nextProps.report.newMarkerPosition !== this.props.report.newMarkerPosition) {
             return true;
         }
 
@@ -274,9 +275,9 @@ class ReportActionsView extends React.Component {
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 shouldDisplayNewIndicator={this.props.report.newMarkerPosition > 0
-                    && item.action.sequenceNumber === this.props.report.newMarkerPosition}
+                    && item.action.sequenceNumber - 1 === this.props.report.newMarkerPosition}
                 onMarkAsUnread={() => updateLastReadActionID(this.props.reportID,
-                    item.action.sequenceNumber)}
+                    item.action.sequenceNumber - 1)}
             />
         );
     }
