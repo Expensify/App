@@ -2,7 +2,7 @@
 
 ## Where to Define Styles
 
-All styles must be defined in the `styles.js` file which exists as a globally exported stylesheet of sorts for the application. Unlike some React Native applications we are not using `StyleSheet.create()` and instead store styles as plain JS objects. There are many helper styles available for direct use in components and can be found in the `/styles` directory.
+All styles must be defined in the `/styles` directory and `styles.js` contains the final export after gathering all appropriate styles. Unlike some React Native applications we are not using `StyleSheet.create()` and instead store styles as plain JS objects. There are also many helper styles available for direct use in components.
 
 These helper styles are loosely based on the [Bootstrap system of CSS utility helper classes](https://getbootstrap.com/docs/5.0/utilities/spacing/) and are typically incremented by units of `4`.
 
@@ -51,10 +51,7 @@ Any array of styles associated with a single type of React element that has at l
 
 ## Inline Styles
 
-**Inline styles are forbidden.** If we run into a case where we feel it's necessary to conditionally render some styles. There are two options:
-
-1. Create a helper function in `styles.js` and pass any modifying parameters to that function.
-1. Conditionally render a style object inline by defaulting to `undefined`.
+**Inline styles are forbidden.** If we run into a case where we feel it's necessary to conditionally render some styles we should create a helper function and import it into `styles.js` then pass any modifying parameters to that function e.g.
 
 ```jsx
 // Bad - Do not use inline styles
@@ -63,18 +60,6 @@ const TextWithPadding = props => (
         padding: 10,
         whiteSpace: props.shouldWrap ? 'wrap' : 'nowrap',
     }}>
-        {props.children}
-    </Text>
-);
-
-// Good
-const TextWithPadding = props => (
-    <Text
-        style={[
-            styles.p5,
-            props.shouldWrap ? undefined : styles.noWrap,
-        ]}
-    >
         {props.children}
     </Text>
 );
@@ -138,7 +123,7 @@ In some cases, we may want a more complex component to allow a parent to modify 
 
 ### Complex Component
 
-Always pass style props with clear names that describe which child element style will be modified. Specific styles should clearly indicate what the expected type is by using a singular (`Object`) or plural (`Array`) naming convention.
+Always pass style props with a name that describes which child element styles will be modified. All style props should accept an `Array` of style `Object` and have a pluralized name e.g. `headerStyles`
 
 ```jsx
 // Bad - props.style should not be used in complex components
@@ -174,7 +159,7 @@ const SettingsScreen = props => {
     );
 }
 
-// Good - Uses a singular and passes a single style object
+// Bad - Uses a singular and passes a single style object
 const SettingsScreen = props => (
     <View>
         <Header
