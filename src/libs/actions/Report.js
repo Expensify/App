@@ -331,14 +331,16 @@ function fetchChatReportsByIDs(chatList) {
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
+ * @param {Boolean} saveNewMarkerPosition
  */
-function setLocalLastRead(reportID, sequenceNumber) {
+function setLocalLastRead(reportID, sequenceNumber, saveNewMarkerPosition) {
     lastReadSequenceNumbers[reportID] = sequenceNumber;
 
     // Update the report optimistically
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         unreadActionCount: Math.max(reportMaxSequenceNumbers[reportID] - sequenceNumber, 0),
         lastVisitedTimestamp: Date.now(),
+        saveNewMarkerPosition: saveNewMarkerPosition ? sequenceNumber : 0,
     });
 }
 
@@ -808,7 +810,7 @@ function addAction(reportID, text, file) {
 function updateLastReadActionID(reportID, sequenceNumber) {
     const lastReadSequenceNumber = sequenceNumber || reportMaxSequenceNumbersNotLoading[reportID];
 
-    setLocalLastRead(reportID, lastReadSequenceNumber);
+    setLocalLastRead(reportID, lastReadSequenceNumber, sequenceNumber !== undefined);
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({
