@@ -6,7 +6,7 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
-import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
+import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
