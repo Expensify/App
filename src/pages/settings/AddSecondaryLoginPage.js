@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {
-    View, TextInput, KeyboardAvoidingView, Platform,
+    View, TextInput,
 } from 'react-native';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
@@ -16,6 +16,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
+import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
 
 const propTypes = {
     /* Onyx Props */
@@ -98,11 +99,7 @@ class AddSecondaryLoginPage extends Component {
     render() {
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView
-                    enabled={Platform.OS === 'ios'}
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={[styles.w100, styles.h100]}
-                >
+                <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.formType === CONST.LOGIN_TYPE.PHONE ? 'Add Phone Number' : 'Add Email Address'}
                         shouldShowBackButton
