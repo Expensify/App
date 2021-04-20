@@ -265,4 +265,35 @@ jobs:
     if: ${{ always() }}
     needs: [android, desktop, iOS, web]
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+
       - run: echo "Status android = ${{ needs.android.result }}, desktop = ${{ needs.desktop.result }}, iOS = ${{ needs.iOS.result }}, web = ${{ needs.web.result }}"
+
+      - name: Set version
+        run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+
+      - name: Get Release Pull Request List
+        id: getReleasePRList
+        uses: Expensify/Expensify.cash/.github/actions/getDeployPullRequestList@main
+        with:
+          TAG: ${{ env.VERSION }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+
+      - name: Comment on issues
+        uses: Expensify/Expensify.cash/.github/actions/markPullRequestsAsDeployed@main
+        with:
+          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
+          IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ANDROID: ${{ needs.android.result }}
+          DESKTOP: ${{ needs.desktop.result }}
+          IOS: ${{ needs.iOS.result }}
+          WEB: ${{ needs.web.result }}

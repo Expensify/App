@@ -79,10 +79,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
                 width: isSmallScreenWidth ? '100%' : windowWidth - 40,
             };
 
-            // The default swipe direction is swipeDown and by
-            // setting this to undefined we effectively disable the
-            // ability to swipe our modal
-            swipeDirection = undefined;
+            // Allow this modal to be dismissed with a swipe down or swipe right
+            swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
             shouldAddTopSafeAreaPadding = true;
@@ -109,7 +107,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
             animationIn = 'slideInUp';
             animationOut = 'slideOutDown';
             break;
-        case CONST.MODAL.MODAL_TYPE.POPOVER_LEFT_DOCKED:
+        case CONST.MODAL.MODAL_TYPE.POPOVER:
             modalStyle = {
                 ...modalStyle,
                 ...popoverAnchorPosition,
@@ -130,56 +128,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
 
             hideBackdrop = true;
             swipeDirection = undefined;
-            animationIn = 'fadeInLeft';
-            animationOut = 'fadeOutLeft';
-            break;
-        case CONST.MODAL.MODAL_TYPE.POPOVER_RIGHT_DOCKED:
-            modalStyle = {
-                ...modalStyle,
-                ...popoverAnchorPosition,
-                ...{
-                    position: 'absolute',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                },
-            };
-            modalContainerStyle = {
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: themeColors.border,
-                justifyContent: 'center',
-                overflow: 'hidden',
-                boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
-            };
-
-            hideBackdrop = true;
-            swipeDirection = undefined;
-            animationIn = 'fadeInRight';
-            animationOut = 'fadeOutRight';
-            break;
-        case CONST.MODAL.MODAL_TYPE.POPOVER_CENTER_BOTTOM:
-            modalStyle = {
-                ...modalStyle,
-                ...popoverAnchorPosition,
-                ...{
-                    position: 'absolute',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                },
-            };
-            modalContainerStyle = {
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: themeColors.border,
-                justifyContent: 'center',
-                overflow: 'hidden',
-                boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
-            };
-
-            hideBackdrop = true;
-            swipeDirection = undefined;
-            animationIn = 'fadeInUp';
-            animationOut = 'fadeOutDown';
+            animationIn = 'fadeIn';
+            animationOut = 'fadeOut';
             break;
         case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
             modalStyle = {
