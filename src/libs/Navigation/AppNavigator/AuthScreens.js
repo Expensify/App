@@ -41,12 +41,14 @@ import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     DetailsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     IOUCurrencyNavigator,
 } from './ModalStackNavigators';
+import SCREENS from '../../../SCREENS';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -190,13 +192,13 @@ class AuthScreens extends React.Component {
             >
                 {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
                 <RootStack.Screen
-                    name="Home"
+                    name={SCREENS.HOME}
                     options={{
                         headerShown: false,
                         title: 'Expensify.cash',
                     }}
                     initialParams={{
-                        screen: 'Report',
+                        screen: SCREENS.REPORT,
                         params: {
                             reportID: this.initialReportID,
                         },
@@ -246,6 +248,11 @@ class AuthScreens extends React.Component {
                     options={modalScreenOptions}
                     component={DetailsModalStackNavigator}
                     listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="Participants"
+                    options={modalScreenOptions}
+                    component={ReportParticipantsModalStackNavigator}
                 />
                 <RootStack.Screen
                     name="IOU_Request"

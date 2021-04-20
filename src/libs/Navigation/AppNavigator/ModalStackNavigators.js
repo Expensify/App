@@ -15,6 +15,7 @@ import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
+import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 
 // Setup the modal stack navigators so we only have to create them once
 const SettingsModalStack = createStackNavigator();
@@ -22,6 +23,7 @@ const NewChatModalStack = createStackNavigator();
 const NewGroupModalStack = createStackNavigator();
 const SearchModalStack = createStackNavigator();
 const DetailsModalStack = createStackNavigator();
+const ReportParticipantsModalStack = createStackNavigator();
 const IOURequestModalStack = createStackNavigator();
 const IOUBillModalStack = createStackNavigator();
 const IOUCurrencyStack = createStackNavigator();
@@ -97,6 +99,19 @@ const DetailsModalStackNavigator = () => (
             }}
         />
     </DetailsModalStack.Navigator>
+);
+
+const ReportParticipantsModalStackNavigator = () => (
+    <ReportParticipantsModalStack.Navigator screenOptions={{...defaultSubRouteOptions}}>
+        <ReportParticipantsModalStack.Screen
+            name="ReportParticipants_Root"
+            component={ReportParticipantsPage}
+        />
+        <ReportParticipantsModalStack.Screen
+            name="ReportParticipants_Details"
+            component={DetailsPage}
+        />
+    </ReportParticipantsModalStack.Navigator>
 );
 
 const SearchModalStackNavigator = () => (
@@ -189,6 +204,7 @@ export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     DetailsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,

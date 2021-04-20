@@ -494,9 +494,19 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    createMenuPosition: {
+    createMenuPositionSidebar: {
         left: 18,
         bottom: 100,
+    },
+
+    createMenuPositionProfile: {
+        right: 18,
+        top: 100,
+    },
+
+    createMenuPositionReportActionCompose: {
+        left: 18 + variables.sideBarWidth,
+        bottom: 75,
     },
 
     createMenuContainer: {
@@ -792,6 +802,48 @@ const styles = {
         paddingRight: 6,
         paddingBottom: 6,
         paddingLeft: 6,
+        margin: 3,
+        justifyContent: 'center',
+    },
+
+    emojiPickerContainer: {
+        backgroundColor: themeColors.componentBG,
+        minWidth: CONST.EMOJI_PICKER_SIZE,
+    },
+
+    emojiPickerList: {
+        height: 300,
+        width: '100%',
+        ...spacing.ph4,
+    },
+
+    emojiHeaderStyle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv3,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    // Emoji Picker Styles
+    emojiText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.iconSizeLarge,
+        ...spacing.pv1,
+        ...spacing.ph2,
+    },
+
+    emojiItem: {
+        width: '12.5%',
+        textAlign: 'center',
+    },
+
+    chatItemEmojiButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
         margin: 3,
         justifyContent: 'center',
     },
@@ -1179,7 +1231,7 @@ const styles = {
         opacity: 0,
     },
 
-    detailsPageContainer: {
+    containerWithSpaceBetween: {
         justifyContent: 'space-between',
         width: '100%',
         flex: 1,
@@ -1238,12 +1290,14 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
     },
 
     iouAmountTextInput: addOutlineWidth({
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
     }, 0),
 
     noScrollbars: {
@@ -1251,11 +1305,19 @@ const styles = {
     },
 
     fullScreenLoading: {
-        backgroundColor: themeColors.modalBackdrop,
+        backgroundColor: themeColors.componentBG,
         opacity: 0.8,
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 10,
+    },
+
+    hiddenElementOutsideOfWindow: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        opacity: 0,
+        transform: 'translateX(-100%)',
     },
 };
 
@@ -1425,6 +1487,19 @@ function getZoomSizingStyle(isZoomed) {
 }
 
 /**
+ * Returns auto grow text input style
+ *
+ * @param {Number} width
+ * @return {Object}
+ */
+function getAutoGrowTextInputStyle(width) {
+    return {
+        minWidth: 5,
+        width,
+    };
+}
+
+/**
  * Returns a style with backgroundColor and borderColor set to the same color
  *
  * @param {String} backgroundColor
@@ -1543,6 +1618,7 @@ export {
     getNavigationModalCardStyle,
     getZoomCursorStyle,
     getZoomSizingStyle,
+    getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getButtonBackgroundColorStyle,
