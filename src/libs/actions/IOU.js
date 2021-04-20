@@ -3,6 +3,8 @@ import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import {getSimplifiedIOUReport} from './Report';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 /**
  * Retrieve the users preferred currency
@@ -111,30 +113,31 @@ function createIOUSplit({
  * Settles an IOU Report
  */
 function settleIOUReport({
-   reportID, paymentMethodType,
+    reportID, paymentMethodType,
 }) {
-   //Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
-   console.debug('juless: settleIOUReport', {'reportID': reportID, 'paymentType': paymentMethodType});
-   return;
+    // Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+    console.debug('juless: settleIOUReport', {reportID, paymentMethodType});
+    return;
 
-   API.PayIOU({
-       reportID,
-       paymentMethodType,
-   })
-       .then(data => {
-           console.debug('juless: IOU Settled: ', data);
-       });
+    API.PayIOU({
+        reportID,
+        paymentMethodType,
+    })
+        .then((data) => {
+            console.debug('juless: IOU Settled: ', data);
+        });
 }
 
 /**
  * Retrieve an IOU report using a transactionID, then navigate to the page.
+ * @param {Int} transactionID
  */
- function getIOUReportDetailFromTransactionID(transactionID) {
+function getIOUReportDetailFromTransactionID(transactionID) {
     API.Get({
         returnValueList: 'transactionList',
-        transactionID: transactionID,
+        transactionID,
     })
-        .then(data => {
+        .then((data) => {
             const chatReportID = data.transactionList[0].reportID;
             if (!chatReportID) {
                 return;
@@ -151,5 +154,5 @@ export {
     createIOUTransaction,
     createIOUSplit,
     getIOUReportDetailFromTransactionID,
-    settleIOUReport
-}
+    settleIOUReport,
+};
