@@ -34,9 +34,11 @@ const data = [
         Merge pull request #1560 from Expensify/version-bump-b742a55d18e761cd7adb0849a29cfb48b3a04f99
         Update version to 1.0.1-468
         Merge pull request #1555 from SameeraMadushan/sameera-IsAppInstalledLogic
+        Merge pull request #1 from Expensify/master
+        Merge pull request #2 from Expensify/main
         fix: set pdf width on large screens
         [IS-1500] Fixed compose field alignment issue`,
-        result: ['1521', '1563', '1557', '1562', '1515', '1560', '1555'],
+        result: ['1521', '1557', '1515', '1555'],
     },
     {
         gitLog: `Return to old hash-based deploy instrcutions

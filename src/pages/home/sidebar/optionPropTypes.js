@@ -19,10 +19,13 @@ const optionPropTypes = PropTypes.shape({
     alternateText: PropTypes.string.isRequired,
 
     // List of participants of the report
-    participantsList: PropTypes.arrayOf(participantPropTypes).isRequired,
+    participantsList: PropTypes.arrayOf(participantPropTypes),
 
     // The array URLs of the person's avatar
     icon: PropTypes.arrayOf(PropTypes.string),
+
+    // Descriptive text to be displayed besides selection element
+    descriptiveText: PropTypes.string,
 
     // The type of option we have e.g. user or report
     type: PropTypes.string,

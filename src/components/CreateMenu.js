@@ -25,8 +25,34 @@ const propTypes = {
         }),
     ).isRequired,
 
+    // The anchor position of the CreateMenu popover
+    anchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+    }).isRequired,
+
+    // A react-native-animatable animation definition for the modal display animation.
+    animationIn: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
+
+    // A react-native-animatable animation definition for the modal hide animation.
+    animationOut: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
+
     ...windowDimensionsPropTypes,
 };
+
+const defaultProps = {
+    animationIn: 'fadeIn',
+    animationOut: 'fadeOut',
+};
+
 class CreateMenu extends PureComponent {
     constructor(props) {
         super(props);
@@ -53,13 +79,15 @@ class CreateMenu extends PureComponent {
     render() {
         return (
             <Popover
+                anchorPosition={this.props.anchorPosition}
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
                 onModalHide={() => {
                     this.onModalHide();
                     this.resetOnModalHide();
                 }}
-                anchorPosition={styles.createMenuPosition}
+                animationIn={this.props.animationIn}
+                animationOut={this.props.animationOut}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {this.props.menuItems.map(({
@@ -84,5 +112,6 @@ class CreateMenu extends PureComponent {
 }
 
 CreateMenu.propTypes = propTypes;
-CreateMenu.displayName = 'CreateMenu';
+CreateMenu.defaultProps = defaultProps;
+
 export default withWindowDimensions(CreateMenu);
