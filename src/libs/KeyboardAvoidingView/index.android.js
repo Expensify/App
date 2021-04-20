@@ -1,7 +1,7 @@
 import React from 'react';
 import {KeyboardAvoidingView as KeyboardAvoidingViewComponent} from 'react-native';
-import styles from '../../styles/styles';
 import PropTypes from 'prop-types';
+import styles from '../../styles/styles';
 
 function KeyboardAvoidingView({children}) {
     return (
