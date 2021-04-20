@@ -1,7 +1,8 @@
-import React, {PureComponent} from 'react';
+import React from 'react';
 import {
     Text, TouchableOpacity, View,
 } from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 
@@ -17,57 +18,30 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-class BigNumberPad extends PureComponent {
-    /**
-     * Creates set of buttons for given row
-     *
-     * @param {number} row
-     * @returns {View}
-     */
-    createNumberPadRow(row) {
-        const self = this;
-        const numberPadRow = padNumbers[row].map((column, index) => self.createNumberPadButton(row, index));
-        return (
-            <View key={row} style={[styles.flexRow, styles.mt3]}>
-                {numberPadRow}
+const BigNumberPad = ({numberPressed}) => (
+    <View style={[styles.flexColumn, styles.w100]}>
+        {_.map(padNumbers, (row, rowIndex) => (
+            <View key={`NumberPadRow-${rowIndex}`} style={[styles.flexRow, styles.mt3]}>
+                {_.map(row, (column, columnIndex) => {
+                    // Adding margin between buttons except first column to
+                    // avoid unccessary space before the first column.
+                    const marginLeft = columnIndex > 0 ? styles.ml3 : {};
+                    return (
+                        <TouchableOpacity
+                            key={column}
+                            style={[styles.flex1, styles.button, marginLeft]}
+                            onPress={() => numberPressed(column)}
+                        >
+                            <Text style={[styles.buttonText]}>
+                                {column}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
-        );
-    }
-
-    /**
-     * Creates a button for given row and column
-     *
-     * @param {number} row
-     * @param {number} column
-     * @returns {View}
-     */
-    createNumberPadButton(row, column) {
-        // Adding margin between buttons except first column to
-        // avoid unccessary space before the first column.
-        const marginLeft = column > 0 ? styles.ml3 : {};
-        return (
-            <TouchableOpacity
-                key={padNumbers[row][column]}
-                style={[styles.flex1, styles.button, marginLeft]}
-                onPress={() => this.props.numberPressed(padNumbers[row][column])}
-            >
-                <Text style={[styles.buttonText]}>
-                    {padNumbers[row][column]}
-                </Text>
-            </TouchableOpacity>
-        );
-    }
-
-    render() {
-        const self = this;
-        const numberPad = padNumbers.map((row, index) => self.createNumberPadRow(index));
-        return (
-            <View style={[styles.flexColumn, styles.w100]}>
-                {numberPad}
-            </View>
-        );
-    }
-}
+        ))}
+    </View>
+);
 
 BigNumberPad.propTypes = propTypes;
 BigNumberPad.displayName = 'BigNumberPad';
