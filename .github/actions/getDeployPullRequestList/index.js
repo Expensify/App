@@ -48,13 +48,13 @@ getTagsOrReleases(isProductionDeploy)
         const priorTagIndex = _.indexOf(tags, inputTag) + 1;
 
         if (priorTagIndex === 0) {
-            console.log(`No ${itemToFetch} was found for input tag ${inputTag}. 
-                Comparing it to latest ${itemToFetch} ${tags[0]}`);
+            console.log(`No ${itemToFetch} was found for input tag ${inputTag}.`
+                + `Comparing it to latest ${itemToFetch} ${tags[0]}`);
         }
 
         if (priorTagIndex === tags.length) {
             const err = new Error('Somehow, the input tag was at the end of the paginated result, '
-                + "so we don't have the prior tag.");
+                + 'so we don\'t have the prior tag');
             console.error(err.message);
             core.setFailed(err);
             return;
