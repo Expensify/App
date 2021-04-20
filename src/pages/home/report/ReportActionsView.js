@@ -26,6 +26,7 @@ import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
+import Onyx from '../../../../../react-native-onyx';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -41,8 +42,7 @@ const propTypes = {
         // The largest sequenceNumber on this report
         maxSequenceNumber: PropTypes.number,
 
-        // The timestamp of the last message on this report
-        lastMessageTimestamp: PropTypes.number,
+        newMarkerPosition: PropTypes.number,
     }),
 
     // Array of report actions for this report
@@ -76,9 +76,12 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = [];
         this.timers = [];
 
-        this.newMarkerPosition = props.report.unreadActionCount === 0
+        const newMarkerPosition = props.report.unreadActionCount === 0
             ? 0
             : (props.report.maxSequenceNumber + 1) - props.report.unreadActionCount;
+
+        // Set the new marker
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${props.reportID}`, {newMarkerPosition});
 
         this.state = {
             isLoadingMoreChats: false,
@@ -101,15 +104,8 @@ class ReportActionsView extends React.Component {
             this.updateSortedReportActions(nextProps.reportActions);
             return true;
         }
-        if (nextProps.report.unreadActionCount !== this.props.report.unreadActionCount
-            && nextProps.report.lastMessageTimestamp === this.props.report.lastMessageTimestamp
-            && (!lastItem(nextProps.reportActions) || !lastItem(nextProps.reportActions).loading)
-            && nextProps.report.unreadActionCount !== 0) {
-            // We just  want to set the marker if a message has been marked as unread manually. To avoid moving the
-            // marker when new messages come in, we check whether the last action is loading (which would mean the user
-            // just sent a message themself) and if the timestamps match (which would mean they received a message from
-            // other chat participant).
-            this.newMarkerPosition = (nextProps.report.maxSequenceNumber + 1) - nextProps.report.unreadActionCount;
+
+        if (nextProps.report.newMarkerPosition > 0 && nextProps.report.newMarkerPosition !== this.props.report.newMarkerPosition) {
             return true;
         }
 
@@ -278,8 +274,8 @@ class ReportActionsView extends React.Component {
                 reportID={this.props.reportID}
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                shouldDisplayNewIndicator={this.newMarkerPosition > 0
-                    && item.action.sequenceNumber === this.newMarkerPosition}
+                shouldDisplayNewIndicator={this.props.report.newMarkerPosition > 0
+                    && item.action.sequenceNumber === this.props.report.newMarkerPosition}
                 onMarkAsUnread={() => updateLastReadActionID(this.props.reportID,
                     item.action.sequenceNumber - 1)}
             />
