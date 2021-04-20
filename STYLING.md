@@ -4,13 +4,13 @@
 
 All styles must be defined in the `styles.js` file which exists as a globally exported stylesheet of sorts for the application. Unlike some React Native applications we are not using `StyleSheet.create()` and instead store styles as plain JS objects. There are many helper styles available for direct use in components and can be found in the `/styles` directory.
 
-These helper styles are loosely based on the [Bootstrap system of CSS utility helper classes](https://getbootstrap.com/docs/5.0/utilities/spacing/) and are typically incremented by units of 4.
+These helper styles are loosely based on the [Bootstrap system of CSS utility helper classes](https://getbootstrap.com/docs/5.0/utilities/spacing/) and are typically incremented by units of `4`.
 
 **Note:** Not all helpers from Bootstrap exist, so it may be necessary to create the helper style we need.
 
 ## When to Create a New Style
 
-If we need some minimal set of styling rules applied to a component then it's almost always better to use an array of helper styles rather than create an entirely new style if it will only be used once. Resist the urge to create a new style for any new element added to a screen. There is a very good chance the style we are adding is a "single-use" style.
+If we need some minimal set of styling rules applied to a single-use component then it's almost always better to use an array of helper styles rather than create an entirely new style if it will only be used once. Resist the urge to create a new style for every new element added to a screen. There is a very good chance the style we are adding is a "single-use" style.
 
 ```jsx
 // Bad - Since we only use this style once in this component
@@ -33,15 +33,21 @@ const TextWithPadding = props => (
 );
 ```
 
-On the other hand, if we are copying and pasting some chunks of JSX from one place to another then that might be a sign that we need either a new component or a new reusable style.
+On the other hand, if we are copying and pasting some chunks of JSX from one place to another then that might be a sign that we need a new reusable style.
 
 ## Use the "Rule of Three"
 
-Any array of styles associated with a single type of component or element that has at least 3 identical usages should be refactored into either:
+In order to resist the urge to preoptimize and have many single-use components we've adopted a main principle:
 
-- A new component with that same array of helper styles
+Any array of styles associated with a single type of React element that has at least 3 identical usages should be refactored into:
 
-- A new style that is a composite of all helper styles
+- A new resusable style that can be used in many places e.g. `styles.button`
+- If that style has modifiers or style variations then those styles should follow a naming convention of `styles.elementModifer` e.g. `styles.buttonSuccess`
+- If a reusable style has 3 or more modifiers it should be refactored into a component with props to modify the styles e.g.
+
+```jsx
+<Button title="Submit" success large />
+```
 
 ## Inline Styles
 
@@ -86,9 +92,9 @@ const TextWithPadding = props => (
 );
 ```
 
-## Don't Go Style Fishing
+## How to Reuse Styles
 
-There are many styles in the `styles.js` file. It is generally a bad practice to grab style meant for a specific use case and utilize it for some other use case without changing it's name to make it more general. If we think we see a style that might be appropriate for reuse, but does not have a generic name then we should rename it instead of using it directly.
+There are many styles in the `styles.js` file. It is generally a bad practice to grab a style meant for a _specific_ use case and utilize it for some other more _general_ use case without changing it's name to make it more general. If we think we see a style that might be appropriate for reuse, but does not have a generic name then we should **rename it** instead of using it directly.
 
 ```jsx
 // Bad - Reuses style without generalizing style name
