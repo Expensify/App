@@ -1308,7 +1308,6 @@ const baseCodeTagStyles = {
     backgroundColor: themeColors.textBackground,
 };
 
-
 const webViewStyles = {
     // As of react-native-render-html v6, don't declare distinct styles for
     // custom renderers, the API for custom renderers has changed. Declare the
