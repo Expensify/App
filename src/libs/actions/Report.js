@@ -335,13 +335,21 @@ function fetchChatReportsByIDs(chatList) {
  */
 function setLocalLastRead(reportID, sequenceNumber, saveNewMarkerPosition) {
     lastReadSequenceNumbers[reportID] = sequenceNumber;
+    console.log('this got caled');
 
     // Update the report optimistically
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: Math.max(reportMaxSequenceNumbers[reportID] - sequenceNumber, 0),
-        lastVisitedTimestamp: Date.now(),
-        saveNewMarkerPosition: saveNewMarkerPosition ? sequenceNumber : 0,
-    });
+    if (saveNewMarkerPosition) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            unreadActionCount: Math.max(reportMaxSequenceNumbers[reportID] - sequenceNumber, 0),
+            lastVisitedTimestamp: Date.now(),
+            newMarkerPosition: saveNewMarkerPosition ? sequenceNumber : 0,
+        });
+    } else {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            unreadActionCount: Math.max(reportMaxSequenceNumbers[reportID] - sequenceNumber, 0),
+            lastVisitedTimestamp: Date.now(),
+        });
+    }
 }
 
 /**

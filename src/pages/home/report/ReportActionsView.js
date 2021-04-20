@@ -8,7 +8,7 @@ import {
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import {
     fetchActions,
@@ -26,7 +26,6 @@ import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
-import Onyx from '../../../../../react-native-onyx';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -78,7 +77,7 @@ class ReportActionsView extends React.Component {
 
         const newMarkerPosition = props.report.unreadActionCount === 0
             ? 0
-            : (props.report.maxSequenceNumber + 1) - props.report.unreadActionCount;
+            : props.report.maxSequenceNumber - props.report.unreadActionCount;
 
         // Set the new marker
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${props.reportID}`, {newMarkerPosition});
@@ -277,7 +276,7 @@ class ReportActionsView extends React.Component {
                 shouldDisplayNewIndicator={this.props.report.newMarkerPosition > 0
                     && item.action.sequenceNumber === this.props.report.newMarkerPosition}
                 onMarkAsUnread={() => updateLastReadActionID(this.props.reportID,
-                    item.action.sequenceNumber - 1)}
+                    item.action.sequenceNumber)}
             />
         );
     }
