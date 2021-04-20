@@ -11,7 +11,7 @@ const propTypes = {
     height: PropTypes.number.isRequired,
 };
 
-export const ExpensifyCashLogo = (props) => {
+const ExpensifyCashLogo = (props) => {
     if (CONFIG.EXPENSIFY.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION) {
         return <ProductionLogo width={props.width} height={props.height} />;
     }
