@@ -14,6 +14,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import ButtonWithLoader from '../components/ButtonWithLoader';
 import themeColors from '../styles/themes/default';
 import SignInPageLayout from './signin/SignInPageLayout';
+import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     /* Onyx Props */
@@ -95,7 +96,7 @@ class SetPasswordForm extends Component {
                         autoCapitalize="none"
                         placeholder="Phone or Email"
                         placeholderTextColor={themeColors.placeholderText}
-                        autofocus
+                        autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
                 <View>
