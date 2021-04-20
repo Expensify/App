@@ -1311,6 +1311,39 @@ const styles = {
         scrollbarWidth: 'none',
     },
 
+    codeWordWrapper: {
+        height: 10,
+    },
+
+    codeWordStyle: {
+        borderLeftWidth: 0,
+        borderRightWidth: 0,
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+        flexBasis: 'auto',
+        paddingLeft: 0,
+        paddingRight: 0,
+        justifyContent: 'center',
+        marginVertical: -2,
+        top: -1,
+    },
+
+    codeFirstWordStyle: {
+        borderLeftWidth: 1,
+        borderTopLeftRadius: 4,
+        borderBottomLeftRadius: 4,
+        paddingLeft: 5,
+    },
+
+    codeLastWordStyle: {
+        borderRightWidth: 1,
+        borderTopRightRadius: 4,
+        borderBottomRightRadius: 4,
+        paddingRight: 5,
+    },
+
     fullScreenLoading: {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
@@ -1331,8 +1364,6 @@ const styles = {
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
-    marginTop: 4,
-    marginBottom: 4,
     borderColor: themeColors.border,
     backgroundColor: themeColors.textBackground,
 };
@@ -1389,9 +1420,9 @@ const webViewStyles = {
             ...baseCodeTagStyles,
             paddingLeft: 5,
             paddingRight: 5,
-            paddingBottom: 2,
-            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
+            lineHeight: 18,
+            fontSize: 13,
         },
 
         img: {
@@ -1404,6 +1435,7 @@ const webViewStyles = {
     baseFontStyle: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
     },
 };
