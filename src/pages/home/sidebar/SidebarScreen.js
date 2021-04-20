@@ -88,6 +88,9 @@ class SidebarScreen extends Component {
                         <CreateMenu
                             onClose={this.toggleCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
+                            anchorPosition={styles.createMenuPositionSidebar}
+                            animationIn="fadeInLeft"
+                            animationOut="fadeOutLeft"
                             onItemSelected={this.onCreateMenuItemSelected}
                             menuItems={[
                                 {
