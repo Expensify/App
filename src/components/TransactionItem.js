@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text, View} from 'react-native';
-import styles, {webViewStyles} from '../styles/styles';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
+import ReportActionItemIOUPreview from '../components/ReportActionItemIOUPreview';
 
 const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
@@ -17,7 +16,7 @@ const propTypes = {
         comment: PropTypes.string,
 
         // The transaction amount
-        amount: PropTypes.string,
+        amount: PropTypes.number,
     }).isRequired,
 };
 
@@ -28,12 +27,11 @@ const defaultProps = {
 };
 
 const TransactionItem = props => (
-    <View style={[webViewStyles.tagStyles.blockquote]}>
-        <Text style={[styles.chatItemMessage]}>
-            {/* TODO: display preview component! */}
-            {`Requested : ${props.transaction.currency} ${props.transaction.amount} --  ${props.transaction.comment}`}
-        </Text>
-    </View>
+    <ReportActionItemIOUPreview
+            action={props.action}
+            isMostRecentIOUReport={false}// shouldDIsplayPreviewBox
+    />
+
 );
 
 TransactionItem.displayName = 'TransactionItem';

@@ -1327,7 +1327,7 @@ const styles = {
         color: themeColors.heading,
     }, 0),
 
-    iouPreviewBox: {
+    iouPreviewBox: { // TODO: Add margin bottom, remove margin top-- extract outside
         borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusCard,

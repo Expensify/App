@@ -107,7 +107,7 @@ class ReportActionItem extends Component {
         const children = this.props.action.actionName === 'IOU'
             ? (
                 <ReportActionItemIOUPreview
-                    iouReportID={this.props.iouReportID}
+                    iouReportID={this.props.iouReportID}//needed?
                     hasOutstandingIOU={this.props.hasOutstandingIOU}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
