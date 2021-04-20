@@ -801,7 +801,7 @@ function addAction(reportID, text, file) {
  * @param {Number} reportID
  * @param {Object} reportAction
  */
-function deleteReportAction(reportID, reportAction) {
+function deleteReportComment(reportID, reportAction) {
     // Optimistic Response
     const reportActionsToMerge = {};
     const oldMessage = {...reportAction.message};
@@ -948,7 +948,7 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     updateCurrentlyViewedReportID,
-    deleteReportAction,
+    deleteReportComment,
     getSimplifiedIOUReport,
     getSimplifiedReportObject,
 };
