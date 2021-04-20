@@ -40,6 +40,20 @@ const propTypes = {
     iouReport: PropTypes.shape({
         // TODODODODODODODOODODODODODODODODOOD
         chatReportID: PropTypes.number,
+
+        // Manager is the person who currently owes money
+        managerEmail: PropTypes.string,
+
+        transactions: PropTypes.arrayOf(PropTypes.shape({
+            // The transaction currency
+            currency: PropTypes.string,
+
+            // The transaction amount
+            total: PropTypes.number,
+
+            // The transaction comment
+            comment: PropTypes.string,
+        })),
     }),
 
     reportActions: PropTypes.arrayOf(PropTypes.shape(ReportActionPropTypes)),
@@ -90,14 +104,12 @@ class IOUDetailsModal extends Component {
                 />
                 <View
                     pointerEvents="box-none"
-                    style={[
-                        styles.detailsPageContainer, styles.p5
-                    ]}
+                    style={[styles.detailsPageContainer, styles.p5]}
                 >
                     {_.map(this.props.iouReport.transactions, (transaction) => {
                         const actionForTransaction = _.find(this.props.reportActions, (action) => {
                             if (action && action.originalMessage) {
-                                return action.originalMessage.IOUTransactionID == transaction.transactionID;
+                                return action.originalMessage.IOUTransactionID == transaction.transactionID; // TODO
                             }
                             return false;
                         });
@@ -108,14 +120,13 @@ class IOUDetailsModal extends Component {
                             />
                         );
                     })}
-                    {(this.props.iouReport.managerEmail === sessionEmail &&
-                    (
+                    {(this.props.iouReport.managerEmail === sessionEmail && (
                         <ButtonWithLoader
                             text="I'll settle up elsewhere"
                             isLoading={this.state.loading}
                             onClick={this.performIOUSettlement}
-                        />)
-                    )}
+                        />
+                    ))}
                 </View>
             </ScreenWrapper>
         );

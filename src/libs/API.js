@@ -467,13 +467,12 @@ function Graphite_Timer(parameters) {
 }
 
 /**
- * 
  * @param {Object} parameters
  * @param {String} parameters.reportID
  * @param {String} parameters.paymentMethodType
  * @returns {Promise}
  */
- function PayIOU(parameters) {
+function PayIOU(parameters) {
     const commandName = 'PayIOU';
     requireParameters(['reportID', 'paymentMethodType'], parameters, commandName);
     return Network.post(commandName, parameters);

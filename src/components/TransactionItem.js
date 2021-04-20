@@ -5,20 +5,20 @@ import styles, {webViewStyles} from '../styles/styles';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 
 const propTypes = {
-    action: PropTypes.shape(ReportActionPropTypes),
+    action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // Transaction to display
     transaction: PropTypes.shape({
 
-        // The transaction currency 
+        // The transaction currency
         currency: PropTypes.string,
 
-        // The transaction amount 
-        total: PropTypes.number,
-
-        // The transaction comment 
+        // The transaction comment
         comment: PropTypes.string,
-    }),
+
+        // The transaction amount
+        amount: PropTypes.string,
+    }).isRequired,
 };
 
 const defaultProps = {
