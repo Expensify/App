@@ -331,17 +331,17 @@ function fetchChatReportsByIDs(chatList) {
  *
  * @param {Number} reportID
  * @param {Number} sequenceNumber
- * @param {Boolean} saveNewMarkerPosition
+ * @param {Boolean} [saveNewMarkerSequenceNumber]
  */
-function setLocalLastRead(reportID, sequenceNumber, saveNewMarkerPosition) {
+function setLocalLastRead(reportID, sequenceNumber, saveNewMarkerSequenceNumber) {
     lastReadSequenceNumbers[reportID] = sequenceNumber;
 
     // Update the report optimistically
-    if (saveNewMarkerPosition) {
+    if (saveNewMarkerSequenceNumber) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            unreadActionCount: Math.max(reportMaxSequenceNumbers[reportID] - sequenceNumber, 0),
+            unreadActionCount: Math.max(reportMaxSequenceNumbersNotLoading[reportID] - sequenceNumber, 0),
             lastVisitedTimestamp: Date.now(),
-            newMarkerPosition: saveNewMarkerPosition ? sequenceNumber : 0,
+            newMarkerSequenceNumber: sequenceNumber,
         });
     } else {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -823,7 +823,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
-        sequenceNumber: lastReadSequenceNumber,
+        sequenceNumber: lastReadSequenceNumber || 0,
     });
 }
 
@@ -926,6 +926,7 @@ export {
     fetchOrCreateChatReport,
     addAction,
     updateLastReadActionID,
+    setLocalLastRead,
     subscribeToReportCommentEvents,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
