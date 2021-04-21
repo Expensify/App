@@ -128,7 +128,7 @@ describe('actions/Report', () => {
         let reportIsPinned;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
-            callback: val => reportIsPinned = val.isPinned
+            callback: val => reportIsPinned = val.isPinned,
         });
 
         // Set up Onyx with some test user data
