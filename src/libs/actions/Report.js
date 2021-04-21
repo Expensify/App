@@ -681,11 +681,13 @@ function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = fa
             if (shouldRedirectToReport) {
                 // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
                 // one already.
-                if (!lastViewedReportID) {
-                    const firstReportID = _.first(reportIDs);
-                    const currentReportID = firstReportID ? String(firstReportID) : '';
-                    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
+                if (lastViewedReportID) {
+                    return;
                 }
+
+                const firstReportID = _.first(reportIDs);
+                const currentReportID = firstReportID ? String(firstReportID) : '';
+                Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
             }
 
             // Delay fetching report history as it increases sign in to interactive time by ~2X
