@@ -92,7 +92,7 @@ class ReportScreen extends React.Component {
                 />
 
                 {this.shouldShowLoader()
-                    ? <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
+                    ? <FullScreenLoadingIndicator />
                     : <ReportView reportID={this.getReportID()} />}
 
             </ScreenWrapper>
