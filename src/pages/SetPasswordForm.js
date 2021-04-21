@@ -39,6 +39,7 @@ const propTypes = {
 
     route: PropTypes.shape({
         params: PropTypes.shape({
+            accountID: PropTypes.string,
             validateCode: PropTypes.string,
         }),
     }),
