@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+
+import BootSplash from './libs/BootSplash';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
@@ -52,6 +54,9 @@ const propTypes = {
 
     // Whether a new update is available and ready to install.
     updateAvailable: PropTypes.bool,
+
+    // Whether the initial data needed to render the app is ready
+    initialReportDataLoaded: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -60,6 +65,7 @@ const defaultProps = {
         accountID: null,
     },
     updateAvailable: false,
+    initialReportDataLoaded: false,
 };
 
 class Expensify extends PureComponent {
@@ -78,6 +84,12 @@ class Expensify extends PureComponent {
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx()
             .then(() => {
+                // When we don't have an authToken we'll want to show the sign in screen immediately so we'll hide our
+                // boot screen right away
+                if (!this.getAuthToken()) {
+                    BootSplash.hide({fade: true});
+                }
+
                 this.setState({isOnyxMigrated: true});
             });
     }
@@ -88,6 +100,28 @@ class Expensify extends PureComponent {
         if (currentAccountID && (currentAccountID !== previousAccountID)) {
             PushNotification.register(currentAccountID);
         }
+
+        // If we previously had no authToken and now have an authToken we'll want to reshow the boot splash screen so
+        // that we can remove it again once the content is ready
+        const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
+        if (this.getAuthToken() && !previousAuthToken) {
+            BootSplash.show({fade: true});
+        }
+
+        if (this.getAuthToken() && this.props.initialReportDataLoaded) {
+            BootSplash.getVisibilityStatus()
+                .then((value) => {
+                    if (value !== 'visible') {
+                        return;
+                    }
+
+                    BootSplash.hide({fade: true});
+                });
+        }
+    }
+
+    getAuthToken() {
+        return lodashGet(this.props, 'session.authToken', null);
     }
 
     render() {
@@ -97,13 +131,11 @@ class Expensify extends PureComponent {
                 <View style={styles.genericView} />
             );
         }
-
-        const authToken = lodashGet(this.props, 'session.authToken', null);
         return (
             <>
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
                 {this.props.updateAvailable ? <UpdateAppModal /> : null}
-                <NavigationRoot authenticated={Boolean(authToken)} />
+                <NavigationRoot authenticated={Boolean(this.getAuthToken())} />
             </>
         );
     }
@@ -118,5 +150,8 @@ export default withOnyx({
     updateAvailable: {
         key: ONYXKEYS.UPDATE_AVAILABLE,
         initWithStoredValues: false,
+    },
+    initialReportDataLoaded: {
+        key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
     },
 })(Expensify);
