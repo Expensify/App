@@ -38,7 +38,7 @@ function navigate(route = ROUTES.HOME) {
     // If we're navigating to the signIn page, replace the existing route in the stack with the SignIn route so that we
     // don't mistakenly route back to any older routes after the user signs in
     if (route === ROUTES.SIGNIN) {
-        navigationRef.current.dispatch(StackActions.replace(SCREENS.SIGN_IN));
+        navigationRef.current.dispatch(StackActions.replace(SCREENS.HOME));
         return;
     }
 
