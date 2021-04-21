@@ -8,7 +8,7 @@ import CONST from '../CONST';
 const EnvironmentBadge = () => {
     // If we are on production, don't show any badge
     if (CONFIG.EXPENSIFY.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION) {
-        return;
+        return null;
     }
 
     let badgeText = 'DEV';
