@@ -117,6 +117,10 @@ const mainWindow = (() => {
         ? win => win.loadURL(`http://localhost:${port}`)
         : serve({directory: `${__dirname}/../dist`});
 
+    if (isDev) {
+        app.dock.setIcon(`${__dirname}/icon-dev.png`);
+    }
+
     return app.whenReady()
         .then(() => {
             const browserWindow = new BrowserWindow({
