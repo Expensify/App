@@ -42,7 +42,7 @@
     "@react-native-community/netinfo": "^5.9.10",
     "@react-native-community/progress-bar-android": "^1.0.4",
     "@react-native-community/progress-view": "^1.2.3",
-    "@react-native-firebase/analytics": "^11.3.2",
+    "@react-native-firebase/analytics": "^7.6.7",
     "@react-native-firebase/app": "^8.4.5",
     "@react-native-firebase/crashlytics": "^8.4.9",
     "@react-native-picker/picker": "^1.9.11",
