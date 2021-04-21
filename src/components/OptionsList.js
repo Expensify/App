@@ -222,6 +222,7 @@ class OptionsList extends Component {
                     renderItem={this.renderItem}
                     renderSectionHeader={this.renderSectionHeader}
                     extraData={this.props.focusedIndex}
+                    removeClippedSubviews
                 />
             </View>
         );

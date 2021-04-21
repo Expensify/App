@@ -91,9 +91,10 @@ class ReportScreen extends React.Component {
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                 />
 
-                <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
+                {this.shouldShowLoader()
+                    ? <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
+                    : <ReportView reportID={this.getReportID()} />}
 
-                <ReportView reportID={this.getReportID()} />
             </ScreenWrapper>
         );
     }
