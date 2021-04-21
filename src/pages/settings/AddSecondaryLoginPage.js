@@ -1,9 +1,7 @@
 import React, {Component} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {
-    View, TextInput,
-} from 'react-native';
+import {View, TextInput} from 'react-native';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
