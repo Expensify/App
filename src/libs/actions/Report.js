@@ -681,19 +681,19 @@ function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = fa
             if (shouldRedirectToReport) {
                 // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
                 // one already.
-                if (lastViewedReportID) {
-                    return;
+                if (!lastViewedReportID) {
+                    const firstReportID = _.first(reportIDs);
+                    const currentReportID = firstReportID ? String(firstReportID) : '';
+                    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
                 }
-
-                const firstReportID = _.first(reportIDs);
-                const currentReportID = firstReportID ? String(firstReportID) : '';
-                Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
             }
 
             Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
-            _.each(reportIDs, (reportID) => {
-                fetchActions(reportID);
-            });
+            setTimeout(() => {
+                _.each(reportIDs, (reportID) => {
+                    fetchActions(reportID);
+                });
+            }, 5000);
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
