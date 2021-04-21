@@ -38,7 +38,7 @@ const propTypes = {
     }).isRequired,
 
     // Personal details of all the users
-    personalDetails: PropTypes.objectOf({
+    personalDetails: PropTypes.shape({
         // Primary login of participant
         login: PropTypes.string,
 
