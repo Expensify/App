@@ -38,15 +38,13 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
     5. Optional: If you would like to solve the bug or enhancement that you are proposing, please add a comment on your issue with a solution proposal.
     6. Pause on this step until a member of the Expensify team responds on your issue with next steps.
 
-#### Solving Problems
+>**Note:** Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with results that are difficult to measure. We also prefer to identify and solve problems at their root. Given that, please ensure all proposed jobs fix a specific problem in a measurable way with evidence so they are easy to evaluate. Here's an example of a good problem/solution:
+>
+>**Problem:** The app start up time has regressed because we introduced "New Feature" in PR #12345 and is now 1042ms slower because `SomeComponent` is re-rendering 42 times.
+>
+>**Solution:** Start up time will perceptibly decrease by 1042ms if we prevent the unnecessary re-renders of this component.
 
-Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with results that are difficult to measure. We also prefer to identify and solve problems at their root. Given that, please ensure all proposals fix a specific problem in a measurable way with evidence so they are easy to evaluate. Here's an example of a good problem/solution:
-
-**Problem:** The app start up time has regressed because we introduced "New Feature" in PR #12345 and is now 1042ms slower because `SomeComponent` is re-rendering 42 times.
-
-**Solution:** Start up time will perceptibly decrease by 1042ms if we prevent the unnecessary re-renders of this component.
-
-## Working on an Expensify.cash Jobs
+## Working on Expensify.cash Jobs
 *Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/Expensify.cash/blob/main/README.md)*.
 
 #### Express interest for the job on Upwork.com
