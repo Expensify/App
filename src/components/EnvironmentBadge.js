@@ -5,14 +5,12 @@ import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 
 const EnvironmentBadge = () => {
-    const environment = CONFIG.EXPENSIFY.ENVIRONMENT;
-
     // If we are on production, don't show any badge
-    if (environment === CONST.ENVIRONMENT.PRODUCTION) {
+    if (CONFIG.EXPENSIFY.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION) {
         return;
     }
 
-    const badgeText = environment === CONST.ENVIRONMENT.STAGING ? 'STG' : 'DEV';
+    const badgeText = CONFIG.EXPENSIFY.ENVIRONMENT === CONST.ENVIRONMENT.STAGING ? 'STG' : 'DEV';
     return (
         <View
             style={[styles.badge, styles.badgeSuccess, styles.ml2]}
