@@ -17,7 +17,7 @@ const defaultProps = {
     textSize: 'default',
 };
 const Header = props => (
-    <View style={[styles.flex1]}>
+    <View style={[styles.flex1, styles.flexRow]}>
         <Text numberOfLines={2} style={[styles.headerText, props.textSize === 'large' && styles.textLarge]}>
             {props.title}
         </Text>
