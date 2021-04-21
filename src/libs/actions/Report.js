@@ -47,7 +47,7 @@ Onyx.connect({
 const allReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: val => allReports[val.reportID] = val,
+    callback: val => val ? allReports[val.reportID] = val: {},
 });
 
 const typingWatchTimers = {};
@@ -259,38 +259,6 @@ function fetchIOUReportID(debtorEmail) {
 }
 
 /**
- * Given chatReport object, fetches the updated data for an IOU Report if there is an active IOU report
- *
- * @param {Object} chatReport
- * @param {Object[]} chatReport.reportActionList
- * @param {Number} chatReport.reportID
- * @return {Promise}
- */
-function fetchIOUReportDataForChatReport(chatReport) {
-    const reportActionList = chatReport.reportActionList || [];
-    const containsIOUAction = _.any(reportActionList,
-        reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
-
-    // If there aren't any IOU actions, we don't need to fetch any additional data
-    if (!containsIOUAction) {
-        return;
-    }
-
-    // If we don't have one participant (other than the current user), this is not an IOU
-    const participants = getParticipantEmailsFromReport(chatReport);
-    if (participants.length !== 1) {
-        Log.alert('[Report] Report with IOU action has more than 2 participants', true, {
-            reportID: chatReport.reportID,
-            participants,
-        });
-        return;
-    }
-
-    return fetchIOUReportID(participants[0])
-        .then(iouReportID => fetchIOUReport(iouReportID, chatReport.reportID));
-}
-
-/**
  * Fetches chat reports when provided a list of
  * chat report IDs
  *
@@ -309,7 +277,29 @@ function fetchChatReportsByIDs(chatList) {
         .then(({reports}) => {
             Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reports;
-            return Promise.all(_.map(fetchedReports, fetchIOUReportDataForChatReport));
+            return Promise.all(_.map(fetchedReports, (chatReport) => {
+                const reportActionList = chatReport.reportActionList || [];
+                const containsIOUAction = _.any(reportActionList,
+                    reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
+
+                // If there aren't any IOU actions, we don't need to fetch any additional data
+                if (!containsIOUAction) {
+                    return;
+                }
+
+                // If we don't have one participant (other than the current user), this is not an IOU
+                const participants = getParticipantEmailsFromReport(chatReport);
+                if (participants.length !== 1) {
+                    Log.alert('[Report] Report with IOU action has more than 2 participants', true, {
+                        reportID: chatReport.reportID,
+                        participants,
+                    });
+                    return;
+                }
+
+                return fetchIOUReportID(participants[0])
+                    .then(iouReportID => fetchIOUReport(iouReportID, chatReport.reportID));
+            }));
         })
         .then((iouReportObjects) => {
             // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
@@ -349,26 +339,26 @@ function fetchChatReportsByIDs(chatList) {
 }
 
 /**
- * Given IOU and chat report ID fetches most recent IOU data from API and update stored data in Onyx.
+ * Given IOU object and chat report ID save the data to Onyx.
  *
- * @param {Number} iouReportID
+ * @param {Object} iouReportObject
+ * @param {Number} iouReportObject.stateNum
+ * @param {Number} iouReportObject.total
+ * @param {Number} iouReportObject.reportID
  * @param {Number} chatReportID
  */
-function updateIOUReportData(iouReportID, chatReportID) {
-    fetchIOUReport(iouReportID, chatReportID).then((iouReportObject) => {
-        const chatReportObject = {
-            hasOutstandingIOU: iouReportObject.stateNum === 1
-                && iouReportObject.total !== 0,
-            iouReportID,
-        };
-        if (!chatReportObject.hasOutstandingIOU) {
-            chatReportObject.iouReportID = null;
-        }
-        const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-        Onyx.merge(iouReportKey, iouReportObject);
-        Onyx.merge(reportKey, chatReportObject);
-    });
+function setLocalIOUReportData(iouReportObject, chatReportID) {
+    const chatReportObject = {
+        hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
+        iouReportID: iouReportObject.reportID,
+    };
+    if (!chatReportObject.hasOutstandingIOU) {
+        chatReportObject.iouReportID = null;
+    }
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+    Onyx.merge(iouReportKey, iouReportObject);
+    Onyx.merge(reportKey, chatReportObject);
 }
 
 /**
@@ -469,10 +459,12 @@ function updateReportWithNewAction(reportID, reportAction) {
         const chatReport = lodashGet(allReports, reportID);
         const iouReportID = lodashGet(chatReport, 'iouReportID');
         if (iouReportID) {
-            updateIOUReportData(iouReportID, reportID);
+            fetchIOUReport(iouReportID, reportID)
+                .then(iouReportObject => setLocalIOUReportData(iouReportObject, reportID));
         } else if (!chatReport || chatReport.participants.length === 1) {
             fetchIOUReportID(chatReport ? chatReport.participants[0] : reportAction.actorEmail)
-                .then(iouID => updateIOUReportData(iouID, reportID));
+                .then(iouID => fetchIOUReport(iouID, reportID))
+                .then(iouReportObject => setLocalIOUReportData(iouReportObject, reportID));
         }
     }
 

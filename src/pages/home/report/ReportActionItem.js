@@ -31,7 +31,7 @@ const propTypes = {
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     // Whether there is an outstanding amount in IOU
-    hasOutstandingIOU: PropTypes.bool.isRequired,
+    hasOutstandingIOU: PropTypes.bool,
 
     // IOU report ID associated with current report
     iouReportID: PropTypes.number,
@@ -42,6 +42,7 @@ const propTypes = {
 
 const defaultProps = {
     iouReportID: undefined,
+    hasOutstandingIOU: false,
 };
 
 class ReportActionItem extends Component {
