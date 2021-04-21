@@ -47,7 +47,11 @@ Onyx.connect({
 const allReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: val => val ? allReports[val.reportID] = val: {},
+    callback: (val) => {
+        if (val && val.reportID) {
+            allReports[val.reportID] = val;
+        }
+    },
 });
 
 const typingWatchTimers = {};
