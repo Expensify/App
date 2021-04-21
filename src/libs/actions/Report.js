@@ -688,12 +688,13 @@ function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = fa
                 }
             }
 
-            Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
+            // Delay fetching report history as it increases sign in to interactive time by ~2X
             setTimeout(() => {
+                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
                 _.each(reportIDs, (reportID) => {
                     fetchActions(reportID);
                 });
-            }, 5000);
+            }, 8000);
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
