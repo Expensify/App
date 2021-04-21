@@ -10,7 +10,7 @@ import CONST from '../../../CONST';
 import compose from '../../compose';
 import {
     subscribeToReportCommentEvents,
-    fetchAll as fetchAllReports,
+    fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
@@ -116,7 +116,7 @@ class AuthScreens extends React.Component {
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        PersonalDetails.fetch();
+        PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
         fetchAllReports(true, true);
@@ -130,7 +130,7 @@ class AuthScreens extends React.Component {
             if (this.props.network.isOffline) {
                 return;
             }
-            PersonalDetails.fetch();
+            PersonalDetails.fetchPersonalDetails();
             User.getUserDetails();
             User.getBetas();
         }, 1000 * 60 * 30);
