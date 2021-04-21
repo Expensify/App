@@ -315,7 +315,6 @@ function fetchChatReportsByIDs(chatList) {
             // than updating props for each report and re-rendering had merge been used.
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, reportIOUData);
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
-            Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
@@ -580,13 +579,14 @@ function unsubscribeFromReportChannel(reportID) {
  * set of participants and redirect to it.
  *
  * @param {String[]} participants
+ * @returns {Promise}
  */
 function fetchOrCreateChatReport(participants) {
     if (participants.length < 2) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
 
-    API.CreateChatReport({
+    return API.CreateChatReport({
         emailList: participants.join(','),
     })
         .then((data) => {
@@ -600,33 +600,6 @@ function fetchOrCreateChatReport(participants) {
 
             // Redirect the logged in person to the new report
             Navigation.navigate(ROUTES.getReportRoute(reportID));
-        });
-}
-
-/**
- * Get all chat reports and provide the proper report name
- * by fetching sharedReportList and personalDetails
- *
- * @returns {Promise} only used internally when fetchAll() is called
- */
-function fetchChatReports() {
-    return API.Get({
-        returnValueList: 'chatList',
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                return;
-            }
-
-            // Get all the chat reports if they have any, otherwise create one with concierge
-            if (lodashGet(response, 'chatList', []).length) {
-                // The string cast here is necessary as Get rvl='chatList' may return an int
-                fetchChatReportsByIDs(String(response.chatList).split(','));
-            } else {
-                fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
-            }
-
-            return response.chatList;
         });
 }
 
@@ -676,28 +649,50 @@ function fetchActions(reportID, offset) {
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  */
 function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
-    fetchChatReports()
-        .then((reportIDs) => {
-            if (shouldRedirectToReport) {
-                // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
-                // one already.
-                if (lastViewedReportID) {
-                    return;
-                }
+    let reportIDs = [];
 
-                const firstReportID = _.first(reportIDs);
-                const currentReportID = firstReportID ? String(firstReportID) : '';
-                Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
+    API.Get({
+        returnValueList: 'chatList',
+    })
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                return;
             }
 
-            Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
-            _.each(reportIDs, (reportID) => {
-                fetchActions(reportID);
-            });
+            // The string cast here is necessary as Get rvl='chatList' may return an int
+            reportIDs = String(response.chatList).split(',');
+
+            // Get all the chat reports if they have any, otherwise create one with concierge
+            if (reportIDs.length) {
+                return fetchChatReportsByIDs(reportIDs);
+            }
+
+            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
+        })
+        .then(() => {
+            Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
+
+            // Delay fetching report history as it significantly increases sign in to interactive time
+            setTimeout(() => {
+                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
+                _.each(reportIDs, (reportID) => {
+                    fetchActions(reportID);
+                });
+            }, 8000);
+
+            // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
+            // one already.
+            if (!shouldRedirectToReport || lastViewedReportID) {
+                return;
+            }
+
+            const firstReportID = _.first(reportIDs);
+            const currentReportID = firstReportID ? String(firstReportID) : '';
+            Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
         });
 }
 
