@@ -481,20 +481,19 @@ function subscribeToReportCommentAndTogglePinnedEvents() {
         return;
     }
 
-    function onResubscribeToAccountChannel() {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    }
-    function onChannelSubscribeFail(error) {
-        Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
-    }
-
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT, (pushJSON) => {
         Log.info(
             `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
         );
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
-    }, false, onResubscribeToAccountChannel)
-        .catch(onChannelSubscribeFail);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            const eventName = Pusher.TYPE.REPORT_COMMENT;
+            Log.info('[Report] Failed to subscribe to Pusher channel', true, {error, pusherChannelName, eventName});
+        });
 
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_TOGGLE_PINNED, (pushJSON) => {
         Log.info(
@@ -503,8 +502,14 @@ function subscribeToReportCommentAndTogglePinnedEvents() {
             {reportID: pushJSON.reportID},
         );
         updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned);
-    }, false, onResubscribeToAccountChannel)
-        .catch(onChannelSubscribeFail);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            const eventName = Pusher.TYPE.REPORT_TOGGLE_PINNED;
+            Log.info('[Report] Failed to subscribe to Pusher channel', true, {error, pusherChannelName, eventName});
+        });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
         Log.info('[Report] Handled event sent by Airship', true, {reportID});
