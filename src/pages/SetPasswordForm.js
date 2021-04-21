@@ -3,6 +3,7 @@ import {
     Text,
     TextInput,
     View,
+    SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -88,42 +89,44 @@ class SetPasswordForm extends Component {
 
     render() {
         return (
-            <SignInPageLayout>
-                <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>Enter a password:</Text>
-                    <TextInput
-                        style={[styles.textInput]}
-                        value={this.state.password}
-                        secureTextEntry
-                        autoCompleteType="password"
-                        textContentType="password"
-                        onChangeText={text => this.setState({password: text})}
-                        onSubmitEditing={this.validateAndSubmitForm}
-                        autoCapitalize="none"
-                        placeholderTextColor={themeColors.placeholderText}
-                        autoFocus={canFocusInputOnScreenFocus()}
-                    />
-                </View>
-                <View>
-                    <ButtonWithLoader
-                        text="Set Password"
-                        isLoading={this.props.account.loading}
-                        onClick={this.validateAndSubmitForm}
-                    />
-                </View>
+            <SafeAreaView style={[styles.signInPage]}>
+                <SignInPageLayout>
+                    <View style={[styles.mb4]}>
+                        <Text style={[styles.formLabel]}>Enter a password:</Text>
+                        <TextInput
+                            style={[styles.textInput]}
+                            value={this.state.password}
+                            secureTextEntry
+                            autoCompleteType="password"
+                            textContentType="password"
+                            onChangeText={text => this.setState({password: text})}
+                            onSubmitEditing={this.validateAndSubmitForm}
+                            autoCapitalize="none"
+                            placeholderTextColor={themeColors.placeholderText}
+                            autoFocus={canFocusInputOnScreenFocus()}
+                        />
+                    </View>
+                    <View>
+                        <ButtonWithLoader
+                            text="Set Password"
+                            isLoading={this.props.account.loading}
+                            onClick={this.validateAndSubmitForm}
+                        />
+                    </View>
 
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.state.formError}
-                    </Text>
-                )}
+                    {this.state.formError && (
+                        <Text style={[styles.formError]}>
+                            {this.state.formError}
+                        </Text>
+                    )}
 
-                {!_.isEmpty(this.props.account.error) && (
-                    <Text style={[styles.formError]}>
-                        {this.props.account.error}
-                    </Text>
-                )}
-            </SignInPageLayout>
+                    {!_.isEmpty(this.props.account.error) && (
+                        <Text style={[styles.formError]}>
+                            {this.props.account.error}
+                        </Text>
+                    )}
+                </SignInPageLayout>
+            </SafeAreaView>
         );
     }
 }
