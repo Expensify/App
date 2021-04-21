@@ -49,7 +49,7 @@ const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
     + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
-let message = `🚀 [Deployed](${workflowURL}) to ${isProd ? 'production' : 'staging'} in v${version}🚀`;
+let message = `🚀 [Deployed](${workflowURL}) to ${isProd ? 'production' : 'staging'} in version: ${version}🚀`;
 message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
 message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
