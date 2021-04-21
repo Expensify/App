@@ -6,6 +6,7 @@ const prList = JSON.parse(core.getInput('PR_LIST', {required: true}));
 const isProd = JSON.parse(
     core.getInput('IS_PRODUCTION_DEPLOY', {required: true}),
 );
+const version = JSON.parse(core.getInput('VERSION', {required: true}));
 const token = core.getInput('GITHUB_TOKEN', {required: true});
 const octokit = github.getOctokit(token);
 const githubUtils = new GithubUtils(octokit);
@@ -38,7 +39,7 @@ const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
     + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
-let message = `🚀 [Deployed](${workflowURL}) to ${isProd ? 'production' : 'staging'} 🚀`;
+let message = `🚀 [Deployed](${workflowURL}) to ${isProd ? 'production' : 'staging'} in v${version}🚀`;
 message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
 message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
