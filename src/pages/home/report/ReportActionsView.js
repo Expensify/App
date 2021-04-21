@@ -8,11 +8,12 @@ import {
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import {
     fetchActions,
     updateLastReadActionID,
+    setLocalLastRead,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
 } from '../../../libs/actions/Report';
@@ -42,7 +43,7 @@ const propTypes = {
         maxSequenceNumber: PropTypes.number,
 
         // The current position of the new marker
-        newMarkerPosition: PropTypes.number,
+        newMarkerSequenceNumber: PropTypes.number,
     }),
 
     // Array of report actions for this report
@@ -75,12 +76,6 @@ class ReportActionsView extends React.Component {
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
         this.timers = [];
-        const newMarkerPosition = props.report.unreadActionCount === 0
-            ? 0
-            : props.report.maxSequenceNumber - props.report.unreadActionCount;
-
-        // Set the new marker
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${props.reportID}`, {newMarkerPosition});
 
         this.state = {
             isLoadingMoreChats: false,
@@ -93,6 +88,15 @@ class ReportActionsView extends React.Component {
         AppState.addEventListener('change', this.onVisibilityChange);
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+
+        // Since we want the New marker to remain in place even if newer messages come in, we set it in the constructor
+        const newMarkerSequenceNumber = this.props.report.unreadActionCount === 0
+            ? 0
+            : this.props.report.maxSequenceNumber - this.props.report.unreadActionCount;
+
+        // Set the new marker
+        setLocalLastRead(this.props.reportID, newMarkerSequenceNumber, true);
+
         updateLastReadActionID(this.props.reportID);
         fetchActions(this.props.reportID);
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
@@ -104,8 +108,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextProps.report.newMarkerPosition > 0
-            && nextProps.report.newMarkerPosition !== this.props.report.newMarkerPosition) {
+        // If the new marker has changed places (because the user manually marked a comment as Unread), we have to
+        // update the component.
+        if (nextProps.report.newMarkerSequenceNumber > 0
+            && nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
             return true;
         }
 
@@ -274,10 +280,8 @@ class ReportActionsView extends React.Component {
                 reportID={this.props.reportID}
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                shouldDisplayNewIndicator={this.props.report.newMarkerPosition > 0
-                    && item.action.sequenceNumber - 1 === this.props.report.newMarkerPosition}
-                onMarkAsUnread={() => updateLastReadActionID(this.props.reportID,
-                    item.action.sequenceNumber - 1)}
+                shouldDisplayNewIndicator={this.props.report.newMarkerSequenceNumber > 0
+                    && item.action.sequenceNumber - 1 === this.props.report.newMarkerSequenceNumber}
             />
         );
     }

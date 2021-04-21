@@ -7,6 +7,7 @@ import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
+import {updateLastReadActionID} from '../../../libs/actions/Report';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
@@ -26,24 +27,18 @@ const propTypes = {
 
     // Controls the visibility of this component.
     isVisible: PropTypes.bool,
-
-    // Function to trigger when we try to mark a message as unread
-    onMarkAsUnread: PropTypes.func,
 };
 
 const defaultProps = {
     isMini: false,
     isVisible: false,
-    onMarkAsUnread: () => {},
 };
 
 class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
 
-        /**
-         * A list of all the context actions in this menu.
-         */
+        // A list of all the context actions in this menu.
         this.CONTEXT_ACTIONS = [
             // Copy to clipboard
             {
@@ -71,7 +66,6 @@ class ReportActionContextMenu extends React.Component {
                 },
             },
 
-            // Copy chat link
             {
                 text: 'Copy Link',
                 icon: LinkCopy,
@@ -79,15 +73,13 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {},
             },
 
-            // Mark as Unread
             {
                 text: 'Mark as Unread',
                 icon: Mail,
                 shouldShow: true,
-                onPress: props.onMarkAsUnread,
+                onPress: () => updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber -1),
             },
 
-            // Edit Comment
             {
                 text: 'Edit Comment',
                 icon: Pencil,
@@ -95,11 +87,10 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {},
             },
 
-            // Delete Comment
             {
                 text: 'Delete Comment',
                 icon: Trashcan,
-                shouldShow: true,
+                shouldShow: false,
                 onPress: () => {},
             },
         ];
@@ -118,7 +109,7 @@ class ReportActionContextMenu extends React.Component {
                         successText={contextAction.successText}
                         isMini={this.props.isMini}
                         key={contextAction.text}
-                        onPress={() => contextAction.onPress()}
+                        onPress={contextAction.onPress}
                     />
                 ))}
             </View>

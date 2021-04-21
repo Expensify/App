@@ -25,9 +25,6 @@ const propTypes = {
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
 
-    // Function to trigger when mark as unread is selected
-    onMarkAsUnread: PropTypes.func.isRequired,
-
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 };
@@ -110,7 +107,6 @@ class ReportActionItem extends Component {
                                         && !this.state.isPopoverVisible
                                     }
                                     isMini
-                                    onMarkAsUnread={this.props.onMarkAsUnread}
                                 />
                             </View>
                             <PopoverWithMeasuredContent
@@ -131,7 +127,6 @@ class ReportActionItem extends Component {
                                     isVisible
                                     reportID={this.props.reportID}
                                     reportAction={this.props.action}
-                                    onMarkAsUnread={this.props.onMarkAsUnread}
                                 />
                             </PopoverWithMeasuredContent>
                         </View>
