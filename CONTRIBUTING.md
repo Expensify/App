@@ -43,6 +43,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with difficult to measure results. We also prefer to identify and solve problems at their root. Given that, please ensure all proposals fix a specific problem in a measurable way with evidence so they are easy to evaluate. Here's an example:
 
 **Problem:** The app start up time has regressed because we introduced "New Feature" in PR #12345 and is now 1042ms slower because `SomeComponent` is re-rendering 42 times.
+
 **Solution:** Start up time will perceptibly decrease by 1042ms if we prevent the unnecessary re-renders of this component.
 
 ## Working on an Expensify.cash Jobs
