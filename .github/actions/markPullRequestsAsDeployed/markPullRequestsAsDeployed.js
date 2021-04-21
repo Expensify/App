@@ -7,8 +7,6 @@ const isProd = JSON.parse(
     core.getInput('IS_PRODUCTION_DEPLOY', {required: true}),
 );
 const token = core.getInput('GITHUB_TOKEN', {required: true});
-const date = new Date();
-
 const octokit = github.getOctokit(token);
 const githubUtils = new GithubUtils(octokit);
 
@@ -37,12 +35,10 @@ const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: 
 const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
 const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
-const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}
-    /actions/runs/${process.env.GITHUB_RUN_ID}`;
+const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
+    + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
-let message = `🚀 [Deployed](${workflowURL}) 🚀 to 
-    ${isProd ? 'production' : 'staging'} on ${date.toDateString()} at ${date.toTimeString()}`;
-
+let message = `🚀 [Deployed](${workflowURL}) to ${isProd ? 'production' : 'staging'} 🚀`;
 message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
 message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 

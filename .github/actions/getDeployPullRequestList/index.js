@@ -5,7 +5,7 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 4365:
+/***/ 6062:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(4987);
@@ -16,35 +16,60 @@ const GitUtils = __nccwpck_require__(669);
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const inputTag = core.getInput('TAG', {required: true});
 
-console.log('Fetching release list from github...');
-octokit.repos.listReleases({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-})
+const isProductionDeploy = JSON.parse(core.getInput('IS_PRODUCTION_DEPLOY', {required: false}));
+const itemToFetch = isProductionDeploy ? 'release' : 'tag';
+
+/**
+ * Gets either releases or tags for a GitHub repo
+ *
+ * @param {boolean} fetchReleases
+ * @returns {*}
+ */
+function getTagsOrReleases(fetchReleases) {
+    if (fetchReleases) {
+        return octokit.repos.listReleases({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+        });
+    }
+
+    return octokit.repos.listTags({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+    });
+}
+
+console.log(`Fetching ${itemToFetch} list from github...`);
+getTagsOrReleases(isProductionDeploy)
     .catch(githubError => core.setFailed(githubError))
     .then(({data}) => {
-        const tags = _.pluck(data, 'tag_name');
+        const keyToPluck = isProductionDeploy ? 'tag_name' : 'name';
+        const tags = _.pluck(data, keyToPluck);
         const priorTagIndex = _.indexOf(tags, inputTag) + 1;
 
         if (priorTagIndex === 0) {
-            console.log(`No release was found for input tag ${inputTag}. Comparing it to latest release ${tags[0]}`);
+            console.log(`No ${itemToFetch} was found for input tag ${inputTag}.`
+                + `Comparing it to latest ${itemToFetch} ${tags[0]}`);
         }
 
         if (priorTagIndex === tags.length) {
             const err = new Error('Somehow, the input tag was at the end of the paginated result, '
-                                  + "so we don't have the prior tag.");
+                + 'so we don\'t have the prior tag');
             console.error(err.message);
             core.setFailed(err);
             return;
         }
 
         const priorTag = tags[priorTagIndex];
-        console.log(`Given Release Tag: ${inputTag}`);
-        console.log(`Prior Release Tag: ${priorTag}`);
+        console.log(`Given ${itemToFetch}: ${inputTag}`);
+        console.log(`Prior ${itemToFetch}: ${priorTag}`);
 
         return GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
     })
-    .then(pullRequestList => core.setOutput('PR_LIST', pullRequestList))
+    .then((pullRequestList) => {
+        console.log(`Found the pull request list: ${pullRequestList}`);
+        return core.setOutput('PR_LIST', pullRequestList);
+    })
     .catch(error => core.setFailed(error));
 
 
@@ -66,7 +91,7 @@ const exec = promisify(__nccwpck_require__(3129).exec);
 function getPullRequestsMergedBetween(fromRef, toRef) {
     return exec(`git log --format="%s" ${fromRef}...${toRef}`)
         .then(({stdout}) => (
-            [...stdout.matchAll(/Merge pull request #(\d{1,6})/g)]
+            [...stdout.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)]
                 .map(match => match[1])
         ));
 }
@@ -11224,6 +11249,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(4365);
+/******/ 	return __nccwpck_require__(6062);
 /******/ })()
 ;
