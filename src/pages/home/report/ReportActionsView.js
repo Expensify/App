@@ -179,6 +179,10 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
             .filter((action) => {
+                // To filter deleted comments out we need to figure out if the message is empty
+                // (text or html equal to '')
+                // We first get the html and text from the action
+                // then we can check if the action has at least a non empty html or non empty text
                 const message = _.first(lodashGet(action, 'message', null));
                 const html = lodashGet(message, 'html', '');
                 const text = lodashGet(message, 'text', '');
