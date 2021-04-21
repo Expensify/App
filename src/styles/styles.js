@@ -838,6 +838,7 @@ const styles = {
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.iconSizeLarge,
+        textAlign: 'center',
         ...spacing.pv1,
         ...spacing.ph2,
     },
