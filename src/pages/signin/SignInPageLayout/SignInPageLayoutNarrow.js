@@ -59,13 +59,22 @@ const SignInPageLayoutNarrow = props => (
                     {props.shouldShowWelcomeText && <WelcomeText />}
                     <View>
                         <Text style={[styles.textLabel, styles.mt6]}>
-                            View our open jobs on
+                            Expensify.cash is open source. View
+                            {' '}
+                            <Text
+                                style={[styles.link]}
+                                onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
+                            >
+                                the code.
+                            </Text>
+                            {' '}
+                            View
                             {' '}
                             <Text
                                 style={[styles.link]}
                                 onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
                             >
-                                Upwork!
+                                open jobs
                             </Text>
                         </Text>
                     </View>
