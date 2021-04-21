@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     Image,
-    ScrollView, Text, View, SafeAreaView
+    ScrollView, Text, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
@@ -30,41 +30,39 @@ const defaultProps = {
 };
 
 const SignInPageLayoutNarrow = props => (
-    <SafeAreaView>
-        <ScrollView>
-            <View>
-                <View style={[styles.signInPageInnerNative]}>
-                    <View style={[styles.signInPageLogoNative]}>
-                        <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
-                    </View>
-
-                    <View style={[styles.mb6, styles.alignItemsCenter]}>
-                        <Text style={[styles.h1]}>
-                            Expensify.cash
-                        </Text>
-                    </View>
-
-                    <View style={[styles.signInPageFormContainer]}>
-                        {props.children}
-
-                        {props.shouldShowWelcomeScreenshot
-                            && (
-                            <View style={[styles.mt5, styles.mb5]}>
-                                <Image
-                                    resizeMode="contain"
-                                    style={[styles.signinWelcomeScreenshot]}
-                                    source={welcomeScreenshot}
-                                />
-                            </View>
-                            )}
-
-                        {props.shouldShowWelcomeText && <WelcomeText />}
-                    </View>
-                    <TermsAndLicenses />
+    <ScrollView>
+        <View>
+            <View style={[styles.signInPageInnerNative]}>
+                <View style={[styles.signInPageLogoNative]}>
+                    <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
                 </View>
+
+                <View style={[styles.mb6, styles.alignItemsCenter]}>
+                    <Text style={[styles.h1]}>
+                        Expensify.cash
+                    </Text>
+                </View>
+
+                <View style={[styles.signInPageFormContainer]}>
+                    {props.children}
+
+                    {props.shouldShowWelcomeScreenshot
+                        && (
+                        <View style={[styles.mt5, styles.mb5]}>
+                            <Image
+                                resizeMode="contain"
+                                style={[styles.signinWelcomeScreenshot]}
+                                source={welcomeScreenshot}
+                            />
+                        </View>
+                        )}
+
+                    {props.shouldShowWelcomeText && <WelcomeText />}
+                </View>
+                <TermsAndLicenses />
             </View>
-        </ScrollView>
-    </SafeAreaView>
+        </View>
+    </ScrollView>
 );
 
 SignInPageLayoutNarrow.propTypes = propTypes;
