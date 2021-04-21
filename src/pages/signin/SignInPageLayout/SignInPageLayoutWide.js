@@ -58,18 +58,23 @@ const SignInPageLayoutWide = props => (
                     )}
                 <View>
                     <Text style={[styles.textLabel]}>
-                        Enter your GitHub handle on the next page to skip the wait and join our dev-only beta;
+                        Expensify.cash is open source. View
                         {' '}
-                        help build tomorrow and
+                        <Text
+                            style={[styles.link]}
+                            onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
+                        >
+                            the code.
+                        </Text>
+                        {' '}
+                        View
                         {' '}
                         <Text
                             style={[styles.link]}
                             onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
                         >
-                            earn cash
+                            open jobs
                         </Text>
-                        {' '}
-                        today!
                     </Text>
                 </View>
                 <TermsAndLicenses />
