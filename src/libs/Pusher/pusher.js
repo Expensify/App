@@ -277,6 +277,7 @@ function unsubscribe(channelName, eventName = '') {
             but we are not subscribed to begin with`, 0, {channelName});
             return;
         }
+        console.debug('[Pusher] Unsubscribing from channel', true, {channelName});
 
         channel.unbind();
         socket.unsubscribe(channelName);
