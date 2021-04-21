@@ -291,10 +291,13 @@ function fetchChatReportsByIDs(chatList) {
                     return;
                 }
 
-                // If we don't have one participant (other than the current user), this is not an IOU
+                // Group chat reports cannot and should not be associated with a specific IOU report
                 const participants = getParticipantEmailsFromReport(chatReport);
-                if (participants.length !== 1) {
-                    Log.alert('[Report] Report with IOU action has more than 2 participants', true, {
+                if (participants.length > 1) {
+                    return;
+                }
+                if (participants.length === 0) {
+                    Log.alert('[Report] Report with IOU action but does not have any participant.', true, {
                         reportID: chatReport.reportID,
                         participants,
                     });
