@@ -821,7 +821,7 @@ function deleteReportComment(reportID, reportAction) {
     // Try to delete the comment by calling the API
     API.Report_EditComment({
         reportID,
-        reportActionID: reportAction.sequenceNumber,
+        reportActionID: reportAction.reportActionID,
         reportComment: '',
     }).catch(() => {
         // Reverse Optimistic Response
