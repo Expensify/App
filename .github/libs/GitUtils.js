@@ -11,7 +11,7 @@ const exec = promisify(require('child_process').exec);
 function getPullRequestsMergedBetween(fromRef, toRef) {
     return exec(`git log --format="%s" ${fromRef}...${toRef}`)
         .then(({stdout}) => (
-            [...stdout.matchAll(/Merge pull request #(\d{1,6})/g)]
+            [...stdout.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)]
                 .map(match => match[1])
         ));
 }
