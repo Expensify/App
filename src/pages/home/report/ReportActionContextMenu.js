@@ -44,6 +44,23 @@ const defaultProps = {
     session: {},
 };
 
+function copyToClipboard(reportAction) {
+    // If return value is true, we switch the `text` and `icon` on
+    // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
+    // the `text` and `icon`
+    const message = _.last(lodashGet(reportAction, 'message', null));
+    const html = lodashGet(message, 'html', '');
+    const text = lodashGet(message, 'text', '');
+    const isAttachment = _.has(reportAction, 'isAttachment')
+        ? reportAction.isAttachment
+        : isReportMessageAttachment(text);
+    if (!isAttachment) {
+        Clipboard.setString(text);
+    } else {
+        Clipboard.setString(html);
+    }
+}
+
 class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
@@ -52,33 +69,15 @@ class ReportActionContextMenu extends React.Component {
          * A list of all the context actions in this menu.
          */
         this.contextActions = [
-            // Copy to clipboard
             {
                 text: 'Copy to Clipboard',
                 icon: ClipboardIcon,
                 successText: 'Copied!',
                 successIcon: Checkmark,
                 shouldShow: true,
-
-                // If return value is true, we switch the `text` and `icon` on
-                // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
-                // the `text` and `icon`
-                onPress: () => {
-                    const message = _.last(lodashGet(this.props.reportAction, 'message', null));
-                    const html = lodashGet(message, 'html', '');
-                    const text = lodashGet(message, 'text', '');
-                    const isAttachment = _.has(this.props.reportAction, 'isAttachment')
-                        ? this.props.reportAction.isAttachment
-                        : isReportMessageAttachment(text);
-                    if (!isAttachment) {
-                        Clipboard.setString(text);
-                    } else {
-                        Clipboard.setString(html);
-                    }
-                },
+                onPress: () => copyToClipboard(props.reportAction),
             },
 
-            // Copy chat link
             {
                 text: 'Copy Link',
                 icon: LinkCopy,
@@ -86,7 +85,6 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {},
             },
 
-            // Mark as Unread
             {
                 text: 'Mark as Unread',
                 icon: Mail,
@@ -94,7 +92,6 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {},
             },
 
-            // Edit Comment
             {
                 text: 'Edit Comment',
                 icon: Pencil,
@@ -102,11 +99,10 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {},
             },
 
-            // Delete Comment
             {
                 text: 'Delete Comment',
                 icon: Trashcan,
-                shouldShow: this.props.reportAction.actorEmail === this.props.session.email,
+                shouldShow: props.reportAction.actorEmail === props.session.email,
                 onPress: () => deleteReportComment(this.props.reportID, this.props.reportAction),
             },
         ];
@@ -125,7 +121,7 @@ class ReportActionContextMenu extends React.Component {
                         successText={contextAction.successText}
                         isMini={this.props.isMini}
                         key={contextAction.text}
-                        onPress={() => contextAction.onPress()}
+                        onPress={contextAction.onPress}
                     />
                 ))}
             </View>
