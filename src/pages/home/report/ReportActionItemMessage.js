@@ -11,18 +11,22 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 };
 
-const ReportActionItemMessage = ({action}) => (
-    <View style={[styles.chatItemMessage]}>
-        {_.map(_.compact(action.message), (fragment, index) => (
-            <ReportActionItemFragment
-                key={`actionFragment-${action.sequenceNumber}-${index}`}
-                fragment={fragment}
-                isAttachment={action.isAttachment}
-                loading={action.loading}
-            />
-        ))}
-    </View>
-);
+const ReportActionItemMessage = ({action}) => {
+    // reportActionID is only present when the action is saved onto server.
+    const isUnsent = action.loading && !action.reportActionID;
+    return (
+        <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
+            {_.map(_.compact(action.message), (fragment, index) => (
+                <ReportActionItemFragment
+                    key={`actionFragment-${action.sequenceNumber}-${index}`}
+                    fragment={fragment}
+                    isAttachment={action.isAttachment}
+                    loading={action.loading}
+                />
+            ))}
+        </View>
+    );
+};
 
 ReportActionItemMessage.propTypes = propTypes;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';

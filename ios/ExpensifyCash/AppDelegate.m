@@ -6,6 +6,8 @@
 #import <React/RCTRootView.h>
 #import <Firebase.h>
 
+#import "RNBootSplash.h"
+
 #import <UserNotifications/UserNotifications.h>
 
 #ifdef FB_SONARKIT_ENABLED
@@ -54,6 +56,8 @@ static void InitializeFlipper(UIApplication *application) {
   // Define UNUserNotificationCenter
   UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
+
+  [RNBootSplash initWithStoryboard:@"BootSplash" rootView:rootView]; // <- initialization using the storyboard file name
 
   return YES;
 }
