@@ -231,7 +231,6 @@ const styles = {
 
     badge: {
         backgroundColor: themeColors.badgeDefaultBG,
-        borderRadius: 14,
         height: variables.iconSizeNormal,
         flexDirection: 'row',
         paddingHorizontal: 7,
@@ -240,6 +239,10 @@ const styles = {
 
     badgeSuccess: {
         backgroundColor: themeColors.badgeSuccessBG,
+    },
+
+    badgeDanger: {
+        backgroundColor: themeColors.badgeDangerBG,
     },
 
     badgeText: {
