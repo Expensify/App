@@ -20,7 +20,7 @@ else
     exit 1
 fi
 
-cd ios && pod install --repo-update
+cd ios && pod install
 
 DIFF_OUTPUT=$(git diff --exit-code)
 EXIT_CODE=$?
@@ -29,7 +29,7 @@ if [[ EXIT_CODE -eq 0 ]]; then
     echo -e "${GREEN}Podfile is up to date!${NC}"
     exit 0
 else
-    echo -e "${RED}Error: Diff found when pods were rebuilt. Did you forget to run \`pod install\`? Do you need to merge main?${NC}"
+    echo -e "${RED}❗️Error: Diff found when pods were rebuilt. Did you forget to run \`pod install\`? Do you need to merge main?${NC}"
     echo "$DIFF_OUTPUT" | "$LIB_PATH"/diff-so-fancy | less --tabs=4 -RFX
     exit 1
 fi
