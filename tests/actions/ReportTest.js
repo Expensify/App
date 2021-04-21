@@ -4,9 +4,7 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import CONFIG from '../../src/CONFIG';
-import {
-    addAction, togglePinnedState, subscribeToReportCommentAndTogglePinnedEvents
-} from '../../src/libs/actions/Report';
+import {addAction, togglePinnedState, subscribeToUserEvents} from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import PushNotification from '../../src/libs/Notification/PushNotification';
 import {signInWithTestUser, fetchPersonalDetailsForTestUser} from '../utils/TestHelper';
@@ -34,7 +32,7 @@ describe('actions/Report', () => {
 
     afterEach(() => {
         // Unsubscribe from account channel after each test since we subscribe in the function
-        // subscribeToReportCommentAndTogglePinnedEvents and we don't want duplicate event subscriptions.
+        // subscribeToUserEvents and we don't want duplicate event subscriptions.
         Pusher.unsubscribe('private-user-accountID-1');
     });
 
@@ -66,7 +64,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                subscribeToReportCommentAndTogglePinnedEvents();
+                subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
             .then(() => fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
@@ -136,7 +134,7 @@ describe('actions/Report', () => {
         // Set up Onyx with some test user data
         return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                subscribeToReportCommentAndTogglePinnedEvents();
+                subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
             .then(() => {

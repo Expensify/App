@@ -470,7 +470,7 @@ function getReportChannelName(reportID) {
 /**
  * Initialize our pusher subscriptions to listen for new report comments and pin toggles
  */
-function subscribeToReportCommentAndTogglePinnedEvents() {
+function subscribeToUserEvents() {
     // If we don't have the user's accountID yet we can't subscribe so return early
     if (!currentUserAccountID) {
         return;
@@ -931,8 +931,8 @@ export {
     fetchOrCreateChatReport,
     addAction,
     updateLastReadActionID,
-    subscribeToReportCommentAndTogglePinnedEvents,
     subscribeToReportTypingEvents,
+    subscribeToUserEvents,
     unsubscribeFromReportChannel,
     saveReportComment,
     broadcastUserIsTyping,
