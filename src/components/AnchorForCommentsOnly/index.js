@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {StyleSheet, Text} from 'react-native';
 import anchorForCommentsOnlyPropTypes from './anchorForCommentsOnlyPropTypes';
 
 const defaultProps = {
@@ -18,8 +18,9 @@ const AnchorForCommentsOnly = ({
     style,
     ...props
 }) => (
-    <a
+    <Text
         style={StyleSheet.flatten(style)}
+        accessibilityRole="link"
         href={href}
         rel={rel}
         target={target}
@@ -27,7 +28,7 @@ const AnchorForCommentsOnly = ({
         {...props}
     >
         {children}
-    </a>
+    </Text>
 );
 
 AnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes;

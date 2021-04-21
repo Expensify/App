@@ -7,9 +7,12 @@ inputs:
     GITHUB_TOKEN:
         description: "Github token for authentication"
         required: true
+    IS_PRODUCTION_DEPLOY:
+        description: "True if we are deploying to production"
+        required: false
 outputs:
     PR_LIST:
-        description: Array of released pull request numbers
+        description: Array of pull request numbers
 runs:
     using: 'node12'
     main: './index.js'

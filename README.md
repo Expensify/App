@@ -1,6 +1,6 @@
 <div align="center">
     <a href="https://Expensify.cash">
-        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/master/web/favicon.png" width="64" height="64" alt="Expensify.cash Icon">
+        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/main/web/favicon.png" width="64" height="64" alt="Expensify.cash Icon">
     </a>
     <h1>
         <a href="https://Expensify.cash">
@@ -238,7 +238,7 @@ This application is built with the following principles.
 
 # Deploying
 ##  Continuous deployment / GitHub workflows
-Every PR merged into `master` will kick off the **Create a new version** GitHub workflow defined in `.github/workflows/version.yml`.
+Every PR merged into `main` will kick off the **Create a new version** GitHub workflow defined in `.github/workflows/version.yml`.
 It will look at the current version and increment it by one build version (using [`react-native-version`](https://www.npmjs.com/package/react-native-version)), create a PR with that new version, and tag the version.
 
 The PR will be merged automatically by the GitHub workflow **automerge** to keep the version always up to date.

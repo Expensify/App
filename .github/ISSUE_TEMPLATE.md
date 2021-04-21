@@ -1,4 +1,4 @@
-If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/master/CONTRIBUTING.md) for onboarding and email contributors@expensify.com to request to join our Slack channel!
+If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/CONTRIBUTING.md) for onboarding and email contributors@expensify.com to request to join our Slack channel!
 ___
 
 ## Expected Result:
@@ -26,3 +26,5 @@ Where is this issue occurring?
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
 **Notes/Photos/Videos:** Any additional supporting documentation
 **Expensify/Expensify Issue URL:**
+
+[View all open jobs on Upwork](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2)

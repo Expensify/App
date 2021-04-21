@@ -79,10 +79,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
                 width: isSmallScreenWidth ? '100%' : windowWidth - 40,
             };
 
-            // The default swipe direction is swipeDown and by
-            // setting this to undefined we effectively disable the
-            // ability to swipe our modal
-            swipeDirection = undefined;
+            // Allow this modal to be dismissed with a swipe down or swipe right
+            swipeDirection = ['down', 'right'];
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
             shouldAddTopSafeAreaPadding = true;
@@ -100,7 +98,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
                 borderTopLeftRadius: 20,
                 borderTopRightRadius: 20,
                 paddingTop: 12,
-                paddingBottom: 12,
                 justifyContent: 'center',
                 overflow: 'hidden',
             };
@@ -131,8 +128,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
 
             hideBackdrop = true;
             swipeDirection = undefined;
-            animationIn = 'fadeInLeft';
-            animationOut = 'fadeOutLeft';
+            animationIn = 'fadeIn';
+            animationOut = 'fadeOut';
             break;
         case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
             modalStyle = {
