@@ -55,7 +55,7 @@ const propTypes = {
 
         // participants associated with current report
         participants: PropTypes.arrayOf(PropTypes.string),
-    }).isRequired,
+    }),
 
     /* Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -78,6 +78,7 @@ const defaultProps = {
     comment: '',
     modal: {},
     network: {isOffline: false},
+    report: null,
 };
 
 class ReportActionCompose extends React.Component {
@@ -265,6 +266,10 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
+        if (!this.props.report) {
+            return null;
+        }
+
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
 

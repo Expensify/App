@@ -580,13 +580,14 @@ function unsubscribeFromReportChannel(reportID) {
  * set of participants and redirect to it.
  *
  * @param {String[]} participants
+ * @return {Promise}
  */
 function fetchOrCreateChatReport(participants) {
     if (participants.length < 2) {
         throw new Error('fetchOrCreateChatReport() must have at least two participants');
     }
 
-    API.CreateChatReport({
+    return API.CreateChatReport({
         emailList: participants.join(','),
     })
         .then((data) => {
@@ -621,12 +622,10 @@ function fetchChatReports() {
             // Get all the chat reports if they have any, otherwise create one with concierge
             if (lodashGet(response, 'chatList', []).length) {
                 // The string cast here is necessary as Get rvl='chatList' may return an int
-                fetchChatReportsByIDs(String(response.chatList).split(','));
-            } else {
-                fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
+                return fetchChatReportsByIDs(String(response.chatList).split(','));
             }
 
-            return response.chatList;
+            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
         });
 }
 
@@ -674,10 +673,14 @@ function fetchActions(reportID, offset) {
  *
  * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
+ * @returns {Promise}
  */
-function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
-    fetchChatReports()
+function fetchAllReports(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
+    Timing.start(CONST.TIMING.FETCH_ALL_REPORTS);
+    return fetchChatReports()
         .then((reportIDs) => {
+            Timing.end(CONST.TIMING.FETCH_ALL_REPORTS);
+
             if (shouldRedirectToReport) {
                 // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
                 // one already.
@@ -690,10 +693,9 @@ function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = fa
                 Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
             }
 
-            Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
-            _.each(reportIDs, (reportID) => {
-                fetchActions(reportID);
-            });
+            if (lastViewedReportID) {
+                fetchActions(lastViewedReportID);
+            }
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -894,11 +896,11 @@ Onyx.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
-    fetchAll(false);
+    fetchAllReports(false);
 });
 
 export {
-    fetchAll,
+    fetchAllReports,
     fetchActions,
     fetchOrCreateChatReport,
     addAction,

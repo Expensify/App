@@ -61,7 +61,7 @@ function getDisplayName(login, personalDetail) {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
     // so that the option looks cleaner in our UI.
     const userLogin = Str.removeSMSDomain(login);
-    const userDetails = personalDetail || personalDetails[login];
+    const userDetails = personalDetail || (personalDetails && personalDetails[login]);
 
     if (!userDetails) {
         return userLogin;

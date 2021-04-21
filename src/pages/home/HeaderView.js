@@ -43,13 +43,14 @@ const propTypes = {
     }),
 
     // Personal details of all the users
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     report: null,
+    personalDetails: {},
 };
 
 const HeaderView = (props) => {

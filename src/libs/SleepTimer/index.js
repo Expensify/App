@@ -16,6 +16,11 @@ function addClockSkewListener(onClockSkewCallback) {
     clearInterval(sleepTimer);
     sleepTimer = setInterval(() => {
         const currentTime = (new Date()).getTime();
+        if (!lastTime) {
+            lastTime = currentTime;
+            return;
+        }
+
         const isSkewed = currentTime > (lastTime + 8000);
         lastTime = currentTime;
 
