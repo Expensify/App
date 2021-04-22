@@ -111,8 +111,8 @@ const CONST = {
 
     ENVIRONMENT: {
         DEV: 'DEV',
-        STAGING: 'STAGING',
-        PRODUCTION: 'PRODUCTION',
+        STAGING: 'STG',
+        PRODUCTION: 'PROD',
     },
 };
 
