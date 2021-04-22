@@ -103,6 +103,7 @@ class EmojiPickerMenu extends Component {
     highlightEmoji(keyboardEvent) {
         let newIndex = this.state.highlightedIndex;
         const firstNonHeaderIndex = this.getFirstNonHeaderIndex();
+
         switch (keyboardEvent.key) {
             case 'ArrowDown':
                 if (this.state.highlightedIndex + this.numColumns > this.state.filteredEmojis.length - 1) {
@@ -110,10 +111,9 @@ class EmojiPickerMenu extends Component {
                 }
 
                 // skip over a row of headers/spacers if the next row is one
-                newIndex += this.numColumns;
-                if (this.isHeader(this.state.filteredEmojis[newIndex])) {
+                do {
                     newIndex += this.numColumns;
-                }
+                } while (this.isHeader(this.state.filteredEmojis[newIndex]));
                 break;
             case 'ArrowLeft':
                 if (this.state.highlightedIndex - 1 < firstNonHeaderIndex) {
@@ -144,10 +144,9 @@ class EmojiPickerMenu extends Component {
                 }
 
                 // skip over a row of headers/spacers if the next row is one
-                newIndex -= this.numColumns;
-                if (this.isHeader(this.state.filteredEmojis[newIndex])) {
+                do {
                     newIndex -= this.numColumns;
-                }
+                } while (this.isHeader(this.state.filteredEmojis[newIndex]));
                 break;
             default:
                 break;
@@ -212,7 +211,6 @@ class EmojiPickerMenu extends Component {
         }
         if (scrollToOffset !== this.state.currentScrollOffset) {
             this.emojiMenu.scrollToOffset({offset: scrollToOffset, animated: false});
-            this.setState({currentScrollOffset: scrollToOffset});
         }
     }
 
@@ -260,6 +258,7 @@ class EmojiPickerMenu extends Component {
                     style={styles.emojiPickerList}
                     extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
                     stickyHeaderIndices={this.state.headerIndices}
+                    onScroll={e => this.setState({currentScrollOffset: e.nativeEvent.contentOffset.y})}
                 />
             </View>
         );
