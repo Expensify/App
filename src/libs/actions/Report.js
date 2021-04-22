@@ -167,7 +167,7 @@ function getSimplifiedReportObject(report) {
  * @param {String} reportData.ownerEmail
  * @param {String} reportData.managerEmail
  * @param {Number} reportData.reportID
- * @param {Number} chatReportID
+ * @param {Number|String} chatReportID
  * @returns {Object}
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
@@ -185,12 +185,13 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         managerEmail: reportData.managerEmail,
         currency: reportData.currency,
         transactions,
-        chatReportID,
+        chatReportID: Number(chatReportID),
         state: reportData.state,
         cachedTotal: reportData.cachedTotal,
         total: reportData.total,
         status: reportData.status,
         stateNum: reportData.stateNum,
+        hasOutstandingIOU: reportData.stateNum === 1 && reportData.total !== 0,
     };
 }
 

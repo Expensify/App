@@ -172,7 +172,6 @@ class IOUModal extends Component {
         };
 
         console.debug(params);
-
         createIOUTransaction(params);
     }
 
