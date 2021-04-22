@@ -50,7 +50,7 @@ const run = function () {
                 owner: 'Andrew-Test-Org',
                 repo: 'Public-Test-Repo',
                 workflow_id: workflow,
-                ref: '9fea8ca3f90575c1dce163fc348820836cb04e72',
+                ref: 'Rory-TriggerWorkflowAndWait',
                 inputs,
             });
         })
