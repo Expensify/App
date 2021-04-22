@@ -10,6 +10,9 @@ const propTypes = {
 
     // The function to call when an emoji is selected
     onPress: PropTypes.func.isRequired,
+
+    // Whether this menu item is highlighted or not
+    isHighlighted: PropTypes.bool.isRequired,
 };
 
 const EmojiPickerMenuItem = props => (
@@ -18,6 +21,7 @@ const EmojiPickerMenuItem = props => (
         style={({hovered, pressed}) => ([
             styles.emojiItem,
             getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+            props.isHighlighted ? styles.emojiItemHighlighted : {},
         ])}
     >
         <Text style={styles.emojiText}>{props.emoji}</Text>
