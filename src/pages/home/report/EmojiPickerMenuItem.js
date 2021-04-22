@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Pressable, Text} from 'react-native';
 import styles, {getButtonBackgroundColorStyle} from '../../../styles/styles';
 import getButtonState from '../../../libs/getButtonState';
-import CONST from '../../../CONST';
+import Hoverable from '../../../components/Hoverable';
 
 const propTypes = {
     // The unicode that is used to display the emoji
@@ -12,44 +12,38 @@ const propTypes = {
     // The function to call when an emoji is selected
     onPress: PropTypes.func.isRequired,
 
-    // Whether this menu item is highlighted or not
+    // Toggles whether this emoji is highlighted
+    onHover: PropTypes.func.isRequired,
+
+    // Whether this menu item is currently highlighted or not
     isHighlighted: PropTypes.bool.isRequired,
 };
 
 const EmojiPickerMenuItem = (props) => {
-    const {code, header} = props.emoji;
-    if (code === CONST.EMOJI_SPACER) {
-        return null;
-    }
-
-    if (header) {
-        return (
-            <Text style={styles.emojiHeaderStyle}>
-                {code}
-            </Text>
-        );
-    }
     return (
         <Pressable
-            onPress={() => props.onPress(code)}
+            onPress={() => props.onPress(props.emoji)}
             style={({
-                hovered,
                 pressed,
             }) => ([
                 styles.emojiItem,
-                getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+                getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                 props.isHighlighted ? styles.emojiItemHighlighted : {},
             ])}
         >
-            <Text style={styles.emojiText}>{code}</Text>
+            <Hoverable onHoverIn={props.onHover}>
+                <Text style={styles.emojiText}>{props.emoji}</Text>
+            </Hoverable>
         </Pressable>
+
     );
 };
 
 EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 
-// Using React.memo to significantly speed up re-renders of the EmojiPickerMenu's FlatList
+// Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
+// by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
 export default React.memo(
     EmojiPickerMenuItem,
     (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted,

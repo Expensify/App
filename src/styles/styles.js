@@ -851,7 +851,8 @@ const styles = {
     },
 
     emojiItemHighlighted: {
-        backgroundColor: 'blue',
+        transition: '0.2s ease',
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     chatItemEmojiButton: {
