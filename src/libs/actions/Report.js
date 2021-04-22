@@ -270,7 +270,7 @@ function updateIOUReportData(chatReport) {
  * chat report IDs
  *
  * @param {Array} chatList
- * @return {Promise} only used internally when fetchAll() is called
+ * @return {Promise} only used internally when fetchAllReports() is called
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
@@ -647,8 +647,9 @@ function fetchActions(reportID, offset) {
  *
  * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
+ * @param {Number} fetchActionsDelay
  */
-function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
+function fetchAllReports(shouldRedirectToReport = true, shouldRecordHomePageTiming = false, fetchActionsDelay = 0) {
     let reportIDs = [];
 
     API.Get({
@@ -676,13 +677,13 @@ function fetchAll(shouldRedirectToReport = true, shouldRecordHomePageTiming = fa
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
 
-            // Delay fetching report history as it significantly increases sign in to interactive time
-            setTimeout(() => {
+            // Optionally delay fetching report history as it significantly increases sign in to interactive time
+            _.delay(() => {
                 Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
                 _.each(reportIDs, (reportID) => {
                     fetchActions(reportID);
                 });
-            }, 8000);
+            }, fetchActionsDelay);
 
             // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
             // one already.
@@ -889,11 +890,11 @@ Onyx.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
-    fetchAll(false);
+    fetchAllReports(false);
 });
 
 export {
-    fetchAll,
+    fetchAllReports,
     fetchActions,
     fetchOrCreateChatReport,
     addAction,
