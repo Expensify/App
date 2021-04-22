@@ -48,8 +48,8 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
-    const {reportID} = ROUTES.parseReportRouteParams(route);
-    if (reportID) {
+    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
+    if (reportID && !isParticipantsRoute) {
         navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}));
         return;
     }

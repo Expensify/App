@@ -14,8 +14,12 @@ import {CommonActions} from '@react-navigation/native';
  */
 function pushDrawerRoute(screenName, params) {
     return (state) => {
+        if (state.type !== 'drawer') {
+            return CommonActions.navigate(screenName, params);
+        }
+
         const screenRoute = {type: 'route', name: screenName};
-        const history = [...state.history].map(() => screenRoute);
+        const history = [...(state.history || [])].map(() => screenRoute);
         history.push(screenRoute);
         return CommonActions.reset({
             ...state,
