@@ -52,7 +52,7 @@ const run = function () {
     let workflowCompleted = false;
     return githubUtils.getLatestWorkflowRunID(workflow)
         .then((lastWorkflowRunID) => {
-            console.log(`Latest workflow run has ID: ${lastWorkflowRunID}`);
+            console.log(`Latest ${workflow} workflow run has ID: ${lastWorkflowRunID}`);
             previousWorkflowRunID = lastWorkflowRunID;
 
             console.log(`Dispatching workflow: ${workflow}`);
@@ -60,7 +60,7 @@ const run = function () {
                 owner: 'Andrew-Test-Org',
                 repo: 'Public-Test-Repo',
                 workflow_id: workflow,
-                ref: github.context.ref,
+                ref: '9fea8ca3f90575c1dce163fc348820836cb04e72',
                 inputs,
             });
         })
