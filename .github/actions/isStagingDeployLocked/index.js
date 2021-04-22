@@ -355,14 +355,14 @@ class GithubUtils {
      * @returns {Promise}
      */
     getLatestWorkflowRunID(workflow) {
-        console.log(`Fetching Expensify.cash workflow runs for ${workflow}`);
+        console.log(`Fetching Expensify.cash workflow runs for ${workflow}...`);
         return this.octokit.actions.listWorkflowRuns({
             owner: 'Andrew-Test-Org',
             repo: 'Public-Test-Repo',
             workflow_id: workflow,
         })
             .then((response) => {
-                console.log('got response from listWorkflowRuns:', response);
+                console.log('got response from listWorkflowRuns:', JSON.stringify(response.data.workflow_runs));
                 return lodashGet(response, 'data.workflow_runs[0].id');
             });
     }
