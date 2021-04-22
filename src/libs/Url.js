@@ -11,7 +11,7 @@ function addTrailingForwardSlash(url) {
 }
 
 /**
- * Add / to the end of any URL if not present
+ * Add / to the beginning and end of any URL if not present
  * @param {String} url
  * @returns {String}
  */
