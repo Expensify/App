@@ -49,7 +49,6 @@ class EmojiPickerMenu extends Component {
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightEmoji = this.highlightEmoji.bind(this);
-        this.isHeader = this.isHeader.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
         this.renderItem = this.renderItem.bind(this);
 
@@ -71,7 +70,13 @@ class EmojiPickerMenu extends Component {
         }
 
         if (document) {
-            document.addEventListener('keydown', this.highlightEmoji);
+            document.addEventListener('keydown', (e) => {
+                if (e.key.startsWith('Arrow')) {
+                    this.highlightEmoji(e);
+                } else if (e.key === 'Enter') {
+                    this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
+                }
+            });
         }
     }
 
