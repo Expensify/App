@@ -15,6 +15,7 @@ import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
 import positioning from './utilities/positioning';
+import codeStyles from './codeStyles';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -1312,22 +1313,11 @@ const styles = {
     },
 
     codeWordWrapper: {
-        height: 10,
+        ...codeStyles.codeWordWrapper,
     },
 
     codeWordStyle: {
-        borderLeftWidth: 0,
-        borderRightWidth: 0,
-        borderTopLeftRadius: 0,
-        borderBottomLeftRadius: 0,
-        borderTopRightRadius: 0,
-        borderBottomRightRadius: 0,
-        flexBasis: 'auto',
-        paddingLeft: 0,
-        paddingRight: 0,
-        justifyContent: 'center',
-        marginVertical: -2,
-        top: -1,
+        ...codeStyles.codeWordStyle,
     },
 
     codeFirstWordStyle: {
@@ -1418,10 +1408,10 @@ const webViewStyles = {
 
         code: {
             ...baseCodeTagStyles,
+            ...codeStyles.codeBlock,
             paddingLeft: 5,
             paddingRight: 5,
             fontFamily: fontFamily.MONOSPACE,
-            lineHeight: 18,
             fontSize: 13,
         },
 
