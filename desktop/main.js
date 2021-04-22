@@ -117,8 +117,10 @@ const mainWindow = (() => {
         ? win => win.loadURL(`http://localhost:${port}`)
         : serve({directory: `${__dirname}/../dist`});
 
+    // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (isDev) {
         app.dock.setIcon(`${__dirname}/icon-dev.png`);
+        app.setName('Expensify.cash');
     }
 
     return app.whenReady()
@@ -133,6 +135,11 @@ const mainWindow = (() => {
                 },
                 titleBarStyle: 'hidden',
             });
+
+            // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
+            if (isDev) {
+                browserWindow.setTitle('Expensify.cash');
+            }
 
             // List the Expensify Chat instance under the Window menu, even when it's hidden
             const systemMenu = Menu.getApplicationMenu();
