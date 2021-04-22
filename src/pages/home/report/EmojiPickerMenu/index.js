@@ -136,15 +136,15 @@ class EmojiPickerMenu extends Component {
 
         // Calculate the scroll offset at the bottom of the currently highlighted emoji (add 1 to include the current row)
         const numEmojiRowsScrolled = (Math.floor(this.state.highlightedIndex / this.numColumns) - numHeadersScrolled) + 1;
-        const offsetAtEmojiBottom = ((numHeadersScrolled) * 38) + (numEmojiRowsScrolled * 40);
-        const offsetAtEmojiTop = offsetAtEmojiBottom - 40;
+        const offsetAtEmojiBottom = ((numHeadersScrolled) * CONST.EMOJI_PICKER_HEADER_HEIGHT) + (numEmojiRowsScrolled * CONST.EMOJI_PICKER_ITEM_HEIGHT);
+        const offsetAtEmojiTop = offsetAtEmojiBottom - CONST.EMOJI_PICKER_ITEM_HEIGHT;
         let scrollToOffset = this.state.currentScrollOffset;
 
         // Scroll to fit the entire highlighted emoji into the window
-        if (offsetAtEmojiBottom - this.state.currentScrollOffset >= 300) {
-            scrollToOffset = offsetAtEmojiBottom - 300;
-        } else if (offsetAtEmojiTop - 40 <= this.state.currentScrollOffset) {
-            scrollToOffset = offsetAtEmojiTop - 40;
+        if (offsetAtEmojiBottom - this.state.currentScrollOffset >= CONST.EMOJI_PICKER_MENU_HEIGHT) {
+            scrollToOffset = offsetAtEmojiBottom - CONST.EMOJI_PICKER_MENU_HEIGHT;
+        } else if (offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT <= this.state.currentScrollOffset) {
+            scrollToOffset = offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT;
         }
         if (scrollToOffset !== this.state.currentScrollOffset) {
             this.emojiMenu.scrollToOffset({offset: scrollToOffset, animated: false});
