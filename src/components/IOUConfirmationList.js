@@ -208,7 +208,7 @@ class IOUConfirmationList extends Component {
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         disableFocusOptions
-                        selectedOptions={this.props.hasMultipleParticipants && this.getAllOptionsAsSelected()}
+                        selectedOptions={this.props.hasMultipleParticipants ? this.getAllOptionsAsSelected() : []}
                     />
                     <View>
                         <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
