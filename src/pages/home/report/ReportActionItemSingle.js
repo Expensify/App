@@ -19,9 +19,12 @@ const propTypes = {
 
     // All of the personalDetails
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+
+    // Is the network currently offline or not
+    isOffline: PropTypes.bool.isRequired,
 };
 
-const ReportActionItemSingle = ({action, personalDetails}) => {
+const ReportActionItemSingle = ({action, personalDetails, isOffline}) => {
     const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
@@ -52,7 +55,7 @@ const ReportActionItemSingle = ({action, personalDetails}) => {
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
-                <ReportActionItemMessage action={action} />
+                <ReportActionItemMessage action={action} isOffline={isOffline} />
             </View>
         </View>
     );
