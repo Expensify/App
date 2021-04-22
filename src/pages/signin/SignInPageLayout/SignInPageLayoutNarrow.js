@@ -9,12 +9,9 @@ import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
-import {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import WelcomeText from '../../../components/WelcomeText';
 
 const propTypes = {
-
-    ...windowDimensionsPropTypes,
 
     // The children to show inside the layout
     children: PropTypes.node.isRequired,
