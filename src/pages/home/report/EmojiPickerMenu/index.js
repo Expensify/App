@@ -146,7 +146,10 @@ class EmojiPickerMenu extends Component {
 
         switch (arrowKey) {
             case 'ArrowDown':
-                move(this.numColumns, () => this.state.highlightedIndex + this.numColumns > this.state.filteredEmojis.length - 1);
+                move(
+                    this.numColumns,
+                    () => this.state.highlightedIndex + this.numColumns > this.state.filteredEmojis.length - 1,
+                );
                 break;
             case 'ArrowLeft':
                 move(-1, () => this.state.highlightedIndex - 1 < firstNonHeaderIndex);
@@ -184,7 +187,8 @@ class EmojiPickerMenu extends Component {
         const numEmojiRows = (Math.floor(this.state.highlightedIndex / this.numColumns) - numHeaders) + 1;
 
         // The scroll offsets at the top and bottom of the highlighted emoji
-        const offsetAtEmojiBottom = ((numHeaders) * CONST.EMOJI_PICKER_HEADER_HEIGHT) + (numEmojiRows * CONST.EMOJI_PICKER_ITEM_HEIGHT);
+        const offsetAtEmojiBottom = ((numHeaders) * CONST.EMOJI_PICKER_HEADER_HEIGHT)
+            + (numEmojiRows * CONST.EMOJI_PICKER_ITEM_HEIGHT);
         const offsetAtEmojiTop = offsetAtEmojiBottom - CONST.EMOJI_PICKER_ITEM_HEIGHT;
 
         // Scroll to fit the entire highlighted emoji into the window
