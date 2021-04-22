@@ -44,25 +44,6 @@ const defaultProps = {
     session: {},
 };
 
-/**
- * Copies the message text, or html if it's an attachment, to the the clipboard
- *
- * @param {Object} reportAction
- */
-function copyToClipboard(reportAction) {
-    const message = _.last(lodashGet(reportAction, 'message', null));
-    const html = lodashGet(message, 'html', '');
-    const text = lodashGet(message, 'text', '');
-    const isAttachment = _.has(reportAction, 'isAttachment')
-        ? reportAction.isAttachment
-        : isReportMessageAttachment(text);
-    if (!isAttachment) {
-        Clipboard.setString(text);
-    } else {
-        Clipboard.setString(html);
-    }
-}
-
 // A list of all the context actions in this menu.
 const contextActions = [
     {
@@ -71,7 +52,19 @@ const contextActions = [
         successText: 'Copied!',
         successIcon: Checkmark,
         shouldShow: true,
-        onPress: (props) => { copyToClipboard(props.reportAction); },
+        onPress: (reportAction) => {
+            const message = _.last(lodashGet(reportAction, 'message', null));
+            const html = lodashGet(message, 'html', '');
+            const text = lodashGet(message, 'text', '');
+            const isAttachment = _.has(reportAction, 'isAttachment')
+                ? reportAction.isAttachment
+                : isReportMessageAttachment(text);
+            if (!isAttachment) {
+                Clipboard.setString(text);
+            } else {
+                Clipboard.setString(html);
+            }
+        },
     },
 
     {
@@ -99,7 +92,7 @@ const contextActions = [
         text: 'Delete Comment',
         icon: Trashcan,
         shouldShow: props => props.reportAction.actorEmail === props.session.email,
-        onPress: (props) => { deleteReportComment(props.reportID, props.reportAction); },
+        onPress: (reportAction, reportID) => { deleteReportComment(reportID, reportAction); },
     },
 ];
 
@@ -121,7 +114,7 @@ class ReportActionContextMenu extends React.Component {
                         successText={contextAction.successText}
                         isMini={this.props.isMini}
                         key={contextAction.text}
-                        onPress={() => contextAction.onPress(this.props)}
+                        onPress={() => contextAction.onPress(this.props.reportAction, this.props.reportID)}
                     />
                 ))}
             </View>
