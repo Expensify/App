@@ -72,7 +72,7 @@ class EmojiPickerMenu extends Component {
         if (document) {
             document.addEventListener('keydown', (e) => {
                 if (e.key.startsWith('Arrow')) {
-                    this.highlightEmoji(e);
+                    this.highlightEmoji(e.key);
                 } else if (e.key === 'Enter') {
                     this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
                 }
@@ -82,10 +82,9 @@ class EmojiPickerMenu extends Component {
 
     /**
      * Selects the appropriate emoji depending on the arrowKey
-     * @param {Object} keyboardEvent
-     * @param {String} keyboardEvent.key
+     * @param {String} arrowKey
      */
-    highlightEmoji(keyboardEvent) {
+    highlightEmoji(arrowKey) {
         let newIndex = this.state.highlightedIndex;
         const firstNonHeaderIndex = this.state.filteredEmojis.length === emojis.length ? 8 : 0;
 
@@ -99,7 +98,7 @@ class EmojiPickerMenu extends Component {
             } while (isHeader(this.state.filteredEmojis[newIndex]));
         };
 
-        switch (keyboardEvent.key) {
+        switch (arrowKey) {
             case 'ArrowDown':
                 move(this.numColumns, () => this.state.highlightedIndex + this.numColumns > this.state.filteredEmojis.length - 1);
                 break;
