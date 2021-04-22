@@ -79,14 +79,14 @@ const run = function () {
                     console.log(
                         'Should we continue in the while loop?',
                         `hasNewWorkflowStarted: ${hasNewWorkflowStarted}`,
-                        waitTimer
+                        waitTimer,
                     );
                     return !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT;
                 },
                 _.throttle(
                     () => {
                         console.log(`\n🤚 Waiting for a new ${workflow} workflow run to begin...`);
-                        githubUtils.getLatestWorkflowRunID(workflow)
+                        return githubUtils.getLatestWorkflowRunID(workflow)
                             .then((lastWorkflowRunID) => {
                                 newWorkflowRunID = lastWorkflowRunID;
                                 hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
@@ -123,7 +123,7 @@ const run = function () {
             _.throttle(
                 () => {
                     console.log(`⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
-                    octokit.actions.getWorkflowRun({
+                    return octokit.actions.getWorkflowRun({
                         owner: 'Andrew-Test-Org',
                         repo: 'Public-Test-Repo',
                         run_id: newWorkflowRunID,
