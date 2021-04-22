@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, FlatList, Text} from 'react-native';
+import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
