@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import Num from 'expensify-common/lib/Num';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import borders from '../styles/utilities/borders';
 
 const propTypes = {
     // IOU Report data object
@@ -23,7 +22,7 @@ const defaultProps = {
 
 const IOUBadge = props => (
     <View
-        style={[styles.badge, borders.brLarge, styles.badgeSuccess, styles.ml2]}
+        style={[styles.badge, styles.badgeSuccess, styles.ml2]}
     >
         <Text
             style={styles.badgeText}
