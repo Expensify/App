@@ -75,7 +75,14 @@ const run = function () {
         .then(() => {
             let waitTimer = -POLL_RATE;
             return promiseWhile(
-                () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
+                () => {
+                    console.log(
+                        'Should we continue in the while loop?',
+                        `hasNewWorkflowStarted: ${hasNewWorkflowStarted}`,
+                        waitTimer
+                    );
+                    return !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT;
+                },
                 _.throttle(
                     () => {
                         console.log(`\n🤚 Waiting for a new ${workflow} workflow run to begin...`);
@@ -83,6 +90,8 @@ const run = function () {
                             .then((lastWorkflowRunID) => {
                                 newWorkflowRunID = lastWorkflowRunID;
                                 hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
+
+                                console.log(`Setting hasNewWorkflowStarted to ${hasNewWorkflowStarted}`);
 
                                 if (!hasNewWorkflowStarted) {
                                     waitTimer += POLL_RATE;
