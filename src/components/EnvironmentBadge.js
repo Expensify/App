@@ -10,22 +10,16 @@ const EnvironmentBadge = () => {
         return null;
     }
 
-    let badgeText = 'DEV';
-    let style = styles.badgeDanger;
+    const badgeText = CONFIG.EXPENSIFY.ENVIRONMENT;
+    let backgroundColorStyle = styles.badgeDanger;
 
     if (CONFIG.EXPENSIFY.ENVIRONMENT === CONST.ENVIRONMENT.STAGING) {
-        badgeText = 'STG';
-        style = styles.badgeSuccess;
+        backgroundColorStyle = styles.badgeSuccess;
     }
 
     return (
-        <View
-            style={[styles.badge, style, styles.ml2]}
-        >
-            <Text
-                style={styles.badgeText}
-                numberOfLines={1}
-            >
+        <View style={[styles.badge, backgroundColorStyle, styles.ml2]}>
+            <Text style={styles.badgeText}>
                 {badgeText}
             </Text>
         </View>
