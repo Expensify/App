@@ -1,7 +1,6 @@
 import React from 'react';
 import {Text, View} from 'react-native';
 import styles from '../styles/styles';
-import borders from '../styles/utilities/borders';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 
@@ -21,7 +20,7 @@ const EnvironmentBadge = () => {
 
     return (
         <View
-            style={[styles.badge, borders.brSmall, style, styles.ml2]}
+            style={[styles.badge, style, styles.ml2]}
         >
             <Text
                 style={styles.badgeText}
