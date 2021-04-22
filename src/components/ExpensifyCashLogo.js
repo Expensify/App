@@ -12,15 +12,14 @@ const propTypes = {
 };
 
 const ExpensifyCashLogo = (props) => {
-    if (CONFIG.EXPENSIFY.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION) {
-        return <ProductionLogo width={props.width} height={props.height} />;
+    switch (CONFIG.EXPENSIFY.ENVIRONMENT) {
+        case CONST.ENVIRONMENT.PRODUCTION:
+            return <ProductionLogo width={props.width} height={props.height} />;
+        case CONST.ENVIRONMENT.STAGING:
+            return <StagingLogo width={props.width} height={props.height} />;
+        default:
+            return <DevLogo width={props.width} height={props.height} />;
     }
-
-    if (CONFIG.EXPENSIFY.ENVIRONMENT === CONST.ENVIRONMENT.STAGING) {
-        return <StagingLogo width={props.width} height={props.height} />;
-    }
-
-    return <DevLogo width={props.width} height={props.height} />;
 };
 
 ExpensifyCashLogo.propTypes = propTypes;
