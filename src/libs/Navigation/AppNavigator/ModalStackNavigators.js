@@ -29,6 +29,7 @@ const IOUBillModalStack = createStackNavigator();
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
     headerShown: false,
+    cardOverlayEnabled: true,
 };
 
 const IOUBillStackNavigator = () => (
