@@ -74,8 +74,6 @@ const run = function () {
                                 newWorkflowRunID = lastWorkflowRunID;
                                 hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
 
-                                console.log(`Setting hasNewWorkflowStarted to ${hasNewWorkflowStarted}`);
-
                                 if (!hasNewWorkflowStarted) {
                                     waitTimer += POLL_RATE;
                                     if (waitTimer < NEW_WORKFLOW_TIMEOUT) {
@@ -88,6 +86,8 @@ const run = function () {
                                         core.setFailed(err);
                                         process.exit(1);
                                     }
+                                } else {
+                                    console.log(`\nNew ${workflow} run with ID ${newWorkflowRunID} has started 🚀`);
                                 }
                             })
                             .catch((err) => {
@@ -104,7 +104,7 @@ const run = function () {
             () => !workflowCompleted,
             _.throttle(
                 () => {
-                    console.log(`⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
+                    console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
                     return octokit.actions.getWorkflowRun({
                         owner: 'Andrew-Test-Org',
                         repo: 'Public-Test-Repo',
@@ -114,7 +114,7 @@ const run = function () {
                             workflowCompleted = data.status === 'completed' && data.conclusion !== null;
                             if (workflowCompleted) {
                                 if (data.conclusion === 'success') {
-                                    console.log(`🎉 ${workflow} run ${newWorkflowRunID} completed successfully! 🎉`);
+                                    console.log(`\n🎉 ${workflow} run ${newWorkflowRunID} completed successfully! 🎉`);
                                 } else {
                                     // eslint-disable-next-line max-len
                                     const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunID} finished with conclusion ${data.conclusion}`);
