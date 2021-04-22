@@ -53,58 +53,39 @@ function getIOUReportsForNewTransaction(reportIds) {
 
 /**
  * Creates IOUSplit Transaction
- * @param {Object} parameters
- * @param {String} parameters.amount
- * @param {String} parameters.comment
- * @param {String} parameters.currency
- * @param {String} parameters.debtorEmail
+ * @param {Object} params
+ * @param {String} params.amount
+ * @param {String} params.comment
+ * @param {String} params.currency
+ * @param {String} params.debtorEmail
  */
-function createIOUTransaction({
-    comment, amount, currency, debtorEmail,
-}) {
+function createIOUTransaction(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
-    API.CreateIOUTransaction({
-        comment,
-        amount,
-        currency,
-        debtorEmail,
-    })
+    API.CreateIOUTransaction(params)
         .then(data => data.reportID)
         .then(reportID => getIOUReportsForNewTransaction([reportID]));
 }
 
 /**
  * Creates IOUSplit Transaction
- * @param {Object} parameters
- * @param {Array} parameters.splits
- * @param {String} parameters.comment
- * @param {String} parameters.amount
- * @param {String} parameters.currency
+ * @param {Object} params
+ * @param {Array} params.splits
+ * @param {String} params.comment
+ * @param {String} params.amount
+ * @param {String} params.currency
  */
-function createIOUSplit({
-    comment,
-    amount,
-    currency,
-    splits,
-}) {
+function createIOUSplit(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 
     API.CreateChatReport({
-        emailList: splits.map(participant => participant.email).join(','),
+        emailList: params.splits.map(participant => participant.email).join(','),
     })
-        .then((data) => {
-            console.debug(data);
-            return data.reportID;
-        })
-        .then(reportID => API.CreateIOUSplit({
-            splits: JSON.stringify(splits),
-            currency,
-            amount,
-            comment,
-            reportID,
+        .then(data => API.CreateIOUSplit({
+            ...params,
+            splits: JSON.stringify(params.splits),
+            reportID: data.data,
         }))
-        .then(data => data.reportIDList)
-        .then(reportIDList => getIOUReportsForNewTransaction(reportIDList));
+        .then(data => getIOUReportsForNewTransaction(data.reportIDList));
 }
 
 export {
