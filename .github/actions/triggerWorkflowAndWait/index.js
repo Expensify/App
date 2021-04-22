@@ -38,6 +38,7 @@ const run = function () {
         const err = new Error('Inputs to the workflow_dispatch event cannot have more than 10 keys, or GitHub will 🤮');
         console.error(err.message);
         core.setFailed(err);
+        process.exit(1);
     }
 
     // GitHub's createWorkflowDispatch returns a 204 No Content, so we need to:
@@ -67,6 +68,7 @@ const run = function () {
         .catch((err) => {
             console.error(`Failed to dispatch workflow ${workflow}`, err);
             core.setFailed(err);
+            process.exit(1);
         })
 
         // Wait for the new workflow to start
@@ -93,6 +95,7 @@ const run = function () {
                                 const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT} seconds, the ${workflow} workflow did not start.`);
                                 console.error(err);
                                 core.setFailed(err);
+                                process.exit(1);
                             }
                         }
                     },
@@ -122,6 +125,7 @@ const run = function () {
                                     const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunID} finished with conclusion ${data.conclusion}`);
                                     console.error(err.message);
                                     core.setFailed(err);
+                                    process.exit(1);
                                 }
                             }
                         });
@@ -460,8 +464,8 @@ class GithubUtils {
     getLatestWorkflowRunID(workflow) {
         console.log(`Fetching Expensify.cash workflow runs for ${workflow}`);
         return this.octokit.actions.listWorkflowRuns({
-            owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
+            owner: 'Andrew-Test-Org',
+            repo: 'Public-Test-Repo',
             workflow_id: workflow,
         })
             .then(response => lodashGet(response, 'data.workflow_runs[0].id'));
