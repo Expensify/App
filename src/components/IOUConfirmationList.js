@@ -135,6 +135,12 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getSplits() {
+        // There can only be splits when there are multiple participants, so return early when there are not
+        // multiple participants
+        if (!this.props.hasMultipleParticipants) {
+            return [];
+        }
+
         const splits = this.props.participants.map(participant => ({
             email: participant.login,
 
@@ -229,13 +235,7 @@ class IOUConfirmationList extends Component {
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
                         text={this.props.hasMultipleParticipants ? 'Split' : `Request $${this.props.iouAmount}`}
-                        onClick={() => {
-                            if (this.props.hasMultipleParticipants) {
-                                this.props.onConfirm({splits: this.getSplits()});
-                            } else {
-                                this.props.onConfirm({});
-                            }
-                        }}
+                        onClick={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
             </View>
