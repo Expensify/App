@@ -8,10 +8,20 @@ import themeColors from '../../../../styles/themes/default';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 
 const propTypes = {
     // Function to add the selected emoji to the main compose text input
     onEmojiSelected: PropTypes.func.isRequired,
+
+    // The ref to the search input (may be null on small screen widths)
+    forwardedRef: PropTypes.func,
+
+    ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    forwardedRef: () => {},
 };
 
 class EmojiPickerMenu extends Component {
@@ -32,7 +42,7 @@ class EmojiPickerMenu extends Component {
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index
         // If more emojis are ever added to emojis.js this will need to be updated or things will break
-        this.unfilteredHeaderIndices = [0, 34, 60, 88, 99, 121, 148];
+        this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.renderItem = this.renderItem.bind(this);
@@ -41,6 +51,16 @@ class EmojiPickerMenu extends Component {
             filteredEmojis: emojis,
             headerIndices: this.unfilteredHeaderIndices,
         };
+    }
+
+    componentDidMount() {
+        // This callback prop is used by the parent component using the constructor to
+        // get a ref to the inner textInput element e.g. if we do
+        // <constructor ref={el => this.textInput = el} /> this will not
+        // return a ref to the component, but rather the HTML element by default
+        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+            this.props.forwardedRef(this.searchInput);
+        }
     }
 
     /**
@@ -98,17 +118,19 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             <View style={styles.emojiPickerContainer}>
-                <View style={[styles.pt4, styles.ph4, styles.pb1]}>
-                    <TextInputFocusable
-                        textAlignVertical="top"
-                        placeholder="Search"
-                        placeholderTextColor={themeColors.textSupporting}
-                        onChangeText={this.filterEmojis}
-                        style={styles.textInput}
-                        defaultValue=""
-                        ref={el => this.searchInput = el}
-                    />
-                </View>
+                {!this.props.isSmallScreenWidth && (
+                    <View style={[styles.pt4, styles.ph4, styles.pb1]}>
+                        <TextInputFocusable
+                            textAlignVertical="top"
+                            placeholder="Search"
+                            placeholderTextColor={themeColors.textSupporting}
+                            onChangeText={this.filterEmojis}
+                            style={styles.textInput}
+                            defaultValue=""
+                            ref={el => this.searchInput = el}
+                        />
+                    </View>
+                )}
                 <FlatList
                     data={this.state.filteredEmojis}
                     renderItem={this.renderItem}
@@ -124,5 +146,9 @@ class EmojiPickerMenu extends Component {
 }
 
 EmojiPickerMenu.propTypes = propTypes;
+EmojiPickerMenu.defaultProps = defaultProps;
 
-export default EmojiPickerMenu;
+export default withWindowDimensions(React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <EmojiPickerMenu {...props} forwardedRef={ref} />
+)));

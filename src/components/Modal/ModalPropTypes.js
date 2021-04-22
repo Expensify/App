@@ -19,6 +19,9 @@ const propTypes = {
     // Callback method fired when the modal is hidden
     onModalHide: PropTypes.func,
 
+    // Callback method fired when the modal is shown
+    onModalShow: PropTypes.func,
+
     // Style of modal to display
     type: PropTypes.oneOf(_.values(CONST.MODAL.MODAL_TYPE)),
 
@@ -49,6 +52,7 @@ const defaultProps = {
     onSubmit: null,
     type: '',
     onModalHide: () => {},
+    onModalShow: () => {},
     animationIn: null,
     animationOut: null,
     popoverAnchorPosition: {},
