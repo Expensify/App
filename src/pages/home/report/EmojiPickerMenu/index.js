@@ -31,6 +31,9 @@ class EmojiPickerMenu extends Component {
         // Ref for the emoji search input
         this.searchInput = undefined;
 
+        // Ref for emoji menu
+        this.emojiMenu = undefined;
+
         // This is the number of columns in each row of the picker.
         // Because of how flatList implements these rows, each row is an index rather than each element
         // For this reason to make headers work, we need to have the header be the only rendered element in its row
@@ -45,11 +48,16 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
+        this.highlightEmoji = this.highlightEmoji.bind(this);
+        this.isHeader = this.isHeader.bind(this);
+        this.getFirstNonHeaderIndex = this.getFirstNonHeaderIndex.bind(this);
+        this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
         this.renderItem = this.renderItem.bind(this);
 
         this.state = {
             filteredEmojis: emojis,
             headerIndices: this.unfilteredHeaderIndices,
+            highlightedIndex: this.numColumns,
         };
     }
 
@@ -60,6 +68,93 @@ class EmojiPickerMenu extends Component {
         // return a ref to the component, but rather the HTML element by default
         if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
             this.props.forwardedRef(this.searchInput);
+        }
+
+        if (document) {
+            document.addEventListener('keydown', this.highlightEmoji);
+        }
+    }
+
+    /**
+     * Gets the index of the first non header item in the emoji array.
+     * @returns {number}
+     */
+    getFirstNonHeaderIndex() {
+        return this.state.filteredEmojis.length === emojis.length ? this.numColumns : 0;
+    }
+
+    /**
+     * Checks whether e is a header/spacer.
+     * @param {Object} e an emoji candidate
+     * @param {boolean} e.header
+     * @param {String} e.code
+     * @returns {boolean}
+     */
+    isHeader(e) {
+        return e.header || e.code === CONST.EMOJI_SPACER;
+    }
+
+    /**
+     * Selects the appropriate emoji depending on the arrowKey
+     * @param {Object} keyboardEvent
+     * @param {String} keyboardEvent.key
+     */
+    highlightEmoji(keyboardEvent) {
+        let newIndex = this.state.highlightedIndex;
+        const firstNonHeaderIndex = this.getFirstNonHeaderIndex();
+        switch (keyboardEvent.key) {
+            case 'ArrowDown':
+                if (this.state.highlightedIndex + this.numColumns > this.state.filteredEmojis.length - 1) {
+                    return;
+                }
+
+                // skip over a row of headers/spacers if the next row is one
+                newIndex += this.numColumns;
+                if (this.isHeader(this.state.filteredEmojis[newIndex])) {
+                    newIndex += this.numColumns;
+                }
+                break;
+            case 'ArrowLeft':
+                if (this.state.highlightedIndex - 1 < firstNonHeaderIndex) {
+                    return;
+                }
+
+                // skip over all of the headers/spacers
+                do {
+                    newIndex--;
+                } while (this.isHeader(this.state.filteredEmojis[newIndex]));
+                break;
+            case 'ArrowRight':
+                if (this.state.highlightedIndex + 1 > this.state.filteredEmojis.length - 1) {
+                    return;
+                }
+
+                // Skip over all of the headers/spacers
+                do {
+                    newIndex++;
+                } while (this.isHeader(this.state.filteredEmojis[newIndex]));
+
+                break;
+            case 'ArrowUp':
+
+                // make sure the previous row isn't the first header row
+                if (this.state.highlightedIndex - this.numColumns < firstNonHeaderIndex) {
+                    return;
+                }
+
+                // skip over a row of headers/spacers if the next row is one
+                newIndex -= this.numColumns;
+                if (this.isHeader(this.state.filteredEmojis[newIndex])) {
+                    newIndex -= this.numColumns;
+                }
+                break;
+            default:
+                break;
+        }
+
+        if (newIndex !== this.state.highlightedIndex) {
+            this.setState({highlightedIndex: newIndex});
+            this.scrollToHighlightedIndex();
         }
     }
 
@@ -72,7 +167,11 @@ class EmojiPickerMenu extends Component {
         const normalizedSearchTerm = searchTerm.toLowerCase();
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
-            this.setState({filteredEmojis: emojis, headerIndices: this.unfilteredHeaderIndices});
+            this.setState({
+                filteredEmojis: emojis,
+                headerIndices: this.unfilteredHeaderIndices,
+                highlightedIndex: this.numColumns,
+            });
             return;
         }
 
@@ -83,7 +182,29 @@ class EmojiPickerMenu extends Component {
         ));
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
-        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: []});
+        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
+    }
+
+    /**
+     * Scrolls the emoji picker menu's FlatList to the highlighted index
+     */
+    scrollToHighlightedIndex() {
+        // Let's see if we've moved out of the window first
+        let numHeadersScrolled = 0;
+
+        // We have headers in the emoji menu, need to offset by their heights as well
+        if (this.state.filteredEmojis.length === emojis.length) {
+            numHeadersScrolled = this.unfilteredHeaderIndices
+                .filter(i => this.state.highlightedIndex > i * this.numColumns).length - 1;
+        }
+
+        // Calculate the number of rows of emojis we've scrolled
+        const numEmojiRowsScrolled = Math.floor(this.state.highlightedIndex / this.numColumns)
+            - numHeadersScrolled - 1;
+
+        const offset = (numHeadersScrolled * 38) + (numEmojiRowsScrolled * 40);
+
+        this.emojiMenu.scrollToOffset({offset});
     }
 
     /**
@@ -92,9 +213,10 @@ class EmojiPickerMenu extends Component {
      * so that the sticky headers function properly
      *
      * @param {Object} item
+     * @param {Number} index
      * @returns {*}
      */
-    renderItem({item}) {
+    renderItem({item, index}) {
         if (item.code === CONST.EMOJI_SPACER) {
             return null;
         }
@@ -111,6 +233,7 @@ class EmojiPickerMenu extends Component {
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
                 emoji={item.code}
+                isHighlighted={index === this.state.highlightedIndex}
             />
         );
     }
@@ -132,12 +255,13 @@ class EmojiPickerMenu extends Component {
                     </View>
                 )}
                 <FlatList
+                    ref={el => this.emojiMenu = el}
                     data={this.state.filteredEmojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => `emoji_picker_${item.code}`}
                     numColumns={this.numColumns}
                     style={styles.emojiPickerList}
-                    extraData={this.state.filteredEmojis}
+                    extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
                     stickyHeaderIndices={this.state.headerIndices}
                 />
             </View>
