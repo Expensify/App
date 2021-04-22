@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import {addTrailingForwardSlash} from './libs/Url';
+import {wrapWithForwardSlash} from './libs/Url';
 
 /**
  * This is a file containing constants for all of the routes we want to be able to go to
@@ -41,7 +41,7 @@ export default {
      * @returns {Object}
      */
     parseReportRouteParams: (route) => {
-        if (!route.startsWith(addTrailingForwardSlash(REPORT))) {
+        if (!route.startsWith(wrapWithForwardSlash(REPORT))) {
             return {};
         }
 
