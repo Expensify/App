@@ -468,7 +468,10 @@ class GithubUtils {
             repo: 'Public-Test-Repo',
             workflow_id: workflow,
         })
-            .then(response => lodashGet(response, 'data.workflow_runs[0].id'));
+            .then((response) => {
+                console.log('got response from listWorkflowRuns:', response);
+                return lodashGet(response, 'data.workflow_runs[0].id');
+            });
     }
 
     /**
