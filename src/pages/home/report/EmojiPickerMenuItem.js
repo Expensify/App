@@ -49,6 +49,7 @@ const EmojiPickerMenuItem = (props) => {
 EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 
+// Using React.memo to significantly speed up re-renders of the EmojiPickerMenu's FlatList
 export default React.memo(
     EmojiPickerMenuItem,
     (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted,
