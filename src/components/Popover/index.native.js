@@ -10,12 +10,9 @@ import withWindowDimensions from '../withWindowDimensions';
  */
 const Popover = props => (
     <Modal
-        type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
-        popoverAnchorPosition={props.anchorPosition}
+        type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-        animationIn={props.isSmallScreenWidth ? undefined : props.animationIn}
-        animationOut={props.isSmallScreenWidth ? undefined : props.animationOut}
     />
 );
 

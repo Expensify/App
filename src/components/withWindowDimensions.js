@@ -16,7 +16,15 @@ const windowDimensionsPropTypes = {
 };
 
 export default function (WrappedComponent) {
-    class withWindowDimensions extends Component {
+    const propTypes = {
+        forwardedRef: PropTypes.func,
+    };
+
+    const defaultProps = {
+        forwardedRef: () => {},
+    };
+
+    class WithWindowDimensions extends Component {
         constructor(props) {
             super(props);
 
@@ -56,10 +64,12 @@ export default function (WrappedComponent) {
         }
 
         render() {
+            const {forwardedRef, ...rest} = this.props;
             return (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
+                    {...rest}
+                    ref={forwardedRef}
                     windowHeight={this.state.windowHeight}
                     windowWidth={this.state.windowWidth}
                     isSmallScreenWidth={this.state.isSmallScreenWidth}
@@ -68,8 +78,13 @@ export default function (WrappedComponent) {
         }
     }
 
-    withWindowDimensions.displayName = `withWindowDimensions(${getComponentDisplayName(WrappedComponent)})`;
-    return withWindowDimensions;
+    WithWindowDimensions.propTypes = propTypes;
+    WithWindowDimensions.defaultProps = defaultProps;
+    WithWindowDimensions.displayName = `withWindowDimensions(${getComponentDisplayName(WrappedComponent)})`;
+    return React.forwardRef((props, ref) => (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <WithWindowDimensions {...props} forwardedRef={ref} />
+    ));
 }
 
 export {
