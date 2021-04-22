@@ -26,6 +26,9 @@ import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
+import Navigation from '../../../libs/Navigation/Navigation';
+import compose from '../../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -50,6 +53,8 @@ const propTypes = {
         // Email of the logged in person
         email: PropTypes.string,
     }),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -121,7 +126,7 @@ class ReportActionsView extends React.Component {
 
             // When the last action changes, wait three seconds, then record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (Visibility.isVisible()) {
+            if (Visibility.isVisible() && !(Navigation.isDrawerOpen() && this.props.isSmallScreenWidth)) {
                 this.timers.push(setTimeout(this.recordMaxAction, 3000));
             }
         }
@@ -327,15 +332,18 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-    reportActions: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        canEvict: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ReportActionsView);
+export default compose(
+    withWindowDimensions,
+    withOnyx({
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        },
+        reportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            canEvict: false,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(ReportActionsView);
