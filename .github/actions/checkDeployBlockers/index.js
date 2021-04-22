@@ -406,7 +406,7 @@ class GithubUtils {
                     'got response from listWorkflowRuns:',
                     JSON.stringify(_.pluck(response.data.workflow_runs, 'id')),
                 );
-                return _.last(_.pluck(lodashGet(response, 'data.workflow_runs', []), 'id'));
+                return lodashGet(response, 'data.workflow_runs[0].id');
             });
     }
 
