@@ -28,6 +28,7 @@ const run = function () {
         const err = new Error('Inputs to the workflow_dispatch event cannot have more than 10 keys, or GitHub will 🤮');
         console.error(err.message);
         core.setFailed(err);
+        process.exit(1);
     }
 
     // GitHub's createWorkflowDispatch returns a 204 No Content, so we need to:
@@ -57,6 +58,7 @@ const run = function () {
         .catch((err) => {
             console.error(`Failed to dispatch workflow ${workflow}`, err);
             core.setFailed(err);
+            process.exit(1);
         })
 
         // Wait for the new workflow to start
@@ -66,7 +68,7 @@ const run = function () {
                 () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
                 _.throttle(
                     () => {
-                        console.log(`:hand: Waiting for a new ${workflow} workflow run to begin...`);
+                        console.log(`🤚 Waiting for a new ${workflow} workflow run to begin...`);
                         githubUtils.getLatestWorkflowRunID(workflow)
                             .then((lastWorkflowRunID) => {
                                 newWorkflowRunID = lastWorkflowRunID;
@@ -77,12 +79,13 @@ const run = function () {
                             waitTimer += POLL_RATE;
                             if (waitTimer < NEW_WORKFLOW_TIMEOUT) {
                                 // eslint-disable-next-line max-len
-                                console.log(`After ${waitTimer} seconds, there's still no new ${workflow} workflow run ☹️`);
+                                console.log(`After ${waitTimer / 1000} seconds, there's still no new ${workflow} workflow run ☹️`);
                             } else {
                                 // eslint-disable-next-line max-len
                                 const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT} seconds, the ${workflow} workflow did not start.`);
                                 console.error(err);
                                 core.setFailed(err);
+                                process.exit(1);
                             }
                         }
                     },
@@ -112,6 +115,7 @@ const run = function () {
                                     const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunID} finished with conclusion ${data.conclusion}`);
                                     console.error(err.message);
                                     core.setFailed(err);
+                                    process.exit(1);
                                 }
                             }
                         });

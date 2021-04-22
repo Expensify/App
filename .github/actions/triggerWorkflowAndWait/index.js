@@ -76,7 +76,7 @@ const run = function () {
                 () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
                 _.throttle(
                     () => {
-                        console.log(`:hand: Waiting for a new ${workflow} workflow run to begin...`);
+                        console.log(`🤚 Waiting for a new ${workflow} workflow run to begin...`);
                         githubUtils.getLatestWorkflowRunID(workflow)
                             .then((lastWorkflowRunID) => {
                                 newWorkflowRunID = lastWorkflowRunID;
@@ -87,7 +87,7 @@ const run = function () {
                             waitTimer += POLL_RATE;
                             if (waitTimer < NEW_WORKFLOW_TIMEOUT) {
                                 // eslint-disable-next-line max-len
-                                console.log(`After ${waitTimer} seconds, there's still no new ${workflow} workflow run ☹️`);
+                                console.log(`After ${waitTimer / 1000} seconds, there's still no new ${workflow} workflow run ☹️`);
                             } else {
                                 // eslint-disable-next-line max-len
                                 const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT} seconds, the ${workflow} workflow did not start.`);
