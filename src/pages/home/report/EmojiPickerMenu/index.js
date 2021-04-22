@@ -199,9 +199,7 @@ class EmojiPickerMenu extends Component {
         }
 
         // Calculate the scroll offset at the bottom of the currently highlighted emoji (add 1 to include the current row)
-        const numEmojiRowsScrolled = Math.floor(this.state.highlightedIndex / this.numColumns)
-            - numHeadersScrolled + 1;
-
+        const numEmojiRowsScrolled = (Math.floor(this.state.highlightedIndex / this.numColumns) - numHeadersScrolled) + 1;
         const offsetAtEmojiBottom = ((numHeadersScrolled) * 38) + (numEmojiRowsScrolled * 40);
         const offsetAtEmojiTop = offsetAtEmojiBottom - 40;
         let scrollToOffset = this.state.currentScrollOffset;
@@ -213,7 +211,7 @@ class EmojiPickerMenu extends Component {
             scrollToOffset = offsetAtEmojiTop - 40;
         }
         if (scrollToOffset !== this.state.currentScrollOffset) {
-            this.emojiMenu.scrollToOffset({offset: scrollToOffset});
+            this.emojiMenu.scrollToOffset({offset: scrollToOffset, animated: false});
             this.setState({currentScrollOffset: scrollToOffset});
         }
     }
@@ -228,22 +226,10 @@ class EmojiPickerMenu extends Component {
      * @returns {*}
      */
     renderItem({item, index}) {
-        if (item.code === CONST.EMOJI_SPACER) {
-            return null;
-        }
-
-        if (item.header) {
-            return (
-                <Text style={styles.emojiHeaderStyle}>
-                    {item.code}
-                </Text>
-            );
-        }
-
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
-                emoji={item.code}
+                emoji={item}
                 isHighlighted={index === this.state.highlightedIndex}
             />
         );
