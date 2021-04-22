@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, FlatList} from 'react-native';
+import {View, FlatList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
@@ -10,6 +10,7 @@ import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import canUseTouchScreen from '../../../../libs/canUseTouchscreen';
+import Hoverable from '../../../../components/Hoverable';
 
 const propTypes = {
     // Function to add the selected emoji to the main compose text input
@@ -49,15 +50,16 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
-        this.highlightEmoji = this.highlightEmoji.bind(this);
+        this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
         this.renderItem = this.renderItem.bind(this);
 
         this.state = {
             filteredEmojis: emojis,
             headerIndices: this.unfilteredHeaderIndices,
-            highlightedIndex: this.numColumns,
+            highlightedIndex: -1,
             currentScrollOffset: 0,
+            shouldDisablePointerEvents: false,
         };
     }
 
@@ -70,23 +72,40 @@ class EmojiPickerMenu extends Component {
             this.props.forwardedRef(this.searchInput);
         }
 
-        // Setup keypress handlers if we have a keyboard (and not a touchscreen)
+        // Setup keypress/mouse handlers only if we have a keyboard (and not a touchscreen)
         if (!canUseTouchScreen() && document) {
             document.addEventListener('keydown', (e) => {
                 if (e.key.startsWith('Arrow')) {
-                    this.highlightEmoji(e.key);
+                    this.highlightAdjacentEmoji(e.key);
                 } else if (e.key === 'Enter') {
-                    this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
+                    if (this.state.highlightedIndex !== -1) {
+                        this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
+                    }
+                }
+            });
+
+            // Re-enable pointer events when the mouse moves
+            document.addEventListener('mousemove', () => {
+                if (this.state.shouldDisablePointerEvents) {
+                    this.setState({shouldDisablePointerEvents: false});
                 }
             });
         }
     }
 
     /**
-     * Selects the appropriate emoji depending on the arrowKey
+     * Highlights the appropriate emoji depending the arrowKey
      * @param {String} arrowKey
      */
-    highlightEmoji(arrowKey) {
+    highlightAdjacentEmoji(arrowKey) {
+        // If nothing is highlighted and an arrow key is pressed
+        // select the first emoji
+        if (this.state.highlightedIndex === -1) {
+            this.setState(prevState => ({highlightedIndex: prevState.filteredEmojis.length === emojis.length ? 8 : 0}));
+            this.scrollToHighlightedIndex();
+            return;
+        }
+
         let newIndex = this.state.highlightedIndex;
         const firstNonHeaderIndex = this.state.filteredEmojis.length === emojis.length ? 8 : 0;
 
@@ -98,6 +117,9 @@ class EmojiPickerMenu extends Component {
             do {
                 newIndex += steps;
             } while (isHeader(this.state.filteredEmojis[newIndex]));
+
+            // Disable pointer events so that onHover doesn't get triggered
+            this.setState({shouldDisablePointerEvents: true});
         };
 
         switch (arrowKey) {
@@ -124,31 +146,34 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Scrolls the emoji picker menu's FlatList to the highlighted index
+     * Calculates the required scroll offset (aka distance from top) and scrolls the FlatList to the highlighted emoji
+     * if any portion of it falls outside of the window.
      */
     scrollToHighlightedIndex() {
-        let numHeadersScrolled = 0;
-
-        // We have headers in the emoji menu, need to offset by their heights as well
+        // If there are headers in the emoji array, so we need to offset by their heights as well
+        let numHeaders = 0;
         if (this.state.filteredEmojis.length === emojis.length) {
-            numHeadersScrolled = this.unfilteredHeaderIndices
+            numHeaders = this.unfilteredHeaderIndices
                 .filter(i => this.state.highlightedIndex > i * this.numColumns).length;
         }
 
-        // Calculate the scroll offset at the bottom of the currently highlighted emoji (add 1 to include the current row)
-        const numEmojiRowsScrolled = (Math.floor(this.state.highlightedIndex / this.numColumns) - numHeadersScrolled) + 1;
-        const offsetAtEmojiBottom = ((numHeadersScrolled) * CONST.EMOJI_PICKER_HEADER_HEIGHT) + (numEmojiRowsScrolled * CONST.EMOJI_PICKER_ITEM_HEIGHT);
+        // Calculate the scroll offset at the bottom of the currently highlighted emoji
+        // (subtract numHeadersScrolled because highlightedIndex includes them, and add 1 to include the current row)
+        const numEmojiRows = (Math.floor(this.state.highlightedIndex / this.numColumns) - numHeaders) + 1;
+
+        // The scroll offsets at the top and bottom of the highlighted emoji
+        const offsetAtEmojiBottom = ((numHeaders) * CONST.EMOJI_PICKER_HEADER_HEIGHT) + (numEmojiRows * CONST.EMOJI_PICKER_ITEM_HEIGHT);
         const offsetAtEmojiTop = offsetAtEmojiBottom - CONST.EMOJI_PICKER_ITEM_HEIGHT;
 
         // Scroll to fit the entire highlighted emoji into the window
-        let scrollToOffset = this.state.currentScrollOffset;
+        let targetOffset = this.state.currentScrollOffset;
         if (offsetAtEmojiBottom - this.state.currentScrollOffset >= CONST.EMOJI_PICKER_LIST_HEIGHT) {
-            scrollToOffset = offsetAtEmojiBottom - CONST.EMOJI_PICKER_LIST_HEIGHT;
+            targetOffset = offsetAtEmojiBottom - CONST.EMOJI_PICKER_LIST_HEIGHT;
         } else if (offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT <= this.state.currentScrollOffset) {
-            scrollToOffset = offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT;
+            targetOffset = offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT;
         }
-        if (scrollToOffset !== this.state.currentScrollOffset) {
-            this.emojiMenu.scrollToOffset({offset: scrollToOffset, animated: false});
+        if (targetOffset !== this.state.currentScrollOffset) {
+            this.emojiMenu.scrollToOffset({offset: targetOffset, animated: false});
         }
     }
 
@@ -189,18 +214,33 @@ class EmojiPickerMenu extends Component {
      * @returns {*}
      */
     renderItem({item, index}) {
+        const {code, header} = item;
+        if (code === CONST.EMOJI_SPACER) {
+            return null;
+        }
+
+        if (header) {
+            return (
+                <Text style={styles.emojiHeaderStyle}>
+                    {code}
+                </Text>
+            );
+        }
+
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
-                emoji={item}
+                onHover={() => this.setState({highlightedIndex: index})}
+                emoji={code}
                 isHighlighted={index === this.state.highlightedIndex}
             />
         );
     }
 
     render() {
+        const pointerEvents = this.state.shouldDisablePointerEvents ? 'none' : 'auto';
         return (
-            <View style={styles.emojiPickerContainer}>
+            <View style={styles.emojiPickerContainer} pointerEvents={pointerEvents}>
                 {!this.props.isSmallScreenWidth && (
                     <View style={[styles.pt4, styles.ph4, styles.pb1]}>
                         <TextInputFocusable
