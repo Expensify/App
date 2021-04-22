@@ -19,25 +19,23 @@ const propTypes = {
     isHighlighted: PropTypes.bool.isRequired,
 };
 
-const EmojiPickerMenuItem = (props) => {
-    return (
-        <Pressable
-            onPress={() => props.onPress(props.emoji)}
-            style={({
-                pressed,
-            }) => ([
-                styles.emojiItem,
-                getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-                props.isHighlighted ? styles.emojiItemHighlighted : {},
-            ])}
-        >
-            <Hoverable onHoverIn={props.onHover}>
-                <Text style={styles.emojiText}>{props.emoji}</Text>
-            </Hoverable>
-        </Pressable>
+const EmojiPickerMenuItem = props => (
+    <Pressable
+        onPress={() => props.onPress(props.emoji)}
+        style={({
+            pressed,
+        }) => ([
+            styles.emojiItem,
+            getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+            props.isHighlighted ? styles.emojiItemHighlighted : {},
+        ])}
+    >
+        <Hoverable onHoverIn={props.onHover}>
+            <Text style={styles.emojiText}>{props.emoji}</Text>
+        </Hoverable>
+    </Pressable>
 
-    );
-};
+);
 
 EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
