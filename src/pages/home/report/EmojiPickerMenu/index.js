@@ -9,6 +9,7 @@ import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import canUseTouchScreen from '../../../../libs/canUseTouchscreen';
 
 const propTypes = {
     // Function to add the selected emoji to the main compose text input
@@ -69,7 +70,8 @@ class EmojiPickerMenu extends Component {
             this.props.forwardedRef(this.searchInput);
         }
 
-        if (document) {
+        // Setup keypress handlers if we have a keyboard (and not a touchscreen)
+        if (!canUseTouchScreen() && document) {
             document.addEventListener('keydown', (e) => {
                 if (e.key.startsWith('Arrow')) {
                     this.highlightEmoji(e.key);
