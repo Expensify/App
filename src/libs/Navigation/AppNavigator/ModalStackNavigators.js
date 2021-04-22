@@ -163,7 +163,7 @@ const SettingsModalStackNavigator = () => (
             component={SettingsProfilePage}
         />
         <SettingsModalStack.Screen
-            name="Settings_Add_Seconday_Login"
+            name="Settings_Add_Secondary_Login"
             component={SettingsAddSecondaryLoginPage}
         />
         <SettingsModalStack.Screen
