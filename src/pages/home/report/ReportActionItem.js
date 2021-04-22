@@ -27,6 +27,9 @@ const propTypes = {
 
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
+
+    // Is the network currently offline or not
+    isOffline: PropTypes.bool.isRequired,
 };
 
 class ReportActionItem extends Component {
@@ -95,8 +98,18 @@ class ReportActionItem extends Component {
                             )}
                             <View style={getReportActionItemStyle(hovered)}>
                                 {!this.props.displayAsGroup
-                                    ? <ReportActionItemSingle action={this.props.action} />
-                                    : <ReportActionItemGrouped action={this.props.action} />}
+                                    ? (
+                                        <ReportActionItemSingle
+                                            action={this.props.action}
+                                            isOffline={this.props.isOffline}
+                                        />
+                                    )
+                                    : (
+                                        <ReportActionItemGrouped
+                                            action={this.props.action}
+                                            isOffline={this.props.isOffline}
+                                        />
+                                    )}
                             </View>
                             <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
                                 <ReportActionContextMenu

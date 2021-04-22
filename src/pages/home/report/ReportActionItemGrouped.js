@@ -8,12 +8,15 @@ import styles from '../../../styles/styles';
 const propTypes = {
     // All the data of the action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
+
+    // Is the network currently offline or not
+    isOffline: PropTypes.bool.isRequired,
 };
 
-const ReportActionItemGrouped = ({action}) => (
+const ReportActionItemGrouped = ({action, isOffline}) => (
     <View style={[styles.chatItem]}>
         <View style={[styles.chatItemRightGrouped]}>
-            <ReportActionItemMessage action={action} />
+            <ReportActionItemMessage action={action} isOffline={isOffline} />
         </View>
     </View>
 );
