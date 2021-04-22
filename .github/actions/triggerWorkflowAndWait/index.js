@@ -75,14 +75,7 @@ const run = function () {
         .then(() => {
             let waitTimer = -POLL_RATE;
             return promiseWhile(
-                () => {
-                    console.log(
-                        'Should we continue in the while loop?',
-                        `hasNewWorkflowStarted: ${hasNewWorkflowStarted}`,
-                        waitTimer,
-                    );
-                    return !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT;
-                },
+                () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
                 _.throttle(
                     () => {
                         console.log(`\n🤚 Waiting for a new ${workflow} workflow run to begin...`);
@@ -108,8 +101,7 @@ const run = function () {
                                 }
                             })
                             .catch((err) => {
-                                console.error('Failed to fetch latest workflow run.', err);
-                                core.setFailed(err);
+                                console.warn('Failed to fetch latest workflow run.', err);
                             });
                     },
                     POLL_RATE,
