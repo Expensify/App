@@ -50,7 +50,6 @@ class EmojiPickerMenu extends Component {
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightEmoji = this.highlightEmoji.bind(this);
         this.isHeader = this.isHeader.bind(this);
-        this.getFirstNonHeaderIndex = this.getFirstNonHeaderIndex.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
         this.renderItem = this.renderItem.bind(this);
 
@@ -77,76 +76,36 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Gets the index of the first non header item in the emoji array.
-     * @returns {number}
-     */
-    getFirstNonHeaderIndex() {
-        return this.state.filteredEmojis.length === emojis.length ? this.numColumns : 0;
-    }
-
-    /**
-     * Checks whether e is a header/spacer.
-     * @param {Object} e an emoji candidate
-     * @param {boolean} e.header
-     * @param {String} e.code
-     * @returns {boolean}
-     */
-    isHeader(e) {
-        return e.header || e.code === CONST.EMOJI_SPACER;
-    }
-
-    /**
      * Selects the appropriate emoji depending on the arrowKey
      * @param {Object} keyboardEvent
      * @param {String} keyboardEvent.key
      */
     highlightEmoji(keyboardEvent) {
         let newIndex = this.state.highlightedIndex;
-        const firstNonHeaderIndex = this.getFirstNonHeaderIndex();
+        const firstNonHeaderIndex = this.state.filteredEmojis.length === emojis.length ? 8 : 0;
+
+        const move = (steps, boundsCheck) => {
+            if (boundsCheck()) {
+                return;
+            }
+            const isHeader = e => e.header || e.code === CONST.EMOJI_SPACER;
+            do {
+                newIndex += steps;
+            } while (isHeader(this.state.filteredEmojis[newIndex]));
+        };
 
         switch (keyboardEvent.key) {
             case 'ArrowDown':
-                if (this.state.highlightedIndex + this.numColumns > this.state.filteredEmojis.length - 1) {
-                    return;
-                }
-
-                // skip over a row of headers/spacers if the next row is one
-                do {
-                    newIndex += this.numColumns;
-                } while (this.isHeader(this.state.filteredEmojis[newIndex]));
+                move(this.numColumns, () => this.state.highlightedIndex + this.numColumns > this.state.filteredEmojis.length - 1);
                 break;
             case 'ArrowLeft':
-                if (this.state.highlightedIndex - 1 < firstNonHeaderIndex) {
-                    return;
-                }
-
-                // skip over all of the headers/spacers
-                do {
-                    newIndex--;
-                } while (this.isHeader(this.state.filteredEmojis[newIndex]));
+                move(-1, () => this.state.highlightedIndex - 1 < firstNonHeaderIndex);
                 break;
             case 'ArrowRight':
-                if (this.state.highlightedIndex + 1 > this.state.filteredEmojis.length - 1) {
-                    return;
-                }
-
-                // Skip over all of the headers/spacers
-                do {
-                    newIndex++;
-                } while (this.isHeader(this.state.filteredEmojis[newIndex]));
-
+                move(1, () => this.state.highlightedIndex + 1 > this.state.filteredEmojis.length - 1);
                 break;
             case 'ArrowUp':
-
-                // make sure the previous row isn't the first header row
-                if (this.state.highlightedIndex - this.numColumns < firstNonHeaderIndex) {
-                    return;
-                }
-
-                // skip over a row of headers/spacers if the next row is one
-                do {
-                    newIndex -= this.numColumns;
-                } while (this.isHeader(this.state.filteredEmojis[newIndex]));
+                move(-this.numColumns, () => this.state.highlightedIndex - this.numColumns < firstNonHeaderIndex);
                 break;
             default:
                 break;
