@@ -58,6 +58,7 @@ class EmojiPickerMenu extends Component {
             filteredEmojis: emojis,
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: this.numColumns,
+            currentScrollOffset: 0,
         };
     }
 
@@ -189,22 +190,32 @@ class EmojiPickerMenu extends Component {
      * Scrolls the emoji picker menu's FlatList to the highlighted index
      */
     scrollToHighlightedIndex() {
-        // Let's see if we've moved out of the window first
         let numHeadersScrolled = 0;
 
         // We have headers in the emoji menu, need to offset by their heights as well
         if (this.state.filteredEmojis.length === emojis.length) {
             numHeadersScrolled = this.unfilteredHeaderIndices
-                .filter(i => this.state.highlightedIndex > i * this.numColumns).length - 1;
+                .filter(i => this.state.highlightedIndex > i * this.numColumns).length;
         }
 
-        // Calculate the number of rows of emojis we've scrolled
+        // Calculate the scroll offset at the bottom of the currently highlighted emoji (add 1 to include the current row)
         const numEmojiRowsScrolled = Math.floor(this.state.highlightedIndex / this.numColumns)
-            - numHeadersScrolled - 1;
+            - numHeadersScrolled + 1;
 
-        const offset = (numHeadersScrolled * 38) + (numEmojiRowsScrolled * 40);
+        const offsetAtEmojiBottom = ((numHeadersScrolled) * 38) + (numEmojiRowsScrolled * 40);
+        const offsetAtEmojiTop = offsetAtEmojiBottom - 40;
+        let scrollToOffset = this.state.currentScrollOffset;
 
-        this.emojiMenu.scrollToOffset({offset});
+        // Scroll to fit the entire highlighted emoji into the window
+        if (offsetAtEmojiBottom - this.state.currentScrollOffset >= 300) {
+            scrollToOffset = offsetAtEmojiBottom - 300;
+        } else if (offsetAtEmojiTop - 40 <= this.state.currentScrollOffset) {
+            scrollToOffset = offsetAtEmojiTop - 40;
+        }
+        if (scrollToOffset !== this.state.currentScrollOffset) {
+            this.emojiMenu.scrollToOffset({offset: scrollToOffset});
+            this.setState({currentScrollOffset: scrollToOffset});
+        }
     }
 
     /**
