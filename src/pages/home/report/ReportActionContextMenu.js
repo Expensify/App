@@ -44,10 +44,12 @@ const defaultProps = {
     session: {},
 };
 
+/**
+ * Copies the message text, or html if it's an attachment, to the the clipboard
+ *
+ * @param {Object} reportAction
+ */
 function copyToClipboard(reportAction) {
-    // If return value is true, we switch the `text` and `icon` on
-    // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
-    // the `text` and `icon`
     const message = _.last(lodashGet(reportAction, 'message', null));
     const html = lodashGet(message, 'html', '');
     const text = lodashGet(message, 'text', '');
@@ -61,51 +63,49 @@ function copyToClipboard(reportAction) {
     }
 }
 
+// A list of all the context actions in this menu.
+const contextActions = [
+    {
+        text: 'Copy to Clipboard',
+        icon: ClipboardIcon,
+        successText: 'Copied!',
+        successIcon: Checkmark,
+        shouldShow: true,
+        onPress: (props) => { copyToClipboard(props.reportAction); },
+    },
+
+    {
+        text: 'Copy Link',
+        icon: LinkCopy,
+        shouldShow: false,
+        onPress: () => {},
+    },
+
+    {
+        text: 'Mark as Unread',
+        icon: Mail,
+        shouldShow: false,
+        onPress: () => {},
+    },
+
+    {
+        text: 'Edit Comment',
+        icon: Pencil,
+        shouldShow: false,
+        onPress: () => {},
+    },
+
+    {
+        text: 'Delete Comment',
+        icon: Trashcan,
+        shouldShow: props => props.reportAction.actorEmail === props.session.email,
+        onPress: (props) => { deleteReportComment(props.reportID, props.reportAction); },
+    },
+];
+
 class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
-
-        /**
-         * A list of all the context actions in this menu.
-         */
-        this.contextActions = [
-            {
-                text: 'Copy to Clipboard',
-                icon: ClipboardIcon,
-                successText: 'Copied!',
-                successIcon: Checkmark,
-                shouldShow: true,
-                onPress: () => copyToClipboard(props.reportAction),
-            },
-
-            {
-                text: 'Copy Link',
-                icon: LinkCopy,
-                shouldShow: false,
-                onPress: () => {},
-            },
-
-            {
-                text: 'Mark as Unread',
-                icon: Mail,
-                shouldShow: false,
-                onPress: () => {},
-            },
-
-            {
-                text: 'Edit Comment',
-                icon: Pencil,
-                shouldShow: false,
-                onPress: () => {},
-            },
-
-            {
-                text: 'Delete Comment',
-                icon: Trashcan,
-                shouldShow: props.reportAction.actorEmail === props.session.email,
-                onPress: () => deleteReportComment(this.props.reportID, this.props.reportAction),
-            },
-        ];
 
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
     }
@@ -113,7 +113,7 @@ class ReportActionContextMenu extends React.Component {
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {this.contextActions.map(contextAction => contextAction.shouldShow && (
+                {contextActions.map(contextAction => contextAction.shouldShow(this.props) && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
@@ -121,7 +121,7 @@ class ReportActionContextMenu extends React.Component {
                         successText={contextAction.successText}
                         isMini={this.props.isMini}
                         key={contextAction.text}
-                        onPress={contextAction.onPress}
+                        onPress={() => contextAction.onPress(this.props)}
                     />
                 ))}
             </View>
