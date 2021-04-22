@@ -119,7 +119,7 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetch();
         User.getUserDetails();
         User.getBetas();
-        fetchAllReports(true, true, 8000);
+        fetchAllReports(true, true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 

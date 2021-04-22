@@ -647,9 +647,13 @@ function fetchActions(reportID, offset) {
  *
  * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
- * @param {Number} fetchActionsDelay
+ * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
  */
-function fetchAllReports(shouldRedirectToReport = true, shouldRecordHomePageTiming = false, fetchActionsDelay = 0) {
+function fetchAllReports(
+    shouldRedirectToReport = true,
+    shouldRecordHomePageTiming = false,
+    shouldDelayActionsFetch = false,
+) {
     let reportIDs = [];
 
     API.Get({
@@ -683,7 +687,10 @@ function fetchAllReports(shouldRedirectToReport = true, shouldRecordHomePageTimi
                 _.each(reportIDs, (reportID) => {
                     fetchActions(reportID);
                 });
-            }, fetchActionsDelay);
+
+            // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading before
+            // bogging it down with more requests and operations.
+            }, shouldDelayActionsFetch ? 8000 : 0);
 
             // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
             // one already.
