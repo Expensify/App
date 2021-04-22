@@ -15,14 +15,14 @@ jobs:
 
     steps:
       - name: Update StagingDeployCash with issue
-        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@master
+        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
         if: ${{ github.event_name == 'issues' }}
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NEW_DEPLOY_BLOCKERS: ${{ github.event.issue.html_url }}
 
-      - name: Update StagingDeployCash with issue
-        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@master
+      - name: Update StagingDeployCash with pull request
+        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
         if: ${{ github.event_name == 'pull_request' }}
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
