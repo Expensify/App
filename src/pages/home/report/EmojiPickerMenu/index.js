@@ -118,33 +118,6 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Filter the entire list of emojis to only emojis that have the search term in their keywords
-     *
-     * @param {String} searchTerm
-     */
-    filterEmojis(searchTerm) {
-        const normalizedSearchTerm = searchTerm.toLowerCase();
-        if (normalizedSearchTerm === '') {
-            // There are no headers when searching, so we need to re-make them sticky when there is no search term
-            this.setState({
-                filteredEmojis: emojis,
-                headerIndices: this.unfilteredHeaderIndices,
-                highlightedIndex: this.numColumns,
-            });
-            return;
-        }
-
-        const newFilteredEmojiList = _.filter(emojis, emoji => (
-            !emoji.header
-            && emoji.code !== CONST.EMOJI_SPACER
-            && _.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))
-        ));
-
-        // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
-        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
-    }
-
-    /**
      * Scrolls the emoji picker menu's FlatList to the highlighted index
      */
     scrollToHighlightedIndex() {
@@ -171,6 +144,33 @@ class EmojiPickerMenu extends Component {
         if (scrollToOffset !== this.state.currentScrollOffset) {
             this.emojiMenu.scrollToOffset({offset: scrollToOffset, animated: false});
         }
+    }
+
+    /**
+     * Filter the entire list of emojis to only emojis that have the search term in their keywords
+     *
+     * @param {String} searchTerm
+     */
+    filterEmojis(searchTerm) {
+        const normalizedSearchTerm = searchTerm.toLowerCase();
+        if (normalizedSearchTerm === '') {
+            // There are no headers when searching, so we need to re-make them sticky when there is no search term
+            this.setState({
+                filteredEmojis: emojis,
+                headerIndices: this.unfilteredHeaderIndices,
+                highlightedIndex: this.numColumns,
+            });
+            return;
+        }
+
+        const newFilteredEmojiList = _.filter(emojis, emoji => (
+            !emoji.header
+            && emoji.code !== CONST.EMOJI_SPACER
+            && _.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))
+        ));
+
+        // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
+        this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
     }
 
     /**
