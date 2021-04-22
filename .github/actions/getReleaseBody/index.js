@@ -349,7 +349,11 @@ class GithubUtils {
             workflow_id: workflow,
         })
             .then((response) => {
-                console.log('got response from listWorkflowRuns:', JSON.stringify(response.data.workflow_runs));
+                console.log(
+                    'got response from listWorkflowRuns:',
+                    JSON.stringify(_.pluck(response.data.workflow_runs, 'id')),
+                );
+                _.last(_.pluck(lodashGet(response, 'data.workflow_runs', []), 'id'));
                 return lodashGet(response, 'data.workflow_runs[0].id');
             });
     }
