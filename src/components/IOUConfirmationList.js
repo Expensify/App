@@ -132,13 +132,13 @@ class IOUConfirmationList extends Component {
     /**
      * Gets splits for the transaction
      *
-     * @returns {Array}
+     * @returns {Array|null}
      */
     getSplits() {
         // There can only be splits when there are multiple participants, so return early when there are not
         // multiple participants
         if (!this.props.hasMultipleParticipants) {
-            return [];
+            return null;
         }
 
         const splits = this.props.participants.map(participant => ({
