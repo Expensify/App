@@ -54,7 +54,7 @@ const defaultProps = {
     },
 };
 
-class SetPasswordForm extends Component {
+class SetPasswordPage extends Component {
     constructor(props) {
         super(props);
 
@@ -131,10 +131,10 @@ class SetPasswordForm extends Component {
     }
 }
 
-SetPasswordForm.propTypes = propTypes;
-SetPasswordForm.defaultProps = defaultProps;
+SetPasswordPage.propTypes = propTypes;
+SetPasswordPage.defaultProps = defaultProps;
 
 export default withOnyx({
     credentials: {key: ONYXKEYS.CREDENTIALS},
     account: {key: ONYXKEYS.ACCOUNT},
-})(SetPasswordForm);
+})(SetPasswordPage);
