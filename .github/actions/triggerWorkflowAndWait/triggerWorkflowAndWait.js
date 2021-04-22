@@ -68,26 +68,26 @@ const run = function () {
                 () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
                 _.throttle(
                     () => {
-                        console.log(`🤚 Waiting for a new ${workflow} workflow run to begin...`);
+                        console.log(`\n🤚 Waiting for a new ${workflow} workflow run to begin...`);
                         githubUtils.getLatestWorkflowRunID(workflow)
                             .then((lastWorkflowRunID) => {
                                 newWorkflowRunID = lastWorkflowRunID;
                                 hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
-                            });
 
-                        if (!hasNewWorkflowStarted) {
-                            waitTimer += POLL_RATE;
-                            if (waitTimer < NEW_WORKFLOW_TIMEOUT) {
-                                // eslint-disable-next-line max-len
-                                console.log(`After ${waitTimer / 1000} seconds, there's still no new ${workflow} workflow run ☹️`);
-                            } else {
-                                // eslint-disable-next-line max-len
-                                const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT} seconds, the ${workflow} workflow did not start.`);
-                                console.error(err);
-                                core.setFailed(err);
-                                process.exit(1);
-                            }
-                        }
+                                if (!hasNewWorkflowStarted) {
+                                    waitTimer += POLL_RATE;
+                                    if (waitTimer < NEW_WORKFLOW_TIMEOUT) {
+                                        // eslint-disable-next-line max-len
+                                        console.log(`After ${waitTimer / 1000} seconds, there's still no new ${workflow} workflow run 🙁`);
+                                    } else {
+                                        // eslint-disable-next-line max-len
+                                        const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT} seconds, the ${workflow} workflow did not start.`);
+                                        console.error(err);
+                                        core.setFailed(err);
+                                        process.exit(1);
+                                    }
+                                }
+                            });
                     },
                     POLL_RATE,
                 ),
