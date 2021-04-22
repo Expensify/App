@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
@@ -15,7 +16,7 @@ import MultipleAvatars from '../../components/MultipleAvatars';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {getReportParticipantsTitle} from '../../libs/reportUtils';
-import OptionRowTitle from './sidebar/OptionRowTitle';
+import DisplayNames from '../../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
@@ -53,11 +54,10 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
-    const reportOption = {
-        text: lodashGet(props.report, 'reportName', ''),
-        tooltipText: getReportParticipantsTitle(participants),
-        participantsList: getPersonalDetailsForLogins(participants, props.personalDetails),
-    };
+    const displayNamesWithTooltips = _.map(
+        getPersonalDetailsForLogins(participants, props.personalDetails),
+        ({displayName, login}) => ({displayName, tooltip: login}),
+    );
 
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
@@ -82,8 +82,9 @@ const HeaderView = (props) => {
                         <Pressable
                             onPress={() => {
                                 if (participants.length === 1) {
-                                    Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
+                                    return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
                                 }
+                                Navigation.navigate(ROUTES.getReportParticipantsRoute(props.reportID));
                             }}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         >
@@ -92,11 +93,12 @@ const HeaderView = (props) => {
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                             />
                             <View style={[styles.flex1, styles.flexRow]}>
-                                <OptionRowTitle
-                                    option={reportOption}
+                                <DisplayNames
+                                    fullTitle={getReportParticipantsTitle(participants)}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
-                                    style={[styles.headerText]}
+                                    textStyles={[styles.headerText]}
                                 />
                             </View>
                         </Pressable>

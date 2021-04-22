@@ -78,6 +78,7 @@ const CONST = {
         TIMEZONE: 'timeZone',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
+    DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
     PRONOUNS: {
         HE_HIM_HIS: 'He/him',
         SHE_HER_HERS: 'She/her',
@@ -94,14 +95,21 @@ const CONST = {
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+
+    EMOJI_SPACER: 'SPACER',
+
     LOGIN_TYPE: {
         PHONE: 'phone',
         EMAIL: 'email',
     },
+
     KEYBOARD_TYPE: {
         NUMERIC: 'numeric',
         PHONE_PAD: 'phone-pad',
     },
+
+    EMOJI_PICKER_SIZE: 360,
+
     EMAIL: {
         CHRONOS: 'chronos@expensify.com',
     },

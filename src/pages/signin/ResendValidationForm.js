@@ -66,7 +66,7 @@ class ResendValidationForm extends React.Component {
 
     render() {
         return (
-            <View style={[styles.loginFormContainer]}>
+            <>
                 <View>
                     <Text style={[styles.textP]}>
                         We&apos;ve sent you a magic sign in link – just click on it to log in!
@@ -86,7 +86,7 @@ class ResendValidationForm extends React.Component {
                         {this.state.formSuccess}
                     </Text>
                 )}
-            </View>
+            </>
         );
     }
 }

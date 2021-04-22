@@ -22,6 +22,9 @@ const propTypes = {
         // An error message to display to the user
         error: PropTypes.string,
 
+        // Success message to display when necessary
+        success: PropTypes.string,
+
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
     }),
@@ -45,7 +48,7 @@ class PasswordPage extends Component {
     }
 
     componentWillUnmount() {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {error: ''});
+        Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
     }
 
     handleChangePassword() {
@@ -64,7 +67,7 @@ class PasswordPage extends Component {
                     title="Change Password"
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={Navigation.dismissModal}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <View style={styles.flexGrow1}>

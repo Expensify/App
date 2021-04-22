@@ -360,6 +360,40 @@ function getNewChatOptions(
 }
 
 /**
+ * Build the IOUConfirmation options for showing MyPersonalDetail
+ *
+ * @param {Object} myPersonalDetail
+ * @param {String} amountText
+ * @returns {Array}
+ */
+function getIOUConfirmationOptionsFromMyPersonalDetail(
+    myPersonalDetail,
+    amountText,
+) {
+    return [{
+        text: myPersonalDetail.displayName,
+        alternateText: myPersonalDetail.login,
+        icons: [myPersonalDetail.avatar],
+        descriptiveText: amountText,
+    }];
+}
+
+/**
+ * Build the IOUConfirmationOptions for showing participants
+ *
+ * @param {Array} participants
+ * @param {String} amountText
+ * @returns {Array}
+ */
+function getIOUConfirmationOptionsFromParticipants(
+    participants, amountText,
+) {
+    return participants.map(participant => ({
+        ...participant, descriptiveText: amountText,
+    }));
+}
+
+/**
  * Build the options for the New Group view
  *
  * @param {Object} reports
@@ -446,4 +480,6 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
+    getIOUConfirmationOptionsFromMyPersonalDetail,
+    getIOUConfirmationOptionsFromParticipants,
 };

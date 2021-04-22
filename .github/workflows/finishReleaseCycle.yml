@@ -16,14 +16,14 @@ jobs:
     steps:
       - name: Check for any deploy blockers
         id: checkDeployBlockers
-        uses: Expensify/Expensify.cash/.github/actions/checkDeployBlockers@master
+        uses: Expensify/Expensify.cash/.github/actions/checkDeployBlockers@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Reopen and comment on issue
         if: ${{ steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
-        uses: Expensify/Expensify.cash/.github/actions/reopenIssueWithComments@master
+        uses: Expensify/Expensify.cash/.github/actions/reopenIssueWithComment@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -92,7 +92,7 @@ jobs:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
-          ref: master
+          ref: main
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -102,14 +102,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create a new branch off master
+      - name: Create a new branch off main
         run: |
           git checkout -b version-bump-${{ github.sha }}
           git push --set-upstream origin version-bump-${{ github.sha }}
 
       - name: Generate a new version
         id: bumpVersion
-        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@master
+        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -123,14 +123,14 @@ jobs:
             ./ios/ExpensifyCashTests/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
-      - name: Create Pull Request (master)
+      - name: Create Pull Request (main)
         uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           author: OSBotify <reactnative@expensify.com>
-          base: master
+          base: main
           branch: version-bump-${{ github.sha }}
-          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on master
+          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on main
           body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
           labels: automerge
 
@@ -142,7 +142,7 @@ jobs:
         run: git push --tags
 
       - name: Create new StagingDeployCash
-        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@master
+        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
