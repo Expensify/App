@@ -10,7 +10,6 @@ import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import canUseTouchScreen from '../../../../libs/canUseTouchscreen';
-import Hoverable from '../../../../components/Hoverable';
 
 const propTypes = {
     // Function to add the selected emoji to the main compose text input
@@ -49,9 +48,29 @@ class EmojiPickerMenu extends Component {
         // If more emojis are ever added to emojis.js this will need to be updated or things will break
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
+        // Toggles which keys the search input will listen to
+        // NOTE: these need to be instance members so we're always referencing the same functions in memory
+        this.keyToDefaultPreventer = {};
+        ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp'].forEach((key) => {
+            this.keyToDefaultPreventer[key] = (keyBoardEvent) => {
+                if (keyBoardEvent.key === key) {
+                    keyBoardEvent.preventDefault();
+                }
+            };
+        });
+        this.toggleKeysOnSearchInput = (keysToIgnore = [], keysToAccept = []) => {
+            keysToIgnore.forEach((key) => {
+                this.searchInput.addEventListener('keydown', this.keyToDefaultPreventer[key]);
+            });
+            keysToAccept.forEach((key) => {
+                this.searchInput.removeEventListener('keydown', this.keyToDefaultPreventer[key]);
+            });
+        };
+
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
+        this.toggleArrowKeysOnSearchInput = this.toggleArrowKeysOnSearchInput.bind(this);
         this.renderItem = this.renderItem.bind(this);
 
         this.state = {
@@ -75,16 +94,19 @@ class EmojiPickerMenu extends Component {
         // Setup keypress/mouse handlers only if we have a keyboard (and not a touchscreen)
         if (!canUseTouchScreen() && document) {
             document.addEventListener('keydown', (e) => {
+                // Highlight the appropriate emoji
                 if (e.key.startsWith('Arrow')) {
                     this.highlightAdjacentEmoji(e.key);
-                } else if (e.key === 'Enter') {
-                    if (this.state.highlightedIndex !== -1) {
-                        this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
-                    }
+                    this.toggleArrowKeysOnSearchInput();
+                }
+
+                // Select the highlighted emoji if enter is pressed
+                if (e.key === 'Enter' && this.state.highlightedIndex !== -1) {
+                    this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
                 }
             });
 
-            // Re-enable pointer events when the mouse moves
+            // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
             document.addEventListener('mousemove', () => {
                 if (this.state.shouldDisablePointerEvents) {
                     this.setState({shouldDisablePointerEvents: false});
@@ -202,6 +224,27 @@ class EmojiPickerMenu extends Component {
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
+
+        // Allow the search input to receive arrow key presses if there were no results
+        if (!newFilteredEmojiList.length && this.toggleArrowPressesOnSearchInput) {
+            this.toggleKeysOnSearchInput([], ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp']);
+        }
+    }
+
+    /**
+     * Toggles which arrow keys can affect the cursor in the search input,
+     * depending on whether the arrow keys will affect the index of the highlighted emoji.
+     */
+    toggleArrowKeysOnSearchInput() {
+        // Only allow arrowKey presses to affect the cursor position in the search input
+        // if they aren't being used to affect the highlighted emoji
+        if (this.state.highlightedIndex === 0) {
+            this.toggleKeysOnSearchInput(['ArrowDown', 'ArrowRight'], ['ArrowLeft', 'ArrowUp']);
+        } else if (this.state.highlightedIndex === this.state.filteredEmojis.length - 1) {
+            this.toggleKeysOnSearchInput(['ArrowLeft', 'ArrowUp'], ['ArrowDown', 'ArrowRight']);
+        } else if (this.state.highlightedIndex !== -1 && this.state.filteredEmojis.length) {
+            this.toggleKeysOnSearchInput(['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp']);
+        }
     }
 
     /**
