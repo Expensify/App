@@ -87,6 +87,10 @@ const run = function () {
                                         process.exit(1);
                                     }
                                 }
+                            })
+                            .catch((err) => {
+                                console.error('Failed to fetch latest workflow run.', err);
+                                core.setFailed(err);
                             });
                     },
                     POLL_RATE,
