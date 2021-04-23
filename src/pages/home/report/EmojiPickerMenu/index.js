@@ -32,8 +32,8 @@ class EmojiPickerMenu extends Component {
         // Ref for the emoji search input
         this.searchInput = undefined;
 
-        // Ref for emoji menu
-        this.emojiMenu = undefined;
+        // Ref for emoji FlatList
+        this.emojiList = undefined;
 
         // This is the number of columns in each row of the picker.
         // Because of how flatList implements these rows, each row is an index rather than each element
@@ -116,7 +116,7 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Highlights the appropriate emoji depending the arrowKey
+     * Highlights emojis adjacent to the currently highlighted emoji depending on the arrowKey
      * @param {String} arrowKey
      */
     highlightAdjacentEmoji(arrowKey) {
@@ -199,7 +199,7 @@ class EmojiPickerMenu extends Component {
             targetOffset = offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT;
         }
         if (targetOffset !== this.state.currentScrollOffset) {
-            this.emojiMenu.scrollToOffset({offset: targetOffset, animated: false});
+            this.emojiList.scrollToOffset({offset: targetOffset, animated: false});
         }
     }
 
@@ -302,7 +302,7 @@ class EmojiPickerMenu extends Component {
                     </View>
                 )}
                 <FlatList
-                    ref={el => this.emojiMenu = el}
+                    ref={el => this.emojiList = el}
                     data={this.state.filteredEmojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => `emoji_picker_${item.code}`}
