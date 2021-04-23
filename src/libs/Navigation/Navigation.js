@@ -3,10 +3,18 @@ import React from 'react';
 import {StackActions, DrawerActions} from '@react-navigation/native';
 import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
 
+import Onyx from 'react-native-onyx';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
 import CustomActions from './CustomActions';
+import ONYXKEYS from '../../ONYXKEYS';
+
+let isLoggedIn = false;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => isLoggedIn = !_.isEmpty(val),
+});
 
 export const navigationRef = React.createRef();
 
@@ -38,7 +46,7 @@ function goBack() {
 function navigate(route = ROUTES.HOME) {
     // If we're navigating to the signIn page, replace the existing route in the stack with the SignIn route so that we
     // don't mistakenly route back to any older routes after the user signs in
-    if (route === ROUTES.SIGNIN) {
+    if (route === ROUTES.HOME && isLoggedIn) {
         navigationRef.current.dispatch(StackActions.replace(SCREENS.HOME));
         navigationRef.current.dispatch(StackActions.popToTop());
         return;
