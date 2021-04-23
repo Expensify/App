@@ -17,6 +17,8 @@ import {setExpensifyNewsStatus} from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import Picker from '../../components/Picker';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     // The chat priority mode
@@ -27,6 +29,8 @@ const propTypes = {
         // Whether or not the user is subscribed to news updates
         expensifyNewsStatus: PropTypes.bool,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -34,74 +38,80 @@ const defaultProps = {
     user: {},
 };
 
-const priorityModes = {
-    default: {
-        value: CONST.PRIORITY_MODE.DEFAULT,
-        label: 'Most Recent',
-        description: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
-    },
-    gsd: {
-        value: CONST.PRIORITY_MODE.GSD,
-        label: '#focus',
-        description: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
-    },
-};
+const PreferencesPage = ({priorityMode, user, translations}) => {
+    const {translate} = translations;
 
+    const priorityModes = {
+        default: {
+            value: CONST.PRIORITY_MODE.DEFAULT,
+            label: translate('mostRecent'),
+            description: translate('mostRecentModeDescription'),
+        },
+        gsd: {
+            value: CONST.PRIORITY_MODE.GSD,
+            label: translate('focus'),
+            description: translate('focusModeDescription'),
+        },
+    };
 
-const PreferencesPage = ({priorityMode, user}) => (
-    <ScreenWrapper>
-        <HeaderWithCloseButton
-            title="Preferences"
-            shouldShowBackButton
-            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-            onCloseButtonPress={() => Navigation.dismissModal(true)}
-        />
-        <View style={styles.pageWrapper}>
-            <View style={[styles.settingsPageBody, styles.mb6]}>
-                <Text style={[styles.formLabel]} numberOfLines={1}>Notifications</Text>
-                <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
-                    <View style={styles.flex4}>
-                        <Text>
-                            Receive relevant feature updates and Expensify news
-                        </Text>
+    return (
+        <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={translate('preferences')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <View style={styles.pageWrapper}>
+                <View style={[styles.settingsPageBody, styles.mb6]}>
+                    <Text style={[styles.formLabel]} numberOfLines={1}>{translate('notifications')}</Text>
+                    <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
+                        <View style={styles.flex4}>
+                            <Text>
+                                {translate('receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                            </Text>
+                        </View>
+                        <View style={[styles.flex1, styles.alignItemsEnd]}>
+                            <Switch
+                                isOn={user.expensifyNewsStatus ?? true}
+                                onToggle={setExpensifyNewsStatus}
+                            />
+                        </View>
                     </View>
-                    <View style={[styles.flex1, styles.alignItemsEnd]}>
-                        <Switch
-                            isOn={user.expensifyNewsStatus ?? true}
-                            onToggle={setExpensifyNewsStatus}
+                    <Text style={[styles.formLabel]} numberOfLines={1}>
+                        {translate('priorityMode')}
+                    </Text>
+                    <View style={[styles.mb2]}>
+                        <Picker
+                            onChange={
+                                mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
+                            }
+                            items={Object.values(priorityModes)}
+                            value={priorityMode}
+                            icon={() => <Icon src={DownArrow} />}
                         />
                     </View>
+                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                        {priorityModes[priorityMode].description}
+                    </Text>
                 </View>
-                <Text style={[styles.formLabel]} numberOfLines={1}>
-                    Priority Mode
-                </Text>
-                <View style={[styles.mb2]}>
-                    <Picker
-                        onChange={
-                            mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
-                        }
-                        items={Object.values(priorityModes)}
-                        value={priorityMode}
-                        icon={() => <Icon src={DownArrow} />}
-                    />
-                </View>
-                <Text style={[styles.textLabel, styles.colorMuted]}>
-                    {priorityModes[priorityMode].description}
-                </Text>
             </View>
-        </View>
-    </ScreenWrapper>
-);
+        </ScreenWrapper>
+    );
+};
 
 PreferencesPage.propTypes = propTypes;
 PreferencesPage.defaultProps = defaultProps;
 PreferencesPage.displayName = 'PreferencesPage';
 
-export default withOnyx({
-    priorityMode: {
-        key: ONYXKEYS.NVP_PRIORITY_MODE,
-    },
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(PreferencesPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        priorityMode: {
+            key: ONYXKEYS.NVP_PRIORITY_MODE,
+        },
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(PreferencesPage);

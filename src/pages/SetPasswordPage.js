@@ -16,6 +16,8 @@ import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import variables from '../styles/variables';
 import ButtonWithLoader from '../components/ButtonWithLoader';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -40,6 +42,8 @@ const propTypes = {
 
     // The accountID and validateCode are passed via the URL
     route: validateLinkPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -68,7 +72,7 @@ class SetPasswordPage extends Component {
     submitForm() {
         if (!this.state.password.trim()) {
             this.setState({
-                formError: 'Password cannot be blank',
+                formError: this.props.translations.translate('passwordCannotBeBlank'),
             });
             return;
         }
@@ -84,6 +88,7 @@ class SetPasswordPage extends Component {
     }
 
     render() {
+        const {translations: {translate}} = this.props;
         return (
             <>
                 <View style={[styles.signInPage]}>
@@ -96,7 +101,7 @@ class SetPasswordPage extends Component {
                                 />
                             </View>
                             <View style={[styles.mb4]}>
-                                <Text style={[styles.formLabel]}>Enter a password</Text>
+                                <Text style={[styles.formLabel]}>{translate('enterPassword')}</Text>
                                 <TextInput
                                     style={[styles.textInput]}
                                     secureTextEntry
@@ -108,7 +113,7 @@ class SetPasswordPage extends Component {
                                 />
                             </View>
                             <ButtonWithLoader
-                                text="Set Password"
+                                text={translate('setPassword')}
                                 onClick={this.submitForm}
                                 isLoading={this.props.account.loading}
                             />
@@ -133,7 +138,10 @@ class SetPasswordPage extends Component {
 SetPasswordPage.propTypes = propTypes;
 SetPasswordPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(SetPasswordPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        credentials: {key: ONYXKEYS.CREDENTIALS},
+        account: {key: ONYXKEYS.ACCOUNT},
+    }),
+)(SetPasswordPage);

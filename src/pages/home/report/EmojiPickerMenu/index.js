@@ -8,10 +8,13 @@ import themeColors from '../../../../styles/themes/default';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 
 const propTypes = {
     // Function to add the selected emoji to the main compose text input
     onEmojiSelected: PropTypes.func.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 class EmojiPickerMenu extends Component {
@@ -101,7 +104,7 @@ class EmojiPickerMenu extends Component {
                 <View style={[styles.pt4, styles.ph4, styles.pb1]}>
                     <TextInputFocusable
                         textAlignVertical="top"
-                        placeholder="Search"
+                        placeholder={this.props.translations.translate('search')}
                         placeholderTextColor={themeColors.textSupporting}
                         onChangeText={this.filterEmojis}
                         style={styles.textInput}
@@ -125,4 +128,4 @@ class EmojiPickerMenu extends Component {
 
 EmojiPickerMenu.propTypes = propTypes;
 
-export default EmojiPickerMenu;
+export default withLocalize(EmojiPickerMenu);

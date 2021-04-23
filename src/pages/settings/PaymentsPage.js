@@ -12,9 +12,13 @@ import NameValuePair from '../../libs/actions/NameValuePair';
 import {getUserDetails} from '../../libs/actions/User';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     payPalMeUsername: PropTypes.string,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -51,10 +55,11 @@ class PaymentsPage extends React.Component {
     }
 
     render() {
+        const {translations: {translate}} = this.props;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title="Payments"
+                    title={translate('payments')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -62,15 +67,15 @@ class PaymentsPage extends React.Component {
                 <View style={[styles.flex1, styles.p5]}>
                     <View style={[styles.flex1]}>
                         <Text style={[styles.textP, styles.mb4]}>
-                            Enter your username to get paid back via PayPal.
+                            {translate('enterYourUsernameToGetPaidViaPayPal')}
                         </Text>
                         <Text style={[styles.formLabel]} numberOfLines={1}>
-                            PayPal.me/
+                            {translate('payPalMe')}
                         </Text>
                         <TextInput
                             style={[styles.textInput]}
                             value={this.state.payPalMeUsername}
-                            placeholder="Your PayPal username"
+                            placeholder={translate('yourPayPalUsername')}
                             onChangeText={text => this.setState({payPalMeUsername: text})}
                         />
                     </View>
@@ -84,7 +89,7 @@ class PaymentsPage extends React.Component {
                         ]}
                     >
                         <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            Add PayPal Account
+                            {translate('addPayPalAccount')}
                         </Text>
                     </Pressable>
                 </View>
@@ -97,8 +102,11 @@ PaymentsPage.propTypes = propTypes;
 PaymentsPage.defaultProps = defaultProps;
 PaymentsPage.displayName = 'PaymentsPage';
 
-export default withOnyx({
-    payPalMeUsername: {
-        key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-    },
-})(PaymentsPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+        },
+    }),
+)(PaymentsPage);

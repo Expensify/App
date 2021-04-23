@@ -10,6 +10,7 @@ import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
 
@@ -19,6 +20,8 @@ const propTypes = {
     // Whether we should show the welcome elements
     shouldShowWelcomeText: PropTypes.bool,
     shouldShowWelcomeScreenshot: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -36,7 +39,7 @@ const SignInPageLayoutNarrow = props => (
 
                 <View style={[styles.mb6, styles.alignItemsCenter]}>
                     <Text style={[styles.h1]}>
-                        Expensify.cash
+                        {props.translations.translate('expensifyDotCash')}
                     </Text>
                 </View>
 
@@ -67,4 +70,4 @@ SignInPageLayoutNarrow.defaultProps = defaultProps;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
 
-export default SignInPageLayoutNarrow;
+export default withLocalize(SignInPageLayoutNarrow);
