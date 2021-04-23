@@ -2,6 +2,8 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
     getReportActionItemStyle,
@@ -28,8 +30,15 @@ const propTypes = {
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 
-    // Is the network currently offline or not
-    isOffline: PropTypes.bool.isRequired,
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    network: {isOffline: false},
 };
 
 class ReportActionItem extends Component {
@@ -101,13 +110,13 @@ class ReportActionItem extends Component {
                                     ? (
                                         <ReportActionItemSingle
                                             action={this.props.action}
-                                            isOffline={this.props.isOffline}
+                                            isOffline={this.props.network.isOffline}
                                         />
                                     )
                                     : (
                                         <ReportActionItemGrouped
                                             action={this.props.action}
-                                            isOffline={this.props.isOffline}
+                                            isOffline={this.props.network.isOffline}
                                         />
                                     )}
                             </View>
@@ -151,5 +160,10 @@ class ReportActionItem extends Component {
 }
 
 ReportActionItem.propTypes = propTypes;
+ReportActionItem.defaultProps = defaultProps;
 
-export default ReportActionItem;
+export default withOnyx({
+    network: {
+        key: ONYXKEYS.NETWORK,
+    },
+})(ReportActionItem);
