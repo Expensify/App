@@ -14,6 +14,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
+import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 
@@ -101,60 +102,66 @@ class AddSecondaryLoginPage extends Component {
         const {translations: {translate}} = this.props;
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={translate(this.formType === CONST.LOGIN_TYPE.PHONE ? 'addPhoneNumber' : 'addEmailAddress')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
-                    <View style={styles.flexGrow1}>
-                        <Text style={[styles.mb6, styles.textP]}>
-                            {translate(this.formType === CONST.LOGIN_TYPE.PHONE
-                                ? 'enterPreferredPhoneNumberToSendValidationLink'
-                                : 'enterPreferredEmailToSendValidationLink')}
-                        </Text>
-                        <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {translate(this.formType === CONST.LOGIN_TYPE.PHONE ? 'phoneNumber' : 'emailAddress')}
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                            ? 'addPhoneNumber'
+                            : 'addEmailAddress')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
+                        <View style={styles.flexGrow1}>
+                            <Text style={[styles.mb6, styles.textP]}>
+                                {translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                    ? 'enterPreferredPhoneNumberToSendValidationLink'
+                                    : 'enterPreferredEmailToSendValidationLink')}
                             </Text>
-                            <TextInput
-                                style={styles.textInput}
-                                value={this.state.login}
-                                onChangeText={login => this.setState({login})}
-                                autoFocus
-                                keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
-                                    ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
-                                returnKeyType="done"
-                            />
-                        </View>
-                        <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>{translate('password')}</Text>
-                            <TextInput
-                                style={styles.textInput}
-                                value={this.state.password}
-                                onChangeText={password => this.setState({password})}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                onSubmitEditing={this.submitForm}
-                            />
-                        </View>
-                        {!_.isEmpty(this.props.user.error) && (
+                            <View style={styles.mb6}>
+                                <Text style={[styles.mb1, styles.formLabel]}>
+                                    {translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                        ? 'phoneNumber'
+                                        : 'emailAddress')}
+                                </Text>
+                                <TextInput
+                                    style={styles.textInput}
+                                    value={this.state.login}
+                                    onChangeText={login => this.setState({login})}
+                                    autoFocus
+                                    keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
+                                        ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
+                                    returnKeyType="done"
+                                />
+                            </View>
+                            <View style={styles.mb6}>
+                                <Text style={[styles.mb1, styles.formLabel]}>{translate('password')}</Text>
+                                <TextInput
+                                    style={styles.textInput}
+                                    value={this.state.password}
+                                    onChangeText={password => this.setState({password})}
+                                    secureTextEntry
+                                    autoCompleteType="password"
+                                    textContentType="password"
+                                    onSubmitEditing={this.submitForm}
+                                />
+                            </View>
+                            {!_.isEmpty(this.props.user.error) && (
                             <Text style={styles.formError}>
                                 {this.props.user.error}
                             </Text>
-                        )}
+                            )}
+                        </View>
+                        <View style={[styles.flexGrow0]}>
+                            <ButtonWithLoader
+                                isDisabled={this.validateForm()}
+                                isLoading={this.props.user.loading}
+                                text={translate('sendValidation')}
+                                onClick={this.submitForm}
+                            />
+                        </View>
                     </View>
-                    <View style={[styles.flexGrow0]}>
-                        <ButtonWithLoader
-                            isDisabled={this.validateForm()}
-                            isLoading={this.props.user.loading}
-                            text={translate('sendValidation')}
-                            onClick={this.submitForm}
-                        />
-                    </View>
-                </View>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
