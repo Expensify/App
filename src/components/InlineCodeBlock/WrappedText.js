@@ -8,7 +8,7 @@ import styles from '../../styles/styles';
  * Breaks the text into matrix
  * for eg: My Name  is Rajat
  *  [
- *    [My,'',Name,'','',is,'',Rajat],
+ *    [My,' ',Name,' ',' ',is,' ',Rajat],
  *  ]
  *
  * @param {String} text
