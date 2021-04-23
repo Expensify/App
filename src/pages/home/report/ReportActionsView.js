@@ -50,12 +50,6 @@ const propTypes = {
         // Email of the logged in person
         email: PropTypes.string,
     }),
-
-    // Information about the network
-    network: PropTypes.shape({
-        // Is the network currently offline or not
-        isOffline: PropTypes.bool,
-    }),
 };
 
 const defaultProps = {
@@ -65,7 +59,6 @@ const defaultProps = {
     },
     reportActions: {},
     session: {},
-    network: {isOffline: false},
 };
 
 class ReportActionsView extends React.Component {
@@ -290,7 +283,6 @@ class ReportActionsView extends React.Component {
             <ReportActionItem
                 reportID={this.props.reportID}
                 action={item.action}
-                isOffline={this.props.network.isOffline}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
                     && item.action.sequenceNumber === this.initialNewMarkerPosition}
@@ -342,9 +334,6 @@ export default withOnyx({
     reportActions: {
         key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         canEvict: false,
-    },
-    network: {
-        key: ONYXKEYS.NETWORK,
     },
     session: {
         key: ONYXKEYS.SESSION,
