@@ -16,7 +16,7 @@ const prList = JSON.parse(core.getInput('PR_LIST', {required: true}));
 const isProd = JSON.parse(
     core.getInput('IS_PRODUCTION_DEPLOY', {required: true}),
 );
-const version = JSON.parse(core.getInput('VERSION', {required: true}));
+const version = core.getInput('VERSION', {required: true});
 const token = core.getInput('GITHUB_TOKEN', {required: true});
 const octokit = github.getOctokit(token);
 const githubUtils = new GithubUtils(octokit);
