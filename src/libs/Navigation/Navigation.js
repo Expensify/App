@@ -40,6 +40,7 @@ function navigate(route = ROUTES.HOME) {
     // don't mistakenly route back to any older routes after the user signs in
     if (route === ROUTES.SIGNIN) {
         navigationRef.current.dispatch(StackActions.replace(SCREENS.HOME));
+        navigationRef.current.dispatch(StackActions.popToTop());
         return;
     }
 
