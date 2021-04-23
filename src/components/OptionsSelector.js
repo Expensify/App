@@ -1,7 +1,8 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
+import {withNavigation} from '@react-navigation/compat';
 import TextInputWithFocusStyles from './TextInputWithFocusStyles';
 import OptionsList from './OptionsList';
 import styles from '../styles/styles';
@@ -59,6 +60,10 @@ const propTypes = {
 
     // Whether to show the title tooltip
     showTitleTooltip: PropTypes.bool,
+
+    // The ref to the search input
+    // eslint-disable-next-line react/forbid-prop-types
+    navigation: PropTypes.object.isRequired,
 };
 
 const defaultProps = {
@@ -87,15 +92,13 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        this.interactionHandle = InteractionManager.runAfterInteractions(() => {
+        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', () => {
             this.textInput.focus();
         });
     }
 
     componentWillUnmount() {
-        if (this.interactionHandle) {
-            this.interactionHandle.cancel();
-        }
+        this.unsubscribeTransitionEnd();
     }
 
     /**
@@ -212,4 +215,4 @@ class OptionsSelector extends Component {
 
 OptionsSelector.defaultProps = defaultProps;
 OptionsSelector.propTypes = propTypes;
-export default OptionsSelector;
+export default withNavigation(OptionsSelector);
