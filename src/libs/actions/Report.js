@@ -676,11 +676,11 @@ function fetchAllReports(
             return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
         })
         .then(() => {
+            Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
+
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
-
-            Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
 
             // Optionally delay fetching report history as it significantly increases sign in to interactive time
             _.delay(() => {
