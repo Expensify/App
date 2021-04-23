@@ -10,7 +10,7 @@ import CONST from '../../../CONST';
 import compose from '../../compose';
 import {
     subscribeToReportCommentEvents,
-    fetchAll as fetchAllReports,
+    fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
@@ -119,7 +119,7 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetch();
         User.getUserDetails();
         User.getBetas();
-        fetchAllReports(true, true);
+        fetchAllReports(true, true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 
