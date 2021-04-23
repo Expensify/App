@@ -179,6 +179,7 @@ class AuthScreens extends React.Component {
             cardStyleInterpolator: (...props) => modalCardStyleInterpolator(this.props.isSmallScreenWidth, ...props),
             animationEnabled: true,
             gestureDirection: 'horizontal',
+            cardOverlayEnabled: true,
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
