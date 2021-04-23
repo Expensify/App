@@ -26,9 +26,9 @@ import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
-import Navigation from '../../../libs/Navigation/Navigation';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -55,6 +55,7 @@ const propTypes = {
     }),
 
     ...windowDimensionsPropTypes,
+    ...withDrawerPropTypes,
 };
 
 const defaultProps = {
@@ -76,6 +77,7 @@ class ReportActionsView extends React.Component {
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
+        this.startRecordMaxActionTimer = this.startRecordMaxActionTimer.bind(this);
         this.sortedReportActions = [];
         this.timers = [];
 
@@ -109,6 +111,14 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth) {
+            return true;
+        }
+
+        if (this.props.isDrawerOpen !== nextProps.isDrawerOpen) {
+            return true;
+        }
+
         return false;
     }
 
@@ -116,6 +126,9 @@ class ReportActionsView extends React.Component {
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
+        const shouldRecordMaxAction = Visibility.isVisible()
+            && !(this.props.isDrawerOpen && this.props.isSmallScreenWidth);
+
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
@@ -126,9 +139,18 @@ class ReportActionsView extends React.Component {
 
             // When the last action changes, wait three seconds, then record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (Visibility.isVisible() && !(Navigation.isDrawerOpen() && this.props.isSmallScreenWidth)) {
-                this.timers.push(setTimeout(this.recordMaxAction, 3000));
+            if (shouldRecordMaxAction) {
+                this.startRecordMaxActionTimer();
             }
+        }
+
+        // We want to mark the unread comments when user resize the screen to desktop
+        // Or user move back to report from LHN
+        if (shouldRecordMaxAction && (
+            prevProps.isDrawerOpen !== this.props.isDrawerOpen
+            || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
+        )) {
+            this.startRecordMaxActionTimer();
         }
     }
 
@@ -150,6 +172,15 @@ class ReportActionsView extends React.Component {
         if (Visibility.isVisible()) {
             this.timers.push(setTimeout(this.recordMaxAction, 3000));
         }
+    }
+
+    /**
+     * Set a timer for recording the max action
+     *
+     * @memberof ReportActionsView
+     */
+    startRecordMaxActionTimer() {
+        this.timers.push(setTimeout(this.recordMaxAction, 3000));
     }
 
     /**
@@ -334,6 +365,7 @@ ReportActionsView.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withDrawerState,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
