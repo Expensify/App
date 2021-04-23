@@ -481,6 +481,7 @@ function subscribeToUserEvents() {
         return;
     }
 
+    // Live-update a report's actions when a 'report comment' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT, (pushJSON) => {
         Log.info(
             `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
@@ -495,6 +496,7 @@ function subscribeToUserEvents() {
             Log.info('[Report] Failed to subscribe to Pusher channel', true, {error, pusherChannelName, eventName});
         });
 
+    // Live-update a report's pinned state when a 'report toggle pinned' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_TOGGLE_PINNED, (pushJSON) => {
         Log.info(
             `[Report] Handled ${Pusher.TYPE.REPORT_TOGGLE_PINNED} event sent by Pusher`,
