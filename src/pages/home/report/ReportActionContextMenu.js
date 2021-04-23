@@ -76,8 +76,9 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Mark as Unread',
                 icon: Mail,
+                successIcon: Checkmark,
                 shouldShow: true,
-                onPress: () => updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber - 1),
+                onPress: () => updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber),
             },
 
             {
