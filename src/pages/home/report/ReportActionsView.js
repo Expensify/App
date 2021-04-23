@@ -92,7 +92,7 @@ class ReportActionsView extends React.Component {
         // Since we want the New marker to remain in place even if newer messages come in, we set it in the constructor
         const newMarkerSequenceNumber = this.props.report.unreadActionCount === 0
             ? 0
-            : this.props.report.maxSequenceNumber - this.props.report.unreadActionCount;
+            : (this.props.report.maxSequenceNumber - this.props.report.unreadActionCount) + 1;
 
         // Set the new marker
         setLocalLastRead(this.props.reportID, newMarkerSequenceNumber, true);
@@ -281,7 +281,7 @@ class ReportActionsView extends React.Component {
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 shouldDisplayNewIndicator={this.props.report.newMarkerSequenceNumber > 0
-                    && item.action.sequenceNumber - 1 === this.props.report.newMarkerSequenceNumber}
+                    && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber}
             />
         );
     }
