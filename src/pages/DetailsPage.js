@@ -44,12 +44,10 @@ const DetailsPage = ({personalDetails, route, translations}) => {
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowBackButton = Boolean(route.params.reportID);
-
-    const {translate} = translations;
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('details')}
+                title={translations.translate('details')}
                 shouldShowBackButton={shouldShowBackButton}
                 onBackButtonPress={Navigation.goBack}
                 onCloseButtonPress={() => Navigation.dismissModal()}
@@ -79,7 +77,9 @@ const DetailsPage = ({personalDetails, route, translations}) => {
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {translate(Str.isSMSLogin(details.login) ? 'phoneNumber' : 'email')}
+                                        {translations.translate(Str.isSMSLogin(details.login)
+                                            ? 'phoneNumber'
+                                            : 'email')}
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
                                         {Str.isSMSLogin(details.login)
@@ -91,7 +91,7 @@ const DetailsPage = ({personalDetails, route, translations}) => {
                             {details.pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {translate('preferredPronouns')}
+                                        {translations.translate('preferredPronouns')}
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
                                         {details.pronouns}
@@ -101,7 +101,7 @@ const DetailsPage = ({personalDetails, route, translations}) => {
                             {details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {translate('localTime')}
+                                        {translations.translate('localTime')}
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
                                         {moment().tz(details.timezone.selected).format('LT')}

@@ -88,7 +88,6 @@ class SetPasswordPage extends Component {
     }
 
     render() {
-        const {translations: {translate}} = this.props;
         return (
             <>
                 <View style={[styles.signInPage]}>
@@ -101,7 +100,9 @@ class SetPasswordPage extends Component {
                                 />
                             </View>
                             <View style={[styles.mb4]}>
-                                <Text style={[styles.formLabel]}>{translate('enterPassword')}</Text>
+                                <Text style={[styles.formLabel]}>
+                                    {this.props.translations.translate('enterPassword')}
+                                </Text>
                                 <TextInput
                                     style={[styles.textInput]}
                                     secureTextEntry
@@ -113,7 +114,7 @@ class SetPasswordPage extends Component {
                                 />
                             </View>
                             <ButtonWithLoader
-                                text={translate('setPassword')}
+                                text={this.props.translations.translate('setPassword')}
                                 onClick={this.submitForm}
                                 isLoading={this.props.account.loading}
                             />

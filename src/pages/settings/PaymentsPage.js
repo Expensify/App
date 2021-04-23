@@ -55,11 +55,10 @@ class PaymentsPage extends React.Component {
     }
 
     render() {
-        const {translations: {translate}} = this.props;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={translate('payments')}
+                    title={this.props.translations.translate('payments')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -67,15 +66,15 @@ class PaymentsPage extends React.Component {
                 <View style={[styles.flex1, styles.p5]}>
                     <View style={[styles.flex1]}>
                         <Text style={[styles.textP, styles.mb4]}>
-                            {translate('enterYourUsernameToGetPaidViaPayPal')}
+                            {this.props.translations.translate('enterYourUsernameToGetPaidViaPayPal')}
                         </Text>
                         <Text style={[styles.formLabel]} numberOfLines={1}>
-                            {translate('payPalMe')}
+                            {this.props.translations.translate('payPalMe')}
                         </Text>
                         <TextInput
                             style={[styles.textInput]}
                             value={this.state.payPalMeUsername}
-                            placeholder={translate('yourPayPalUsername')}
+                            placeholder={this.props.translations.translate('yourPayPalUsername')}
                             onChangeText={text => this.setState({payPalMeUsername: text})}
                         />
                     </View>
@@ -89,7 +88,7 @@ class PaymentsPage extends React.Component {
                         ]}
                     >
                         <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            {translate('addPayPalAccount')}
+                            {this.props.translations.translate('addPayPalAccount')}
                         </Text>
                     </Pressable>
                 </View>

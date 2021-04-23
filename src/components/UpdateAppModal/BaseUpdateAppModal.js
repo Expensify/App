@@ -23,17 +23,16 @@ class BaseUpdateAppModal extends PureComponent {
     }
 
     render() {
-        const {translations: {translate}} = this.props;
         return (
             <>
                 <ConfirmModal
-                    title={translate('updateApp')}
+                    title={this.props.translations.translate('updateApp')}
                     isVisible={this.state.isModalOpen}
                     onConfirm={this.submitAndClose}
                     onCancel={() => this.setState({isModalOpen: false})}
-                    prompt={translate('updatePrompt')}
-                    confirmText={translate('updateApp')}
-                    cancelText={translate('cancel')}
+                    prompt={this.props.translations.translate('updatePrompt')}
+                    confirmText={this.props.translations.translate('updateApp')}
+                    cancelText={this.props.translations.translate('cancel')}
                 />
             </>
         );

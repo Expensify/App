@@ -65,11 +65,10 @@ class PasswordPage extends Component {
     }
 
     render() {
-        const {translations: {translate}} = this.props;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={translate('changePassword')}
+                    title={this.props.translations.translate('changePassword')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -77,10 +76,12 @@ class PasswordPage extends Component {
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <View style={styles.flexGrow1}>
                         <Text style={[styles.mb6, styles.textP]}>
-                            {translate('changingYourPasswordPrompt')}
+                            {this.props.translations.translate('changingYourPasswordPrompt')}
                         </Text>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>{`${translate('currentPassword')}*`}</Text>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {`${this.props.translations.translate('currentPassword')}*`}
+                            </Text>
                             <TextInput
                                 secureTextEntry
                                 autoCompleteType="password"
@@ -91,7 +92,9 @@ class PasswordPage extends Component {
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>{`${translate('newPassword')}*`}</Text>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {`${this.props.translations.translate('newPassword')}*`}
+                            </Text>
                             <TextInput
                                 secureTextEntry
                                 autoCompleteType="password"
@@ -104,12 +107,14 @@ class PasswordPage extends Component {
                             />
                             {this.state.isPasswordRequirementsVisible && (
                                 <Text style={[styles.formHint, styles.mt1]}>
-                                    {translate('newPasswordPrompt')}
+                                    {this.props.translations.translate('newPasswordPrompt')}
                                 </Text>
                             )}
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>{`${translate('confirmNewPassword')}*`}</Text>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {`${this.props.translations.translate('confirmNewPassword')}*`}
+                            </Text>
                             <TextInput
                                 secureTextEntry
                                 autoCompleteType="password"
@@ -134,7 +139,7 @@ class PasswordPage extends Component {
                                 || (this.state.currentPassword === this.state.newPassword)
                                 || !this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING)}
                             isLoading={this.props.account.loading}
-                            text={translate('save')}
+                            text={this.props.translations.translate('save')}
                             onClick={this.handleChangePassword}
                         />
                     </View>

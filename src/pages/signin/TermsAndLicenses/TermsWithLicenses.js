@@ -38,10 +38,6 @@ const TermsWithLicenses = ({translations}) => (
     </View>
 );
 
-const propTypes = {
-    ...withLocalizePropTypes,
-};
-
-TermsWithLicenses.propTypes = propTypes;
+TermsWithLicenses.propTypes = {...withLocalizePropTypes};
 
 export default withLocalize(TermsWithLicenses);

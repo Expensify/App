@@ -19,6 +19,7 @@ import Switch from '../../components/Switch';
 import Picker from '../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import {translate} from '../../libs/translate';
 
 const propTypes = {
     // The chat priority mode
@@ -38,67 +39,64 @@ const defaultProps = {
     user: {},
 };
 
-const PreferencesPage = ({priorityMode, user, translations}) => {
-    const {translate} = translations;
+const priorityModes = {
+    default: {
+        value: CONST.PRIORITY_MODE.DEFAULT,
+        label: translate(ONYXKEYS.PREFERRED_LOCALE, 'mostRecent'),
+        description: translate(ONYXKEYS.PREFERRED_LOCALE, 'mostRecentModeDescription'),
+    },
+    gsd: {
+        value: CONST.PRIORITY_MODE.GSD,
+        label: translate(ONYXKEYS.PREFERRED_LOCALE, 'focus'),
+        description: translate(ONYXKEYS.PREFERRED_LOCALE, 'focusModeDescription'),
+    },
+};
 
-    const priorityModes = {
-        default: {
-            value: CONST.PRIORITY_MODE.DEFAULT,
-            label: translate('mostRecent'),
-            description: translate('mostRecentModeDescription'),
-        },
-        gsd: {
-            value: CONST.PRIORITY_MODE.GSD,
-            label: translate('focus'),
-            description: translate('focusModeDescription'),
-        },
-    };
 
-    return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={translate('preferences')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
-            <View style={styles.pageWrapper}>
-                <View style={[styles.settingsPageBody, styles.mb6]}>
-                    <Text style={[styles.formLabel]} numberOfLines={1}>{translate('notifications')}</Text>
-                    <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
-                        <View style={styles.flex4}>
-                            <Text>
-                                {translate('receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                            </Text>
-                        </View>
-                        <View style={[styles.flex1, styles.alignItemsEnd]}>
-                            <Switch
-                                isOn={user.expensifyNewsStatus ?? true}
-                                onToggle={setExpensifyNewsStatus}
-                            />
-                        </View>
+const PreferencesPage = ({priorityMode, user, translations}) => (
+    <ScreenWrapper>
+        <HeaderWithCloseButton
+            title={translations.translate('preferences')}
+            shouldShowBackButton
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+            onCloseButtonPress={() => Navigation.dismissModal(true)}
+        />
+        <View style={styles.pageWrapper}>
+            <View style={[styles.settingsPageBody, styles.mb6]}>
+                <Text style={[styles.formLabel]} numberOfLines={1}>{translations.translate('notifications')}</Text>
+                <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
+                    <View style={styles.flex4}>
+                        <Text>
+                            {translations.translate('receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                        </Text>
                     </View>
-                    <Text style={[styles.formLabel]} numberOfLines={1}>
-                        {translate('priorityMode')}
-                    </Text>
-                    <View style={[styles.mb2]}>
-                        <Picker
-                            onChange={
-                                mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
-                            }
-                            items={Object.values(priorityModes)}
-                            value={priorityMode}
-                            icon={() => <Icon src={DownArrow} />}
+                    <View style={[styles.flex1, styles.alignItemsEnd]}>
+                        <Switch
+                            isOn={user.expensifyNewsStatus ?? true}
+                            onToggle={setExpensifyNewsStatus}
                         />
                     </View>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>
-                        {priorityModes[priorityMode].description}
-                    </Text>
                 </View>
+                <Text style={[styles.formLabel]} numberOfLines={1}>
+                    {translations.translate('priorityMode')}
+                </Text>
+                <View style={[styles.mb2]}>
+                    <Picker
+                        onChange={
+                            mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
+                        }
+                        items={Object.values(priorityModes)}
+                        value={priorityMode}
+                        icon={() => <Icon src={DownArrow} />}
+                    />
+                </View>
+                <Text style={[styles.textLabel, styles.colorMuted]}>
+                    {priorityModes[priorityMode].description}
+                </Text>
             </View>
-        </ScreenWrapper>
-    );
-};
+        </View>
+    </ScreenWrapper>
+);
 
 PreferencesPage.propTypes = propTypes;
 PreferencesPage.defaultProps = defaultProps;

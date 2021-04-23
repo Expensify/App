@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 export default {
     hello: 'Hello',
     phoneCountryCode: '1',
@@ -10,7 +11,6 @@ export default {
     noExtentionFoundForMimeType: 'No extension found for mime type',
     problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
     updateApp: 'Update App',
-    // eslint-disable-next-line max-len
     updatePrompt: 'A new version of Expensify.cash is available.\nUpdate now or restart the app at a later time to download the latest changes.',
     cancel: 'Cancel',
     upload: 'Upload',
@@ -55,10 +55,8 @@ export default {
     splitBill: 'Split Bill',
     requestMoney: 'Request Money',
     addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
-    // eslint-disable-next-line max-len
     numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
     useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
-    // eslint-disable-next-line max-len
     emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
     add: 'Add',
     resend: 'Resend',
@@ -81,9 +79,7 @@ export default {
     timezone: 'Timezone',
     addPhoneNumber: 'Add Phone Number',
     addEmailAddress: 'Add Email Address',
-    // eslint-disable-next-line max-len
     enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number and password to send a validation link.',
-    // eslint-disable-next-line max-len
     enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
     password: 'Password',
     sendValidation: 'Send Validation',
@@ -97,14 +93,11 @@ export default {
         'terms of service',
         'and',
         'privacy policy',
-        '.',
     ],
     versionLetter: 'v',
-    // eslint-disable-next-line max-len
     changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand Expensify.cash accounts.',
     currentPassword: 'Current Password',
     newPassword: 'New Password',
-    // eslint-disable-next-line max-len
     newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
     confirmNewPassword: 'Confirm New Password',
     enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
@@ -114,7 +107,6 @@ export default {
     notifications: 'Notifications',
     receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
     mostRecent: 'Most Recent',
-    // eslint-disable-next-line max-len
     mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
     focus: '#focus',
     focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
@@ -163,7 +155,6 @@ export default {
     takePhoto: 'Take Photo',
     chooseFromGallery: 'Choose from Gallery',
     chooseDocument: 'Choose Document',
-    // eslint-disable-next-line max-len
     expensifyDoesntHaveAccessToCamera: 'Expensify.cash does not have access to your camera, please enable the permission and try again.',
     attachmentError: 'Attachment Error',
     errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
@@ -171,4 +162,8 @@ export default {
     errorDuringAttachmentSelection: 'Error during attachment selection',
     unknownFilename: 'Unknown Filename',
     enterYourPhoneOrEmail: 'Enter your phone or email:',
+    expensifyIsOpenSource: 'Expensify.cash is open source',
+    view: 'View',
+    theCode: 'the code',
+    openJobs: 'open jobs',
 };

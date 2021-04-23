@@ -16,21 +16,18 @@ const defaultProps = {
     textSize: 'default',
 };
 
-const WelcomeText = (props) => {
-    const {translations: {translate}} = props;
-    return (
-        <>
-            <Text style={[props.textSize === 'large' ? styles.textP : styles.textLabel, styles.textStrong, styles.mb1]}>
-                {translate('welcomeText')[0]}
-            </Text>
-            <Text style={[props.textSize === 'large' ? styles.textP : styles.textLabel]}>
-                {translate('welcomeText')[1]}
-                {' '}
-                {translate('welcomeText')[2]}
-            </Text>
-        </>
-    );
-};
+const WelcomeText = props => (
+    <>
+        <Text style={[props.textSize === 'large' ? styles.textP : styles.textLabel, styles.textStrong, styles.mb1]}>
+            {props.translations.translate('welcomeText')[0]}
+        </Text>
+        <Text style={[props.textSize === 'large' ? styles.textP : styles.textLabel]}>
+            {props.translations.translate('welcomeText')[1]}
+            {' '}
+            {props.translations.translate('welcomeText')[2]}
+        </Text>
+    </>
+);
 
 WelcomeText.displayName = 'WelcomeText';
 WelcomeText.propTypes = propTypes;

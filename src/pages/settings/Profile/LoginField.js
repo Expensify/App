@@ -61,25 +61,23 @@ class LoginField extends Component {
 
     render() {
         let note;
-        const {translations: {translate}} = this.props;
         if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
             // No phone number
             if (!this.props.login.partnerUserID) {
-                note = translate('addYourPhoneToSettleViaVenmo');
+                note = this.props.translations.translate('addYourPhoneToSettleViaVenmo');
 
             // Has unvalidated phone number
             } else if (!this.props.login.validatedDate) {
-                // eslint-disable-next-line max-len
-                note = translate('numberHasNotBeenValidated');
+                note = this.props.translations.translate('numberHasNotBeenValidated');
 
             // Has verified phone number
             } else {
-                note = translate('useYourPhoneToSettleViaVenmo');
+                note = this.props.translations.translate('useYourPhoneToSettleViaVenmo');
             }
 
         // Has unvalidated email
         } else if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
-            note = translate('emailHasNotBeenValidated');
+            note = this.props.translations.translate('emailHasNotBeenValidated');
         }
 
         return (
@@ -96,7 +94,7 @@ class LoginField extends Component {
                             </View>
                             <View style={styles.justifyContentCenter}>
                                 <Text style={[styles.createMenuText, styles.ml3]}>
-                                    {`${translate('add')} ${this.props.label}`}
+                                    {`${this.props.translations.translate('add')} ${this.props.label}`}
                                 </Text>
                             </View>
                         </View>
@@ -115,7 +113,7 @@ class LoginField extends Component {
                                     <Icon fill={colors.black} src={Checkmark} />
                                 ) : (
                                     <Text style={styles.createMenuText}>
-                                        {translate('resend')}
+                                        {this.props.translations.translate('resend')}
                                     </Text>
                                 )}
                             </Pressable>

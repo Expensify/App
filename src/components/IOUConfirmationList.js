@@ -201,7 +201,6 @@ class IOUConfirmationList extends Component {
     }
 
     render() {
-        const {translations: {translate}} = this.props;
         return (
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
@@ -217,7 +216,7 @@ class IOUConfirmationList extends Component {
                     />
                     <View>
                         <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                            {translate('whatsItFor')}
+                            {this.props.translations.translate('whatsItFor')}
                         </Text>
                     </View>
                     <View style={[styles.ph5]}>
@@ -225,7 +224,7 @@ class IOUConfirmationList extends Component {
                             style={[styles.textInput]}
                             value={this.props.comment}
                             onChangeText={this.props.onUpdateComment}
-                            placeholder={translate('optional')}
+                            placeholder={this.props.translations.translate('optional')}
                             placeholderTextColor={themeColors.placeholderText}
                         />
                     </View>
@@ -234,8 +233,8 @@ class IOUConfirmationList extends Component {
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
                         text={this.props.hasMultipleParticipants
-                            ? translate('optional')
-                            : `${translate('request')} $${this.props.iouAmount}`}
+                            ? this.props.translations.translate('optional')
+                            : `${this.props.translations.translate('request')} $${this.props.iouAmount}`}
                         onClick={() => {
                             if (this.props.hasMultipleParticipants) {
                                 this.props.onConfirm({splits: this.getSplits()});

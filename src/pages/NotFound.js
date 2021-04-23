@@ -37,10 +37,6 @@ const NotFound = ({translations: {translate}}) => (
     </>
 );
 
-const propTypes = {
-    ...withLocalizePropTypes,
-};
-
-NotFound.propTypes = propTypes;
+NotFound.propTypes = {...withLocalizePropTypes};
 
 export default withLocalize(NotFound);

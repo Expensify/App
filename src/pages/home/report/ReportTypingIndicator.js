@@ -45,7 +45,6 @@ class ReportTypingIndicator extends React.Component {
 
     render() {
         const numUsersTyping = _.size(this.state.usersTyping);
-        const {translations: {translate}} = this.props;
 
         // Decide on the Text element that will hold the display based on the number of users that are typing.
         switch (numUsersTyping) {
@@ -60,7 +59,7 @@ class ReportTypingIndicator extends React.Component {
                         ]}
                         >
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
-                            {translate('isTyping')}
+                            {this.props.translations.translate('isTyping')}
                         </Text>
                     </View>
                 );
@@ -73,9 +72,9 @@ class ReportTypingIndicator extends React.Component {
                         ]}
                         >
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
-                            {translate('and')}
+                            {this.props.translations.translate('and')}
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[1])}</Text>
-                            {translate('areTyping')}
+                            {this.props.translations.translate('areTyping')}
                         </Text>
                     </View>
                 );
@@ -87,8 +86,10 @@ class ReportTypingIndicator extends React.Component {
                             styles.chatItemComposeSecondaryRowOffset,
                         ]}
                         >
-                            <Text style={[styles.textStrong]}>{translate('multipleUsers')}</Text>
-                            {translate('areTyping')}
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translations.translate('multipleUsers')}
+                            </Text>
+                            {this.props.translations.translate('areTyping')}
                         </Text>
                     </View>
                 );

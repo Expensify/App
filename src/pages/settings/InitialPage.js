@@ -93,11 +93,10 @@ const InitialSettingsPage = ({
     if (_.isEmpty(myPersonalDetails)) {
         return null;
     }
-    const {translate} = translations;
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('settings')}
+                title={translations.translate('settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <View
@@ -130,7 +129,7 @@ const InitialSettingsPage = ({
                     {menuItems.map(item => (
                         <MenuItem
                             key={item.title}
-                            title={translate(item.title)}
+                            title={translations.translate(item.title)}
                             icon={item.icon}
                             onPress={() => Navigation.navigate(item.route)}
                             shouldShowRightArrow
@@ -142,35 +141,35 @@ const InitialSettingsPage = ({
                             style={[styles.button, styles.w100, styles.mt5]}
                         >
                             <Text style={[styles.buttonText]}>
-                                {translate('signOut')}
+                                {translations.translate('signOut')}
                             </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
                 <View style={[styles.sidebarFooter]}>
                     <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        {translate('versionLetter')}
+                        {translations.translate('versionLetter')}
                         {version}
                     </Text>
                     <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        {translate('readTheTermsAndPrivacyPolicy')[0]}
+                        {translations.translate('readTheTermsAndPrivacyPolicy')[0]}
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openURLInNewTab(CONST.TERMS_URL)}
                         >
-                            {translate('readTheTermsAndPrivacyPolicy')[1]}
+                            {translations.translate('readTheTermsAndPrivacyPolicy')[1]}
                         </Text>
                         {' '}
-                        {translate('readTheTermsAndPrivacyPolicy')[2]}
+                        {translations.translate('readTheTermsAndPrivacyPolicy')[2]}
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
                         >
-                            {translate('readTheTermsAndPrivacyPolicy')[3]}
+                            {translations.translate('readTheTermsAndPrivacyPolicy')[3]}
                         </Text>
-                        {translate('readTheTermsAndPrivacyPolicy')[4]}
+                        .
                     </Text>
                 </View>
             </View>

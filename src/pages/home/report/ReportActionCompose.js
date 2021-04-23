@@ -285,8 +285,6 @@ class ReportActionCompose extends React.Component {
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
 
-        const {translations: {translate}} = this.props;
-
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -298,7 +296,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        title={translate('uploadAttachment')}
+                        title={this.props.translations.translate('uploadAttachment')}
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
@@ -329,7 +327,7 @@ class ReportActionCompose extends React.Component {
                                                 menuItems={[
                                                     {
                                                         icon: Paperclip,
-                                                        text: translate('addAttachment'),
+                                                        text: this.props.translations.translate('addAttachment'),
                                                         onSelected: () => {
                                                             openPicker({
                                                                 onPicked: (file) => {
@@ -360,7 +358,7 @@ class ReportActionCompose extends React.Component {
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
-                                    placeholder={translate('writeSomething')}
+                                    placeholder={this.props.translations.translate('writeSomething')}
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
@@ -451,7 +449,7 @@ class ReportActionCompose extends React.Component {
                                 height={variables.iconSizeExtraSmall}
                             />
                             <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                {translate('youAppearToBeOffline')}
+                                {this.props.translations.translate('youAppearToBeOffline')}
                             </Text>
                         </View>
                     </View>
