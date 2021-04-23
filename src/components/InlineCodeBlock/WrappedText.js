@@ -31,8 +31,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    textStyles: {},
-    wordStyles: {},
+    textStyles: [],
+    wordStyles: [],
 };
 
 const WrappedText = (props) => {
