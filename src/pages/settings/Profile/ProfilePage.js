@@ -27,6 +27,8 @@ import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons'
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import CreateMenu from '../../../components/CreateMenu';
 import Picker from '../../../components/Picker';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -73,6 +75,8 @@ const propTypes = {
             validatedDate: PropTypes.string,
         })),
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -97,14 +101,16 @@ class ProfilePage extends Component {
             pronouns,
             timezone = {},
         } = props.myPersonalDetails;
-        const pronounsList = Object.values(CONST.PRONOUNS);
+        const pronounsKeyList = Object.values(CONST.PRONOUNS);
+        const pronounsList = [];
+        pronounsKeyList.map(pronounKey => pronounsList.push(this.props.translations.translate(pronounKey)));
 
         let currentUserPronouns = pronouns;
         let initialSelfSelectedPronouns = '';
 
         // This handles populating the self-selected pronouns in the form
         if (pronouns && !pronounsList.includes(pronouns)) {
-            currentUserPronouns = CONST.PRONOUNS.SELF_SELECT;
+            currentUserPronouns = this.props.translations.translate(CONST.PRONOUNS.SELF_SELECT);
             initialSelfSelectedPronouns = pronouns;
         }
 
@@ -190,11 +196,12 @@ class ProfilePage extends Component {
             selectedTimezone,
             isAutomaticTimezone,
         } = this.state;
+        const {translations: {translate}} = this.props;
 
         setPersonalDetails({
             firstName,
             lastName,
-            pronouns: pronouns === CONST.PRONOUNS.SELF_SELECT ? selfSelectedPronouns : pronouns,
+            pronouns: pronouns === translate(CONST.PRONOUNS.SELF_SELECT) ? selfSelectedPronouns : pronouns,
             timezone: {
                 automatic: isAutomaticTimezone,
                 selected: selectedTimezone,
@@ -212,7 +219,7 @@ class ProfilePage extends Component {
         const menuItems = [
             {
                 icon: Upload,
-                text: 'Upload Photo',
+                text: this.props.translations.translate('uploadPhoto'),
                 onSelected: () => {
                     openPicker({
                         onPicked: setAvatar,
@@ -225,7 +232,7 @@ class ProfilePage extends Component {
         if (!this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')) {
             menuItems.push({
                 icon: Trashcan,
-                text: 'Remove Photo',
+                text: this.props.translations.translate('removePhoto'),
                 onSelected: () => {
                     deleteAvatar(this.props.myPersonalDetails.login);
                 },
@@ -247,10 +254,11 @@ class ProfilePage extends Component {
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
             && arePronounsUnchanged;
 
+        const {translations: {translate}} = this.props;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title="Profile"
+                    title={translate('profile')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -271,7 +279,7 @@ class ProfilePage extends Component {
                                         <Icon src={DownArrow} />
                                         <View style={styles.justifyContentCenter}>
                                             <Text style={[styles.headerText, styles.ml2]}>
-                                                Edit Photo
+                                                {translate('editPhoto')}
                                             </Text>
                                         </View>
                                     </View>
@@ -289,58 +297,58 @@ class ProfilePage extends Component {
                         )}
                     </AttachmentPicker>
                     <Text style={[styles.mt6, styles.mb6, styles.textP]}>
-                        Tell us about yourself, we would love to get to know you!
+                        {translate('tellUsAboutYourself')}
                     </Text>
                     <View style={[styles.flexRow, styles.mb6]}>
                         <View style={styles.flex1}>
-                            <Text style={[styles.mb1, styles.formLabel]}>First Name</Text>
+                            <Text style={[styles.mb1, styles.formLabel]}>{translate('firstName')}</Text>
                             <TextInput
                                 style={styles.textInput}
                                 value={this.state.firstName}
                                 onChangeText={firstName => this.setState({firstName})}
-                                placeholder="John"
+                                placeholder={translate('john')}
                                 placeholderTextColor={themeColors.placeholderText}
                             />
                         </View>
                         <View style={[styles.flex1, styles.ml2]}>
-                            <Text style={[styles.mb1, styles.formLabel]}>Last Name</Text>
+                            <Text style={[styles.mb1, styles.formLabel]}>{translate('lastName')}</Text>
                             <TextInput
                                 style={styles.textInput}
                                 value={this.state.lastName}
                                 onChangeText={lastName => this.setState({lastName})}
-                                placeholder="Doe"
+                                placeholder={translate('doe')}
                                 placeholderTextColor={themeColors.placeholderText}
                             />
                         </View>
                     </View>
                     <View style={styles.mb6}>
-                        <Text style={[styles.mb1, styles.formLabel]}>Preferred Pronouns</Text>
+                        <Text style={[styles.mb1, styles.formLabel]}>{translate('preferredPronouns')}</Text>
                         <View style={styles.mb1}>
                             <Picker
                                 onChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
                                 items={this.pronounDropdownValues}
                                 placeholder={{
                                     value: '',
-                                    label: 'Select your pronouns',
+                                    label: translate('selectYourPronouns'),
                                 }}
                                 value={this.state.pronouns}
                                 icon={() => <Icon src={DownArrow} />}
                             />
                         </View>
-                        {this.state.pronouns === CONST.PRONOUNS.SELF_SELECT && (
+                        {this.state.pronouns === this.props.translations.translate(CONST.PRONOUNS.SELF_SELECT) && (
                         <TextInput
                             style={styles.textInput}
                             value={this.state.selfSelectedPronouns}
                             onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
-                            placeholder="Self-select your pronoun"
+                            placeholder={translate('selfSelectYourPronoun')}
                             placeholderTextColor={themeColors.placeholderText}
                         />
                         )}
                     </View>
-                    <LoginField label="Email Address" type="email" login={this.state.logins.email} />
-                    <LoginField label="Phone Number" type="phone" login={this.state.logins.phone} />
+                    <LoginField label={translate('emailAddress')} type="email" login={this.state.logins.email} />
+                    <LoginField label={translate('phoneNumber')} type="phone" login={this.state.logins.phone} />
                     <View style={styles.mb3}>
-                        <Text style={[styles.mb1, styles.formLabel]}>Timezone</Text>
+                        <Text style={[styles.mb1, styles.formLabel]}>{translate('timezone')}</Text>
                         <Picker
                             onChange={selectedTimezone => this.setState({selectedTimezone})}
                             items={timezones}
@@ -351,7 +359,7 @@ class ProfilePage extends Component {
                         />
                     </View>
                     <Checkbox
-                        label="Set my timezone automatically"
+                        label={translate('setMyTimezoneAutomatically')}
                         isChecked={this.state.isAutomaticTimezone}
                         onClick={this.setAutomaticTimezone}
                     />
@@ -369,7 +377,7 @@ class ProfilePage extends Component {
                         ]}
                     >
                         <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            Save
+                            {translate('save')}
                         </Text>
                     </Pressable>
                 </View>
@@ -382,11 +390,14 @@ ProfilePage.propTypes = propTypes;
 ProfilePage.defaultProps = defaultProps;
 ProfilePage.displayName = 'ProfilePage';
 
-export default withOnyx({
-    myPersonalDetails: {
-        key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    },
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(ProfilePage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(ProfilePage);

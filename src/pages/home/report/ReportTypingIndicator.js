@@ -7,10 +7,13 @@ import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // Key-value pairs of user logins and whether or not they are typing. Keys are logins.
     userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -42,6 +45,7 @@ class ReportTypingIndicator extends React.Component {
 
     render() {
         const numUsersTyping = _.size(this.state.usersTyping);
+        const {translations: {translate}} = this.props;
 
         // Decide on the Text element that will hold the display based on the number of users that are typing.
         switch (numUsersTyping) {
@@ -56,7 +60,7 @@ class ReportTypingIndicator extends React.Component {
                         ]}
                         >
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
-                            {' is typing...'}
+                            {translate('isTyping')}
                         </Text>
                     </View>
                 );
@@ -69,9 +73,9 @@ class ReportTypingIndicator extends React.Component {
                         ]}
                         >
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
-                            {' and '}
+                            {translate('and')}
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[1])}</Text>
-                            {' are typing...'}
+                            {translate('areTyping')}
                         </Text>
                     </View>
                 );
@@ -83,8 +87,8 @@ class ReportTypingIndicator extends React.Component {
                             styles.chatItemComposeSecondaryRowOffset,
                         ]}
                         >
-                            <Text style={[styles.textStrong]}>Multiple users</Text>
-                            {' are typing...'}
+                            <Text style={[styles.textStrong]}>{translate('multipleUsers')}</Text>
+                            {translate('areTyping')}
                         </Text>
                     </View>
                 );
@@ -97,6 +101,7 @@ ReportTypingIndicator.defaultProps = defaultProps;
 ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
 export default compose(
+    withLocalize,
     withOnyx({
         userTypingStatuses: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,

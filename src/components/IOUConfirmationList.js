@@ -13,6 +13,8 @@ import {
 import OptionsList from './OptionsList';
 import ButtonWithLoader from './ButtonWithLoader';
 import ONYXKEYS from '../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -71,6 +73,8 @@ const propTypes = {
         // Whether or not the IOU step is loading (creating the IOU Report)
         loading: PropTypes.bool,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -103,13 +107,13 @@ class IOUConfirmationList extends Component {
                 `$${this.calculateAmount() / 100}`);
 
             sections.push({
-                title: 'WHO PAID?',
+                title: this.props.translations.translate('whoPaid'),
                 data: formattedMyPersonalDetails,
                 shouldShow: true,
                 indexOffset: 0,
             });
             sections.push({
-                title: 'WHO WAS THERE?',
+                title: this.props.translations.translate('whoWasThere'),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
@@ -120,7 +124,7 @@ class IOUConfirmationList extends Component {
                 `$${this.props.iouAmount}`);
 
             sections.push({
-                title: 'TO',
+                title: this.props.translations.translate('to').toUpperCase(),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
@@ -197,6 +201,7 @@ class IOUConfirmationList extends Component {
     }
 
     render() {
+        const {translations: {translate}} = this.props;
         return (
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
@@ -212,7 +217,7 @@ class IOUConfirmationList extends Component {
                     />
                     <View>
                         <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                            WHAT&apos;S IT FOR?
+                            {translate('whatsItFor')}
                         </Text>
                     </View>
                     <View style={[styles.ph5]}>
@@ -220,7 +225,7 @@ class IOUConfirmationList extends Component {
                             style={[styles.textInput]}
                             value={this.props.comment}
                             onChangeText={this.props.onUpdateComment}
-                            placeholder="Optional"
+                            placeholder={translate('optional')}
                             placeholderTextColor={themeColors.placeholderText}
                         />
                     </View>
@@ -228,7 +233,9 @@ class IOUConfirmationList extends Component {
                 <View style={[styles.ph5, styles.pb3]}>
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
-                        text={this.props.hasMultipleParticipants ? 'Split' : `Request $${this.props.iouAmount}`}
+                        text={this.props.hasMultipleParticipants
+                            ? translate('optional')
+                            : `${translate('request')} $${this.props.iouAmount}`}
                         onClick={() => {
                             if (this.props.hasMultipleParticipants) {
                                 this.props.onConfirm({splits: this.getSplits()});
@@ -247,9 +254,12 @@ IOUConfirmationList.displayName = 'IOUConfirmPage';
 IOUConfirmationList.propTypes = propTypes;
 IOUConfirmationList.defaultProps = defaultProps;
 
-export default withOnyx({
-    iou: {key: ONYXKEYS.IOU},
-    myPersonalDetails: {
-        key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    },
-})(IOUConfirmationList);
+export default compose(
+    withLocalize,
+    withOnyx({
+        iou: {key: ONYXKEYS.IOU},
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+    }),
+)(IOUConfirmationList);

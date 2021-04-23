@@ -9,6 +9,7 @@ import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // The children to show inside the layout
@@ -17,6 +18,8 @@ const propTypes = {
     // Whether we should show the welcome text
     // (the welcome screenshot always displays on wide views)
     shouldShowWelcomeText: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -42,7 +45,7 @@ const SignInPageLayoutWide = props => (
 
                 <View style={[styles.mb5]}>
                     <Text style={[styles.h1]}>
-                        Expensify.cash
+                        {props.translations.translate('expensifyDotCash')}
                     </Text>
                 </View>
                 <View style={[styles.signInPageFormContainer]}>
@@ -65,4 +68,4 @@ SignInPageLayoutWide.defaultProps = defaultProps;
 SignInPageLayoutWide.displayName = 'SignInPageLayoutWide';
 
 
-export default SignInPageLayoutWide;
+export default withLocalize(SignInPageLayoutWide);

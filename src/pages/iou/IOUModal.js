@@ -12,6 +12,8 @@ import {createIOUSplit, createIOUTransaction, getPreferredCurrency} from '../../
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -29,7 +31,7 @@ const propTypes = {
         error: PropTypes.bool,
     }).isRequired,
 
-
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -38,9 +40,9 @@ const defaultProps = {
 
 // Determines type of step to display within Modal, value provides the title for that page.
 const Steps = {
-    IOUAmount: 'Amount',
-    IOUParticipants: 'Participants',
-    IOUConfirm: 'Confirm',
+    IOUAmount: 'amount',
+    IOUParticipants: 'participants',
+    IOUConfirm: 'confirm',
 };
 
 // The steps to be shown within the create IOU flow.
@@ -86,14 +88,17 @@ class IOUModal extends Component {
      */
 
     getTitleForStep() {
+        const {translations: {translate}} = this.props;
         const currentStepIndex = this.state.currentStepIndex;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
-            return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.amount}`;
+            return `${this.props.hasMultipleParticipants
+                ? translate('split')
+                : translate('request')} $${this.state.amount}`;
         }
         if (currentStepIndex === 0) {
-            return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
+            return translate(this.props.hasMultipleParticipants ? 'splitBill' : 'requestMoney');
         }
-        return steps[currentStepIndex] || '';
+        return translate(steps[currentStepIndex]) || '';
     }
 
     addParticipants(participants) {
@@ -249,9 +254,12 @@ IOUModal.propTypes = propTypes;
 IOUModal.defaultProps = defaultProps;
 IOUModal.displayName = 'IOUModal';
 
-export default withOnyx({
-    iousReport: {
-        key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    },
-    iou: {key: ONYXKEYS.IOU},
-})(IOUModal);
+export default compose(
+    withLocalize,
+    withOnyx({
+        iousReport: {
+            key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+        },
+        iou: {key: ONYXKEYS.IOU},
+    }),
+)(IOUModal);
