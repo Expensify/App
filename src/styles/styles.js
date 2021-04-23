@@ -1364,8 +1364,6 @@ const styles = {
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
-    marginTop: 4,
-    marginBottom: 4,
     borderColor: themeColors.border,
     backgroundColor: themeColors.textBackground,
 };
@@ -1423,8 +1421,6 @@ const webViewStyles = {
             ...codeStyles.codeTextStyle,
             paddingLeft: 5,
             paddingRight: 5,
-            paddingBottom: 2,
-            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
             fontSize: 13,
         },
@@ -1439,6 +1435,7 @@ const webViewStyles = {
     baseFontStyle: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
     },
 };
