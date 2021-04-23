@@ -18,13 +18,14 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // All of the personalDetails
-    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
-
-    // Is the network currently offline or not
-    isOffline: PropTypes.bool.isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 };
 
-const ReportActionItemSingle = ({action, personalDetails, isOffline}) => {
+const defaultProps = {
+    personalDetails: {},
+};
+
+const ReportActionItemSingle = ({action, personalDetails}) => {
     const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
@@ -55,13 +56,14 @@ const ReportActionItemSingle = ({action, personalDetails, isOffline}) => {
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
-                <ReportActionItemMessage action={action} isOffline={isOffline} />
+                <ReportActionItemMessage action={action} />
             </View>
         </View>
     );
 };
 
 ReportActionItemSingle.propTypes = propTypes;
+ReportActionItemSingle.defaultProps = defaultProps;
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,

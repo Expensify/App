@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import BaseCreateMenu from './BaseCreateMenu';
-import createMenuPropTypes from './CreateMenuPropTypes';
+import {propTypes, defaultProps} from './CreateMenuPropTypes';
 
 /**
  * The mobile native implementation of the CreateMenu needs to trigger actions after the popup closes
@@ -35,6 +35,7 @@ class CreateMenu extends Component {
     }
 }
 
-CreateMenu.propTypes = createMenuPropTypes;
+CreateMenu.propTypes = propTypes;
+CreateMenu.defaultProps = defaultProps;
 
 export default CreateMenu;
