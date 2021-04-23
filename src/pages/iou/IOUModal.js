@@ -162,17 +162,14 @@ class IOUModal extends Component {
             return;
         }
 
-        const params = {
+        createIOUTransaction({
             comment: this.state.comment,
 
             // should send in cents to API
             amount: this.state.amount * 100,
             currency: this.state.selectedCurrency,
             debtorEmail: this.state.participants[0].login,
-        };
-
-        console.debug(params);
-        createIOUTransaction(params);
+        });
     }
 
     render() {
