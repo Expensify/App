@@ -1565,56 +1565,12 @@ const emojis = [
         ],
     },
     {
-        code: '👩‍❤️‍💋‍👨',
-        keywords: [
-            'kiss',
-            'man',
-            'woman',
-        ],
-    },
-    {
-        code: '👨‍❤️‍💋‍👨',
-        keywords: [
-            'kiss',
-            'man',
-        ],
-    },
-    {
-        code: '👩‍❤️‍💋‍👩',
-        keywords: [
-            'kiss',
-            'woman',
-        ],
-    },
-    {
         code: '💑',
         keywords: [
             'couple',
             'heart',
             'love',
             'romance',
-        ],
-    },
-    {
-        code: '👩‍❤️‍👨',
-        keywords: [
-            'couple',
-            'man',
-            'woman',
-        ],
-    },
-    {
-        code: '👨‍❤️‍👨',
-        keywords: [
-            'couple',
-            'man',
-        ],
-    },
-    {
-        code: '👩‍❤️‍👩',
-        keywords: [
-            'couple',
-            'woman',
         ],
     },
     {
@@ -2823,12 +2779,6 @@ const emojis = [
             'jewel',
             'romance',
         ],
-    },
-    {
-        code: CONST.EMOJI_SPACER,
-    },
-    {
-        code: CONST.EMOJI_SPACER,
     },
     {
         code: 'Animals & Nature',
