@@ -104,7 +104,7 @@ class IOUConfirmationList extends Component {
 
             sections.push({
                 title: 'WHO PAID?',
-                data: formattedMyPersonalDetails,
+                data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
             });
@@ -175,8 +175,13 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getAllOptionsAsSelected() {
-        return [...this.props.participants,
-            getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails)];
+        if (!this.props.hasMultipleParticipants) {
+            return [];
+        }
+        return [
+            ...this.props.participants,
+            getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails),
+        ];
     }
 
     /**
@@ -214,7 +219,7 @@ class IOUConfirmationList extends Component {
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         disableFocusOptions
-                        selectedOptions={this.props.hasMultipleParticipants ? this.getAllOptionsAsSelected() : []}
+                        selectedOptions={this.getAllOptionsAsSelected()}
                     />
                     <View>
                         <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
