@@ -24,8 +24,7 @@ const defaultProps = {
 };
 
 const ReportActionItemMessage = ({action, network}) => {
-    // reportActionID is only present when the action is saved onto server.
-    const isUnsent = network.isOffline && action.loading && !action.reportActionID;
+    const isUnsent = network.isOffline && action.loading;
     return (
         <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
             {_.map(_.compact(action.message), (fragment, index) => (
