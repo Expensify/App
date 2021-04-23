@@ -97,7 +97,7 @@ const run = function () {
                                         process.exit(1);
                                     }
                                 } else {
-                                    console.log(`\nNew ${workflow} run with ID ${newWorkflowRunID} has started 🚀`);
+                                    console.log(`\n🚀 New ${workflow} run with ID ${newWorkflowRunID} has started`);
                                 }
                             })
                             .catch((err) => {
