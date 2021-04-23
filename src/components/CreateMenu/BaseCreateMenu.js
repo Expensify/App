@@ -5,7 +5,10 @@ import Popover from '../Popover';
 import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import MenuItem from '../MenuItem';
-import createMenuPropTypes from './CreateMenuPropTypes';
+import {
+    propTypes as createMenuPropTypes,
+    defaultProps as defaultCreateMenuPropTypes,
+} from './CreateMenuPropTypes';
 
 const propTypes = {
     // Callback fired when the menu is completely closed
@@ -16,6 +19,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    ...defaultCreateMenuPropTypes,
     onMenuHide: () => {},
 };
 
@@ -23,10 +27,12 @@ class BaseCreateMenu extends PureComponent {
     render() {
         return (
             <Popover
+                anchorPosition={this.props.anchorPosition}
                 onClose={this.props.onClose}
                 isVisible={this.props.isVisible}
                 onModalHide={this.props.onMenuHide}
-                anchorPosition={styles.createMenuPosition}
+                animationIn={this.props.animationIn}
+                animationOut={this.props.animationOut}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {this.props.menuItems.map(item => (

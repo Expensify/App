@@ -6,6 +6,7 @@ import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
+import CustomActions from './CustomActions';
 
 export const navigationRef = React.createRef();
 
@@ -49,7 +50,7 @@ function navigate(route = ROUTES.HOME) {
 
     const {reportID} = ROUTES.parseReportRouteParams(route);
     if (reportID) {
-        navigationRef.current.navigate(SCREENS.REPORT, {reportID});
+        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}));
         return;
     }
 
