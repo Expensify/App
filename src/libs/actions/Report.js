@@ -657,7 +657,7 @@ function fetchAllReports(
 ) {
     let reportIDs = [];
 
-    API.Get({
+    return API.Get({
         returnValueList: 'chatList',
     })
         .then((response) => {
