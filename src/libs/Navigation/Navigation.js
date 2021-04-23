@@ -13,7 +13,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 let isLoggedIn = false;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => isLoggedIn = !_.isEmpty(val),
+    callback: val => isLoggedIn = !!val.authToken,
 });
 
 export const navigationRef = React.createRef();
