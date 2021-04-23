@@ -65,10 +65,9 @@ const SignInPageLayoutNarrow = props => (
                                 style={[styles.link]}
                                 onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
                             >
-                                the code.
+                                the code
                             </Text>
-                            {' '}
-                            View
+                            . View
                             {' '}
                             <Text
                                 style={[styles.link]}
@@ -76,6 +75,7 @@ const SignInPageLayoutNarrow = props => (
                             >
                                 open jobs
                             </Text>
+                            .
                         </Text>
                     </View>
                 </View>
