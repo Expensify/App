@@ -46,14 +46,13 @@ function goBack() {
 function navigate(route = ROUTES.HOME) {
     // If we're navigating to the signIn page, replace the existing route in the stack with the SignIn route so that we
     // don't mistakenly route back to any older routes after the user signs in
-    if (route === ROUTES.HOME && isLoggedIn) {
-        navigationRef.current.dispatch(StackActions.replace(SCREENS.HOME));
-        navigationRef.current.dispatch(StackActions.popToTop());
-        return;
-    }
-
     if (route === ROUTES.HOME) {
-        openDrawer();
+        if (isLoggedIn) {
+            navigationRef.current.dispatch(StackActions.replace(SCREENS.HOME));
+            navigationRef.current.dispatch(StackActions.popToTop());
+        } else {
+            openDrawer();
+        }
         return;
     }
 
