@@ -126,7 +126,7 @@ class PopoverWithMeasuredContent extends Component {
                     {...this.props}
                     anchorPosition={this.calculateAdjustedAnchorPosition()}
                 >
-                    {this.props.measureContent()}
+                    {this.props.children}
                 </Popover>
             ) : (
 
@@ -137,7 +137,7 @@ class PopoverWithMeasuredContent extends Component {
                     but we can't measure its dimensions without first rendering it.
                 */
                 <View style={styles.invisible} onLayout={this.measurePopover}>
-                    {this.props.children}
+                    {this.props.measureContent()}
                 </View>
             );
     }

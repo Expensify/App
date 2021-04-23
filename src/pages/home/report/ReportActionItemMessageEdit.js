@@ -6,7 +6,6 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
-import {TouchableOpacity} from 'react-native-web';
 
 const propTypes = {
     // All the data of the action
@@ -15,6 +14,7 @@ const propTypes = {
     // Draft message
     draftMessage: PropTypes.string.isRequired,
 
+    // ReportID that holds the comment we're editing
     reportID: PropTypes.number.isRequired,
 };
 
@@ -23,7 +23,7 @@ class ReportActionItemMessageEdit extends React.Component {
         super(props);
         this.updateDraft = this.updateDraft.bind(this);
         this.deleteDraft = this.deleteDraft.bind(this);
-        this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000, false);
+        this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000, true);
         this.publishDraft = this.publishDraft.bind(this);
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
 
@@ -43,19 +43,35 @@ class ReportActionItemMessageEdit extends React.Component {
         this.debouncedSaveDraft(trimmedNewDraft);
     }
 
+    /**
+     * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
+     */
     deleteDraft() {
         saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
     }
 
+    /**
+     * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
+     * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
+     */
     debouncedSaveDraft() {
         saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, this.state.draft);
     }
 
+    /**
+     * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
+     * the new content.
+     */
     publishDraft() {
         editReportComment(this.props.reportID, this.props.action, this.state.draft);
         this.deleteDraft();
     }
 
+    /**
+     * Key event handlers that short cut to saving/canceling.
+     *
+     * @param {Event} e
+     */
     triggerSaveOrCancel(e) {
         if (e && e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -68,7 +84,7 @@ class ReportActionItemMessageEdit extends React.Component {
 
     render() {
         return (
-            <View style={[styles.chatItemMessage]}>
+            <View style={styles.chatItemMessage}>
                 <TextInputFocusable
                     multiline
                     ref={el => this.textInput = el}
@@ -79,13 +95,13 @@ class ReportActionItemMessageEdit extends React.Component {
                     style={[styles.textInput, styles.flex0]}
                 />
                 <View style={[styles.flexRow, styles.mt1]}>
-                    <Pressable style={[styles.button, styles.mr2]}>
-                        <Text style={[styles.buttonText]} onPress={this.deleteDraft}>
+                    <Pressable style={[styles.button, styles.mr2]} onPress={this.deleteDraft}>
+                        <Text style={styles.buttonText}>
                             Cancel
                         </Text>
                     </Pressable>
-                    <Pressable style={[styles.button, styles.buttonSuccess]}>
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]} onPress={this.publishDraft}>
+                    <Pressable style={[styles.button, styles.buttonSuccess]} onPress={this.publishDraft}>
+                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
                             Save Changes
                         </Text>
                     </Pressable>

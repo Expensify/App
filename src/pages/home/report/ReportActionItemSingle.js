@@ -21,12 +21,19 @@ const propTypes = {
     // All of the personalDetails
     personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 
+    // Draft message - if this is non-empty we'll render the comment in "edit mode"
     draftMessage: PropTypes.string.isRequired,
 
+    // ReportID containing the report action we're displaying
     reportID: PropTypes.number.isRequired,
 };
 
-const ReportActionItemSingle = ({action, personalDetails, draftMessage, reportID}) => {
+const ReportActionItemSingle = ({
+    action,
+    personalDetails,
+    draftMessage,
+    reportID,
+}) => {
     const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`

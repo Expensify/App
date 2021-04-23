@@ -62,7 +62,7 @@ class ReportActionItem extends Component {
             || this.props.displayAsGroup !== nextProps.displayAsGroup
             || !_.isEqual(this.props.action, nextProps.action)
             || this.props.draftMessage !== nextProps.draftMessage
-            || (this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator);
+            || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator;
     }
 
     /**
@@ -128,6 +128,7 @@ class ReportActionItem extends Component {
                                         hovered
                                         && !this.state.isPopoverVisible
                                     }
+                                    draftMessage={this.props.draftMessage}
                                     isMini
                                 />
                             </View>
@@ -148,6 +149,7 @@ class ReportActionItem extends Component {
                                     isVisible={this.state.isPopoverVisible}
                                     reportID={this.props.reportID}
                                     reportAction={this.props.action}
+                                    draftMessage={this.props.draftMessage}
                                 />
                             </PopoverWithMeasuredContent>
                         </View>
