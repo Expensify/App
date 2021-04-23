@@ -99,6 +99,9 @@ class ReportActionCompose extends React.Component {
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+        this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
+
+        this.emojiSearchInput = null;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -245,6 +248,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Focus the search input in the emoji picker.
+     */
+    focusEmojiSearchInput() {
+        if (this.emojiSearchInput) {
+            this.emojiSearchInput.focus();
+        }
+    }
+
+    /**
      * Add a new comment to this chat
      *
      * @param {SyntheticEvent} [e]
@@ -387,6 +399,7 @@ class ReportActionCompose extends React.Component {
                     <Popover
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
+                        onModalShow={this.focusEmojiSearchInput}
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
@@ -397,6 +410,7 @@ class ReportActionCompose extends React.Component {
                     >
                         <EmojiPickerMenu
                             onEmojiSelected={this.addEmojiToTextBox}
+                            ref={el => this.emojiSearchInput = el}
                         />
                     </Popover>
                     <Pressable

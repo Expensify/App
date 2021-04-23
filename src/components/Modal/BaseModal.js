@@ -79,6 +79,7 @@ class BaseModal extends PureComponent {
                 onModalShow={() => {
                     this.subscribeToKeyEvents();
                     setModalVisibility(true);
+                    this.props.onModalShow();
                 }}
                 onModalHide={this.hideModalAndRemoveEventListeners}
                 onSwipeComplete={this.props.onClose}

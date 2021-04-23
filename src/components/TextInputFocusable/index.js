@@ -95,7 +95,6 @@ class TextInputFocusable extends React.Component {
     }
 
     componentDidMount() {
-        this.focusInput();
         this.updateNumberOfLines();
 
         // This callback prop is used by the parent component using the constructor to
@@ -214,10 +213,6 @@ class TextInputFocusable extends React.Component {
                 numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight),
             });
         });
-    }
-
-    focusInput() {
-        this.textInput.focus();
     }
 
     render() {
