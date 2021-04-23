@@ -134,6 +134,9 @@ class NewGroupPage extends Component {
      * @param {Object} option
      */
     toggleOption(option) {
+        // After toggling an option, refocus the search bar to help find the next selection
+        this.optionSelector.textInput.focus();
+
         this.setState((prevState) => {
             const isOptionInList = _.some(prevState.selectedOptions, selectedOption => (
                 selectedOption.login === option.login
@@ -188,6 +191,7 @@ class NewGroupPage extends Component {
                 <View style={[styles.flex1, styles.w100]}>
                     <OptionsSelector
                         canSelectMultipleOptions
+                        ref={el => this.optionSelector = el}
                         sections={sections}
                         selectedOptions={this.state.selectedOptions}
                         value={this.state.searchValue}
