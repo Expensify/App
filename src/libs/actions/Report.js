@@ -647,12 +647,17 @@ function fetchActions(reportID, offset) {
  *
  * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
+ * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
  * @returns {Promise}
  */
-function fetchAllReports(shouldRedirectToReport = true, shouldRecordHomePageTiming = false) {
+function fetchAllReports(
+    shouldRedirectToReport = true,
+    shouldRecordHomePageTiming = false,
+    shouldDelayActionsFetch = false,
+) {
     let reportIDs = [];
 
-    return API.Get({
+    API.Get({
         returnValueList: 'chatList',
     })
         .then((response) => {
@@ -660,12 +665,12 @@ function fetchAllReports(shouldRedirectToReport = true, shouldRecordHomePageTimi
                 return;
             }
 
-            reportIDs = response.chatList || [];
+            // The string cast here is necessary as Get rvl='chatList' may return an int
+            reportIDs = String(response.chatList).split(',');
 
             // Get all the chat reports if they have any, otherwise create one with concierge
-            if (lodashGet(response, 'chatList', []).length) {
-                // The string cast here is necessary as Get rvl='chatList' may return an int
-                return fetchChatReportsByIDs(String(response.chatList).split(','));
+            if (reportIDs.length) {
+                return fetchChatReportsByIDs(reportIDs);
             }
 
             return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
@@ -677,10 +682,16 @@ function fetchAllReports(shouldRedirectToReport = true, shouldRecordHomePageTimi
 
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
 
-            Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
-            _.each(reportIDs, (reportID) => {
-                fetchActions(reportID);
-            });
+            // Optionally delay fetching report history as it significantly increases sign in to interactive time
+            _.delay(() => {
+                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
+                _.each(reportIDs, (reportID) => {
+                    fetchActions(reportID);
+                });
+
+            // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading before
+            // bogging it down with more requests and operations.
+            }, shouldDelayActionsFetch ? 8000 : 0);
 
             // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
             // one already and caller requested to navigate after reports load.
