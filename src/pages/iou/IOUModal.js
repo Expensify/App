@@ -1,26 +1,60 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {getPreferredCurrency} from '../../libs/actions/IOU';
+import {createIOUSplit, createIOUTransaction, getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
+import ONYXKEYS from '../../ONYXKEYS';
+import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 
 /**
  * IOU modal for requesting money and splitting bills.
  */
 const propTypes = {
-    // Is this new IOU for a single request or group bill split?
+    // Whether the IOU is for a single request or a group bill split
     hasMultipleParticipants: PropTypes.bool,
+
+    // The report passed via the route
+    report: PropTypes.shape({
+        // Participants associated with current report
+        participants: PropTypes.arrayOf(PropTypes.string),
+    }),
+
+    // Holds data related to IOU view state, rather than the underlying IOU data.
+    iou: PropTypes.shape({
+        // Whether or not transaction creation has started
+        creatingIOUTransaction: PropTypes.bool,
+
+        // Whether or not transaction creation has resulted to error
+        error: PropTypes.bool,
+    }).isRequired,
+
+    // Personal details of all the users
+    personalDetails: PropTypes.shape({
+        // Primary login of participant
+        login: PropTypes.string,
+
+        // Display Name of participant
+        displayName: PropTypes.string,
+
+        // Avatar url of participant
+        avatar: PropTypes.string,
+    }).isRequired,
 };
 
 const defaultProps = {
     hasMultipleParticipants: false,
+    report: {
+        participants: [],
+    },
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -30,30 +64,54 @@ const Steps = {
     IOUConfirm: 'Confirm',
 };
 
-// The steps to be shown within the create IOU flow.
-const steps = [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
-
 class IOUModal extends Component {
     constructor(props) {
         super(props);
-
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
-        this.updateAmount = this.updateAmount.bind(this);
         this.currencySelected = this.currencySelected.bind(this);
-
         this.addParticipants = this.addParticipants.bind(this);
+        this.createTransaction = this.createTransaction.bind(this);
+        this.updateComment = this.updateComment.bind(this);
+        this.addParticipants = this.addParticipants.bind(this);
+        const participants = lodashGet(props, 'report.participants', []);
+        const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
+            .map(personalDetails => ({
+                login: personalDetails.login,
+                text: personalDetails.displayName,
+                alternateText: personalDetails.login,
+                icons: [personalDetails.avatar],
+                keyForList: personalDetails.login,
+            }));
+
         this.state = {
             currentStepIndex: 0,
-            participants: [],
+            participants: participantsWithDetails,
+
+            // amount is currency in decimal format
             amount: '',
             selectedCurrency: 'USD',
-            isAmountPageNextButtonDisabled: true,
+            comment: '',
         };
+
+        // Skip IOUParticipants step if participants are passed in
+        if (participants.length) {
+            // The steps to be shown within the create IOU flow.
+            this.steps = [Steps.IOUAmount, Steps.IOUConfirm];
+        } else {
+            this.steps = [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
+        }
     }
 
     componentDidMount() {
         getPreferredCurrency();
+    }
+
+    componentDidUpdate(prevProps) {
+        // Successfully close the modal if transaction creation has ended and there is no error
+        if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
+            Navigation.dismissModal();
+        }
     }
 
     /**
@@ -61,15 +119,21 @@ class IOUModal extends Component {
      *
      * @returns {String}
      */
-
     getTitleForStep() {
-        if (this.state.currentStepIndex === 1) {
+        const currentStepIndex = this.state.currentStepIndex;
+        if (currentStepIndex === 1 || currentStepIndex === 2) {
             return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.amount}`;
         }
-        if (steps[this.state.currentStepIndex] === Steps.IOUAmount) {
+        if (currentStepIndex === 0) {
             return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
         }
-        return steps[this.state.currentStepIndex] || '';
+        return this.steps[currentStepIndex] || '';
+    }
+
+    addParticipants(participants) {
+        this.setState({
+            participants,
+        });
     }
 
     /**
@@ -88,7 +152,7 @@ class IOUModal extends Component {
      * Navigate to the previous IOU step if possible
      */
     navigateToNextStep() {
-        if (this.state.currentStepIndex >= steps.length - 1) {
+        if (this.state.currentStepIndex >= this.steps.length - 1) {
             return;
         }
         this.setState(prevState => ({
@@ -96,37 +160,15 @@ class IOUModal extends Component {
         }));
     }
 
-    addParticipants(participants) {
-        this.setState({
-            participants,
-        });
-    }
-
     /**
-     * Update amount with number or Backspace pressed.
-     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
+     * Update comment whenever user enters any new text
      *
-     * @param {String} buttonPressed
+     * @param {String} comment
      */
-    updateAmount(buttonPressed) {
-        // Backspace button is pressed
-        if (buttonPressed === '<' || buttonPressed === 'Backspace') {
-            if (this.state.amount.length > 0) {
-                this.setState(prevState => ({
-                    amount: prevState.amount.substring(0, prevState.amount.length - 1),
-                    isAmountPageNextButtonDisabled: prevState.amount.length === 1,
-                }));
-            }
-        } else {
-            const decimalNumberRegex = new RegExp(/^\d{1,6}(\.\d{0,2})?$/, 'i');
-            const amount = this.state.amount + buttonPressed;
-            if (decimalNumberRegex.test(amount)) {
-                this.setState({
-                    amount,
-                    isAmountPageNextButtonDisabled: false,
-                });
-            }
-        }
+    updateComment(comment) {
+        this.setState({
+            comment,
+        });
     }
 
     /**
@@ -138,8 +180,39 @@ class IOUModal extends Component {
         this.setState({selectedCurrency});
     }
 
+    createTransaction({splits}) {
+        if (splits) {
+            return createIOUSplit({
+                comment: this.state.comment,
+
+                // should send in cents to API
+                amount: this.state.amount * 100,
+                currency: this.state.selectedCurrency,
+                splits,
+            });
+        }
+
+        console.debug({
+            comment: this.state.comment,
+
+            // should send in cents to API
+            amount: this.state.amount * 100,
+            currency: this.state.selectedCurrency,
+            debtorEmail: this.state.participants[0].login,
+        });
+
+        return createIOUTransaction({
+            comment: this.state.comment,
+
+            // should send in cents to API
+            amount: this.state.amount * 100,
+            currency: this.state.selectedCurrency,
+            debtorEmail: this.state.participants[0].login,
+        });
+    }
+
     render() {
-        const currentStep = steps[this.state.currentStepIndex];
+        const currentStep = this.steps[this.state.currentStepIndex];
         return (
             <>
                 <View style={[styles.headerBar, true && styles.borderBottom]}>
@@ -174,12 +247,12 @@ class IOUModal extends Component {
                 </View>
                 {currentStep === Steps.IOUAmount && (
                     <IOUAmountPage
-                        onStepComplete={this.navigateToNextStep}
-                        numberPressed={this.updateAmount}
+                        onStepComplete={(amount) => {
+                            this.setState({amount});
+                            this.navigateToNextStep();
+                        }}
                         currencySelected={this.currencySelected}
-                        amount={this.state.amount}
                         selectedCurrency={this.state.selectedCurrency}
-                        isNextButtonDisabled={this.state.isAmountPageNextButtonDisabled}
                     />
                 )}
                 {currentStep === Steps.IOUParticipants && (
@@ -192,9 +265,13 @@ class IOUModal extends Component {
                 )}
                 {currentStep === Steps.IOUConfirm && (
                     <IOUConfirmPage
-                        onConfirm={() => console.debug('create IOU report')}
+                        onConfirm={this.createTransaction}
+                        hasMultipleParticipants={this.props.hasMultipleParticipants}
                         participants={this.state.participants}
                         iouAmount={this.state.amount}
+                        comment={this.state.comment}
+                        selectedCurrency={this.state.selectedCurrency}
+                        onUpdateComment={this.updateComment}
                     />
                 )}
             </>
@@ -206,4 +283,17 @@ IOUModal.propTypes = propTypes;
 IOUModal.defaultProps = defaultProps;
 IOUModal.displayName = 'IOUModal';
 
-export default IOUModal;
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+    },
+    iousReport: {
+        key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+    },
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
+    },
+})(IOUModal);

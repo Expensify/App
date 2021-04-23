@@ -1,5 +1,5 @@
 import React from 'react';
-import {createStackNavigator} from '@react-navigation/stack';
+import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
 import ROUTES from '../../../ROUTES';
 import NewChatPage from '../../../pages/NewChatPage';
@@ -14,6 +14,7 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
+import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 
 // Setup the modal stack navigators so we only have to create them once
 const SettingsModalStack = createStackNavigator();
@@ -21,12 +22,14 @@ const NewChatModalStack = createStackNavigator();
 const NewGroupModalStack = createStackNavigator();
 const SearchModalStack = createStackNavigator();
 const DetailsModalStack = createStackNavigator();
+const ReportParticipantsModalStack = createStackNavigator();
 const IOURequestModalStack = createStackNavigator();
 const IOUBillModalStack = createStackNavigator();
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
     headerShown: false,
+    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 };
 
 const IOUBillStackNavigator = () => (
@@ -78,6 +81,19 @@ const DetailsModalStackNavigator = () => (
             }}
         />
     </DetailsModalStack.Navigator>
+);
+
+const ReportParticipantsModalStackNavigator = () => (
+    <ReportParticipantsModalStack.Navigator screenOptions={{...defaultSubRouteOptions}}>
+        <ReportParticipantsModalStack.Screen
+            name="ReportParticipants_Root"
+            component={ReportParticipantsPage}
+        />
+        <ReportParticipantsModalStack.Screen
+            name="ReportParticipants_Details"
+            component={DetailsPage}
+        />
+    </ReportParticipantsModalStack.Navigator>
 );
 
 const SearchModalStackNavigator = () => (
@@ -148,7 +164,7 @@ const SettingsModalStackNavigator = () => (
             component={SettingsProfilePage}
         />
         <SettingsModalStack.Screen
-            name="Settings_Add_Seconday_Login"
+            name="Settings_Add_Secondary_Login"
             component={SettingsAddSecondaryLoginPage}
         />
         <SettingsModalStack.Screen
@@ -170,6 +186,7 @@ export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     DetailsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,

@@ -1,12 +1,20 @@
 import React from 'react';
-import {Text, TextInput, View} from 'react-native';
+import {
+    Text,
+    TextInput,
+    View,
+} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {fetchAccountDetails} from '../../../libs/actions/Session';
-import styles from '../../../styles/styles';
-import ButtonWithLoader from '../../../components/ButtonWithLoader';
-import ONYXKEYS from '../../../ONYXKEYS';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import ButtonWithLoader from '../../components/ButtonWithLoader';
+import {fetchAccountDetails} from '../../libs/actions/Session';
+import ONYXKEYS from '../../ONYXKEYS';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import compose from '../../libs/compose';
+import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     /* Onyx Props */
@@ -22,13 +30,15 @@ const propTypes = {
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
     }),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     account: {},
 };
 
-class LoginFormWide extends React.Component {
+class LoginForm extends React.Component {
     constructor(props) {
         super(props);
 
@@ -71,7 +81,8 @@ class LoginFormWide extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         placeholder="Phone or Email"
-                        autoFocus
+                        placeholderTextColor={themeColors.placeholderText}
+                        autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
                 <View>
@@ -103,9 +114,12 @@ class LoginFormWide extends React.Component {
     }
 }
 
-LoginFormWide.propTypes = propTypes;
-LoginFormWide.defaultProps = defaultProps;
+LoginForm.propTypes = propTypes;
+LoginForm.defaultProps = defaultProps;
 
-export default withOnyx({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(LoginFormWide);
+export default compose(
+    withOnyx({
+        account: {key: ONYXKEYS.ACCOUNT},
+    }),
+    withWindowDimensions,
+)(LoginForm);
