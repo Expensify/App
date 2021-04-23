@@ -30,15 +30,15 @@ const propTypes = {
     // Controls the visibility of this component.
     isVisible: PropTypes.bool,
 
+    // Draft message - if this is set the comment is in 'edit' mode
+    draftMessage: PropTypes.string,
+
     /* Onyx Props */
     // The session of the logged in person
     session: PropTypes.shape({
         // Email of the logged in person
         email: PropTypes.string,
     }),
-
-    // Draft message - if this is set the comment is in 'edit' mode
-    draftMessage: PropTypes.string,
 };
 
 const defaultProps = {
@@ -46,6 +46,7 @@ const defaultProps = {
     isMini: false,
     isVisible: false,
     session: {},
+    draftMessage: '',
 };
 
 class ReportActionContextMenu extends React.Component {
@@ -119,6 +120,17 @@ class ReportActionContextMenu extends React.Component {
         },
     ];
 
+    constructor(props) {
+        super(props);
+
+        this.getActionText = this.getActionText.bind(this);
+    }
+
+    /**
+     * Gets the text (not HTML) portion of the message in an action.
+     *
+     * @return {*}
+     */
     getActionText() {
         const message = _.last(lodashGet(this.props.reportAction, 'message', null));
         return lodashGet(message, 'text', '');
@@ -150,8 +162,5 @@ ReportActionContextMenu.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
-    },
-    draftMessage: {
-        key: ({reportID, reportAction}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportAction.reportActionID}`,
     },
 })(ReportActionContextMenu);

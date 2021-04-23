@@ -896,10 +896,15 @@ NetworkConnection.onReconnect(() => {
     fetchAll(false);
 });
 
-function editReportComment(reportID, reportAction, htmlForNewComment) {
+/**
+ * @param {Number} reportID
+ * @param {Object} originalReportAction
+ * @param {String} htmlForNewComment
+ */
+function editReportComment(reportID, originalReportAction, htmlForNewComment) {
     // Optimistically update the report action with the new message
-    const sequenceNumber = reportAction.sequenceNumber;
-    const newReportAction = {...reportAction};
+    const sequenceNumber = originalReportAction.sequenceNumber;
+    const newReportAction = {...originalReportAction};
     const actionToMerge = {};
     newReportAction.message[0].isEdited = true;
     newReportAction.message[0].html = htmlForNewComment;
@@ -910,9 +915,14 @@ function editReportComment(reportID, reportAction, htmlForNewComment) {
     // Persist the updated report comment
     API.Report_EditComment({
         reportID,
-        reportActionID: reportAction.reportActionID,
+        reportActionID: originalReportAction.reportActionID,
         reportComment: htmlForNewComment,
-    });
+    })
+        .catch(() => {
+            // If it fails, reset Onyx
+            actionToMerge[sequenceNumber] = originalReportAction;
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+        });
 }
 
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
