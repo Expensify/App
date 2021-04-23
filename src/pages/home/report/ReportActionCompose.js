@@ -5,6 +5,7 @@ import {
     TouchableOpacity,
     Pressable,
     InteractionManager,
+    Text,
 } from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
@@ -16,7 +17,7 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
 import {
-    Plus, Send, Emoji, Paperclip,
+    Plus, Send, Emoji, Paperclip, Offline,
 } from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
@@ -31,6 +32,7 @@ import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -64,11 +66,18 @@ const propTypes = {
     // Is composer screen focused
     isFocused: PropTypes.bool.isRequired,
 
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    }),
+
 };
 
 const defaultProps = {
     comment: '',
     modal: {},
+    network: {isOffline: false},
 };
 
 class ReportActionCompose extends React.Component {
@@ -88,6 +97,9 @@ class ReportActionCompose extends React.Component {
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+        this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
+
+        this.emojiSearchInput = null;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -234,6 +246,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Focus the search input in the emoji picker.
+     */
+    focusEmojiSearchInput() {
+        if (this.emojiSearchInput) {
+            this.emojiSearchInput.focus();
+        }
+    }
+
+    /**
      * Add a new comment to this chat
      *
      * @param {SyntheticEvent} [e]
@@ -288,10 +309,6 @@ class ReportActionCompose extends React.Component {
                                                 onPress={(e) => {
                                                     e.preventDefault();
                                                     this.setMenuVisibility(true);
-
-                                                    /* Keep last focus inside the input so that focus is restored
-                                                     on modal close. Otherwise breaks modal 2 modal transition */
-                                                    this.focus();
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
@@ -378,6 +395,7 @@ class ReportActionCompose extends React.Component {
                     <Popover
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
+                        onModalShow={this.focusEmojiSearchInput}
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
@@ -388,6 +406,7 @@ class ReportActionCompose extends React.Component {
                     >
                         <EmojiPickerMenu
                             onEmojiSelected={this.addEmojiToTextBox}
+                            ref={el => this.emojiSearchInput = el}
                         />
                     </Popover>
                     <Pressable
@@ -415,7 +434,24 @@ class ReportActionCompose extends React.Component {
                         <Icon src={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>
                 </View>
-                <ReportTypingIndicator reportID={this.props.reportID} />
+                {this.props.network.isOffline ? (
+                    <View style={[styles.chatItemComposeSecondaryRow]}>
+                        <View style={[
+                            styles.chatItemComposeSecondaryRowOffset,
+                            styles.flexRow,
+                            styles.alignItemsCenter]}
+                        >
+                            <Icon
+                                src={Offline}
+                                width={variables.iconSizeExtraSmall}
+                                height={variables.iconSizeExtraSmall}
+                            />
+                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                                You appear to be offline.
+                            </Text>
+                        </View>
+                    </View>
+                ) : <ReportTypingIndicator reportID={this.props.reportID} />}
             </View>
         );
     }
@@ -434,6 +470,9 @@ export default compose(
         },
         modal: {
             key: ONYXKEYS.MODAL,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
         },
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
