@@ -9,11 +9,11 @@ const InlineCodeBlock = ({
     textStyle,
 }) => (
     <WrappedText
-        textStyle={textStyle}
-        wordStyle={{
-            ...boxModelStyle,
-            ...styles.codeWordStyle,
-        }}
+        textStyles={[textStyle]}
+        wordStyles={[
+            boxModelStyle,
+            styles.codeWordStyle,
+        ]}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...defaultRendererProps}
     >
