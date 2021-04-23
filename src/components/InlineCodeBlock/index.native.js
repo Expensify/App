@@ -14,9 +14,7 @@ const InlineCodeBlock = ({
             ...boxModelStyle,
             ...styles.codeWordStyle,
         }}
-        firstWordStyle={styles.codeFirstWordStyle}
-        lastWordStyle={styles.codeLastWordStyle}
-            // eslint-disable-next-line react/jsx-props-no-spreading
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...defaultRendererProps}
     >
         {defaultRendererProps.tnode.data}
