@@ -93,7 +93,7 @@ class EmojiPickerMenu extends Component {
 
         // Setup keypress/mouse handlers only if we have a keyboard (and not a touchscreen)
         if (!canUseTouchScreen() && document) {
-            document.addEventListener('keydown', (e) => {
+            this.keyDownHandler = (e) => {
                 // Highlight the appropriate emoji
                 if (e.key.startsWith('Arrow')) {
                     this.highlightAdjacentEmoji(e.key);
@@ -104,14 +104,25 @@ class EmojiPickerMenu extends Component {
                 if (e.key === 'Enter' && this.state.highlightedIndex !== -1) {
                     this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
                 }
-            });
+            };
+            document.addEventListener('keydown', this.keyDownHandler);
 
             // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
-            document.addEventListener('mousemove', () => {
+            this.mouseMoveHandler = () => {
                 if (this.state.shouldDisablePointerEvents) {
                     this.setState({shouldDisablePointerEvents: false});
                 }
-            });
+            };
+            document.addEventListener('mousemove', this.mouseMoveHandler);
+        }
+    }
+
+    componentWillUnmount() {
+        // Cleanup all mouse/keydown event listeners that we've set up
+        if (!canUseTouchScreen() && document) {
+            document.removeEventListener('keydown', this.keyDownHandler);
+            document.removeEventListener('keydown', this.mouseMoveHandler);
+            this.toggleKeysOnSearchInput([], ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp']);
         }
     }
 
