@@ -31,6 +31,7 @@ class ReportScreen extends React.Component {
 
     componentDidMount() {
         this.prepareTransition();
+        this.storeCurrentlyViewedReport();
     }
 
     componentDidUpdate(prevProps) {
