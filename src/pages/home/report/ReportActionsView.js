@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-    Animated,
     View,
     Keyboard,
     AppState,
@@ -11,7 +10,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
-import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import {
     fetchActions,
     updateLastReadActionID,
@@ -39,6 +37,9 @@ const propTypes = {
     report: PropTypes.shape({
         // Number of actions unread
         unreadActionCount: PropTypes.number,
+
+        // The largest sequenceNumber on this report
+        maxSequenceNumber: PropTypes.number,
     }),
 
     // Array of report actions for this report
@@ -54,6 +55,7 @@ const propTypes = {
 const defaultProps = {
     report: {
         unreadActionCount: 0,
+        maxSequenceNumber: 0,
     },
     reportActions: {},
     session: {},
@@ -71,18 +73,16 @@ class ReportActionsView extends React.Component {
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
         this.timers = [];
-        this.unreadIndicatorOpacity = new Animated.Value(1);
 
-        // Helper variable that keeps track of the unread action count before it updates to zero
-        this.unreadActionCount = 0;
-
-        // Helper variable that prevents the unread indicator to show up for new messages
-        // received while the report is still active
-        this.shouldShowUnreadActionIndicator = true;
+        this.initialNewMarkerPosition = props.report.unreadActionCount === 0
+            ? 0
+            : (props.report.maxSequenceNumber + 1) - props.report.unreadActionCount;
 
         this.state = {
             isLoadingMoreChats: false,
         };
+
+        this.updateSortedReportActions(props.reportActions);
     }
 
     componentDidMount() {
@@ -91,14 +91,12 @@ class ReportActionsView extends React.Component {
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         this.recordMaxAction();
         fetchActions(this.props.reportID);
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (nextProps.reportID !== this.props.reportID) {
-            return true;
-        }
-
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
+            this.updateSortedReportActions(nextProps.reportActions);
             return true;
         }
 
@@ -110,12 +108,6 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // We have switched to a new report
-        if (prevProps.reportID !== this.props.reportID) {
-            this.reset(prevProps.reportID);
-            return;
-        }
-
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
@@ -156,45 +148,6 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Checks if the unreadActionIndicator should be shown.
-     * If it does, starts a timeout for the fading out animation and creates
-     * a flag to not show it again if the report is still open
-     */
-    setUpUnreadActionIndicator() {
-        if (!this.shouldShowUnreadActionIndicator) {
-            return;
-        }
-
-        this.unreadActionCount = this.props.report.unreadActionCount;
-
-        if (this.unreadActionCount > 0) {
-            this.unreadIndicatorOpacity = new Animated.Value(1);
-            this.timers.push(setTimeout(() => {
-                Animated.timing(this.unreadIndicatorOpacity, {
-                    toValue: 0,
-                    useNativeDriver: false,
-                }).start();
-            }, 3000));
-        }
-
-        this.shouldShowUnreadActionIndicator = false;
-    }
-
-    /**
-     * Actions to run when the report has been updated
-     * @param {Number} oldReportID
-     */
-    reset(oldReportID) {
-        // Unsubscribe from previous report and resubscribe
-        unsubscribeFromReportChannel(oldReportID);
-        subscribeToReportTypingEvents(this.props.reportID);
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
-
-        // Fetch the new set of actions
-        fetchActions(this.props.reportID);
-    }
-
-    /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
@@ -219,9 +172,11 @@ class ReportActionsView extends React.Component {
 
     /**
      * Updates and sorts the report actions by sequence number
+     *
+     * @param {Array<{sequenceNumber, actionName}>} reportActions
      */
-    updateSortedReportActions() {
-        this.sortedReportActions = _.chain(this.props.reportActions)
+    updateSortedReportActions(reportActions) {
+        this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
             .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU')
             .map((item, index) => ({action: item, index}))
@@ -259,8 +214,7 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * When the bottom of the list is reached, this is triggered, so it's a little different than recording the max
-     * action when scrolled
+     * Recorded when the report first opens and when the list is scrolled to the bottom
      */
     recordMaxAction() {
         const reportActions = lodashGet(this.props, 'reportActions', {});
@@ -292,8 +246,8 @@ class ReportActionsView extends React.Component {
 
     /**
      * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
-     *  higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
-     *  rows is hidden beneath other rows.
+     * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
+     * rows is hidden beneath other rows.
      *
      * @param {Object} index - The ReportAction item in the FlatList.
      * @param {Object|Array} style – The default styles of the CellRendererComponent provided by the CellRenderer.
@@ -318,34 +272,21 @@ class ReportActionsView extends React.Component {
      * @param {Object} args
      * @param {Object} args.item
      * @param {Number} args.index
-     * @param {Function} args.onLayout
-     * @param {Boolean} args.needsLayoutCalculation
      *
      * @returns {React.Component}
      */
     renderItem({
         item,
         index,
-        onLayout,
-        needsLayoutCalculation,
     }) {
         return (
-
-        // Using <View /> instead of a Fragment because there is a difference between how
-        // <InvertedFlatList /> are implemented on native and web/desktop which leads to
-        // the unread indicator on native to render below the message instead of above it.
-            <View>
-                {this.unreadActionCount > 0 && index === this.unreadActionCount - 1 && (
-                    <UnreadActionIndicator animatedOpacity={this.unreadIndicatorOpacity} />
-                )}
-                <ReportActionItem
-                    reportID={this.props.reportID}
-                    action={item.action}
-                    displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                    onLayout={onLayout}
-                    needsLayoutCalculation={needsLayoutCalculation}
-                />
-            </View>
+            <ReportActionItem
+                reportID={this.props.reportID}
+                action={item.action}
+                displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
+                shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
+                    && item.action.sequenceNumber === this.initialNewMarkerPosition}
+            />
         );
     }
 
@@ -364,8 +305,6 @@ class ReportActionsView extends React.Component {
             );
         }
 
-        this.setUpUnreadActionIndicator();
-        this.updateSortedReportActions();
         return (
             <InvertedFlatList
                 ref={el => this.actionListElement = el}
