@@ -17,10 +17,14 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // All of the personalDetails
-    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     // Children view component for this action item
     children: PropTypes.node.isRequired,
+};
+
+const defaultProps = {
+    personalDetails: {},
 };
 
 const ReportActionItemSingle = ({
@@ -65,6 +69,7 @@ const ReportActionItemSingle = ({
 };
 
 ReportActionItemSingle.propTypes = propTypes;
+ReportActionItemSingle.defaultProps = defaultProps;
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
