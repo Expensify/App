@@ -281,6 +281,9 @@ class ProfilePage extends Component {
                                     onClose={() => this.setState({isEditPhotoMenuVisible: false})}
                                     onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}
                                     menuItems={this.createMenuItems(openPicker)}
+                                    anchorPosition={styles.createMenuPositionProfile}
+                                    animationIn="fadeInRight"
+                                    animationOut="fadeOutRight"
                                 />
                             </>
                         )}

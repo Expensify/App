@@ -79,6 +79,7 @@ class BaseModal extends PureComponent {
                 onModalShow={() => {
                     this.subscribeToKeyEvents();
                     setModalVisibility(true);
+                    this.props.onModalShow();
                 }}
                 onModalHide={this.hideModalAndRemoveEventListeners}
                 onSwipeComplete={this.props.onClose}
@@ -94,6 +95,9 @@ class BaseModal extends PureComponent {
                 animationOut={this.props.animationOut || animationOut}
                 useNativeDriver={this.props.useNativeDriver}
                 statusBarTranslucent
+                hideModalContentWhileAnimating={this.props.hideModalContentWhileAnimating}
+                animationInTiming={this.props.animationInTiming}
+                animationOutTiming={this.props.animationOutTiming}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {

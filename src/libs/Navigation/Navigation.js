@@ -5,6 +5,8 @@ import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
 
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
+import SCREENS from '../../SCREENS';
+import CustomActions from './CustomActions';
 
 export const navigationRef = React.createRef();
 
@@ -37,12 +39,20 @@ function navigate(route = ROUTES.HOME) {
     // If we're navigating to the signIn page, replace the existing route in the stack with the SignIn route so that we
     // don't mistakenly route back to any older routes after the user signs in
     if (route === ROUTES.SIGNIN) {
-        navigationRef.current.dispatch(StackActions.replace('SignIn'));
+        navigationRef.current.dispatch(StackActions.replace(SCREENS.SIGN_IN));
         return;
     }
 
     if (route === ROUTES.HOME) {
         openDrawer();
+        return;
+    }
+
+    // Navigate to the ReportScreen with a custom action so that we can preserve the history. We're looking to see if we
+    // have a participants route since those should go through linkTo() as they open a different screen.
+    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
+    if (reportID && !isParticipantsRoute) {
+        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}));
         return;
     }
 
@@ -94,4 +104,5 @@ export default {
     navigate,
     dismissModal,
     isDrawerOpen,
+    goBack,
 };

@@ -19,13 +19,17 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // All of the personalDetails
-    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     // Draft message - if this is non-empty we'll render the comment in "edit mode"
     draftMessage: PropTypes.string.isRequired,
 
     // ReportID containing the report action we're displaying
     reportID: PropTypes.number.isRequired,
+};
+
+const defaultProps = {
+    personalDetails: {},
 };
 
 const ReportActionItemSingle = ({
@@ -73,6 +77,7 @@ const ReportActionItemSingle = ({
 };
 
 ReportActionItemSingle.propTypes = propTypes;
+ReportActionItemSingle.defaultProps = defaultProps;
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
