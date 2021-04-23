@@ -196,12 +196,13 @@ class ProfilePage extends Component {
             selectedTimezone,
             isAutomaticTimezone,
         } = this.state;
-        const {translations: {translate}} = this.props;
 
         setPersonalDetails({
             firstName,
             lastName,
-            pronouns: pronouns === translate(CONST.PRONOUNS.SELF_SELECT) ? selfSelectedPronouns : pronouns,
+            pronouns: pronouns === this.props.translations.translate(CONST.PRONOUNS.SELF_SELECT)
+                ? selfSelectedPronouns
+                : pronouns,
             timezone: {
                 automatic: isAutomaticTimezone,
                 selected: selectedTimezone,
@@ -254,11 +255,10 @@ class ProfilePage extends Component {
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
             && arePronounsUnchanged;
 
-        const {translations: {translate}} = this.props;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={translate('profile')}
+                    title={this.props.translations.translate('profile')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -279,7 +279,7 @@ class ProfilePage extends Component {
                                         <Icon src={DownArrow} />
                                         <View style={styles.justifyContentCenter}>
                                             <Text style={[styles.headerText, styles.ml2]}>
-                                                {translate('editPhoto')}
+                                                {this.props.translations.translate('editPhoto')}
                                             </Text>
                                         </View>
                                     </View>
@@ -297,39 +297,45 @@ class ProfilePage extends Component {
                         )}
                     </AttachmentPicker>
                     <Text style={[styles.mt6, styles.mb6, styles.textP]}>
-                        {translate('tellUsAboutYourself')}
+                        {this.props.translations.translate('tellUsAboutYourself')}
                     </Text>
                     <View style={[styles.flexRow, styles.mb6]}>
                         <View style={styles.flex1}>
-                            <Text style={[styles.mb1, styles.formLabel]}>{translate('firstName')}</Text>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {this.props.translations.translate('firstName')}
+                            </Text>
                             <TextInput
                                 style={styles.textInput}
                                 value={this.state.firstName}
                                 onChangeText={firstName => this.setState({firstName})}
-                                placeholder={translate('john')}
+                                placeholder={this.props.translations.translate('john')}
                                 placeholderTextColor={themeColors.placeholderText}
                             />
                         </View>
                         <View style={[styles.flex1, styles.ml2]}>
-                            <Text style={[styles.mb1, styles.formLabel]}>{translate('lastName')}</Text>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {this.props.translations.translate('lastName')}
+                            </Text>
                             <TextInput
                                 style={styles.textInput}
                                 value={this.state.lastName}
                                 onChangeText={lastName => this.setState({lastName})}
-                                placeholder={translate('doe')}
+                                placeholder={this.props.translations.translate('doe')}
                                 placeholderTextColor={themeColors.placeholderText}
                             />
                         </View>
                     </View>
                     <View style={styles.mb6}>
-                        <Text style={[styles.mb1, styles.formLabel]}>{translate('preferredPronouns')}</Text>
+                        <Text style={[styles.mb1, styles.formLabel]}>
+                            {this.props.translations.translate('preferredPronouns')}
+                        </Text>
                         <View style={styles.mb1}>
                             <Picker
                                 onChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
                                 items={this.pronounDropdownValues}
                                 placeholder={{
                                     value: '',
-                                    label: translate('selectYourPronouns'),
+                                    label: this.props.translations.translate('selectYourPronouns'),
                                 }}
                                 value={this.state.pronouns}
                                 icon={() => <Icon src={DownArrow} />}
@@ -340,15 +346,25 @@ class ProfilePage extends Component {
                             style={styles.textInput}
                             value={this.state.selfSelectedPronouns}
                             onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
-                            placeholder={translate('selfSelectYourPronoun')}
+                            placeholder={this.props.translations.translate('selfSelectYourPronoun')}
                             placeholderTextColor={themeColors.placeholderText}
                         />
                         )}
                     </View>
-                    <LoginField label={translate('emailAddress')} type="email" login={this.state.logins.email} />
-                    <LoginField label={translate('phoneNumber')} type="phone" login={this.state.logins.phone} />
+                    <LoginField
+                        label={this.props.translations.translate('emailAddress')}
+                        type="email"
+                        login={this.state.logins.email}
+                    />
+                    <LoginField
+                        label={this.props.translations.translate('phoneNumber')}
+                        type="phone"
+                        login={this.state.logins.phone}
+                    />
                     <View style={styles.mb3}>
-                        <Text style={[styles.mb1, styles.formLabel]}>{translate('timezone')}</Text>
+                        <Text style={[styles.mb1, styles.formLabel]}>
+                            {this.props.translations.translate('timezone')}
+                        </Text>
                         <Picker
                             onChange={selectedTimezone => this.setState({selectedTimezone})}
                             items={timezones}
@@ -359,7 +375,7 @@ class ProfilePage extends Component {
                         />
                     </View>
                     <Checkbox
-                        label={translate('setMyTimezoneAutomatically')}
+                        label={this.props.translations.translate('setMyTimezoneAutomatically')}
                         isChecked={this.state.isAutomaticTimezone}
                         onClick={this.setAutomaticTimezone}
                     />
@@ -377,7 +393,7 @@ class ProfilePage extends Component {
                         ]}
                     >
                         <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            {translate('save')}
+                            {this.props.translations.translate('save')}
                         </Text>
                     </Pressable>
                 </View>

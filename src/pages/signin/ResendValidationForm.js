@@ -51,17 +51,16 @@ class ResendValidationForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
-        const {translations: {translate}} = this.props;
         this.setState({
-            formSuccess: translate('linkHasBeenResent'),
+            formSuccess: this.props.translations.translate('linkHasBeenResent'),
         });
 
         if (!this.props.account.validated) {
             resendValidationLink();
-            console.debug(translate('accountUnvalidated'));
+            console.debug(this.props.translations.translate('accountUnvalidated'));
         } else {
             resetPassword();
-            console.debug(translate('accountForgotPassword'));
+            console.debug(this.props.translations.translate('accountForgotPassword'));
         }
 
         this.successMessageTimer = setTimeout(() => {

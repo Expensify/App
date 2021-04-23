@@ -124,18 +124,17 @@ class IOUModal extends Component {
      * @returns {String}
      */
     getTitleForStep() {
-        const {translations: {translate}} = this.props;
         const currentStepIndex = this.state.currentStepIndex;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
             return `${this.props.hasMultipleParticipants
-                ? translate('split')
-                : translate('request')} $${this.state.amount}`;
+                ? this.props.translations.translate('split')
+                : this.props.translations.translate('request')} $${this.state.amount}`;
         }
         if (currentStepIndex === 0) {
-            return translate(this.props.hasMultipleParticipants ? 'splitBill' : 'requestMoney');
+            return this.props.translations.translate(this.props.hasMultipleParticipants ? 'splitBill' : 'requestMoney');
         }
 
-        return translate(this.steps[currentStepIndex]) || '';
+        return this.props.translations.translate(this.steps[currentStepIndex]) || '';
     }
 
     addParticipants(participants) {

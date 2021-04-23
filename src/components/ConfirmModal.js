@@ -91,4 +91,7 @@ const ConfirmModal = props => (
 ConfirmModal.propTypes = propTypes;
 ConfirmModal.defaultProps = defaultProps;
 ConfirmModal.displayName = 'ConfirmModal';
-export default compose(withWindowDimensions, withLocalize)(ConfirmModal);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(ConfirmModal);

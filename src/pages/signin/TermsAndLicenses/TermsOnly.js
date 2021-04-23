@@ -30,10 +30,6 @@ const TermsOnly = ({translations}) => (
     </View>
 );
 
-const propTypes = {
-    ...withLocalizePropTypes,
-};
-
-TermsOnly.propTypes = propTypes;
+TermsOnly.propTypes = {...withLocalizePropTypes};
 
 export default withLocalize(TermsOnly);

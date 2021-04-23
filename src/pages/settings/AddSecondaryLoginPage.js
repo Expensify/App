@@ -99,12 +99,11 @@ class AddSecondaryLoginPage extends Component {
     }
 
     render() {
-        const {translations: {translate}} = this.props;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title={translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                        title={this.props.translations.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                             ? 'addPhoneNumber'
                             : 'addEmailAddress')}
                         shouldShowBackButton
@@ -114,13 +113,13 @@ class AddSecondaryLoginPage extends Component {
                     <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
                         <View style={styles.flexGrow1}>
                             <Text style={[styles.mb6, styles.textP]}>
-                                {translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                {this.props.translations.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                     ? 'enterPreferredPhoneNumberToSendValidationLink'
                                     : 'enterPreferredEmailToSendValidationLink')}
                             </Text>
                             <View style={styles.mb6}>
                                 <Text style={[styles.mb1, styles.formLabel]}>
-                                    {translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                    {this.props.translations.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                         ? 'phoneNumber'
                                         : 'emailAddress')}
                                 </Text>
@@ -135,7 +134,9 @@ class AddSecondaryLoginPage extends Component {
                                 />
                             </View>
                             <View style={styles.mb6}>
-                                <Text style={[styles.mb1, styles.formLabel]}>{translate('password')}</Text>
+                                <Text style={[styles.mb1, styles.formLabel]}>
+                                    {this.props.translations.translate('password')}
+                                </Text>
                                 <TextInput
                                     style={styles.textInput}
                                     value={this.state.password}
@@ -156,7 +157,7 @@ class AddSecondaryLoginPage extends Component {
                             <ButtonWithLoader
                                 isDisabled={this.validateForm()}
                                 isLoading={this.props.user.loading}
-                                text={translate('sendValidation')}
+                                text={this.props.translations.translate('sendValidation')}
                                 onClick={this.submitForm}
                             />
                         </View>

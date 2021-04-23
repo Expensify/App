@@ -13,11 +13,7 @@ const UnreadActionIndicator = props => (
     </View>
 );
 
-const propTypes = {
-    ...withLocalizePropTypes,
-};
-
-UnreadActionIndicator.propTypes = propTypes;
+UnreadActionIndicator.propTypes = {...withLocalizePropTypes};
 
 UnreadActionIndicator.displayName = 'UnreadActionIndicator';
 export default withLocalize(UnreadActionIndicator);

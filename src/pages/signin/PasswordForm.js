@@ -68,11 +68,10 @@ class PasswordForm extends React.Component {
     }
 
     render() {
-        const {translations: {translate}} = this.props;
         return (
             <>
                 <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>{translate('password')}</Text>
+                    <Text style={[styles.formLabel]}>{this.props.translations.translate('password')}</Text>
                     <TextInput
                         style={[styles.textInput]}
                         secureTextEntry
@@ -90,16 +89,16 @@ class PasswordForm extends React.Component {
                     underlayColor={themeColors.componentBG}
                 >
                     <Text style={[styles.link]}>
-                        {translate('forgot')}
+                        {this.props.translations.translate('forgot')}
                     </Text>
                 </TouchableOpacity>
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mb4]}>
-                        <Text style={[styles.formLabel]}>{translate('twoFactorCode')}</Text>
+                        <Text style={[styles.formLabel]}>{this.props.translations.translate('twoFactorCode')}</Text>
                         <TextInput
                             style={[styles.textInput]}
                             value={this.state.twoFactorAuthCode}
-                            placeholder={translate('requiredWhen2FAEnabled')}
+                            placeholder={this.props.translations.translate('requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
@@ -109,7 +108,7 @@ class PasswordForm extends React.Component {
                 )}
                 <View>
                     <ButtonWithLoader
-                        text={translate('signIn')}
+                        text={this.props.translations.translate('signIn')}
                         isLoading={this.props.account.loading}
                         onClick={this.validateAndSubmitForm}
                     />

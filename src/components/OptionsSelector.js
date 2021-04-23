@@ -171,7 +171,6 @@ class OptionsSelector extends Component {
     }
 
     render() {
-        const {translations: {translate}} = this.props;
         return (
             <View style={[styles.flex1]}>
                 <View style={[styles.ph5, styles.pv3]}>
@@ -182,7 +181,8 @@ class OptionsSelector extends Component {
                         value={this.props.value}
                         onChangeText={this.props.onChangeText}
                         onKeyPress={this.handleKeyPress}
-                        placeholder={this.props.placeholderText || translate('nameEmailOrPhoneNumber')}
+                        placeholder={this.props.placeholderText
+                            || this.props.translations.translate('nameEmailOrPhoneNumber')}
                         placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
