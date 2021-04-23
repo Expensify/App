@@ -1317,6 +1317,15 @@ const styles = {
     },
 
     codeWordStyle: {
+        borderLeftWidth: 0,
+        borderRightWidth: 0,
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        justifyContent: 'center',
         ...codeStyles.codeWordStyle,
     },
 
@@ -1408,7 +1417,7 @@ const webViewStyles = {
 
         code: {
             ...baseCodeTagStyles,
-            ...codeStyles.codeBlock,
+            ...codeStyles.codeTextStyle,
             paddingLeft: 5,
             paddingRight: 5,
             fontFamily: fontFamily.MONOSPACE,
