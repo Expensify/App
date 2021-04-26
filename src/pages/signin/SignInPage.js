@@ -12,7 +12,6 @@ import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 
 const propTypes = {
@@ -45,8 +44,6 @@ const propTypes = {
         // Error to display when there is a session error returned
         authToken: PropTypes.string,
     }),
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -124,5 +121,4 @@ export default compose(
         credentials: {key: ONYXKEYS.CREDENTIALS},
         session: {key: ONYXKEYS.SESSION},
     }),
-    withWindowDimensions,
 )(SignInPage);
