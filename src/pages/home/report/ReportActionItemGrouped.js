@@ -1,19 +1,17 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ReportActionPropTypes from './ReportActionPropTypes';
-import ReportActionItemMessage from './ReportActionItemMessage';
 import styles from '../../../styles/styles';
 
 const propTypes = {
-    // All the data of the action
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    // Children view component for this action item
+    children: PropTypes.node.isRequired,
 };
 
-const ReportActionItemGrouped = ({action}) => (
+const ReportActionItemGrouped = ({children}) => (
     <View style={[styles.chatItem]}>
         <View style={[styles.chatItemRightGrouped]}>
-            <ReportActionItemMessage action={action} />
+            {children}
         </View>
     </View>
 );
