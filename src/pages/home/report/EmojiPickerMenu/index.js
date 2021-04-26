@@ -182,7 +182,7 @@ class EmojiPickerMenu extends Component {
 
     /**
      * Calculates the required scroll offset (aka distance from top) and scrolls the FlatList to the highlighted emoji
-     * if any portion of it falls outside of the window.
+     * if any portion of it falls outside of the window. Doing this because scrollToIndex doesn't work as expected.
      */
     scrollToHighlightedIndex() {
         // If there are headers in the emoji array, so we need to offset by their heights as well
