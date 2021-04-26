@@ -15,16 +15,15 @@ const propTypes = {
 
 const ReportActionItemIOUQuote = ({action}) => (
     <View style={[styles.chatItemMessage]}>
-        {_.map(action.message, (fragment, index) => {
-            const viewDetails = '<br /><a href="#">View Details</a>';
-            const html = `<blockquote>${fragment.text}${viewDetails}</blockquote>`;
-            return (
-                <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
-                    <View style={[webViewStyles.tagStyles.blockquote]}>
-                        <Text style={[styles.chatItemMessage]}>
-                            {fragment.text}
-                        </Text>
-                        <Text style={[styles.chatItemMessageLink]} onPress={() => {
+        {_.map(action.message, (fragment, index) => (
+            <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
+                <View style={[webViewStyles.tagStyles.blockquote]}>
+                    <Text style={[styles.chatItemMessage]}>
+                        {fragment.text}
+                    </Text>
+                    <Text
+                        style={[styles.chatItemMessageLink]}
+                        onPress={() => {
                             if (!action.originalMessage) {
                                 console.error('reportAction `originalMessage` data not provided.');
                             }
@@ -33,13 +32,13 @@ const ReportActionItemIOUQuote = ({action}) => (
                             } else if (action.originalMessage.IOUReportID) {
                                 Navigation.navigate(ROUTES.getIouDetailsRoute(action.originalMessage.IOUReportID));
                             }
-                        }}>
-                            View Details
-                        </Text>
-                    </View>
+                        }}
+                    >
+                        View Details
+                    </Text>
                 </View>
-            );
-        })}
+            </View>
+        ))}
     </View>
 );
 
