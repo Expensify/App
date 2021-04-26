@@ -150,9 +150,6 @@ class EmojiPickerMenu extends Component {
             do {
                 newIndex += steps;
             } while (isHeader(this.state.filteredEmojis[newIndex]));
-
-            // Disable pointer events so that onHover doesn't get triggered
-            this.setState({shouldDisablePointerEvents: true});
         };
 
         switch (arrowKey) {
@@ -210,6 +207,10 @@ class EmojiPickerMenu extends Component {
             targetOffset = offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT;
         }
         if (targetOffset !== this.state.currentScrollOffset) {
+            // Disable pointer events so that onHover doesn't get triggered while the items move
+            if (!this.state.shouldDisablePointerEvents) {
+                this.setState({shouldDisablePointerEvents: true});
+            }
             this.emojiList.scrollToOffset({offset: targetOffset, animated: false});
         }
     }
