@@ -136,6 +136,9 @@ class EmojiPickerMenu extends Component {
                     renderItem={this.renderItem}
                     keyExtractor={item => `emoji_picker_${item.code}`}
                     numColumns={this.numColumns}
+                    removeClippedSubviews
+                    maxToRenderPerBatch={this.numColumns}
+                    windowSize={3}
                     style={styles.emojiPickerList}
                     extraData={this.state.filteredEmojis}
                     stickyHeaderIndices={this.state.headerIndices}
