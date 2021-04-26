@@ -131,17 +131,17 @@ class EmojiPickerMenu extends Component {
      * @param {String} arrowKey
      */
     highlightAdjacentEmoji(arrowKey) {
+        const firstNonHeaderIndex = this.state.filteredEmojis.length === emojis.length ? this.numColumns : 0;
+
         // If nothing is highlighted and an arrow key is pressed
         // select the first emoji
         if (this.state.highlightedIndex === -1) {
-            this.setState(prevState => ({highlightedIndex: prevState.filteredEmojis.length === emojis.length ? 8 : 0}));
+            this.setState({highlightedIndex: firstNonHeaderIndex});
             this.scrollToHighlightedIndex();
             return;
         }
 
         let newIndex = this.state.highlightedIndex;
-        const firstNonHeaderIndex = this.state.filteredEmojis.length === emojis.length ? 8 : 0;
-
         const move = (steps, boundsCheck) => {
             if (boundsCheck()) {
                 return;
