@@ -49,7 +49,8 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         // Toggles which keys the search input will listen to
-        // NOTE: these need to be instance members so we're always referencing the same functions in memory
+        // NOTE: these need to be instance members so we can
+        // reference the same event handlers in memory when removing them
         this.keyToDefaultPreventer = {};
         ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp'].forEach((key) => {
             this.keyToDefaultPreventer[key] = (keyBoardEvent) => {
@@ -92,6 +93,8 @@ class EmojiPickerMenu extends Component {
         }
 
         // Setup keypress/mouse handlers only if we have a keyboard (and not a touchscreen)
+        // NOTE: these event handlers are instance members so we can reference
+        // the same functions in memory when removing them.
         if (!canUseTouchScreen() && document) {
             this.keyDownHandler = (e) => {
                 if (e.key.startsWith('Arrow')) {
