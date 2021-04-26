@@ -133,7 +133,7 @@ function getIOUReportDetailFromTransactionID(transactionID) {
 /**
  * Settles an IOU Report
  */
- function settleIOUReport({
+function settleIOUReport({
     reportID, paymentMethodType,
 }) {
     // Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
@@ -151,8 +151,8 @@ function getIOUReportDetailFromTransactionID(transactionID) {
 /**
  * Decline or cancel a transaction
  */
- function rejectTransaction({
-    reportID, transactionID, comment
+function rejectTransaction({
+    reportID, transactionID, comment,
 }) {
     console.debug('juless: rejectTransaction', {reportID, transactionID, comment});
 
