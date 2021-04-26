@@ -9,8 +9,6 @@ import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import compose from '../../../../libs/compose';
 
 const propTypes = {
     // Function to add the selected emoji to the main compose text input
@@ -20,8 +18,6 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     ...windowDimensionsPropTypes,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -126,7 +122,7 @@ class EmojiPickerMenu extends Component {
                     <View style={[styles.pt4, styles.ph4, styles.pb1]}>
                         <TextInputFocusable
                             textAlignVertical="top"
-                            placeholder={this.props.translations.translate('search')}
+                            placeholder="Search"
                             placeholderTextColor={themeColors.textSupporting}
                             onChangeText={this.filterEmojis}
                             style={styles.textInput}
@@ -152,10 +148,7 @@ class EmojiPickerMenu extends Component {
 EmojiPickerMenu.propTypes = propTypes;
 EmojiPickerMenu.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(React.forwardRef((props, ref) => (
+export default withWindowDimensions(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <EmojiPickerMenu {...props} forwardedRef={ref} />
 )));

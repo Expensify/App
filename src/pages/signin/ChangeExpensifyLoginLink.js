@@ -7,8 +7,6 @@ import styles from '../../styles/styles';
 import {restartSignin} from '../../libs/actions/Session';
 import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 
 const propTypes = {
     // The credentials of the logged in person
@@ -16,11 +14,9 @@ const propTypes = {
         // The email the user logged in with
         login: PropTypes.string,
     }).isRequired,
-
-    ...withLocalizePropTypes,
 };
 
-const ChangeExpensifyLoginLink = ({credentials, translations}) => (
+const ChangeExpensifyLoginLink = ({credentials}) => (
     <View style={[styles.mb4]}>
         <TouchableOpacity
             style={[styles.link]}
@@ -28,8 +24,7 @@ const ChangeExpensifyLoginLink = ({credentials, translations}) => (
             underlayColor={themeColors.componentBG}
         >
             <Text style={[styles.link]}>
-                {translations.translate('not')}
-                &nbsp;
+                Not&nbsp;
                 {Str.removeSMSDomain(credentials.login)}
                 ?
             </Text>
@@ -40,9 +35,6 @@ const ChangeExpensifyLoginLink = ({credentials, translations}) => (
 ChangeExpensifyLoginLink.propTypes = propTypes;
 ChangeExpensifyLoginLink.displayName = 'ChangeExpensifyLoginLink';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-    }),
-)(ChangeExpensifyLoginLink);
+export default withOnyx({
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+})(ChangeExpensifyLoginLink);

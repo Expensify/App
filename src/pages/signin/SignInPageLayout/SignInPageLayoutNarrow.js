@@ -12,7 +12,6 @@ import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
 import openURLInNewTab from '../../../libs/openURLInNewTab/index.native';
 import CONST from '../../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
 
@@ -22,8 +21,6 @@ const propTypes = {
     // Whether we should show the welcome elements
     shouldShowWelcomeText: PropTypes.bool,
     shouldShowWelcomeScreenshot: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -41,7 +38,7 @@ const SignInPageLayoutNarrow = props => (
 
                 <View style={[styles.mb6, styles.alignItemsCenter]}>
                     <Text style={[styles.h1]}>
-                        {props.translations.translate('expensifyDotCash')}
+                        Expensify.cash
                     </Text>
                 </View>
 
@@ -62,22 +59,21 @@ const SignInPageLayoutNarrow = props => (
                     {props.shouldShowWelcomeText && <WelcomeText />}
                     <View>
                         <Text style={[styles.textLabel, styles.mt6]}>
-                            {`${props.translations.translate('expensifyIsOpenSource')}. ${
-                                props.translations.translate('view')}`}
+                            Expensify.cash is open source. View
                             {' '}
                             <Text
                                 style={[styles.link]}
                                 onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
                             >
-                                {props.translations.translate('theCode')}
+                                the code
                             </Text>
-                            {`. ${props.translations.translate('view')}`}
+                            . View
                             {' '}
                             <Text
                                 style={[styles.link]}
                                 onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
                             >
-                                {props.translations.translate('openJobs')}
+                                open jobs
                             </Text>
                             .
                         </Text>
@@ -94,4 +90,4 @@ SignInPageLayoutNarrow.defaultProps = defaultProps;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
 
-export default withLocalize(SignInPageLayoutNarrow);
+export default SignInPageLayoutNarrow;

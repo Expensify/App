@@ -10,7 +10,6 @@ import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import {resendValidateCode} from '../../../libs/actions/User';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // Label to display on login form
@@ -27,11 +26,9 @@ const propTypes = {
         // Date of when login was validated
         validatedDate: PropTypes.string,
     }).isRequired,
-
-    ...withLocalizePropTypes,
 };
 
-class LoginField extends Component {
+export default class LoginField extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -64,20 +61,21 @@ class LoginField extends Component {
         if (this.props.type === CONST.LOGIN_TYPE.PHONE) {
             // No phone number
             if (!this.props.login.partnerUserID) {
-                note = this.props.translations.translate('addYourPhoneToSettleViaVenmo');
+                note = 'Add your phone number to settle up via Venmo.';
 
             // Has unvalidated phone number
             } else if (!this.props.login.validatedDate) {
-                note = this.props.translations.translate('numberHasNotBeenValidated');
+                // eslint-disable-next-line max-len
+                note = 'The number has not yet been validated. Click the button to resend the validation link via text.';
 
             // Has verified phone number
             } else {
-                note = this.props.translations.translate('useYourPhoneToSettleViaVenmo');
+                note = 'Use your phone number to settle up via Venmo.';
             }
 
         // Has unvalidated email
         } else if (this.props.login.partnerUserID && !this.props.login.validatedDate) {
-            note = this.props.translations.translate('emailHasNotBeenValidated');
+            note = 'The email has not yet been validated. Click the button to resend the validation link via text.';
         }
 
         return (
@@ -94,7 +92,7 @@ class LoginField extends Component {
                             </View>
                             <View style={styles.justifyContentCenter}>
                                 <Text style={[styles.createMenuText, styles.ml3]}>
-                                    {`${this.props.translations.translate('add')} ${this.props.label}`}
+                                    {`Add ${this.props.label}`}
                                 </Text>
                             </View>
                         </View>
@@ -113,7 +111,7 @@ class LoginField extends Component {
                                     <Icon fill={colors.black} src={Checkmark} />
                                 ) : (
                                     <Text style={styles.createMenuText}>
-                                        {this.props.translations.translate('resend')}
+                                        Resend
                                     </Text>
                                 )}
                             </Pressable>
@@ -132,5 +130,3 @@ class LoginField extends Component {
 
 LoginField.propTypes = propTypes;
 LoginField.displayName = 'LoginField';
-
-export default withLocalize(LoginField);

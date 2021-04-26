@@ -8,7 +8,6 @@ import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import {getReportParticipantsTitle} from './reportUtils';
-import {translate} from './translate';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -460,12 +459,12 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  */
 function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return translate(ONYXKEYS.PREFERRED_LOCALE, CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED);
+        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return translate(ONYXKEYS.PREFERRED_LOCALE, CONST.MESSAGES.NO_PHONE_NUMBER);
+            return CONST.MESSAGES.NO_PHONE_NUMBER;
         }
 
         return searchValue;

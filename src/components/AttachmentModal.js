@@ -15,7 +15,6 @@ import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -46,8 +45,6 @@ const propTypes = {
     session: PropTypes.shape({
         authToken: PropTypes.string.isRequired,
     }).isRequired,
-
-    ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
 };
@@ -133,7 +130,7 @@ class AttachmentModal extends PureComponent {
                                     styles.buttonConfirmText,
                                 ]}
                             >
-                                {this.props.translations.translate('upload')}
+                                Upload
                             </Text>
                         </TouchableOpacity>
                     )}
@@ -165,5 +162,4 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
     }),
-    withLocalize,
 )(AttachmentModal);
