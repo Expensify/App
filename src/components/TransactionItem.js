@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import { View, Text, Pressable } from 'react-native-web';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
-import ReportActionItemIOUPreview from '../components/ReportActionItemIOUPreview';
+import ReportActionItemIOUAction from './ReportActionItemIOUAction';
 import styles from '../styles/styles';
 import {rejectTransaction} from '../libs/actions/IOU';
 
@@ -52,7 +52,7 @@ class TransactionItem extends Component {
     render() {
         return (
             <View styles={[styles.mb5]}>
-                <ReportActionItemIOUPreview
+                <ReportActionItemIOUAction // todo: should separate out, and action.message
                         action={this.props.action}
                         isMostRecentIOUReport={false}// shouldDIsplayPreviewBox
                 />

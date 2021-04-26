@@ -13,7 +13,7 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
-import ReportActionItemIOUPreview from '../../../components/ReportActionItemIOUPreview';
+import ReportActionItemIOUAction from '../../../components/ReportActionItemIOUAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 
@@ -106,8 +106,8 @@ class ReportActionItem extends Component {
     render() {
         const children = this.props.action.actionName === 'IOU'
             ? (
-                <ReportActionItemIOUPreview
-                    iouReportID={this.props.iouReportID}//needed?
+                <ReportActionItemIOUAction
+                    iouReportID={this.props.iouReportID} //needed?
                     hasOutstandingIOU={this.props.hasOutstandingIOU}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
