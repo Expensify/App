@@ -16,6 +16,7 @@ import ButtonWithLoader from '../components/ButtonWithLoader';
 import themeColors from '../styles/themes/default';
 import SignInPageLayout from './signin/SignInPageLayout';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
+import validateLinkPropTypes from './validateLinkPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,12 +39,8 @@ const propTypes = {
         password: PropTypes.string,
     }),
 
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            accountID: PropTypes.string,
-            validateCode: PropTypes.string,
-        }),
-    }),
+    // The accountID and validateCode are passed via the URL
+    route: validateLinkPropTypes,
 };
 
 const defaultProps = {
