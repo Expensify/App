@@ -11,8 +11,6 @@ import {signIn, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -28,8 +26,6 @@ const propTypes = {
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -56,7 +52,7 @@ class PasswordForm extends React.Component {
         if (!this.state.password.trim()
             || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim())
         ) {
-            this.setState({formError: this.props.translations.translate('pleaseFillOutAllFields')});
+            this.setState({formError: 'Please fill out all fields'});
             return;
         }
 
@@ -71,7 +67,7 @@ class PasswordForm extends React.Component {
         return (
             <>
                 <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>{this.props.translations.translate('password')}</Text>
+                    <Text style={[styles.formLabel]}>Password</Text>
                     <TextInput
                         style={[styles.textInput]}
                         secureTextEntry
@@ -89,16 +85,16 @@ class PasswordForm extends React.Component {
                     underlayColor={themeColors.componentBG}
                 >
                     <Text style={[styles.link]}>
-                        {this.props.translations.translate('forgot')}
+                        Forgot?
                     </Text>
                 </TouchableOpacity>
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mb4]}>
-                        <Text style={[styles.formLabel]}>{this.props.translations.translate('twoFactorCode')}</Text>
+                        <Text style={[styles.formLabel]}>Two Factor Code</Text>
                         <TextInput
                             style={[styles.textInput]}
                             value={this.state.twoFactorAuthCode}
-                            placeholder={this.props.translations.translate('requiredWhen2FAEnabled')}
+                            placeholder="Required when 2FA is enabled"
                             placeholderTextColor={themeColors.placeholderText}
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
@@ -108,7 +104,7 @@ class PasswordForm extends React.Component {
                 )}
                 <View>
                     <ButtonWithLoader
-                        text={this.props.translations.translate('signIn')}
+                        text="Sign In"
                         isLoading={this.props.account.loading}
                         onClick={this.validateAndSubmitForm}
                     />
@@ -127,9 +123,6 @@ class PasswordForm extends React.Component {
 PasswordForm.propTypes = propTypes;
 PasswordForm.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(PasswordForm);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+})(PasswordForm);

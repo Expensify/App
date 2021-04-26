@@ -3,41 +3,38 @@ import {Text, View} from 'react-native';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
-const TermsWithLicenses = ({translations}) => (
+const TermsWithLicenses = () => (
     <View style={[styles.mt6]}>
         <Text style={[styles.loginTermsText]}>
-            {translations.translate('termsOfUse')[0]}
+            By logging in, you agree to the
             {' '}
             <Text
                 style={[styles.loginTermsText, styles.link]}
                 onPress={() => openURLInNewTab(CONST.TERMS_URL)}
             >
-                {translations.translate('termsOfUse')[1]}
+                terms of service
             </Text>
             {' '}
-            {translations.translate('termsOfUse')[2]}
+            and
             {' '}
             <Text
                 style={[styles.loginTermsText, styles.link]}
                 onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
             >
-                {translations.translate('termsOfUse')[3]}
+                privacy policy
             </Text>
-            {translations.translate('termsOfUse')[4]}
+            . Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its
             {' '}
             <Text
                 style={[styles.loginTermsText, styles.link]}
                 onPress={() => openURLInNewTab(CONST.LICENSES_URL)}
             >
-                {translations.translate('termsOfUse')[5]}
+                licenses
             </Text>
-            {translations.translate('termsOfUse')[6]}
+            .
         </Text>
     </View>
 );
 
-TermsWithLicenses.propTypes = {...withLocalizePropTypes};
-
-export default withLocalize(TermsWithLicenses);
+export default TermsWithLicenses;

@@ -8,8 +8,6 @@ import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {resendValidationLink, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -22,8 +20,6 @@ const propTypes = {
         // Weather or not the account is validated
         validated: PropTypes.bool,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -52,15 +48,15 @@ class ResendValidationForm extends React.Component {
      */
     validateAndSubmitForm() {
         this.setState({
-            formSuccess: this.props.translations.translate('linkHasBeenResent'),
+            formSuccess: 'Link has been re-sent',
         });
 
         if (!this.props.account.validated) {
             resendValidationLink();
-            console.debug(this.props.translations.translate('accountUnvalidated'));
+            console.debug('Account is unvalidated: Sending validation link.');
         } else {
             resetPassword();
-            console.debug(this.props.translations.translate('accountForgotPassword'));
+            console.debug('Account forgot password: Sending reset password link.');
         }
 
         this.successMessageTimer = setTimeout(() => {
@@ -73,12 +69,12 @@ class ResendValidationForm extends React.Component {
             <>
                 <View>
                     <Text style={[styles.textP]}>
-                        {this.props.translations.translate('weSentYouMagicSignInLink')}
+                        We&apos;ve sent you a magic sign in link – just click on it to log in!
                     </Text>
                 </View>
                 <View style={[styles.mt4]}>
                     <ButtonWithLoader
-                        text={this.props.translations.translate('resendLink')}
+                        text="Resend Link"
                         isLoading={this.props.account.loading}
                         onClick={this.validateAndSubmitForm}
                     />
@@ -98,9 +94,6 @@ class ResendValidationForm extends React.Component {
 ResendValidationForm.propTypes = propTypes;
 ResendValidationForm.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(ResendValidationForm);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+})(ResendValidationForm);

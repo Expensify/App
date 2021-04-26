@@ -7,8 +7,6 @@ import PDFView from './PDFView';
 import ImageView from './ImageView';
 import Icon from './Icon';
 import {Paperclip} from './Icon/Expensicons';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
 
 const propTypes = {
     // URL to full-sized attachment
@@ -17,21 +15,18 @@ const propTypes = {
     file: PropTypes.shape({
         name: PropTypes.string,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     file: {
-        name: '',
+        name: 'Unknown Filename',
     },
 };
 
 const AttachmentView = (props) => {
     // Check both sourceURL and file.name since PDFs dragged into the the text field
     // will appear with a sourceURL that is a blob
-    if (Str.isPDF(props.sourceURL)
-        || (props.file && Str.isPDF(props.file.name || props.translations.translate('unknownFilename')))) {
+    if (Str.isPDF(props.sourceURL) || (props.file && Str.isPDF(props.file.name))) {
         return (
             <PDFView
                 sourceURL={props.sourceURL}
@@ -64,7 +59,4 @@ AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default compose(
-    memo,
-    withLocalize,
-)(AttachmentView);
+export default memo(AttachmentView);

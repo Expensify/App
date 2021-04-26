@@ -23,8 +23,6 @@ import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
 import openURLInNewTab from '../../libs/openURLInNewTab';
 import CONST from '../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -48,8 +46,6 @@ const propTypes = {
         // Email of the logged in person
         email: PropTypes.string,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -60,22 +56,22 @@ const defaultProps = {
 
 const menuItems = [
     {
-        title: 'profile',
+        title: 'Profile',
         icon: Profile,
         route: ROUTES.SETTINGS_PROFILE,
     },
     {
-        title: 'preferences',
+        title: 'Preferences',
         icon: Gear,
         route: ROUTES.SETTINGS_PREFERENCES,
     },
     {
-        title: 'changePassword',
+        title: 'Change Password',
         icon: Lock,
         route: ROUTES.SETTINGS_PASSWORD,
     },
     {
-        title: 'payments',
+        title: 'Payments',
         icon: Wallet,
         route: ROUTES.SETTINGS_PAYMENTS,
     },
@@ -85,7 +81,6 @@ const InitialSettingsPage = ({
     myPersonalDetails,
     network,
     session,
-    translations,
 }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -96,7 +91,7 @@ const InitialSettingsPage = ({
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translations.translate('settings')}
+                title="Settings"
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <View
@@ -129,7 +124,7 @@ const InitialSettingsPage = ({
                     {menuItems.map(item => (
                         <MenuItem
                             key={item.title}
-                            title={translations.translate(item.title)}
+                            title={item.title}
                             icon={item.icon}
                             onPress={() => Navigation.navigate(item.route)}
                             shouldShowRightArrow
@@ -141,33 +136,33 @@ const InitialSettingsPage = ({
                             style={[styles.button, styles.w100, styles.mt5]}
                         >
                             <Text style={[styles.buttonText]}>
-                                {translations.translate('signOut')}
+                                Sign Out
                             </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
                 <View style={[styles.sidebarFooter]}>
                     <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        {translations.translate('versionLetter')}
+                        v
                         {version}
                     </Text>
                     <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        {translations.translate('readTheTermsAndPrivacyPolicy')[0]}
+                        Read the
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openURLInNewTab(CONST.TERMS_URL)}
                         >
-                            {translations.translate('readTheTermsAndPrivacyPolicy')[1]}
+                            terms of service
                         </Text>
                         {' '}
-                        {translations.translate('readTheTermsAndPrivacyPolicy')[2]}
+                        and
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
                         >
-                            {translations.translate('readTheTermsAndPrivacyPolicy')[3]}
+                            privacy policy
                         </Text>
                         .
                     </Text>
@@ -181,17 +176,14 @@ InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
 InitialSettingsPage.displayName = 'InitialSettingsPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(InitialSettingsPage);
+export default withOnyx({
+    myPersonalDetails: {
+        key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    },
+    network: {
+        key: ONYXKEYS.NETWORK,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(InitialSettingsPage);

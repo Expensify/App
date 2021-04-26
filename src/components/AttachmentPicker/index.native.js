@@ -11,15 +11,10 @@ import Popover from '../Popover';
 import MenuItem from '../MenuItem';
 import {Camera, Gallery, Paperclip} from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import {translate} from '../../libs/translate';
-import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     ...basePropTypes,
     ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
 };
 
 /**
@@ -44,15 +39,15 @@ const documentPickerOptions = {
  */
 function showPermissionsAlert() {
     Alert.alert(
-        translate(ONYXKEYS.PREFERRED_LOCALE, 'cameraPermissionRequired'),
-        translate(ONYXKEYS.PREFERRED_LOCALE, 'expensifyDoesntHaveAccessToCamera'),
+        'Camera Permission Required',
+        'Expensify.cash does not have access to your camera, please enable the permission and try again.',
         [
             {
-                text: translate(ONYXKEYS.PREFERRED_LOCALE, 'cancel'),
+                text: 'Cancel',
                 style: 'cancel',
             },
             {
-                text: translate(ONYXKEYS.PREFERRED_LOCALE, 'settings'),
+                text: 'Settings',
                 onPress: () => Linking.openSettings(),
             },
         ],
@@ -66,8 +61,8 @@ function showPermissionsAlert() {
  */
 function showGeneralAlert() {
     Alert.alert(
-        translate(ONYXKEYS.PREFERRED_LOCALE, 'attachmentError'),
-        translate(ONYXKEYS.PREFERRED_LOCALE, 'errorWhileSelectingAttachment'),
+        'Attachment Error',
+        'An error occurred while selecting an attachment, please try again',
     );
 }
 
@@ -104,8 +99,8 @@ function showImagePicker(imagePickerFunc) {
                         showGeneralAlert(response.error);
                         break;
                 }
-                const errorDescription = translate(ONYXKEYS.PREFERRED_LOCALE, 'errorDuringAttachmentSelection');
-                reject(new Error(`${errorDescription}: ${response.error}`));
+
+                reject(new Error(`Error during attachment selection: ${response.error}`));
             }
 
             resolve(response);
@@ -147,17 +142,17 @@ class AttachmentPicker extends Component {
         this.menuItemData = [
             {
                 icon: Camera,
-                text: this.props.translations.translate('takePhoto'),
+                text: 'Take Photo',
                 pickAttachment: () => showImagePicker(RNImagePicker.launchCamera),
             },
             {
                 icon: Gallery,
-                text: this.props.translations.translate('chooseFromGallery'),
+                text: 'Choose from Gallery',
                 pickAttachment: () => showImagePicker(RNImagePicker.launchImageLibrary),
             },
             {
                 icon: Paperclip,
-                text: this.props.translations.translate('chooseDocument'),
+                text: 'Choose Document',
                 pickAttachment: showDocumentPicker,
             },
         ];
@@ -252,7 +247,4 @@ class AttachmentPicker extends Component {
 
 AttachmentPicker.propTypes = propTypes;
 AttachmentPicker.displayName = 'AttachmentPicker';
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(AttachmentPicker);
+export default withWindowDimensions(AttachmentPicker);

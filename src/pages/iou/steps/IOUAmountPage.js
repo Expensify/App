@@ -13,8 +13,6 @@ import themeColors from '../../../styles/themes/default';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -38,8 +36,6 @@ const propTypes = {
         // Whether or not the IOU step is loading (retrieving users preferred currency)
         loading: PropTypes.bool,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -133,7 +129,7 @@ class IOUAmountPage extends React.Component {
                             disabled={this.state.amount.length === 0}
                     >
                         <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            {this.props.translations.translate('next')}
+                            Next
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -145,10 +141,6 @@ IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-    }),
-)(IOUAmountPage);
+export default withWindowDimensions(withOnyx({
+    iou: {key: ONYXKEYS.IOU},
+})(IOUAmountPage));
