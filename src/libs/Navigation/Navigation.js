@@ -50,10 +50,9 @@ function navigate(route = ROUTES.HOME) {
             return;
         }
 
-        // If we're navigating to the signIn page, replace the existing route in the stack with the SignIn route
-        // so that we don't mistakenly route back to any older routes after the user signs in
-        navigationRef.current.dispatch(StackActions.replace(SCREENS.HOME));
-        navigationRef.current.dispatch(StackActions.popToTop());
+        // If we're navigating to the signIn page while logged out, pop whatever screen is on top
+        // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
+        navigationRef.current.dispatch(StackActions.pop());
         return;
     }
 
