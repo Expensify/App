@@ -182,7 +182,8 @@ class EmojiPickerMenu extends Component {
 
     /**
      * Calculates the required scroll offset (aka distance from top) and scrolls the FlatList to the highlighted emoji
-     * if any portion of it falls outside of the window. Doing this because scrollToIndex doesn't work as expected.
+     * if any portion of it falls outside of the window.
+     * Doing this because scrollToIndex doesn't work as expected.
      */
     scrollToHighlightedIndex() {
         // If there are headers in the emoji array, so we need to offset by their heights as well
@@ -193,7 +194,7 @@ class EmojiPickerMenu extends Component {
         }
 
         // Calculate the scroll offset at the bottom of the currently highlighted emoji
-        // (subtract numHeadersScrolled because highlightedIndex includes them, and add 1 to include the current row)
+        // (subtract numHeaders because the highlightedIndex includes them, and add 1 to include the current row)
         const numEmojiRows = (Math.floor(this.state.highlightedIndex / this.numColumns) - numHeaders) + 1;
 
         // The scroll offsets at the top and bottom of the highlighted emoji
@@ -209,7 +210,7 @@ class EmojiPickerMenu extends Component {
             targetOffset = offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT;
         }
         if (targetOffset !== this.state.currentScrollOffset) {
-            // Disable pointer events so that onHover doesn't get triggered while the items move
+            // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
             if (!this.state.shouldDisablePointerEvents) {
                 this.setState({shouldDisablePointerEvents: true});
             }
