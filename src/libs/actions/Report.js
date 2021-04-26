@@ -733,7 +733,10 @@ function fetchAllReports(
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
+            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'])
+                .then((createdReportID) => {
+                    reportIDs = [createdReportID];
+                });
         })
         .then(() => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
