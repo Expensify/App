@@ -11,6 +11,7 @@ import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 /**
  * A list of all the context actions in this menu.
@@ -18,9 +19,9 @@ import {isReportMessageAttachment} from '../../../libs/reportUtils';
 const CONTEXT_ACTIONS = [
     // Copy to clipboard
     {
-        text: 'Copy to Clipboard',
+        text: 'copyToClipboard',
         icon: ClipboardIcon,
-        successText: 'Copied!',
+        successText: 'copied',
         successIcon: Checkmark,
         shouldShow: true,
 
@@ -44,7 +45,7 @@ const CONTEXT_ACTIONS = [
 
     // Copy chat link
     {
-        text: 'Copy Link',
+        text: 'copyLink',
         icon: LinkCopy,
         shouldShow: false,
         onPress: () => {},
@@ -52,7 +53,7 @@ const CONTEXT_ACTIONS = [
 
     // Mark as Unread
     {
-        text: 'Mark as Unread',
+        text: 'markAsUnread',
         icon: Mail,
         shouldShow: false,
         onPress: () => {},
@@ -60,7 +61,7 @@ const CONTEXT_ACTIONS = [
 
     // Edit Comment
     {
-        text: 'Edit Comment',
+        text: 'editComment',
         icon: Pencil,
         shouldShow: false,
         onPress: () => {},
@@ -68,7 +69,7 @@ const CONTEXT_ACTIONS = [
 
     // Delete Comment
     {
-        text: 'Delete Comment',
+        text: 'deleteComment',
         icon: Trashcan,
         shouldShow: false,
         onPress: () => {},
@@ -89,6 +90,8 @@ const propTypes = {
 
     // Controls the visibility of this component.
     isVisible: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -104,9 +107,9 @@ const ReportActionContextMenu = (props) => {
             {CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow && (
                 <ReportActionContextMenuItem
                     icon={contextAction.icon}
-                    text={contextAction.text}
+                    text={props.translations.translate(contextAction.text)}
                     successIcon={contextAction.successIcon}
-                    successText={contextAction.successText}
+                    successText={props.translations.translate(contextAction.successText)}
                     isMini={props.isMini}
                     onPress={() => contextAction.onPress(props.reportAction)}
                     key={contextAction.text}
@@ -119,4 +122,4 @@ const ReportActionContextMenu = (props) => {
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
 
-export default ReportActionContextMenu;
+export default withLocalize(ReportActionContextMenu);

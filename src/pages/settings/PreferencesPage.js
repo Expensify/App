@@ -17,6 +17,9 @@ import {setExpensifyNewsStatus} from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import Picker from '../../components/Picker';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
+import {translate} from '../../libs/translate';
 
 const propTypes = {
     // The chat priority mode
@@ -27,6 +30,8 @@ const propTypes = {
         // Whether or not the user is subscribed to news updates
         expensifyNewsStatus: PropTypes.bool,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -37,32 +42,32 @@ const defaultProps = {
 const priorityModes = {
     default: {
         value: CONST.PRIORITY_MODE.DEFAULT,
-        label: 'Most Recent',
-        description: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
+        label: translate(ONYXKEYS.PREFERRED_LOCALE, 'mostRecent'),
+        description: translate(ONYXKEYS.PREFERRED_LOCALE, 'mostRecentModeDescription'),
     },
     gsd: {
         value: CONST.PRIORITY_MODE.GSD,
-        label: '#focus',
-        description: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
+        label: translate(ONYXKEYS.PREFERRED_LOCALE, 'focus'),
+        description: translate(ONYXKEYS.PREFERRED_LOCALE, 'focusModeDescription'),
     },
 };
 
 
-const PreferencesPage = ({priorityMode, user}) => (
+const PreferencesPage = ({priorityMode, user, translations}) => (
     <ScreenWrapper>
         <HeaderWithCloseButton
-            title="Preferences"
+            title={translations.translate('preferences')}
             shouldShowBackButton
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
             onCloseButtonPress={() => Navigation.dismissModal(true)}
         />
         <View style={styles.pageWrapper}>
             <View style={[styles.settingsPageBody, styles.mb6]}>
-                <Text style={[styles.formLabel]} numberOfLines={1}>Notifications</Text>
+                <Text style={[styles.formLabel]} numberOfLines={1}>{translations.translate('notifications')}</Text>
                 <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
                     <View style={styles.flex4}>
                         <Text>
-                            Receive relevant feature updates and Expensify news
+                            {translations.translate('receiveRelevantFeatureUpdatesAndExpensifyNews')}
                         </Text>
                     </View>
                     <View style={[styles.flex1, styles.alignItemsEnd]}>
@@ -73,7 +78,7 @@ const PreferencesPage = ({priorityMode, user}) => (
                     </View>
                 </View>
                 <Text style={[styles.formLabel]} numberOfLines={1}>
-                    Priority Mode
+                    {translations.translate('priorityMode')}
                 </Text>
                 <View style={[styles.mb2]}>
                     <Picker
@@ -97,11 +102,14 @@ PreferencesPage.propTypes = propTypes;
 PreferencesPage.defaultProps = defaultProps;
 PreferencesPage.displayName = 'PreferencesPage';
 
-export default withOnyx({
-    priorityMode: {
-        key: ONYXKEYS.NVP_PRIORITY_MODE,
-    },
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(PreferencesPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        priorityMode: {
+            key: ONYXKEYS.NVP_PRIORITY_MODE,
+        },
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(PreferencesPage);

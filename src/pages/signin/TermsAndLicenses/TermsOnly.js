@@ -3,30 +3,33 @@ import {Text, View} from 'react-native';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
-const TermsOnly = () => (
+const TermsOnly = ({translations}) => (
     <View style={[styles.mt6]}>
         <Text style={[styles.loginTermsText]}>
-            By logging in, you agree to the
+            {translations.translate('termsOfUse')[0]}
             {' '}
             <Text
                 style={[styles.loginTermsText, styles.link]}
                 onPress={() => openURLInNewTab(CONST.TERMS_URL)}
             >
-                terms of service
+                {translations.translate('termsOfUse')[1]}
             </Text>
             {' '}
-            and
+            {translations.translate('termsOfUse')[2]}
             {' '}
             <Text
                 style={[styles.loginTermsText, styles.link]}
                 onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
             >
-                privacy policy
+                {translations.translate('termsOfUse')[3]}
             </Text>
-            .
+            {translations.translate('termsOfUse')[6]}
         </Text>
     </View>
 );
 
-export default TermsOnly;
+TermsOnly.propTypes = {...withLocalizePropTypes};
+
+export default withLocalize(TermsOnly);

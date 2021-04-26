@@ -11,10 +11,14 @@ import Timing from '../../../libs/actions/Timing';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import {ChatBubble, Users} from '../../../components/Icon/Expensicons';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     // propTypes for withWindowDimensions
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 class SidebarScreen extends Component {
@@ -95,12 +99,12 @@ class SidebarScreen extends Component {
                             menuItems={[
                                 {
                                     icon: ChatBubble,
-                                    text: 'New Chat',
+                                    text: this.props.translations.translate('newChat'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
                                 {
                                     icon: Users,
-                                    text: 'New Group',
+                                    text: this.props.translations.translate('newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
                             ]}
@@ -124,4 +128,7 @@ class SidebarScreen extends Component {
 }
 
 SidebarScreen.propTypes = propTypes;
-export default withWindowDimensions(SidebarScreen);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(SidebarScreen);
