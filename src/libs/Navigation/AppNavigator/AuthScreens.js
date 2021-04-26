@@ -149,7 +149,7 @@ class AuthScreens extends React.Component {
         }
 
         // Skip when `this.initialReportID` is already assigned. We no longer want to update it
-        if (!this.initialReportID) {
+        if (!_.isString(this.initialReportID)) {
             // Either we have a reportID or fetchAllReports resolved with no reports. Otherwise keep waiting
             if (nextProps.initialReportID || nextProps.initialReportID === '') {
                 this.initialReportID = nextProps.initialReportID;
@@ -169,7 +169,7 @@ class AuthScreens extends React.Component {
 
     render() {
         // Wait to resolve initial Home route params.
-        if (!this.initialReportID) {
+        if (!_.isString(this.initialReportID)) {
             return null;
         }
 
