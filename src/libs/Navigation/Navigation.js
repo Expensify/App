@@ -9,6 +9,7 @@ import SCREENS from '../../SCREENS';
 import CustomActions from './CustomActions';
 
 export const navigationRef = React.createRef();
+let lastAttemptedRoute;
 
 /**
  * Opens the LHN drawer.
@@ -92,6 +93,27 @@ function dismissModal(shouldOpenDrawer = false) {
 }
 
 /**
+ * Capture any navigation attempts until the navigation container and all it's children finish mounting
+ *
+ * @param {String} route
+ */
+function navigateLater(route) {
+    lastAttemptedRoute = route;
+}
+
+/**
+ * Enable navigation after the navigation tree becomes ready
+ * Executes the last captured navigation command if attempts were made prior being ready
+ */
+function enableNavigation() {
+    if (lastAttemptedRoute) {
+        navigate(lastAttemptedRoute);
+    }
+    // eslint-disable-next-line no-use-before-define
+    exports.navigate = navigate;
+}
+
+/**
  * Determines whether the drawer is currently open.
  *
  * @returns {Boolean}
@@ -100,9 +122,12 @@ function isDrawerOpen() {
     return getIsDrawerOpenFromState(navigationRef.current.getRootState().routes[0].state);
 }
 
-export default {
-    navigate,
+const exports = {
+    navigate: navigateLater,
+    enableNavigation,
     dismissModal,
     isDrawerOpen,
     goBack,
 };
+
+export default exports;
