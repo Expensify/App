@@ -7,7 +7,6 @@ import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
 import {Close, Download, BackArrow} from './Icon/Expensicons';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Title of the Header */
@@ -30,8 +29,6 @@ const propTypes = {
 
     /** Whether we should show a border on the bottom of the Header */
     shouldShowBorderBottom: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -66,7 +63,7 @@ const HeaderWithCloseButton = props => (
             <Header title={props.title} textSize={props.textSize} />
             <View style={[styles.reportOptions, styles.flexRow]}>
                 {
-                    props.title === props.translations.translate('attachment') && (
+                    props.title === 'Attachment' && (
                         <TouchableOpacity
                             onPress={props.onDownloadButtonPress}
                             style={[styles.touchableButtonImage]}
@@ -91,4 +88,4 @@ HeaderWithCloseButton.propTypes = propTypes;
 HeaderWithCloseButton.defaultProps = defaultProps;
 HeaderWithCloseButton.displayName = 'HeaderWithCloseButton';
 
-export default withLocalize(HeaderWithCloseButton);
+export default HeaderWithCloseButton;

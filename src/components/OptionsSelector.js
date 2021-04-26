@@ -7,7 +7,6 @@ import OptionsList from './OptionsList';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import optionPropTypes from './optionPropTypes';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     // Callback to fire when a row is tapped
@@ -60,13 +59,11 @@ const propTypes = {
 
     // Whether to show the title tooltip
     showTitleTooltip: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     onSelectRow: () => {},
-    placeholderText: '',
+    placeholderText: 'Name, email, or phone number',
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
@@ -181,8 +178,7 @@ class OptionsSelector extends Component {
                         value={this.props.value}
                         onChangeText={this.props.onChangeText}
                         onKeyPress={this.handleKeyPress}
-                        placeholder={this.props.placeholderText
-                            || this.props.translations.translate('nameEmailOrPhoneNumber')}
+                        placeholder={this.props.placeholderText}
                         placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
@@ -208,4 +204,4 @@ class OptionsSelector extends Component {
 
 OptionsSelector.defaultProps = defaultProps;
 OptionsSelector.propTypes = propTypes;
-export default withLocalize(OptionsSelector);
+export default OptionsSelector;

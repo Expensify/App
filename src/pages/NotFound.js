@@ -10,9 +10,8 @@ import styles from '../styles/styles';
 import logo from '../../assets/images/expensify-logo_reversed.png';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 
-const NotFound = ({translations: {translate}}) => (
+const NotFound = () => (
     <>
         <SafeAreaView
             style={styles.notFoundSafeArea}
@@ -25,18 +24,16 @@ const NotFound = ({translations: {translate}}) => (
                 />
                 <View style={styles.notFoundContent}>
                     <Text style={styles.notFoundTextHeader}>404</Text>
-                    <Text style={styles.notFoundTextBody}>{translate('chatYouLookingForCannotBeFound')}</Text>
+                    <Text style={styles.notFoundTextBody}>The chat you are looking for cannot be found.</Text>
                 </View>
                 <TouchableOpacity
                     onPress={() => Navigation.navigate(ROUTES.HOME)}
                 >
-                    <Text style={styles.notFoundButtonText}>{translate('getMeOutOfHere')}</Text>
+                    <Text style={styles.notFoundButtonText}>Get me out of here</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
     </>
 );
 
-NotFound.propTypes = {...withLocalizePropTypes};
-
-export default withLocalize(NotFound);
+export default NotFound;

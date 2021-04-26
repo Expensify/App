@@ -68,7 +68,4 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
     },
-
-    // Indicates which locale should be used
-    PREFERRED_LOCALE: 'en',
 };
