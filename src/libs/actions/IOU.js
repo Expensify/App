@@ -45,12 +45,10 @@ function getIOUReportsForNewTransaction(requestParams) {
                         stateNum: reportData.stateNum,
                         hasOutstandingIOU: true,
                     };
-                    console.log(JSON.stringify(chatReportsToUpdate));
 
                     // Second, the IOU report needs updated with the new IOU details too
                     const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
                     iouReportsToUpdate[iouReportKey] = getSimplifiedIOUReport(reportData, reportData.reportID);
-                    console.log(JSON.stringify(iouReportsToUpdate));
                 }
             });
 
