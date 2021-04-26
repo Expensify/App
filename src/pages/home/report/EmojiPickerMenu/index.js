@@ -96,9 +96,9 @@ class EmojiPickerMenu extends Component {
         // NOTE: these event handlers are instance members so we can reference
         // the same functions in memory when removing them.
         if (!canUseTouchScreen() && document) {
+            // Move the highlight when arrow keys are pressed
             this.keyDownHandler = (e) => {
                 if (e.key.startsWith('Arrow')) {
-                    // Highlight the appropriate emoji
                     this.highlightAdjacentEmoji(e.key);
 
                     // Depending on the position of the highlighted emoji after moving,
@@ -180,6 +180,7 @@ class EmojiPickerMenu extends Component {
                 break;
         }
 
+        // Actually highlight the new emoji and scroll to it if the index was changed
         if (newIndex !== this.state.highlightedIndex) {
             this.setState({highlightedIndex: newIndex});
             this.scrollToHighlightedIndex();
@@ -208,7 +209,7 @@ class EmojiPickerMenu extends Component {
             + (numEmojiRows * CONST.EMOJI_PICKER_ITEM_HEIGHT);
         const offsetAtEmojiTop = offsetAtEmojiBottom - CONST.EMOJI_PICKER_ITEM_HEIGHT;
 
-        // Scroll to fit the entire highlighted emoji into the window
+        // Scroll to fit the entire highlighted emoji into the window if we need to
         let targetOffset = this.state.currentScrollOffset;
         if (offsetAtEmojiBottom - this.state.currentScrollOffset >= CONST.EMOJI_PICKER_LIST_HEIGHT) {
             targetOffset = offsetAtEmojiBottom - CONST.EMOJI_PICKER_LIST_HEIGHT;
