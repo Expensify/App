@@ -33,7 +33,6 @@ import getButtonState from '../../../libs/getButtonState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -73,7 +72,6 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -297,7 +295,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        title={this.props.translations.translate('uploadAttachment')}
+                        title="Upload Attachment"
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
@@ -328,7 +326,7 @@ class ReportActionCompose extends React.Component {
                                                 menuItems={[
                                                     {
                                                         icon: Paperclip,
-                                                        text: this.props.translations.translate('addAttachment'),
+                                                        text: 'Add Attachment',
                                                         onSelected: () => {
                                                             openPicker({
                                                                 onPicked: (file) => {
@@ -359,7 +357,7 @@ class ReportActionCompose extends React.Component {
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
-                                    placeholder={this.props.translations.translate('writeSomething')}
+                                    placeholder="Write something..."
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
@@ -450,7 +448,7 @@ class ReportActionCompose extends React.Component {
                                 height={variables.iconSizeExtraSmall}
                             />
                             <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                {this.props.translations.translate('youAppearToBeOffline')}
+                                You appear to be offline.
                             </Text>
                         </View>
                     </View>
@@ -467,7 +465,6 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withNavigationFocus,
-    withLocalize,
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,

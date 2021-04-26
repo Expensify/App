@@ -15,7 +15,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -33,8 +32,6 @@ const propTypes = {
     }),
 
     ...windowDimensionsPropTypes,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -58,7 +55,7 @@ class LoginForm extends React.Component {
      */
     validateAndSubmitForm() {
         if (!this.state.login.trim()) {
-            this.setState({formError: this.props.translations.translate('pleaseEnterEmailOrPhoneNumber')});
+            this.setState({formError: 'Please enter an email or phone number'});
             return;
         }
 
@@ -74,7 +71,7 @@ class LoginForm extends React.Component {
         return (
             <>
                 <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>{this.props.translations.translate('enterYourPhoneOrEmail')}</Text>
+                    <Text style={[styles.formLabel]}>Enter your phone or email:</Text>
                     <TextInput
                         style={[styles.textInput]}
                         value={this.state.login}
@@ -83,14 +80,14 @@ class LoginForm extends React.Component {
                         onChangeText={text => this.setState({login: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
-                        placeholder={this.props.translations.translate('phoneOrEmail')}
+                        placeholder="Phone or Email"
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
                 <View>
                     <ButtonWithLoader
-                        text={this.props.translations.translate('continue')}
+                        text="Continue"
                         isLoading={this.props.account.loading}
                         onClick={this.validateAndSubmitForm}
                     />
@@ -125,5 +122,4 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
     }),
     withWindowDimensions,
-    withLocalize,
 )(LoginForm);

@@ -12,8 +12,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import compose from '../libs/compose';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -25,8 +23,6 @@ const personalDetailsPropTypes = PropTypes.shape({
 
     // This is either the user's full name, or their login if full name is an empty string
     displayName: PropTypes.string.isRequired,
-
-    ...withLocalizePropTypes,
 });
 
 const propTypes = {
@@ -78,7 +74,7 @@ class NewChatPage extends Component {
         const sections = [];
 
         sections.push({
-            title: this.props.translations.translate('contacts'),
+            title: 'CONTACTS',
             data: this.state.personalDetails,
             shouldShow: this.state.personalDetails.length > 0,
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
@@ -118,7 +114,7 @@ class NewChatPage extends Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translations.translate('newChat')}
+                    title="New Chat"
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.w100]}>
@@ -156,18 +152,14 @@ class NewChatPage extends Component {
 
 NewChatPage.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(NewChatPage);
+export default withWindowDimensions(withOnyx({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(NewChatPage));

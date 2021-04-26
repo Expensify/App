@@ -14,8 +14,6 @@ import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
 import AttachmentModal from './AttachmentModal';
 import ThumbnailImage from './ThumbnailImage';
-import {translate} from '../libs/translate';
-import ONYXKEYS from '../ONYXKEYS';
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -116,7 +114,7 @@ function ImgRenderer({tnode}) {
 
     return (
         <AttachmentModal
-            title={translate(ONYXKEYS.PREFERRED_LOCALE, 'attachment')}
+            title="Attachment"
             sourceURL={source}
             isAuthTokenRequired={isAttachment}
         >
