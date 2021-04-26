@@ -12,7 +12,7 @@ const propTypes = {
     // The function to call when an emoji is selected
     onPress: PropTypes.func.isRequired,
 
-    // Toggles whether this emoji is highlighted
+    // Handles what to do when we hover over this item with our cursor
     onHover: PropTypes.func.isRequired,
 
     // Whether this menu item is currently highlighted or not
