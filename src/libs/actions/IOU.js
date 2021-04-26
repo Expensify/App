@@ -30,27 +30,28 @@ function getIOUReportsForNewTransaction(requestParams) {
         shouldLoadOptionalKeys: true,
         includePinnedReports: true,
     })
-        .then(({reportsData}) => {
+        .then(({reports}) => {
             const chatReportsToUpdate = {};
             const iouReportsToUpdate = {};
 
-            _.each(reportsData, (reportData) => {
+            _.each(reports, (reportData) => {
                 // First, the existing chat report needs updated with the details about the new IOU
-                const chatReportIDForReport = _.chain(requestParams)
-                    .findWhere(requestParams, {reportID: reportData.reportID})
-                    .pluck('chatReportID')
-                    .value();
-                const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportIDForReport}`;
-                chatReportsToUpdate[chatReportKey] = {
-                    iouReportID: reportData.reportID,
-                    total: reportData.total,
-                    stateNum: reportData.stateNum,
-                    hasOutstandingIOU: reportData.hasOutstandingIOU,
-                };
+                const paramsForIOUReport = _.findWhere(requestParams, {reportID: reportData.reportID});
+                if (paramsForIOUReport && paramsForIOUReport.chatReportID) {
+                    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${paramsForIOUReport.chatReportID}`;
+                    chatReportsToUpdate[chatReportKey] = {
+                        iouReportID: reportData.reportID,
+                        total: reportData.total,
+                        stateNum: reportData.stateNum,
+                        hasOutstandingIOU: true,
+                    };
+                    console.log(JSON.stringify(chatReportsToUpdate));
 
-                // Second, the IOU report needs updated with the new IOU details too
-                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
-                iouReportsToUpdate[iouReportKey] = getSimplifiedIOUReport(reportData, reportData.reportID);
+                    // Second, the IOU report needs updated with the new IOU details too
+                    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
+                    iouReportsToUpdate[iouReportKey] = getSimplifiedIOUReport(reportData, reportData.reportID);
+                    console.log(JSON.stringify(iouReportsToUpdate));
+                }
             });
 
             // Now, merge the updated objects into our store
