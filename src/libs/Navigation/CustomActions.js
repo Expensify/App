@@ -14,8 +14,15 @@ import {CommonActions} from '@react-navigation/native';
  */
 function pushDrawerRoute(screenName, params) {
     return (state) => {
+        // Non Drawer navigators have routes and not history so we'll fallback to navigate() in the case where we are
+        // unable to push a new screen onto the history stack e.g. navigating to a ReportScreen via a modal screen.
+        // Note: One downside of this is that the history will be reset.
+        if (state.type !== 'drawer') {
+            return CommonActions.navigate(screenName, params);
+        }
+
         const screenRoute = {type: 'route', name: screenName};
-        const history = [...state.history].map(() => screenRoute);
+        const history = [...(state.history || [])].map(() => screenRoute);
         history.push(screenRoute);
         return CommonActions.reset({
             ...state,
