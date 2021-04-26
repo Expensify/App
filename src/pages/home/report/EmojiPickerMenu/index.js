@@ -146,6 +146,8 @@ class EmojiPickerMenu extends Component {
             if (boundsCheck()) {
                 return;
             }
+
+            // Move in the prescribed direction until we reach an element that isn't a header
             const isHeader = e => e.header || e.code === CONST.EMOJI_SPACER;
             do {
                 newIndex += steps;
