@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import { View, Text, Pressable } from 'react-native-web';
+import {View, Text, Pressable} from 'react-native-web';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemIOUAction from './ReportActionItemIOUAction';
 import styles from '../styles/styles';
@@ -26,12 +26,6 @@ const propTypes = {
     }).isRequired,
 };
 
-const defaultProps = {
-    iouReport: {
-        total: 0,
-    },
-};
-
 class TransactionItem extends Component {
     constructor(props) {
         super(props);
@@ -45,16 +39,16 @@ class TransactionItem extends Component {
         rejectTransaction({
             reportID: 999,
             transactionID: 999999,
-            comment: 'NO!'
+            comment: 'NO!',
         });
     }
 
     render() {
         return (
             <View styles={[styles.mb5]}>
-                <ReportActionItemIOUAction // todo: should separate out, and action.message
-                        action={this.props.action}
-                        isMostRecentIOUReport={false}// shouldDIsplayPreviewBox
+                <ReportActionItemIOUAction
+                    action={this.props.action}
+                    shouldDisplayPreviewComp={false}
                 />
                 <Pressable
                     style={[styles.button, styles.alignItemsStart, styles.mb3]}
@@ -67,10 +61,8 @@ class TransactionItem extends Component {
             </View>
         );
     }
-};
+}
 
 TransactionItem.displayName = 'TransactionItem';
 TransactionItem.propTypes = propTypes;
-TransactionItem.defaultProps = defaultProps;
 export default TransactionItem;
-

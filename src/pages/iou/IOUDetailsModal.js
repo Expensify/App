@@ -1,9 +1,6 @@
 import React, {Component} from 'react';
 import _ from 'underscore';
-import {
-    View,
-    Text,
-} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -17,7 +14,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import compose from '../../libs/compose';
 import {settleIOUReport} from '../../libs/actions/IOU';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
-import MultipleAvatars from '../../components/MultipleAvatars';
+import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -40,11 +37,14 @@ const propTypes = {
 
     // IOU Report data object
     iouReport: PropTypes.shape({
-        // TODODODODODODODOODODODODODODODODOOD
+        // ID for the chatReport that this IOU is linked to
         chatReportID: PropTypes.number,
 
         // Manager is the person who currently owes money
         managerEmail: PropTypes.string,
+
+        // Owner is the person who is owed money
+        ownerEmail: PropTypes.string,
 
         transactions: PropTypes.arrayOf(PropTypes.shape({
             // The transaction currency
@@ -56,15 +56,9 @@ const propTypes = {
             // The transaction comment
             comment: PropTypes.string,
         })),
-
-        // The total report amount
-        total: PropTypes.number,
-
-        // The total report amount
-        currencySymbol: PropTypes.string,
     }),
 
-    reportActions: PropTypes.arrayOf(PropTypes.shape(ReportActionPropTypes)),
+    reportActions: PropTypes.arrayOf(PropTypes.shape(ReportActionPropTypes)), // should this be array/object?
 
     // Session info for the currently logged in user.
     session: PropTypes.shape({
@@ -114,28 +108,14 @@ class IOUDetailsModal extends Component {
                     pointerEvents="box-none"
                     style={[styles.detailsPageContainer, styles.p5]}
                 >
-                    <View style={styles.iouPreviewBox}>
-                            <View style={styles.flexRow}>
-                                <View style={styles.flex1}>
-                                    <Text style={styles.h1}>{`${this.props.iouReport.currencySymbol}${this.props.iouReport.total}`}</Text>
-                                    <Text style={styles.mt2}>
-                                        {'Cat A'}
-                                        {' owes '}
-                                        {'Cat B'}
-                                    </Text>
-                                </View>
-                                <View style={styles.iouPreviewBoxAvatar}>
-                                    <MultipleAvatars
-                                        avatarImageURLs={['https://http.cat/200', 'https://http.cat/207']}
-                                        secondAvatarStyle={[styles.secondAvatarInline]}
-                                    />
-                                </View>
-                            </View>
-                        </View>
+                    <ReportActionItemIOUPreview
+                        iou={this.props.iouReport}
+                        session={this.props.session}
+                    />
                     {_.map(this.props.iouReport.transactions, (transaction) => {
                         const actionForTransaction = _.find(this.props.reportActions, (action) => {
                             if (action && action.originalMessage) {
-                                return action.originalMessage.IOUTransactionID == transaction.transactionID; // TODO
+                                return action.originalMessage.IOUTransactionID == transaction.transactionID;
                             }
                             return false;
                         });
@@ -143,8 +123,6 @@ class IOUDetailsModal extends Component {
                             <TransactionItem
                                 transaction={transaction}
                                 action={actionForTransaction}
-                                iouReportID={}
-                                transactionID={}
                             />
                         );
                     })}
