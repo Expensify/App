@@ -94,9 +94,12 @@ class EmojiPickerMenu extends Component {
         // Setup keypress/mouse handlers only if we have a keyboard (and not a touchscreen)
         if (!canUseTouchScreen() && document) {
             this.keyDownHandler = (e) => {
-                // Highlight the appropriate emoji
                 if (e.key.startsWith('Arrow')) {
+                    // Highlight the appropriate emoji
                     this.highlightAdjacentEmoji(e.key);
+
+                    // Depending on the position of the highlighted emoji after moving,
+                    // toggle which arrow keys can affect the cursor position in the search input.
                     this.toggleArrowKeysOnSearchInput();
                 }
 
