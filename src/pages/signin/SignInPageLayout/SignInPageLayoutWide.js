@@ -11,6 +11,7 @@ import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 import CONST from '../../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // The children to show inside the layout
@@ -19,6 +20,8 @@ const propTypes = {
     // Whether we should show the welcome text
     // (the welcome screenshot always displays on wide views)
     shouldShowWelcomeText: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -44,7 +47,7 @@ const SignInPageLayoutWide = props => (
 
                 <View style={[styles.mb5]}>
                     <Text style={[styles.h1]}>
-                        Expensify.cash
+                        {props.translations.translate('expensifyDotCash')}
                     </Text>
                 </View>
                 <View style={[styles.signInPageFormContainer]}>
@@ -58,21 +61,22 @@ const SignInPageLayoutWide = props => (
                     )}
                 <View>
                     <Text style={[styles.textLabel]}>
-                        Expensify.cash is open source. View
+                        {`${props.translations.translate('expensifyIsOpenSource')}. ${
+                            props.translations.translate('view')}`}
                         {' '}
                         <Text
                             style={[styles.link]}
                             onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
                         >
-                            the code
+                            {props.translations.translate('theCode')}
                         </Text>
-                        . View
+                        {`. ${props.translations.translate('view')}`}
                         {' '}
                         <Text
                             style={[styles.link]}
                             onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
                         >
-                            open jobs
+                            {props.translations.translate('openJobs')}
                         </Text>
                         .
                     </Text>
@@ -88,4 +92,4 @@ SignInPageLayoutWide.defaultProps = defaultProps;
 SignInPageLayoutWide.displayName = 'SignInPageLayoutWide';
 
 
-export default SignInPageLayoutWide;
+export default withLocalize(SignInPageLayoutWide);

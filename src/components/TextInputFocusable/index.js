@@ -2,6 +2,7 @@ import React from 'react';
 import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     // Maximum number of lines in the text input
@@ -44,6 +45,8 @@ const propTypes = {
     /* Set focus to this component the first time it renders. Override this in case you need to set focus on one
     * field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -160,6 +163,7 @@ class TextInputFocusable extends React.Component {
      */
     checkForAttachment(event) {
         const {files, types} = event.clipboardData;
+        const {translations: {translate}} = this.props;
         const TEXT_HTML = 'text/html';
         if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
@@ -178,7 +182,7 @@ class TextInputFocusable extends React.Component {
                     .then((x) => {
                         const extension = IMAGE_EXTENSIONS[x.type];
                         if (!extension) {
-                            throw new Error('No extension found for mime type');
+                            throw new Error(translate('noExtentionFoundForMimeType'));
                         }
 
                         return new File([x], `pasted_image.${extension}`, {});
@@ -186,7 +190,7 @@ class TextInputFocusable extends React.Component {
                     .then(this.props.onPasteFile)
                     .catch((error) => {
                         console.debug(error);
-                        alert(`There was a problem getting the image you pasted. \n${error.message}`);
+                        alert(`${translate('problemGettingImageYouPasted')}. \n${error.message}`);
                     });
             }
         }
@@ -235,7 +239,7 @@ class TextInputFocusable extends React.Component {
 TextInputFocusable.propTypes = propTypes;
 TextInputFocusable.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <TextInputFocusable {...props} forwardedRef={ref} />
-));
+)));
