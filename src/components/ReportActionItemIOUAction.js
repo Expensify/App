@@ -53,7 +53,7 @@ const defaultProps = {
     iou: {},
 };
 
-const ReportActionItemIOUPreview = ({
+const ReportActionItemIOUAction = ({
     action,
     isMostRecentIOUReportAction,
     hasOutstandingIOU,
@@ -84,7 +84,7 @@ const ReportActionItemIOUPreview = ({
         <View>
             <ReportActionItemIOUQuote action={action} />
             {isMostRecentIOUReportAction
-                    && hasOutstandingIOU
+                    && hasOutstandingIOU // rename to should show? no longer required
                     && !_.isEmpty(iou) && (
                         <View style={styles.iouPreviewBox}>
                             <View style={styles.flexRow}>
@@ -123,9 +123,9 @@ const ReportActionItemIOUPreview = ({
     );
 };
 
-ReportActionItemIOUPreview.propTypes = propTypes;
-ReportActionItemIOUPreview.defaultProps = defaultProps;
-ReportActionItemIOUPreview.displayName = 'ReportActionItemIOUPreview';
+ReportActionItemIOUAction.propTypes = propTypes;
+ReportActionItemIOUAction.defaultProps = defaultProps;
+ReportActionItemIOUAction.displayName = 'ReportActionItemIOUAction';
 
 export default withOnyx({
     iou: {
@@ -137,4 +137,4 @@ export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
-})(ReportActionItemIOUPreview);
+})(ReportActionItemIOUAction);
