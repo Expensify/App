@@ -2,8 +2,7 @@ import React, {Component} from 'react';
 import {
     Text,
     TextInput,
-    View,
-    SafeAreaView,
+    View, SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
