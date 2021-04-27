@@ -170,7 +170,6 @@ class ReportActionsView extends React.Component {
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
             if (shouldRecordMaxAction) {
                 this.startRecordMaxActionTimer();
-
             }
         }
 
