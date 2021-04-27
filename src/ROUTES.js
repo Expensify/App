@@ -21,8 +21,10 @@ export default {
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
-    IOU_REQUEST: 'iou/request',
-    IOU_BILL: 'iou/split',
+    IOU_REQUEST: 'iou/request/:reportID',
+    getIouRequestRoute: reportID => `iou/request/${reportID}`,
+    IOU_BILL: 'iou/split/:reportID',
+    getIouSplitRoute: reportID => `iou/split/${reportID}`,
     SEARCH: 'search',
     SIGNIN: 'signin',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
@@ -48,6 +50,7 @@ export default {
         const pathSegments = route.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
+            isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
         };
     },
 };
