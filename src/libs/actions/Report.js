@@ -769,8 +769,8 @@ function fetchAllReports(
             }
 
             const firstReportID = _.first(reportIDs);
-            const currentReportID = firstReportID ? String(firstReportID) : '';
-            Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
+            // eslint-disable-next-line no-use-before-define
+            updateCurrentlyViewedReportID(firstReportID);
         });
 }
 
@@ -957,7 +957,7 @@ function handleReportChanged(report) {
  * @param {Number} reportID
  */
 function updateCurrentlyViewedReportID(reportID) {
-    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
+    Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID || ''));
 }
 
 Onyx.connect({
