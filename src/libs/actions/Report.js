@@ -659,15 +659,9 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, {reportID: data.reportID});
 
             if (shouldNavigate) {
-                try {
-                    // Redirect the logged in person to the new report
-                    Navigation.navigate(ROUTES.getReportRoute(data.reportID));
-                } catch (e) {
-                    // When switching between the Auth and Public routers there's a brief time of no navigator mounted
-                    console.error(e);
-                }
+                // Redirect the logged in person to the new report
+                Navigation.navigate(ROUTES.getReportRoute(data.reportID));
             }
-
             return data.reportID;
         });
 }
