@@ -12,7 +12,6 @@ import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -115,10 +114,8 @@ class SignInPage extends Component {
 SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        session: {key: ONYXKEYS.SESSION},
-    }),
-)(SignInPage);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    session: {key: ONYXKEYS.SESSION},
+})(SignInPage);
