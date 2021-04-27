@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
@@ -15,7 +16,6 @@ import ButtonWithLoader from '../components/ButtonWithLoader';
 import themeColors from '../styles/themes/default';
 import SignInPageLayout from './signin/SignInPageLayout';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
-import validateLinkPropTypes from './validateLinkPropTypes';
 
 const propTypes = {
     /* Onyx Props */
