@@ -2,9 +2,7 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import {getIOUReportDetailFromTransactionID} from '../libs/actions/IOU';
+import {launchDetailsFromIOUAction} from '../libs/actions/IOU';
 import styles, {webViewStyles} from '../styles/styles';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 
@@ -24,14 +22,7 @@ const ReportActionItemIOUQuote = ({action}) => (
                     <Text
                         style={[styles.chatItemMessageLink]}
                         onPress={() => {
-                            if (!action.originalMessage) {
-                                console.error('reportAction `originalMessage` data not provided.');
-                            }
-                            if (action.originalMessage.IOUTransactionID) {
-                                getIOUReportDetailFromTransactionID(action.originalMessage.IOUTransactionID);
-                            } else if (action.originalMessage.IOUReportID) {
-                                Navigation.navigate(ROUTES.getIouDetailsRoute(action.originalMessage.IOUReportID));
-                            }
+                            launchDetailsFromIOUAction(action);
                         }}
                     >
                         View Details
