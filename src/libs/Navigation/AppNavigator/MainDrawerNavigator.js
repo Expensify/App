@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {withOnyx} from 'react-native-onyx';
 
@@ -14,6 +15,7 @@ import compose from '../../compose';
 // Screens
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import ReportScreen from '../../../pages/home/ReportScreen';
+import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     // Initial report to be used if nothing else is specified by routing
@@ -23,7 +25,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    initialReportID: '',
+    initialReportID: null,
 };
 
 const Drawer = createDrawerNavigator();
@@ -39,16 +41,26 @@ const MainDrawerNavigator = props => (
         sceneContainerStyle={styles.navigationSceneContainer}
         edgeWidth={500}
         drawerContent={() => <SidebarScreen />}
+        screenOptions={{
+            cardStyle: styles.navigationScreenCardStyle,
+            headerShown: false,
+        }}
     >
-        <Drawer.Screen
-            name="Report"
-            component={ReportScreen}
-            initialParams={{reportID: props.initialReportID}}
-            options={{
-                cardStyle: styles.navigationScreenCardStyle,
-                headerShown: false,
-            }}
-        />
+        {
+            _.isString(props.initialReportID)
+                ? (
+                    <Drawer.Screen
+                        name="Report"
+                        component={ReportScreen}
+                        initialParams={{reportID: props.initialReportID}}
+                    />
+                )
+                : (
+                    <Drawer.Screen name="loading">
+                        {() => <FullScreenLoadingIndicator visible />}
+                    </Drawer.Screen>
+                )
+        }
     </Drawer.Navigator>
 );
 
