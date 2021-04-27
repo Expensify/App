@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {getPathFromState, NavigationContainer} from '@react-navigation/native';
-import Navigation, {navigationRef} from './Navigation';
+import {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import {setCurrentURL} from '../actions/App';
@@ -37,7 +37,6 @@ class NavigationRoot extends Component {
             <NavigationContainer
                 fallback={<FullScreenLoadingIndicator visible />}
                 onStateChange={this.parseAndStoreRoute}
-                onReady={Navigation.enableNavigation}
                 ref={navigationRef}
                 linking={linkingConfig}
                 documentTitle={{
