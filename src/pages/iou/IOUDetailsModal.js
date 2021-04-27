@@ -113,7 +113,7 @@ class IOUDetailsModal extends Component {
                         session={this.props.session}
                         shouldHidePayButton={true}
                     />
-                    {_.map(this.props.iouReport.transactions, (transaction) => {
+                    {_.map(this.props.iouReport.transactions.reverse(), (transaction) => {
                         const actionForTransaction = _.find(this.props.reportActions, (action) => {
                             if (action && action.originalMessage) {
                                 return action.originalMessage.IOUTransactionID == transaction.transactionID;
