@@ -8,7 +8,10 @@ import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
-import {subscribeToUserEvents, fetchAll as fetchAllReports} from '../../actions/Report';
+import {
+    subscribeToUserEvents,
+    fetchAllReports,
+} from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
@@ -116,7 +119,7 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetch();
         User.getUserDetails();
         User.getBetas();
-        fetchAllReports(true, true);
+        fetchAllReports(true, true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 
@@ -176,6 +179,7 @@ class AuthScreens extends React.Component {
             cardStyleInterpolator: modalCardStyleInterpolator,
             animationEnabled: true,
             gestureDirection: 'horizontal',
+            cardOverlayEnabled: true,
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
