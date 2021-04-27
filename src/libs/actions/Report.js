@@ -551,8 +551,11 @@ function subscribeToUserEvents() {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
         .catch((error) => {
-            const eventName = Pusher.TYPE.REPORT_COMMENT;
-            Log.info('[Report] Failed to subscribe to Pusher channel', true, {error, pusherChannelName, eventName});
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT}
+            );
         });
 
     // Live-update a report's pinned state when a 'report toggle pinned' event is received.
@@ -568,8 +571,11 @@ function subscribeToUserEvents() {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
         .catch((error) => {
-            const eventName = Pusher.TYPE.REPORT_TOGGLE_PINNED;
-            Log.info('[Report] Failed to subscribe to Pusher channel', true, {error, pusherChannelName, eventName});
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED}
+            );
         });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
