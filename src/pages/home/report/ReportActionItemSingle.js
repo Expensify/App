@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import ReportActionItemMessage from './ReportActionItemMessage';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
@@ -18,10 +17,21 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // All of the personalDetails
-    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+
+    // Children view component for this action item
+    children: PropTypes.node.isRequired,
 };
 
-const ReportActionItemSingle = ({action, personalDetails}) => {
+const defaultProps = {
+    personalDetails: {},
+};
+
+const ReportActionItemSingle = ({
+    action,
+    personalDetails,
+    children,
+}) => {
     const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
@@ -52,13 +62,14 @@ const ReportActionItemSingle = ({action, personalDetails}) => {
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
-                <ReportActionItemMessage action={action} />
+                {children}
             </View>
         </View>
     );
 };
 
 ReportActionItemSingle.propTypes = propTypes;
+ReportActionItemSingle.defaultProps = defaultProps;
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
