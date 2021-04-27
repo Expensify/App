@@ -111,6 +111,7 @@ class IOUDetailsModal extends Component {
                     <ReportActionItemIOUPreview
                         iou={this.props.iouReport}
                         session={this.props.session}
+                        shouldHidePayButton={true}
                     />
                     {_.map(this.props.iouReport.transactions, (transaction) => {
                         const actionForTransaction = _.find(this.props.reportActions, (action) => {

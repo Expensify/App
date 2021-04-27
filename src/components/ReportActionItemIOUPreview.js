@@ -9,6 +9,9 @@ import ONYXKEYS from '../ONYXKEYS';
 import MultipleAvatars from './MultipleAvatars';
 
 const propTypes = {
+    // Additional logic for displaying the pay button
+    shouldHidePayButton: PropTypes.bool,
+
     // Active IOU Report for current report
     iou: PropTypes.shape({
         // Email address of the manager in this iou report
@@ -36,10 +39,15 @@ const propTypes = {
     })).isRequired,
 };
 
+const defaultProps = {
+    shouldHidePayButton: false,
+}
+
 const ReportActionItemIOUPreview = ({
     iou,
     personalDetails,
     session,
+    shouldHidePayButton,
 }) => {
     const sessionEmail = lodashGet(session, 'email', null);
 
@@ -80,7 +88,7 @@ const ReportActionItemIOUPreview = ({
                         />
                     </View>
                 </View>
-                {isCurrentUserManager && (
+                {isCurrentUserManager && !shouldHidePayButton && (
                     <TouchableOpacity
                         style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
                     >
@@ -100,6 +108,7 @@ const ReportActionItemIOUPreview = ({
 };
 
 ReportActionItemIOUPreview.propTypes = propTypes;
+ReportActionItemIOUPreview.defaultProps = defaultProps;
 ReportActionItemIOUPreview.displayName = 'ReportActionItemIOUPreview';
 
 export default withOnyx({
