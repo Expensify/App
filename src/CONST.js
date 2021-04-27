@@ -3,6 +3,7 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const CONST = {
     BETAS: {
         ALL: 'all',
+        CHRONOS_IN_CASH: 'chronosInCash',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -16,6 +17,7 @@ const CONST = {
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     UPWORK_URL: 'https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&user_location_match=2',
+    GITHUB_URL: 'https://github.com/Expensify/Expensify.cash',
     TERMS_URL: 'https://use.expensify.com/terms',
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
@@ -30,6 +32,10 @@ const CONST = {
             TYPE: {
                 IOU: 'IOU',
             },
+        },
+        TYPE: {
+            CHAT: 'chat',
+            IOU: 'iou',
         },
     },
     MODAL: {
@@ -108,6 +114,10 @@ const CONST = {
     },
 
     EMOJI_PICKER_SIZE: 360,
+
+    EMAIL: {
+        CHRONOS: 'chronos@expensify.com',
+    },
 
     ENVIRONMENT: {
         DEV: 'DEV',
