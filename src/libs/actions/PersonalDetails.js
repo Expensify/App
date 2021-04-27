@@ -4,12 +4,12 @@ import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Geolocation from 'react-native-geolocation-service';
 import Str from 'expensify-common/lib/str';
-import ONYXKEYS from '../../../ONYXKEYS';
-import md5 from '../../md5';
-import CONST from '../../../CONST';
-import NetworkConnection from '../../NetworkConnection';
-import * as API from '../../API';
-import NameValuePair from '../NameValuePair';
+import ONYXKEYS from '../../ONYXKEYS';
+import md5 from '../md5';
+import CONST from '../../CONST';
+import NetworkConnection from '../NetworkConnection';
+import * as API from '../API';
+import NameValuePair from './NameValuePair';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -244,6 +244,7 @@ function setPersonalDetails(details) {
 function fetchCurrencyPreferences(withLocation) {
     let coords = {};
     let currency = '';
+
     if (withLocation) {
         Geolocation.getCurrentPosition((position) => {
             coords = {
@@ -271,7 +272,7 @@ function fetchCurrencyPreferences(withLocation) {
 }
 
 /**
- * Gets the currency list from the network
+ * Sets the onyx with the currency list from the network
  *
  * @param {Object} details
  */

@@ -137,25 +137,6 @@ class IOUCurrencySelection extends Component {
         );
     }
 
-    /**
-     * Function which renders a section header component
-     *
-     * @param {Object} params
-     * @param {Object} params.section
-     * @param {String} params.section.title
-     *
-     * @return {Component}
-     */
-    renderSectionHeader({section: {title}}) {
-        return (
-            <View>
-                <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                    {title}
-                </Text>
-            </View>
-        );
-    }
-
     render() {
         const sections = this.getSections();
         return (
@@ -196,7 +177,13 @@ class IOUCurrencySelection extends Component {
                                 keyExtractor={this.extractKey}
                                 stickySectionHeadersEnabled={false}
                                 renderItem={this.renderItem}
-                                renderSectionHeader={this.renderSectionHeader}
+                                renderSectionHeader={({section: {title}}) => (
+                                    <View>
+                                        <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                                            {title}
+                                        </Text>
+                                    </View>
+                                )}
                             />
                         </View>
                     </View>
@@ -229,7 +216,7 @@ class IOUCurrencySelection extends Component {
 
 IOUCurrencySelection.propTypes = propTypes;
 IOUCurrencySelection.defaultProps = defaultProps;
-IOUCurrencySelection.displayName = 'IOUModal';
+IOUCurrencySelection.displayName = 'IOUCurrencySelection';
 
 export default withOnyx({
     currencyList: {key: ONYXKEYS.CURRENCY_LIST},

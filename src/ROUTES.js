@@ -24,6 +24,8 @@ export default {
     IOU_REQUEST: 'iou/request',
     IOU_BILL: 'iou/split',
     IOU_CURRENCY: 'iou/currency',
+    getIouRequestRoute: reportID => `iou/request/${reportID}`,
+    getIouSplitRoute: reportID => `iou/split/${reportID}`,
     SEARCH: 'search',
     SIGNIN: 'signin',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
@@ -49,6 +51,7 @@ export default {
         const pathSegments = route.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
+            isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
         };
     },
 };

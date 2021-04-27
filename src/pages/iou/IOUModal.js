@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
@@ -12,13 +13,20 @@ import {createIOUSplit, createIOUTransaction, getPreferredCurrency} from '../../
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
+import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 
 /**
  * IOU modal for requesting money and splitting bills.
  */
 const propTypes = {
-    // Is this new IOU for a single request or group bill split?
+    // Whether the IOU is for a single request or a group bill split
     hasMultipleParticipants: PropTypes.bool,
+
+    // The report passed via the route
+    report: PropTypes.shape({
+        // Participants associated with current report
+        participants: PropTypes.arrayOf(PropTypes.string),
+    }),
 
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
@@ -39,11 +47,24 @@ const propTypes = {
         error: PropTypes.bool,
     }).isRequired,
 
+    // Personal details of all the users
+    personalDetails: PropTypes.shape({
+        // Primary login of participant
+        login: PropTypes.string,
 
+        // Display Name of participant
+        displayName: PropTypes.string,
+
+        // Avatar url of participant
+        avatar: PropTypes.string,
+    }).isRequired,
 };
 
 const defaultProps = {
     hasMultipleParticipants: false,
+    report: {
+        participants: [],
+    },
     myPersonalDetails: {
         preferredCurrencyCode: 'USD',
         preferredCurrencySymbol: '$',
@@ -57,23 +78,29 @@ const Steps = {
     IOUConfirm: 'Confirm',
 };
 
-// The steps to be shown within the create IOU flow.
-const steps = [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
-
 class IOUModal extends Component {
     constructor(props) {
         super(props);
-
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
         this.currencySelected = this.currencySelected.bind(this);
+        this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
+        const participants = lodashGet(props, 'report.participants', []);
+        const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
+            .map(personalDetails => ({
+                login: personalDetails.login,
+                text: personalDetails.displayName,
+                alternateText: personalDetails.login,
+                icons: [personalDetails.avatar],
+                keyForList: personalDetails.login,
+            }));
 
         this.state = {
             currentStepIndex: 0,
-            participants: [],
+            participants: participantsWithDetails,
 
             // amount is currency in decimal format
             amount: '',
@@ -83,6 +110,14 @@ class IOUModal extends Component {
             },
             comment: '',
         };
+
+        // Skip IOUParticipants step if participants are passed in
+        if (participants.length) {
+            // The steps to be shown within the create IOU flow.
+            this.steps = [Steps.IOUAmount, Steps.IOUConfirm];
+        } else {
+            this.steps = [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
+        }
     }
 
     componentDidMount() {
@@ -109,7 +144,6 @@ class IOUModal extends Component {
      *
      * @returns {String}
      */
-
     getTitleForStep() {
         const currentStepIndex = this.state.currentStepIndex;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
@@ -119,7 +153,7 @@ class IOUModal extends Component {
         if (currentStepIndex === 0) {
             return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
         }
-        return steps[currentStepIndex] || '';
+        return this.steps[currentStepIndex] || '';
     }
 
     addParticipants(participants) {
@@ -154,7 +188,7 @@ class IOUModal extends Component {
      * Navigate to the previous IOU step if possible
      */
     navigateToNextStep() {
-        if (this.state.currentStepIndex >= steps.length - 1) {
+        if (this.state.currentStepIndex >= this.steps.length - 1) {
             return;
         }
         this.setState(prevState => ({
@@ -214,7 +248,7 @@ class IOUModal extends Component {
     }
 
     render() {
-        const currentStep = steps[this.state.currentStepIndex];
+        const currentStep = this.steps[this.state.currentStepIndex];
         return (
             <>
                 <View style={[styles.headerBar, true && styles.borderBottom]}>
@@ -286,9 +320,16 @@ IOUModal.defaultProps = defaultProps;
 IOUModal.displayName = 'IOUModal';
 
 export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+    },
     iousReport: {
         key: ONYXKEYS.COLLECTION.REPORT_IOUS,
     },
-    myPersonalDetails: {key: ONYXKEYS.MY_PERSONAL_DETAILS},
-    iou: {key: ONYXKEYS.IOU},
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
+    },
 })(IOUModal);
