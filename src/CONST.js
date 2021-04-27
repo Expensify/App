@@ -118,6 +118,12 @@ const CONST = {
     EMAIL: {
         CHRONOS: 'chronos@expensify.com',
     },
+
+    ENVIRONMENT: {
+        DEV: 'DEV',
+        STAGING: 'STG',
+        PRODUCTION: 'PROD',
+    },
 };
 
 export default CONST;
