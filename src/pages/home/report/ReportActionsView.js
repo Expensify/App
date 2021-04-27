@@ -40,6 +40,12 @@ const propTypes = {
 
         // The largest sequenceNumber on this report
         maxSequenceNumber: PropTypes.number,
+
+        // Whether there is an outstanding amount in IOU
+        hasOutstandingIOU: PropTypes.bool,
+
+        // IOU report ID associated with current report
+        iouReportID: PropTypes.number,
     }),
 
     // Array of report actions for this report
@@ -56,6 +62,7 @@ const defaultProps = {
     report: {
         unreadActionCount: 0,
         maxSequenceNumber: 0,
+        hasOutstandingIOU: false,
     },
     reportActions: {},
     session: {},
@@ -83,6 +90,7 @@ class ReportActionsView extends React.Component {
         };
 
         this.updateSortedReportActions(props.reportActions);
+        this.updateMostRecentIOUReportActionNumber(props.reportActions);
     }
 
     componentDidMount() {
@@ -97,10 +105,16 @@ class ReportActionsView extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.updateSortedReportActions(nextProps.reportActions);
+            this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
             return true;
         }
 
         if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
+            return true;
+        }
+
+        if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU
+            || this.props.report.iouReportID !== nextProps.report.iouReportID) {
             return true;
         }
 
@@ -233,6 +247,19 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Finds and updates most recent IOU report action number
+     *
+     * @param {Array<{sequenceNumber, actionName}>} reportActions
+     */
+    updateMostRecentIOUReportActionNumber(reportActions) {
+        this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
+            .sortBy('sequenceNumber')
+            .filter(action => action.actionName === 'IOU')
+            .max(action => action.sequenceNumber)
+            .value().sequenceNumber;
+    }
+
+    /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
      * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
@@ -286,6 +313,9 @@ class ReportActionsView extends React.Component {
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
                     && item.action.sequenceNumber === this.initialNewMarkerPosition}
+                isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
+                iouReportID={this.props.report.iouReportID}
+                hasOutstandingIOU={this.props.report.hasOutstandingIOU}
             />
         );
     }
