@@ -6,7 +6,7 @@ import withWindowDimensions from '../withWindowDimensions';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
- * On small screen widths, it uses BottomDocked modal type, and a Popover on wide screen widths.
+ * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 const Popover = props => (
     <Modal

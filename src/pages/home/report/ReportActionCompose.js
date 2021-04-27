@@ -1,23 +1,38 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity} from 'react-native';
+import {
+    View,
+    TouchableOpacity,
+    Pressable,
+    InteractionManager,
+    Text,
+} from 'react-native';
+import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/styles';
+import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
-import {Plus, Send, Paperclip} from '../../../components/Icon/Expensicons';
+import {
+    Plus, Send, Emoji, Paperclip, Offline,
+} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
-import Navigation from '../../../libs/Navigation/Navigation';
+import Popover from '../../../components/Popover';
+import EmojiPickerMenu from './EmojiPickerMenu';
+import withWindowDimensions from '../../../components/withWindowDimensions';
+import withDrawerState from '../../../components/withDrawerState';
+import getButtonState from '../../../libs/getButtonState';
+import CONST from '../../../CONST';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -40,39 +55,74 @@ const propTypes = {
 
         // participants associated with current report
         participants: PropTypes.arrayOf(PropTypes.string),
-    }).isRequired,
+    }),
 
-    ...windowDimensionsPropTypes,
+    /* Is the report view covered by the drawer */
+    isDrawerOpen: PropTypes.bool.isRequired,
+
+    /* Is the window width narrow, like on a mobile device */
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    // Is composer screen focused
+    isFocused: PropTypes.bool.isRequired,
+
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    }),
+
 };
 
 const defaultProps = {
     comment: '',
     modal: {},
+    report: {},
+    network: {isOffline: false},
 };
 
 class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
+
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
+        this.showEmojiPicker = this.showEmojiPicker.bind(this);
+        this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
+        this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+        this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
+
+        this.emojiSearchInput = null;
 
         this.state = {
-            isFocused: true,
+            isFocused: this.shouldFocusInputOnScreenFocus,
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
+            isEmojiPickerVisible: false,
             isMenuVisible: false,
+
+            // The horizontal and vertical position (relative to the window) where the emoji popover will display.
+            emojiPopoverAnchorPosition: {
+                horizontal: 0,
+                vertical: 0,
+            },
         };
     }
 
     componentDidUpdate(prevProps) {
-        // When any modal goes from visible to hidden, bring focus to the compose field
-        if (prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
+        // We avoid doing this on native platforms since the software keyboard popping
+        // open creates a jarring and broken UX.
+        if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
+            && prevProps.modal.isVisible && !this.props.modal.isVisible) {
+            this.setIsFocused(true);
             this.focus();
         }
     }
@@ -109,7 +159,11 @@ class ReportActionCompose extends React.Component {
      */
     focus() {
         if (this.textInput) {
-            this.textInput.focus();
+            // There could be other animations running while we trigger manual focus.
+            // This prevents focus from making those animations janky.
+            InteractionManager.runAfterInteractions(() => {
+                this.textInput.focus();
+            });
         }
     }
 
@@ -159,6 +213,48 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Show the ReportActionContextMenu modal popover.
+     *
+     * @param {Object} [event] - A press event.
+     */
+    showEmojiPicker(event) {
+        this.textInput.blur();
+        this.state.emojiPopoverAnchorPosition = {
+            horizontal: event.nativeEvent.pageX,
+            vertical: event.nativeEvent.pageY,
+        };
+        this.setState({isEmojiPickerVisible: true});
+    }
+
+    /**
+     * Hide the ReportActionContextMenu modal popover.
+     */
+    hideEmojiPicker() {
+        this.setState({isEmojiPickerVisible: false});
+    }
+
+    /**
+     * Callback for the emoji picker to add whatever emoji is chosen into the main input
+     *
+     * @param {String} emoji
+     */
+    addEmojiToTextBox(emoji) {
+        this.hideEmojiPicker();
+        this.textInput.value = this.comment + emoji;
+        this.setIsFocused(true);
+        this.updateComment(this.textInput.value);
+    }
+
+    /**
+     * Focus the search input in the emoji picker.
+     */
+    focusEmojiSearchInput() {
+        if (this.emojiSearchInput) {
+            this.emojiSearchInput.focus();
+        }
+    }
+
+    /**
      * Add a new comment to this chat
      *
      * @param {SyntheticEvent} [e]
@@ -181,12 +277,11 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        // We want to make sure to disable on small screens because in iOS safari the keyboard up/down buttons will
-        // focus this from the chat switcher.
-        // https://github.com/Expensify/Expensify.cash/issues/1228
-        const inputDisable = this.props.isSmallScreenWidth && Navigation.isDrawerOpen();
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
+
+        // Prevents focusing and showing the keyboard while the drawer is covering the chat.
+        const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
 
         return (
             <View style={[styles.chatItemCompose]}>
@@ -214,10 +309,6 @@ class ReportActionCompose extends React.Component {
                                                 onPress={(e) => {
                                                     e.preventDefault();
                                                     this.setMenuVisibility(true);
-
-                                                    /* Keep last focus inside the input so that focus is restored
-                                                     on modal close. Otherwise breaks modal 2 modal transition */
-                                                    this.focus();
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
@@ -228,10 +319,13 @@ class ReportActionCompose extends React.Component {
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
+                                                anchorPosition={styles.createMenuPositionReportActionCompose}
+                                                animationIn="fadeInUp"
+                                                animationOut="fadeOutDown"
                                                 menuItems={[
                                                     {
                                                         icon: Paperclip,
-                                                        text: 'Upload Photo',
+                                                        text: 'Add Attachment',
                                                         onSelected: () => {
                                                             openPicker({
                                                                 onPicked: (file) => {
@@ -258,7 +352,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                    autoFocus
+                                    autoFocus={this.shouldFocusInputOnScreenFocus}
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
@@ -287,12 +381,48 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={inputDisable}
+                                    isDisabled={isComposeDisabled}
                                 />
 
                             </>
                         )}
                     </AttachmentModal>
+                    {
+
+                        // There is no way to disable animations and they are really laggy, because there are so many
+                        // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
+                    }
+                    <Popover
+                        isVisible={this.state.isEmojiPickerVisible}
+                        onClose={this.hideEmojiPicker}
+                        onModalShow={this.focusEmojiSearchInput}
+                        hideModalContentWhileAnimating
+                        animationInTiming={1}
+                        animationOutTiming={1}
+                        anchorPosition={{
+                            top: this.state.emojiPopoverAnchorPosition.vertical - CONST.EMOJI_PICKER_SIZE,
+                            left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
+                        }}
+                    >
+                        <EmojiPickerMenu
+                            onEmojiSelected={this.addEmojiToTextBox}
+                            ref={el => this.emojiSearchInput = el}
+                        />
+                    </Popover>
+                    <Pressable
+                        style={({hovered, pressed}) => ([
+                            styles.chatItemEmojiButton,
+                            getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+                        ])}
+                        onPress={this.showEmojiPicker}
+                    >
+                        {({hovered, pressed}) => (
+                            <Icon
+                                src={Emoji}
+                                fill={getIconFillColor(getButtonState(hovered, pressed))}
+                            />
+                        )}
+                    </Pressable>
                     <TouchableOpacity
                         style={[styles.chatItemSubmitButton,
                             this.state.isCommentEmpty
@@ -304,7 +434,24 @@ class ReportActionCompose extends React.Component {
                         <Icon src={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>
                 </View>
-                <ReportTypingIndicator reportID={this.props.reportID} />
+                {this.props.network.isOffline ? (
+                    <View style={[styles.chatItemComposeSecondaryRow]}>
+                        <View style={[
+                            styles.chatItemComposeSecondaryRowOffset,
+                            styles.flexRow,
+                            styles.alignItemsCenter]}
+                        >
+                            <Icon
+                                src={Offline}
+                                width={variables.iconSizeExtraSmall}
+                                height={variables.iconSizeExtraSmall}
+                            />
+                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                                You appear to be offline.
+                            </Text>
+                        </View>
+                    </View>
+                ) : <ReportTypingIndicator reportID={this.props.reportID} />}
             </View>
         );
     }
@@ -314,6 +461,9 @@ ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
 export default compose(
+    withWindowDimensions,
+    withDrawerState,
+    withNavigationFocus,
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
@@ -321,9 +471,11 @@ export default compose(
         modal: {
             key: ONYXKEYS.MODAL,
         },
+        network: {
+            key: ONYXKEYS.NETWORK,
+        },
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
     }),
-    withWindowDimensions,
 )(ReportActionCompose);

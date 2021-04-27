@@ -11,11 +11,14 @@ const propTypes = {
         right: PropTypes.number,
         bottom: PropTypes.number,
         left: PropTypes.number,
-    }).isRequired,
+    }),
 };
 
 const defaultProps = {
     ...(_.omit(defaultModalProps, 'type', 'popoverAnchorPosition')),
+
+    // Anchor position is optional only because it is not relevant on mobile
+    anchorPosition: {},
 };
 
 export {propTypes, defaultProps};

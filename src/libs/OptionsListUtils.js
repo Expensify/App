@@ -17,6 +17,7 @@ import {getReportParticipantsTitle} from './reportUtils';
 
 let currentUserLogin;
 let countryCodeByIP;
+let isInChronosBeta;
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
@@ -127,6 +128,11 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: val => countryCodeByIP = val || 1,
+});
+
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: val => isInChronosBeta = _.contains(val, CONST.BETAS.CHRONOS_IN_CASH) || _.contains(val, CONST.BETAS.ALL),
 });
 
 /**
@@ -287,6 +293,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && personalDetailsOptions.length === 0
             && _.every(selectedOptions, option => option.login !== searchValue)
             && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
+            && (searchValue !== CONST.EMAIL.CHRONOS || isInChronosBeta)
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
         // current users international code based on their IP address.
@@ -350,6 +357,40 @@ function getNewChatOptions(
         searchValue,
         includePersonalDetails: true,
     });
+}
+
+/**
+ * Build the IOUConfirmation options for showing MyPersonalDetail
+ *
+ * @param {Object} myPersonalDetail
+ * @param {String} amountText
+ * @returns {Array}
+ */
+function getIOUConfirmationOptionsFromMyPersonalDetail(
+    myPersonalDetail,
+    amountText,
+) {
+    return [{
+        text: myPersonalDetail.displayName,
+        alternateText: myPersonalDetail.login,
+        icons: [myPersonalDetail.avatar],
+        descriptiveText: amountText,
+    }];
+}
+
+/**
+ * Build the IOUConfirmationOptions for showing participants
+ *
+ * @param {Array} participants
+ * @param {String} amountText
+ * @returns {Array}
+ */
+function getIOUConfirmationOptionsFromParticipants(
+    participants, amountText,
+) {
+    return participants.map(participant => ({
+        ...participant, descriptiveText: amountText,
+    }));
 }
 
 /**
@@ -439,4 +480,6 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
+    getIOUConfirmationOptionsFromMyPersonalDetail,
+    getIOUConfirmationOptionsFromParticipants,
 };

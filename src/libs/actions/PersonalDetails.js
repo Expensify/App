@@ -69,8 +69,9 @@ function getDisplayName(login, personalDetail) {
 
     const firstName = userDetails.firstName || '';
     const lastName = userDetails.lastName || '';
+    const fullName = (`${firstName} ${lastName}`).trim();
 
-    return (`${firstName} ${lastName}`).trim() || userLogin;
+    return fullName || userLogin;
 }
 
 /**
@@ -86,6 +87,8 @@ function formatPersonalDetails(personalDetailsList) {
         const displayName = getDisplayName(login, personalDetailsResponse);
         const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
         const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
+        const firstName = lodashGet(personalDetailsResponse, 'firstName', '');
+        const lastName = lodashGet(personalDetailsResponse, 'lastName', '');
 
         return {
             ...finalObject,
@@ -93,6 +96,8 @@ function formatPersonalDetails(personalDetailsList) {
                 login,
                 avatar,
                 displayName,
+                firstName,
+                lastName,
                 pronouns,
                 timezone,
             },
@@ -110,10 +115,13 @@ function fetch() {
         .then((data) => {
             let myPersonalDetails = {};
 
-            // If personalDetailsList is empty, ensure we set the personal details for the current user
-            const personalDetailsList = _.isEmpty(data.personalDetailsList)
-                ? {[currentUserEmail]: myPersonalDetails}
-                : data.personalDetailsList;
+            // If personalDetailsList does not have the current user ensure we initialize their details with an empty
+            // object at least
+            const personalDetailsList = _.isEmpty(data.personalDetailsList) ? {} : data.personalDetailsList;
+            if (!personalDetailsList[currentUserEmail]) {
+                personalDetailsList[currentUserEmail] = {};
+            }
+
             const allPersonalDetails = formatPersonalDetails(personalDetailsList);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, allPersonalDetails);
 
