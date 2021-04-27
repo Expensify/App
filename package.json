@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.26-8",
+  "version": "1.0.32-0",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -10,6 +10,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "ipad": "react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
+    "ipad-sm": "react-native run-ios --simulator=\"iPad Pro (9.7-inch)\"",
     "desktop": "node desktop/start.js",
     "start": "react-native start",
     "web": "node web/proxy.js & webpack-dev-server --open --config config/webpack/webpack.dev.js",
@@ -68,6 +69,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-native": "0.63.3",
+    "react-native-bootsplash": "^3.2.0",
     "react-native-config": "^1.4.0",
     "react-native-document-picker": "^4.0.0",
     "react-native-gesture-handler": "1.9.0",

@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Text from './Text';
+import EnvironmentBadge from './EnvironmentBadge';
 
 const propTypes = {
     /** Title of the Header */
@@ -16,10 +17,11 @@ const defaultProps = {
     textSize: 'default',
 };
 const Header = props => (
-    <View style={[styles.flex1]}>
+    <View style={[styles.flex1, styles.flexRow]}>
         <Text numberOfLines={2} style={[styles.headerText, props.textSize === 'large' && styles.textLarge]}>
             {props.title}
         </Text>
+        <EnvironmentBadge />
     </View>
 );
 
