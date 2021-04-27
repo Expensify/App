@@ -1,18 +1,29 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {createDrawerNavigator} from '@react-navigation/drawer';
+import {withOnyx} from 'react-native-onyx';
 
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles, {
     getNavigationDrawerType,
     getNavigationDrawerStyle,
 } from '../../../styles/styles';
+import ONYXKEYS from '../../../ONYXKEYS';
+import compose from '../../compose';
 
 // Screens
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import ReportScreen from '../../../pages/home/ReportScreen';
 
 const propTypes = {
+    // Initial report to be used if nothing else is specified by routing
+    initialReportID: PropTypes.string,
+
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    initialReportID: '',
 };
 
 const Drawer = createDrawerNavigator();
@@ -32,10 +43,7 @@ const MainDrawerNavigator = props => (
         <Drawer.Screen
             name="Report"
             component={ReportScreen}
-
-            // Providing an empty string here will ensure that the ReportScreen does not show as '/r/undefined'
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            initialParams={{reportID: ''}}
+            initialParams={{reportID: props.initialReportID}}
             options={{
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
@@ -45,5 +53,13 @@ const MainDrawerNavigator = props => (
 );
 
 MainDrawerNavigator.propTypes = propTypes;
+MainDrawerNavigator.defaultProps = defaultProps;
 MainDrawerNavigator.displayName = 'MainDrawerNavigator';
-export default withWindowDimensions(MainDrawerNavigator);
+export default compose(
+    withWindowDimensions,
+    withOnyx({
+        initialReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+        },
+    }),
+)(MainDrawerNavigator);
