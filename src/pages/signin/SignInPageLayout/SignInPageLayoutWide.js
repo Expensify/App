@@ -4,11 +4,13 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
+import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide.png';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
+import openURLInNewTab from '../../../libs/openURLInNewTab';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // The children to show inside the layout
@@ -54,6 +56,27 @@ const SignInPageLayoutWide = props => (
                         <WelcomeText textSize="large" />
                     </View>
                     )}
+                <View>
+                    <Text style={[styles.textLabel]}>
+                        Expensify.cash is open source. View
+                        {' '}
+                        <Text
+                            style={[styles.link]}
+                            onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
+                        >
+                            the code
+                        </Text>
+                        . View
+                        {' '}
+                        <Text
+                            style={[styles.link]}
+                            onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
+                        >
+                            open jobs
+                        </Text>
+                        .
+                    </Text>
+                </View>
                 <TermsAndLicenses />
             </View>
         </View>

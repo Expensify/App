@@ -28,6 +28,7 @@ import Emoji from '../../../assets/images/emoji.svg';
 import Upload from '../../../assets/images/upload.svg';
 import Camera from '../../../assets/images/camera.svg';
 import Gallery from '../../../assets/images/gallery.svg';
+import Offline from '../../../assets/images/offline.svg';
 
 export {
     ArrowRight,
@@ -47,6 +48,7 @@ export {
     MagnifyingGlass,
     Mail,
     MoneyCircle,
+    Offline,
     Paperclip,
     Pencil,
     Phone,
