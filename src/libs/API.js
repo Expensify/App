@@ -4,7 +4,6 @@ import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
-import {TYPE as PUSHER_EVENT_TYPE} from './Pusher/pusher';
 import * as Network from './Network';
 
 let isAuthenticating;
@@ -514,7 +513,7 @@ function Push_Authenticate(parameters) {
  */
 function Report_AddComment(parameters) {
     const commandName = 'Report_AddComment';
-    requireParameters([PUSHER_EVENT_TYPE.REPORT_COMMENT, 'reportID', 'clientID'],
+    requireParameters(['reportComment', 'reportID', 'clientID'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
