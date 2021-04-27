@@ -6,10 +6,12 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
-import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
+import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
+import openURLInNewTab from '../../../libs/openURLInNewTab/index.native';
+import CONST from '../../../CONST';
 
 const propTypes = {
 
@@ -55,6 +57,27 @@ const SignInPageLayoutNarrow = props => (
                         )}
 
                     {props.shouldShowWelcomeText && <WelcomeText />}
+                    <View>
+                        <Text style={[styles.textLabel, styles.mt6]}>
+                            Expensify.cash is open source. View
+                            {' '}
+                            <Text
+                                style={[styles.link]}
+                                onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
+                            >
+                                the code
+                            </Text>
+                            . View
+                            {' '}
+                            <Text
+                                style={[styles.link]}
+                                onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
+                            >
+                                open jobs
+                            </Text>
+                            .
+                        </Text>
+                    </View>
                 </View>
                 <TermsAndLicenses />
             </View>

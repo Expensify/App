@@ -10,7 +10,7 @@ import CONST from '../../../CONST';
 import compose from '../../compose';
 import {
     subscribeToReportCommentEvents,
-    fetchAll as fetchAllReports,
+    fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
@@ -121,7 +121,7 @@ class AuthScreens extends React.Component {
         User.getUserDetails();
         User.getBetas();
         PersonalDetails.fetchCurrencyPreferences();
-        fetchAllReports(true, true);
+        fetchAllReports(true, true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 
@@ -181,6 +181,7 @@ class AuthScreens extends React.Component {
             cardStyleInterpolator: modalCardStyleInterpolator,
             animationEnabled: true,
             gestureDirection: 'horizontal',
+            cardOverlayEnabled: true,
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.

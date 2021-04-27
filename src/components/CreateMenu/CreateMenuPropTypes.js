@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const createMenuPropTypes = {
+const propTypes = {
     // Callback method fired when the user requests to close the modal
     onClose: PropTypes.func.isRequired,
 
@@ -23,6 +23,31 @@ const createMenuPropTypes = {
             onSelected: PropTypes.func.isRequired,
         }),
     ).isRequired,
+
+    // The anchor position of the CreateMenu popover
+    anchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+    }).isRequired,
+
+    // A react-native-animatable animation definition for the modal display animation.
+    animationIn: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
+
+    // A react-native-animatable animation definition for the modal hide animation.
+    animationOut: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
 };
 
-export default createMenuPropTypes;
+const defaultProps = {
+    animationIn: 'fadeIn',
+    animationOut: 'fadeOut',
+};
+
+export {propTypes, defaultProps};

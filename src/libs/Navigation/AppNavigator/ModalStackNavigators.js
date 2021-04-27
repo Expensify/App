@@ -1,5 +1,5 @@
 import React from 'react';
-import {createStackNavigator} from '@react-navigation/stack';
+import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
 import ROUTES from '../../../ROUTES';
 import NewChatPage from '../../../pages/NewChatPage';
@@ -31,6 +31,7 @@ const IOUCurrencyStack = createStackNavigator();
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
     headerShown: false,
+    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 };
 
 const IOUBillStackNavigator = () => (
@@ -182,7 +183,7 @@ const SettingsModalStackNavigator = () => (
             component={SettingsProfilePage}
         />
         <SettingsModalStack.Screen
-            name="Settings_Add_Seconday_Login"
+            name="Settings_Add_Secondary_Login"
             component={SettingsAddSecondaryLoginPage}
         />
         <SettingsModalStack.Screen
