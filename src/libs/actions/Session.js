@@ -7,6 +7,7 @@ import * as API from '../API';
 import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import Timing from './Timing';
+import CONST from '../../CONST';
 
 let credentials = {};
 Onyx.connect({
@@ -76,7 +77,7 @@ function signOut() {
  * @param {String} login
  */
 function fetchAccountDetails(login) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     API.GetAccountStatus({email: login})
         .then((response) => {
@@ -164,7 +165,7 @@ function createTemporaryLogin(authToken, email) {
  * @param {String} [twoFactorAuthCode]
  */
 function signIn(password, twoFactorAuthCode) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     API.Authenticate({
         useExpensifyLogin: true,
@@ -221,19 +222,19 @@ function restartSignin() {
  *
  * @param {String} password
  * @param {String} validateCode
+ * @param {String} accountID
  */
-function setPassword(password, validateCode) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', loading: true});
+function setPassword(password, validateCode, accountID) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     API.SetPassword({
-        email: credentials.login,
         password,
         validateCode,
+        accountID,
     })
         .then((response) => {
             if (response.jsonCode === 200) {
-                const {authToken, email} = response;
-                createTemporaryLogin(authToken, email);
+                createTemporaryLogin(response.authToken, response.email);
                 return;
             }
 

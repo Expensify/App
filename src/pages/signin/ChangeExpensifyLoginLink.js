@@ -2,6 +2,7 @@ import React from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import {restartSignin} from '../../libs/actions/Session';
 import themeColors from '../../styles/themes/default';
@@ -24,7 +25,8 @@ const ChangeExpensifyLoginLink = ({credentials}) => (
         >
             <Text style={[styles.link]}>
                 Not&nbsp;
-                {credentials.login}
+                {Str.removeSMSDomain(credentials.login)}
+                ?
             </Text>
         </TouchableOpacity>
     </View>
