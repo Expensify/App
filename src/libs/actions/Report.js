@@ -49,9 +49,6 @@ const typingWatchTimers = {};
 // Keeps track of the max sequence number for each report
 const reportMaxSequenceNumbers = {};
 
-// Keeps track of the max sequence number for each report excluding loading actions
-const reportMaxSequenceNumbersNotLoading = {};
-
 // Keeps track of the last read for each report
 const lastReadSequenceNumbers = {};
 
@@ -339,7 +336,7 @@ function setLocalLastRead(reportID, sequenceNumber, saveNewMarkerSequenceNumber)
     // Update the report optimistically
     if (saveNewMarkerSequenceNumber) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            unreadActionCount: Math.max(reportMaxSequenceNumbersNotLoading[reportID] - sequenceNumber, 0),
+            unreadActionCount: Math.max(reportMaxSequenceNumbers[reportID] - sequenceNumber, 0),
             lastVisitedTimestamp: Date.now(),
             newMarkerSequenceNumber: sequenceNumber,
         });
@@ -815,7 +812,7 @@ function addAction(reportID, text, file) {
  * @param {Number} [sequenceNumber]
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
-    const lastReadSequenceNumber = sequenceNumber || reportMaxSequenceNumbersNotLoading[reportID];
+    const lastReadSequenceNumber = sequenceNumber || reportMaxSequenceNumbers[reportID];
 
     setLocalLastRead(reportID, lastReadSequenceNumber, sequenceNumber !== undefined);
 
@@ -883,21 +880,6 @@ function handleReportChanged(report) {
 
     // Store the max sequence number for each report
     reportMaxSequenceNumbers[report.reportID] = report.maxSequenceNumber;
-
-    // Store the max sequence number for each report excluding loading actions
-    Onyx.connect({
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-        callback: actions => reportMaxSequenceNumbersNotLoading[report.reportID] = _.chain(actions)
-
-            // We want to avoid marking any pending actions as read since
-            // 1. Any action ID that hasn't been delivered by the server is a temporary action ID.
-            // 2. We already set a comment someone has authored as the lastReadActionID_<accountID> rNVP on the server
-            // and should sync it locally when we handle it via Pusher or Airship
-            .reject(action => action.loading)
-            .pluck('sequenceNumber')
-            .max()
-            .value(),
-    });
 
     // Store optimistic actions IDs for each report
     optimisticReportActionIDs[report.reportID] = report.optimisticReportActionIDs;
