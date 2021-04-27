@@ -35,6 +35,15 @@ const propTypes = {
     // Route params
     route: matchType.isRequired,
 
+    // Holds data related to IOU view state, rather than the underlying IOU data.
+    iou: PropTypes.shape({
+        // Is the IOU Report currently being settled
+        loading: PropTypes.bool,
+
+        // Whether or not transaction creation has resulted to error
+        error: PropTypes.bool,
+    }).isRequired,
+
     // IOU Report data object
     iouReport: PropTypes.shape({
         // ID for the chatReport that this IOU is linked to
@@ -72,7 +81,6 @@ class IOUDetailsModal extends Component {
         super(props);
 
         this.state = {
-            loading: false,
             settlementType: 'Elsewhere',
         };
 
@@ -91,13 +99,11 @@ class IOUDetailsModal extends Component {
             reportID: this.props.route.params.iouReportID,
             paymentMethodType: this.state.settlementType,
         });
-        this.setState({
-            loading: true,
-        });
     }
 
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
+        const transactionsByCreationDate = this.props.iouReport.transactions ? this.props.iouReport.transactions.reverse() : [];
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -114,7 +120,7 @@ class IOUDetailsModal extends Component {
                         onPayButtonPressed={null}
                         shouldHidePayButton
                     />
-                    {_.map(this.props.iouReport.transactions.reverse(), (transaction) => {
+                    {_.map(transactionsByCreationDate, (transaction) => {
                         const actionForTransaction = _.find(this.props.reportActions, (action) => {
                             if (action && action.originalMessage) {
                                 return action.originalMessage.IOUTransactionID == transaction.transactionID;
@@ -131,7 +137,7 @@ class IOUDetailsModal extends Component {
                     {(this.props.iouReport.managerEmail === sessionEmail && (
                         <ButtonWithLoader
                             text="I'll settle up elsewhere"
-                            isLoading={this.state.loading}
+                            isLoading={this.props.iou.loading}
                             onClick={this.performIOUSettlement}
                         />
                     ))}
@@ -147,6 +153,9 @@ IOUDetailsModal.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
         iouReport: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
         },
