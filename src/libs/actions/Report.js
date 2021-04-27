@@ -554,7 +554,7 @@ function subscribeToUserEvents() {
             Log.info(
                 '[Report] Failed to subscribe to Pusher channel',
                 true,
-                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT}
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
             );
         });
 
@@ -574,7 +574,7 @@ function subscribeToUserEvents() {
             Log.info(
                 '[Report] Failed to subscribe to Pusher channel',
                 true,
-                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED}
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
             );
         });
 
