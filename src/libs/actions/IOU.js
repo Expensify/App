@@ -136,16 +136,19 @@ function getIOUReportDetailFromTransactionID(transactionID) {
 function settleIOUReport({
     reportID, paymentMethodType,
 }) {
-    // Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
-    console.debug('juless: settleIOUReport', {reportID, paymentMethodType});
-
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
     API.PayIOU({
         reportID,
         paymentMethodType,
     })
         .then((data) => {
-            console.debug('juless: IOU Settled: ', data);
-        });
+            if (data.jsonCode != 200) {
+                console.error(data.message);
+                return;
+            }
+        })
+        .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}))
+        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }
 
 /**
