@@ -246,6 +246,10 @@ const styles = {
         backgroundColor: themeColors.badgeSuccessBG,
     },
 
+    badgeDanger: {
+        backgroundColor: themeColors.badgeDangerBG,
+    },
+
     badgeText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
