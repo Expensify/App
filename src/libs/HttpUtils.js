@@ -29,7 +29,7 @@ function processHTTPRequest(url, method = 'get', body = null) {
 function xhr(command, data, type = 'post', shouldUseSecure = false) {
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    const apiRoot = shouldUseSecure ? CONFIG.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;
+    const apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;
     return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData);
 }
 
