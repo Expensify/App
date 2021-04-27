@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -7,6 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemIOUPreview from './ReportActionItemIOUPreview';
+import {launchDetailsFromIOUAction} from '../libs/actions/IOU';
 
 const propTypes = {
     // All the data of the action
@@ -14,7 +15,7 @@ const propTypes = {
 
     // The linked iouReportID
     // eslint-disable-next-line react/no-unused-prop-types
-    iouReportID: PropTypes.number.isRequired,
+    iouReportID: PropTypes.number,
 
     // Should render the preview Component?
     shouldDisplayPreviewComp: PropTypes.bool.isRequired,
@@ -41,24 +42,35 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
+    iouReportID: null,
 };
 
-const ReportActionItemIOUAction = ({
-    action,
-    shouldDisplayPreviewComp,
-    iou,
-    session,
-}) => (
-    <View>
-        <ReportActionItemIOUQuote action={action} />
-        {shouldDisplayPreviewComp && !_.isEmpty(iou) && (
-            <ReportActionItemIOUPreview
-                iou={iou}
-                session={session}
-            />
-        )}
-    </View>
-);
+class ReportActionItemIOUAction extends Component {
+    constructor(props) {
+        super(props);
+
+        this.launchIOUDetailsModal = this.launchIOUDetailsModal.bind(this);
+    }
+
+    launchIOUDetailsModal() {
+        launchDetailsFromIOUAction(this.props.action);
+    }
+
+    render() {
+        return (
+            <View>
+                <ReportActionItemIOUQuote action={this.props.action} />
+                {this.props.shouldDisplayPreviewComp && !_.isEmpty(this.props.iou) && (
+                    <ReportActionItemIOUPreview
+                        iou={this.props.iou}
+                        session={this.props.session}
+                        onPayButtonPressed={this.launchIOUDetailsModal}
+                    />
+                )}
+            </View>
+        );
+    }
+}
 
 ReportActionItemIOUAction.propTypes = propTypes;
 ReportActionItemIOUAction.defaultProps = defaultProps;

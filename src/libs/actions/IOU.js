@@ -165,11 +165,29 @@ function rejectTransaction({
     });
 }
 
+/**
+ * @param {Object} action
+ * @param {Object} originalMessage
+ * @param {number} action.originalMessage.IOUReportID
+ * @param {number} action.originalMessage.IOUTransactionID
+ */
+function launchDetailsFromIOUAction(action) {
+    if (!action.originalMessage) {
+        console.error('Error launching IOUDetailModal: reportAction `originalMessage` data not provided.');
+        return;
+    }
+    if (action.originalMessage.IOUReportID) {
+        Navigation.navigate(ROUTES.getIouDetailsRoute(action.originalMessage.IOUReportID));
+    } else if (action.originalMessage.IOUTransactionID) {
+        getIOUReportDetailFromTransactionID(action.originalMessage.IOUTransactionID);
+    }
+}
+
 export {
     getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
-    getIOUReportDetailFromTransactionID,
+    launchDetailsFromIOUAction,
     rejectTransaction,
     settleIOUReport,
 };

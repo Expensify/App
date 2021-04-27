@@ -12,6 +12,9 @@ const propTypes = {
     // Additional logic for displaying the pay button
     shouldHidePayButton: PropTypes.bool,
 
+    // Callback for the Pay/Settle button
+    onPayButtonPressed: PropTypes.func,
+
     // Active IOU Report for current report
     iou: PropTypes.shape({
         // Email address of the manager in this iou report
@@ -41,13 +44,15 @@ const propTypes = {
 
 const defaultProps = {
     shouldHidePayButton: false,
-}
+    onPayButtonPressed: null,
+};
 
 const ReportActionItemIOUPreview = ({
     iou,
     personalDetails,
     session,
     shouldHidePayButton,
+    onPayButtonPressed,
 }) => {
     const sessionEmail = lodashGet(session, 'email', null);
 
@@ -91,6 +96,7 @@ const ReportActionItemIOUPreview = ({
                 {isCurrentUserManager && !shouldHidePayButton && (
                     <TouchableOpacity
                         style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
+                        onPress={onPayButtonPressed}
                     >
                         <Text
                             style={[
