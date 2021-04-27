@@ -11,7 +11,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
-import ExpensifyCashLogo from '../../assets/images/expensify-cash.svg';
+import ExpensifyCashLogo from '../components/ExpensifyCashLogo';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import variables from '../styles/variables';
