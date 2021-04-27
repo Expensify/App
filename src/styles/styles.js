@@ -122,6 +122,7 @@ const styles = {
     },
 
     buttonSmall: {
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeSmall,
         paddingTop: 6,
         paddingRight: 10,
@@ -132,6 +133,9 @@ const styles = {
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
     },
 
     buttonSuccess: {
@@ -240,6 +244,10 @@ const styles = {
 
     badgeSuccess: {
         backgroundColor: themeColors.badgeSuccessBG,
+    },
+
+    badgeDanger: {
+        backgroundColor: themeColors.badgeDangerBG,
     },
 
     badgeText: {
@@ -943,6 +951,14 @@ const styles = {
         borderColor: 'transparent',
     },
 
+    secondAvatarInline: {
+        bottom: -3,
+        right: -25,
+        borderWidth: 3,
+        borderRadius: 18,
+        borderColor: themeColors.componentBG,
+    },
+
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
@@ -1308,41 +1324,22 @@ const styles = {
         color: themeColors.heading,
     }, 0),
 
+    iouPreviewBox: {
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusCard,
+        padding: 20,
+        marginTop: 16,
+        maxWidth: 300,
+        width: '100%',
+    },
+
+    iouPreviewBoxAvatar: {
+        marginRight: -10,
+    },
+
     noScrollbars: {
         scrollbarWidth: 'none',
-    },
-
-    codeWordWrapper: {
-        height: 10,
-    },
-
-    codeWordStyle: {
-        borderLeftWidth: 0,
-        borderRightWidth: 0,
-        borderTopLeftRadius: 0,
-        borderBottomLeftRadius: 0,
-        borderTopRightRadius: 0,
-        borderBottomRightRadius: 0,
-        flexBasis: 'auto',
-        paddingLeft: 0,
-        paddingRight: 0,
-        justifyContent: 'center',
-        marginVertical: -2,
-        top: -1,
-    },
-
-    codeFirstWordStyle: {
-        borderLeftWidth: 1,
-        borderTopLeftRadius: 4,
-        borderBottomLeftRadius: 4,
-        paddingLeft: 5,
-    },
-
-    codeLastWordStyle: {
-        borderRightWidth: 1,
-        borderTopRightRadius: 4,
-        borderBottomRightRadius: 4,
-        paddingRight: 5,
     },
 
     fullScreenLoading: {
@@ -1365,6 +1362,8 @@ const styles = {
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
+    marginTop: 4,
+    marginBottom: 4,
     borderColor: themeColors.border,
     backgroundColor: themeColors.textBackground,
 };
@@ -1421,9 +1420,9 @@ const webViewStyles = {
             ...baseCodeTagStyles,
             paddingLeft: 5,
             paddingRight: 5,
+            paddingBottom: 2,
+            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
-            lineHeight: 18,
-            fontSize: 13,
         },
 
         img: {
@@ -1436,7 +1435,6 @@ const webViewStyles = {
     baseFontStyle: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
     },
 };
