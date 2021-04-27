@@ -3,6 +3,7 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const CONST = {
     BETAS: {
         ALL: 'all',
+        CHRONOS_IN_CASH: 'chronosInCash',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -113,6 +114,16 @@ const CONST = {
     },
 
     EMOJI_PICKER_SIZE: 360,
+
+    EMAIL: {
+        CHRONOS: 'chronos@expensify.com',
+    },
+
+    ENVIRONMENT: {
+        DEV: 'DEV',
+        STAGING: 'STG',
+        PRODUCTION: 'PROD',
+    },
 };
 
 export default CONST;
