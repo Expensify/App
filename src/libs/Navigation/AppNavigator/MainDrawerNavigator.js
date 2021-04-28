@@ -23,6 +23,14 @@ const propTypes = {
     // Initial report to be used if nothing else is specified by routing
     initialReportID: PropTypes.string,
 
+    // Route data passed by react navigation
+    route: PropTypes.shape({
+        state: PropTypes.shape({
+            // A list of mounted screen names
+            routeNames: PropTypes.arrayOf(PropTypes.string),
+        }),
+    }).isRequired,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -31,6 +39,22 @@ const defaultProps = {
 };
 
 const Drawer = createDrawerNavigator();
+
+/**
+ * Derives whether it's time to mount the ReportScreen from current component props
+ *
+ * @param {String} initialReportID
+ * @param {Object} route
+ * @returns {boolean}
+ */
+const shouldMountReportScreen = ({initialReportID, route}) => {
+    if (_.isString(initialReportID)) {
+        return true;
+    }
+
+    // After the ReportScreen is mounted it should stay mounted no matter initial report ID
+    return Boolean(route.state) && route.state.routeNames.includes('Report');
+};
 
 const MainDrawerNavigator = props => (
     <Drawer.Navigator
@@ -49,7 +73,7 @@ const MainDrawerNavigator = props => (
         }}
     >
         {
-            _.isString(props.initialReportID)
+            shouldMountReportScreen(props)
                 ? (
                     <Drawer.Screen
                         name="Report"
