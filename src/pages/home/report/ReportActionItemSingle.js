@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import ReportActionItemMessage from './ReportActionItemMessage';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
@@ -12,7 +11,6 @@ import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
 import ONYXKEYS from '../../../ONYXKEYS';
 import personalDetailsPropType from '../../personalDetailsPropType';
-import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 
 const propTypes = {
     // All the data of the action
@@ -21,11 +19,8 @@ const propTypes = {
     // All of the personalDetails
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    // Draft message - if this is non-empty we'll render the comment in "edit mode"
-    draftMessage: PropTypes.string.isRequired,
-
-    // ReportID containing the report action we're displaying
-    reportID: PropTypes.number.isRequired,
+    // Children view component for this action item
+    children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {
@@ -35,8 +30,7 @@ const defaultProps = {
 const ReportActionItemSingle = ({
     action,
     personalDetails,
-    draftMessage,
-    reportID,
+    children,
 }) => {
     const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
@@ -68,9 +62,7 @@ const ReportActionItemSingle = ({
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
-                {_.isEmpty(draftMessage)
-                    ? <ReportActionItemMessage action={action} />
-                    : <ReportActionItemMessageEdit action={action} draftMessage={draftMessage} reportID={reportID} />}
+                {children}
             </View>
         </View>
     );
