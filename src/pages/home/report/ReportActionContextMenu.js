@@ -78,7 +78,7 @@ class ReportActionContextMenu extends React.Component {
                 icon: Mail,
                 successIcon: Checkmark,
                 shouldShow: true,
-                onPress: () => updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber),
+                onPress: () => updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber - 1),
             },
 
             {
