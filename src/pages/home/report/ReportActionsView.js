@@ -13,7 +13,7 @@ import Text from '../../../components/Text';
 import {
     fetchActions,
     updateLastReadActionID,
-    setLocalLastRead,
+    setNewMarkerInitialPosition,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
 } from '../../../libs/actions/Report';
@@ -103,16 +103,10 @@ class ReportActionsView extends React.Component {
         AppState.addEventListener('change', this.onVisibilityChange);
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
-
-        // Since we want the New marker to remain in place even if newer messages come in, we set it in the constructor
-        const newMarkerSequenceNumber = this.props.report.unreadActionCount === 0
-            ? 0
-            : (this.props.report.maxSequenceNumber - this.props.report.unreadActionCount) + 1;
-
-        // Set the new marker
-        setLocalLastRead(this.props.reportID, newMarkerSequenceNumber, true);
-
         updateLastReadActionID(this.props.reportID);
+
+        // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount
+        setNewMarkerInitialPosition(this.props.reportID);
         fetchActions(this.props.reportID);
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
@@ -209,7 +203,7 @@ class ReportActionsView extends React.Component {
      * @memberof ReportActionsView
      */
     startRecordMaxActionTimer() {
-        this.timers.push(setTimeout(this.recordMaxAction, 3000));
+        this.timers.push(setTimeout(() => updateLastReadActionID(this.props.reportID), 3000));
     }
 
     /**
@@ -276,27 +270,6 @@ class ReportActionsView extends React.Component {
         }
 
         return currentAction.action.actorEmail === previousAction.action.actorEmail;
-    }
-
-    /**
-<<<<<<< HEAD
-=======
-     * Recorded when the report first opens and when the list is scrolled to the bottom
-     */
-    recordMaxAction() {
-        const reportActions = lodashGet(this.props, 'reportActions', {});
-        const maxVisibleSequenceNumber = _.chain(reportActions)
-
-            // We want to avoid marking any pending actions as read since
-            // 1. Any action ID that hasn't been delivered by the server is a temporary action ID.
-            // 2. We already set a comment someone has authored as the lastReadActionID_<accountID> rNVP on the server
-            // and should sync it locally when we handle it via Pusher or Airship
-            .reject(action => action.loading)
-            .pluck('sequenceNumber')
-            .max()
-            .value();
-
-        updateLastReadActionID(this.props.reportID, maxVisibleSequenceNumber);
     }
 
     /**
