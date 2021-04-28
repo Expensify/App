@@ -31,7 +31,6 @@ export default {
     IOU_DETAILS_WITH_IOU_REPORT_ID: 'iou/details/:iouReportID',
     getIouDetailsRoute: iouReportID => `iou/details/${iouReportID}`,
     SEARCH: 'search',
-    SIGNIN: 'signin',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
     DETAILS_WITH_LOGIN: 'details/:login',
