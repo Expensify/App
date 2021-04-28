@@ -12,6 +12,7 @@ import styles, {
 } from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../compose';
+import SCREENS from '../../../SCREENS';
 
 // Screens
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
@@ -53,7 +54,7 @@ const shouldMountReportScreen = ({initialReportID, route}) => {
     }
 
     // After the ReportScreen is mounted it should stay mounted no matter initial report ID
-    return Boolean(route.state) && route.state.routeNames.includes('Report');
+    return Boolean(route.state) && route.state.routeNames.includes(SCREENS.REPORT);
 };
 
 const MainDrawerNavigator = props => (
@@ -76,12 +77,12 @@ const MainDrawerNavigator = props => (
             shouldMountReportScreen(props)
                 ? (
                     <Drawer.Screen
-                        name="Report"
+                        name={SCREENS.REPORT}
                         component={ReportScreen}
                         initialParams={{reportID: props.initialReportID}}
                     />
                 )
-                : <Drawer.Screen name="Loading" component={LoadingScreen} />
+                : <Drawer.Screen name={SCREENS.LOADING} component={LoadingScreen} />
         }
     </Drawer.Navigator>
 );
