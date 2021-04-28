@@ -6,10 +6,13 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
+import {FlatList} from 'react-native';
 
 const propTypes = {
     // Passed via forwardRef so we can access the FlatList ref
-    innerRef: PropTypes.func.isRequired,
+    innerRef: PropTypes.shape({
+        current: PropTypes.instanceOf(FlatList),
+    }).isRequired,
 };
 
 // This is copied from https://codesandbox.io/s/react-native-dsyse
@@ -22,9 +25,9 @@ const InvertedFlatList = (props) => {
         e.preventDefault();
     }, []);
 
-    useEffect(() => {
-        props.innerRef(ref.current);
-    }, []);
+    // useEffect(() => {
+    //     props.innerRef(ref.current);
+    // }, []);
 
     useEffect(() => {
         const currentRef = ref.current;

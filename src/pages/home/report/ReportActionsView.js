@@ -29,6 +29,7 @@ import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
+import {flatListRef, scrollToIndex} from '../../../libs/ReportScrollManager';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -301,9 +302,7 @@ class ReportActionsView extends React.Component {
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
     scrollToListBottom() {
-        if (this.actionListElement) {
-            this.actionListElement.scrollToIndex({animated: false, index: 0});
-        }
+        scrollToIndex({animated: false, index: 0});
         this.recordMaxAction();
     }
 
@@ -373,7 +372,7 @@ class ReportActionsView extends React.Component {
 
         return (
             <InvertedFlatList
-                ref={el => this.actionListElement = el}
+                ref={flatListRef}
                 data={this.sortedReportActions}
                 renderItem={this.renderItem}
                 CellRendererComponent={this.renderCell}

@@ -6,6 +6,7 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
+import {scrollToIndex} from '../../../libs/ReportScrollManager';
 
 const propTypes = {
     // All the data of the action
@@ -93,6 +94,10 @@ class ReportActionItemMessageEdit extends React.Component {
                     defaultValue={this.props.draftMessage}
                     maxLines={16} // This is the same that slack has
                     style={[styles.textInput, styles.flex0]}
+                    onFocus={() => {
+                        debugger;
+                        scrollToIndex({animated: false, index: 0});
+                    }}
                 />
                 <View style={[styles.flexRow, styles.mt1]}>
                     <Pressable style={[styles.button, styles.mr2]} onPress={this.deleteDraft}>
