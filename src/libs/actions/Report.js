@@ -763,11 +763,13 @@ function fetchAllReports(
         .finally(() => {
             // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
             // one already.
-            if (shouldRedirectToReport || !lastViewedReportID) {
-                const firstReportID = _.first(reportIDs);
-                // eslint-disable-next-line no-use-before-define
-                updateCurrentlyViewedReportID(firstReportID);
+            if (!shouldRedirectToReport || lastViewedReportID) {
+                return;
             }
+
+            const firstReportID = _.first(reportIDs);
+            // eslint-disable-next-line no-use-before-define
+            updateCurrentlyViewedReportID(firstReportID);
         });
 }
 
