@@ -212,6 +212,8 @@ class IOUConfirmationList extends Component {
                 <View style={[styles.flex1]}>
                     <OptionsList
                         listContainerStyles={[{
+                            // Give max height to the list container so that it does not extend
+                            // beyond the comment view as well as button
                             maxHeight: Dimensions.get('window').height - this.minimumBottomOffset
                                 - this.props.insets.top - this.props.insets.bottom,
                         }]}
