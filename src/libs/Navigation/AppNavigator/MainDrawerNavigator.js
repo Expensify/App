@@ -5,6 +5,7 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import {withOnyx} from 'react-native-onyx';
 
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import styles, {
     getNavigationDrawerType,
     getNavigationDrawerStyle,
@@ -15,7 +16,8 @@ import compose from '../../compose';
 // Screens
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import ReportScreen from '../../../pages/home/ReportScreen';
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
+
+const LoadingScreen = React.memo(() => <FullScreenLoadingIndicator visible />, () => true);
 
 const propTypes = {
     // Initial report to be used if nothing else is specified by routing
@@ -55,11 +57,7 @@ const MainDrawerNavigator = props => (
                         initialParams={{reportID: props.initialReportID}}
                     />
                 )
-                : (
-                    <Drawer.Screen name="loading">
-                        {() => <FullScreenLoadingIndicator visible />}
-                    </Drawer.Screen>
-                )
+                : <Drawer.Screen name="Loading" component={LoadingScreen} />
         }
     </Drawer.Navigator>
 );
