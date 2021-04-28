@@ -759,16 +759,15 @@ function fetchAllReports(
             // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading before
             // bogging it down with more requests and operations.
             }, shouldDelayActionsFetch ? 8000 : 0);
-
+        })
+        .finally(() => {
             // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
             // one already.
-            if (!shouldRedirectToReport || lastViewedReportID) {
-                return;
+            if (shouldRedirectToReport || !lastViewedReportID) {
+                const firstReportID = _.first(reportIDs);
+                // eslint-disable-next-line no-use-before-define
+                updateCurrentlyViewedReportID(firstReportID);
             }
-
-            const firstReportID = _.first(reportIDs);
-            // eslint-disable-next-line no-use-before-define
-            updateCurrentlyViewedReportID(firstReportID);
         });
 }
 
