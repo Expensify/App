@@ -29,7 +29,7 @@ const defaultProps = {
 };
 
 const SignInPageLayoutNarrow = props => (
-    <ScrollView>
+    <ScrollView keyboardShouldPersistTaps="handled">
         <View>
             <View style={[styles.signInPageInnerNative]}>
                 <View style={[styles.signInPageLogoNative]}>
