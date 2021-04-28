@@ -1144,6 +1144,13 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
+    reportTransaction: {
+        paddingTop: 8,
+        paddingBottom: 8,
+        display: 'flex',
+        flexDirection: 'row',
+    },
+
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
