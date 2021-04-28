@@ -129,6 +129,7 @@ class ReportActionItem extends Component {
                                         && !this.state.isPopoverVisible
                                     }
                                     draftMessage={this.props.draftMessage}
+                                    hidePopover={this.hidePopover}
                                     isMini
                                 />
                             </View>
@@ -143,6 +144,7 @@ class ReportActionItem extends Component {
                                         isVisible
                                         reportID={this.props.reportID}
                                         reportAction={this.props.action}
+                                        hidePopover={this.hidePopover}
                                     />
                                 )}
                             >
@@ -151,6 +153,7 @@ class ReportActionItem extends Component {
                                     reportID={this.props.reportID}
                                     reportAction={this.props.action}
                                     draftMessage={this.props.draftMessage}
+                                    hidePopover={this.hidePopover}
                                 />
                             </PopoverWithMeasuredContent>
                         </View>

@@ -33,6 +33,9 @@ const propTypes = {
     // Draft message - if this is set the comment is in 'edit' mode
     draftMessage: PropTypes.string,
 
+    // Function to dismiss the popover containing this menu
+    hidePopover: PropTypes.func.isRequired,
+
     /* Onyx Props */
     // The session of the logged in person
     session: PropTypes.shape({
@@ -103,6 +106,7 @@ class ReportActionContextMenu extends React.Component {
             shouldShow: this.props.reportAction.actorEmail === this.props.session.email
                 && !isReportMessageAttachment(this.getActionText()),
             onPress: () => {
+                this.props.hidePopover();
                 saveReportActionDraft(
                     this.props.reportID,
                     this.props.reportAction.reportActionID,
