@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
@@ -13,6 +14,7 @@ import {
 import OptionsList from './OptionsList';
 import ButtonWithLoader from './ButtonWithLoader';
 import ONYXKEYS from '../ONYXKEYS';
+import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -26,6 +28,9 @@ const propTypes = {
 
     // Should we request a single or multiple participant selection from user
     hasMultipleParticipants: PropTypes.bool.isRequired,
+
+    // Safe area insets required for mobile devices margins
+    insets: SafeAreaInsetPropTypes.isRequired,
 
     // IOU amount
     iouAmount: PropTypes.string.isRequired,
@@ -80,6 +85,11 @@ const defaultProps = {
 };
 
 class IOUConfirmationList extends Component {
+    constructor(props) {
+        super(props);
+        this.minimumBottomOffset = 240;
+    }
+
     /**
      * Returns the sections needed for the OptionsSelector
      *
@@ -201,7 +211,10 @@ class IOUConfirmationList extends Component {
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
                     <OptionsList
-                        listContainerStyles={[styles.flexGrow0]}
+                        listContainerStyles={[{
+                            maxHeight: Dimensions.get('window').height - this.minimumBottomOffset
+                                - this.props.insets.top - this.props.insets.bottom,
+                        }]}
                         sections={this.getSections()}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
@@ -252,4 +265,4 @@ export default withOnyx({
     myPersonalDetails: {
         key: ONYXKEYS.MY_PERSONAL_DETAILS,
     },
-})(IOUConfirmationList);
+})(withSafeAreaInsets(IOUConfirmationList));
