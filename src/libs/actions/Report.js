@@ -824,15 +824,20 @@ function deleteReportComment(reportID, reportAction) {
         reportID,
         reportActionID: reportAction.reportActionID,
         reportComment: '',
-    }).catch(() => {
-        // Reverse Optimistic Response
-        reportActionsToMerge[reportAction.sequenceNumber] = {
-            ...reportAction,
-            message: oldMessage,
-        };
+    })
+        .then((data) => {
+            if (data.jsonCode === 200) {
+                Log.info('Comment deleted succefully!', true);
+            } else {
+                // Reverse Optimistic Response
+                reportActionsToMerge[reportAction.sequenceNumber] = {
+                    ...reportAction,
+                    message: oldMessage,
+                };
 
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
-    });
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+            }
+        });
 }
 
 /**

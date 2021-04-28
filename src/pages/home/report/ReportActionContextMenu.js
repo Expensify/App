@@ -51,7 +51,7 @@ const contextActions = [
         icon: ClipboardIcon,
         successText: 'Copied!',
         successIcon: Checkmark,
-        shouldShow: true,
+        shouldShow: () => true,
         onPress: (reportAction) => {
             const message = _.last(lodashGet(reportAction, 'message', null));
             const html = lodashGet(message, 'html', '');
@@ -70,21 +70,21 @@ const contextActions = [
     {
         text: 'Copy Link',
         icon: LinkCopy,
-        shouldShow: false,
+        shouldShow: () => false,
         onPress: () => {},
     },
 
     {
         text: 'Mark as Unread',
         icon: Mail,
-        shouldShow: false,
+        shouldShow: () => false,
         onPress: () => {},
     },
 
     {
         text: 'Edit Comment',
         icon: Pencil,
-        shouldShow: false,
+        shouldShow: () => false,
         onPress: () => {},
     },
 
