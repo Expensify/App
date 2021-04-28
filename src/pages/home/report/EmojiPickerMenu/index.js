@@ -79,7 +79,7 @@ class EmojiPickerMenu extends Component {
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
             currentScrollOffset: 0,
-            shouldDisablePointerEvents: false,
+            arePointerEventsDisabled: false,
         };
     }
 
@@ -115,8 +115,8 @@ class EmojiPickerMenu extends Component {
 
             // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
             this.mouseMoveHandler = () => {
-                if (this.state.shouldDisablePointerEvents) {
-                    this.setState({shouldDisablePointerEvents: false});
+                if (this.state.arePointerEventsDisabled) {
+                    this.setState({arePointerEventsDisabled: false});
                 }
             };
             document.addEventListener('mousemove', this.mouseMoveHandler);
@@ -218,8 +218,8 @@ class EmojiPickerMenu extends Component {
         }
         if (targetOffset !== this.state.currentScrollOffset) {
             // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
-            if (!this.state.shouldDisablePointerEvents) {
-                this.setState({shouldDisablePointerEvents: true});
+            if (!this.state.arePointerEventsDisabled) {
+                this.setState({arePointerEventsDisabled: true});
             }
             this.emojiList.scrollToOffset({offset: targetOffset, animated: false});
         }
@@ -307,9 +307,11 @@ class EmojiPickerMenu extends Component {
     }
 
     render() {
-        const pointerEvents = this.state.shouldDisablePointerEvents ? 'none' : 'auto';
         return (
-            <View style={styles.emojiPickerContainer} pointerEvents={pointerEvents}>
+            <View
+                style={styles.emojiPickerContainer}
+                pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
+            >
                 {!this.props.isSmallScreenWidth && (
                     <View style={[styles.pt4, styles.ph4, styles.pb1]}>
                         <TextInputFocusable
