@@ -104,17 +104,19 @@ class SidebarScreen extends Component {
                                     text: 'New Chat',
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
-                                {
-                                    icon: Users,
-                                    text: 'New Group',
-                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
-                                },
                                 ...(Permissions.canUseIOU() ? [
                                     {
                                         icon: MoneyCircle,
                                         text: 'Request Money',
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
                                     },
+                                ] : []),
+                                {
+                                    icon: Users,
+                                    text: 'New Group',
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
+                                },
+                                ...(Permissions.canUseIOU() ? [
                                     {
                                         icon: Receipt,
                                         text: 'Split Bill',
