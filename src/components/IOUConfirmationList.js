@@ -84,12 +84,9 @@ const defaultProps = {
     comment: '',
 };
 
-class IOUConfirmationList extends Component {
-    constructor(props) {
-        super(props);
-        this.minimumBottomOffset = 240;
-    }
+const MINIMUM_BOTTOM_OFFSET = 240;
 
+class IOUConfirmationList extends Component {
     /**
      * Returns the sections needed for the OptionsSelector
      *
@@ -214,7 +211,7 @@ class IOUConfirmationList extends Component {
                         listContainerStyles={[{
                             // Give max height to the list container so that it does not extend
                             // beyond the comment view as well as button
-                            maxHeight: Dimensions.get('window').height - this.minimumBottomOffset
+                            maxHeight: Dimensions.get('window').height - MINIMUM_BOTTOM_OFFSET
                                 - this.props.insets.top - this.props.insets.bottom,
                         }]}
                         sections={this.getSections()}
