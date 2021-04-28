@@ -507,6 +507,16 @@ function updateReportWithNewAction(reportID, reportAction) {
 }
 
 /**
+ * Updates a report in Onyx with a new pinned state.
+ *
+ * @param {Number} reportID
+ * @param {Boolean} isPinned
+ */
+function updateReportPinnedState(reportID, isPinned) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
+}
+
+/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -517,9 +527,9 @@ function getReportChannelName(reportID) {
 }
 
 /**
- * Initialize our pusher subscriptions to listen for new report comments
+ * Initialize our pusher subscriptions to listen for new report comments and pin toggles
  */
-function subscribeToReportCommentEvents() {
+function subscribeToUserEvents() {
     // If we don't have the user's accountID yet we can't subscribe so return early
     if (!currentUserAccountID) {
         return;
@@ -530,15 +540,42 @@ function subscribeToReportCommentEvents() {
         return;
     }
 
-    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
-        Log.info('[Report] Handled event sent by Pusher', true, {reportID: pushJSON.reportID});
+    // Live-update a report's actions when a 'report comment' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
+        );
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
         .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
+            );
+        });
+
+    // Live-update a report's pinned state when a 'report toggle pinned' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_TOGGLE_PINNED, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_TOGGLE_PINNED} event sent by Pusher`,
+            true,
+            {reportID: pushJSON.reportID},
+        );
+        updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
+            );
         });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
@@ -886,13 +923,13 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 }
 
 /**
- * Toggles the pinned state of the report
+ * Toggles the pinned state of the report.
  *
  * @param {Object} report
  */
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
+    updateReportPinnedState(report.reportID, pinnedValue);
     API.Report_TogglePinned({
         reportID: report.reportID,
         pinnedValue,
@@ -969,8 +1006,8 @@ export {
     fetchOrCreateChatReport,
     addAction,
     updateLastReadActionID,
-    subscribeToReportCommentEvents,
     subscribeToReportTypingEvents,
+    subscribeToUserEvents,
     unsubscribeFromReportChannel,
     saveReportComment,
     broadcastUserIsTyping,
