@@ -101,7 +101,7 @@ class SidebarScreen extends Component {
                                 {
                                     icon: Users,
                                     text: 'New Group',
-                                    onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
                             ]}
 
