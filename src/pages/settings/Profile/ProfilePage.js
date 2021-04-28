@@ -5,6 +5,7 @@ import {
     View,
     TextInput,
     Pressable,
+    ScrollView,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment-timezone';
@@ -255,7 +256,7 @@ class ProfilePage extends Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <Avatar
                         style={[styles.avatarLarge, styles.alignSelfCenter]}
                         source={this.props.myPersonalDetails.avatar}
@@ -355,7 +356,7 @@ class ProfilePage extends Component {
                         isChecked={this.state.isAutomaticTimezone}
                         onClick={this.setAutomaticTimezone}
                     />
-                </View>
+                </ScrollView>
                 <View style={[styles.ph5, styles.pb5]}>
                     <Pressable
                         disabled={isButtonDisabled}

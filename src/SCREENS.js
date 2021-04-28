@@ -5,5 +5,4 @@
 export default {
     HOME: 'Home',
     REPORT: 'Report',
-    SIGN_IN: 'SignIn',
 };
