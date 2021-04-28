@@ -8,11 +8,23 @@ import _ from 'underscore';
  * @param {Object} object
  * @return {*}
  */
-export function lastItem(object = {}) {
+function lastItem(object = {}) {
     const lastKey = _.last(_.keys(object)) || 0;
     return object[lastKey];
 }
 
-export default {
+/**
+ * Used to grab the id for a particular collection item's key.
+ * e.g. reportActions_1 -> 1
+ *
+ * @param {String} key
+ * @returns {String}
+ */
+function extractCollectionItemID(key) {
+    return key.split('_')[1];
+}
+
+export {
     lastItem,
+    extractCollectionItemID,
 };
