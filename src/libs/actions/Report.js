@@ -18,6 +18,8 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import {isReportMessageAttachment} from '../reportUtils';
+import * as CollectionUtils from '../CollectionUtils';
+import Timers from '../Timers';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -51,6 +53,24 @@ Onyx.connect({
         if (val && val.reportID) {
             allReports[val.reportID] = val;
         }
+    },
+});
+
+const mostRecentStoredSequenceNumbers = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (val, key) => {
+        if (!key || !val) {
+            return;
+        }
+
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        const mostRecentAction = CollectionUtils.lastItem(val);
+        if (!mostRecentAction || _.isUndefined(mostRecentAction.sequenceNumber)) {
+            return;
+        }
+
+        mostRecentStoredSequenceNumbers[reportID] = mostRecentAction.sequenceNumber;
     },
 });
 
@@ -268,7 +288,7 @@ function fetchIOUReportID(debtorEmail) {
  * chat report IDs
  *
  * @param {Array} chatList
- * @return {Promise} only used internally when fetchAllReports() is called
+ * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
@@ -677,7 +697,7 @@ function unsubscribeFromReportChannel(reportID) {
  *
  * @param {String[]} participants
  * @param {Boolean} shouldNavigate
- * @returns {Promise}
+ * @returns {Promise<Number[]>}
  */
 function fetchOrCreateChatReport(participants, shouldNavigate = true) {
     if (participants.length < 2) {
@@ -700,7 +720,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
                 // Redirect the logged in person to the new report
                 Navigation.navigate(ROUTES.getReportRoute(data.reportID));
             }
-            return data.reportID;
+            return [data.reportID];
         });
 }
 
@@ -753,8 +773,6 @@ function fetchAllReports(
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
-    let reportIDs = [];
-
     API.Get({
         returnValueList: 'chatList',
     })
@@ -764,7 +782,7 @@ function fetchAllReports(
             }
 
             // The cast here is necessary as Get rvl='chatList' may return an int or Array
-            reportIDs = String(response.chatList)
+            const reportIDs = String(response.chatList)
                 .split(',')
                 .filter(_.identity);
 
@@ -773,12 +791,9 @@ function fetchAllReports(
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false)
-                .then((createdReportID) => {
-                    reportIDs = [createdReportID];
-                });
+            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false);
         })
-        .then(() => {
+        .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
 
             if (shouldRecordHomePageTiming) {
@@ -786,15 +801,27 @@ function fetchAllReports(
             }
 
             // Optionally delay fetching report history as it significantly increases sign in to interactive time
-            _.delay(() => {
-                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
-                _.each(reportIDs, (reportID) => {
-                    fetchActions(reportID);
-                });
+            Timers.register(setTimeout(() => {
+                // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
+                // content and improve chat switching experience
+                const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
+                    _.isUndefined(mostRecentStoredSequenceNumbers[id])
+                    || reportMaxSequenceNumbers[id] !== mostRecentStoredSequenceNumbers[id]
+                ));
 
-            // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading before
-            // bogging it down with more requests and operations.
-            }, shouldDelayActionsFetch ? 8000 : 0);
+                if (!_.isEmpty(reportIDsToFetchActions)) {
+                    Log.info('[Report] Fetching report actions for reports', true, {reportIDsToFetchActions});
+                    _.each(reportIDsToFetchActions, (reportID) => {
+                        const offset = mostRecentStoredSequenceNumbers[reportID];
+                        fetchActions(reportID, offset);
+                    });
+                } else {
+                    Log.info('[Report] Local reportActions up to date. Not fetching additional actions.', true);
+                }
+
+                // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading
+                // before bogging it down with more requests and operations.
+            }, shouldDelayActionsFetch ? 8000 : 1000));
         });
 }
 
