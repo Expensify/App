@@ -15,7 +15,10 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
+import ReportActionItemIOUPreview from '../../../components/ReportActionItemIOUPreview';
+import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
+import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -27,6 +30,15 @@ const propTypes = {
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
 
+    // Is this the most recent IOU Action?
+    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
+
+    // Whether there is an outstanding amount in IOU
+    hasOutstandingIOU: PropTypes.bool,
+
+    // IOU report ID associated with current report
+    iouReportID: PropTypes.number,
+
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 
@@ -37,6 +49,8 @@ const propTypes = {
 
 const defaultProps = {
     draftMessage: '',
+    iouReportID: undefined,
+    hasOutstandingIOU: false,
 };
 
 class ReportActionItem extends Component {
@@ -60,9 +74,12 @@ class ReportActionItem extends Component {
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
-            || !_.isEqual(this.props.action, nextProps.action)
             || this.props.draftMessage !== nextProps.draftMessage
-            || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator;
+            || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
+            || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
+            || this.props.iouReportID !== nextProps.iouReportID
+            || !_.isEqual(this.props.action, nextProps.action
+            || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator);
     }
 
     /**
@@ -96,6 +113,18 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        const children = this.props.action.actionName === 'IOU'
+            ? (
+                <ReportActionItemIOUPreview
+                    iouReportID={this.props.iouReportID}
+                    hasOutstandingIOU={this.props.hasOutstandingIOU}
+                    action={this.props.action}
+                    isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
+                />
+            )
+            : _.isEmpty(this.props.draftMessage)
+                ? <ReportActionItemMessage action={this.props.action} />
+                : <ReportActionItemMessageEdit action={this.props.action} draftMessage={this.props.draftMessage} reportID={this.props.reportID} />;
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
@@ -107,17 +136,14 @@ class ReportActionItem extends Component {
                             <View style={getReportActionItemStyle(hovered || this.props.draftMessage)}>
                                 {!this.props.displayAsGroup
                                     ? (
-                                        <ReportActionItemSingle
-                                            action={this.props.action}
-                                            draftMessage={this.props.draftMessage}
-                                            reportID={this.props.reportID}
-                                        />
-                                    ) : (
-                                        <ReportActionItemGrouped
-                                            action={this.props.action}
-                                            draftMessage={this.props.draftMessage}
-                                            reportID={this.props.reportID}
-                                        />
+                                        <ReportActionItemSingle action={this.props.action}>
+                                            {children}
+                                        </ReportActionItemSingle>
+                                    )
+                                    : (
+                                        <ReportActionItemGrouped>
+                                            {children}
+                                        </ReportActionItemGrouped>
                                     )}
                             </View>
                             <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>

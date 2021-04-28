@@ -55,7 +55,7 @@ const propTypes = {
 
         // participants associated with current report
         participants: PropTypes.arrayOf(PropTypes.string),
-    }).isRequired,
+    }),
 
     /* Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -77,6 +77,7 @@ const propTypes = {
 const defaultProps = {
     comment: '',
     modal: {},
+    report: {},
     network: {isOffline: false},
 };
 

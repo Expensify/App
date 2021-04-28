@@ -122,6 +122,7 @@ const styles = {
     },
 
     buttonSmall: {
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeSmall,
         paddingTop: 6,
         paddingRight: 10,
@@ -132,6 +133,9 @@ const styles = {
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
     },
 
     buttonSuccess: {
@@ -240,6 +244,10 @@ const styles = {
 
     badgeSuccess: {
         backgroundColor: themeColors.badgeSuccessBG,
+    },
+
+    badgeDanger: {
+        backgroundColor: themeColors.badgeDangerBG,
     },
 
     badgeText: {
@@ -943,6 +951,14 @@ const styles = {
         borderColor: 'transparent',
     },
 
+    secondAvatarInline: {
+        bottom: -3,
+        right: -25,
+        borderWidth: 3,
+        borderRadius: 18,
+        borderColor: themeColors.componentBG,
+    },
+
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
@@ -1307,6 +1323,20 @@ const styles = {
         fontSize: variables.iouAmountTextSize,
         color: themeColors.heading,
     }, 0),
+
+    iouPreviewBox: {
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusCard,
+        padding: 20,
+        marginTop: 16,
+        maxWidth: 300,
+        width: '100%',
+    },
+
+    iouPreviewBoxAvatar: {
+        marginRight: -10,
+    },
 
     noScrollbars: {
         scrollbarWidth: 'none',
