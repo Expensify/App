@@ -901,6 +901,8 @@ NetworkConnection.onReconnect(() => {
 });
 
 /**
+ * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
+ *
  * @param {Number} reportID
  * @param {Object} originalReportAction
  * @param {String} htmlForNewComment
@@ -929,6 +931,13 @@ function editReportComment(reportID, originalReportAction, htmlForNewComment) {
         });
 }
 
+/**
+ * Saves the draft for a comment report action. This will put the comment into "edit mode"
+ *
+ * @param {Number} reportID
+ * @param {Number} reportActionID
+ * @param {String} draftMessage
+ */
 function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
