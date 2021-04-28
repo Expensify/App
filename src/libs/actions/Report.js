@@ -727,9 +727,13 @@ function fetchAllReports(
                 return;
             }
 
+            // The cast here is necessary as Get rvl='chatList' may return an int or Array
+            reportIDs = String(response.chatList)
+                .split(',')
+                .filter(_.identity);
+
             // Get all the chat reports if they have any, otherwise create one with concierge
-            if (response.chatList && response.chatList.length > 0) {
-                reportIDs = response.chatList;
+            if (reportIDs.length > 0) {
                 return fetchChatReportsByIDs(reportIDs);
             }
 
