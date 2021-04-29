@@ -798,6 +798,7 @@ const styles = {
         borderWidth: 0,
         borderRadius: 0,
         height: 'auto',
+        lineHeight: 20,
 
         // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
         // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
