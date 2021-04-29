@@ -286,7 +286,6 @@ class ReportActionsView extends React.Component {
     }
 
     /**
->>>>>>> main
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
      * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
@@ -333,13 +332,14 @@ class ReportActionsView extends React.Component {
         item,
         index,
     }) {
+        const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
+                && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
         return (
             <ReportActionItem
                 reportID={this.props.reportID}
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                shouldDisplayNewIndicator={this.props.report.newMarkerSequenceNumber > 0
-                    && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber}
+                shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 iouReportID={this.props.report.iouReportID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
