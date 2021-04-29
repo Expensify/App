@@ -4,14 +4,11 @@ import {withOnyx} from 'react-native-onyx';
 import {View, Text, Pressable} from 'react-native-web';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import Avatar from './Avatar';
-import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import {rejectTransaction} from '../libs/actions/IOU';
-import ReportActionItemFragment from '../pages/home/report/ReportActionItemFragment';
-import ReportActionItemDate from '../pages/home/report/ReportActionItemDate';
 import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
+import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
 
 const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
@@ -58,43 +55,17 @@ class TransactionItem extends Component {
     }
 
     render() {
-        const {avatar, displayName} = this.props.personalDetails[this.props.action.actorEmail] || {};
-        const avatarUrl = this.props.action.automatic
-            ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
-
-            // Use avatar in personalDetails if we have one then fallback to avatar provided by the action
-            : (avatar || this.props.action.avatar);
-
-        // Since the display name for a report action message is delivered with the report history as an array of fragments
-        // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
-        // we should stop referring to the report history items entirely for this information.
-        const personArray = displayName ? [{type: 'TEXT', text: displayName}] : this.props.action.person;
         console.debug('juless: ', this.props.action.message);
         return (
             <View styles={[styles.mb5]}>
-                <View style={[styles.reportTransaction]}>
-                    <Avatar
-                        style={[styles.actionAvatar]}
-                        source={avatarUrl}
-                    />
-                    <View style={[styles.chatItemRight]}>
-                        <View style={[styles.chatItemMessageHeader]}>
-                            {_.map(personArray, (fragment, index) => (
-                                <ReportActionItemFragment
-                                    key={`person-${this.props.action.sequenceNumber}-${index}`}
-                                    fragment={fragment}
-                                    tooltipText={this.props.action.actorEmail}
-                                    isAttachment={this.props.action.isAttachment}
-                                    isLoading={this.props.action.loading}
-                                />
-                            ))}
-                            <ReportActionItemDate timestamp={this.props.action.timestamp} />
-                        </View>
-                        <Text style={[styles.chatItemMessage]}>
-                            {this.props.action.message[0].text}
-                        </Text>
-                    </View>
-                </View>
+                <ReportActionItemSingle
+                    action={this.props.action}
+                    outerViewStyles={[styles.reportTransaction]}
+                >
+                <Text style={[styles.chatItemMessage]}>
+                    {this.props.action.message[0].text}
+                </Text>
+                </ReportActionItemSingle>
                 <Pressable
                     style={[styles.button, styles.alignItemsStart, styles.mb3]}
                     onPress={() => this.removeTransaction()}
