@@ -735,7 +735,7 @@ function fetchAllReports(
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'])
+            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false)
                 .then((createdReportID) => {
                     reportIDs = [createdReportID];
                 });
