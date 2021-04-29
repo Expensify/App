@@ -104,7 +104,7 @@ class IOUConfirmationList extends Component {
 
             sections.push({
                 title: 'WHO PAID?',
-                data: formattedMyPersonalDetails,
+                data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
             });
@@ -132,9 +132,15 @@ class IOUConfirmationList extends Component {
     /**
      * Gets splits for the transaction
      *
-     * @returns {Array}
+     * @returns {Array|null}
      */
     getSplits() {
+        // There can only be splits when there are multiple participants, so return early when there are not
+        // multiple participants
+        if (!this.props.hasMultipleParticipants) {
+            return null;
+        }
+
         const splits = this.props.participants.map(participant => ({
             email: participant.login,
 
@@ -169,8 +175,13 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getAllOptionsAsSelected() {
-        return [...this.props.participants,
-            getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails)];
+        if (!this.props.hasMultipleParticipants) {
+            return [];
+        }
+        return [
+            ...this.props.participants,
+            getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails),
+        ];
     }
 
     /**
@@ -208,7 +219,7 @@ class IOUConfirmationList extends Component {
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         disableFocusOptions
-                        selectedOptions={this.props.hasMultipleParticipants && this.getAllOptionsAsSelected()}
+                        selectedOptions={this.getAllOptionsAsSelected()}
                     />
                     <View>
                         <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
@@ -229,13 +240,7 @@ class IOUConfirmationList extends Component {
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
                         text={this.props.hasMultipleParticipants ? 'Split' : `Request $${this.props.iouAmount}`}
-                        onClick={() => {
-                            if (this.props.hasMultipleParticipants) {
-                                this.props.onConfirm({splits: this.getSplits()});
-                            } else {
-                                this.props.onConfirm({});
-                            }
-                        }}
+                        onClick={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
             </View>
