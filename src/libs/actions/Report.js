@@ -825,8 +825,8 @@ function deleteReportComment(reportID, reportAction) {
         reportActionID: reportAction.reportActionID,
         reportComment: '',
     })
-        .then((data) => {
-            if (data.jsonCode === 200) {
+        .then((response) => {
+            if (response.jsonCode === 200) {
                 Log.info('Comment deleted succefully!', true);
             } else {
                 // Reverse Optimistic Response
