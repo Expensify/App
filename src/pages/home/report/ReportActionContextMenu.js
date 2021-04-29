@@ -96,31 +96,25 @@ const contextActions = [
     },
 ];
 
-class ReportActionContextMenu extends React.Component {
-    constructor(props) {
-        super(props);
+const ReportActionContextMenu = (props) => {
+    const wrapperStyle = getReportActionContextMenuStyles(props.isMini);
 
-        this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
-    }
-
-    render() {
-        return this.props.isVisible && (
-            <View style={this.wrapperStyle}>
-                {contextActions.map(contextAction => contextAction.shouldShow(this.props) && (
-                    <ReportActionContextMenuItem
-                        icon={contextAction.icon}
-                        text={contextAction.text}
-                        successIcon={contextAction.successIcon}
-                        successText={contextAction.successText}
-                        isMini={this.props.isMini}
-                        key={contextAction.text}
-                        onPress={() => contextAction.onPress(this.props.reportAction, this.props.reportID)}
-                    />
-                ))}
-            </View>
-        );
-    }
-}
+    return props.isVisible && (
+        <View style={wrapperStyle}>
+            {contextActions.map(contextAction => contextAction.shouldShow(props) && (
+                <ReportActionContextMenuItem
+                    icon={contextAction.icon}
+                    text={contextAction.text}
+                    successIcon={contextAction.successIcon}
+                    successText={contextAction.successText}
+                    isMini={props.isMini}
+                    key={contextAction.text}
+                    onPress={() => contextAction.onPress(props.reportAction, props.reportID)}
+                />
+            ))}
+        </View>
+    );
+};
 
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
