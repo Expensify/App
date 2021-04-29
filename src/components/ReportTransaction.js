@@ -11,6 +11,10 @@ import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
 
 const propTypes = {
+    // The chatReport which the transaction is associated with
+    chatReportID: PropTypes.number,
+
+    // The report action which we are displaying
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // Transaction to display
@@ -24,6 +28,8 @@ const propTypes = {
 
         // The transaction amount
         amount: PropTypes.number,
+
+        transactionID: PropTypes.number,
 
         // Was this transaction created by the current user
         createdByUser: PropTypes.bool,
@@ -46,9 +52,9 @@ class ReportTransaction extends Component {
 
     removeTransaction() {
         rejectTransaction({
-            reportID: 999,
-            transactionID: 999999,
-            comment: 'NO!',
+            reportID: this.props.chatReportID,
+            transactionID: this.props.transaction.transactionID,
+            comment: 'no comment',
         });
     }
 

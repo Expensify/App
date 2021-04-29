@@ -129,6 +129,7 @@ class IOUDetailsModal extends Component {
                         });
                         return (
                             <ReportTransaction
+                                chatReportID={this.props.route.params.iouReportID}
                                 transaction={transaction}
                                 action={actionForTransaction}
                             />
