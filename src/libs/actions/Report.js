@@ -946,6 +946,10 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     });
 }
 
+/**
+ * @param {Number} reportID
+ * @param {Number} [sequenceNumber]
+ */
 function setNewMarkerPosition(reportID, sequenceNumber) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         newMarkerSequenceNumber: sequenceNumber,
