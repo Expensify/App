@@ -22,81 +22,70 @@ const propTypes = {
     // Initial report to be used if nothing else is specified by routing
     initialReportID: PropTypes.string,
 
-    // Route data passed by react navigation
-    route: PropTypes.shape({
-        state: PropTypes.shape({
-            // A list of mounted screen names
-            routeNames: PropTypes.arrayOf(PropTypes.string),
-        }),
-    }).isRequired,
+    // Available reports that would be displayed in this navigator
+    reports: PropTypes.objectOf(PropTypes.shape({
+        reportID: PropTypes.number,
+    })),
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     initialReportID: null,
+    reports: {},
 };
 
 const Drawer = createDrawerNavigator();
 
-/**
- * Derives whether it's time to mount the ReportScreen from current component props
- *
- * @param {String} initialReportID
- * @param {Object} route
- * @returns {boolean}
- */
-const shouldMountReportScreen = ({initialReportID, route}) => {
-    if (_.isString(initialReportID)) {
-        return true;
+const MainDrawerNavigator = (props) => {
+    // When there are no reports there's no point to render the empty navigator
+    if (_.size(props.reports) === 0) {
+        return <FullScreenLoadingIndicator visible />;
     }
 
-    // After the ReportScreen is mounted it should stay mounted no matter initial report ID
-    return Boolean(route.state) && route.state.routeNames.includes(SCREENS.REPORT);
-};
+    // Use the provided initialReport or fallback to the first available
+    const initialReportId = props.initialReportID || _.first(_.values(props.reports)).reportID;
 
-const MainDrawerNavigator = props => (
-    <Drawer.Navigator
-        openByDefault
-        drawerType={getNavigationDrawerType(props.isSmallScreenWidth)}
-        drawerStyle={getNavigationDrawerStyle(
-            props.windowWidth,
-            props.isSmallScreenWidth,
-        )}
-        sceneContainerStyle={styles.navigationSceneContainer}
-        edgeWidth={500}
-        drawerContent={() => <SidebarScreen />}
-        screenOptions={{
-            cardStyle: styles.navigationScreenCardStyle,
-            headerShown: false,
-        }}
-    >
-        {
-            shouldMountReportScreen(props)
-                ? (
-                    <Drawer.Screen
-                        name={SCREENS.REPORT}
-                        component={ReportScreen}
-                        initialParams={{reportID: props.initialReportID}}
-                    />
-                )
-                : (
-                    <Drawer.Screen name={SCREENS.LOADING}>
-                        {() => <FullScreenLoadingIndicator visible />}
-                    </Drawer.Screen>
-                )
-        }
-    </Drawer.Navigator>
-);
+    /* After the app initializes and reports are available the home navigation is mounted
+    * This way routing information is updated (if needed) based on the initial report ID resolved.
+    * This is usually needed after login/create account and re-launches */
+    return (
+        <Drawer.Navigator
+            openByDefault
+            drawerType={getNavigationDrawerType(props.isSmallScreenWidth)}
+            drawerStyle={getNavigationDrawerStyle(
+                props.windowWidth,
+                props.isSmallScreenWidth,
+            )}
+            sceneContainerStyle={styles.navigationSceneContainer}
+            edgeWidth={500}
+            drawerContent={() => <SidebarScreen />}
+            screenOptions={{
+                cardStyle: styles.navigationScreenCardStyle,
+                headerShown: false,
+            }}
+        >
+            <Drawer.Screen
+                name={SCREENS.REPORT}
+                component={ReportScreen}
+                initialParams={{reportID: initialReportId}}
+            />
+        </Drawer.Navigator>
+    );
+};
 
 MainDrawerNavigator.propTypes = propTypes;
 MainDrawerNavigator.defaultProps = defaultProps;
 MainDrawerNavigator.displayName = 'MainDrawerNavigator';
+
 export default compose(
     withWindowDimensions,
     withOnyx({
         initialReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
 )(MainDrawerNavigator);
