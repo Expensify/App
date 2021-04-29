@@ -708,12 +708,10 @@ function fetchActions(reportID, offset) {
 /**
  * Get all of our reports
  *
- * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
  */
 function fetchAllReports(
-    shouldRedirectToReport = true,
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
@@ -759,17 +757,6 @@ function fetchAllReports(
             // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading before
             // bogging it down with more requests and operations.
             }, shouldDelayActionsFetch ? 8000 : 0);
-        })
-        .finally(() => {
-            // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
-            // one already.
-            if (!shouldRedirectToReport || lastViewedReportID) {
-                return;
-            }
-
-            const firstReportID = _.first(reportIDs);
-            const currentReportID = firstReportID ? String(firstReportID) : '';
-            Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
         });
 }
 
@@ -966,7 +953,7 @@ Onyx.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
-    fetchAllReports(false);
+    fetchAllReports();
 });
 
 export {
