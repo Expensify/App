@@ -372,28 +372,37 @@ function setLocalIOUReportData(iouReportObject, chatReportID) {
  * Update the lastRead actionID and timestamp in local memory and Onyx
  *
  * @param {Number} reportID
- * @param {Number} sequenceNumber
+ * @param {Number} lastReadSequenceNumber
  */
-function setLocalLastRead(reportID, sequenceNumber) {
-    lastReadSequenceNumbers[reportID] = sequenceNumber;
+function setLocalLastRead(reportID, lastReadSequenceNumber) {
+    lastReadSequenceNumbers[reportID] = lastReadSequenceNumber;
+    const reportMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
 
-    // Update the report optimistically
+    // Determine the number of unread actions by deducting the last read sequence from the total. If, for some reason,
+    // the last read sequence is higher than the actual last sequence, let's just assume all actions are read
+    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber, 0);
+
+    // Update the report optimistically.
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: Math.max(reportMaxSequenceNumbers[reportID] - sequenceNumber, 0),
+        unreadActionCount,
         lastVisitedTimestamp: Date.now(),
     });
 }
 
 /**
- * Set the New marker for a given report to the oldest unread message
+ * Set the New marker for a given report to the oldest unread sequence
  *
  * @param {Number} reportID
  */
 function setNewMarkerInitialPosition(reportID) {
+
+    // If we have any unread actions, we determine the last read action by deduction the number of unread actions
+    // from the total number of actions in the report
     const lastReadSequenceNumber = allReports[reportID].unreadActionCount === 0
         ? 0
         : reportMaxSequenceNumbers[reportID] - allReports[reportID].unreadActionCount;
 
+    // Then, we set the New marker on the following action, which is the oldest unread one
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         newMarkerSequenceNumber: lastReadSequenceNumber + 1,
     });
@@ -922,13 +931,14 @@ function addAction(reportID, text, file) {
  * @param {Number} [sequenceNumber]
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
-    // If we are not specifying the sequence number, let's set it to the max one available
+    // If we are not specifying the sequence number, let's set it to the max one available, so that all actions in the
+    // report are considered "read".
     const lastReadSequenceNumber = sequenceNumber || reportMaxSequenceNumbers[reportID];
 
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // If we are specifying the last read sequence number, we are manually marking a comment as unread, so
-    // let's place new marker in the after the last read sequence.
+    // let's place new marker on the oldest unread sequence (after the last read sequence).
     if (sequenceNumber) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
             newMarkerSequenceNumber: sequenceNumber + 1,
