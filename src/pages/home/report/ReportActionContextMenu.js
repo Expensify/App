@@ -7,7 +7,7 @@ import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import {updateLastReadActionID} from '../../../libs/actions/Report';
+import {setNewMarkerPosition, updateLastReadActionID} from '../../../libs/actions/Report';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
@@ -78,7 +78,10 @@ class ReportActionContextMenu extends React.Component {
                 icon: Mail,
                 successIcon: Checkmark,
                 shouldShow: true,
-                onPress: () => updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber - 1),
+                onPress: () => {
+                    updateLastReadActionID(this.props.reportID);
+                    setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
+                },
             },
 
             {

@@ -932,23 +932,21 @@ function addAction(reportID, text, file) {
 function updateLastReadActionID(reportID, sequenceNumber) {
     // If we are not specifying the sequence number, let's set it to the max one available, so that all actions in the
     // report are considered "read".
-    const lastReadSequenceNumber = sequenceNumber || reportMaxSequenceNumbers[reportID];
+    const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
 
     setLocalLastRead(reportID, lastReadSequenceNumber);
-
-    // If we are specifying the last read sequence number, we are manually marking a comment as unread, so
-    // let's place new marker on the oldest unread sequence (after the last read sequence).
-    if (sequenceNumber) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            newMarkerSequenceNumber: sequenceNumber + 1,
-        });
-    }
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber: lastReadSequenceNumber || 0,
+    });
+}
+
+function setNewMarkerPosition(reportID, sequenceNumber) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        newMarkerSequenceNumber: sequenceNumber,
     });
 }
 
@@ -1036,6 +1034,7 @@ export {
     fetchOrCreateChatReport,
     addAction,
     updateLastReadActionID,
+    setNewMarkerPosition,
     setNewMarkerInitialPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,
