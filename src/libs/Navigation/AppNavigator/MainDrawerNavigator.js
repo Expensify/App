@@ -30,7 +30,6 @@ const defaultProps = {
 };
 
 const Drawer = createDrawerNavigator();
-const LoadingScreen = React.memo(() => <FullScreenLoadingIndicator visible />, () => true);
 
 class MainDrawerNavigator extends React.Component {
     constructor(props) {
@@ -85,7 +84,11 @@ class MainDrawerNavigator extends React.Component {
                                 initialParams={{reportID: this.props.initialReportID}}
                             />
                         )
-                        : <Drawer.Screen name={SCREENS.LOADING} component={LoadingScreen} />
+                        : (
+                            <Drawer.Screen name={SCREENS.LOADING}>
+                                {() => <FullScreenLoadingIndicator visible />}
+                            </Drawer.Screen>
+                        )
                 }
             </Drawer.Navigator>
         );
