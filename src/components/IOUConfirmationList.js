@@ -84,9 +84,8 @@ const defaultProps = {
     comment: '',
 };
 
-// Gives height to offset the button and comment box
-// so that the OptionsList is fixed above the offset
-// and becomes scrollable beyond it
+// Gives minimum height to offset the height of
+// button and comment box
 const MINIMUM_BOTTOM_OFFSET = 240;
 
 class IOUConfirmationList extends Component {
