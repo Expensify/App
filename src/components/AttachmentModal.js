@@ -102,6 +102,7 @@ class AttachmentModal extends PureComponent {
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
                     onModalHide={this.props.onModalHide}
+                    propagateSwipe
                 >
                     <HeaderWithCloseButton
                         title={this.props.title}

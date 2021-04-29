@@ -8,7 +8,10 @@ const propTypes = {
     maxLines: PropTypes.number,
 
     // The default value of the comment box
-    defaultValue: PropTypes.string.isRequired,
+    defaultValue: PropTypes.string,
+
+    // The value of the comment box
+    value: PropTypes.string,
 
     // Callback method to handle pasting a file
     onPasteFile: PropTypes.func,
@@ -44,6 +47,8 @@ const propTypes = {
 };
 
 const defaultProps = {
+    defaultValue: undefined,
+    value: undefined,
     maxLines: -1,
     onPasteFile: () => {},
     shouldClear: false,
@@ -73,17 +78,20 @@ class TextInputFocusable extends React.Component {
     constructor(props) {
         super(props);
 
+        const initialValue = props.defaultValue
+            ? `${props.defaultValue}`
+            : `${props.value || ''}`;
+
         this.state = {
             numberOfLines: 1,
             selection: {
-                start: this.props.defaultValue.length,
-                end: this.props.defaultValue.length,
+                start: initialValue.length,
+                end: initialValue.length,
             },
         };
     }
 
     componentDidMount() {
-        this.focusInput();
         this.updateNumberOfLines();
 
         // This callback prop is used by the parent component using the constructor to
@@ -201,10 +209,6 @@ class TextInputFocusable extends React.Component {
                 numberOfLines: this.getNumberOfLines(lineHeight, paddingTopAndBottom, this.textInput.scrollHeight),
             });
         });
-    }
-
-    focusInput() {
-        this.textInput.focus();
     }
 
     render() {

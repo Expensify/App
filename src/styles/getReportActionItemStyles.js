@@ -1,3 +1,4 @@
+import colors from './colors';
 import themeColors from './themes/default';
 import positioning from './utilities/positioning';
 
@@ -11,7 +12,11 @@ export function getReportActionItemStyle(isHovered = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
-        backgroundColor: isHovered ? themeColors.hoverComponentBG : themeColors.componentBG,
+        backgroundColor: isHovered
+            ? themeColors.hoverComponentBG
+
+            // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
+            : colors.transparent,
         cursor: 'default',
     };
 }
@@ -27,5 +32,6 @@ export function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGro
         ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
         ...positioning.r4,
         position: 'absolute',
+        zIndex: 1,
     };
 }

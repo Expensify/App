@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseCreateMenu from './BaseCreateMenu';
-import createMenuPropTypes from './CreateMenuPropTypes';
+import {propTypes, defaultProps} from './CreateMenuPropTypes';
 
 /**
  * The web implementation of the menu needs to trigger actions before the popup closes
@@ -23,6 +23,8 @@ const CreateMenu = (props) => {
     return <BaseCreateMenu {...props} onItemSelected={selectItem} />;
 };
 
-CreateMenu.propTypes = createMenuPropTypes;
+CreateMenu.propTypes = propTypes;
+CreateMenu.defaultProps = defaultProps;
+CreateMenu.displayName = 'CreateMenu';
 
 export default CreateMenu;

@@ -68,6 +68,9 @@ const propTypes = {
 
     // The chat priority mode
     priorityMode: PropTypes.string,
+
+    // Whether we have the necessary report data to load the sidebar
+    initialReportDataLoaded: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -80,6 +83,7 @@ const defaultProps = {
     network: null,
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    initialReportDataLoaded: false,
 };
 
 class SidebarLinks extends React.Component {
@@ -88,6 +92,11 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
+        // Wait until the reports are actually loaded before displaying the LHN
+        if (!this.props.initialReportDataLoaded) {
+            return null;
+        }
+
         const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
 
         const {recentReports} = getSidebarOptions(
@@ -117,7 +126,11 @@ class SidebarLinks extends React.Component {
                     ]}
                     nativeID="drag-area"
                 >
-                    <Header textSize="large" title="Chats" />
+                    <Header
+                        textSize="large"
+                        title="Chats"
+                        shouldShowEnvironmentBadge
+                    />
                     <TouchableOpacity
                         style={[styles.flexRow, styles.ph5]}
                         onPress={this.showSearchPage}
@@ -183,6 +196,9 @@ export default compose(
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
+        },
+        initialReportDataLoaded: {
+            key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
         },
     }),
 )(SidebarLinks);

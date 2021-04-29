@@ -9,8 +9,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import CONST from '../../../CONST';
 import compose from '../../compose';
 import {
-    subscribeToReportCommentEvents,
-    fetchAll as fetchAllReports,
+    subscribeToUserEvents,
+    fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
 import * as Pusher from '../../Pusher/pusher';
@@ -41,11 +41,13 @@ import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     DetailsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
+import SCREENS from '../../../SCREENS';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -81,6 +83,7 @@ const propTypes = {
         // Is the network currently offline or not
         isOffline: PropTypes.bool,
     }),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -103,7 +106,7 @@ class AuthScreens extends React.Component {
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
-        }).then(subscribeToReportCommentEvents);
+        }).then(subscribeToUserEvents);
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
@@ -134,8 +137,8 @@ class AuthScreens extends React.Component {
         }, ['meta'], true);
     }
 
-    shouldComponentUpdate(prevProps) {
-        if (prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
             return true;
         }
 
@@ -156,6 +159,7 @@ class AuthScreens extends React.Component {
             cardStyleInterpolator: modalCardStyleInterpolator,
             animationEnabled: true,
             gestureDirection: 'horizontal',
+            cardOverlayEnabled: true,
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
@@ -167,7 +171,7 @@ class AuthScreens extends React.Component {
             >
                 {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
                 <RootStack.Screen
-                    name="Home"
+                    name={SCREENS.HOME}
                     options={{
                         headerShown: false,
                         title: 'Expensify.cash',
@@ -217,6 +221,11 @@ class AuthScreens extends React.Component {
                     options={modalScreenOptions}
                     component={DetailsModalStackNavigator}
                     listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="Participants"
+                    options={modalScreenOptions}
+                    component={ReportParticipantsModalStackNavigator}
                 />
                 <RootStack.Screen
                     name="IOU_Request"
