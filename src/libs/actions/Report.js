@@ -927,11 +927,13 @@ function addAction(reportID, text, file) {
  * network layer handle the delayed write.
  *
  * @param {Number} reportID
- * @param {Number} [sequenceNumber]
+ * @param {Number} [sequenceNumber] This can be used to set the last read actionID to a specific
+ *  spot (eg. mark-as-unread). Otherwise, when this param is omitted, the highest sequence number becomes the one that
+ *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
-    // If we are not specifying the sequence number, let's set it to the max one available, so that all actions in the
-    // report are considered "read".
+    // Need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot. If 1 isn't subtracted
+    // then the "New" marker appears one row below the action
     const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
 
     setLocalLastRead(reportID, lastReadSequenceNumber);
