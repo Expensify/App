@@ -4,6 +4,7 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
+        IOU: 'IOU',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
