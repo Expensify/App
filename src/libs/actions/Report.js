@@ -946,6 +946,20 @@ function updateCurrentlyViewedReportID(reportID) {
     Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, String(reportID));
 }
 
+/**
+ * Given a collection of reports finds the most recently accessed one
+ *
+ * @param {Record<String, {lastVisitedTimestamp}>|Array<{lastVisitedTimestamp}>} reports
+ * @returns {Object}
+ */
+function findLastAccessedReport(reports) {
+    return _.chain(reports)
+        .toArray()
+        .sortBy('lastVisitedTimestamp')
+        .last()
+        .value();
+}
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: handleReportChanged,
@@ -960,6 +974,7 @@ export {
     fetchAllReports,
     fetchActions,
     fetchOrCreateChatReport,
+    findLastAccessedReport,
     addAction,
     updateLastReadActionID,
     subscribeToReportCommentEvents,

@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
+import {findLastAccessedReport} from '../../actions/Report';
 import styles, {
     getNavigationDrawerType,
     getNavigationDrawerStyle,
@@ -43,8 +44,8 @@ const MainDrawerNavigator = (props) => {
         return <FullScreenLoadingIndicator visible />;
     }
 
-    // Use the provided initialReport or fallback to the first available
-    const initialReportId = props.initialReportID || _.first(_.values(props.reports)).reportID;
+    // Use the provided initialReport or fallback to the last accessed
+    const initialReportID = props.initialReportID || findLastAccessedReport(props.reports).reportID;
 
     /* After the app initializes and reports are available the home navigation is mounted
     * This way routing information is updated (if needed) based on the initial report ID resolved.
@@ -68,7 +69,7 @@ const MainDrawerNavigator = (props) => {
             <Drawer.Screen
                 name={SCREENS.REPORT}
                 component={ReportScreen}
-                initialParams={{reportID: initialReportId}}
+                initialParams={{reportID: initialReportID.toString()}}
             />
         </Drawer.Navigator>
     );
