@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import TransactionItem from '../../components/TransactionItem';
+import ReportTransaction from '../../components/ReportTransaction';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
@@ -128,7 +128,7 @@ class IOUDetailsModal extends Component {
                             return false;
                         });
                         return (
-                            <TransactionItem
+                            <ReportTransaction
                                 transaction={transaction}
                                 action={actionForTransaction}
                             />

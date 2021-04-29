@@ -37,7 +37,7 @@ const defaultProps = {
     personalDetails: {},
 };
 
-class TransactionItem extends Component {
+class ReportTransaction extends Component {
     constructor(props) {
         super(props);
 
@@ -45,8 +45,6 @@ class TransactionItem extends Component {
     }
 
     removeTransaction() {
-        // TODO: delegate to parent
-        console.debug('removeTransaction');
         rejectTransaction({
             reportID: 999,
             transactionID: 999999,
@@ -79,11 +77,11 @@ class TransactionItem extends Component {
     }
 }
 
-TransactionItem.displayName = 'TransactionItem';
-TransactionItem.defaultProps = defaultProps;
-TransactionItem.propTypes = propTypes;
+ReportTransaction.displayName = 'ReportTransaction';
+ReportTransaction.defaultProps = defaultProps;
+ReportTransaction.propTypes = propTypes;
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
     },
-})(TransactionItem);
+})(ReportTransaction);
