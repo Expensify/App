@@ -364,18 +364,15 @@ function getNewChatOptions(
  *
  * @param {Object} myPersonalDetail
  * @param {String} amountText
- * @returns {Array}
+ * @returns {Object}
  */
-function getIOUConfirmationOptionsFromMyPersonalDetail(
-    myPersonalDetail,
-    amountText,
-) {
-    return [{
+function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountText) {
+    return {
         text: myPersonalDetail.displayName,
         alternateText: myPersonalDetail.login,
         icons: [myPersonalDetail.avatar],
         descriptiveText: amountText,
-    }];
+    };
 }
 
 /**
