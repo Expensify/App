@@ -395,7 +395,6 @@ function setLocalLastRead(reportID, lastReadSequenceNumber) {
  * @param {Number} reportID
  */
 function setNewMarkerInitialPosition(reportID) {
-
     // If we have any unread actions, we determine the last read action by deduction the number of unread actions
     // from the total number of actions in the report
     const lastReadSequenceNumber = allReports[reportID].unreadActionCount === 0
