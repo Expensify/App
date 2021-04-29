@@ -366,18 +366,6 @@ class ReportActionCompose extends React.Component {
                                                         },
                                                     },
                                                 ]}
-
-                                            /**
-                                             * Temporarily hiding IOU Modal options while Modal is incomplete. Will
-                                             * be replaced by a beta flag once IOUConfirm is completed.
-                                            menuOptions={hasMultipleParticipants
-                                                ? [
-                                                    CONST.MENU_ITEM_KEYS.SPLIT_BILL,
-                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
-                                                : [
-                                                    CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
-                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
-                                            */
                                             />
                                         </>
                                     )}
