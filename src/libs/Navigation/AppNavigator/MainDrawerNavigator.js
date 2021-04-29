@@ -22,6 +22,14 @@ const propTypes = {
     // Initial report to be used if nothing else is specified by routing
     initialReportID: PropTypes.string,
 
+    // Route data passed by react navigation
+    route: PropTypes.shape({
+        state: PropTypes.shape({
+            // A list of mounted screen names
+            routeNames: PropTypes.arrayOf(PropTypes.string),
+        }),
+    }).isRequired,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -31,72 +39,59 @@ const defaultProps = {
 
 const Drawer = createDrawerNavigator();
 
-class MainDrawerNavigator extends React.Component {
-    constructor(props) {
-        super(props);
-        this.shouldMountReportScreen = _.isString(props.initialReportID);
+/**
+ * Derives whether it's time to mount the ReportScreen from current component props
+ *
+ * @param {String} initialReportID
+ * @param {Object} route
+ * @returns {boolean}
+ */
+const shouldMountReportScreen = ({initialReportID, route}) => {
+    if (_.isString(initialReportID)) {
+        return true;
     }
 
-    shouldComponentUpdate(nextProps) {
-        // Once the report screen is mounted we don't unmount it
-        if (!this.shouldMountReportScreen) {
-            this.shouldMountReportScreen = _.isString(nextProps.initialReportID);
+    // After the ReportScreen is mounted it should stay mounted no matter initial report ID
+    return Boolean(route.state) && route.state.routeNames.includes(SCREENS.REPORT);
+};
 
-            if (this.shouldMountReportScreen) {
-                return true;
-            }
+const MainDrawerNavigator = props => (
+    <Drawer.Navigator
+        openByDefault
+        drawerType={getNavigationDrawerType(props.isSmallScreenWidth)}
+        drawerStyle={getNavigationDrawerStyle(
+            props.windowWidth,
+            props.isSmallScreenWidth,
+        )}
+        sceneContainerStyle={styles.navigationSceneContainer}
+        edgeWidth={500}
+        drawerContent={() => <SidebarScreen />}
+        screenOptions={{
+            cardStyle: styles.navigationScreenCardStyle,
+            headerShown: false,
+        }}
+    >
+        {
+            shouldMountReportScreen(props)
+                ? (
+                    <Drawer.Screen
+                        name={SCREENS.REPORT}
+                        component={ReportScreen}
+                        initialParams={{reportID: props.initialReportID}}
+                    />
+                )
+                : (
+                    <Drawer.Screen name={SCREENS.LOADING}>
+                        {() => <FullScreenLoadingIndicator visible />}
+                    </Drawer.Screen>
+                )
         }
-
-        // Re-render the component only for these changes
-        const shouldUpdateForProps = ['windowWidth', 'isSmallScreenWidth'];
-
-        const areEqual = _.isEqual(
-            _.pick(this.props, ...shouldUpdateForProps),
-            _.pick(nextProps, ...shouldUpdateForProps),
-        );
-
-        return !areEqual;
-    }
-
-    render() {
-        return (
-            <Drawer.Navigator
-                openByDefault
-                drawerType={getNavigationDrawerType(this.props.isSmallScreenWidth)}
-                drawerStyle={getNavigationDrawerStyle(
-                    this.props.windowWidth,
-                    this.props.isSmallScreenWidth,
-                )}
-                sceneContainerStyle={styles.navigationSceneContainer}
-                edgeWidth={500}
-                drawerContent={() => <SidebarScreen />}
-                screenOptions={{
-                    cardStyle: styles.navigationScreenCardStyle,
-                    headerShown: false,
-                }}
-            >
-                {
-                    this.shouldMountReportScreen
-                        ? (
-                            <Drawer.Screen
-                                name={SCREENS.REPORT}
-                                component={ReportScreen}
-                                initialParams={{reportID: this.props.initialReportID}}
-                            />
-                        )
-                        : (
-                            <Drawer.Screen name={SCREENS.LOADING}>
-                                {() => <FullScreenLoadingIndicator visible />}
-                            </Drawer.Screen>
-                        )
-                }
-            </Drawer.Navigator>
-        );
-    }
-}
+    </Drawer.Navigator>
+);
 
 MainDrawerNavigator.propTypes = propTypes;
 MainDrawerNavigator.defaultProps = defaultProps;
+MainDrawerNavigator.displayName = 'MainDrawerNavigator';
 export default compose(
     withWindowDimensions,
     withOnyx({
