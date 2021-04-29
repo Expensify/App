@@ -79,7 +79,7 @@ class ReportActionContextMenu extends React.Component {
                 successIcon: Checkmark,
                 shouldShow: true,
                 onPress: () => {
-                    updateLastReadActionID(this.props.reportID);
+                    updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
                     setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
                 },
             },
