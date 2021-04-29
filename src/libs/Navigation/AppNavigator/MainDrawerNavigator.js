@@ -20,9 +20,6 @@ import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import ReportScreen from '../../../pages/home/ReportScreen';
 
 const propTypes = {
-    // Initial report to be used if nothing else is specified by routing
-    initialReportID: PropTypes.string,
-
     // Available reports that would be displayed in this navigator
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
@@ -32,11 +29,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    initialReportID: null,
     reports: {},
 };
 
 const Drawer = createDrawerNavigator();
+
+// Decorated to always returning the result of the first call - keeps Screen initialParams from changing
+const getInitialReport = _.once(getLastAccessedReport);
 
 const MainDrawerNavigator = (props) => {
     // When there are no reports there's no point to render the empty navigator
@@ -44,8 +43,7 @@ const MainDrawerNavigator = (props) => {
         return <FullScreenLoadingIndicator visible />;
     }
 
-    // Use the provided initialReport or fallback to the last accessed
-    const initialReportID = props.initialReportID || getLastAccessedReport(props.reports).reportID;
+    const initialReportID = getInitialReport(props.reports).reportID;
 
     /* After the app initializes and reports are available the home navigation is mounted
     * This way routing information is updated (if needed) based on the initial report ID resolved.
@@ -82,9 +80,6 @@ MainDrawerNavigator.displayName = 'MainDrawerNavigator';
 export default compose(
     withWindowDimensions,
     withOnyx({
-        initialReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
-        },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
