@@ -28,6 +28,7 @@ const defaultProps = {
         chatReportID: 0,
     },
     reportActions: [],
+    iou: {},
 };
 
 const propTypes = {
