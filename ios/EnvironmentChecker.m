@@ -10,16 +10,13 @@
 @implementation EnvironmentChecker
 
 RCT_EXPORT_MODULE();
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getEnvironment)
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isBeta)
 {
   NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
   NSString *receiptURLString = [receiptURL path];
   BOOL isRunningTestFlightBeta =  ([receiptURLString rangeOfString:@"sandboxReceipt"].location != NSNotFound);
-  if(isRunningTestFlightBeta) {
-    return @"TESTFLIGHT";
-  }
-
-  return @"PRODUCTION";
+  
+  return [NSNumber numberWithBool:isRunningTestFlightBeta];
 }
 
 @end

@@ -8,7 +8,7 @@ export default function getEnvironment() {
         return CONST.ENVIRONMENT.DEV;
     }
 
-    return NativeModules.EnvironmentChecker.getEnvironment() === 'TESTFLIGHT'
+    return NativeModules.EnvironmentChecker.isBeta()
         ? CONST.ENVIRONMENT.STAGING
         : CONST.ENVIRONMENT.PRODUCTION;
 }
