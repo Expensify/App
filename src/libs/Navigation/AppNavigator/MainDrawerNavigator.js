@@ -1,16 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {withOnyx} from 'react-native-onyx';
 
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
-import {getLastAccessedReport} from '../../reportUtils';
-import styles, {
-    getNavigationDrawerType,
-    getNavigationDrawerStyle,
-} from '../../../styles/styles';
+import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../compose';
 import SCREENS from '../../../SCREENS';
@@ -18,6 +15,7 @@ import SCREENS from '../../../SCREENS';
 // Screens
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
 import ReportScreen from '../../../pages/home/ReportScreen';
+import {findLastAccessedReport} from '../../reportUtils';
 
 const propTypes = {
     // Available reports that would be displayed in this navigator
@@ -34,16 +32,23 @@ const defaultProps = {
 
 const Drawer = createDrawerNavigator();
 
-// Decorated to always returning the result of the first call - keeps Screen initialParams from changing
-const getInitialReport = _.once(getLastAccessedReport);
+/**
+ * We are decorating findLastAccessedReport so that it caches the first result once the reports load.
+ * This will ensure the initialParams are only set once for the ReportScreen.
+ */
+const getInitialReportScreenParams = _.once((reports) => {
+    const last = findLastAccessedReport(reports);
+
+    // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
+    const reportID = lodashGet(last, 'reportID', '');
+    return {reportID};
+});
 
 const MainDrawerNavigator = (props) => {
     // When there are no reports there's no point to render the empty navigator
     if (_.size(props.reports) === 0) {
         return <FullScreenLoadingIndicator visible />;
     }
-
-    const initialReportID = getInitialReport(props.reports).reportID;
 
     /* After the app initializes and reports are available the home navigation is mounted
     * This way routing information is updated (if needed) based on the initial report ID resolved.
@@ -67,7 +72,7 @@ const MainDrawerNavigator = (props) => {
             <Drawer.Screen
                 name={SCREENS.REPORT}
                 component={ReportScreen}
-                initialParams={{reportID: initialReportID.toString()}}
+                initialParams={getInitialReportScreenParams(props.reports)}
             />
         </Drawer.Navigator>
     );
@@ -85,3 +90,4 @@ export default compose(
         },
     }),
 )(MainDrawerNavigator);
+export {getInitialReportScreenParams};
