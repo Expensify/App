@@ -148,7 +148,6 @@ function settleIOUReport({
         .then((data) => {
             if (data.jsonCode != 200) {
                 console.error(data.message);
-                return;
             }
         })
         .then(fetchChatReportsByIDs(chatReportID))

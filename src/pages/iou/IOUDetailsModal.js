@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -130,14 +129,13 @@ IOUDetailsModal.displayName = 'IOUDetailsModal';
 IOUDetailsModal.defaultProps = defaultProps;
 
 export default withOnyx({
-        iou: {
-            key: ONYXKEYS.IOU,
-        },
-        iouReport: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }
-)(IOUDetailsModal);
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    iouReport: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(IOUDetailsModal);
