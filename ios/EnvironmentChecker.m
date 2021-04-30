@@ -18,6 +18,7 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isBeta)
   NSString *receiptURLString = [receiptURL path];
   BOOL isRunningTestFlightBeta =  ([receiptURLString rangeOfString:@"sandboxReceipt"].location != NSNotFound);
   
+  // We return a number here because the return value must be of an object type, so BOOL isn't an option
   return [NSNumber numberWithBool:isRunningTestFlightBeta];
 }
 
