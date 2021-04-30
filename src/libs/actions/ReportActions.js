@@ -47,7 +47,7 @@ Onyx.connect({
 function dangerouslyGetReportActionsMaxSequenceNumber(reportID, shouldWarn = true) {
     if (shouldWarn) {
         // eslint-disable-next-line max-len
-        console.error('dangerouslyGetReportActionsMaxSequenceNumber is unreliable and should not be used to access the maxSequenceNumber for a report. Use reportMaxSequenceNumbers[reportID] instead.');
+        console.error('WARNING: dangerouslyGetReportActionsMaxSequenceNumber is unreliable as it ONLY references reportActions in storage. It should not be used to access the maxSequenceNumber for a report. Use reportMaxSequenceNumbers[reportID] instead.');
     }
 
     return reportActionsMaxSequenceNumbers[reportID];
