@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Dimensions, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
@@ -15,6 +15,8 @@ import OptionsList from './OptionsList';
 import ButtonWithLoader from './ButtonWithLoader';
 import ONYXKEYS from '../ONYXKEYS';
 import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import compose from '../libs/compose';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -54,6 +56,8 @@ const propTypes = {
         reportID: PropTypes.number,
         participantsList: PropTypes.arrayOf(PropTypes.object),
     })).isRequired,
+
+    ...windowDimensionsPropTypes,
 
     /* Onyx Props */
 
@@ -213,7 +217,7 @@ class IOUConfirmationList extends Component {
                         listContainerStyles={[{
                             // Give max height to the list container so that it does not extend
                             // beyond the comment view as well as button
-                            maxHeight: Dimensions.get('window').height - MINIMUM_BOTTOM_OFFSET
+                            maxHeight: this.props.windowHeight - MINIMUM_BOTTOM_OFFSET
                                 - this.props.insets.top - this.props.insets.bottom,
                         }]}
                         sections={this.getSections()}
@@ -261,9 +265,9 @@ IOUConfirmationList.displayName = 'IOUConfirmPage';
 IOUConfirmationList.propTypes = propTypes;
 IOUConfirmationList.defaultProps = defaultProps;
 
-export default withOnyx({
+export default compose(withOnyx({
     iou: {key: ONYXKEYS.IOU},
     myPersonalDetails: {
         key: ONYXKEYS.MY_PERSONAL_DETAILS,
     },
-})(withSafeAreaInsets(IOUConfirmationList));
+}), withSafeAreaInsets, withWindowDimensions)(IOUConfirmationList);
