@@ -8,6 +8,8 @@ export default function getEnvironment() {
         return CONST.ENVIRONMENT.DEV;
     }
 
+    // Since we promote staging builds to production without creating a new build, check w/ the native side to see if
+    // this is staging (TestFlight) or production
     return NativeModules.EnvironmentChecker.isBeta()
         ? CONST.ENVIRONMENT.STAGING
         : CONST.ENVIRONMENT.PRODUCTION;

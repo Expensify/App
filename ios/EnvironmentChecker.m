@@ -10,6 +10,8 @@
 @implementation EnvironmentChecker
 
 RCT_EXPORT_MODULE();
+
+// Synchonously check if we are on a TestFlight build
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isBeta)
 {
   NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
