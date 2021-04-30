@@ -6,7 +6,7 @@ const timers = [];
  * Register a timer so it can be cleaned up later.
  *
  * @param {Number} timerID
- * @return {Number}
+ * @returns {Number}
  */
 function register(timerID) {
     timers.push(timerID);
