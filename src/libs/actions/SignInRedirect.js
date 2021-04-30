@@ -4,6 +4,7 @@ import * as Pusher from '../Pusher/pusher';
 import NetworkConnection from '../NetworkConnection';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import PushNotification from '../Notification/PushNotification';
+import CONST from '../../CONST';
 
 let currentURL;
 Onyx.connect({
@@ -17,6 +18,13 @@ Onyx.connect({
     callback: (val) => {
         currentActiveClients = !val ? [] : val;
     },
+});
+
+// Keep track of the current environment so we can reset it in Onyx when we signout and clear the store
+let currentEnvironment = CONST.ENVIRONMENT.PRODUCTION;
+Onyx.connect({
+    key: ONYXKEYS.ENVIRONMENT,
+    callback: val => currentEnvironment = val,
 });
 
 /**
@@ -41,6 +49,7 @@ function redirectToSignIn(errorMessage) {
     }
 
     const activeClients = currentActiveClients;
+    const environment = currentEnvironment;
 
     // We must set the authToken to null so we can navigate to "signin" it's not possible to navigate to the route as
     // it only exists when the authToken is null.
@@ -52,6 +61,9 @@ function redirectToSignIn(errorMessage) {
                 }
                 if (activeClients && activeClients.length > 0) {
                     Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
+                }
+                if (environment) {
+                    Onyx.set(ONYXKEYS.ENVIRONMENT, environment);
                 }
             });
         });
