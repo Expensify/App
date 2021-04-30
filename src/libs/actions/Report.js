@@ -808,10 +808,14 @@ function fetchAllReports(
                 ));
 
                 if (_.isEmpty(reportIDsToFetchActions)) {
+                    console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
                     return;
                 }
 
                 _.each(reportIDsToFetchActions, (reportID) => {
+                    console.debug('[Report] Fetching reportActions for reportIDs: ', {
+                        reportIDs: reportIDsToFetchActions,
+                    });
                     const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
                     fetchActions(reportID, offset);
                 });
