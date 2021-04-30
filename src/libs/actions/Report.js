@@ -812,10 +812,10 @@ function fetchAllReports(
                     return;
                 }
 
+                console.debug('[Report] Fetching reportActions for reportIDs: ', {
+                    reportIDs: reportIDsToFetchActions,
+                });
                 _.each(reportIDsToFetchActions, (reportID) => {
-                    console.debug('[Report] Fetching reportActions for reportIDs: ', {
-                        reportIDs: reportIDsToFetchActions,
-                    });
                     const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
                     fetchActions(reportID, offset);
                 });
