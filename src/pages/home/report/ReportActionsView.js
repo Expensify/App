@@ -351,6 +351,7 @@ class ReportActionsView extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 iouReportID={this.props.report.iouReportID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
+                index={index}
             />
         );
     }

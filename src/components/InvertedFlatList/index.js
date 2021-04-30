@@ -7,6 +7,7 @@ import React, {
 import PropTypes from 'prop-types';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import {FlatList} from 'react-native';
+import _ from 'underscore';
 
 const propTypes = {
     // Passed via forwardRef so we can access the FlatList ref
@@ -25,9 +26,13 @@ const InvertedFlatList = (props) => {
         e.preventDefault();
     }, []);
 
-    // useEffect(() => {
-    //     props.innerRef(ref.current);
-    // }, []);
+    useEffect(() => {
+        if (!_.isFunction(props.innerRef)) {
+            props.innerRef.current = ref.current;
+        } else {
+            props.innerRef(ref.current);
+        }
+    }, []);
 
     useEffect(() => {
         const currentRef = ref.current;

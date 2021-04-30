@@ -17,6 +17,9 @@ const propTypes = {
 
     // ReportID that holds the comment we're editing
     reportID: PropTypes.number.isRequired,
+
+    // Position index of the report action in the overall report FlatList view
+    index: PropTypes.number.isRequired,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -95,9 +98,9 @@ class ReportActionItemMessageEdit extends React.Component {
                     maxLines={16} // This is the same that slack has
                     style={[styles.textInput, styles.flex0]}
                     onFocus={() => {
-                        debugger;
-                        scrollToIndex({animated: false, index: 0});
+                        scrollToIndex({animated: true, index: this.props.index}, true);
                     }}
+                    autoFocus
                 />
                 <View style={[styles.flexRow, styles.mt1]}>
                     <Pressable style={[styles.button, styles.mr2]} onPress={this.deleteDraft}>
