@@ -812,7 +812,7 @@ function fetchAllReports(
             }
 
             // Optionally delay fetching report history as it significantly increases sign in to interactive time
-            Timers.register(setTimeout(() => {
+            const timerID = setTimeout(() => {
                 // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
                 // content and improve chat switching experience
                 const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
@@ -832,7 +832,10 @@ function fetchAllReports(
 
                 // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading
                 // before bogging it down with more requests and operations.
-            }, shouldDelayActionsFetch ? 8000 : 1000));
+            }, shouldDelayActionsFetch ? 8000 : 1000);
+
+            // Register the timer so we can clean it up on sign out if it has not yet fired.
+            Timers.register(timerID);
         });
 }
 
