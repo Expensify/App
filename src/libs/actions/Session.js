@@ -8,7 +8,6 @@ import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import Timing from './Timing';
 import CONST from '../../CONST';
-import Timers from '../Timers';
 
 let credentials = {};
 Onyx.connect({
@@ -56,7 +55,6 @@ function createAccount(login) {
  */
 function signOut() {
     Timing.clearData();
-    Timers.clearAll();
     redirectToSignIn();
 
     console.debug('Redirecting to Sign In because signOut() was called');

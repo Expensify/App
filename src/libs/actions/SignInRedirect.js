@@ -3,6 +3,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import PushNotification from '../Notification/PushNotification';
+import Timers from '../Timers';
 
 let currentURL;
 Onyx.connect({
@@ -28,6 +29,7 @@ function redirectToSignIn(errorMessage) {
     UnreadIndicatorUpdater.stopListeningForReportChanges();
     PushNotification.deregister();
     Pusher.disconnect();
+    Timers.clearAll();
 
     if (!currentURL) {
         return;
