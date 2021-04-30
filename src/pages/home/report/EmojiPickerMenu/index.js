@@ -95,7 +95,7 @@ class EmojiPickerMenu extends Component {
         // Setup and attach keypress/mouse handlers only if we have a keyboard (and not a touchscreen)
         // NOTE: these event handlers are instance members so we can reference
         // the same functions in memory when removing them.
-        if (!canUseTouchScreen() && document) {
+        if (document) {
             this.keyDownHandler = (e) => {
                 // Move the highlight when arrow keys are pressed
                 if (e.key.startsWith('Arrow')) {
