@@ -22,6 +22,9 @@ const EXTRA_FONTS = [
     fontFamily.GTA_BOLD,
     fontFamily.GTA_ITALIC,
     fontFamily.MONOSPACE,
+    fontFamily.MONOSPACE_ITALIC,
+    fontFamily.MONOSPACE_BOLD,
+    fontFamily.MONOSPACE_BOLD_ITALIC,
     fontFamily.SYSTEM,
 ];
 
@@ -65,11 +68,24 @@ function CodeRenderer({
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
     const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style);
+
+    const italic = textStyle.fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
+    const bold = textStyle.fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
+    const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
+
+    const font = italicBold || bold || italic || fontFamily.MONOSPACE;
+
+    const textStyleOverride = {
+        fontFamily: font,
+        fontWeight: undefined,
+        fontStyle: undefined,
+    };
+
     return (
         <InlineCodeBlock
             TDefaultRenderer={TDefaultRenderer}
             boxModelStyle={boxModelStyle}
-            textStyle={textStyle}
+            textStyle={{...textStyle, ...textStyleOverride}}
             defaultRendererProps={defaultRendererProps}
             key={key}
         />

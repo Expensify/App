@@ -1,5 +1,4 @@
 import fontFamily from './fontFamily';
-import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
@@ -1408,7 +1407,7 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
-            fontStyle: italic,
+            fontStyle: 'italic',
         },
 
         del: {
@@ -1418,7 +1417,7 @@ const webViewStyles = {
 
         strong: {
             fontFamily: fontFamily.GTA_BOLD,
-            fontWeight: fontWeightBold,
+            fontWeight: 'bold',
         },
 
         a: styles.link,
