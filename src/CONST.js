@@ -125,6 +125,10 @@ const CONST = {
         STAGING: 'STG',
         PRODUCTION: 'PROD',
     },
+    DELAY: {
+        STARTUP: 8000,
+        RECONNECT: 1000,
+    },
 };
 
 export default CONST;
