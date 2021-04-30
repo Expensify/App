@@ -210,7 +210,7 @@ class IOUCurrencySelection extends Component {
                                     preferredCurrencyCode: this.state.selectedCurrency.currencyCode,
                                     preferredCurrencySymbol: this.state.selectedCurrency.currencySymbol,
                                 });
-                                Navigation.dismissModal();
+                                Navigation.goBack();
                             }}
                             style={({hovered}) => [
                                 styles.button,
