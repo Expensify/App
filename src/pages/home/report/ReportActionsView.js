@@ -378,7 +378,7 @@ class ReportActionsView extends React.Component {
                 renderItem={this.renderItem}
                 CellRendererComponent={this.renderCell}
                 contentContainerStyle={[styles.chatContentScrollView]}
-                keyExtractor={item => `${item.action.clientID}`}
+                keyExtractor={item => `${item.action.clientID}` || `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}
