@@ -13,7 +13,7 @@ import Text from '../../../components/Text';
 import {
     fetchActions,
     updateLastReadActionID,
-    setNewMarkerInitialPosition,
+    setNewMarkerPosition,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
 } from '../../../libs/actions/Report';
@@ -105,8 +105,15 @@ class ReportActionsView extends React.Component {
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         updateLastReadActionID(this.props.reportID);
 
-        // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount
-        setNewMarkerInitialPosition(this.props.reportID);
+        // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
+        // We determine the last read action by deducting the number of unread actions from the total number.
+        const lastReadSequenceNumber = this.props.report.unreadActionCount === 0
+            ? 0
+            : this.props.report.maxSequenceNumber - this.props.report.unreadActionCount;
+
+        // We are adding 1 to the last read sequence number because we want the New marker displayed over the
+        // first unread sequence
+        setNewMarkerPosition(this.props.reportID, lastReadSequenceNumber + 1);
         fetchActions(this.props.reportID);
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
