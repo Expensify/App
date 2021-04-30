@@ -177,7 +177,7 @@ function getSimplifiedReportObject(report) {
  * @param {String} reportData.ownerEmail
  * @param {String} reportData.managerEmail
  * @param {Number} reportData.reportID
- * @param {Number} chatReportID
+ * @param {Number|String} chatReportID
  * @returns {Object}
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
@@ -195,12 +195,13 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         managerEmail: reportData.managerEmail,
         currency: reportData.currency,
         transactions,
-        chatReportID,
+        chatReportID: Number(chatReportID),
         state: reportData.state,
         cachedTotal: reportData.cachedTotal,
         total: reportData.total,
         status: reportData.status,
         stateNum: reportData.stateNum,
+        hasOutstandingIOU: reportData.stateNum === 1 && reportData.total !== 0,
     };
 }
 
@@ -745,12 +746,10 @@ function fetchActions(reportID, offset) {
 /**
  * Get all of our reports
  *
- * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
  */
 function fetchAllReports(
-    shouldRedirectToReport = true,
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
@@ -764,15 +763,20 @@ function fetchAllReports(
                 return;
             }
 
-            // The string cast here is necessary as Get rvl='chatList' may return an int
-            reportIDs = String(response.chatList).split(',');
+            // The cast here is necessary as Get rvl='chatList' may return an int or Array
+            reportIDs = String(response.chatList)
+                .split(',')
+                .filter(_.identity);
 
             // Get all the chat reports if they have any, otherwise create one with concierge
-            if (reportIDs.length) {
+            if (reportIDs.length > 0) {
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
+            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false)
+                .then((createdReportID) => {
+                    reportIDs = [createdReportID];
+                });
         })
         .then(() => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
@@ -791,16 +795,6 @@ function fetchAllReports(
             // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading before
             // bogging it down with more requests and operations.
             }, shouldDelayActionsFetch ? 8000 : 0);
-
-            // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
-            // one already.
-            if (!shouldRedirectToReport || lastViewedReportID) {
-                return;
-            }
-
-            const firstReportID = _.first(reportIDs);
-            const currentReportID = firstReportID ? String(firstReportID) : '';
-            Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
         });
 }
 
@@ -997,7 +991,7 @@ Onyx.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
-    fetchAllReports(false);
+    fetchAllReports();
 });
 
 export {

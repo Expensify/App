@@ -85,15 +85,11 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    // The initial report for the home screen
-    initialReportID: PropTypes.string,
-
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
-    initialReportID: null,
 };
 
 class AuthScreens extends React.Component {
@@ -102,8 +98,6 @@ class AuthScreens extends React.Component {
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
-
-        this.initialReportID = props.initialReportID;
     }
 
     componentDidMount() {
@@ -120,7 +114,7 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetch();
         User.getUserDetails();
         User.getBetas();
-        fetchAllReports(true, true, true);
+        fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 
@@ -149,15 +143,6 @@ class AuthScreens extends React.Component {
             return true;
         }
 
-        // Skip when `this.initialReportID` is already assigned. We no longer want to update it
-        if (!this.initialReportID) {
-            // Either we have a reportID or fetchAllReports resolved with no reports. Otherwise keep waiting
-            if (nextProps.initialReportID || nextProps.initialReportID === '') {
-                this.initialReportID = nextProps.initialReportID;
-                return true;
-            }
-        }
-
         return false;
     }
 
@@ -169,15 +154,10 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        // Wait to resolve initial Home route params.
-        if (!this.initialReportID) {
-            return null;
-        }
-
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            cardStyleInterpolator: modalCardStyleInterpolator,
+            cardStyleInterpolator: (...props) => modalCardStyleInterpolator(this.props.isSmallScreenWidth, ...props),
             animationEnabled: true,
             gestureDirection: 'horizontal',
             cardOverlayEnabled: true,
@@ -196,12 +176,6 @@ class AuthScreens extends React.Component {
                     options={{
                         headerShown: false,
                         title: 'Expensify.cash',
-                    }}
-                    initialParams={{
-                        screen: SCREENS.REPORT,
-                        params: {
-                            reportID: this.initialReportID,
-                        },
                     }}
                     component={MainDrawerNavigator}
                 />
@@ -283,9 +257,6 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
-        },
-        initialReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(AuthScreens);

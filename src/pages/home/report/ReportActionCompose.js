@@ -17,7 +17,13 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
 import {
-    Plus, Send, Emoji, Paperclip, Offline,
+    Plus,
+    Send,
+    Emoji,
+    Paperclip,
+    Offline,
+    MoneyCircle,
+    Receipt,
 } from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
@@ -33,6 +39,9 @@ import getButtonState from '../../../libs/getButtonState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
+import Permissions from '../../../libs/Permissions';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -128,6 +137,15 @@ class ReportActionCompose extends React.Component {
         }
     }
 
+    componentWillUnmount() {
+        if (this.emojiFocusInteractionHandle) {
+            this.emojiFocusInteractionHandle.cancel();
+        }
+        if (this.textInputFocusInteractionHandle) {
+            this.textInputFocusInteractionHandle.cancel();
+        }
+    }
+
     /**
      * Updates the Highlight state of the composer
      *
@@ -162,7 +180,7 @@ class ReportActionCompose extends React.Component {
         if (this.textInput) {
             // There could be other animations running while we trigger manual focus.
             // This prevents focus from making those animations janky.
-            InteractionManager.runAfterInteractions(() => {
+            this.textInputFocusInteractionHandle = InteractionManager.runAfterInteractions(() => {
                 this.textInput.focus();
             });
         }
@@ -250,9 +268,11 @@ class ReportActionCompose extends React.Component {
      * Focus the search input in the emoji picker.
      */
     focusEmojiSearchInput() {
-        if (this.emojiSearchInput) {
-            this.emojiSearchInput.focus();
-        }
+        this.emojiFocusInteractionHandle = InteractionManager.runAfterInteractions(() => {
+            if (this.emojiSearchInput && !this.props.isSmallScreenWidth) {
+                this.emojiSearchInput.focus();
+            }
+        });
     }
 
     /**
@@ -324,6 +344,27 @@ class ReportActionCompose extends React.Component {
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
+                                                    ...(Permissions.canUseIOU() ? [
+                                                        hasMultipleParticipants
+                                                            ? {
+                                                                icon: Receipt,
+                                                                text: 'Split Bill',
+                                                                onSelected: () => {
+                                                                    Navigation.navigate(
+                                                                        ROUTES.getIouSplitRoute(this.props.reportID),
+                                                                    );
+                                                                },
+                                                            }
+                                                            : {
+                                                                icon: MoneyCircle,
+                                                                text: 'Request Money',
+                                                                onSelected: () => {
+                                                                    Navigation.navigate(
+                                                                        ROUTES.getIouRequestRoute(this.props.reportID),
+                                                                    );
+                                                                },
+                                                            },
+                                                    ] : []),
                                                     {
                                                         icon: Paperclip,
                                                         text: 'Add Attachment',
@@ -336,18 +377,6 @@ class ReportActionCompose extends React.Component {
                                                         },
                                                     },
                                                 ]}
-
-                                            /**
-                                             * Temporarily hiding IOU Modal options while Modal is incomplete. Will
-                                             * be replaced by a beta flag once IOUConfirm is completed.
-                                            menuOptions={hasMultipleParticipants
-                                                ? [
-                                                    CONST.MENU_ITEM_KEYS.SPLIT_BILL,
-                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
-                                                : [
-                                                    CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
-                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
-                                            */
                                             />
                                         </>
                                     )}
@@ -398,8 +427,6 @@ class ReportActionCompose extends React.Component {
                         onClose={this.hideEmojiPicker}
                         onModalShow={this.focusEmojiSearchInput}
                         hideModalContentWhileAnimating
-                        animationInTiming={1}
-                        animationOutTiming={1}
                         anchorPosition={{
                             top: this.state.emojiPopoverAnchorPosition.vertical - CONST.EMOJI_PICKER_SIZE,
                             left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
