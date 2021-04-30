@@ -7,25 +7,39 @@ import {addAction} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/styles';
 import SwipeableView from '../../../components/SwipeableView';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /* The ID of the report the selected report */
     reportID: PropTypes.number.isRequired,
+
+    /* Onyx Keys */
+    // Whether or not to show the Compose Input
+    session: PropTypes.shape({
+        shouldShowComposeInput: PropTypes.bool.isRequired,
+    }).isRequired,
 };
 
-const ReportView = ({reportID}) => (
+const ReportView = ({reportID, session}) => (
     <View key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
-        <ReportActionsView reportID={reportID} />
+        <ReportActionsView reportID={reportID}/>
 
-        <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
-            <ReportActionCompose
-                onSubmit={text => addAction(reportID, text)}
-                reportID={reportID}
-            />
-        </SwipeableView>
+        {session.shouldShowComposeInput ? (
+            <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
+                <ReportActionCompose
+                    onSubmit={text => addAction(reportID, text)}
+                    reportID={reportID}
+                />
+            </SwipeableView>
+        ) : null}
         <KeyboardSpacer />
     </View>
 );
 
 ReportView.propTypes = propTypes;
-export default ReportView;
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(ReportView);

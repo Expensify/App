@@ -7,6 +7,7 @@ import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
 import {scrollToIndex} from '../../../libs/ReportScrollManager';
+import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 
 const propTypes = {
     // All the data of the action
@@ -52,6 +53,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     deleteDraft() {
         saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
+        toggleReportActionComposeView(true);
     }
 
     /**
@@ -99,7 +101,9 @@ class ReportActionItemMessageEdit extends React.Component {
                     style={[styles.textInput, styles.flex0]}
                     onFocus={() => {
                         scrollToIndex({animated: true, index: this.props.index}, true);
+                        toggleReportActionComposeView(false);
                     }}
+                    onBlur={() => toggleReportActionComposeView(true)}
                     autoFocus
                 />
                 <View style={[styles.flexRow, styles.mt1]}>
