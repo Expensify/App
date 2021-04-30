@@ -137,15 +137,6 @@ class ReportActionCompose extends React.Component {
         }
     }
 
-    componentWillUnmount() {
-        if (this.emojiFocusInteractionHandle) {
-            this.emojiFocusInteractionHandle.cancel();
-        }
-        if (this.textInputFocusInteractionHandle) {
-            this.textInputFocusInteractionHandle.cancel();
-        }
-    }
-
     /**
      * Updates the Highlight state of the composer
      *
@@ -180,7 +171,7 @@ class ReportActionCompose extends React.Component {
         if (this.textInput) {
             // There could be other animations running while we trigger manual focus.
             // This prevents focus from making those animations janky.
-            this.textInputFocusInteractionHandle = InteractionManager.runAfterInteractions(() => {
+            InteractionManager.runAfterInteractions(() => {
                 this.textInput.focus();
             });
         }
@@ -268,11 +259,9 @@ class ReportActionCompose extends React.Component {
      * Focus the search input in the emoji picker.
      */
     focusEmojiSearchInput() {
-        this.emojiFocusInteractionHandle = InteractionManager.runAfterInteractions(() => {
-            if (this.emojiSearchInput && !this.props.isSmallScreenWidth) {
-                this.emojiSearchInput.focus();
-            }
-        });
+        if (this.emojiSearchInput) {
+            this.emojiSearchInput.focus();
+        }
     }
 
     /**
@@ -427,6 +416,8 @@ class ReportActionCompose extends React.Component {
                         onClose={this.hideEmojiPicker}
                         onModalShow={this.focusEmojiSearchInput}
                         hideModalContentWhileAnimating
+                        animationInTiming={1}
+                        animationOutTiming={1}
                         anchorPosition={{
                             top: this.state.emojiPopoverAnchorPosition.vertical - CONST.EMOJI_PICKER_SIZE,
                             left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
