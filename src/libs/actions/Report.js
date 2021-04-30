@@ -65,18 +65,15 @@ Onyx.connect({
 const maxReportActionsSequenceNumbers = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (val, key) => {
-        if (!key || !val) {
+    callback: (actions, key) => {
+        if (!key || !actions) {
             return;
         }
 
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        const mostRecentAction = _.chain(val)
-            .filter(action => !action.loading)
-            .sortBy('sequenceNumber')
-            .last()
-            .value();
-
+        const actionsArray = _.toArray(actions);
+        const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.loading);
+        const mostRecentAction = actionsArray[mostRecentNonLoadingActionIndex];
         if (!mostRecentAction || _.isUndefined(mostRecentAction.sequenceNumber)) {
             return;
         }
@@ -731,6 +728,9 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
                 // Redirect the logged in person to the new report
                 Navigation.navigate(ROUTES.getReportRoute(data.reportID));
             }
+
+            // We are returning an array with the reportID here since fetchAllReports calls this method or
+            // fetchChatReportsByIDs which returns an array of reportIDs.
             return [data.reportID];
         });
 }

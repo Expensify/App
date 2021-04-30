@@ -6,7 +6,7 @@ import _ from 'underscore';
  * e.g. {1: '1', 2: '2', 3: '3'} -> '3'
  *
  * @param {Object} object
- * @return {*}
+ * @returns {*}
  */
 function lastItem(object = {}) {
     const lastKey = _.last(_.keys(object)) || 0;
