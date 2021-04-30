@@ -278,6 +278,7 @@ class IOUModal extends Component {
                 </View>
                 {currentStep === Steps.IOUAmount && (
                     <IOUAmountPage
+                        hasMultipleParticipants={this.props.hasMultipleParticipants}
                         onStepComplete={(amount) => {
                             this.setState({amount});
                             this.navigateToNextStep();

@@ -26,7 +26,6 @@ const DetailsModalStack = createStackNavigator();
 const ReportParticipantsModalStack = createStackNavigator();
 const IOURequestModalStack = createStackNavigator();
 const IOUBillModalStack = createStackNavigator();
-const IOUCurrencyStack = createStackNavigator();
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -48,24 +47,14 @@ const IOUBillStackNavigator = () => (
                 title: 'Split',
             }}
         />
-    </IOUBillModalStack.Navigator>
-);
-
-const IOUCurrencyNavigator = () => (
-    <IOUCurrencyStack.Navigator
-        path={ROUTES.IOU_CURRENCY}
-        screenOptions={{
-            ...defaultSubRouteOptions,
-        }}
-    >
-        <IOUCurrencyStack.Screen
-            name="IOU_Currency_Root"
+        <IOUBillModalStack.Screen
+            name="IOU_Bill_Currency_Root"
             component={IOUCurrencySelection}
             options={{
                 title: 'Select Currency',
             }}
         />
-    </IOUCurrencyStack.Navigator>
+    </IOUBillModalStack.Navigator>
 );
 
 const IOURequestModalStackNavigator = () => (
@@ -80,6 +69,13 @@ const IOURequestModalStackNavigator = () => (
             component={IOURequestPage}
             options={{
                 title: 'Request',
+            }}
+        />
+        <IOURequestModalStack.Screen
+            name="IOU_Request_Currency_Root"
+            component={IOUCurrencySelection}
+            options={{
+                title: 'Select Currency',
             }}
         />
     </IOURequestModalStack.Navigator>
@@ -210,5 +206,4 @@ export {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
-    IOUCurrencyNavigator,
 };

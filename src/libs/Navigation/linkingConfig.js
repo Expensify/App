@@ -82,16 +82,13 @@ export default {
             IOU_Request: {
                 screens: {
                     IOU_Request_Root: ROUTES.IOU_REQUEST,
+                    IOU_Request_Currency_Root: ROUTES.IOU_REQUEST_CURRENCY,
                 },
             },
             IOU_Bill: {
                 screens: {
                     IOU_Bill_Root: ROUTES.IOU_BILL,
-                },
-            },
-            IOU_Currency: {
-                screens: {
-                    IOU_Currency_Root: ROUTES.IOU_CURRENCY,
+                    IOU_Bill_Currency_Root: ROUTES.IOU_BILL_CURRENCY,
                 },
             },
         },
