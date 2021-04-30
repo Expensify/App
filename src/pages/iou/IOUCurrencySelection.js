@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {Pressable, SectionList, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import {fetchCurrencyPreferences, getCurrencyList} from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -51,7 +52,7 @@ class IOUCurrencySelection extends Component {
     constructor(props) {
         super(props);
 
-        const {currencyOptions} = getCurrencyListForSections(this.props.currencyList,
+        const {currencyOptions} = getCurrencyListForSections(this.getCurrencyOptions(this.props.currencyList),
             '');
 
         this.state = {
@@ -62,6 +63,7 @@ class IOUCurrencySelection extends Component {
                 currencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
             },
         };
+        this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.getSections = this.getSections.bind(this);
@@ -92,12 +94,17 @@ class IOUCurrencySelection extends Component {
     }
 
     /**
-     * Returns the key used by the list
-     * @param {Object} option
-     * @return {String}
+     *
+     * @returns {Object}
      */
-    extractKey(option) {
-        return option.currencyCode;
+    getCurrencyOptions() {
+        const currencyListKeys = _.keys(this.props.currencyList);
+        const currencyOptions = _.map(currencyListKeys, currencyCode => ({
+            text: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
+            searchText: `${currencyCode} ${this.props.currencyList[currencyCode].symbol}`,
+            currencyCode,
+        }));
+        return currencyOptions;
     }
 
     /**
@@ -113,6 +120,15 @@ class IOUCurrencySelection extends Component {
                 currencySymbol: this.props.currencyList[currencyCode].symbol,
             },
         });
+    }
+
+    /**
+     * Returns the key used by the list
+     * @param {Object} option
+     * @return {String}
+     */
+    extractKey(option) {
+        return option.currencyCode;
     }
 
     /**
@@ -155,7 +171,7 @@ class IOUCurrencySelection extends Component {
                                 value={this.state.searchValue}
                                 onChangeText={(searchValue = '') => {
                                     const {currencyOptions} = getCurrencyListForSections(
-                                        this.props.currencyList,
+                                        this.getCurrencyOptions(this.props.currencyList),
                                         searchValue,
                                     );
                                     this.setState({
