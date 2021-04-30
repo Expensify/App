@@ -72,6 +72,7 @@ class EmojiPickerMenu extends Component {
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
         this.toggleArrowKeysOnSearchInput = this.toggleArrowKeysOnSearchInput.bind(this);
+        this.setupEventHandlers = this.setupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
 
         this.state = {
@@ -91,11 +92,23 @@ class EmojiPickerMenu extends Component {
         if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
             this.props.forwardedRef(this.searchInput);
         }
+        this.setupEventHandlers();
+    }
 
-        // Setup and attach keypress/mouse handlers only if we have a keyboard (and not a touchscreen)
-        // NOTE: these event handlers are instance members so we can reference
-        // the same functions in memory when removing them.
-        if (document) {
+    componentWillUnmount() {
+        // Cleanup all mouse/keydown event listeners that we've set up
+        if (!canUseTouchScreen() && document) {
+            document.removeEventListener('keydown', this.keyDownHandler);
+            document.removeEventListener('keydown', this.mouseMoveHandler);
+            this.toggleKeysOnSearchInput([], ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp']);
+        }
+    }
+
+    /**
+     * Setup and attach keypress/mouse handlers for highlight navigation.
+     */
+    setupEventHandlers() {
+        if (!canUseTouchScreen() && document) {
             this.keyDownHandler = (e) => {
                 // Move the highlight when arrow keys are pressed
                 if (e.key.startsWith('Arrow')) {
@@ -120,15 +133,6 @@ class EmojiPickerMenu extends Component {
                 }
             };
             document.addEventListener('mousemove', this.mouseMoveHandler);
-        }
-    }
-
-    componentWillUnmount() {
-        // Cleanup all mouse/keydown event listeners that we've set up
-        if (!canUseTouchScreen() && document) {
-            document.removeEventListener('keydown', this.keyDownHandler);
-            document.removeEventListener('keydown', this.mouseMoveHandler);
-            this.toggleKeysOnSearchInput([], ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp']);
         }
     }
 
