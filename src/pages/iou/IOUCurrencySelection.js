@@ -143,7 +143,7 @@ class IOUCurrencySelection extends Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title="Select a currency"
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onCloseButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flex1, styles.w100]}>
                     <View style={[styles.flex1]}>

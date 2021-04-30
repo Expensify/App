@@ -17,6 +17,9 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 
 const propTypes = {
+    // bool to check if IOU has multiple participants
+    hasMultipleParticipants: PropTypes.bool.isRequired,
+
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
@@ -108,7 +111,9 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    <TouchableOpacity onPress={() => Navigation.navigate(ROUTES.IOU_CURRENCY)}>
+                    <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
+                        ? ROUTES.IOU_BILL_CURRENCY : ROUTES.IOU_REQUEST_CURRENCY)}
+                    >
                         <Text style={styles.iouAmountText}>
                             {this.props.selectedCurrency.currencySymbol}
                         </Text>
