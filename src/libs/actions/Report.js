@@ -177,7 +177,7 @@ function getSimplifiedReportObject(report) {
  * @param {String} reportData.ownerEmail
  * @param {String} reportData.managerEmail
  * @param {Number} reportData.reportID
- * @param {Number} chatReportID
+ * @param {Number|String} chatReportID
  * @returns {Object}
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
@@ -195,12 +195,13 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         managerEmail: reportData.managerEmail,
         currency: reportData.currency,
         transactions,
-        chatReportID,
+        chatReportID: Number(chatReportID),
         state: reportData.state,
         cachedTotal: reportData.cachedTotal,
         total: reportData.total,
         status: reportData.status,
         stateNum: reportData.stateNum,
+        hasOutstandingIOU: reportData.stateNum === 1 && reportData.total !== 0,
     };
 }
 
@@ -507,6 +508,16 @@ function updateReportWithNewAction(reportID, reportAction) {
 }
 
 /**
+ * Updates a report in Onyx with a new pinned state.
+ *
+ * @param {Number} reportID
+ * @param {Boolean} isPinned
+ */
+function updateReportPinnedState(reportID, isPinned) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
+}
+
+/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -517,9 +528,9 @@ function getReportChannelName(reportID) {
 }
 
 /**
- * Initialize our pusher subscriptions to listen for new report comments
+ * Initialize our pusher subscriptions to listen for new report comments and pin toggles
  */
-function subscribeToReportCommentEvents() {
+function subscribeToUserEvents() {
     // If we don't have the user's accountID yet we can't subscribe so return early
     if (!currentUserAccountID) {
         return;
@@ -530,15 +541,42 @@ function subscribeToReportCommentEvents() {
         return;
     }
 
-    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
-        Log.info('[Report] Handled event sent by Pusher', true, {reportID: pushJSON.reportID});
+    // Live-update a report's actions when a 'report comment' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
+        );
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
         .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
+            );
+        });
+
+    // Live-update a report's pinned state when a 'report toggle pinned' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_TOGGLE_PINNED, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_TOGGLE_PINNED} event sent by Pusher`,
+            true,
+            {reportID: pushJSON.reportID},
+        );
+        updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
+            );
         });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
@@ -708,12 +746,10 @@ function fetchActions(reportID, offset) {
 /**
  * Get all of our reports
  *
- * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
  */
 function fetchAllReports(
-    shouldRedirectToReport = true,
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
@@ -727,15 +763,20 @@ function fetchAllReports(
                 return;
             }
 
-            // The string cast here is necessary as Get rvl='chatList' may return an int
-            reportIDs = String(response.chatList).split(',');
+            // The cast here is necessary as Get rvl='chatList' may return an int or Array
+            reportIDs = String(response.chatList)
+                .split(',')
+                .filter(_.identity);
 
             // Get all the chat reports if they have any, otherwise create one with concierge
-            if (reportIDs.length) {
+            if (reportIDs.length > 0) {
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
+            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false)
+                .then((createdReportID) => {
+                    reportIDs = [createdReportID];
+                });
         })
         .then(() => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
@@ -754,16 +795,6 @@ function fetchAllReports(
             // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading before
             // bogging it down with more requests and operations.
             }, shouldDelayActionsFetch ? 8000 : 0);
-
-            // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
-            // one already.
-            if (!shouldRedirectToReport || lastViewedReportID) {
-                return;
-            }
-
-            const firstReportID = _.first(reportIDs);
-            const currentReportID = firstReportID ? String(firstReportID) : '';
-            Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
         });
 }
 
@@ -886,13 +917,13 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 }
 
 /**
- * Toggles the pinned state of the report
+ * Toggles the pinned state of the report.
  *
  * @param {Object} report
  */
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
+    updateReportPinnedState(report.reportID, pinnedValue);
     API.Report_TogglePinned({
         reportID: report.reportID,
         pinnedValue,
@@ -960,7 +991,7 @@ Onyx.connect({
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(() => {
-    fetchAllReports(false);
+    fetchAllReports();
 });
 
 export {
@@ -969,8 +1000,8 @@ export {
     fetchOrCreateChatReport,
     addAction,
     updateLastReadActionID,
-    subscribeToReportCommentEvents,
     subscribeToReportTypingEvents,
+    subscribeToUserEvents,
     unsubscribeFromReportChannel,
     saveReportComment,
     broadcastUserIsTyping,
