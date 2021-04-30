@@ -211,8 +211,8 @@ class EmojiPickerMenu extends Component {
 
         // Scroll to fit the entire highlighted emoji into the window if we need to
         let targetOffset = this.state.currentScrollOffset;
-        if (offsetAtEmojiBottom - this.state.currentScrollOffset >= CONST.EMOJI_PICKER_LIST_HEIGHT) {
-            targetOffset = offsetAtEmojiBottom - CONST.EMOJI_PICKER_LIST_HEIGHT;
+        if (offsetAtEmojiBottom - this.state.currentScrollOffset >= CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT) {
+            targetOffset = offsetAtEmojiBottom - CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT;
         } else if (offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT <= this.state.currentScrollOffset) {
             targetOffset = offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT;
         }
