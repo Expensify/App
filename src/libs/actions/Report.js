@@ -811,13 +811,19 @@ function fetchAllReports(
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
 
-            // Optionally delay fetching report history as it significantly increases sign in to interactive time
+            // Optionally delay fetching report history as it significantly increases sign in to interactive time.
             const timerID = setTimeout(() => {
                 // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
-                // content and improve chat switching experience
+                // content and improve chat switching experience by only downloading content we don't have yet.
+                // This improves performance significantly when reconnecting by limiting API requests and unnecessary
+                // data processing by Onyx.
                 const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
                     _.isUndefined(maxReportActionsSequenceNumbers[id])
-                    || reportMaxSequenceNumbers[id] !== maxReportActionsSequenceNumbers[id]
+
+                    // The most recent reportAction we have stored is less than the maxSequenceNumber for a report.
+                    // This works because the reportMaxSequenceNumber is based on the reportActionList whereas the
+                    // maxReportActionsSequenceNumbers can only be populated by adding reportActions to Onyx.
+                    || maxReportActionsSequenceNumbers[id] < reportMaxSequenceNumbers[id]
                 ));
 
                 if (!_.isEmpty(reportIDsToFetchActions)) {
@@ -830,9 +836,10 @@ function fetchAllReports(
                     Log.info('[Report] Local reportActions up to date. Not fetching additional actions.', true);
                 }
 
-                // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading
-                // before bogging it down with more requests and operations.
-            }, shouldDelayActionsFetch ? 8000 : 1000);
+                // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
+                // more requests and operations. Startup delay is longer since there is a lot more work done to build
+                // up the UI when the app first initializes.
+            }, shouldDelayActionsFetch ? CONST.DELAY.STARTUP : CONST.DELAY.RECONNECT);
 
             // Register the timer so we can clean it up on sign out if it has not yet fired.
             Timers.register(timerID);
