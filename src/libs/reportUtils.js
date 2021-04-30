@@ -24,12 +24,13 @@ function isReportMessageAttachment(reportMessageText) {
 /**
  * Given a collection of reports returns the most recently accessed one
  *
- * @param {Record<String, {lastVisitedTimestamp}>|Array<{lastVisitedTimestamp}>} reports
+ * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
  * @returns {Object}
  */
-function getLastAccessedReport(reports) {
+function findLastAccessedReport(reports) {
     return _.chain(reports)
         .toArray()
+        .filter(report => report && report.reportID)
         .sortBy('lastVisitedTimestamp')
         .last()
         .value();
@@ -38,5 +39,5 @@ function getLastAccessedReport(reports) {
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
-    getLastAccessedReport,
+    findLastAccessedReport,
 };
