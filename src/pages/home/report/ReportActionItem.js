@@ -42,6 +42,9 @@ const propTypes = {
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 
+    // Position index of the report action in the overall report FlatList view
+    index: PropTypes.number.isRequired,
+
     /* --- Onyx Props --- */
     // Draft message - if this is set the comment is in 'edit' mode
     draftMessage: PropTypes.string,
@@ -124,7 +127,7 @@ class ReportActionItem extends Component {
             )
             : _.isEmpty(this.props.draftMessage)
                 ? <ReportActionItemMessage action={this.props.action} />
-                : <ReportActionItemMessageEdit action={this.props.action} draftMessage={this.props.draftMessage} reportID={this.props.reportID} />;
+                : <ReportActionItemMessageEdit action={this.props.action} draftMessage={this.props.draftMessage} reportID={this.props.reportID} index={this.props.index} />;
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
