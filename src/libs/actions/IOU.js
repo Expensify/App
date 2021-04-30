@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import {getSimplifiedIOUReport} from './Report';
+import {getSimplifiedIOUReport, fetchChatReportsByIDs} from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
@@ -134,7 +134,7 @@ function getIOUReportDetailFromTransactionID(transactionID) {
  * Settles an IOU Report
  */
 function settleIOUReport({
-    reportID, paymentMethodType,
+    chatReportID, reportID, paymentMethodType,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
     API.PayIOU({
@@ -147,6 +147,7 @@ function settleIOUReport({
                 return;
             }
         })
+        .then(fetchChatReportsByIDs(chatReportID))
         .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }
