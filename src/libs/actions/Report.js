@@ -56,13 +56,37 @@ Onyx.connect({
     },
 });
 
+const typingWatchTimers = {};
+
 /**
- * Map of the most recent non-loading report history items we have stored for a report. Not to be confused with the
- * reportMaxSequenceNumbers. We can compare these values to those to determine whether there is "available history"
- * to fetch from the server. maxSequenceNumber is retrieved when getting the reportList whereas these keep track of
- * the actual reportActions saved in Onyx.
+ * Map of the most recent sequenceNumber for a reports_* key in Onyx by reportID.
+ *
+ * There are several sources that can set the most recent reportAction's sequenceNumber for a report:
+ *
+ *     - Fetching the report object
+ *     - Fetching the report history
+ *     - Optimistically creating a report action
+ *     - Handling a report action via Pusher
+ *
+ * Those values are stored in reportMaxSequenceNumbers and treated as the main source of truth about what a report's max
+ * sequenceNumber is.
  */
-const maxReportActionsSequenceNumbers = {};
+const reportMaxSequenceNumbers = {};
+
+/**
+ * Map of the most recent non-loading sequenceNumber for a reportActions_* key in Onyx by reportID.
+ *
+ * What's the difference between reportMaxSequenceNumbers and UNSAFE_reportActionsMaxSequenceNumbers?
+ *
+ * Knowing the maxSequenceNumber for a report does not necessarily mean we have stored the report actions for that
+ * report. To optimize and understand which reportActions we need to fetch we also keep track of the max sequenceNumber
+ * for the stored reportActions in UNSAFE_reportActionsMaxSequenceNumbers. This allows us to initially download all
+ * reportActions when the app starts up and then only download the actions that we need when the app reconnects.
+ *
+ * We prefix this with UNSAFE to communicate that this should only be used in the correct contexts. In most cases,
+ * reportMaxSequenceNumbers should be referenced and not the locally stored reportAction's max sequenceNumber.
+ */
+const UNSAFE_reportActionsMaxSequenceNumbers = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -78,14 +102,9 @@ Onyx.connect({
             return;
         }
 
-        maxReportActionsSequenceNumbers[reportID] = mostRecentAction.sequenceNumber;
+        UNSAFE_reportActionsMaxSequenceNumbers[reportID] = mostRecentAction.sequenceNumber;
     },
 });
-
-const typingWatchTimers = {};
-
-// Keeps track of the max sequence number for each report
-const reportMaxSequenceNumbers = {};
 
 // Keeps track of the last read for each report
 const lastReadSequenceNumbers = {};
@@ -818,30 +837,26 @@ function fetchAllReports(
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
                 // data processing by Onyx.
                 const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
-                    _.isUndefined(maxReportActionsSequenceNumbers[id])
-
-                    // The most recent reportAction we have stored is less than the maxSequenceNumber for a report.
-                    // This works because the reportMaxSequenceNumber is based on the reportActionList whereas the
-                    // maxReportActionsSequenceNumbers can only be populated by adding reportActions to Onyx.
-                    || maxReportActionsSequenceNumbers[id] < reportMaxSequenceNumbers[id]
+                    _.isUndefined(UNSAFE_reportActionsMaxSequenceNumbers[id])
+                    || UNSAFE_reportActionsMaxSequenceNumbers[id] < reportMaxSequenceNumbers[id]
                 ));
 
-                if (!_.isEmpty(reportIDsToFetchActions)) {
-                    Log.info('[Report] Fetching report actions for reports', true, {reportIDsToFetchActions});
-                    _.each(reportIDsToFetchActions, (reportID) => {
-                        const offset = maxReportActionsSequenceNumbers[reportID];
-                        fetchActions(reportID, offset);
-                    });
-                } else {
-                    Log.info('[Report] Local reportActions up to date. Not fetching additional actions.', true);
+                if (_.isEmpty(reportIDsToFetchActions)) {
+                    return;
                 }
+
+                _.each(reportIDsToFetchActions, (reportID) => {
+                    const offset = UNSAFE_reportActionsMaxSequenceNumbers[reportID];
+                    fetchActions(reportID, offset);
+                });
 
                 // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
                 // more requests and operations. Startup delay is longer since there is a lot more work done to build
                 // up the UI when the app first initializes.
-            }, shouldDelayActionsFetch ? CONST.DELAY.STARTUP : CONST.DELAY.RECONNECT);
+            }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT);
 
-            // Register the timer so we can clean it up on sign out if it has not yet fired.
+            // Register the timer so we can clean it up if the user logs out after logging in. If we don't cancel the
+            // timer we'll make unnecessary API requests from the sign in page.
             Timers.register(timerID);
         });
 }
