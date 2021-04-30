@@ -18,8 +18,8 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import {isReportMessageAttachment} from '../reportUtils';
-import * as CollectionUtils from '../CollectionUtils';
 import Timers from '../Timers';
+import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -72,39 +72,6 @@ const typingWatchTimers = {};
  * sequenceNumber is.
  */
 const reportMaxSequenceNumbers = {};
-
-/**
- * Map of the most recent non-loading sequenceNumber for a reportActions_* key in Onyx by reportID.
- *
- * What's the difference between reportMaxSequenceNumbers and UNSAFE_reportActionsMaxSequenceNumbers?
- *
- * Knowing the maxSequenceNumber for a report does not necessarily mean we have stored the report actions for that
- * report. To optimize and understand which reportActions we need to fetch we also keep track of the max sequenceNumber
- * for the stored reportActions in UNSAFE_reportActionsMaxSequenceNumbers. This allows us to initially download all
- * reportActions when the app starts up and then only download the actions that we need when the app reconnects.
- *
- * We prefix this with UNSAFE to communicate that this should only be used in the correct contexts. In most cases,
- * reportMaxSequenceNumbers should be referenced and not the locally stored reportAction's max sequenceNumber.
- */
-const UNSAFE_reportActionsMaxSequenceNumbers = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        const actionsArray = _.toArray(actions);
-        const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.loading);
-        const mostRecentAction = actionsArray[mostRecentNonLoadingActionIndex];
-        if (!mostRecentAction || _.isUndefined(mostRecentAction.sequenceNumber)) {
-            return;
-        }
-
-        UNSAFE_reportActionsMaxSequenceNumbers[reportID] = mostRecentAction.sequenceNumber;
-    },
-});
 
 // Keeps track of the last read for each report
 const lastReadSequenceNumbers = {};
@@ -837,8 +804,7 @@ function fetchAllReports(
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
                 // data processing by Onyx.
                 const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
-                    _.isUndefined(UNSAFE_reportActionsMaxSequenceNumbers[id])
-                    || UNSAFE_reportActionsMaxSequenceNumbers[id] < reportMaxSequenceNumbers[id]
+                    isReportMissingActions(id, reportMaxSequenceNumbers[id])
                 ));
 
                 if (_.isEmpty(reportIDsToFetchActions)) {
@@ -846,7 +812,7 @@ function fetchAllReports(
                 }
 
                 _.each(reportIDsToFetchActions, (reportID) => {
-                    const offset = UNSAFE_reportActionsMaxSequenceNumbers[reportID];
+                    const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
                     fetchActions(reportID, offset);
                 });
 
