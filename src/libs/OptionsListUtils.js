@@ -468,19 +468,12 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 /**
  * Returns the currency list for sections display
  *
- * @param {Object} currencyListObject
+ * @param {Object} currencyOptions
  * @param {String} searchValue
  * @param {Object} selectedCurrency
  * @returns {Array}
  */
-function getCurrencyListForSections(currencyListObject, searchValue) {
-    const currencyListKeys = _.keys(currencyListObject);
-    const currencyOptions = _.map(currencyListKeys, currencyCode => ({
-        text: `${currencyCode} - ${currencyListObject[currencyCode].symbol}`,
-        searchText: `${currencyCode} ${currencyListObject[currencyCode].symbol}`,
-        currencyCode,
-    }));
-
+function getCurrencyListForSections(currencyOptions, searchValue) {
     const filteredOptions = currencyOptions.filter(currencyOption => (
         isSearchStringMatch(searchValue, currencyOption.searchText)));
 
