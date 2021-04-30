@@ -1,18 +1,14 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import {View, Text, Pressable} from 'react-native-web';
-import _ from 'underscore';
 import styles from '../styles/styles';
-import ONYXKEYS from '../ONYXKEYS';
 import {rejectTransaction} from '../libs/actions/IOU';
-import personalDetailsPropType from '../pages/personalDetailsPropType';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
 
 const propTypes = {
     // The chatReport which the transaction is associated with
-    chatReportID: PropTypes.number,
+    chatReportID: PropTypes.number.isRequired, // todo: string is passed!
 
     // The report action which we are displaying
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
@@ -29,18 +25,11 @@ const propTypes = {
         // The transaction amount
         amount: PropTypes.number,
 
-        transactionID: PropTypes.number,
+        transactionID: PropTypes.number, // todo: string is passed!
 
         // Was this transaction created by the current user
         createdByUser: PropTypes.bool,
     }).isRequired,
-
-    // All of the personalDetails
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-};
-
-const defaultProps = {
-    personalDetails: {},
 };
 
 class ReportTransaction extends Component {
@@ -66,9 +55,9 @@ class ReportTransaction extends Component {
                     action={this.props.action}
                     outerViewStyles={[styles.reportTransaction]}
                 >
-                <Text style={[styles.chatItemMessage]}>
-                    {this.props.action.message[0].text}
-                </Text>
+                    <Text style={[styles.chatItemMessage]}>
+                        {this.props.action.message[0].text}
+                    </Text>
                 </ReportActionItemSingle>
                 <Pressable
                     style={[styles.button, styles.alignItemsStart, styles.mb3]}
@@ -84,10 +73,5 @@ class ReportTransaction extends Component {
 }
 
 ReportTransaction.displayName = 'ReportTransaction';
-ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-})(ReportTransaction);
+export default ReportTransaction;
