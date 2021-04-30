@@ -22,4 +22,16 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isBeta)
   return [NSNumber numberWithBool:isRunningTestFlightBeta];
 }
 
+RCT_REMAP_METHOD(isBeta, resolver: (RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
+  NSString *receiptURLString = [receiptURL path];
+
+  // We return a number here because the return value must be of an object type, so BOOL isn't an option
+  NSNumber *isBeta = [NSNumber numberWithBool:([receiptURLString rangeOfString:@"sandboxReceipt"].location != NSNotFound)];
+  //resolve(isBeta);
+  resolve([NSNumber numberWithBool:YES]);
+}
+
 @end

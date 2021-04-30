@@ -12,7 +12,7 @@ const ngrokURL = addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
-const expensifyEnvironment = getEnvironment();
+getEnvironment();
 
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is required for viewing images on mobile and for developing on android
@@ -30,7 +30,6 @@ export default {
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
-        ENVIRONMENT: expensifyEnvironment,
     },
     // eslint-disable-next-line no-undef
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
