@@ -116,18 +116,28 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        const children = this.props.action.actionName === 'IOU'
-            ? (
+        let children;
+        if (this.props.action.actionName === 'IOU') {
+            children = (
                 <ReportActionItemIOUPreview
                     iouReportID={this.props.iouReportID}
                     hasOutstandingIOU={this.props.hasOutstandingIOU}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                 />
-            )
-            : _.isEmpty(this.props.draftMessage)
+            );
+        } else {
+            children = _.isEmpty(this.props.draftMessage)
                 ? <ReportActionItemMessage action={this.props.action} />
-                : <ReportActionItemMessageEdit action={this.props.action} draftMessage={this.props.draftMessage} reportID={this.props.reportID} index={this.props.index} />;
+                : (
+                    <ReportActionItemMessageEdit
+                            action={this.props.action}
+                            draftMessage={this.props.draftMessage}
+                            reportID={this.props.reportID}
+                            index={this.props.index}
+                    />
+                );
+        }
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
