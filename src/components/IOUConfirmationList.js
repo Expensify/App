@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
@@ -13,6 +14,9 @@ import {
 import OptionsList from './OptionsList';
 import ButtonWithLoader from './ButtonWithLoader';
 import ONYXKEYS from '../ONYXKEYS';
+import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import compose from '../libs/compose';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -26,6 +30,9 @@ const propTypes = {
 
     // Should we request a single or multiple participant selection from user
     hasMultipleParticipants: PropTypes.bool.isRequired,
+
+    // Safe area insets required for mobile devices margins
+    insets: SafeAreaInsetPropTypes.isRequired,
 
     // IOU amount
     iouAmount: PropTypes.string.isRequired,
@@ -49,6 +56,8 @@ const propTypes = {
         reportID: PropTypes.number,
         participantsList: PropTypes.arrayOf(PropTypes.object),
     })).isRequired,
+
+    ...windowDimensionsPropTypes,
 
     /* Onyx Props */
 
@@ -78,6 +87,10 @@ const defaultProps = {
     onUpdateComment: null,
     comment: '',
 };
+
+// Gives minimum height to offset the height of
+// button and comment box
+const MINIMUM_BOTTOM_OFFSET = 240;
 
 class IOUConfirmationList extends Component {
     /**
@@ -212,7 +225,12 @@ class IOUConfirmationList extends Component {
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
                     <OptionsList
-                        listContainerStyles={[styles.flexGrow0]}
+                        listContainerStyles={[{
+                            // Give max height to the list container so that it does not extend
+                            // beyond the comment view as well as button
+                            maxHeight: this.props.windowHeight - MINIMUM_BOTTOM_OFFSET
+                                - this.props.insets.top - this.props.insets.bottom,
+                        }]}
                         sections={this.getSections()}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
@@ -252,9 +270,9 @@ IOUConfirmationList.displayName = 'IOUConfirmPage';
 IOUConfirmationList.propTypes = propTypes;
 IOUConfirmationList.defaultProps = defaultProps;
 
-export default withOnyx({
+export default compose(withOnyx({
     iou: {key: ONYXKEYS.IOU},
     myPersonalDetails: {
         key: ONYXKEYS.MY_PERSONAL_DETAILS,
     },
-})(IOUConfirmationList);
+}), withSafeAreaInsets, withWindowDimensions)(IOUConfirmationList);
