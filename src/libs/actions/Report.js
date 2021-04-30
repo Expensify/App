@@ -56,7 +56,13 @@ Onyx.connect({
     },
 });
 
-const mostRecentStoredSequenceNumbers = {};
+/**
+ * Map of the most recent non-loading report history items we have stored for a report. Not to be confused with the
+ * reportMaxSequenceNumbers. We can compare these values to those to determine whether there is "available history"
+ * to fetch from the server. maxSequenceNumber is retrieved when getting the reportList whereas these keep track of
+ * the actual reportActions saved in Onyx.
+ */
+const maxReportActionsSequenceNumbers = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (val, key) => {
@@ -65,12 +71,17 @@ Onyx.connect({
         }
 
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        const mostRecentAction = CollectionUtils.lastItem(val);
+        const mostRecentAction = _.chain(val)
+            .filter(action => !action.loading)
+            .sortBy('sequenceNumber')
+            .last()
+            .value();
+
         if (!mostRecentAction || _.isUndefined(mostRecentAction.sequenceNumber)) {
             return;
         }
 
-        mostRecentStoredSequenceNumbers[reportID] = mostRecentAction.sequenceNumber;
+        maxReportActionsSequenceNumbers[reportID] = mostRecentAction.sequenceNumber;
     },
 });
 
@@ -805,14 +816,14 @@ function fetchAllReports(
                 // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
                 // content and improve chat switching experience
                 const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
-                    _.isUndefined(mostRecentStoredSequenceNumbers[id])
-                    || reportMaxSequenceNumbers[id] !== mostRecentStoredSequenceNumbers[id]
+                    _.isUndefined(maxReportActionsSequenceNumbers[id])
+                    || reportMaxSequenceNumbers[id] !== maxReportActionsSequenceNumbers[id]
                 ));
 
                 if (!_.isEmpty(reportIDsToFetchActions)) {
                     Log.info('[Report] Fetching report actions for reports', true, {reportIDsToFetchActions});
                     _.each(reportIDsToFetchActions, (reportID) => {
-                        const offset = mostRecentStoredSequenceNumbers[reportID];
+                        const offset = maxReportActionsSequenceNumbers[reportID];
                         fetchActions(reportID, offset);
                     });
                 } else {
