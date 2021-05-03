@@ -47,31 +47,12 @@ class EmojiPickerMenu extends Component {
         // If more emojis are ever added to emojis.js this will need to be updated or things will break
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
-        // Toggles which keys the search input will listen to
-        // NOTE: these need to be instance members so we can
-        // reference the same event handlers in memory when removing them
-        this.keyToDefaultPreventer = {};
-        ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp'].forEach((key) => {
-            this.keyToDefaultPreventer[key] = (keyBoardEvent) => {
-                if (keyBoardEvent.key === key) {
-                    keyBoardEvent.preventDefault();
-                }
-            };
-        });
-        this.toggleKeysOnSearchInput = (keysToIgnore = [], keysToAccept = []) => {
-            keysToIgnore.forEach((key) => {
-                this.searchInput.addEventListener('keydown', this.keyToDefaultPreventer[key]);
-            });
-            keysToAccept.forEach((key) => {
-                this.searchInput.removeEventListener('keydown', this.keyToDefaultPreventer[key]);
-            });
-        };
-
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
         this.toggleArrowKeysOnSearchInput = this.toggleArrowKeysOnSearchInput.bind(this);
         this.setupEventHandlers = this.setupEventHandlers.bind(this);
+        this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
 
         this.state = {
@@ -95,12 +76,7 @@ class EmojiPickerMenu extends Component {
     }
 
     componentWillUnmount() {
-        // Cleanup all mouse/keydown event listeners that we've set up
-        if (document) {
-            document.removeEventListener('keydown', this.keyDownHandler);
-            document.removeEventListener('keydown', this.mouseMoveHandler);
-            this.toggleKeysOnSearchInput([], ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp']);
-        }
+        this.cleanupEventHandlers();
     }
 
     /**
@@ -108,18 +84,18 @@ class EmojiPickerMenu extends Component {
      */
     setupEventHandlers() {
         if (document) {
-            this.keyDownHandler = (e) => {
-                // Move the highlight when arrow keys are pressed
-                if (e.key.startsWith('Arrow')) {
-                    this.highlightAdjacentEmoji(e.key);
-
-                    // Depending on the position of the highlighted emoji after moving,
+            this.keyDownHandler = (keyBoardEvent) => {
+                if (keyBoardEvent.key.startsWith('Arrow')) {
+                    // Depending on the position of the highlighted emoji after moving and rendering,
                     // toggle which arrow keys can affect the cursor position in the search input.
-                    this.toggleArrowKeysOnSearchInput();
+                    this.toggleArrowKeysOnSearchInput(keyBoardEvent);
+
+                    // Move the highlight when arrow keys are pressed
+                    this.highlightAdjacentEmoji(keyBoardEvent.key);
                 }
 
-                // Select the highlighted emoji if enter is pressed
-                if (e.key === 'Enter' && this.state.highlightedIndex !== -1) {
+                // Select the currently highlighted emoji if enter is pressed
+                if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
                     this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
                 }
             };
@@ -132,6 +108,16 @@ class EmojiPickerMenu extends Component {
                 }
             };
             document.addEventListener('mousemove', this.mouseMoveHandler);
+        }
+    }
+
+    /**
+     * Cleanup all mouse/keydown event listeners that we've set up
+     */
+    cleanupEventHandlers() {
+        if (document) {
+            document.removeEventListener('keydown', this.keyDownHandler);
+            document.removeEventListener('mousemove', this.mouseMoveHandler);
         }
     }
 
@@ -253,26 +239,26 @@ class EmojiPickerMenu extends Component {
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
-
-        // Allow the search input to receive arrow key presses if there were no results
-        if (!newFilteredEmojiList.length && this.toggleArrowPressesOnSearchInput) {
-            this.toggleKeysOnSearchInput([], ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp']);
-        }
     }
 
     /**
      * Toggles which arrow keys can affect the cursor in the search input,
      * depending on whether the arrow keys will affect the index of the highlighted emoji.
+     *
+     * @param {KeyboardEvent} arrowKeyBoardEvent
      */
-    toggleArrowKeysOnSearchInput() {
-        // Only allow arrowKey presses to affect the cursor position in the search input
-        // if they aren't being used to affect the highlighted emoji
-        if (this.state.highlightedIndex === 0) {
-            this.toggleKeysOnSearchInput(['ArrowDown', 'ArrowRight'], ['ArrowLeft', 'ArrowUp']);
+    toggleArrowKeysOnSearchInput(arrowKeyBoardEvent) {
+        let keysToIgnore = ['ArrowDown', 'ArrowRight', 'ArrowLeft', 'ArrowUp'];
+        if (this.state.highlightedIndex === 0 && this.state.filteredEmojis.length) {
+            keysToIgnore = ['ArrowDown', 'ArrowRight'];
         } else if (this.state.highlightedIndex === this.state.filteredEmojis.length - 1) {
-            this.toggleKeysOnSearchInput(['ArrowLeft', 'ArrowUp'], ['ArrowDown', 'ArrowRight']);
-        } else if (this.state.highlightedIndex !== -1 && this.state.filteredEmojis.length) {
-            this.toggleKeysOnSearchInput(['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp']);
+            keysToIgnore = ['ArrowLeft', 'ArrowUp'];
+        }
+
+        // Moving the cursor is the default behavior for arrow key presses while an input is focused,
+        // so prevent it
+        if (keysToIgnore.includes(arrowKeyBoardEvent.key)) {
+            arrowKeyBoardEvent.preventDefault();
         }
     }
 
