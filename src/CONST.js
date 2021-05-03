@@ -115,6 +115,9 @@ const CONST = {
     },
 
     EMOJI_PICKER_SIZE: 360,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
+    EMOJI_PICKER_ITEM_HEIGHT: 40,
+    EMOJI_PICKER_HEADER_HEIGHT: 38,
 
     EMAIL: {
         CHRONOS: 'chronos@expensify.com',

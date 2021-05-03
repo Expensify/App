@@ -855,7 +855,14 @@ const styles = {
 
     emojiItem: {
         width: '12.5%',
+        height: 40,
         textAlign: 'center',
+        borderRadius: 8,
+    },
+
+    emojiItemHighlighted: {
+        transition: '0.2s ease',
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     chatItemEmojiButton: {
