@@ -15,6 +15,7 @@ import migrateOnyx from './libs/migrateOnyx';
 import styles from './styles/styles';
 import PushNotification from './libs/Notification/PushNotification';
 import UpdateAppModal from './components/UpdateAppModal';
+import setEnvironment from './libs/setEnvironment';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -78,6 +79,9 @@ class Expensify extends PureComponent {
         this.state = {
             isOnyxMigrated: false,
         };
+
+        // Set environment value in Onyx
+        setEnvironment();
     }
 
     componentDidMount() {
