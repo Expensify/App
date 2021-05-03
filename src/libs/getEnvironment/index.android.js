@@ -19,19 +19,25 @@ export default function getEnvironment() {
         fetch(storeUrl)
             .then(res => res.text())
             .then((text) => {
-                const match = text.match(/regex_for_monday/);
+                const match = text.match(/<span[^>]+class="htlgb"[^>]*>([-\d.]+)<\/span>/);
                 if (!match) {
+                    Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.PRODUCTION);
                     return;
                 }
 
                 const storeVersion = match[1].trim();
                 if (storeVersion === version) {
+                    Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.PRODUCTION);
                     return;
                 }
 
-                // If the version we're on isn't the same as the store version, and we aren't on dev, this is a beta build
+                // If the version isn't the same as the store version, and we aren't on dev, this is a beta build
                 Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.STAGING);
+            })
+            .catch(() => {
+                Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.PRODUCTION);
             });
-    // eslint-disable-next-line no-empty
-    } catch (e) {}
+    } catch (e) {
+        Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.PRODUCTION);
+    }
 }
