@@ -68,8 +68,8 @@ const typingWatchTimers = {};
  *     - Optimistically creating a report action
  *     - Handling a report action via Pusher
  *
- * Those values are stored in reportMaxSequenceNumbers and treated as the main source of truth about what a report's max
- * sequenceNumber is.
+ * Those values are stored in reportMaxSequenceNumbers and treated as the main source of truth for each report's max
+ * sequenceNumber.
  */
 const reportMaxSequenceNumbers = {};
 
@@ -797,8 +797,10 @@ function fetchAllReports(
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
 
-            // Optionally delay fetching report history as it significantly increases sign in to interactive time.
-            const timerID = setTimeout(() => {
+            // Delay fetching report history as it significantly increases sign in to interactive time.
+            // Register the timer so we can clean it up if the user quickly logs out after logging in. If we don't
+            // cancel the timer we'll make unnecessary API requests from the sign in page.
+            Timers.register(setTimeout(() => {
                 // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
                 // content and improve chat switching experience by only downloading content we don't have yet.
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
@@ -823,11 +825,7 @@ function fetchAllReports(
                 // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
                 // more requests and operations. Startup delay is longer since there is a lot more work done to build
                 // up the UI when the app first initializes.
-            }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT);
-
-            // Register the timer so we can clean it up if the user logs out after logging in. If we don't cancel the
-            // timer we'll make unnecessary API requests from the sign in page.
-            Timers.register(timerID);
+            }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT));
         });
 }
 
