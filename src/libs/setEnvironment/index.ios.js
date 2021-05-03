@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 
-export default function getEnvironment() {
+export default function setEnvironment() {
     if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
         Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.DEV);
         return;

@@ -7,7 +7,7 @@ import {version} from '../../../package.json';
 
 const storeUrl = 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en';
 
-export default function getEnvironment() {
+export default function setEnvironment() {
     if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
         Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.DEV);
         return;
