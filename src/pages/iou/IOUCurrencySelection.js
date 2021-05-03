@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import {fetchCurrencyPreferences, getCurrencyList} from '../../libs/actions/PersonalDetails';
+import {getCurrencyList} from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import {getCurrencyListForSections} from '../../libs/OptionsListUtils';
 import Text from '../../components/Text';
@@ -70,7 +70,6 @@ class IOUCurrencySelection extends Component {
     }
 
     componentDidMount() {
-        fetchCurrencyPreferences(true);
         getCurrencyList();
     }
 
