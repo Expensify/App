@@ -11,17 +11,7 @@
 
 RCT_EXPORT_MODULE();
 
-// Synchonously check if we are on a TestFlight build
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isBeta)
-{
-  NSURL *receiptURL = [[NSBundle mainBundle] appStoreReceiptURL];
-  NSString *receiptURLString = [receiptURL path];
-  BOOL isRunningTestFlightBeta =  ([receiptURLString rangeOfString:@"sandboxReceipt"].location != NSNotFound);
-  
-  // We return a number here because the return value must be of an object type, so BOOL isn't an option
-  return [NSNumber numberWithBool:isRunningTestFlightBeta];
-}
-
+// Check if we are on a TestFlight build
 RCT_REMAP_METHOD(isBeta, resolver: (RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject)
 {
@@ -30,8 +20,7 @@ RCT_REMAP_METHOD(isBeta, resolver: (RCTPromiseResolveBlock)resolve
 
   // We return a number here because the return value must be of an object type, so BOOL isn't an option
   NSNumber *isBeta = [NSNumber numberWithBool:([receiptURLString rangeOfString:@"sandboxReceipt"].location != NSNotFound)];
-  //resolve(isBeta);
-  resolve([NSNumber numberWithBool:YES]);
+  resolve(isBeta);
 }
 
 @end
