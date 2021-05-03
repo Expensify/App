@@ -328,4 +328,7 @@ export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
     },
+    myPersonalDetails: {
+        key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    },
 })(IOUModal);
