@@ -9,7 +9,7 @@ import * as CollectionUtils from '../CollectionUtils';
  * What's the difference between reportMaxSequenceNumbers and reportActionsMaxSequenceNumbers?
  *
  * Knowing the maxSequenceNumber for a report does not necessarily mean we have stored the report actions for that
- * report. To optimize and understand which reportActions we need to fetch we also keep track of the max sequenceNumber
+ * report. To understand and optimize which reportActions we need to fetch we also keep track of the max sequenceNumber
  * for the stored reportActions in reportActionsMaxSequenceNumbers. This allows us to initially download all
  * reportActions when the app starts up and then only download the actions that we need when the app reconnects.
  *
@@ -64,7 +64,7 @@ function dangerouslyGetReportActionsMaxSequenceNumber(reportID, shouldWarn = tru
  */
 function isReportMissingActions(reportID, maxKnownSequenceNumber) {
     return _.isUndefined(reportActionsMaxSequenceNumbers[reportID])
-    || reportActionsMaxSequenceNumbers[reportID] < maxKnownSequenceNumber;
+        || reportActionsMaxSequenceNumbers[reportID] < maxKnownSequenceNumber;
 }
 
 export {
