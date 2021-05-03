@@ -5,8 +5,6 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import {version} from '../../../package.json';
 
-const storeUrl = 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en';
-
 export default function setEnvironment() {
     if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
         Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.DEV);
@@ -16,7 +14,7 @@ export default function setEnvironment() {
     // Since we promote staging builds to production without creating a new build, check the google play listing to
     // see if the current version is greater than the production one
     try {
-        fetch(storeUrl)
+        fetch(CONST.PLAY_STORE_URL)
             .then(res => res.text())
             .then((text) => {
                 const match = text.match(/<span[^>]+class="htlgb"[^>]*>([-\d.]+)<\/span>/);
