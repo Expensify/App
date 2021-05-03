@@ -9,7 +9,6 @@ import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import canUseTouchScreen from '../../../../libs/canUseTouchscreen';
 
 const propTypes = {
     // Function to add the selected emoji to the main compose text input
@@ -97,7 +96,7 @@ class EmojiPickerMenu extends Component {
 
     componentWillUnmount() {
         // Cleanup all mouse/keydown event listeners that we've set up
-        if (!canUseTouchScreen() && document) {
+        if (document) {
             document.removeEventListener('keydown', this.keyDownHandler);
             document.removeEventListener('keydown', this.mouseMoveHandler);
             this.toggleKeysOnSearchInput([], ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp']);
@@ -108,7 +107,7 @@ class EmojiPickerMenu extends Component {
      * Setup and attach keypress/mouse handlers for highlight navigation.
      */
     setupEventHandlers() {
-        if (!canUseTouchScreen() && document) {
+        if (document) {
             this.keyDownHandler = (e) => {
                 // Move the highlight when arrow keys are pressed
                 if (e.key.startsWith('Arrow')) {
