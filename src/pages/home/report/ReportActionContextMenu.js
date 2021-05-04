@@ -133,7 +133,7 @@ class ReportActionContextMenu extends React.Component {
     /**
      * Gets the text (not HTML) portion of the message in an action.
      *
-     * @return {*}
+     * @return {String}
      */
     getActionText() {
         const message = _.last(lodashGet(this.props.reportAction, 'message', null));

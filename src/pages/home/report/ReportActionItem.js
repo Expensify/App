@@ -81,8 +81,8 @@ class ReportActionItem extends Component {
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.iouReportID !== nextProps.iouReportID
-            || !_.isEqual(this.props.action, nextProps.action
-            || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator);
+            || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
+            || !_.isEqual(this.props.action, nextProps.action);
     }
 
     /**
@@ -127,7 +127,7 @@ class ReportActionItem extends Component {
                 />
             );
         } else {
-            children = _.isEmpty(this.props.draftMessage)
+            children = !this.props.draftMessage
                 ? <ReportActionItemMessage action={this.props.action} />
                 : (
                     <ReportActionItemMessageEdit
