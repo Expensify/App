@@ -39,7 +39,7 @@ const propTypes = {
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 
-    // Runs when the view layouts
+    // Runs when the view enclosing the chat message lays out indicating it has rendered
     onLayout: PropTypes.func.isRequired,
 };
 
