@@ -157,7 +157,7 @@ class AuthScreens extends React.Component {
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            cardStyleInterpolator: modalCardStyleInterpolator,
+            cardStyleInterpolator: (...props) => modalCardStyleInterpolator(this.props.isSmallScreenWidth, ...props),
             animationEnabled: true,
             gestureDirection: 'horizontal',
             cardOverlayEnabled: true,
