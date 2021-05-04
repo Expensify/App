@@ -48,6 +48,7 @@ import {
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
+import Timers from '../../Timers';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -110,7 +111,7 @@ class AuthScreens extends React.Component {
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        PersonalDetails.fetch();
+        PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
         fetchAllReports(true, true);
@@ -120,14 +121,14 @@ class AuthScreens extends React.Component {
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
         // See https://github.com/Expensify/ReactNativeChat/issues/468
-        this.interval = setInterval(() => {
+        this.interval = Timers.register(setInterval(() => {
             if (this.props.network.isOffline) {
                 return;
             }
-            PersonalDetails.fetch();
+            PersonalDetails.fetchPersonalDetails();
             User.getUserDetails();
             User.getBetas();
-        }, 1000 * 60 * 30);
+        }, 1000 * 60 * 30));
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
