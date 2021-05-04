@@ -25,14 +25,14 @@ const ReportView = ({reportID, session}) => (
     <View key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
         <ReportActionsView reportID={reportID} />
 
-        {session.shouldShowComposeInput ? (
+        {session.shouldShowComposeInput && (
             <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
                 <ReportActionCompose
                     onSubmit={text => addAction(reportID, text)}
                     reportID={reportID}
                 />
             </SwipeableView>
-        ) : null}
+        )}
         <KeyboardSpacer />
     </View>
 );

@@ -56,16 +56,15 @@ class ReportActionItemFragment extends React.PureComponent {
                         ) : (
                             <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
                         )}
-                        {fragment.isEdited
-                            ? (
-                                <Text
-                                    style={[styles.ml1]}
-                                    fontSize={variables.fontSizeSmall}
-                                    color={themeColors.textSupporting}
-                                >
-                                    (edited)
-                                </Text>
-                            ) : null}
+                        {fragment.isEdited && (
+                            <Text
+                                style={[styles.ml1]}
+                                fontSize={variables.fontSizeSmall}
+                                color={themeColors.textSupporting}
+                            >
+                                (edited)
+                            </Text>
+                        )}
                     </View>
                 );
             case 'TEXT':

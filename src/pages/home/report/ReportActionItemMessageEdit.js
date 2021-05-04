@@ -93,7 +93,6 @@ class ReportActionItemMessageEdit extends React.Component {
             <View style={styles.chatItemMessage}>
                 <TextInputFocusable
                     multiline
-                    ref={el => this.textInput = el}
                     onChangeText={this.updateDraft} // Debounced saveDraftComment
                     onKeyPress={this.triggerSaveOrCancel}
                     defaultValue={this.props.draftMessage}
