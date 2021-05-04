@@ -85,6 +85,10 @@ class ReportActionsView extends React.Component {
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.startRecordMaxActionTimer = this.startRecordMaxActionTimer.bind(this);
+        this.recordTimeToMeasureItemLayout = _.debounce(
+            this.recordTimeToMeasureItemLayout.bind(this),
+            CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME,
+        );
         this.sortedReportActions = [];
         this.timers = [];
 
@@ -307,6 +311,16 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Runs each time a ReportActionItem is laid out. This method is debounced so we wait until the component has
+     * finished laying out items before recording the chat as switched.
+     */
+    recordTimeToMeasureItemLayout() {
+        // We are offsetting the time measurement here so that we can subtract our debounce time from the initial time
+        // and get the actual time it took to load the report
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD, CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME);
+    }
+
+    /**
      * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
      * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
      * rows is hidden beneath other rows.
@@ -351,6 +365,7 @@ class ReportActionsView extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 iouReportID={this.props.report.iouReportID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
+                onLayout={this.recordTimeToMeasureItemLayout}
             />
         );
     }
@@ -379,9 +394,6 @@ class ReportActionsView extends React.Component {
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
-                onLayout={() => {
-                    Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
-                }}
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={this.state.isLoadingMoreChats
