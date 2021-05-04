@@ -102,7 +102,6 @@ class ReportActionItemMessageEdit extends React.Component {
                         scrollToIndex({animated: true, index: this.props.index}, true);
                         toggleReportActionComposeView(false);
                     }}
-                    onBlur={() => toggleReportActionComposeView(true)}
                     autoFocus
                 />
                 <View style={[styles.flexRow, styles.mt1]}>
