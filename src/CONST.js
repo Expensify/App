@@ -116,6 +116,9 @@ const CONST = {
     },
 
     EMOJI_PICKER_SIZE: 360,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
+    EMOJI_PICKER_ITEM_HEIGHT: 40,
+    EMOJI_PICKER_HEADER_HEIGHT: 38,
 
     EMAIL: {
         CHRONOS: 'chronos@expensify.com',
@@ -125,6 +128,14 @@ const CONST = {
         DEV: 'DEV',
         STAGING: 'STG',
         PRODUCTION: 'PROD',
+    },
+
+    // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
+    // from backgound). The times are based on how long it generally seems to take for the app to become interactive
+    // in each scenario.
+    FETCH_ACTIONS_DELAY: {
+        STARTUP: 8000,
+        RECONNECT: 1000,
     },
 };
 
