@@ -32,6 +32,7 @@ const CONST = {
             LIMIT: 50,
             TYPE: {
                 IOU: 'IOU',
+                ADD_COMMENT: 'ADDCOMMENT',
             },
         },
         TYPE: {

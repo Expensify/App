@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import focusApp from './focusApp';
 import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round.png';
 import ONYXKEYS from '../../../ONYXKEYS';
+import CONST from '../../../CONST';
 
 const DEFAULT_DELAY = 4000;
 
@@ -106,11 +107,17 @@ export default {
      * @param {Function} params.onClick
      */
     pushReportCommentNotification({reportAction, onClick}) {
+        let plainTextMessage = '';
         const {person, message} = reportAction;
         const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
 
-        // Specifically target the comment part of the message
-        const plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);
+        if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+            // IOU is storing the message both
+            plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'TEXT') || {}).text);
+        } else {
+            // Specifically target the comment part of the message
+            plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);
+        }
 
         push({
             title: `New message from ${plainTextPerson}`,
