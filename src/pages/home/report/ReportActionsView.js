@@ -106,7 +106,6 @@ class ReportActionsView extends React.Component {
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
         this.recordMaxAction();
         fetchActions(this.props.reportID);
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -380,6 +379,9 @@ class ReportActionsView extends React.Component {
                 contentContainerStyle={[styles.chatContentScrollView]}
                 keyExtractor={item => `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
+                onLayout={() => {
+                    Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
+                }}
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={this.state.isLoadingMoreChats
