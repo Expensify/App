@@ -765,12 +765,13 @@ function fetchActions(reportID, offset) {
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
+ * @returns {Promise}
  */
 function fetchAllReports(
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
-    API.Get({
+    return API.Get({
         returnValueList: 'chatList',
     })
         .then((response) => {
@@ -1021,9 +1022,7 @@ Onyx.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-NetworkConnection.onReconnect(() => {
-    fetchAllReports();
-});
+NetworkConnection.onReconnect(fetchAllReports);
 
 export {
     fetchAllReports,
