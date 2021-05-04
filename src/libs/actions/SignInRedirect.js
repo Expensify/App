@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
-import NetworkConnection from '../NetworkConnection';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import PushNotification from '../Notification/PushNotification';
+import Timers from '../Timers';
 
 let currentURL;
 Onyx.connect({
@@ -26,17 +26,12 @@ Onyx.connect({
  * @param {String} [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage) {
-    NetworkConnection.stopListeningForReconnect();
     UnreadIndicatorUpdater.stopListeningForReportChanges();
     PushNotification.deregister();
     Pusher.disconnect();
+    Timers.clearAll();
 
     if (!currentURL) {
-        return;
-    }
-
-    // If we are already on the signin page, don't redirect
-    if (currentURL.indexOf('signin') !== -1) {
         return;
     }
 
