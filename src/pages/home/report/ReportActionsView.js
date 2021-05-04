@@ -26,6 +26,9 @@ import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
+import compose from '../../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -40,6 +43,12 @@ const propTypes = {
 
         // The largest sequenceNumber on this report
         maxSequenceNumber: PropTypes.number,
+
+        // Whether there is an outstanding amount in IOU
+        hasOutstandingIOU: PropTypes.bool,
+
+        // IOU report ID associated with current report
+        iouReportID: PropTypes.number,
     }),
 
     // Array of report actions for this report
@@ -50,12 +59,16 @@ const propTypes = {
         // Email of the logged in person
         email: PropTypes.string,
     }),
+
+    ...windowDimensionsPropTypes,
+    ...withDrawerPropTypes,
 };
 
 const defaultProps = {
     report: {
         unreadActionCount: 0,
         maxSequenceNumber: 0,
+        hasOutstandingIOU: false,
     },
     reportActions: {},
     session: {},
@@ -71,6 +84,7 @@ class ReportActionsView extends React.Component {
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
+        this.startRecordMaxActionTimer = this.startRecordMaxActionTimer.bind(this);
         this.sortedReportActions = [];
         this.timers = [];
 
@@ -83,6 +97,7 @@ class ReportActionsView extends React.Component {
         };
 
         this.updateSortedReportActions(props.reportActions);
+        this.updateMostRecentIOUReportActionNumber(props.reportActions);
     }
 
     componentDidMount() {
@@ -97,10 +112,24 @@ class ReportActionsView extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.updateSortedReportActions(nextProps.reportActions);
+            this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
             return true;
         }
 
         if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
+            return true;
+        }
+
+        if (this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth) {
+            return true;
+        }
+
+        if (this.props.isDrawerOpen !== nextProps.isDrawerOpen) {
+            return true;
+        }
+
+        if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU
+            || this.props.report.iouReportID !== nextProps.report.iouReportID) {
             return true;
         }
 
@@ -111,6 +140,9 @@ class ReportActionsView extends React.Component {
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
+        const shouldRecordMaxAction = Visibility.isVisible()
+            && !(this.props.isDrawerOpen && this.props.isSmallScreenWidth);
+
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
@@ -121,9 +153,18 @@ class ReportActionsView extends React.Component {
 
             // When the last action changes, wait three seconds, then record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (Visibility.isVisible()) {
-                this.timers.push(setTimeout(this.recordMaxAction, 3000));
+            if (shouldRecordMaxAction) {
+                this.startRecordMaxActionTimer();
             }
+        }
+
+        // We want to mark the unread comments when user resize the screen to desktop
+        // Or user move back to report from LHN
+        if (shouldRecordMaxAction && (
+            prevProps.isDrawerOpen !== this.props.isDrawerOpen
+            || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
+        )) {
+            this.startRecordMaxActionTimer();
         }
     }
 
@@ -143,8 +184,17 @@ class ReportActionsView extends React.Component {
      */
     onVisibilityChange() {
         if (Visibility.isVisible()) {
-            this.timers.push(setTimeout(this.recordMaxAction, 3000));
+            this.startRecordMaxActionTimer();
         }
+    }
+
+    /**
+     * Set a timer for recording the max action
+     *
+     * @memberof ReportActionsView
+     */
+    startRecordMaxActionTimer() {
+        this.timers.push(setTimeout(this.recordMaxAction, 3000));
     }
 
     /**
@@ -233,6 +283,19 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Finds and updates most recent IOU report action number
+     *
+     * @param {Array<{sequenceNumber, actionName}>} reportActions
+     */
+    updateMostRecentIOUReportActionNumber(reportActions) {
+        this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
+            .sortBy('sequenceNumber')
+            .filter(action => action.actionName === 'IOU')
+            .max(action => action.sequenceNumber)
+            .value().sequenceNumber;
+    }
+
+    /**
      * This function is triggered from the ref callback for the scrollview. That way it can be scrolled once all the
      * items have been rendered. If the number of actions has changed since it was last rendered, then
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
@@ -286,6 +349,9 @@ class ReportActionsView extends React.Component {
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
                     && item.action.sequenceNumber === this.initialNewMarkerPosition}
+                isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
+                iouReportID={this.props.report.iouReportID}
+                hasOutstandingIOU={this.props.report.hasOutstandingIOU}
             />
         );
     }
@@ -327,15 +393,19 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-    reportActions: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        canEvict: false,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ReportActionsView);
+export default compose(
+    withWindowDimensions,
+    withDrawerState,
+    withOnyx({
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        },
+        reportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            canEvict: false,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(ReportActionsView);

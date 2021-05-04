@@ -18,6 +18,8 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import {isReportMessageAttachment} from '../reportUtils';
+import Timers from '../Timers';
+import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -44,9 +46,31 @@ Onyx.connect({
     callback: val => myPersonalDetails = val,
 });
 
+const allReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (val) => {
+        if (val && val.reportID) {
+            allReports[val.reportID] = val;
+        }
+    },
+});
+
 const typingWatchTimers = {};
 
-// Keeps track of the max sequence number for each report
+/**
+ * Map of the most recent sequenceNumber for a reports_* key in Onyx by reportID.
+ *
+ * There are several sources that can set the most recent reportAction's sequenceNumber for a report:
+ *
+ *     - Fetching the report object
+ *     - Fetching the report history
+ *     - Optimistically creating a report action
+ *     - Handling a report action via Pusher
+ *
+ * Those values are stored in reportMaxSequenceNumbers and treated as the main source of truth for each report's max
+ * sequenceNumber.
+ */
 const reportMaxSequenceNumbers = {};
 
 // Keeps track of the last read for each report
@@ -167,7 +191,7 @@ function getSimplifiedReportObject(report) {
  * @param {String} reportData.ownerEmail
  * @param {String} reportData.managerEmail
  * @param {Number} reportData.reportID
- * @param {Number} chatReportID
+ * @param {Number|String} chatReportID
  * @returns {Object}
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
@@ -185,83 +209,71 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         managerEmail: reportData.managerEmail,
         currency: reportData.currency,
         transactions,
-        chatReportID,
+        chatReportID: Number(chatReportID),
         state: reportData.state,
         cachedTotal: reportData.cachedTotal,
         total: reportData.total,
         status: reportData.status,
         stateNum: reportData.stateNum,
+        hasOutstandingIOU: reportData.stateNum === 1 && reportData.total !== 0,
     };
 }
 
 /**
- * Fetches the updated data for an IOU Report and updates the IOU collection in Onyx
+ * Given IOU and chat report ID fetches most recent IOU data from API.
  *
- * @param {Object} chatReport
- * @param {Object[]} chatReport.reportActionList
- * @param {Number} chatReport.reportID
- * @return {Promise}
+ * @param {Number} iouReportID
+ * @param {Number} chatReportID
+ * @returns {Promise}
  */
-function updateIOUReportData(chatReport) {
-    const reportActionList = chatReport.reportActionList || [];
-    const containsIOUAction = _.any(reportActionList,
-        reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
-
-    // If there aren't any IOU actions, we don't need to fetch any additional data
-    if (!containsIOUAction) {
-        return;
-    }
-
-    // If we don't have one participant (other than the current user), this is not an IOU
-    const participants = getParticipantEmailsFromReport(chatReport);
-    if (participants.length !== 1) {
-        Log.alert('[Report] Report with IOU action has more than 2 participants', true, {
-            reportID: chatReport.reportID,
-            participants,
-        });
-        return;
-    }
-
-    // Since the Chat and the IOU are different reports with different reportIDs, and GetIOUReport only returns the
-    // IOU's reportID, keep track of the IOU's reportID so we can use it to get the IOUReport data via `GetReportStuff`.
-    // Note: GetIOUReport does not return IOU reports that have been settled.
-    let iouReportID = 0;
-    return API.GetIOUReport({
-        debtorEmail: participants[0],
+function fetchIOUReport(iouReportID, chatReportID) {
+    return API.Get({
+        returnValueList: 'reportStuff',
+        reportIDList: iouReportID,
+        shouldLoadOptionalKeys: true,
+        includePinnedReports: true,
     }).then((response) => {
-        iouReportID = response.reportID || 0;
+        if (!response) {
+            return;
+        }
         if (response.jsonCode !== 200) {
-            throw new Error(response.message);
-        } else if (iouReportID === 0) {
+            console.error(response.message);
+            return;
+        }
+        const iouReportData = response.reports[iouReportID];
+        if (!iouReportData) {
+            console.error(`No iouReportData found for reportID ${iouReportID}`);
+            return;
+        }
+        return getSimplifiedIOUReport(iouReportData, chatReportID);
+    }).catch((error) => {
+        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
+    });
+}
+
+/**
+ * Given debtorEmail finds active IOU report ID via GetIOUReport API call
+ *
+ * @param {String} debtorEmail
+ * @returns {Promise}
+ */
+function fetchIOUReportID(debtorEmail) {
+    return API.GetIOUReport({
+        debtorEmail,
+    }).then((response) => {
+        const iouReportID = response.reportID || 0;
+        if (response.jsonCode !== 200) {
+            console.error(response.message);
+            return;
+        }
+        if (iouReportID === 0) {
             // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
             // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
             // been settled then there's nothing more to do.
             console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
             return;
         }
-
-        return API.Get({
-            returnValueList: 'reportStuff',
-            reportIDList: iouReportID,
-            shouldLoadOptionalKeys: true,
-            includePinnedReports: true,
-        });
-    }).then((response) => {
-        if (!response) {
-            return;
-        }
-
-        if (response.jsonCode !== 200) {
-            throw new Error(response.message);
-        }
-
-        const iouReportData = response.reports[iouReportID];
-        if (!iouReportData) {
-            throw new Error(`No iouReportData found for reportID ${iouReportID}`);
-        }
-        return getSimplifiedIOUReport(iouReportData, chatReport.reportID);
-    }).catch((error) => {
-        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
+        return iouReportID;
     });
 }
 
@@ -270,7 +282,7 @@ function updateIOUReportData(chatReport) {
  * chat report IDs
  *
  * @param {Array} chatList
- * @return {Promise} only used internally when fetchAllReports() is called
+ * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
@@ -284,7 +296,32 @@ function fetchChatReportsByIDs(chatList) {
         .then(({reports}) => {
             Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reports;
-            return Promise.all(_.map(fetchedReports, updateIOUReportData));
+            return Promise.all(_.map(fetchedReports, (chatReport) => {
+                const reportActionList = chatReport.reportActionList || [];
+                const containsIOUAction = _.any(reportActionList,
+                    reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
+
+                // If there aren't any IOU actions, we don't need to fetch any additional data
+                if (!containsIOUAction) {
+                    return;
+                }
+
+                // Group chat reports cannot and should not be associated with a specific IOU report
+                const participants = getParticipantEmailsFromReport(chatReport);
+                if (participants.length > 1) {
+                    return;
+                }
+                if (participants.length === 0) {
+                    Log.alert('[Report] Report with IOU action but does not have any participant.', true, {
+                        reportID: chatReport.reportID,
+                        participants,
+                    });
+                    return;
+                }
+
+                return fetchIOUReportID(participants[0])
+                    .then(iouReportID => fetchIOUReport(iouReportID, chatReport.reportID));
+            }));
         })
         .then((iouReportObjects) => {
             // Process the reports and store them in Onyx. At the same time we'll save the simplified reports in this
@@ -321,6 +358,29 @@ function fetchChatReportsByIDs(chatList) {
 
             return _.map(fetchedReports, report => report.reportID);
         });
+}
+
+/**
+ * Given IOU object and chat report ID save the data to Onyx.
+ *
+ * @param {Object} iouReportObject
+ * @param {Number} iouReportObject.stateNum
+ * @param {Number} iouReportObject.total
+ * @param {Number} iouReportObject.reportID
+ * @param {Number} chatReportID
+ */
+function setLocalIOUReportData(iouReportObject, chatReportID) {
+    const chatReportObject = {
+        hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
+        iouReportID: iouReportObject.reportID,
+    };
+    if (!chatReportObject.hasOutstandingIOU) {
+        chatReportObject.iouReportID = null;
+    }
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+    Onyx.merge(iouReportKey, iouReportObject);
+    Onyx.merge(reportKey, chatReportObject);
 }
 
 /**
@@ -416,6 +476,20 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
 
+    // If chat report receives an action with IOU, update IOU object
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+        const chatReport = lodashGet(allReports, reportID);
+        const iouReportID = lodashGet(chatReport, 'iouReportID');
+        if (iouReportID) {
+            fetchIOUReport(iouReportID, reportID)
+                .then(iouReportObject => setLocalIOUReportData(iouReportObject, reportID));
+        } else if (!chatReport || chatReport.participants.length === 1) {
+            fetchIOUReportID(chatReport ? chatReport.participants[0] : reportAction.actorEmail)
+                .then(iouID => fetchIOUReport(iouID, reportID))
+                .then(iouReportObject => setLocalIOUReportData(iouReportObject, reportID));
+        }
+    }
+
     if (!ActiveClientManager.isClientTheLeader()) {
         console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
@@ -448,6 +522,16 @@ function updateReportWithNewAction(reportID, reportAction) {
 }
 
 /**
+ * Updates a report in Onyx with a new pinned state.
+ *
+ * @param {Number} reportID
+ * @param {Boolean} isPinned
+ */
+function updateReportPinnedState(reportID, isPinned) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
+}
+
+/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -458,9 +542,9 @@ function getReportChannelName(reportID) {
 }
 
 /**
- * Initialize our pusher subscriptions to listen for new report comments
+ * Initialize our pusher subscriptions to listen for new report comments and pin toggles
  */
-function subscribeToReportCommentEvents() {
+function subscribeToUserEvents() {
     // If we don't have the user's accountID yet we can't subscribe so return early
     if (!currentUserAccountID) {
         return;
@@ -471,15 +555,42 @@ function subscribeToReportCommentEvents() {
         return;
     }
 
-    Pusher.subscribe(pusherChannelName, 'reportComment', (pushJSON) => {
-        Log.info('[Report] Handled event sent by Pusher', true, {reportID: pushJSON.reportID});
+    // Live-update a report's actions when a 'report comment' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
+        );
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
         .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
+            );
+        });
+
+    // Live-update a report's pinned state when a 'report toggle pinned' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_TOGGLE_PINNED, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_TOGGLE_PINNED} event sent by Pusher`,
+            true,
+            {reportID: pushJSON.reportID},
+        );
+        updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
+            );
         });
 
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
@@ -576,14 +687,15 @@ function unsubscribeFromReportChannel(reportID) {
 
 /**
  * Get the report ID for a chat report for a specific
- * set of participants and redirect to it.
+ * set of participants and navigate to it if wanted.
  *
  * @param {String[]} participants
- * @returns {Promise}
+ * @param {Boolean} shouldNavigate
+ * @returns {Promise<Number[]>}
  */
-function fetchOrCreateChatReport(participants) {
+function fetchOrCreateChatReport(participants, shouldNavigate = true) {
     if (participants.length < 2) {
-        throw new Error('fetchOrCreateChatReport() must have at least two participants');
+        throw new Error('fetchOrCreateChatReport() must have at least two participants.');
     }
 
     return API.CreateChatReport({
@@ -591,15 +703,21 @@ function fetchOrCreateChatReport(participants) {
     })
         .then((data) => {
             if (data.jsonCode !== 200) {
-                throw new Error(data.message);
+                console.error(data.message);
+                return;
             }
 
             // Merge report into Onyx
-            const reportID = data.reportID;
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${data.reportID}`, {reportID: data.reportID});
 
-            // Redirect the logged in person to the new report
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
+            if (shouldNavigate) {
+                // Redirect the logged in person to the new report
+                Navigation.navigate(ROUTES.getReportRoute(data.reportID));
+            }
+
+            // We are returning an array with the reportID here since fetchAllReports calls this method or
+            // fetchChatReportsByIDs which returns an array of reportIDs.
+            return [data.reportID];
         });
 }
 
@@ -645,18 +763,14 @@ function fetchActions(reportID, offset) {
 /**
  * Get all of our reports
  *
- * @param {Boolean} shouldRedirectToReport this is set to false when the network reconnect code runs
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
  * @returns {Promise}
  */
 function fetchAllReports(
-    shouldRedirectToReport = true,
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
-    let reportIDs = [];
-
     return API.Get({
         returnValueList: 'chatList',
     })
@@ -665,43 +779,55 @@ function fetchAllReports(
                 return;
             }
 
-            // The string cast here is necessary as Get rvl='chatList' may return an int
-            reportIDs = String(response.chatList).split(',');
+            // The cast here is necessary as Get rvl='chatList' may return an int or Array
+            const reportIDs = String(response.chatList)
+                .split(',')
+                .filter(_.identity);
 
             // Get all the chat reports if they have any, otherwise create one with concierge
-            if (reportIDs.length) {
+            if (reportIDs.length > 0) {
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com']);
+            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false);
         })
-        .then(() => {
+        .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
 
-            // Optionally delay fetching report history as it significantly increases sign in to interactive time
-            _.delay(() => {
-                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
-                _.each(reportIDs, (reportID) => {
-                    fetchActions(reportID);
+            // Delay fetching report history as it significantly increases sign in to interactive time.
+            // Register the timer so we can clean it up if the user quickly logs out after logging in. If we don't
+            // cancel the timer we'll make unnecessary API requests from the sign in page.
+            Timers.register(setTimeout(() => {
+                // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
+                // content and improve chat switching experience by only downloading content we don't have yet.
+                // This improves performance significantly when reconnecting by limiting API requests and unnecessary
+                // data processing by Onyx.
+                const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
+                    isReportMissingActions(id, reportMaxSequenceNumbers[id])
+                ));
+
+                if (_.isEmpty(reportIDsToFetchActions)) {
+                    console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
+                    return;
+                }
+
+                console.debug('[Report] Fetching reportActions for reportIDs: ', {
+                    reportIDs: reportIDsToFetchActions,
                 });
 
-            // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading before
-            // bogging it down with more requests and operations.
-            }, shouldDelayActionsFetch ? 8000 : 0);
+                _.each(reportIDsToFetchActions, (reportID) => {
+                    const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
+                    fetchActions(reportID, offset);
+                });
 
-            // Update currentlyViewedReportID to be our first reportID from our report collection if we don't have
-            // one already and caller requested to navigate after reports load.
-            if (!shouldRedirectToReport || lastViewedReportID) {
-                return;
-            }
-
-            const firstReportID = _.first(reportIDs);
-            const currentReportID = firstReportID ? String(firstReportID) : '';
-            Onyx.merge(ONYXKEYS.CURRENTLY_VIEWED_REPORTID, currentReportID);
+                // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
+                // more requests and operations. Startup delay is longer since there is a lot more work done to build
+                // up the UI when the app first initializes.
+            }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT));
         });
 }
 
@@ -824,13 +950,13 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 }
 
 /**
- * Toggles the pinned state of the report
+ * Toggles the pinned state of the report.
  *
  * @param {Object} report
  */
 function togglePinnedState(report) {
     const pinnedValue = !report.isPinned;
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isPinned: pinnedValue});
+    updateReportPinnedState(report.reportID, pinnedValue);
     API.Report_TogglePinned({
         reportID: report.reportID,
         pinnedValue,
@@ -897,7 +1023,7 @@ Onyx.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-NetworkConnection.onReconnect(() => fetchAllReports(false));
+NetworkConnection.onReconnect(() => fetchAllReports());
 
 export {
     fetchAllReports,
@@ -905,8 +1031,8 @@ export {
     fetchOrCreateChatReport,
     addAction,
     updateLastReadActionID,
-    subscribeToReportCommentEvents,
     subscribeToReportTypingEvents,
+    subscribeToUserEvents,
     unsubscribeFromReportChannel,
     saveReportComment,
     broadcastUserIsTyping,

@@ -13,6 +13,8 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
+import ReportActionItemIOUPreview from '../../../components/ReportActionItemIOUPreview';
+import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 
 const propTypes = {
@@ -25,8 +27,22 @@ const propTypes = {
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
 
+    // Is this the most recent IOU Action?
+    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
+
+    // Whether there is an outstanding amount in IOU
+    hasOutstandingIOU: PropTypes.bool,
+
+    // IOU report ID associated with current report
+    iouReportID: PropTypes.number,
+
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
+};
+
+const defaultProps = {
+    iouReportID: undefined,
+    hasOutstandingIOU: false,
 };
 
 class ReportActionItem extends Component {
@@ -50,6 +66,9 @@ class ReportActionItem extends Component {
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
+            || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
+            || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
+            || this.props.iouReportID !== nextProps.iouReportID
             || (this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator)
             || !_.isEqual(this.props.action, nextProps.action);
     }
@@ -85,18 +104,36 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        const children = this.props.action.actionName === 'IOU'
+            ? (
+                <ReportActionItemIOUPreview
+                    iouReportID={this.props.iouReportID}
+                    hasOutstandingIOU={this.props.hasOutstandingIOU}
+                    action={this.props.action}
+                    isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
+                />
+            )
+            : <ReportActionItemMessage action={this.props.action} />;
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
                     {hovered => (
                         <View>
-                            {!hovered && this.props.shouldDisplayNewIndicator && (
+                            {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
                             <View style={getReportActionItemStyle(hovered)}>
                                 {!this.props.displayAsGroup
-                                    ? <ReportActionItemSingle action={this.props.action} />
-                                    : <ReportActionItemGrouped action={this.props.action} />}
+                                    ? (
+                                        <ReportActionItemSingle action={this.props.action}>
+                                            {children}
+                                        </ReportActionItemSingle>
+                                    )
+                                    : (
+                                        <ReportActionItemGrouped>
+                                            {children}
+                                        </ReportActionItemGrouped>
+                                    )}
                             </View>
                             <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
                                 <ReportActionContextMenu
@@ -138,5 +175,5 @@ class ReportActionItem extends Component {
 }
 
 ReportActionItem.propTypes = propTypes;
-
+ReportActionItem.defaultProps = defaultProps;
 export default ReportActionItem;
