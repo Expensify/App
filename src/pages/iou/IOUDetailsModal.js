@@ -11,7 +11,7 @@ import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {settleIOUReport} from '../../libs/actions/IOU';
 import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
-import IOUDetailsTransactions from '../../components/IOUDetailsTransactions';
+import IOUTransactions from './IOUTransactions';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -106,7 +106,7 @@ class IOUDetailsModal extends Component {
                         onPayButtonPressed={null}
                         shouldHidePayButton
                     />
-                    <IOUDetailsTransactions
+                    <IOUTransactions
                         chatReportID={this.props.iouReport.chatReportID}
                         iouReportID={this.props.route.params.iouReportID}
                         transactions={this.props.iouReport.transactions}
