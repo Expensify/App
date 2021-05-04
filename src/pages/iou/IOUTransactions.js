@@ -3,9 +3,9 @@ import View from 'react-native-web';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import ONYXKEYS from '../ONYXKEYS';
-import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
-import ReportTransaction from './ReportTransaction';
+import ONYXKEYS from '../../ONYXKEYS';
+import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
+import ReportTransaction from '../../components/ReportTransaction';
 
 const propTypes = {
     reportActions: PropTypes.arrayOf(PropTypes.shape(ReportActionPropTypes)), // should this be array/object?
@@ -33,7 +33,7 @@ const defaultProps = {
     transactions: [],
 };
 
-class IOUDetailsTransactions extends PureComponent {
+class IOUTransactions extends PureComponent {
     render() {
         const transactionsByCreationDate = this.props.transactions ? this.props.transactions.reverse() : [];
         return (
@@ -60,11 +60,11 @@ class IOUDetailsTransactions extends PureComponent {
     }
 }
 
-IOUDetailsTransactions.defaultProps = defaultProps;
-IOUDetailsTransactions.propTypes = propTypes;
+IOUTransactions.defaultProps = defaultProps;
+IOUTransactions.propTypes = propTypes;
 export default withOnyx({
     reportActions: {
         key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
         canEvict: false,
     },
-})(IOUDetailsTransactions);
+})(IOUTransactions);
