@@ -1,10 +1,10 @@
-<If necessary, assign reviewers that know the area or changes well. Feel free to tag any additional reviewers you see fit.>
+<!-- If necessary, assign reviewers that know the area or changes well. Feel free to tag any additional reviewers you see fit. -->
 
 ### Details
-<Explanation of the change or anything fishy that is going on>
+<!-- Explanation of the change or anything fishy that is going on -->
 
 ### Fixed Issues
-<Please replace GH_LINK with the link to the GitHub issue this Pull Request is fixing>
+<!-- Please replace GH_LINK with the link to the GitHub issue this Pull Request is fixing -->
 Fixes GH_LINK
 
 ### Tests

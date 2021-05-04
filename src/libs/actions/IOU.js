@@ -17,35 +17,44 @@ function getPreferredCurrency() {
 }
 
 /**
- * @param {Array} reportIds
+ * @param {Object[]} requestParams
+ * @param {Number} requestParams.reportID the ID of the IOU report
+ * @param {Number} requestParams.chatReportID the ID of the chat report that the IOU report belongs to
  * @returns {Promise}
  * Gets the IOU Reports for new transaction
  */
-function getIOUReportsForNewTransaction(reportIds) {
+function getIOUReportsForNewTransaction(requestParams) {
     return API.Get({
         returnValueList: 'reportStuff',
-        reportIDList: reportIds,
+        reportIDList: _.pluck(requestParams, 'reportID'),
         shouldLoadOptionalKeys: true,
         includePinnedReports: true,
     })
-        .then(({reports}) => _.map(reports, getSimplifiedIOUReport))
-        .then((iouReportObjects) => {
-            const reportIOUData = {};
+        .then(({reports}) => {
+            const chatReportsToUpdate = {};
+            const iouReportsToUpdate = {};
 
-            if (iouReportObjects.length === 1) {
-                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObjects[0].reportID}`;
-                return Onyx.merge(iouReportKey,
-                    getSimplifiedIOUReport(iouReportObjects[0]));
-            }
+            _.each(reports, (reportData) => {
+                // First, the existing chat report needs updated with the details about the new IOU
+                const paramsForIOUReport = _.findWhere(requestParams, {reportID: reportData.reportID});
+                if (paramsForIOUReport && paramsForIOUReport.chatReportID) {
+                    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${paramsForIOUReport.chatReportID}`;
+                    chatReportsToUpdate[chatReportKey] = {
+                        iouReportID: reportData.reportID,
+                        total: reportData.total,
+                        stateNum: reportData.stateNum,
+                        hasOutstandingIOU: true,
+                    };
 
-            _.each(iouReportObjects, (iouReportObject) => {
-                if (!iouReportObject) {
-                    return;
+                    // Second, the IOU report needs updated with the new IOU details too
+                    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
+                    iouReportsToUpdate[iouReportKey] = getSimplifiedIOUReport(reportData, reportData.reportID);
                 }
-                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
-                reportIOUData[iouReportKey] = iouReportObject;
             });
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, {...reportIOUData});
+
+            // Now, merge the updated objects into our store
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportsToUpdate);
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
         })
         .catch(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: true}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
@@ -53,58 +62,53 @@ function getIOUReportsForNewTransaction(reportIds) {
 
 /**
  * Creates IOUSplit Transaction
- * @param {Object} parameters
- * @param {String} parameters.amount
- * @param {String} parameters.comment
- * @param {String} parameters.currency
- * @param {String} parameters.debtorEmail
+ * @param {Object} params
+ * @param {String} params.amount
+ * @param {String} params.comment
+ * @param {String} params.currency
+ * @param {String} params.debtorEmail
  */
-function createIOUTransaction({
-    comment, amount, currency, debtorEmail,
-}) {
+function createIOUTransaction(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
-    API.CreateIOUTransaction({
-        comment,
-        amount,
-        currency,
-        debtorEmail,
-    })
-        .then(data => data.reportID)
-        .then(reportID => getIOUReportsForNewTransaction([reportID]));
+    API.CreateIOUTransaction(params)
+        .then(data => getIOUReportsForNewTransaction([data]));
 }
 
 /**
  * Creates IOUSplit Transaction
- * @param {Object} parameters
- * @param {Array} parameters.splits
- * @param {String} parameters.comment
- * @param {String} parameters.amount
- * @param {String} parameters.currency
+ * @param {Object} params
+ * @param {Array} params.splits
+ * @param {String} params.comment
+ * @param {String} params.amount
+ * @param {String} params.currency
  */
-function createIOUSplit({
-    comment,
-    amount,
-    currency,
-    splits,
-}) {
+function createIOUSplit(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 
     API.CreateChatReport({
-        emailList: splits.map(participant => participant.email).join(','),
+        emailList: params.splits.map(participant => participant.email).join(','),
     })
-        .then((data) => {
-            console.debug(data);
-            return data.reportID;
-        })
-        .then(reportID => API.CreateIOUSplit({
-            splits: JSON.stringify(splits),
-            currency,
-            amount,
-            comment,
-            reportID,
+        .then(data => API.CreateIOUSplit({
+            ...params,
+            splits: JSON.stringify(params.splits),
+            reportID: data.reportID,
         }))
-        .then(data => data.reportIDList)
-        .then(reportIDList => getIOUReportsForNewTransaction(reportIDList));
+        .then((data) => {
+            // This data needs to go from this:
+            // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
+            // to this:
+            // [{reportID: 1, chatReportID: 3}, {reportID: 2, chatReportID: 4}]
+            // in order for getIOUReportsForNewTransaction to know which IOU reports are associated with which
+            // chat reports
+            const reportParams = [];
+            for (let i = 0; i < data.reportIDList.length; i++) {
+                reportParams.push({
+                    reportID: data.reportIDList[i],
+                    chatReportID: data.chatReportIDList[i],
+                });
+            }
+            getIOUReportsForNewTransaction(reportParams);
+        });
 }
 
 export {

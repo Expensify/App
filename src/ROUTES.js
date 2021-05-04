@@ -26,7 +26,6 @@ export default {
     IOU_BILL: 'iou/split/:reportID',
     getIouSplitRoute: reportID => `iou/split/${reportID}`,
     SEARCH: 'search',
-    SIGNIN: 'signin',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
     DETAILS_WITH_LOGIN: 'details/:login',
