@@ -818,7 +818,6 @@ function fetchAllReports(
                 console.debug('[Report] Fetching reportActions for reportIDs: ', {
                     reportIDs: reportIDsToFetchActions,
                 });
-
                 _.each(reportIDsToFetchActions, (reportID) => {
                     const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
                     fetchActions(reportID, offset);
@@ -1023,7 +1022,7 @@ Onyx.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-NetworkConnection.onReconnect(() => fetchAllReports());
+NetworkConnection.onReconnect(fetchAllReports);
 
 export {
     fetchAllReports,
