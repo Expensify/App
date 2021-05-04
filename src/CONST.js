@@ -63,7 +63,6 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
-        HOT: 'hot',
         COLD: 'cold',
     },
     MESSAGES: {
@@ -127,6 +126,14 @@ const CONST = {
         DEV: 'DEV',
         STAGING: 'STG',
         PRODUCTION: 'PROD',
+    },
+
+    // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
+    // from backgound). The times are based on how long it generally seems to take for the app to become interactive
+    // in each scenario.
+    FETCH_ACTIONS_DELAY: {
+        STARTUP: 8000,
+        RECONNECT: 1000,
     },
 };
 

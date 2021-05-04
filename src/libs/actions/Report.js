@@ -18,6 +18,8 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import {isReportMessageAttachment} from '../reportUtils';
+import Timers from '../Timers';
+import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -56,7 +58,19 @@ Onyx.connect({
 
 const typingWatchTimers = {};
 
-// Keeps track of the max sequence number for each report
+/**
+ * Map of the most recent sequenceNumber for a reports_* key in Onyx by reportID.
+ *
+ * There are several sources that can set the most recent reportAction's sequenceNumber for a report:
+ *
+ *     - Fetching the report object
+ *     - Fetching the report history
+ *     - Optimistically creating a report action
+ *     - Handling a report action via Pusher
+ *
+ * Those values are stored in reportMaxSequenceNumbers and treated as the main source of truth for each report's max
+ * sequenceNumber.
+ */
 const reportMaxSequenceNumbers = {};
 
 // Keeps track of the last read for each report
@@ -268,7 +282,7 @@ function fetchIOUReportID(debtorEmail) {
  * chat report IDs
  *
  * @param {Array} chatList
- * @return {Promise} only used internally when fetchAllReports() is called
+ * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
@@ -677,7 +691,7 @@ function unsubscribeFromReportChannel(reportID) {
  *
  * @param {String[]} participants
  * @param {Boolean} shouldNavigate
- * @returns {Promise}
+ * @returns {Promise<Number[]>}
  */
 function fetchOrCreateChatReport(participants, shouldNavigate = true) {
     if (participants.length < 2) {
@@ -700,7 +714,10 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
                 // Redirect the logged in person to the new report
                 Navigation.navigate(ROUTES.getReportRoute(data.reportID));
             }
-            return data.reportID;
+
+            // We are returning an array with the reportID here since fetchAllReports calls this method or
+            // fetchChatReportsByIDs which returns an array of reportIDs.
+            return [data.reportID];
         });
 }
 
@@ -748,14 +765,13 @@ function fetchActions(reportID, offset) {
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
+ * @returns {Promise}
  */
 function fetchAllReports(
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
-    let reportIDs = [];
-
-    API.Get({
+    return API.Get({
         returnValueList: 'chatList',
     })
         .then((response) => {
@@ -764,7 +780,7 @@ function fetchAllReports(
             }
 
             // The cast here is necessary as Get rvl='chatList' may return an int or Array
-            reportIDs = String(response.chatList)
+            const reportIDs = String(response.chatList)
                 .split(',')
                 .filter(_.identity);
 
@@ -773,28 +789,44 @@ function fetchAllReports(
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false)
-                .then((createdReportID) => {
-                    reportIDs = [createdReportID];
-                });
+            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false);
         })
-        .then(() => {
+        .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
 
-            // Optionally delay fetching report history as it significantly increases sign in to interactive time
-            _.delay(() => {
-                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
-                _.each(reportIDs, (reportID) => {
-                    fetchActions(reportID);
+            // Delay fetching report history as it significantly increases sign in to interactive time.
+            // Register the timer so we can clean it up if the user quickly logs out after logging in. If we don't
+            // cancel the timer we'll make unnecessary API requests from the sign in page.
+            Timers.register(setTimeout(() => {
+                // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
+                // content and improve chat switching experience by only downloading content we don't have yet.
+                // This improves performance significantly when reconnecting by limiting API requests and unnecessary
+                // data processing by Onyx.
+                const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
+                    isReportMissingActions(id, reportMaxSequenceNumbers[id])
+                ));
+
+                if (_.isEmpty(reportIDsToFetchActions)) {
+                    console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
+                    return;
+                }
+
+                console.debug('[Report] Fetching reportActions for reportIDs: ', {
+                    reportIDs: reportIDsToFetchActions,
+                });
+                _.each(reportIDsToFetchActions, (reportID) => {
+                    const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
+                    fetchActions(reportID, offset);
                 });
 
-            // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading before
-            // bogging it down with more requests and operations.
-            }, shouldDelayActionsFetch ? 8000 : 0);
+                // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
+                // more requests and operations. Startup delay is longer since there is a lot more work done to build
+                // up the UI when the app first initializes.
+            }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT));
         });
 }
 
@@ -990,9 +1022,7 @@ Onyx.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-NetworkConnection.onReconnect(() => {
-    fetchAllReports();
-});
+NetworkConnection.onReconnect(fetchAllReports);
 
 export {
     fetchAllReports,

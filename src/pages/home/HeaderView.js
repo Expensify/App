@@ -15,7 +15,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import MultipleAvatars from '../../components/MultipleAvatars';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import {getReportParticipantsTitle} from '../../libs/reportUtils';
 import DisplayNames from '../../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
@@ -54,6 +53,7 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
+    const reportTitle = lodashGet(props.report, 'reportName', '');
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
         ({displayName, login}) => ({displayName, tooltip: login}),
@@ -94,7 +94,7 @@ const HeaderView = (props) => {
                             />
                             <View style={[styles.flex1, styles.flexRow]}>
                                 <DisplayNames
-                                    fullTitle={getReportParticipantsTitle(participants)}
+                                    fullTitle={reportTitle}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
