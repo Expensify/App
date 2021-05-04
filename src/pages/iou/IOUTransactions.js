@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import View from 'react-native-web';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
