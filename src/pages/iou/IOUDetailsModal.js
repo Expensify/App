@@ -1,10 +1,11 @@
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {View, ActivityIndicator} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
+import themeColors from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
@@ -21,7 +22,7 @@ const matchType = PropTypes.shape({
 });
 
 const defaultProps = {
-    iouReport: {},
+    iouReport: undefined,
     iou: {},
 };
 
@@ -80,6 +81,10 @@ class IOUDetailsModal extends Component {
         this.performIOUSettlement = this.performIOUSettlement.bind(this);
     }
 
+    componentDidMount() {
+        //fetchIOUReportByID(this.props.route.params.iouReportID, this.props.iouReport.chatReportID);
+    }
+
     performIOUSettlement() {
         settleIOUReport({
             chatReportID: this.props.iouReport.chatReportID,
@@ -90,35 +95,38 @@ class IOUDetailsModal extends Component {
 
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
+        const reportIsLoading = this.props.iouReport === undefined;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title="Details"
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <View
-                    pointerEvents="box-none"
-                    style={[styles.detailsPageContainer, styles.p5]}
-                >
-                    <ReportActionItemIOUPreview
-                        iou={this.props.iouReport}
-                        session={this.props.session}
-                        onPayButtonPressed={null}
-                        shouldHidePayButton
-                    />
-                    <IOUTransactions
-                        chatReportID={this.props.iouReport.chatReportID}
-                        iouReportID={this.props.route.params.iouReportID}
-                        transactions={this.props.iouReport.transactions}
-                    />
-                    {(this.props.iouReport.managerEmail === sessionEmail && (
-                        <ButtonWithLoader
-                            text="I'll settle up elsewhere"
-                            isLoading={this.props.iou.loading}
-                            onClick={this.performIOUSettlement}
+                {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
+                    <View
+                        pointerEvents="box-none"
+                        style={[styles.detailsPageContainer, styles.p5]}
+                    >
+                        <ReportActionItemIOUPreview
+                            iou={this.props.iouReport}
+                            session={this.props.session}
+                            onPayButtonPressed={null}
+                            shouldHidePayButton
                         />
-                    ))}
-                </View>
+                        <IOUTransactions
+                            chatReportID={this.props.iouReport.chatReportID}
+                            iouReportID={this.props.route.params.iouReportID}
+                            transactions={this.props.iouReport.transactions}
+                        />
+                        {(this.props.iouReport.managerEmail === sessionEmail && (
+                            <ButtonWithLoader
+                                text="I'll settle up elsewhere"
+                                isLoading={this.props.iou.loading}
+                                onClick={this.performIOUSettlement}
+                            />
+                        ))}
+                    </View>
+                )}
             </ScreenWrapper>
         );
     }
