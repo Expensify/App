@@ -114,27 +114,6 @@ function createIOUSplit(params) {
 }
 
 /**
- * Retrieve an IOU report using a transactionID, then navigate to the page.
- * @param {Int} transactionID
- */
-function getIOUReportDetailFromTransactionID(transactionID) {
-    API.Get({
-        returnValueList: 'transactionList',
-        transactionID,
-    })
-        .then((data) => {
-            const chatReportID = data.transactionList[0].reportID;
-            if (!chatReportID) {
-                return;
-            }
-            Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID));
-        })
-        .catch((error) => {
-            console.error('Error retrieving Transaction: ', error);
-        });
-}
-
-/**
  * Settles an IOU Report
  */
 function settleIOUReport({
@@ -174,20 +153,17 @@ function rejectTransaction({
 
 /**
  * @param {Object} action
- * @param {Object} originalMessage
+ * @param {Object} action.originalMessage
  * @param {number} action.originalMessage.IOUReportID
- * @param {number} action.originalMessage.IOUTransactionID
+ * 
+ * Launch the IOU Details Modal, using data from the report action
  */
 function launchDetailsFromIOUAction(action) {
-    if (!action.originalMessage) {
-        console.error('Error launching IOUDetailModal: reportAction `originalMessage` data not provided.');
+    if (!action.originalMessage || !action.originalMessage.IOUReportID) {
+        console.error('Error launching IOUDetailModal: reportAction `IOUReportID` not provided.');
         return;
     }
-    if (action.originalMessage.IOUReportID) {
-        Navigation.navigate(ROUTES.getIouDetailsRoute(action.originalMessage.IOUReportID));
-    } else if (action.originalMessage.IOUTransactionID) {
-        getIOUReportDetailFromTransactionID(action.originalMessage.IOUTransactionID);
-    }
+    Navigation.navigate(ROUTES.getIouDetailsRoute(action.originalMessage.IOUReportID));
 }
 
 export {
