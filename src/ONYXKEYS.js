@@ -40,7 +40,7 @@ export default {
     PERSONAL_DETAILS: 'personalDetails',
 
     // Contains a list of all currencies available to the user - user can
-    // select a currency based on the listr
+    // select a currency based on the list
     CURRENCY_LIST: 'currencyList',
 
     // Indicates whether an update is available and ready to beinstalled.

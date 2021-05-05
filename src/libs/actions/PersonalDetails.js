@@ -258,7 +258,7 @@ function fetchCurrencyPreferences(withLocation) {
         .then((data) => {
             currency = data.currency;
         })
-        .then(() => API.GetCurrencyList())
+        .then(API.GetCurrencyList)
         .then((data) => {
             const currencyList = JSON.parse(data.currencyList);
             Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyList);
