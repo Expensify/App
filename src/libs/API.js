@@ -382,12 +382,13 @@ function DeleteLogin(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.returnValueList
+ * @param {Boolean} shouldUseSecure
  * @returns {Promise}
  */
-function Get(parameters) {
+function Get(parameters, shouldUseSecure = false) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
-    return Network.post(commandName, parameters);
+    return Network.post(commandName, parameters, 'post', shouldUseSecure);
 }
 
 /**
