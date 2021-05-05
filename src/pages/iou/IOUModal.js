@@ -180,9 +180,12 @@ class IOUModal extends Component {
         this.setState({selectedCurrency});
     }
 
-    createTransaction({splits}) {
+    /**
+     * @param {Array} [splits]
+     */
+    createTransaction(splits) {
         if (splits) {
-            return createIOUSplit({
+            createIOUSplit({
                 comment: this.state.comment,
 
                 // should send in cents to API
@@ -190,18 +193,10 @@ class IOUModal extends Component {
                 currency: this.state.selectedCurrency,
                 splits,
             });
+            return;
         }
 
-        console.debug({
-            comment: this.state.comment,
-
-            // should send in cents to API
-            amount: this.state.amount * 100,
-            currency: this.state.selectedCurrency,
-            debtorEmail: this.state.participants[0].login,
-        });
-
-        return createIOUTransaction({
+        createIOUTransaction({
             comment: this.state.comment,
 
             // should send in cents to API

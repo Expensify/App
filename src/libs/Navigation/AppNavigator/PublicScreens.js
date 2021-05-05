@@ -17,7 +17,7 @@ const defaultScreenOptions = {
 export default () => (
     <RootStack.Navigator>
         <RootStack.Screen
-            name={SCREENS.SIGN_IN}
+            name={SCREENS.HOME}
             options={defaultScreenOptions}
             component={SignInPage}
         />
