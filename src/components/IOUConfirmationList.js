@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
@@ -13,6 +14,9 @@ import {
 import OptionsList from './OptionsList';
 import ButtonWithLoader from './ButtonWithLoader';
 import ONYXKEYS from '../ONYXKEYS';
+import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import compose from '../libs/compose';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -26,6 +30,9 @@ const propTypes = {
 
     // Should we request a single or multiple participant selection from user
     hasMultipleParticipants: PropTypes.bool.isRequired,
+
+    // Safe area insets required for mobile devices margins
+    insets: SafeAreaInsetPropTypes.isRequired,
 
     // IOU amount
     iouAmount: PropTypes.string.isRequired,
@@ -49,6 +56,8 @@ const propTypes = {
         reportID: PropTypes.number,
         participantsList: PropTypes.arrayOf(PropTypes.object),
     })).isRequired,
+
+    ...windowDimensionsPropTypes,
 
     /* Onyx Props */
 
@@ -79,6 +88,10 @@ const defaultProps = {
     comment: '',
 };
 
+// Gives minimum height to offset the height of
+// button and comment box
+const MINIMUM_BOTTOM_OFFSET = 240;
+
 class IOUConfirmationList extends Component {
     /**
      * Returns the sections needed for the OptionsSelector
@@ -104,7 +117,7 @@ class IOUConfirmationList extends Component {
 
             sections.push({
                 title: 'WHO PAID?',
-                data: formattedMyPersonalDetails,
+                data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
             });
@@ -132,9 +145,15 @@ class IOUConfirmationList extends Component {
     /**
      * Gets splits for the transaction
      *
-     * @returns {Array}
+     * @returns {Array|null}
      */
     getSplits() {
+        // There can only be splits when there are multiple participants, so return early when there are not
+        // multiple participants
+        if (!this.props.hasMultipleParticipants) {
+            return null;
+        }
+
         const splits = this.props.participants.map(participant => ({
             email: participant.login,
 
@@ -169,8 +188,13 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getAllOptionsAsSelected() {
-        return [...this.props.participants,
-            getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails)];
+        if (!this.props.hasMultipleParticipants) {
+            return [];
+        }
+        return [
+            ...this.props.participants,
+            getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails),
+        ];
     }
 
     /**
@@ -201,14 +225,19 @@ class IOUConfirmationList extends Component {
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
                     <OptionsList
-                        listContainerStyles={[styles.flexGrow0]}
+                        listContainerStyles={[{
+                            // Give max height to the list container so that it does not extend
+                            // beyond the comment view as well as button
+                            maxHeight: this.props.windowHeight - MINIMUM_BOTTOM_OFFSET
+                                - this.props.insets.top - this.props.insets.bottom,
+                        }]}
                         sections={this.getSections()}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         disableFocusOptions
-                        selectedOptions={this.props.hasMultipleParticipants && this.getAllOptionsAsSelected()}
+                        selectedOptions={this.getAllOptionsAsSelected()}
                     />
                     <View>
                         <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
@@ -229,13 +258,7 @@ class IOUConfirmationList extends Component {
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
                         text={this.props.hasMultipleParticipants ? 'Split' : `Request $${this.props.iouAmount}`}
-                        onClick={() => {
-                            if (this.props.hasMultipleParticipants) {
-                                this.props.onConfirm({splits: this.getSplits()});
-                            } else {
-                                this.props.onConfirm({});
-                            }
-                        }}
+                        onClick={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
             </View>
@@ -247,9 +270,9 @@ IOUConfirmationList.displayName = 'IOUConfirmPage';
 IOUConfirmationList.propTypes = propTypes;
 IOUConfirmationList.defaultProps = defaultProps;
 
-export default withOnyx({
+export default compose(withOnyx({
     iou: {key: ONYXKEYS.IOU},
     myPersonalDetails: {
         key: ONYXKEYS.MY_PERSONAL_DETAILS,
     },
-})(IOUConfirmationList);
+}), withSafeAreaInsets, withWindowDimensions)(IOUConfirmationList);

@@ -18,11 +18,11 @@ export default {
                 screens: {
                     // Report route
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
+                    [SCREENS.LOADING]: ROUTES.REPORT,
                 },
             },
 
             // Public Routes
-            SignIn: ROUTES.SIGNIN,
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
 
@@ -48,7 +48,7 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
-                    Settings_Add_Seconday_Login: {
+                    Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
                 },

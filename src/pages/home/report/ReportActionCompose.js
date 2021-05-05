@@ -17,7 +17,13 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
 import {
-    Plus, Send, Emoji, Paperclip, Offline,
+    Plus,
+    Send,
+    Emoji,
+    Paperclip,
+    Offline,
+    MoneyCircle,
+    Receipt,
 } from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
@@ -33,6 +39,9 @@ import getButtonState from '../../../libs/getButtonState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
+import Permissions from '../../../libs/Permissions';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -55,7 +64,7 @@ const propTypes = {
 
         // participants associated with current report
         participants: PropTypes.arrayOf(PropTypes.string),
-    }).isRequired,
+    }),
 
     /* Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -77,6 +86,7 @@ const propTypes = {
 const defaultProps = {
     comment: '',
     modal: {},
+    report: {},
     network: {isOffline: false},
 };
 
@@ -97,6 +107,9 @@ class ReportActionCompose extends React.Component {
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+        this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
+
+        this.emojiSearchInput = null;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -243,6 +256,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Focus the search input in the emoji picker.
+     */
+    focusEmojiSearchInput() {
+        if (this.emojiSearchInput) {
+            this.emojiSearchInput.focus();
+        }
+    }
+
+    /**
      * Add a new comment to this chat
      *
      * @param {SyntheticEvent} [e]
@@ -311,6 +333,27 @@ class ReportActionCompose extends React.Component {
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
+                                                    ...(Permissions.canUseIOU() ? [
+                                                        hasMultipleParticipants
+                                                            ? {
+                                                                icon: Receipt,
+                                                                text: 'Split Bill',
+                                                                onSelected: () => {
+                                                                    Navigation.navigate(
+                                                                        ROUTES.getIouSplitRoute(this.props.reportID),
+                                                                    );
+                                                                },
+                                                            }
+                                                            : {
+                                                                icon: MoneyCircle,
+                                                                text: 'Request Money',
+                                                                onSelected: () => {
+                                                                    Navigation.navigate(
+                                                                        ROUTES.getIouRequestRoute(this.props.reportID),
+                                                                    );
+                                                                },
+                                                            },
+                                                    ] : []),
                                                     {
                                                         icon: Paperclip,
                                                         text: 'Add Attachment',
@@ -323,18 +366,6 @@ class ReportActionCompose extends React.Component {
                                                         },
                                                     },
                                                 ]}
-
-                                            /**
-                                             * Temporarily hiding IOU Modal options while Modal is incomplete. Will
-                                             * be replaced by a beta flag once IOUConfirm is completed.
-                                            menuOptions={hasMultipleParticipants
-                                                ? [
-                                                    CONST.MENU_ITEM_KEYS.SPLIT_BILL,
-                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
-                                                : [
-                                                    CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
-                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
-                                            */
                                             />
                                         </>
                                     )}
@@ -383,6 +414,7 @@ class ReportActionCompose extends React.Component {
                     <Popover
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
+                        onModalShow={this.focusEmojiSearchInput}
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
@@ -393,6 +425,7 @@ class ReportActionCompose extends React.Component {
                     >
                         <EmojiPickerMenu
                             onEmojiSelected={this.addEmojiToTextBox}
+                            ref={el => this.emojiSearchInput = el}
                         />
                     </Popover>
                     <Pressable

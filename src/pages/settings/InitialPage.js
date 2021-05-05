@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -16,7 +13,7 @@ import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import {
-    Gear, Lock, Profile, Wallet,
+    Gear, Lock, Profile, Wallet, SignOut,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
@@ -58,22 +55,28 @@ const menuItems = [
     {
         title: 'Profile',
         icon: Profile,
-        route: ROUTES.SETTINGS_PROFILE,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PROFILE); },
     },
     {
         title: 'Preferences',
         icon: Gear,
-        route: ROUTES.SETTINGS_PREFERENCES,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
     },
     {
         title: 'Change Password',
         icon: Lock,
-        route: ROUTES.SETTINGS_PASSWORD,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PASSWORD); },
     },
     {
         title: 'Payments',
         icon: Wallet,
-        route: ROUTES.SETTINGS_PAYMENTS,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
+
+    },
+    {
+        title: 'Sign Out',
+        icon: SignOut,
+        action: signOut,
     },
 ];
 
@@ -126,20 +129,10 @@ const InitialSettingsPage = ({
                             key={item.title}
                             title={item.title}
                             icon={item.icon}
-                            onPress={() => Navigation.navigate(item.route)}
+                            onPress={() => item.action()}
                             shouldShowRightArrow
                         />
                     ))}
-                    <View style={[styles.ph5]}>
-                        <TouchableOpacity
-                            onPress={signOut}
-                            style={[styles.button, styles.w100, styles.mt5]}
-                        >
-                            <Text style={[styles.buttonText]}>
-                                Sign Out
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
                 </View>
                 <View style={[styles.sidebarFooter]}>
                     <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
