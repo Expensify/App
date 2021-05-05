@@ -113,7 +113,9 @@ class ReportActionsView extends React.Component {
 
         // We are adding 1 to the last read sequence number because we want the New marker displayed over the
         // first unread sequence
-        setNewMarkerPosition(this.props.reportID, lastReadSequenceNumber + 1);
+        if (lastReadSequenceNumber > 0) {
+            setNewMarkerPosition(this.props.reportID, lastReadSequenceNumber + 1);
+        }
         fetchActions(this.props.reportID);
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
