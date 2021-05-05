@@ -60,7 +60,7 @@ const propTypes = {
     // Whether to show the title tooltip
     showTitleTooltip: PropTypes.bool,
 
-    // Whether to focus the textinput after an optin is selected
+    // Whether to focus the textinput after an option is selected
     showTitleTooltip: PropTypes.bool,
 };
 
