@@ -7,6 +7,16 @@ const clientID = Str.guid();
 const maxClients = 20;
 
 let activeClients;
+let setReady = null;
+
+// Whether the client Manager has started
+let isInit = false;
+
+// Are we ready to determine active Client?
+const isReady = new Promise((res) => {
+    setReady = res;
+});
+
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
@@ -14,6 +24,9 @@ Onyx.connect({
         if (activeClients.length >= maxClients) {
             activeClients.shift();
             Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
+        }
+        if (isInit) {
+            setReady();
         }
     },
 });
@@ -23,6 +36,7 @@ Onyx.connect({
  */
 function init() {
     Onyx.merge(ONYXKEYS.ACTIVE_CLIENTS, [clientID]);
+    isInit = true;
 }
 
 /**
@@ -36,5 +50,6 @@ function isClientTheLeader() {
 
 export {
     init,
+    isReady,
     isClientTheLeader,
 };

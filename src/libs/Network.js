@@ -3,8 +3,12 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
+import * as ActiveClientManager from './ActiveClientManager';
 
 let isQueuePaused = false;
+
+// Are we retrying requests when user comes back online?
+let retryRequestsAdded = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -31,15 +35,21 @@ let didLoadPersistedRequests;
 Onyx.connect({
     key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
     callback: (persistedRequests) => {
-        if (didLoadPersistedRequests || !persistedRequests) {
-            return;
-        }
+        ActiveClientManager.isReady.then(() => {
+            // Only process queue when client is Leader and we have not retried the requests already
+            if (!ActiveClientManager.isClientTheLeader()
+                || retryRequestsAdded
+                || didLoadPersistedRequests
+                || !persistedRequests.length) {
+                return;
+            }
 
-        // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
-        // this once when the app initializes
-        networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
-        Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
-        didLoadPersistedRequests = true;
+            // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
+            // this once when the app initializes
+            networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
+            Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
+            didLoadPersistedRequests = true;
+        });
     },
 });
 
@@ -112,6 +122,7 @@ function processNetworkRequestQueue() {
             !request.data.doNotRetry && request.data.persist
         ));
         Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, retryableRequests);
+        retryRequestsAdded = true;
         return;
     }
 
@@ -159,6 +170,11 @@ function processNetworkRequestQueue() {
             .then(response => onResponse(queuedRequest, response))
             .catch(error => onError(queuedRequest, error));
     });
+
+    // User came back online and the request queue will resume, thus we should clear the NETWORK_REQUEST_QUEUE
+    if (ActiveClientManager.isClientTheLeader() && retryRequestsAdded) {
+        Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
+    }
 
     // We clear the request queue at the end by setting the queue to retryableRequests which will either have some
     // requests we want to retry or an empty array
