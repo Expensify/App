@@ -127,7 +127,7 @@ class OptionsSelector extends Component {
 
         switch (e.nativeEvent.key) {
             case 'Enter': {
-                this.props.onSelectRow(allOptions[this.state.focusedIndex]);
+                this.selectRow(allOptions[this.state.focusedIndex]);
                 e.preventDefault();
                 break;
             }
