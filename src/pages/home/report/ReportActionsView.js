@@ -112,7 +112,7 @@ class ReportActionsView extends React.Component {
             : this.props.report.maxSequenceNumber - this.props.report.unreadActionCount;
 
         // We are adding 1 to the last read sequence number because we want the New marker displayed over the
-        // first unread sequence
+        // first unread sequence. If there are no unread actions, there's no need to display it.
         if (lastReadSequenceNumber > 0) {
             setNewMarkerPosition(this.props.reportID, lastReadSequenceNumber + 1);
         }
