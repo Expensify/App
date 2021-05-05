@@ -173,7 +173,7 @@ class AuthScreens extends React.Component {
                 mode="modal"
 
                 // We are disabling the default keyboard handling here since the automatic behavior is to close a
-                // keyboard that's open when swiping left on a modal. In those cases, pressing the back button on
+                // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
                 // a header will briefly open and close the keyboard and crash Android.
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 keyboardHandlingEnabled={false}
