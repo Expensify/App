@@ -3,6 +3,8 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const CONST = {
     BETAS: {
         ALL: 'all',
+        CHRONOS_IN_CASH: 'chronosInCash',
+        IOU: 'IOU',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -32,6 +34,10 @@ const CONST = {
                 IOU: 'IOU',
             },
         },
+        TYPE: {
+            CHAT: 'chat',
+            IOU: 'iou',
+        },
     },
     MODAL: {
         MODAL_TYPE: {
@@ -57,7 +63,6 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
-        HOT: 'hot',
         COLD: 'cold',
     },
     MESSAGES: {
@@ -109,6 +114,27 @@ const CONST = {
     },
 
     EMOJI_PICKER_SIZE: 360,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
+    EMOJI_PICKER_ITEM_HEIGHT: 40,
+    EMOJI_PICKER_HEADER_HEIGHT: 38,
+
+    EMAIL: {
+        CHRONOS: 'chronos@expensify.com',
+    },
+
+    ENVIRONMENT: {
+        DEV: 'DEV',
+        STAGING: 'STG',
+        PRODUCTION: 'PROD',
+    },
+
+    // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
+    // from backgound). The times are based on how long it generally seems to take for the app to become interactive
+    // in each scenario.
+    FETCH_ACTIONS_DELAY: {
+        STARTUP: 8000,
+        RECONNECT: 1000,
+    },
 };
 
 export default CONST;
