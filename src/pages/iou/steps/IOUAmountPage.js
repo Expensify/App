@@ -17,7 +17,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 
 const propTypes = {
-    // bool to check if IOU has multiple participants
+    // Whether or not this IOU has multiple participants
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
     // Callback to inform parent modal of success

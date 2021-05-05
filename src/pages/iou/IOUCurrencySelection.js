@@ -65,8 +65,9 @@ class IOUCurrencySelection extends Component {
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
-        this.renderItem = this.renderItem.bind(this);
         this.getSections = this.getSections.bind(this);
+        this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
+        this.changeSearchValue = this.changeSearchValue.bind(this);
     }
 
     componentDidMount() {
@@ -122,34 +123,31 @@ class IOUCurrencySelection extends Component {
     }
 
     /**
-     * Returns the key used by the list
-     * @param {Object} option
-     * @return {String}
+     * Sets new search value
+     * @param {String} searchValue
+     * @return {void}
      */
-    extractKey(option) {
-        return option.currencyCode;
+    changeSearchValue(searchValue) {
+        const {currencyOptions} = getCurrencyListForSections(
+            this.getCurrencyOptions(this.props.currencyList),
+            searchValue,
+        );
+        this.setState({
+            searchValue,
+            currencyData: currencyOptions,
+        });
     }
 
     /**
-     * Function which renders a row in the list
-     *
-     * @param {Object} params
-     * @param {Object} params.item
-     *
-     * @return {Component}
+     * Confirms the selection of currency and sets values in Onyx
+     * @return {void}
      */
-    renderItem({item, key}) {
-        return (
-            <OptionRow
-                key={key}
-                mode="compact"
-                option={item}
-                onSelectRow={() => this.toggleOption(item.currencyCode)}
-                isSelected={item.currencyCode === this.state.selectedCurrency.currencyCode}
-                showSelectedState
-                hideAdditionalOptionStates
-            />
-        );
+    confirmCurrencySelection() {
+        Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+            preferredCurrencyCode: this.state.selectedCurrency.currencyCode,
+            preferredCurrencySymbol: this.state.selectedCurrency.currencySymbol,
+        });
+        Navigation.goBack();
     }
 
     render() {
@@ -168,16 +166,7 @@ class IOUCurrencySelection extends Component {
                                 ref={el => this.textInput = el}
                                 style={[styles.textInput]}
                                 value={this.state.searchValue}
-                                onChangeText={(searchValue = '') => {
-                                    const {currencyOptions} = getCurrencyListForSections(
-                                        this.getCurrencyOptions(this.props.currencyList),
-                                        searchValue,
-                                    );
-                                    this.setState({
-                                        searchValue,
-                                        currencyData: currencyOptions,
-                                    });
-                                }}
+                                onChangeText={this.changeSearchValue}
                                 placeholder="Search"
                                 placeholderTextColor={themeColors.placeholderText}
                             />
@@ -189,9 +178,19 @@ class IOUCurrencySelection extends Component {
                                 keyboardShouldPersistTaps="always"
                                 showsVerticalScrollIndicator={false}
                                 sections={sections}
-                                keyExtractor={this.extractKey}
+                                keyExtractor={option => option.currencyCode}
                                 stickySectionHeadersEnabled={false}
-                                renderItem={this.renderItem}
+                                renderItem={({item, key}) => (
+                                    <OptionRow
+                                        key={key}
+                                        mode="compact"
+                                        option={item}
+                                        onSelectRow={() => this.toggleOption(item.currencyCode)}
+                                        isSelected={item.currencyCode === this.state.selectedCurrency.currencyCode}
+                                        showSelectedState
+                                        hideAdditionalOptionStates
+                                    />
+                                )}
                                 renderSectionHeader={({section: {title}}) => (
                                     <View>
                                         <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
@@ -204,13 +203,7 @@ class IOUCurrencySelection extends Component {
                     </View>
                     <View style={[styles.ph5, styles.pb5]}>
                         <Pressable
-                            onPress={() => {
-                                Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
-                                    preferredCurrencyCode: this.state.selectedCurrency.currencyCode,
-                                    preferredCurrencySymbol: this.state.selectedCurrency.currencySymbol,
-                                });
-                                Navigation.goBack();
-                            }}
+                            onPress={this.confirmCurrencySelection}
                             style={({hovered}) => [
                                 styles.button,
                                 styles.buttonSuccess,
