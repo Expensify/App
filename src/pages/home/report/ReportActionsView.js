@@ -192,6 +192,10 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
+        // We must cancel the debounce function so that we do not call the function when switching to a new chat before
+        // the previous one has finished loading completely.
+        this.recordTimeToMeasureItemLayout.cancel();
+
         AppState.removeEventListener('change', this.onVisibilityChange);
 
         _.each(this.timers, timer => clearTimeout(timer));
