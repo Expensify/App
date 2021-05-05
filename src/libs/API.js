@@ -689,6 +689,15 @@ function CreateIOUSplit(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @returns {Promise}
+ */
+function Wallet_GetOnfidoSDKToken() {
+    return Network.post('Wallet_GetOnfidoSDKToken');
+}
+
+window.Wallet_GetOnfidoSDKToken;
+
 export {
     getAuthToken,
     Authenticate,
@@ -723,4 +732,5 @@ export {
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
+    Wallet_GetOnfidoSDKToken,
 };
