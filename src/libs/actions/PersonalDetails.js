@@ -107,9 +107,10 @@ function formatPersonalDetails(personalDetailsList) {
 
 /**
  * Get the personal details for our organization
+ * @returns {Promise}
  */
-function fetch() {
-    API.Get({
+function fetchPersonalDetails() {
+    return API.Get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
@@ -262,10 +263,10 @@ function deleteAvatar(login) {
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
-NetworkConnection.onReconnect(fetch);
+NetworkConnection.onReconnect(fetchPersonalDetails);
 
 export {
-    fetch,
+    fetchPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,
