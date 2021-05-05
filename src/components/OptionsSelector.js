@@ -61,7 +61,7 @@ const propTypes = {
     showTitleTooltip: PropTypes.bool,
 
     // Whether to focus the textinput after an option is selected
-    showTitleTooltip: PropTypes.bool,
+    shouldFocusOnSelectRow: PropTypes.bool,
 };
 
 const defaultProps = {
