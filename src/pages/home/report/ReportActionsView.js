@@ -84,9 +84,7 @@ class ReportActionsView extends React.Component {
         this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
-        this.startRecordMaxActionTimer = this.startRecordMaxActionTimer.bind(this);
         this.sortedReportActions = [];
-        this.timers = [];
 
         this.initialNewMarkerPosition = props.report.unreadActionCount === 0
             ? 0
@@ -151,10 +149,10 @@ class ReportActionsView extends React.Component {
                 this.scrollToListBottom();
             }
 
-            // When the last action changes, wait three seconds, then record the max action
+            // When the last action changes, record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
             if (shouldRecordMaxAction) {
-                this.startRecordMaxActionTimer();
+                updateLastReadActionID(this.props.reportID);
             }
         }
 
@@ -164,7 +162,7 @@ class ReportActionsView extends React.Component {
             prevProps.isDrawerOpen !== this.props.isDrawerOpen
             || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
         )) {
-            this.startRecordMaxActionTimer();
+            updateLastReadActionID(this.props.reportID);
         }
     }
 
@@ -175,7 +173,6 @@ class ReportActionsView extends React.Component {
 
         AppState.removeEventListener('change', this.onVisibilityChange);
 
-        _.each(this.timers, timer => clearTimeout(timer));
         unsubscribeFromReportChannel(this.props.reportID);
     }
 
@@ -184,17 +181,8 @@ class ReportActionsView extends React.Component {
      */
     onVisibilityChange() {
         if (Visibility.isVisible()) {
-            this.startRecordMaxActionTimer();
+            updateLastReadActionID(this.props.reportID);
         }
-    }
-
-    /**
-     * Set a timer for recording the max action
-     *
-     * @memberof ReportActionsView
-     */
-    startRecordMaxActionTimer() {
-        this.timers.push(setTimeout(this.recordMaxAction, 3000));
     }
 
     /**
@@ -261,25 +249,6 @@ class ReportActionsView extends React.Component {
         }
 
         return currentAction.action.actorEmail === previousAction.action.actorEmail;
-    }
-
-    /**
-     * Recorded when the report first opens and when the list is scrolled to the bottom
-     */
-    recordMaxAction() {
-        const reportActions = lodashGet(this.props, 'reportActions', {});
-        const maxVisibleSequenceNumber = _.chain(reportActions)
-
-            // We want to avoid marking any pending actions as read since
-            // 1. Any action ID that hasn't been delivered by the server is a temporary action ID.
-            // 2. We already set a comment someone has authored as the lastReadActionID_<accountID> rNVP on the server
-            // and should sync it locally when we handle it via Pusher or Airship
-            .reject(action => action.loading)
-            .pluck('sequenceNumber')
-            .max()
-            .value();
-
-        updateLastReadActionID(this.props.reportID, maxVisibleSequenceNumber);
     }
 
     /**
