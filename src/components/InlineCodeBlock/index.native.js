@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from '../../styles/styles';
-import WrappedText from './wrappedText';
+import WrappedText from './WrappedText';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
 const InlineCodeBlock = ({
@@ -9,14 +9,12 @@ const InlineCodeBlock = ({
     textStyle,
 }) => (
     <WrappedText
-        textStyle={textStyle}
-        wordStyle={{
-            ...boxModelStyle,
-            ...styles.codeWordStyle,
-        }}
-        firstWordStyle={styles.codeFirstWordStyle}
-        lastWordStyle={styles.codeLastWordStyle}
-            // eslint-disable-next-line react/jsx-props-no-spreading
+        textStyles={[textStyle]}
+        wordStyles={[
+            boxModelStyle,
+            styles.codeWordStyle,
+        ]}
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...defaultRendererProps}
     >
         {defaultRendererProps.tnode.data}

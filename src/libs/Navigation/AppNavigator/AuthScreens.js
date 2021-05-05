@@ -9,10 +9,11 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import CONST from '../../../CONST';
 import compose from '../../compose';
 import {
-    subscribeToReportCommentEvents,
-    fetchAll as fetchAllReports,
+    subscribeToUserEvents,
+    fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
+import * as BankAccounts from '../../actions/BankAccounts';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
@@ -48,6 +49,7 @@ import {
     SettingsModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
+import Timers from '../../Timers';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -84,15 +86,11 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    // The initial report for the home screen
-    initialReportID: PropTypes.string,
-
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
-    initialReportID: null,
 };
 
 class AuthScreens extends React.Component {
@@ -101,8 +99,6 @@ class AuthScreens extends React.Component {
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
-
-        this.initialReportID = props.initialReportID;
     }
 
     componentDidMount() {
@@ -112,28 +108,29 @@ class AuthScreens extends React.Component {
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
-        }).then(subscribeToReportCommentEvents);
+        }).then(subscribeToUserEvents);
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        PersonalDetails.fetch();
+        PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
+        BankAccounts.fetchBankAccountList();
         UnreadIndicatorUpdater.listenForReportChanges();
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
         // See https://github.com/Expensify/ReactNativeChat/issues/468
-        this.interval = setInterval(() => {
+        this.interval = Timers.register(setInterval(() => {
             if (this.props.network.isOffline) {
                 return;
             }
-            PersonalDetails.fetch();
+            PersonalDetails.fetchPersonalDetails();
             User.getUserDetails();
             User.getBetas();
-        }, 1000 * 60 * 30);
+        }, 1000 * 60 * 30));
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -148,15 +145,6 @@ class AuthScreens extends React.Component {
             return true;
         }
 
-        // Skip when `this.initialReportID` is already assigned. We no longer want to update it
-        if (!this.initialReportID) {
-            // Either we have a reportID or fetchAllReports resolved with no reports. Otherwise keep waiting
-            if (nextProps.initialReportID || nextProps.initialReportID === '') {
-                this.initialReportID = nextProps.initialReportID;
-                return true;
-            }
-        }
-
         return false;
     }
 
@@ -168,17 +156,13 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        // Wait to resolve initial Home route params.
-        if (!this.initialReportID) {
-            return null;
-        }
-
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
             cardStyleInterpolator: modalCardStyleInterpolator,
             animationEnabled: true,
             gestureDirection: 'horizontal',
+            cardOverlayEnabled: true,
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
@@ -194,12 +178,6 @@ class AuthScreens extends React.Component {
                     options={{
                         headerShown: false,
                         title: 'Expensify.cash',
-                    }}
-                    initialParams={{
-                        screen: SCREENS.REPORT,
-                        params: {
-                            reportID: this.initialReportID,
-                        },
                     }}
                     component={MainDrawerNavigator}
                 />
@@ -276,9 +254,6 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
-        },
-        initialReportID: {
-            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
         },
     }),
 )(AuthScreens);
