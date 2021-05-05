@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {View} from 'react-native';
+import {View, StatusBar} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import BootSplash from './libs/BootSplash';
@@ -74,7 +74,7 @@ class Expensify extends PureComponent {
 
         // Initialize this client as being an active client
         ActiveClientManager.init();
-
+        this.hideSplash = this.hideSplash.bind(this);
         this.state = {
             isOnyxMigrated: false,
         };
@@ -87,7 +87,7 @@ class Expensify extends PureComponent {
                 // When we don't have an authToken we'll want to show the sign in screen immediately so we'll hide our
                 // boot screen right away
                 if (!this.getAuthToken()) {
-                    BootSplash.hide({fade: true});
+                    this.hideSplash();
                 }
 
                 this.setState({isOnyxMigrated: true});
@@ -115,13 +115,21 @@ class Expensify extends PureComponent {
                         return;
                     }
 
-                    BootSplash.hide({fade: true});
+                    this.hideSplash();
                 });
         }
     }
 
     getAuthToken() {
         return lodashGet(this.props, 'session.authToken', null);
+    }
+
+    hideSplash() {
+        BootSplash.hide({fade: true}).then(() => {
+            // To prevent the splash from shifting positions we set status bar translucent after splash is hidden.
+            // on IOS it has no effect.
+            StatusBar.setTranslucent(true);
+        });
     }
 
     render() {

@@ -8,8 +8,8 @@ import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
+import {setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft} from '../../../libs/actions/Report';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
-import {saveReportActionDraft} from '../../../libs/actions/Report';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
@@ -21,7 +21,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 
     // The report action this context menu is attached to.
-    reportAction: PropTypes.shape(ReportActionPropTypes),
+    reportAction: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // If true, this component will be a small, row-oriented menu that displays icons but not text.
     // If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
@@ -45,7 +45,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reportAction: {},
     isMini: false,
     isVisible: false,
     session: {},
@@ -53,79 +52,81 @@ const defaultProps = {
 };
 
 class ReportActionContextMenu extends React.Component {
-    /**
-     * A list of all the context actions in this menu.
-     */
-    CONTEXT_ACTIONS = [
-        // Copy to clipboard
-        {
-            text: 'Copy to Clipboard',
-            icon: ClipboardIcon,
-            successText: 'Copied!',
-            successIcon: Checkmark,
-            shouldShow: true,
-
-            // If return value is true, we switch the `text` and `icon` on
-            // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
-            // the `text` and `icon`
-            onPress: (action) => {
-                const message = _.last(lodashGet(action, 'message', null));
-                const html = lodashGet(message, 'html', '');
-                const text = lodashGet(message, 'text', '');
-                const isAttachment = _.has(action, 'isAttachment')
-                    ? action.isAttachment
-                    : isReportMessageAttachment(text);
-                if (!isAttachment) {
-                    Clipboard.setString(text);
-                } else {
-                    Clipboard.setString(html);
-                }
-            },
-        },
-
-        // Copy chat link
-        {
-            text: 'Copy Link',
-            icon: LinkCopy,
-            shouldShow: false,
-            onPress: () => {},
-        },
-
-        // Mark as Unread
-        {
-            text: 'Mark as Unread',
-            icon: Mail,
-            shouldShow: false,
-            onPress: () => {},
-        },
-
-        // Edit Comment
-        {
-            text: 'Edit Comment',
-            icon: Pencil,
-            shouldShow: this.props.reportAction.actorEmail === this.props.session.email
-                && !isReportMessageAttachment(this.getActionText()),
-            onPress: () => {
-                this.props.hidePopover();
-                saveReportActionDraft(
-                    this.props.reportID,
-                    this.props.reportAction.reportActionID,
-                    _.isEmpty(this.props.draftMessage) ? this.getActionText() : '',
-                );
-            },
-        },
-
-        // Delete Comment
-        {
-            text: 'Delete Comment',
-            icon: Trashcan,
-            shouldShow: false,
-            onPress: () => {},
-        },
-    ];
-
     constructor(props) {
         super(props);
+
+        // A list of all the context actions in this menu.
+        this.CONTEXT_ACTIONS = [
+            // Copy to clipboard
+            {
+                text: 'Copy to Clipboard',
+                icon: ClipboardIcon,
+                successText: 'Copied!',
+                successIcon: Checkmark,
+                shouldShow: true,
+
+                // If return value is true, we switch the `text` and `icon` on
+                // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
+                // the `text` and `icon`
+                onPress: () => {
+                    const message = _.last(lodashGet(this.props.reportAction, 'message', null));
+                    const html = lodashGet(message, 'html', '');
+                    const text = lodashGet(message, 'text', '');
+                    const isAttachment = _.has(this.props.reportAction, 'isAttachment')
+                        ? this.props.reportAction.isAttachment
+                        : isReportMessageAttachment(text);
+                    if (!isAttachment) {
+                        Clipboard.setString(text);
+                    } else {
+                        Clipboard.setString(html);
+                    }
+                },
+            },
+
+            {
+                text: 'Copy Link',
+                icon: LinkCopy,
+                shouldShow: false,
+                onPress: () => {
+                },
+            },
+
+            {
+                text: 'Mark as Unread',
+                icon: Mail,
+                successIcon: Checkmark,
+                shouldShow: true,
+                onPress: () => {
+                    updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
+                    setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
+                },
+            },
+
+            {
+                text: 'Edit Comment',
+                icon: Pencil,
+                shouldShow: this.props.reportAction.actorEmail === this.props.session.email
+                    && !isReportMessageAttachment(this.getActionText()),
+                onPress: () => {
+                    this.props.hidePopover();
+                    saveReportActionDraft(
+                        this.props.reportID,
+                        this.props.reportAction.reportActionID,
+                        _.isEmpty(this.props.draftMessage) ? this.getActionText() : '',
+                    );
+                },
+            },
+
+            {
+                text: 'Delete Comment',
+                icon: Trashcan,
+                shouldShow: false,
+                onPress: () => {
+                },
+            },
+        ];
+
+        this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
 
         this.getActionText = this.getActionText.bind(this);
     }
@@ -141,9 +142,8 @@ class ReportActionContextMenu extends React.Component {
     }
 
     render() {
-        const wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
         return this.props.isVisible && (
-            <View style={wrapperStyle}>
+            <View style={this.wrapperStyle}>
                 {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
@@ -151,8 +151,8 @@ class ReportActionContextMenu extends React.Component {
                         successIcon={contextAction.successIcon}
                         successText={contextAction.successText}
                         isMini={this.props.isMini}
-                        onPress={() => contextAction.onPress(this.props.reportAction)}
                         key={contextAction.text}
+                        onPress={() => contextAction.onPress(this.props.reportAction)}
                     />
                 ))}
             </View>

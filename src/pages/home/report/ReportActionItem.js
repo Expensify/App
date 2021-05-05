@@ -143,7 +143,7 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View>
-                            {!hovered && this.props.shouldDisplayNewIndicator && (
+                            {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
                             <View style={getReportActionItemStyle(hovered || this.props.draftMessage)}>
