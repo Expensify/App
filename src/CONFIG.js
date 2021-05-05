@@ -12,6 +12,9 @@ const ngrokURL = addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
+const secureURLRoot = addTrailingForwardSlash(lodashGet(
+    Config, 'EXPENSIFY_URL_SECURE', 'https://secure.expensify.com/',
+));
 
 // Ngrok helps us avoid many of our cross-domain issues with connecting to our API
 // and is required for viewing images on mobile and for developing on android
@@ -22,8 +25,10 @@ export default {
     APP_NAME: 'ExpensifyCash',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
-        // Note: This will be EXACTLY what is set for EXPENSIFY_URL_COM whether the proxy is enabled or not.
+        // Note: This will be EXACTLY what is set for EXPENSIFY_URL_COM and EXPENSIFY_URL_SECURE whether the proxy is
+        // enabled or not.
         URL_EXPENSIFY_COM: expensifyURL,
+        URL_EXPENSIFY_SECURE: secureURLRoot,
         URL_EXPENSIFY_CASH: expensifyCashURL,
         URL_API_ROOT: expensifyURLRoot,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
