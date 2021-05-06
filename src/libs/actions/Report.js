@@ -503,6 +503,7 @@ function updateReportWithNewAction(reportID, reportAction, notificationPreferenc
 
     // We don't want to send a local notification if the user preference is daily or mute
     if (notificationPreference === 'mute' || notificationPreference === 'daily') {
+        // eslint-disable-next-line max-len
         console.debug(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
