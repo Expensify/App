@@ -8,6 +8,7 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
 import {scrollToIndex} from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     // All the data of the action
@@ -21,6 +22,9 @@ const propTypes = {
 
     // Position index of the report action in the overall report FlatList view
     index: PropTypes.number.isRequired,
+
+    /* Window Dimensions Props */
+    ...windowDimensionsPropTypes,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -53,7 +57,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     deleteDraft() {
         saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
-        toggleReportActionComposeView(true);
+        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
     }
 
     /**
@@ -122,4 +126,4 @@ class ReportActionItemMessageEdit extends React.Component {
 }
 
 ReportActionItemMessageEdit.propTypes = propTypes;
-export default ReportActionItemMessageEdit;
+export default withWindowDimensions(ReportActionItemMessageEdit);
