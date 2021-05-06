@@ -248,6 +248,7 @@ class IOUModal extends Component {
                         }}
                         currencySelected={this.currencySelected}
                         selectedCurrency={this.state.selectedCurrency}
+                        selectedAmount={this.state.amount}
                     />
                 )}
                 {currentStep === Steps.IOUParticipants && (
