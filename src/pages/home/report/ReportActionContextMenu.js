@@ -74,8 +74,6 @@ const defaultProps = {
     isVisible: false,
 };
 
-};
-
 class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
@@ -87,8 +85,8 @@ class ReportActionContextMenu extends React.Component {
                 text: 'Copy to Clipboard',
                 icon: ClipboardIcon,
                 successText: 'Copied!',
-                successIcon: Checkm
-        shouldShow: () => true,rue,
+                successIcon: Checkmark,
+                shouldShow:() => true,
 
                 // If return value is true, we switch the `text` and `icon` on
                 // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -108,18 +106,19 @@ class ReportActionContextMenu extends React.Component {
                 },
             },
 
+
             {
                 text: 'Copy Link',
-                icon: LinkC
-        shouldShow: () => false,lse,
+                icon: LinkCopy,
+                shouldShow:() => false,
                 onPress: () => {},
             },
 
             {
                 text: 'Mark as Unread',
                 icon: Mail,
-                successIcon: Checkm
-        shouldShow: () => true,rue,
+                successIcon: Checkmark,
+                shouldShow:() => true,
                 onPress: () => {
                     updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
                     setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
@@ -128,17 +127,19 @@ class ReportActionContextMenu extends React.Component {
 
             {
                 text: 'Edit Comment',
-                icon: Pen
-        shouldShow: () => false,lse,
+                icon: Pencil,
+                shouldShow:() => false,
                 onPress: () => {},
             },
 
             {
-              text: 'Delete Comment',
-        			icon: Trashcan,
-        			shouldShow: props => props.reportAction.actorEmail === props.session.email,
-        			onPress: (reportAction, reportID) => { deleteReportComment(reportID, reportAction); }, {},
-            },
+                text: 'Delete Comment',
+                icon: Trashcan,
+                shouldShow: () => this.props.reportAction.actorEmail === this.props.session.email,
+                onPress: () => {
+                    deleteReportComment(this.props.reportID, this.props.reportAction);
+                },
+            }
         ];
 
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
@@ -147,7 +148,7 @@ class ReportActionContextMenu extends React.Component {
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow && (
+                {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow() && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
