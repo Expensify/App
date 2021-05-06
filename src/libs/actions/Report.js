@@ -508,6 +508,19 @@ function updateReportWithNewAction(reportID, reportAction) {
 }
 
 /**
+ * @param {Number} iouReportID - ID of the report we are fetching
+ * @param {Number} chatReportID - associated chat report ID, this is required in order to link the reports in Onyx
+ *
+ * Fetch a single IOU Report and persist to Onyx, associating the IOUReport with a chatReport.
+ */
+function fetchIOUReportByID(iouReportID, chatReportID) {
+    console.debug(`fetchIOUReportByID ${iouReportID}, ${chatReportID}`);
+    fetchIOUReport(chatReportID, iouReportID)
+        .then(iouReportObject => setLocalIOUReportData(iouReportObject, chatReportID))
+        .catch((error) => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
+}
+
+/**
  * Updates a report in Onyx with a new pinned state.
  *
  * @param {Number} reportID
@@ -998,6 +1011,7 @@ export {
     fetchAllReports,
     fetchActions,
     fetchOrCreateChatReport,
+    fetchIOUReportByID,
     addAction,
     updateLastReadActionID,
     subscribeToReportTypingEvents,

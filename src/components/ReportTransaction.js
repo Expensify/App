@@ -48,7 +48,6 @@ class ReportTransaction extends Component {
     }
 
     render() {
-        console.debug('juless: ', this.props.action.message);
         return (
             <View styles={[styles.mb5]}>
                 <ReportActionItemSingle
