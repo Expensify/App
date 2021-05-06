@@ -3,13 +3,11 @@ import {
     View,
     Text,
     TouchableOpacity,
-    ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
@@ -24,6 +22,9 @@ const propTypes = {
 
     // User's currency preference
     selectedCurrency: PropTypes.string.isRequired,
+
+    // Previously selected amount to show if the user comes back to this screen
+    selectedAmount: PropTypes.string.isRequired,
 
     /* Window Dimensions Props */
     ...windowDimensionsPropTypes,
@@ -47,7 +48,7 @@ class IOUAmountPage extends React.Component {
 
         this.updateAmountIfValidInput = this.updateAmountIfValidInput.bind(this);
         this.state = {
-            amount: '',
+            amount: props.selectedAmount || '',
         };
     }
 
@@ -91,7 +92,6 @@ class IOUAmountPage extends React.Component {
     render() {
         return (
             <View style={[styles.flex1, styles.pageWrapper]}>
-                {this.props.iou.loading && <ActivityIndicator color={themeColors.text} />}
                 <View style={[
                     styles.flex1,
                     styles.flexRow,
