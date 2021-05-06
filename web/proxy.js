@@ -14,6 +14,9 @@ if (/staging/.test(process.env.EXPENSIFY_URL_COM)) {
     host = 'staging.expensify.com';
 }
 
+// eslint-disable-next-line no-console
+console.log(`Creating proxy with host: ${host}`);
+
 /**
  * Local proxy server that hits the production endpoint
  * to get around CORS issues. We use this so that it's
