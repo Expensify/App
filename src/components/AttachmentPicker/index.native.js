@@ -5,16 +5,28 @@ import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import RNImagePicker from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
+import Onyx from 'react-native-onyx';
 import basePropTypes from './AttachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
 import {Camera, Gallery, Paperclip} from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import compose from '../../libs/compose';
+import {translate} from '../../libs/translate';
+
+let preferredLocale;
+
+Onyx.connect({
+    key: preferredLocale,
+    callback: val => preferredLocale = val || 'en',
+});
 
 const propTypes = {
     ...basePropTypes,
     ...windowDimensionsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 /**
@@ -39,15 +51,15 @@ const documentPickerOptions = {
  */
 function showPermissionsAlert() {
     Alert.alert(
-        'Camera Permission Required',
-        'Expensify.cash does not have access to your camera, please enable the permission and try again.',
+        translate(preferredLocale, 'attachmentPicker.cameraPermissionRequired'),
+        translate(preferredLocale, 'attachmentPicker.expensifyDoesntHaveAccessToCamera'),
         [
             {
-                text: 'Cancel',
+                text: translate(preferredLocale, 'common.cancel'),
                 style: 'cancel',
             },
             {
-                text: 'Settings',
+                text: translate(preferredLocale, 'common.settings'),
                 onPress: () => Linking.openSettings(),
             },
         ],
@@ -61,8 +73,8 @@ function showPermissionsAlert() {
  */
 function showGeneralAlert() {
     Alert.alert(
-        'Attachment Error',
-        'An error occurred while selecting an attachment, please try again',
+        translate(preferredLocale, 'attachmentPicker.attachmentError'),
+        translate(preferredLocale, 'attachmentPicker.errorWhileSelectingAttachment'),
     );
 }
 
@@ -99,8 +111,11 @@ function showImagePicker(imagePickerFunc) {
                         showGeneralAlert(response.error);
                         break;
                 }
-
-                reject(new Error(`Error during attachment selection: ${response.error}`));
+                const errorDescription = translate(
+                    preferredLocale,
+                    'attachmentPicker.errorDuringAttachmentSelection',
+                );
+                reject(new Error(`${errorDescription}: ${response.error}`));
             }
 
             resolve(response);
@@ -142,17 +157,17 @@ class AttachmentPicker extends Component {
         this.menuItemData = [
             {
                 icon: Camera,
-                text: 'Take Photo',
+                text: this.props.translate('attachmentPicker.takePhoto'),
                 pickAttachment: () => showImagePicker(RNImagePicker.launchCamera),
             },
             {
                 icon: Gallery,
-                text: 'Choose from Gallery',
+                text: this.props.translate('attachmentPicker.chooseFromGallery'),
                 pickAttachment: () => showImagePicker(RNImagePicker.launchImageLibrary),
             },
             {
                 icon: Paperclip,
-                text: 'Choose Document',
+                text: this.props.translate('attachmentPicker.chooseDocument'),
                 pickAttachment: showDocumentPicker,
             },
         ];
@@ -247,4 +262,7 @@ class AttachmentPicker extends Component {
 
 AttachmentPicker.propTypes = propTypes;
 AttachmentPicker.displayName = 'AttachmentPicker';
-export default withWindowDimensions(AttachmentPicker);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(AttachmentPicker);
