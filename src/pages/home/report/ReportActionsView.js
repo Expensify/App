@@ -13,6 +13,7 @@ import Text from '../../../components/Text';
 import {
     fetchActions,
     updateLastReadActionID,
+    setNewMarkerPosition,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
 } from '../../../libs/actions/Report';
@@ -43,6 +44,9 @@ const propTypes = {
 
         // The largest sequenceNumber on this report
         maxSequenceNumber: PropTypes.number,
+
+        // The current position of the new marker
+        newMarkerSequenceNumber: PropTypes.number,
 
         // Whether there is an outstanding amount in IOU
         hasOutstandingIOU: PropTypes.bool,
@@ -81,14 +85,9 @@ class ReportActionsView extends React.Component {
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
-        this.recordMaxAction = this.recordMaxAction.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
-
-        this.initialNewMarkerPosition = props.report.unreadActionCount === 0
-            ? 0
-            : (props.report.maxSequenceNumber + 1) - props.report.unreadActionCount;
 
         this.state = {
             isLoadingMoreChats: false,
@@ -102,7 +101,17 @@ class ReportActionsView extends React.Component {
         AppState.addEventListener('change', this.onVisibilityChange);
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
-        this.recordMaxAction();
+        updateLastReadActionID(this.props.reportID);
+
+        // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
+        // We determine the last read action by deducting the number of unread actions from the total number.
+        // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
+        const oldestUnreadSequenceNumber = this.props.report.unreadActionCount === 0
+            ? 0
+            : (this.props.report.maxSequenceNumber - this.props.report.unreadActionCount) + 1;
+
+        setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
+
         fetchActions(this.props.reportID);
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
@@ -111,6 +120,13 @@ class ReportActionsView extends React.Component {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.updateSortedReportActions(nextProps.reportActions);
             this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
+            return true;
+        }
+
+        // If the new marker has changed places (because the user manually marked a comment as Unread), we have to
+        // update the component.
+        if (nextProps.report.newMarkerSequenceNumber > 0
+            && nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
             return true;
         }
 
@@ -273,7 +289,7 @@ class ReportActionsView extends React.Component {
         if (this.actionListElement) {
             this.actionListElement.scrollToIndex({animated: false, index: 0});
         }
-        this.recordMaxAction();
+        updateLastReadActionID(this.props.reportID);
     }
 
     /**
@@ -311,13 +327,14 @@ class ReportActionsView extends React.Component {
         item,
         index,
     }) {
+        const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
+                && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
         return (
             <ReportActionItem
                 reportID={this.props.reportID}
                 action={item.action}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
-                shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
-                    && item.action.sequenceNumber === this.initialNewMarkerPosition}
+                shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 iouReportID={this.props.report.iouReportID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
