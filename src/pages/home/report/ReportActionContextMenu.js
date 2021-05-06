@@ -8,45 +8,13 @@ import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import {setNewMarkerPosition, updateLastReadActionID} from '../../../libs/actions/Report';
+import {setNewMarkerPosition, updateLastReadActionID, deleteReportComment} from '../../../libs/actions/Report';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
-import {deleteReportComment} from '../../../libs/actions/Report';
 import ONYXKEYS from '../../../ONYXKEYS';
 
-const propTypes = {
-    // The ID of the report this report action is attached to.
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportID: PropTypes.number.isRequired,
-
-    // The report action this context menu is attached to.
-    reportAction: PropTypes.shape(ReportActionPropTypes),
-
-    // If true, this component will be a small, row-oriented menu that displays icons but not text.
-    // If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
-    isMini: PropTypes.bool,
-
-    // Controls the visibility of this component.
-    isVisible: PropTypes.bool,
-
-    // The session of the logged in person
-    session: PropTypes.shape({
-        // Email of the logged in person
-        email: PropTypes.string,
-    }),
-};
-
-const defaultProps = {
-    reportAction: {},
-    isMini: false,
-    isVisible: false,
-    session: {},
-};
-
-// A list of all the context actions in this menu.
-const contextActions = [
 const propTypes = {
     // The ID of the report this report action is attached to.
     // eslint-disable-next-line react/no-unused-prop-types
@@ -72,6 +40,7 @@ const propTypes = {
 const defaultProps = {
     isMini: false,
     isVisible: false,
+    session: {},
 };
 
 class ReportActionContextMenu extends React.Component {
@@ -86,7 +55,7 @@ class ReportActionContextMenu extends React.Component {
                 icon: ClipboardIcon,
                 successText: 'Copied!',
                 successIcon: Checkmark,
-                shouldShow:() => true,
+                shouldShow: () => true,
 
                 // If return value is true, we switch the `text` and `icon` on
                 // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -110,7 +79,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Copy Link',
                 icon: LinkCopy,
-                shouldShow:() => false,
+                shouldShow: () => false,
                 onPress: () => {},
             },
 
@@ -118,7 +87,7 @@ class ReportActionContextMenu extends React.Component {
                 text: 'Mark as Unread',
                 icon: Mail,
                 successIcon: Checkmark,
-                shouldShow:() => true,
+                shouldShow: () => true,
                 onPress: () => {
                     updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
                     setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
@@ -128,7 +97,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: 'Edit Comment',
                 icon: Pencil,
-                shouldShow:() => false,
+                shouldShow: () => false,
                 onPress: () => {},
             },
 
@@ -139,7 +108,7 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {
                     deleteReportComment(this.props.reportID, this.props.reportAction);
                 },
-            }
+            },
         ];
 
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
