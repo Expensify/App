@@ -354,18 +354,30 @@ function fetchChatReportsByIDs(chatList) {
  * @param {Number} iouReportObject.total
  * @param {Number} iouReportObject.reportID
  * @param {Number} chatReportID
+ * @param {Boolean} shouldUpdateChatReport - should the local chatReport be updated too? 
  */
-function setLocalIOUReportData(iouReportObject, chatReportID) {
+function setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatReport) {
+    // Persist IOU Report data to Onyx
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+    Onyx.merge(iouReportKey, iouReportObject);
+    console.debug('merge IOU: ', iouReportObject);
+
+    // We don't always want to update the chatReport, as the IOU could be an old settled report
+    if (!shouldUpdateChatReport) {
+        console.log('No need to update the local chat report.');
+        return;
+    }
+
     const chatReportObject = {
         hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
         iouReportID: iouReportObject.reportID,
     };
+    
     if (!chatReportObject.hasOutstandingIOU) {
         chatReportObject.iouReportID = null;
     }
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+
     const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-    Onyx.merge(iouReportKey, iouReportObject);
     Onyx.merge(reportKey, chatReportObject);
 }
 
@@ -464,16 +476,13 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     // If chat report receives an action with IOU, update IOU object
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-        const chatReport = lodashGet(allReports, reportID);
-        const iouReportID = lodashGet(chatReport, 'iouReportID');
-        if (iouReportID) {
-            fetchIOUReport(iouReportID, reportID)
-                .then(iouReportObject => setLocalIOUReportData(iouReportObject, reportID));
-        } else if (!chatReport || chatReport.participants.length === 1) {
-            fetchIOUReportID(chatReport ? chatReport.participants[0] : reportAction.actorEmail)
-                .then(iouID => fetchIOUReport(iouID, reportID))
-                .then(iouReportObject => setLocalIOUReportData(iouReportObject, reportID));
+        const iouReportID = reportAction.originalMessage.IOUReportID;
+        if (!iouReportID) {
+            console.error('IOUReportID not found in report action data, this should not happen!');
         }
+
+        // As this flow is for a new Action, we definately need to update the local chat Report
+        fetchIOUReportByID(iouReportID, reportID, true);
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -510,13 +519,13 @@ function updateReportWithNewAction(reportID, reportAction) {
 /**
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chat report ID, this is required in order to link the reports in Onyx
+ * @param {Boolean} shouldUpdateChatReport - Only necessary if triggered by a notification, or the chatReport lists the IOU report as outstanding
  *
- * Fetch a single IOU Report and persist to Onyx, associating the IOUReport with a chatReport.
+ * Fetch a single IOU Report and persist to Onyx, associating the IOUReport with a chatReport if it is active. 
  */
-function fetchIOUReportByID(iouReportID, chatReportID) {
-    console.debug(`fetchIOUReportByID ${iouReportID}, ${chatReportID}`);
-    fetchIOUReport(chatReportID, iouReportID)
-        .then(iouReportObject => setLocalIOUReportData(iouReportObject, chatReportID))
+function fetchIOUReportByID(iouReportID, chatReportID, shouldUpdateChatReport) {
+    fetchIOUReport(iouReportID, chatReportID)
+        .then(iouReportObject => setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatReport))
         .catch((error) => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
 }
 
