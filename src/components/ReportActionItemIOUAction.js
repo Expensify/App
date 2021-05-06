@@ -61,7 +61,7 @@ class ReportActionItemIOUAction extends Component {
     }
 
     launchIOUDetailsModal() {
-        launchDetailsFromIOUAction(this.props.action);
+        launchDetailsFromIOUAction(this.props.chatReportID, this.props.action);
     }
 
     render() {
@@ -71,6 +71,7 @@ class ReportActionItemIOUAction extends Component {
                 <ReportActionItemIOUQuote
                     action={this.props.action}
                     showViewDetailsLink={!hasMultipleParticipants}
+                    onViewDetailsPressed={this.launchIOUDetailsModal}
                 />
                 {this.props.shouldDisplayPreviewComp && !_.isEmpty(this.props.iou) && (
                     <ReportActionItemIOUPreview

@@ -113,7 +113,6 @@ class IOUDetailsModal extends Component {
                         <ReportActionItemIOUPreview
                             iou={this.props.iouReport}
                             session={this.props.session}
-                            onPayButtonPressed={null}
                             shouldHidePayButton
                         />
                         <IOUTransactions

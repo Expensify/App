@@ -158,12 +158,12 @@ function rejectTransaction({
  * 
  * Launch the IOU Details Modal, using data from the report action
  */
-function launchDetailsFromIOUAction(action) {
+function launchDetailsFromIOUAction(chatReportID, action) {
     if (!action.originalMessage || !action.originalMessage.IOUReportID) {
         console.error('Error launching IOUDetailModal: reportAction `IOUReportID` not provided.');
         return;
     }
-    Navigation.navigate(ROUTES.getIouDetailsRoute(1042, action.originalMessage.IOUReportID));
+    Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
 }
 
 export {
