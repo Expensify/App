@@ -1677,6 +1677,20 @@ function getModalPaddingStyles({
     };
 }
 
+/**
+ * Takes fontStyle and fontWeight and returns the correct fontFamily
+ *
+ * @param {Object} params
+ * @returns {String}
+ */
+function getFontFamilyMonospace({fontStyle, fontWeight}) {
+    const italic = fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
+    const bold = fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
+    const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
+
+    return italicBold || bold || italic || fontFamily.MONOSPACE;
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1695,4 +1709,5 @@ export {
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
     getModalPaddingStyles,
+    getFontFamilyMonospace,
 };
