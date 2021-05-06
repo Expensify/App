@@ -135,7 +135,6 @@ class AttachmentPicker extends Component {
 
         this.state = {
             isVisible: false,
-            onPicked: () => {},
         };
 
         this.menuItemData = [
@@ -169,7 +168,7 @@ class AttachmentPicker extends Component {
     pickAttachment(attachment) {
         if (attachment && !attachment.didCancel && !attachment.error) {
             const result = getDataForUpload(attachment);
-            this.state.onPicked(result);
+            this.completeAttachmentSelection(result);
         }
     }
 
@@ -179,10 +178,8 @@ class AttachmentPicker extends Component {
      * @param {function} onPicked A callback that will be called with the selected attachment
      */
     open(onPicked) {
-        this.setState({
-            isVisible: true,
-            onPicked,
-        });
+        this.completeAttachmentSelection = onPicked;
+        this.setState({isVisible: true});
     }
 
     /**
