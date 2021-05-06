@@ -1,13 +1,17 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
-import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
 import {version} from '../../../package.json';
 
-export default function setEnvironment() {
+let environment = CONST.ENVIRONMENT.PRODUCTION;
+
+function getEnvironment() {
+    return environment;
+}
+
+function setEnvironment() {
     if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
-        Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.DEV);
+        environment = CONST.ENVIRONMENT.DEV;
         return;
     }
 
@@ -19,23 +23,28 @@ export default function setEnvironment() {
             .then((text) => {
                 const match = text.match(/<span[^>]+class="htlgb"[^>]*>([-\d.]+)<\/span>/);
                 if (!match) {
-                    Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.PRODUCTION);
+                    environment = CONST.ENVIRONMENT.PRODUCTION;
                     return;
                 }
 
                 const storeVersion = match[1].trim();
                 if (storeVersion === version) {
-                    Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.PRODUCTION);
+                    environment = CONST.ENVIRONMENT.PRODUCTION;
                     return;
                 }
 
                 // If the version isn't the same as the store version, and we aren't on dev, this is a beta build
-                Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.STAGING);
+                environment = CONST.ENVIRONMENT.STAGING;
             })
             .catch(() => {
-                Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.PRODUCTION);
+                environment = CONST.ENVIRONMENT.PRODUCTION;
             });
     } catch (e) {
-        Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.PRODUCTION);
+        environment = CONST.ENVIRONMENT.PRODUCTION;
     }
 }
+
+export default {
+    getEnvironment,
+    setEnvironment,
+};

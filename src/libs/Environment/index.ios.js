@@ -1,13 +1,17 @@
 import Config from 'react-native-config';
 import lodashGet from 'lodash/get';
 import {NativeModules} from 'react-native';
-import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
 
-export default function setEnvironment() {
+let environment = CONST.ENVIRONMENT.PRODUCTION;
+
+function getEnvironment() {
+    return environment;
+}
+
+function setEnvironment() {
     if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
-        Onyx.set(ONYXKEYS.ENVIRONMENT, CONST.ENVIRONMENT.DEV);
+        environment = CONST.ENVIRONMENT.DEV;
         return;
     }
 
@@ -15,7 +19,11 @@ export default function setEnvironment() {
     // this is staging (TestFlight) or production
     NativeModules.EnvironmentChecker.isBeta()
         .then((isBeta) => {
-            const env = isBeta ? CONST.ENVIRONMENT.STAGING : CONST.ENVIRONMENT.PRODUCTION;
-            Onyx.set(ONYXKEYS.ENVIRONMENT, env);
+            environment = isBeta ? CONST.ENVIRONMENT.STAGING : CONST.ENVIRONMENT.PRODUCTION;
         });
 }
+
+export default {
+    getEnvironment,
+    setEnvironment,
+};
