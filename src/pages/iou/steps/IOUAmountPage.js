@@ -54,7 +54,8 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         if (this.textInput) {
-            this.textInput.focus();
+            // Input won't focus unless a setTimeout is set with atleast 300
+            setTimeout(() => this.textInput.focus(), 300);
         }
     }
 
