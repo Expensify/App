@@ -22,7 +22,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 
     // IOU report ID associated with current report
-    iouReportID: PropTypes.number,
+    iouReportID: PropTypes.number.isRequired,
 
     // All the data of the action item
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
@@ -41,7 +41,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iouReportID: undefined,
     hasOutstandingIOU: false,
 };
 

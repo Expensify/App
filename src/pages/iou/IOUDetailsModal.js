@@ -86,7 +86,7 @@ class IOUDetailsModal extends Component {
     }
 
     componentDidMount() {
-        fetchIOUReportByID(this.props.route.params.chatReportID, this.props.route.params.iouReportID);
+        fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID, false);
     }
 
     performIOUSettlement() {
