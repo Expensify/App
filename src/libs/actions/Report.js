@@ -940,16 +940,16 @@ function addAction(reportID, text, file) {
  *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
-    // If we don't have a maxSequenceNumber for this report then we will assume that the report has just been created
-    // and use 0 for the maxSequenceNumber. Otherwise, we'll have an undefined sequenceNumber in cases where no
-    // sequenceNumber is explicitly passed.
-    const maxSequenceNumber = !_.isUndefined(reportMaxSequenceNumbers[reportID])
-        ? reportMaxSequenceNumbers[reportID]
-        : 0;
+    // If we aren't specifying a sequenceNumber and have no maxSequenceNumber for this report then we should not update
+    // the last read. Most likely, we have just created the report and it has no comments. But we should err on the side
+    // of caution and do nothing in this case.
+    if (_.isUndefined(sequenceNumber) && _.isUndefined(reportMaxSequenceNumbers[reportID])) {
+        return;
+    }
 
     // Need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot (the last read
     // action). If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action)
-    const lastReadSequenceNumber = (sequenceNumber - 1) || maxSequenceNumber;
+    const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
 
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
