@@ -7,16 +7,15 @@ import ONYXKEYS from '../ONYXKEYS';
 import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemIOUPreview from './ReportActionItemIOUPreview';
-import {launchDetailsFromIOUAction} from '../libs/actions/IOU';
 
 const propTypes = {
     // All the data of the action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // The linked iouReportID
+    // The linked IOUReport
     iouReportID: PropTypes.number.isRequired,
 
-    // The linked iouReportID
+    // The associated chatReport
     chatReportID: PropTypes.number.isRequired,
 
     // Should render the preview Component?
@@ -60,8 +59,12 @@ class ReportActionItemIOUAction extends Component {
         this.launchIOUDetailsModal = this.launchIOUDetailsModal.bind(this);
     }
 
+    /**
+     * 
+     * Launch the IOU Details Modal, using data from the report action
+     */
     launchIOUDetailsModal() {
-        launchDetailsFromIOUAction(this.props.chatReportID, this.props.action);
+        Navigation.navigate(ROUTES.getIouDetailsRoute(this.props.chatReportID, this.props.IOUReportID));
     }
 
     render() {
