@@ -14,8 +14,10 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // The linked iouReportID
-    // eslint-disable-next-line react/no-unused-prop-types
-    iouReportID: PropTypes.number,
+    iouReportID: PropTypes.number.isRequired,
+
+    // The linked iouReportID
+    chatReportID: PropTypes.number.isRequired,
 
     // Should render the preview Component?
     shouldDisplayPreviewComp: PropTypes.bool.isRequired,
@@ -33,6 +35,12 @@ const propTypes = {
         cachedTotal: PropTypes.string,
     }),
 
+    // ChatReport associated with iouReport
+    chatReport: PropTypes.shape({
+        // The participants of this report
+        participants: PropTypes.arrayOf(PropTypes.string),
+    }),
+
     // Session info for the currently logged in user.
     session: PropTypes.shape({
         // Currently logged in user email
@@ -42,7 +50,7 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
-    iouReportID: null,
+    chatReport: {},
 };
 
 class ReportActionItemIOUAction extends Component {
@@ -57,9 +65,13 @@ class ReportActionItemIOUAction extends Component {
     }
 
     render() {
+        const hasMultipleParticipants = this.props.chatReport.participants.length > 1;
         return (
             <View>
-                <ReportActionItemIOUQuote action={this.props.action} />
+                <ReportActionItemIOUQuote
+                    action={this.props.action}
+                    showViewDetailsLink={!hasMultipleParticipants}
+                />
                 {this.props.shouldDisplayPreviewComp && !_.isEmpty(this.props.iou) && (
                     <ReportActionItemIOUPreview
                         iou={this.props.iou}
@@ -79,6 +91,9 @@ ReportActionItemIOUAction.displayName = 'ReportActionItemIOUAction';
 export default withOnyx({
     iou: {
         key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+    },
+    chatReport: {
+        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
     },
     session: {
         key: ONYXKEYS.SESSION,
