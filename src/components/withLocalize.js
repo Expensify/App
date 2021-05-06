@@ -11,14 +11,12 @@ import numberFormat from '../libs/numberFormat';
 
 const withLocalizePropTypes = {
     // Translations functions using current User's preferred locale
-    translations: PropTypes.shape({
-        translate: PropTypes.func.isRequired,
-        numberFormat: PropTypes.func.isRequired,
-        timestampToRelative: PropTypes.func.isRequired,
-        timestampToDateTime: PropTypes.func.isRequired,
-        toLocalPhone: PropTypes.func.isRequired,
-        fromLocalPhone: PropTypes.func.isRequired,
-    }),
+    translate: PropTypes.func.isRequired,
+    numberFormat: PropTypes.func.isRequired,
+    timestampToRelative: PropTypes.func.isRequired,
+    timestampToDateTime: PropTypes.func.isRequired,
+    toLocalPhone: PropTypes.func.isRequired,
+    fromLocalPhone: PropTypes.func.isRequired,
 };
 
 function withLocalizeHOC(WrappedComponent) {
@@ -39,7 +37,12 @@ function withLocalizeHOC(WrappedComponent) {
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                translations={translations}
+                translate={translations.translate}
+                numberFormat={translations.numberFormat}
+                timestampToRelative={translations.timestampToRelative}
+                timestampToDateTime={translations.timestampToDateTime}
+                toLocalPhone={translations.toLocalPhone}
+                fromLocalPhone={translations.fromLocalPhone}
             />
         );
     };
