@@ -426,6 +426,19 @@ function removeOptimisticActions(reportID) {
 }
 
 /**
+ * Updates a report action's message to be a new value.
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ * @param {Object} message
+ */
+function updateReportActionMessage(reportID, sequenceNumber, message) {
+    const actionToMerge = {};
+    actionToMerge[sequenceNumber] = {message: [message]};
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+}
+
+/**
  * Updates a report in the store with a new report action
  *
  * @param {Number} reportID
@@ -576,6 +589,24 @@ function subscribeToUserEvents() {
                 '[Report] Failed to subscribe to Pusher channel',
                 true,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
+            );
+        });
+
+    // Live-update a report's actions when an 'edit comment' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT} event sent by Pusher`, true, {reportActionID: pushJSON.reportActionID},
+        );
+        updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT},
             );
         });
 
@@ -1064,6 +1095,7 @@ function editReportComment(reportID, originalReportAction, htmlForNewComment) {
         reportID,
         reportActionID: originalReportAction.reportActionID,
         reportComment: htmlForNewComment,
+        sequenceNumber,
     })
         .catch(() => {
             // If it fails, reset Onyx
