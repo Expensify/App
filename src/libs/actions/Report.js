@@ -429,8 +429,9 @@ function removeOptimisticActions(reportID) {
  *
  * @param {Number} reportID
  * @param {Object} reportAction
+ * @param {String} notificationPreference On what cadence the user would like to be notified
  */
-function updateReportWithNewAction(reportID, reportAction) {
+function updateReportWithNewAction(reportID, reportAction, notificationPreference) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
     const initialLastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
@@ -500,6 +501,12 @@ function updateReportWithNewAction(reportID, reportAction) {
         return;
     }
 
+    // We don't want to send a local notification if the user preference is daily or mute
+    if (notificationPreference === 'mute' || notificationPreference === 'daily') {
+        console.debug(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
+        return;
+    }
+
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (isFromCurrentUser) {
         console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
@@ -565,7 +572,7 @@ function subscribeToUserEvents() {
         Log.info(
             `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
         );
-        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
