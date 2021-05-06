@@ -151,26 +151,10 @@ function rejectTransaction({
     });
 }
 
-/**
- * @param {Object} action
- * @param {Object} action.originalMessage
- * @param {number} action.originalMessage.IOUReportID
- * 
- * Launch the IOU Details Modal, using data from the report action
- */
-function launchDetailsFromIOUAction(chatReportID, action) {
-    if (!action.originalMessage || !action.originalMessage.IOUReportID) {
-        console.error('Error launching IOUDetailModal: reportAction `IOUReportID` not provided.');
-        return;
-    }
-    Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
-}
-
 export {
     getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
-    launchDetailsFromIOUAction,
     rejectTransaction,
     settleIOUReport,
 };

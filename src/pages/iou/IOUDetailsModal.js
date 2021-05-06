@@ -11,6 +11,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {settleIOUReport} from '../../libs/actions/IOU';
+import {fetchIOUReportByID} from '../../libs/actions/Report';
 import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
 import IOUTransactions from './IOUTransactions';
 
@@ -85,7 +86,7 @@ class IOUDetailsModal extends Component {
     }
 
     componentDidMount() {
-        // update IOU report with IOU action
+        fetchIOUReportByID(this.props.route.params.chatReportID, this.props.route.params.iouReportID);
     }
 
     performIOUSettlement() {

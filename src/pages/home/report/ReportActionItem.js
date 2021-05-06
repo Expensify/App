@@ -21,6 +21,9 @@ const propTypes = {
     // The ID of the report this action is on.
     reportID: PropTypes.number.isRequired,
 
+    // IOU report ID associated with current report
+    iouReportID: PropTypes.number,
+
     // All the data of the action item
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
@@ -32,9 +35,6 @@ const propTypes = {
 
     // Whether there is an outstanding amount in IOU
     hasOutstandingIOU: PropTypes.bool,
-
-    // IOU report ID associated with current report
-    iouReportID: PropTypes.number,
 
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
