@@ -595,7 +595,9 @@ function subscribeToUserEvents() {
     // Live-update a report's actions when an 'edit comment' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT, (pushJSON) => {
         Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT} event sent by Pusher`, true, {reportActionID: pushJSON.reportActionID},
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT} event sent by Pusher`, true, {
+                reportActionID: pushJSON.reportActionID,
+            },
         );
         updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message);
     }, false,
