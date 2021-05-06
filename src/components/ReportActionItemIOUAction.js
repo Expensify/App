@@ -7,6 +7,8 @@ import ONYXKEYS from '../ONYXKEYS';
 import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemIOUPreview from './ReportActionItemIOUPreview';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     // All the data of the action
@@ -64,7 +66,7 @@ class ReportActionItemIOUAction extends Component {
      * Launch the IOU Details Modal, using data from the report action
      */
     launchIOUDetailsModal() {
-        Navigation.navigate(ROUTES.getIouDetailsRoute(this.props.chatReportID, this.props.IOUReportID));
+        Navigation.navigate(ROUTES.getIouDetailsRoute(this.props.chatReportID, this.props.action.originalMessage.IOUReportID));
     }
 
     render() {
