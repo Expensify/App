@@ -9,9 +9,16 @@ import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 const propTypes = {
     // All the data of the action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
+
+    // Should the View Details link be displayed?
+    showViewDetailsLink: PropTypes.bool,
 };
 
-const ReportActionItemIOUQuote = ({action}) => (
+const defaultProps = {
+    showViewDetailsLink: false,
+}
+
+const ReportActionItemIOUQuote = ({action, showViewDetailsLink}) => (
     <View style={[styles.chatItemMessage]}>
         {_.map(action.message, (fragment, index) => (
             <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
@@ -19,14 +26,16 @@ const ReportActionItemIOUQuote = ({action}) => (
                     <Text style={[styles.chatItemMessage]}>
                         {fragment.text}
                     </Text>
-                    <Text
-                        style={[styles.chatItemMessageLink]}
-                        onPress={() => {
-                            launchDetailsFromIOUAction(action);
-                        }}
-                    >
-                        View Details
-                    </Text>
+                    {showViewDetailsLink && (
+                        <Text
+                            style={[styles.chatItemMessageLink]}
+                            onPress={() => {
+                                launchDetailsFromIOUAction(action);
+                            }}
+                        >
+                            View Details
+                        </Text>
+                    )}
                 </View>
             </View>
         ))}
@@ -34,6 +43,7 @@ const ReportActionItemIOUQuote = ({action}) => (
 );
 
 ReportActionItemIOUQuote.propTypes = propTypes;
+ReportActionItemIOUQuote.defaultProps = defaultProps;
 ReportActionItemIOUQuote.displayName = 'ReportActionItemIOUQuote';
 
 export default ReportActionItemIOUQuote;
