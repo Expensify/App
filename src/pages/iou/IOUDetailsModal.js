@@ -16,7 +16,10 @@ import IOUTransactions from './IOUTransactions';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
-        // iouReportID passed via route /iou/details/:iouReportID
+        // chatReportID passed via route /iou/:chatReportID // todo: drop /iou/
+        chatReportID: PropTypes.string,
+
+        // iouReportID passed via route /iou/:iouReportID
         iouReportID: PropTypes.string,
     }),
 });
@@ -82,12 +85,12 @@ class IOUDetailsModal extends Component {
     }
 
     componentDidMount() {
-        //fetchIOUReportByID(this.props.route.params.iouReportID, this.props.iouReport.chatReportID);
+        // update IOU report with IOU action
     }
 
     performIOUSettlement() {
         settleIOUReport({
-            chatReportID: this.props.iouReport.chatReportID,
+            chatReportID: this.props.route.params.chatReportID,
             reportID: this.props.route.params.iouReportID,
             paymentMethodType: this.state.settlementType,
         });
@@ -114,7 +117,7 @@ class IOUDetailsModal extends Component {
                             shouldHidePayButton
                         />
                         <IOUTransactions
-                            chatReportID={this.props.iouReport.chatReportID}
+                            chatReportID={this.props.route.params.chatReportID}
                             iouReportID={this.props.route.params.iouReportID}
                             transactions={this.props.iouReport.transactions}
                         />

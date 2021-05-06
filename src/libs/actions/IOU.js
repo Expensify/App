@@ -163,7 +163,7 @@ function launchDetailsFromIOUAction(action) {
         console.error('Error launching IOUDetailModal: reportAction `IOUReportID` not provided.');
         return;
     }
-    Navigation.navigate(ROUTES.getIouDetailsRoute(action.originalMessage.IOUReportID));
+    Navigation.navigate(ROUTES.getIouDetailsRoute(1042, action.originalMessage.IOUReportID));
 }
 
 export {
