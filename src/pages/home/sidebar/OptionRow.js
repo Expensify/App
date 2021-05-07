@@ -52,6 +52,9 @@ const propTypes = {
 
     // Toggle between compact and default view
     mode: PropTypes.oneOf(['compact', 'default']),
+
+    // Whether this option should be disabled
+    isDisabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -64,6 +67,7 @@ const defaultProps = {
     showTitleTooltip: false,
     mode: 'default',
     onSelectRow: null,
+    isDisabled: false,
 };
 
 const OptionRow = ({
@@ -77,6 +81,7 @@ const OptionRow = ({
     isSelected,
     forceTextUnreadStyle,
     showTitleTooltip,
+    isDisabled,
     mode,
 }) => {
     const textStyle = optionIsFocused
@@ -130,6 +135,7 @@ const OptionRow = ({
                         getBackgroundColorStyle(backgroundColor),
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
+                        isDisabled && styles.cursorDisabled,
                     ]}
                 >
                     <View style={sidebarInnerRowStyle}>
