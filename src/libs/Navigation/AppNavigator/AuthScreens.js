@@ -68,7 +68,9 @@ Onyx.connect({
 
 const RootStack = createCustomModalStackNavigator();
 
-// When modal screen gets focused, update modal visibility in Onyx
+// We want to delay the re-rendering for components(e.g. ReportActionCompose)
+// that depends on modal visibility until Modal is completely closed or its transition has ended
+// When modal screen is focused and animation transition is ended, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
 const modalScreenListeners = {
     transitionEnd: () => {
@@ -159,7 +161,7 @@ class AuthScreens extends React.Component {
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            cardStyleInterpolator: (...props) => modalCardStyleInterpolator(this.props.isSmallScreenWidth, ...props),
+            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, props),
             animationEnabled: true,
             gestureDirection: 'horizontal',
             cardOverlayEnabled: true,

@@ -49,19 +49,27 @@ const defaultProps = {
 };
 
 class ScreenWrapper extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            didScreenTransitionEnd: false,
+        };
+    }
+
     componentDidMount() {
-        this.unsubscribe = KeyboardShortcut.subscribe('Escape', () => {
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
             this.props.navigation.goBack();
         }, [], true);
 
         this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', () => {
+            this.setState({didScreenTransitionEnd: true});
             this.props.onTransitionEnd();
         });
     }
 
     componentWillUnmount() {
-        if (this.unsubscribe) {
-            this.unsubscribe();
+        if (this.unsubscribeEscapeKey) {
+            this.unsubscribeEscapeKey();
         }
         if (this.unsubscribeTransitionEnd) {
             this.unsubscribeTransitionEnd();
@@ -93,7 +101,10 @@ class ScreenWrapper extends React.Component {
                             <HeaderGap />
                             {// If props.children is a function, call it to provide the insets to the children.
                                 _.isFunction(this.props.children)
-                                    ? this.props.children(insets)
+                                    ? this.props.children({
+                                        insets,
+                                        didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                    })
                                     : this.props.children
                             }
                         </View>

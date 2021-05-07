@@ -52,8 +52,6 @@ class NewGroupPage extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
         this.createGroup = this.createGroup.bind(this);
-        this.activateOptionsList = this.activateOptionsList.bind(this);
-
         const {
             recentReports,
             personalDetails,
@@ -71,7 +69,6 @@ class NewGroupPage extends Component {
             personalDetails,
             selectedOptions: [],
             userToInvite,
-            isReady: false,
         };
     }
 
@@ -118,10 +115,6 @@ class NewGroupPage extends Component {
         }
 
         return sections;
-    }
-
-    activateOptionsList() {
-        this.setState({isReady: true});
     }
 
     /**
@@ -187,66 +180,70 @@ class NewGroupPage extends Component {
             maxParticipantsReached,
         );
         return (
-            <ScreenWrapper onTransitionEnd={this.activateOptionsList}>
-                <HeaderWithCloseButton
-                    title="New Group"
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <FullScreenLoadingIndicator visible={!this.state.isReady} />
-                    {this.state.isReady && (
-                        <>
-                            <OptionsSelector
-                                canSelectMultipleOptions
-                                sections={sections}
-                                selectedOptions={this.state.selectedOptions}
-                                value={this.state.searchValue}
-                                onSelectRow={this.toggleOption}
-                                onChangeText={(searchValue = '') => {
-                                    const {
-                                        recentReports,
-                                        personalDetails,
-                                        userToInvite,
-                                    } = getNewGroupOptions(
-                                        this.props.reports,
-                                        this.props.personalDetails,
-                                        searchValue,
-                                        [],
-                                    );
-                                    this.setState({
-                                        searchValue,
-                                        userToInvite,
-                                        recentReports,
-                                        personalDetails,
-                                    });
-                                }}
-                                headerMessage={headerMessage}
-                                disableArrowKeysActions
-                                hideAdditionalOptionStates
-                                forceTextUnreadStyle
-                                shouldFocusOnSelectRow
-                            />
-                            {this.state.selectedOptions?.length > 0 && (
-                            <View style={[styles.ph5, styles.pb5]}>
-                                <Pressable
-                                    onPress={this.createGroup}
-                                    style={({hovered}) => [
-                                        styles.button,
-                                        styles.buttonSuccess,
-                                        styles.w100,
-                                        hovered && styles.buttonSuccessHovered,
-                                    ]}
-                                >
-                                    <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                        Create Group
-                                    </Text>
-                                </Pressable>
-                            </View>
+            <ScreenWrapper>
+                {({didScreenTransitionEnd}) => (
+                    <>
+                        <HeaderWithCloseButton
+                            title="New Group"
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                                <>
+                                    <OptionsSelector
+                                        canSelectMultipleOptions
+                                        sections={sections}
+                                        selectedOptions={this.state.selectedOptions}
+                                        value={this.state.searchValue}
+                                        onSelectRow={this.toggleOption}
+                                        onChangeText={(searchValue = '') => {
+                                            const {
+                                                recentReports,
+                                                personalDetails,
+                                                userToInvite,
+                                            } = getNewGroupOptions(
+                                                this.props.reports,
+                                                this.props.personalDetails,
+                                                searchValue,
+                                                [],
+                                            );
+                                            this.setState({
+                                                searchValue,
+                                                userToInvite,
+                                                recentReports,
+                                                personalDetails,
+                                            });
+                                        }}
+                                        headerMessage={headerMessage}
+                                        disableArrowKeysActions
+                                        hideAdditionalOptionStates
+                                        forceTextUnreadStyle
+                                        shouldFocusOnSelectRow
+                                    />
+                                    {this.state.selectedOptions?.length > 0 && (
+                                        <View style={[styles.ph5, styles.pb5]}>
+                                            <Pressable
+                                                onPress={this.createGroup}
+                                                style={({hovered}) => [
+                                                    styles.button,
+                                                    styles.buttonSuccess,
+                                                    styles.w100,
+                                                    hovered && styles.buttonSuccessHovered,
+                                                ]}
+                                            >
+                                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                                                    Create Group
+                                                </Text>
+                                            </Pressable>
+                                        </View>
+                                    )}
+                                </>
                             )}
-                        </>
-                    )}
-                </View>
-                <KeyboardSpacer />
+                        </View>
+                        <KeyboardSpacer />
+                    </>
+                )}
             </ScreenWrapper>
         );
     }

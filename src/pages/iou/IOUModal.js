@@ -98,7 +98,6 @@ class IOUModal extends Component {
             amount: '',
             selectedCurrency: 'USD',
             comment: '',
-            isReady: false,
         };
 
         // Skip IOUParticipants step if participants are passed in
@@ -120,7 +119,6 @@ class IOUModal extends Component {
 
     getReady() {
         getPreferredCurrency();
-        this.setState({isReady: true});
     }
 
 
@@ -220,72 +218,77 @@ class IOUModal extends Component {
         const currentStep = this.steps[this.state.currentStepIndex];
         return (
             <ScreenWrapper onTransitionEnd={this.getReady}>
-                <View style={[styles.headerBar, true && styles.borderBottom]}>
-                    <View style={[
-                        styles.dFlex,
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.flexGrow1,
-                        styles.justifyContentBetween,
-                        styles.overflowHidden,
-                    ]}
-                    >
-                        {this.state.currentStepIndex > 0
-                            && (
-                                <TouchableOpacity
-                                    onPress={this.navigateToPreviousStep}
-                                    style={[styles.touchableButtonImage]}
-                                >
-                                    <Icon src={BackArrow} />
-                                </TouchableOpacity>
-                            )}
-                        <Header title={this.getTitleForStep()} />
-                        <View style={[styles.reportOptions, styles.flexRow]}>
-                            <TouchableOpacity
-                                onPress={() => Navigation.dismissModal()}
-                                style={[styles.touchableButtonImage]}
+                {({didScreenTransitionEnd}) => (
+                    <>
+                        <View style={[styles.headerBar, true && styles.borderBottom]}>
+                            <View style={[
+                                styles.dFlex,
+                                styles.flexRow,
+                                styles.alignItemsCenter,
+                                styles.flexGrow1,
+                                styles.justifyContentBetween,
+                                styles.overflowHidden,
+                            ]}
                             >
-                                <Icon src={Close} />
-                            </TouchableOpacity>
+                                {this.state.currentStepIndex > 0
+                                    && (
+                                        <TouchableOpacity
+                                            onPress={this.navigateToPreviousStep}
+                                            style={[styles.touchableButtonImage]}
+                                        >
+                                            <Icon src={BackArrow} />
+                                        </TouchableOpacity>
+                                    )}
+                                <Header title={this.getTitleForStep()} />
+                                <View style={[styles.reportOptions, styles.flexRow]}>
+                                    <TouchableOpacity
+                                        onPress={() => Navigation.dismissModal()}
+                                        style={[styles.touchableButtonImage]}
+                                    >
+                                        <Icon src={Close} />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </View>
-                    </View>
-                </View>
-                <View style={[styles.pRelative, styles.flex1]}>
-                    <FullScreenLoadingIndicator visible={!this.state.isReady} />
-                    {this.state.isReady && (
-                        <>
-                            {currentStep === Steps.IOUAmount && (
-                            <IOUAmountPage
-                                onStepComplete={(amount) => {
-                                    this.setState({amount});
-                                    this.navigateToNextStep();
-                                }}
-                                currencySelected={this.currencySelected}
-                                selectedCurrency={this.state.selectedCurrency}
-                            />
+                        <View style={[styles.pRelative, styles.flex1]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                                <>
+                                    {currentStep === Steps.IOUAmount && (
+                                        <IOUAmountPage
+                                            onStepComplete={(amount) => {
+                                                this.setState({amount});
+                                                this.navigateToNextStep();
+                                            }}
+                                            currencySelected={this.currencySelected}
+                                            selectedCurrency={this.state.selectedCurrency}
+                                        />
+                                    )}
+                                    {currentStep === Steps.IOUParticipants && (
+                                        <IOUParticipantsPage
+                                            participants={this.state.participants}
+                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                            onAddParticipants={this.addParticipants}
+                                            onStepComplete={this.navigateToNextStep}
+                                        />
+                                    )}
+                                    {currentStep === Steps.IOUConfirm && (
+                                        <IOUConfirmPage
+                                            onConfirm={this.createTransaction}
+                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                            participants={this.state.participants}
+                                            iouAmount={this.state.amount}
+                                            comment={this.state.comment}
+                                            selectedCurrency={this.state.selectedCurrency}
+                                            onUpdateComment={this.updateComment}
+                                        />
+                                    )}
+                                </>
                             )}
-                            {currentStep === Steps.IOUParticipants && (
-                            <IOUParticipantsPage
-                                participants={this.state.participants}
-                                hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                onAddParticipants={this.addParticipants}
-                                onStepComplete={this.navigateToNextStep}
-                            />
-                            )}
-                            {currentStep === Steps.IOUConfirm && (
-                            <IOUConfirmPage
-                                onConfirm={this.createTransaction}
-                                hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                participants={this.state.participants}
-                                iouAmount={this.state.amount}
-                                comment={this.state.comment}
-                                selectedCurrency={this.state.selectedCurrency}
-                                onUpdateComment={this.updateComment}
-                            />
-                            )}
-                        </>
-                    )}
-                </View>
+                        </View>
+
+                    </>
+                )}
             </ScreenWrapper>
         );
     }
