@@ -4,6 +4,6 @@
  */
 export default {
     HOME: 'Home',
+    LOADING: 'Loading',
     REPORT: 'Report',
-    SIGN_IN: 'SignIn',
 };

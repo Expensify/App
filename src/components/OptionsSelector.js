@@ -59,6 +59,9 @@ const propTypes = {
 
     // Whether to show the title tooltip
     showTitleTooltip: PropTypes.bool,
+
+    // Whether to focus the textinput after an option is selected
+    shouldFocusOnSelectRow: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -72,6 +75,7 @@ const defaultProps = {
     hideAdditionalOptionStates: false,
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
+    shouldFocusOnSelectRow: false,
 };
 
 class OptionsSelector extends Component {
@@ -79,6 +83,7 @@ class OptionsSelector extends Component {
         super(props);
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.selectRow = this.selectRow.bind(this);
         this.viewableItems = [];
 
         this.state = {
@@ -122,7 +127,7 @@ class OptionsSelector extends Component {
 
         switch (e.nativeEvent.key) {
             case 'Enter': {
-                this.props.onSelectRow(allOptions[this.state.focusedIndex]);
+                this.selectRow(allOptions[this.state.focusedIndex]);
                 e.preventDefault();
                 break;
             }
@@ -167,6 +172,18 @@ class OptionsSelector extends Component {
         }
     }
 
+    /**
+     * Completes the follow up actions after a row is selected
+     *
+     * @param {Object} option
+     */
+    selectRow(option) {
+        if (this.props.shouldFocusOnSelectRow) {
+            this.textInput.focus();
+        }
+        this.props.onSelectRow(option);
+    }
+
     render() {
         return (
             <View style={[styles.flex1]}>
@@ -185,7 +202,7 @@ class OptionsSelector extends Component {
                 <OptionsList
                     ref={el => this.list = el}
                     optionHoveredStyle={styles.hoveredComponentBG}
-                    onSelectRow={this.props.onSelectRow}
+                    onSelectRow={this.selectRow}
                     sections={this.props.sections}
                     focusedIndex={this.state.focusedIndex}
                     selectedOptions={this.props.selectedOptions}

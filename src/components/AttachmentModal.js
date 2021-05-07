@@ -79,7 +79,10 @@ class AttachmentModal extends PureComponent {
             return;
         }
 
-        this.props.onConfirm(this.state.file);
+        if (this.props.onConfirm) {
+            this.props.onConfirm(this.state.file);
+        }
+
         this.setState({isModalOpen: false});
     }
 

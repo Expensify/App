@@ -126,7 +126,11 @@ class SidebarLinks extends React.Component {
                     ]}
                     nativeID="drag-area"
                 >
-                    <Header textSize="large" title="Chats" />
+                    <Header
+                        textSize="large"
+                        title="Chats"
+                        shouldShowEnvironmentBadge
+                    />
                     <TouchableOpacity
                         style={[styles.flexRow, styles.ph5]}
                         onPress={this.showSearchPage}

@@ -8,6 +8,7 @@ import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import {getReportParticipantsTitle} from './reportUtils';
+import Permissions from './Permissions';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -286,7 +287,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && recentReportOptions.length === 0
             && personalDetailsOptions.length === 0
             && _.every(selectedOptions, option => option.login !== searchValue)
-            && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
+            && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
+            && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos())
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
         // current users international code based on their IP address.
@@ -357,18 +359,15 @@ function getNewChatOptions(
  *
  * @param {Object} myPersonalDetail
  * @param {String} amountText
- * @returns {Array}
+ * @returns {Object}
  */
-function getIOUConfirmationOptionsFromMyPersonalDetail(
-    myPersonalDetail,
-    amountText,
-) {
-    return [{
+function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountText) {
+    return {
         text: myPersonalDetail.displayName,
         alternateText: myPersonalDetail.login,
         icons: [myPersonalDetail.avatar],
         descriptiveText: amountText,
-    }];
+    };
 }
 
 /**
