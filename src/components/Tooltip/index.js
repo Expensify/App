@@ -12,6 +12,9 @@ class Tooltip extends PureComponent {
         super(props);
 
         this.state = {
+            // Is tooltip rendered?
+            isReady: false,
+
             // The distance between the left side of the wrapper view and the left side of the window
             xOffset: 0,
 
@@ -38,7 +41,6 @@ class Tooltip extends PureComponent {
         this.animation = new Animated.Value(0);
 
         this.getWrapperPosition = this.getWrapperPosition.bind(this);
-        this.measureWrapperAndGetPosition = this.measureWrapperAndGetPosition.bind(this);
         this.measureTooltip = this.measureTooltip.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
@@ -93,25 +95,6 @@ class Tooltip extends PureComponent {
     }
 
     /**
-     * Measure the size and position of the wrapper view.
-     *
-     * @param {Object} nativeEvent
-     */
-    measureWrapperAndGetPosition({nativeEvent}) {
-        const {width, height} = nativeEvent.layout;
-
-        // We need to use `measureInWindow` instead of the layout props provided by `onLayout`
-        // because `measureInWindow` provides the x and y offset relative to the window, rather than the parent element.
-        this.getWrapperPosition()
-            .then(({x, y}) => this.setStateIfMounted({
-                wrapperWidth: width,
-                wrapperHeight: height,
-                xOffset: x,
-                yOffset: y,
-            }));
-    }
-
-    /**
      * Measure the size of the tooltip itself.
      *
      * @param {Object} nativeEvent
@@ -127,6 +110,9 @@ class Tooltip extends PureComponent {
      * Display the tooltip in an animation.
      */
     showTooltip() {
+        if (!this.state.isReady) {
+            this.setState({isReady: true});
+        }
         this.animation.stopAnimation();
         this.shouldStartShowAnimation = true;
 
@@ -174,7 +160,7 @@ class Tooltip extends PureComponent {
             tooltipTextStyle,
             pointerWrapperStyle,
             pointerStyle,
-        } = getTooltipStyles(
+        } = this.state.isReady ? getTooltipStyles(
             this.animation,
             this.props.windowWidth,
             this.state.xOffset,
@@ -185,9 +171,10 @@ class Tooltip extends PureComponent {
             this.state.tooltipHeight,
             _.result(this.props, 'shiftHorizontal'),
             _.result(this.props, 'shiftVertical'),
-        );
+        ) : {};
         return (
             <>
+                {this.state.isReady && (
                 <TooltipRenderedOnPageBody
                     animationStyle={animationStyle}
                     tooltipWrapperStyle={tooltipWrapperStyle}
@@ -198,6 +185,7 @@ class Tooltip extends PureComponent {
                     measureTooltip={this.measureTooltip}
                     text={this.props.text}
                 />
+                )}
                 <Hoverable
                     containerStyle={this.props.containerStyle}
                     onHoverIn={this.showTooltip}
@@ -205,7 +193,6 @@ class Tooltip extends PureComponent {
                 >
                     <View
                         ref={el => this.wrapperView = el}
-                        onLayout={this.measureWrapperAndGetPosition}
                         style={this.props.containerStyle}
                     >
                         {this.props.children}
