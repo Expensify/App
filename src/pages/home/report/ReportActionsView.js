@@ -218,6 +218,11 @@ class ReportActionsView extends React.Component {
      * displaying.
      */
     loadMoreChats() {
+        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
+        if (this.state.isLoadingMoreChats) {
+            return;
+        }
+
         const minSequenceNumber = _.chain(this.props.reportActions)
             .pluck('sequenceNumber')
             .min()
