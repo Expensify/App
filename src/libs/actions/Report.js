@@ -519,9 +519,10 @@ function updateReportWithNewAction(reportID, reportAction) {
 /**
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chat report ID, this is required in order to link the reports in Onyx
- * @param {Boolean} shouldUpdateChatReport - Only necessary if triggered by a notification, or the chatReport lists the IOU report as outstanding
+ * @param {Boolean} shouldUpdateChatReport - We should only update and link the chatReport if the IOU report is currently active!
  *
- * Fetch a single IOU Report and persist to Onyx, associating the IOUReport with a chatReport if it is active. 
+ * Fetch a single IOU Report and persist to Onyx, associating the IOUReport with a chatReport only if it is the active IOU report.
+ * Else we would break the link between the real active IOU for that chatReport (breaking IOUBadge and IOUPreview Components). 
  */
 function fetchIOUReportByID(iouReportID, chatReportID, shouldUpdateChatReport) {
     fetchIOUReport(iouReportID, chatReportID)
