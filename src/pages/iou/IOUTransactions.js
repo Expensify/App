@@ -38,21 +38,19 @@ const defaultProps = {
 
 class IOUTransactions extends PureComponent {
     render() {
-        const transactionsByCreationDate = this.props.transactions ? this.props.transactions.reverse() : [];
         return (
             <View>
-                {_.map(transactionsByCreationDate, (transaction) => {
+                {_.map(this.props.transactions, (transaction) => {
                     const actionForTransaction = _.find(this.props.reportActions, (action) => {
                         if (action && action.originalMessage) {
-                            return action.originalMessage.IOUTransactionID == transaction.transactionID;
-
-                            // TODO: make sure type is equal
+                            return action.originalMessage.IOUTransactionID === transaction.transactionID;
                         }
                         return false;
                     });
                     return (
                         <ReportTransaction
                             chatReportID={this.props.chatReportID}
+                            iouReportID={this.props.iouReportID}
                             transaction={transaction}
                             action={actionForTransaction}
                             canReject={this.props.hasOutstandingIOU}
