@@ -48,8 +48,8 @@ const run = function () {
 
             console.log(`Dispatching workflow: ${workflow}`);
             return octokit.actions.createWorkflowDispatch({
-                owner: 'Andrew-Test-Org',
-                repo: 'Public-Test-Repo',
+                owner: GithubUtils.GITHUB_OWNER,
+                repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 workflow_id: workflow,
                 ref: 'main',
                 inputs,
@@ -107,8 +107,8 @@ const run = function () {
                 () => {
                     console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
                     return octokit.actions.getWorkflowRun({
-                        owner: 'Andrew-Test-Org',
-                        repo: 'Public-Test-Repo',
+                        owner: GithubUtils.GITHUB_OWNER,
+                        repo: GithubUtils.EXPENSIFY_CASH_REPO,
                         run_id: newWorkflowRunID,
                     })
                         .then(({data}) => {

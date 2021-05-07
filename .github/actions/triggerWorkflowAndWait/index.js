@@ -11,6 +11,7 @@ module.exports =
 const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
+const ActionUtils = __nccwpck_require__(970);
 const GithubUtils = __nccwpck_require__(7999);
 const promiseWhile = __nccwpck_require__(4502);
 
@@ -30,7 +31,7 @@ const run = function () {
     const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
     const githubUtils = new GithubUtils(octokit);
     const workflow = core.getInput('WORKFLOW', {required: true});
-    const inputs = JSON.parse(core.getInput('INPUTS') || '{}');
+    const inputs = ActionUtils.getJSONInput('INPUTS', {required: false}, {});
 
     console.log('This action has received the following inputs: ', {workflow, inputs});
 
@@ -57,8 +58,8 @@ const run = function () {
 
             console.log(`Dispatching workflow: ${workflow}`);
             return octokit.actions.createWorkflowDispatch({
-                owner: 'Andrew-Test-Org',
-                repo: 'Public-Test-Repo',
+                owner: GithubUtils.GITHUB_OWNER,
+                repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 workflow_id: workflow,
                 ref: 'main',
                 inputs,
@@ -116,8 +117,8 @@ const run = function () {
                 () => {
                     console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
                     return octokit.actions.getWorkflowRun({
-                        owner: 'Andrew-Test-Org',
-                        repo: 'Public-Test-Repo',
+                        owner: GithubUtils.GITHUB_OWNER,
+                        repo: GithubUtils.EXPENSIFY_CASH_REPO,
                         run_id: newWorkflowRunID,
                     })
                         .then(({data}) => {
@@ -145,6 +146,35 @@ if (require.main === require.cache[eval('__filename')]) {
 }
 
 module.exports = run;
+
+
+/***/ }),
+
+/***/ 970:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param {String} name - The name of the input.
+ * @param {Object} options - Options to pass to core.getInput
+ * @param {*} [defaultValue] - A default value to provide for the input.
+ *                             Not required if the {required: true} option is given in the second arg to this function.
+ * @returns {any}
+ */
+function getJSONInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+
+module.exports = {
+    getJSONInput,
+};
 
 
 /***/ }),

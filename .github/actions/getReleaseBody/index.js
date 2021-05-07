@@ -10,16 +10,46 @@ module.exports =
 
 const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
+const ActionUtils = __nccwpck_require__(970);
 const GithubUtils = __nccwpck_require__(7999);
 
 // Parse the stringified JSON array of PR numbers, and cast each from String -> Number
-const PRList = _.map(JSON.parse(core.getInput('PR_LIST', {required: true})), Number);
+const PRList = _.map(ActionUtils.getJSONInput('PR_LIST', {required: true}), Number);
 console.log(`Got PR list: ${PRList}`);
 
 const releaseBody = GithubUtils.getReleaseBody(PRList);
 console.log(`Generated release body: ${releaseBody}`);
 
 core.setOutput('RELEASE_BODY', releaseBody);
+
+
+/***/ }),
+
+/***/ 970:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param {String} name - The name of the input.
+ * @param {Object} options - Options to pass to core.getInput
+ * @param {*} [defaultValue] - A default value to provide for the input.
+ *                             Not required if the {required: true} option is given in the second arg to this function.
+ * @returns {any}
+ */
+function getJSONInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+
+module.exports = {
+    getJSONInput,
+};
 
 
 /***/ }),
