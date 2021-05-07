@@ -71,7 +71,7 @@ const RootStack = createCustomModalStackNavigator();
 // When modal screen gets focused, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
 const modalScreenListeners = {
-    focus: () => {
+    transitionEnd: () => {
         setModalVisibility(true);
     },
     beforeRemove: () => {
