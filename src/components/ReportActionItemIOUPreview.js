@@ -25,6 +25,9 @@ const propTypes = {
 
         // Outstanding amount of this transaction
         cachedTotal: PropTypes.string,
+
+        // Is the IOU report settled?
+        hasOutstandingIOU: PropTypes.bool,
     }).isRequired,
 
     // Session info for the currently logged in user.
@@ -83,8 +86,7 @@ const ReportActionItemIOUPreview = ({
                         <Text style={styles.mt2}>
                             {iou.hasOutstandingIOU
                                 ? `${managerName} owes ${ownerName}`
-                                : `${ownerName} paid ${managerName}`
-                            }
+                                : `${ownerName} paid ${managerName}`}
                         </Text>
                     </View>
                     <View style={styles.iouPreviewBoxAvatar}>
