@@ -155,7 +155,7 @@ class ReportActionsView extends React.Component {
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
         const shouldRecordMaxAction = Visibility.isVisible()
-            && !(this.props.isDrawerOpen && this.props.isSmallScreenWidth);
+            && (!this.props.isSmallScreenWidth || !this.props.isDrawerOpen);
 
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
