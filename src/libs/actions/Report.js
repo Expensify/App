@@ -182,7 +182,7 @@ function getSimplifiedReportObject(report) {
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
     const transactions = _.map(reportData.transactionList, transaction => ({
-        transactionID: transaction.transactionID,
+        transactionID: Number(transaction.transactionID),
         amount: transaction.amount,
         currency: transaction.currency,
         created: transaction.created,
@@ -228,6 +228,8 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
+            // TODO: why is this being met after settling report!>?!?!?
+            // the report is probably settled, this is expected!
             console.error(`No iouReportData found for reportID ${iouReportID}`);
             return;
         }
@@ -239,11 +241,13 @@ function fetchIOUReport(iouReportID, chatReportID) {
 
 /**
  * Given debtorEmail finds active IOU report ID via GetIOUReport API call
+ * .. todo: should deprecate!!!!
  *
  * @param {String} debtorEmail
  * @returns {Promise}
  */
 function fetchIOUReportID(debtorEmail) {
+    // deprecate, use id in action
     return API.GetIOUReport({
         debtorEmail,
     }).then((response) => {
@@ -288,7 +292,7 @@ function fetchChatReportsByIDs(chatList) {
                     reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
 
                 // If there aren't any IOU actions, we don't need to fetch any additional data
-                if (!containsIOUAction) {
+                if (!containsIOUAction) { // todo: all IOUActions should now contain IOUReportID
                     return;
                 }
 
@@ -354,7 +358,7 @@ function fetchChatReportsByIDs(chatList) {
  * @param {Number} iouReportObject.total
  * @param {Number} iouReportObject.reportID
  * @param {Number} chatReportID
- * @param {Boolean} shouldUpdateChatReport - should the local chatReport be updated too? 
+ * @param {Boolean} shouldUpdateChatReport - should the local chatReport be updated too?
  */
 function setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatReport) {
     // Persist IOU Report data to Onyx
@@ -363,7 +367,6 @@ function setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatRe
 
     // We don't always want to update the chatReport, as the IOU could be an old settled report
     if (!shouldUpdateChatReport) {
-        console.log('No need to update the local chat report.');
         return;
     }
 
@@ -371,7 +374,7 @@ function setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatRe
         hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
         iouReportID: iouReportObject.reportID,
     };
-    
+
     if (!chatReportObject.hasOutstandingIOU) {
         chatReportObject.iouReportID = null;
     }
@@ -414,6 +417,20 @@ function removeOptimisticActions(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         optimisticReportActionIDs: [],
     });
+}
+
+/**
+ * @param {Number} iouReportID - ID of the report we are fetching
+ * @param {Number} chatReportID - associated chat report ID, required in order to link the reports in Onyx
+ * @param {Boolean} shouldUpdateChatReport - should we update and link the chat report to this IOU report?
+ *
+ * Fetch an IOU Report and persist to Onyx, associating the IOUReport with a chatReport only if it is the active IOU
+ * report. Else we would break the link to the active IOU for that chatReport (breaking badge and preview Components).
+ */
+function fetchIOUReportByID(iouReportID, chatReportID, shouldUpdateChatReport) {
+    fetchIOUReport(iouReportID, chatReportID)
+        .then(iouReportObject => setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatReport))
+        .catch(error => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
 }
 
 /**
@@ -513,20 +530,6 @@ function updateReportWithNewAction(reportID, reportAction) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
-}
-
-/**
- * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chat report ID, this is required in order to link the reports in Onyx
- * @param {Boolean} shouldUpdateChatReport - We should only update and link the chatReport if the IOU report is currently active!
- *
- * Fetch a single IOU Report and persist to Onyx, associating the IOUReport with a chatReport only if it is the active IOU report.
- * Else we would break the link between the real active IOU for that chatReport (breaking IOUBadge and IOUPreview Components). 
- */
-function fetchIOUReportByID(iouReportID, chatReportID, shouldUpdateChatReport) {
-    fetchIOUReport(iouReportID, chatReportID)
-        .then(iouReportObject => setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatReport))
-        .catch((error) => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
 }
 
 /**
@@ -1020,6 +1023,7 @@ export {
     fetchAllReports,
     fetchActions,
     fetchOrCreateChatReport,
+    fetchChatReportsByIDs,
     fetchIOUReportByID,
     addAction,
     updateLastReadActionID,

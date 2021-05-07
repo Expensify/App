@@ -34,6 +34,7 @@ const propTypes = {
 const defaultProps = {
     reportActions: [],
     transactions: [],
+    hasOutstandingIOU: false,
 };
 
 class IOUTransactions extends PureComponent {
