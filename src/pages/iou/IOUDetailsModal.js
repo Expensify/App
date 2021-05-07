@@ -121,7 +121,7 @@ class IOUDetailsModal extends Component {
                             iouReportID={this.props.route.params.iouReportID}
                             transactions={this.props.iouReport.transactions}
                         />
-                        {(this.props.iouReport.managerEmail === sessionEmail && (
+                        {(this.props.iouReport.hasOutstandingIOU && this.props.iouReport.managerEmail === sessionEmail && (
                             <ButtonWithLoader
                                 text="I'll settle up elsewhere"
                                 isLoading={this.props.iou.loading}
