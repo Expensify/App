@@ -54,7 +54,7 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {
                     const message = _.last(lodashGet(this.props.reportAction, 'message', null));
                     const html = lodashGet(message, 'html', '');
-                    const text = lodashGet(message, 'text', '');
+                    const text = props.selection || lodashGet(message, 'text', '');
                     const isAttachment = _.has(this.props.reportAction, 'isAttachment')
                         ? this.props.reportAction.isAttachment
                         : isReportMessageAttachment(text);

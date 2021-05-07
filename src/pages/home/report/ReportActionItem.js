@@ -61,6 +61,7 @@ class ReportActionItem extends Component {
 
         this.showPopover = this.showPopover.bind(this);
         this.hidePopover = this.hidePopover.bind(this);
+        this.selection = '';
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -90,9 +91,10 @@ class ReportActionItem extends Component {
      *
      * @param {Object} [event] - A press event.
      */
-    showPopover(event) {
+    showPopover(event, selection) {
         const nativeEvent = event.nativeEvent || {};
         this.capturePressLocation(nativeEvent);
+        this.selection = selection;
         this.setState({isPopoverVisible: true});
     }
 
@@ -155,6 +157,7 @@ class ReportActionItem extends Component {
                                 measureContent={() => (
                                     <ReportActionContextMenu
                                         isVisible
+                                        selection={this.selection}
                                         reportID={this.props.reportID}
                                         reportAction={this.props.action}
                                     />
