@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
-import {resendValidationLink, resetPassword} from '../../libs/actions/Session';
+import {reopenAccount, resendValidationLink, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 
@@ -19,6 +19,9 @@ const propTypes = {
 
         // Weather or not the account is validated
         validated: PropTypes.bool,
+
+        // Weather or not the account is closed
+        closed: PropTypes.bool,
     }),
 };
 
@@ -51,7 +54,11 @@ class ResendValidationForm extends React.Component {
             formSuccess: 'Link has been re-sent',
         });
 
-        if (!this.props.account.validated) {
+        debugger;
+        if (this.props.account.closed) {
+            reopenAccount();
+            console.debug('Account is closed: Sending link to reopen account.');
+        } else if (!this.props.account.validated) {
             resendValidationLink();
             console.debug('Account is unvalidated: Sending validation link.');
         } else {

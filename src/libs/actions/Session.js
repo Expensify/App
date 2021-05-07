@@ -89,6 +89,7 @@ function fetchAccountDetails(login) {
                     accountExists: response.accountExists,
                     requiresTwoFactorAuth: response.requiresTwoFactorAuth,
                     validated: response.validated,
+                    closed: response.isClosed,
                     forgotPassword: false,
                 });
 
@@ -186,6 +187,17 @@ function signIn(password, twoFactorAuthCode) {
 }
 
 /**
+ * Reopn the account and send the user a link to set password
+ */
+function reopenAccount() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
+    API.User_ReopenAccount({email: credentials.login})
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        });
+}
+
+/**
  * Resend the validation link to the user that is validating their account
  * this happens in the createAccount() flow
  */
@@ -251,6 +263,7 @@ export {
     setPassword,
     signIn,
     signOut,
+    reopenAccount,
     resendValidationLink,
     resetPassword,
     restartSignin,
