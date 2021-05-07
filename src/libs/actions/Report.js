@@ -387,14 +387,19 @@ function setLocalIOUReportData(iouReportObject, chatReportID) {
  * Update the lastRead actionID and timestamp in local memory and Onyx
  *
  * @param {Number} reportID
- * @param {Number} sequenceNumber
+ * @param {Number} lastReadSequenceNumber
  */
-function setLocalLastRead(reportID, sequenceNumber) {
-    lastReadSequenceNumbers[reportID] = sequenceNumber;
+function setLocalLastRead(reportID, lastReadSequenceNumber) {
+    lastReadSequenceNumbers[reportID] = lastReadSequenceNumber;
+    const reportMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
 
-    // Update the report optimistically
+    // Determine the number of unread actions by deducting the last read sequence from the total. If, for some reason,
+    // the last read sequence is higher than the actual last sequence, let's just assume all actions are read
+    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber, 0);
+
+    // Update the report optimistically.
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: 0,
+        unreadActionCount,
         lastVisitedTimestamp: Date.now(),
     });
 }
@@ -765,12 +770,13 @@ function fetchActions(reportID, offset) {
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
+ * @returns {Promise}
  */
 function fetchAllReports(
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
-    API.Get({
+    return API.Get({
         returnValueList: 'chatList',
     })
         .then((response) => {
@@ -929,21 +935,32 @@ function addAction(reportID, text, file) {
  * network layer handle the delayed write.
  *
  * @param {Number} reportID
- * @param {Number} sequenceNumber
+ * @param {Number} [sequenceNumber] This can be used to set the last read actionID to a specific
+ *  spot (eg. mark-as-unread). Otherwise, when this param is omitted, the highest sequence number becomes the one that
+ *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
-    const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
-    if (sequenceNumber < currentMaxSequenceNumber) {
-        return;
-    }
+    // Need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot (the last read
+    // action). If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action)
+    const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
 
-    setLocalLastRead(reportID, sequenceNumber);
+    setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
-        sequenceNumber,
+        sequenceNumber: lastReadSequenceNumber,
+    });
+}
+
+/**
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
+function setNewMarkerPosition(reportID, sequenceNumber) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        newMarkerSequenceNumber: sequenceNumber,
     });
 }
 
@@ -1021,9 +1038,7 @@ Onyx.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-NetworkConnection.onReconnect(() => {
-    fetchAllReports();
-});
+NetworkConnection.onReconnect(fetchAllReports);
 
 export {
     fetchAllReports,
@@ -1031,6 +1046,7 @@ export {
     fetchOrCreateChatReport,
     addAction,
     updateLastReadActionID,
+    setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,
     unsubscribeFromReportChannel,

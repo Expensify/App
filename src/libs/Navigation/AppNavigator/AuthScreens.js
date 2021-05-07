@@ -13,6 +13,7 @@ import {
     fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
+import * as BankAccounts from '../../actions/BankAccounts';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
@@ -111,11 +112,12 @@ class AuthScreens extends React.Component {
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        PersonalDetails.fetch();
+        PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
+        BankAccounts.fetchBankAccountList();
         UnreadIndicatorUpdater.listenForReportChanges();
 
         // Refresh the personal details, timezone and betas every 30 minutes
@@ -125,7 +127,7 @@ class AuthScreens extends React.Component {
             if (this.props.network.isOffline) {
                 return;
             }
-            PersonalDetails.fetch();
+            PersonalDetails.fetchPersonalDetails();
             User.getUserDetails();
             User.getBetas();
         }, 1000 * 60 * 30));
@@ -169,6 +171,12 @@ class AuthScreens extends React.Component {
         return (
             <RootStack.Navigator
                 mode="modal"
+
+                // We are disabling the default keyboard handling here since the automatic behavior is to close a
+                // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
+                // a header will briefly open and close the keyboard and crash Android.
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                keyboardHandlingEnabled={false}
             >
                 {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
                 <RootStack.Screen
