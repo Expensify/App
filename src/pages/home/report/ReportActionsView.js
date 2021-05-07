@@ -197,6 +197,9 @@ class ReportActionsView extends React.Component {
      */
     onVisibilityChange() {
         if (Visibility.isVisible()) {
+            if (this.props.report.newMarkerSequenceNumber === 0 && this.props.report.unreadActionCount > 0) {
+                setNewMarkerPosition(this.props.reportID, (this.props.report.maxSequenceNumber - this.props.report.unreadActionCount) + 1);
+            }
             updateLastReadActionID(this.props.reportID);
         }
     }
