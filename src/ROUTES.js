@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import {wrapWithForwardSlash} from './libs/Url';
+import {addTrailingForwardSlash} from './libs/Url';
 
 /**
  * This is a file containing constants for all of the routes we want to be able to go to
@@ -26,7 +26,6 @@ export default {
     IOU_BILL: 'iou/split/:reportID',
     getIouSplitRoute: reportID => `iou/split/${reportID}`,
     SEARCH: 'search',
-    SIGNIN: 'signin',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
     DETAILS_WITH_LOGIN: 'details/:login',
@@ -43,13 +42,14 @@ export default {
      * @returns {Object}
      */
     parseReportRouteParams: (route) => {
-        if (!route.startsWith(wrapWithForwardSlash(REPORT))) {
+        if (!route.startsWith(addTrailingForwardSlash(REPORT))) {
             return {};
         }
 
         const pathSegments = route.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
+            isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
         };
     },
 };

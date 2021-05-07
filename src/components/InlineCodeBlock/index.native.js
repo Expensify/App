@@ -1,23 +1,24 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
-import {View} from 'react-native';
 import styles from '../../styles/styles';
+import WrappedText from './WrappedText';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
 const InlineCodeBlock = ({
-    TDefaultRenderer,
     defaultRendererProps,
     boxModelStyle,
     textStyle,
 }) => (
-    <View
-        style={{
-            ...boxModelStyle,
-            ...styles.mbn1,
-        }}
+    <WrappedText
+        textStyles={[textStyle]}
+        wordStyles={[
+            boxModelStyle,
+            styles.codeWordStyle,
+        ]}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...defaultRendererProps}
     >
-        <TDefaultRenderer style={textStyle} {...defaultRendererProps} />
-    </View>
+        {defaultRendererProps.tnode.data}
+    </WrappedText>
 );
 
 InlineCodeBlock.propTypes = inlineCodeBlockPropTypes;

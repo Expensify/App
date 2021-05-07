@@ -6,7 +6,7 @@ module.exports = {
     },
     mac: {
         category: 'public.app-category.finance',
-        icon: './desktop/icon.png',
+        icon: process.env.SHOULD_DEPLOY_PRODUCTION === 'true' ? './desktop/icon.png' : './desktop/icon-stg.png',
         hardenedRuntime: true,
         entitlements: 'desktop/entitlements.mac.plist',
         entitlementsInherit: 'desktop/entitlements.mac.plist',

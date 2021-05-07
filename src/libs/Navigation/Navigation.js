@@ -3,10 +3,18 @@ import React from 'react';
 import {StackActions, DrawerActions} from '@react-navigation/native';
 import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
 
+import Onyx from 'react-native-onyx';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
 import CustomActions from './CustomActions';
+import ONYXKEYS from '../../ONYXKEYS';
+
+let isLoggedIn = false;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => isLoggedIn = Boolean(val && val.authToken),
+});
 
 export const navigationRef = React.createRef();
 
@@ -36,20 +44,22 @@ function goBack() {
  * @param {String} route
  */
 function navigate(route = ROUTES.HOME) {
-    // If we're navigating to the signIn page, replace the existing route in the stack with the SignIn route so that we
-    // don't mistakenly route back to any older routes after the user signs in
-    if (route === ROUTES.SIGNIN) {
-        navigationRef.current.dispatch(StackActions.replace(SCREENS.SIGN_IN));
-        return;
-    }
-
     if (route === ROUTES.HOME) {
-        openDrawer();
+        if (isLoggedIn) {
+            openDrawer();
+            return;
+        }
+
+        // If we're navigating to the signIn page while logged out, pop whatever screen is on top
+        // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
+        navigationRef.current.dispatch(StackActions.pop());
         return;
     }
 
-    const {reportID} = ROUTES.parseReportRouteParams(route);
-    if (reportID) {
+    // Navigate to the ReportScreen with a custom action so that we can preserve the history. We're looking to see if we
+    // have a participants route since those should go through linkTo() as they open a different screen.
+    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
+    if (reportID && !isParticipantsRoute) {
         navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}));
         return;
     }
