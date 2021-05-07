@@ -121,8 +121,8 @@ class IOUDetailsModal extends Component {
                             shouldHidePayButton
                         />
                         <IOUTransactions
-                            chatReportID={this.props.route.params.chatReportID}
-                            iouReportID={this.props.route.params.iouReportID}
+                            chatReportID={Number(this.props.route.params.chatReportID)}
+                            iouReportID={Number(this.props.route.params.iouReportID)}
                             transactions={this.props.iouReport.transactions}
                             hasOutstandingIOU={this.props.iouReport.hasOutstandingIOU}
                         />

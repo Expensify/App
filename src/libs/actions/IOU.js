@@ -137,17 +137,14 @@ function settleIOUReport({
  * Decline or cancel a transaction
  */
 function rejectTransaction({
-    reportID, transactionID, comment,
+    reportID, chatReportID, transactionID, comment,
 }) {
-    console.debug('juless: rejectTransaction', {reportID, transactionID, comment});
-
     API.RejectTransaction({
         reportID,
         transactionID,
         comment,
-    }).then((data) => {
-        console.debug('juless: rejectedTransaction response: ', data);
-    });
+    })
+    .then(fetchIOUReportByID(reportID, chatReportID, true));
 }
 
 export {
