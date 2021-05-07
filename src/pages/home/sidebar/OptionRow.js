@@ -194,7 +194,7 @@ const OptionRow = ({
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
-                                    <Icon src={Pencil} height="16" width="16" />
+                                    <Icon src={Pencil} height={16} width={16} />
                                 </View>
                             )}
                             {option.hasOutstandingIOU && (
@@ -202,7 +202,7 @@ const OptionRow = ({
                             )}
                             {option.isPinned && (
                                 <View style={styles.ml2}>
-                                    <Icon src={Pin} height="16" width="16" />
+                                    <Icon src={Pin} height={16} width={16} />
                                 </View>
                             )}
                         </View>
