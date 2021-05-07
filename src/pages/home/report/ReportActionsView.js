@@ -292,7 +292,8 @@ class ReportActionsView extends React.Component {
      */
     scrollToListBottom() {
         if (this.actionListElement) {
-            this.actionListElement.scrollToIndex({animated: false, index: 0});
+            // Scrolls to the bottom of the FlatList
+            this.actionListElement.scrollToOffset({animated: false, offset: 0});
         }
         updateLastReadActionID(this.props.reportID);
     }
