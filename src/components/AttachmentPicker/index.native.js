@@ -67,6 +67,16 @@ function showGeneralAlert() {
 }
 
 /**
+ * An attachment error dialog when user selected malformed images
+ */
+function showImageCorruptionAlert() {
+    Alert.alert(
+        'Attachment Error',
+        'An error occurred while selecting a corrupted attachment, please try another file',
+    );
+}
+
+/**
  * Launch the DocumentPicker. Results are in the same format as ImagePicker
  *
  * @returns {Promise<DocumentPickerResponse>}
@@ -169,6 +179,11 @@ class AttachmentPicker extends Component {
      */
     setResult(attachment) {
         if (attachment && !attachment.didCancel && !attachment.error) {
+            if (attachment.width === -1 || attachment.height === -1)
+            {
+                showImageCorruptionAlert();
+                return;
+            }
             const result = getDataForUpload(attachment);
             this.setState({result});
         }
