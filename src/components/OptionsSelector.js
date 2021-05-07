@@ -61,13 +61,6 @@ const propTypes = {
     // Whether to show the title tooltip
     showTitleTooltip: PropTypes.bool,
 
-    // Navigation prop from naviagtion lib
-    navigation: PropTypes.shape({
-
-        // Method to attach listner to Navigaton state.
-        addListener: PropTypes.func.isRequired,
-    }).isRequired,
-
     // Whether to focus the textinput after an option is selected
     shouldFocusOnSelectRow: PropTypes.bool,
 };
@@ -100,13 +93,7 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', () => {
-            this.textInput.focus();
-        });
-    }
-
-    componentWillUnmount() {
-        this.unsubscribeTransitionEnd();
+        this.textInput.focus();
     }
 
     /**
@@ -235,4 +222,4 @@ class OptionsSelector extends Component {
 
 OptionsSelector.defaultProps = defaultProps;
 OptionsSelector.propTypes = propTypes;
-export default withNavigation(OptionsSelector);
+export default OptionsSelector;
