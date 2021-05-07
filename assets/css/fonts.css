@@ -68,6 +68,27 @@
     src: url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular.eot') format('embedded-opentype'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular.woff') format('woff'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular.woff2') format('woff2');
 }
 
+@font-face {
+    font-family: GTAmericaExpMono-RgIt;
+    font-weight: 400;
+    font-style: italic;
+    src: url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular-Italic.eot') format('embedded-opentype'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular-Italic.woff') format('woff'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Regular-Italic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: GTAmericaExpMono-Bd;
+    font-weight: 700;
+    font-style: normal;
+    src: url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold.eot') format('embedded-opentype'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold.woff') format('woff'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: GTAmericaExpMono-BdIt;
+    font-weight: 700;
+    font-style: italic;
+    src: url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.eot') format('embedded-opentype'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.woff') format('woff'), url('https://www.expensify.com/font/GT-America-Exp-Mono-Bold-Italic.woff2') format('woff2');
+}
+
 * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
