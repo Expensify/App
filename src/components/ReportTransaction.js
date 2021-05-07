@@ -30,6 +30,9 @@ const propTypes = {
         // Was this transaction created by the current user
         createdByUser: PropTypes.bool,
     }).isRequired,
+
+    // Can this transaction be rejected?
+    canReject: PropTypes.bool.isRequired,
 };
 
 class ReportTransaction extends Component {
@@ -58,14 +61,16 @@ class ReportTransaction extends Component {
                         {this.props.action.message[0].text}
                     </Text>
                 </ReportActionItemSingle>
-                <Pressable
-                    style={[styles.button, styles.alignItemsStart, styles.mb3]}
-                    onPress={() => this.removeTransaction()}
-                >
-                    <Text style={[styles.buttonSmallText]}>
-                        {this.props.transaction.createdByUser ? 'Cancel' : 'Decline'}
-                    </Text>
-                </Pressable>
+                {this.props.canReject && (
+                    <Pressable
+                        style={[styles.button, styles.alignItemsStart, styles.mb3]}
+                        onPress={() => this.removeTransaction()}
+                    >
+                        <Text style={[styles.buttonSmallText]}>
+                            {this.props.transaction.createdByUser ? 'Cancel' : 'Decline'}
+                        </Text>
+                    </Pressable>
+                )}
             </View>
         );
     }

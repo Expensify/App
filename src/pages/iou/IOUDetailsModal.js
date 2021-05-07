@@ -65,6 +65,9 @@ const propTypes = {
             // The transaction comment
             comment: PropTypes.string,
         })),
+
+        // Is the IOU report settled?
+        hasOutstandingIOU: PropTypes.bool,
     }),
 
     // Session info for the currently logged in user.
@@ -121,6 +124,7 @@ class IOUDetailsModal extends Component {
                             chatReportID={this.props.route.params.chatReportID}
                             iouReportID={this.props.route.params.iouReportID}
                             transactions={this.props.iouReport.transactions}
+                            hasOutstandingIOU={this.props.iouReport.hasOutstandingIOU}
                         />
                         {(this.props.iouReport.hasOutstandingIOU && this.props.iouReport.managerEmail === sessionEmail && (
                             <ButtonWithLoader
