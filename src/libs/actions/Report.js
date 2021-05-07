@@ -228,8 +228,6 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
-            // TODO: why is this being met after settling report!>?!?!?
-            // the report is probably settled, this is expected!
             console.error(`No iouReportData found for reportID ${iouReportID}`);
             return;
         }
@@ -241,13 +239,11 @@ function fetchIOUReport(iouReportID, chatReportID) {
 
 /**
  * Given debtorEmail finds active IOU report ID via GetIOUReport API call
- * .. todo: should deprecate!!!!
  *
  * @param {String} debtorEmail
  * @returns {Promise}
  */
 function fetchIOUReportID(debtorEmail) {
-    // deprecate, use id in action
     return API.GetIOUReport({
         debtorEmail,
     }).then((response) => {
@@ -292,7 +288,7 @@ function fetchChatReportsByIDs(chatList) {
                     reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
 
                 // If there aren't any IOU actions, we don't need to fetch any additional data
-                if (!containsIOUAction) { // todo: all IOUActions should now contain IOUReportID
+                if (!containsIOUAction) {
                     return;
                 }
 
