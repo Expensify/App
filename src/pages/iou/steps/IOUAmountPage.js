@@ -54,8 +54,37 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         if (this.textInput) {
-            // Input won't focus unless a setTimeout is set with atleast 300
+            // Workaround: Input doesn't focus without a setTimeout
             setTimeout(() => this.textInput.focus(), 300);
+        }
+        this.setupEventHandlers();
+    }
+
+    componentWillUnmount() {
+        this.cleanupEventHandlers();
+    }
+
+    /**
+     * Setup and attach keypress handler for navigating to the next screen
+     */
+    setupEventHandlers() {
+        if (document) {
+            this.keyDownHandler = (keyBoardEvent) => {
+                // Proceeds to the next screen if the amount isn't empty
+                if (keyBoardEvent.key === 'Enter' && this.state.amount !== '') {
+                    this.props.onStepComplete(this.state.amount);
+                }
+            };
+            document.addEventListener('keydown', this.keyDownHandler);
+        }
+    }
+
+    /**
+     * Cleanup all keydown event listeners that we've set up
+     */
+    cleanupEventHandlers() {
+        if (document) {
+            document.removeEventListener('keydown', this.keyDownHandler);
         }
     }
 
