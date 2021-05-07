@@ -64,7 +64,7 @@ const CONST = {
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
         COLD: 'cold',
-        REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1000,
+        REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
     },
     MESSAGES: {
         // eslint-disable-next-line max-len
