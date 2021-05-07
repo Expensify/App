@@ -24,8 +24,13 @@ const propTypes = {
     // Whether to include padding top
     includePaddingTop: PropTypes.bool,
 
-    // react-navigation object that will allow us to goBack()
+    // Called when navigated Screen's transition is finished.
+    onTransitionEnd: PropTypes.func,
+
+    // react-navigation navigation object available to screen components
     navigation: PropTypes.shape({
+        // Method to attach listner to Navigaton state.
+        addListener: PropTypes.func.isRequired,
 
         // Returns to the previous navigation state e.g. if this is inside a Modal we will dismiss it
         goBack: PropTypes.func,
@@ -36,7 +41,9 @@ const defaultProps = {
     style: [],
     includePaddingBottom: true,
     includePaddingTop: true,
+    onTransitionEnd: () => {},
     navigation: {
+        addListener: () => {},
         goBack: () => {},
     },
 };
@@ -46,14 +53,19 @@ class ScreenWrapper extends React.Component {
         this.unsubscribe = KeyboardShortcut.subscribe('Escape', () => {
             this.props.navigation.goBack();
         }, [], true);
+
+        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', () => {
+            this.props.onTransitionEnd();
+        });
     }
 
     componentWillUnmount() {
-        if (!this.unsubscribe) {
-            return;
+        if (this.unsubscribe) {
+            this.unsubscribe();
         }
-
-        this.unsubscribe();
+        if (this.unsubscribeTransitionEnd) {
+            this.unsubscribeTransitionEnd();
+        }
     }
 
     render() {

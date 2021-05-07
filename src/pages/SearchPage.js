@@ -15,6 +15,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -56,7 +57,7 @@ class SearchPage extends Component {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
 
         this.selectReport = this.selectReport.bind(this);
-
+        this.activateOptionsList = this.activateOptionsList.bind(this);
         const {
             recentReports,
             personalDetails,
@@ -72,6 +73,7 @@ class SearchPage extends Component {
             recentReports,
             personalDetails,
             userToInvite,
+            isReady: false,
         };
     }
 
@@ -128,6 +130,10 @@ class SearchPage extends Component {
         }
     }
 
+    activateOptionsList() {
+        this.setState({isReady: true});
+    }
+
     render() {
         const sections = this.getSections();
         const headerMessage = getHeaderMessage(
@@ -136,38 +142,41 @@ class SearchPage extends Component {
             this.state.searchValue,
         );
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={this.activateOptionsList}>
                 <HeaderWithCloseButton
                     title="Search"
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        sections={sections}
-                        value={this.state.searchValue}
-                        onSelectRow={this.selectReport}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                                userToInvite,
-                            } = getSearchOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                recentReports,
-                                personalDetails,
-                            });
-                        }}
-                        headerMessage={headerMessage}
-                        hideSectionHeaders
-                        hideAdditionalOptionStates
-                        showTitleTooltip
-                    />
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <FullScreenLoadingIndicator visible={!this.state.isReady} />
+                    {this.state.isReady && (
+                        <OptionsSelector
+                            sections={sections}
+                            value={this.state.searchValue}
+                            onSelectRow={this.selectReport}
+                            onChangeText={(searchValue = '') => {
+                                const {
+                                    recentReports,
+                                    personalDetails,
+                                    userToInvite,
+                                } = getSearchOptions(
+                                    this.props.reports,
+                                    this.props.personalDetails,
+                                    searchValue,
+                                );
+                                this.setState({
+                                    searchValue,
+                                    userToInvite,
+                                    recentReports,
+                                    personalDetails,
+                                });
+                            }}
+                            headerMessage={headerMessage}
+                            hideSectionHeaders
+                            hideAdditionalOptionStates
+                            showTitleTooltip
+                        />
+                    )}
                 </View>
                 <KeyboardSpacer />
             </ScreenWrapper>
