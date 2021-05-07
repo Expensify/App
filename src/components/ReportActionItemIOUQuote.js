@@ -19,7 +19,7 @@ const propTypes = {
 const defaultProps = {
     showViewDetailsLink: false,
     onViewDetailsPressed: null,
-}
+};
 
 const ReportActionItemIOUQuote = ({action, showViewDetailsLink, onViewDetailsPressed}) => (
     <View style={[styles.chatItemMessage]}>

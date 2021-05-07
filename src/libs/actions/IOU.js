@@ -112,7 +112,8 @@ function createIOUSplit(params) {
 }
 
 /**
- * Settles an IOU Report
+ * Settles an IOU Report. As we can guarantee that the settled report was previously active,
+ * we should update the chatReport data too when calling `fetchIOUReportByID`.
  */
 function settleIOUReport({
     chatReportID, reportID, paymentMethodType,
@@ -123,12 +124,12 @@ function settleIOUReport({
         paymentMethodType,
     })
         .then((data) => {
-            if (data.jsonCode != 200) {
+            if (data.jsonCode !== 200) {
                 console.error(data.message);
             }
         })
         .then(fetchChatReportsByIDs(chatReportID))
-        .then(fetchIOUReportByID(reportID, chatReportID, true)) // As we can garuntee the settled report was previously active, we should update the chatReport data too.
+        .then(fetchIOUReportByID(reportID, chatReportID, true))
         .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }
@@ -144,7 +145,7 @@ function rejectTransaction({
         transactionID,
         comment,
     })
-    .then(fetchIOUReportByID(reportID, chatReportID, true));
+        .then(fetchIOUReportByID(reportID, chatReportID, true));
 }
 
 export {

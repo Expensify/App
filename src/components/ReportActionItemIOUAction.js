@@ -14,7 +14,8 @@ const propTypes = {
     // All the data of the action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // The linked IOUReport
+    // The linked IOUReport, used for Onyx subscription
+    // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.number.isRequired,
 
     // The associated chatReport
@@ -62,11 +63,13 @@ class ReportActionItemIOUAction extends Component {
     }
 
     /**
-     * 
+     *
      * Launch the IOU Details Modal, using data from the report action
      */
     launchIOUDetailsModal() {
-        Navigation.navigate(ROUTES.getIouDetailsRoute(this.props.chatReportID, this.props.action.originalMessage.IOUReportID));
+        Navigation.navigate(ROUTES.getIouDetailsRoute(
+            this.props.chatReportID, this.props.action.originalMessage.IOUReportID,
+        ));
     }
 
     render() {

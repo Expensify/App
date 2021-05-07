@@ -36,7 +36,12 @@ const propTypes = {
     }).isRequired,
 
     // Can this transaction be rejected?
-    canReject: PropTypes.bool.isRequired,
+    // eslint-disable-next-line react/no-unused-prop-types
+    canReject: PropTypes.bool,
+};
+
+const defaultProps = {
+    canReject: false,
 };
 
 class ReportTransaction extends Component {
@@ -83,5 +88,6 @@ class ReportTransaction extends Component {
 }
 
 ReportTransaction.displayName = 'ReportTransaction';
+ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
 export default ReportTransaction;
