@@ -35,6 +35,7 @@ const webpackConfig = {
         new HtmlWebpackPlugin({
             template: 'web/index.html',
             filename: 'index.html',
+            usePolyfillIO: platform === 'web',
         }),
 
         // Copies favicons into the dist/ folder to use for unread status
