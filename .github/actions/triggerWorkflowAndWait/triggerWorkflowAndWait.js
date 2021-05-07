@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
+const ActionUtils = require('../../libs/ActionUtils');
 const GithubUtils = require('../../libs/GithubUtils');
 const promiseWhile = require('../../libs/promiseWhile');
 
@@ -20,7 +21,7 @@ const run = function () {
     const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
     const githubUtils = new GithubUtils(octokit);
     const workflow = core.getInput('WORKFLOW', {required: true});
-    const inputs = JSON.parse(core.getInput('INPUTS') || '{}');
+    const inputs = ActionUtils.getJSONInput('INPUTS', {required: false}, {});
 
     console.log('This action has received the following inputs: ', {workflow, inputs});
 
