@@ -32,11 +32,11 @@ const propTypes = {
 
     // Any additional amount to manually adjust the horizontal position of the tooltip.
     // A positive value shifts the tooltip to the right, and a negative value shifts it to the left.
-    shiftHorizontal: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
+    shiftHorizontal: PropTypes.number.isRequired,
 
     // Any additional amount to manually adjust the vertical position of the tooltip.
     // A positive value shifts the tooltip down, and a negative value shifts it up.
-    shiftVertical: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
+    shiftVertical: PropTypes.number.isRequired,
 
     // Callback to set the Ref to the Tooltip
     setTooltipRef: PropTypes.func.isRequired,
