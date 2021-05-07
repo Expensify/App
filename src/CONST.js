@@ -128,6 +128,13 @@ const CONST = {
         STARTUP: 8000,
         RECONNECT: 1000,
     },
+
+    PLAID: {
+        EVENT: {
+            ERROR: 'ERROR',
+            EXIT: 'EXIT',
+        },
+    },
 };
 
 export default CONST;

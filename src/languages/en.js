@@ -214,6 +214,12 @@ export default {
         enterPassword: 'Enter a password',
         setPassword: 'Set Password',
     },
+    addBankAccountPage: {
+        enterPassword: 'Enter password',
+        addBankAccount: 'Add a Bank Account',
+        alreadyAdded: 'This account has already been added.',
+        selectAccount: 'Select an account:',
+    },
     attachmentView: {
         unknownFilename: 'Unknown Filename',
     },
