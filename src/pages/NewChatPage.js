@@ -49,8 +49,6 @@ class NewChatPage extends Component {
         super(props);
 
         this.createNewChat = this.createNewChat.bind(this);
-        this.activateOptionsList = this.activateOptionsList.bind(this);
-
         const {
             personalDetails,
             userToInvite,
@@ -64,7 +62,6 @@ class NewChatPage extends Component {
             searchValue: '',
             personalDetails,
             userToInvite,
-            isReady: false,
         };
     }
 
@@ -95,10 +92,6 @@ class NewChatPage extends Component {
         return sections;
     }
 
-    activateOptionsList() {
-        this.setState({isReady: true});
-    }
-
     /**
      * Creates a new chat with the option
      * @param {Object} option
@@ -119,42 +112,46 @@ class NewChatPage extends Component {
         );
 
         return (
-            <ScreenWrapper onTransitionEnd={this.activateOptionsList}>
-                <HeaderWithCloseButton
-                    title="New Chat"
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <FullScreenLoadingIndicator visible={!this.state.isReady} />
-                    {this.state.isReady && (
-                    <OptionsSelector
-                        sections={sections}
-                        value={this.state.searchValue}
-                        onSelectRow={this.createNewChat}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                personalDetails,
-                                userToInvite,
-                            } = getNewChatOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                personalDetails,
-                            });
-                        }}
-                        headerMessage={headerMessage}
-                        hideSectionHeaders
-                        disableArrowKeysActions
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                    />
-                    )}
-                </View>
-                <KeyboardSpacer />
+            <ScreenWrapper>
+                {({didScreenTransitionEnd}) => (
+                    <>
+                        <HeaderWithCloseButton
+                            title="New Chat"
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.createNewChat}
+                                onChangeText={(searchValue = '') => {
+                                    const {
+                                        personalDetails,
+                                        userToInvite,
+                                    } = getNewChatOptions(
+                                        this.props.reports,
+                                        this.props.personalDetails,
+                                        searchValue,
+                                    );
+                                    this.setState({
+                                        searchValue,
+                                        userToInvite,
+                                        personalDetails,
+                                    });
+                                }}
+                                headerMessage={headerMessage}
+                                hideSectionHeaders
+                                disableArrowKeysActions
+                                hideAdditionalOptionStates
+                                forceTextUnreadStyle
+                            />
+                            )}
+                        </View>
+                        <KeyboardSpacer />
+                    </>
+                )}
             </ScreenWrapper>
         );
     }
