@@ -214,6 +214,7 @@ class NewGroupPage extends Component {
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
+                        shouldFocusOnSelectRow
                     />
                     {this.state.selectedOptions?.length > 0 && (
                         <View style={[styles.ph5, styles.pb5]}>
