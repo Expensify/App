@@ -950,7 +950,7 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
-        sequenceNumber: lastReadSequenceNumber,
+        sequenceNumber: lastReadSequenceNumber || 0,
     });
 }
 
