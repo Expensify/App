@@ -16,6 +16,7 @@ export default {
     fontSizeLarge: 17,
     fontSizeh1: 19,
     iconSizeExtraSmall: 12,
+    fontSizeNormalHeight: 20,
     iconSizeSmall: 16,
     iconSizeNormal: 20,
     iconSizeLarge: 24,

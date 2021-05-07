@@ -119,7 +119,7 @@ class ReportActionItem extends Component {
                 <Hoverable>
                     {hovered => (
                         <View>
-                            {!hovered && this.props.shouldDisplayNewIndicator && (
+                            {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
                             <View style={getReportActionItemStyle(hovered)}>
@@ -155,7 +155,7 @@ class ReportActionItem extends Component {
                                 measureContent={() => (
                                     <ReportActionContextMenu
                                         isVisible
-                                        reportID={-1}
+                                        reportID={this.props.reportID}
                                         reportAction={this.props.action}
                                     />
                                 )}
