@@ -4,7 +4,6 @@ import {Animated, View} from 'react-native';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
-import getTooltipStyles from '../../styles/getTooltipStyles';
 import {propTypes, defaultProps} from './TooltipPropTypes';
 
 class Tooltip extends PureComponent {
@@ -13,7 +12,7 @@ class Tooltip extends PureComponent {
 
         this.state = {
             // Is tooltip rendered?
-            isReady: false,
+            isRendered: false,
 
             // The distance between the left side of the wrapper view and the left side of the window
             xOffset: 0,
@@ -110,8 +109,8 @@ class Tooltip extends PureComponent {
      * Display the tooltip in an animation.
      */
     showTooltip() {
-        if (!this.state.isReady) {
-            this.setState({isReady: true});
+        if (!this.state.isRendered) {
+            this.setState({isRendered: true});
         }
         this.animation.stopAnimation();
         this.shouldStartShowAnimation = true;
@@ -154,34 +153,21 @@ class Tooltip extends PureComponent {
     }
 
     render() {
-        const {
-            animationStyle,
-            tooltipWrapperStyle,
-            tooltipTextStyle,
-            pointerWrapperStyle,
-            pointerStyle,
-        } = this.state.isReady ? getTooltipStyles(
-            this.animation,
-            this.props.windowWidth,
-            this.state.xOffset,
-            this.state.yOffset,
-            this.state.wrapperWidth,
-            this.state.wrapperHeight,
-            this.state.tooltipWidth,
-            this.state.tooltipHeight,
-            _.result(this.props, 'shiftHorizontal'),
-            _.result(this.props, 'shiftVertical'),
-        ) : {};
         return (
             <>
-                {this.state.isReady && (
+                {this.state.isRendered && (
                 <TooltipRenderedOnPageBody
-                    animationStyle={animationStyle}
-                    tooltipWrapperStyle={tooltipWrapperStyle}
-                    tooltipTextStyle={tooltipTextStyle}
-                    pointerWrapperStyle={pointerWrapperStyle}
-                    pointerStyle={pointerStyle}
+                    animation={this.animation}
+                    windowWidth={this.props.windowWidth}
+                    xOffset={this.state.xOffset}
+                    yOffset={this.state.yOffset}
+                    wrapperWidth={this.state.wrapperWidth}
+                    wrapperHeight={this.state.wrapperHeight}
+                    tooltipWidth={this.state.tooltipWidth}
+                    tooltipHeight={this.state.tooltipHeight}
                     setTooltipRef={el => this.tooltip = el}
+                    shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
+                    shiftVertical={_.result(this.props, 'shiftVertical')}
                     measureTooltip={this.measureTooltip}
                     text={this.props.text}
                 />
