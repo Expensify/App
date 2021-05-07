@@ -87,9 +87,7 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
-        this.startRecordMaxActionTimer = this.startRecordMaxActionTimer.bind(this);
         this.sortedReportActions = [];
-        this.timers = [];
 
         this.state = {
             isLoadingMoreChats: false,
@@ -167,10 +165,10 @@ class ReportActionsView extends React.Component {
                 this.scrollToListBottom();
             }
 
-            // When the last action changes, wait three seconds, then record the max action
+            // When the last action changes, record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
             if (shouldRecordMaxAction) {
-                this.startRecordMaxActionTimer();
+                updateLastReadActionID(this.props.reportID);
             }
         }
 
@@ -180,7 +178,7 @@ class ReportActionsView extends React.Component {
             prevProps.isDrawerOpen !== this.props.isDrawerOpen
             || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
         )) {
-            this.startRecordMaxActionTimer();
+            updateLastReadActionID(this.props.reportID);
         }
     }
 
@@ -191,7 +189,6 @@ class ReportActionsView extends React.Component {
 
         AppState.removeEventListener('change', this.onVisibilityChange);
 
-        _.each(this.timers, timer => clearTimeout(timer));
         unsubscribeFromReportChannel(this.props.reportID);
     }
 
@@ -200,17 +197,8 @@ class ReportActionsView extends React.Component {
      */
     onVisibilityChange() {
         if (Visibility.isVisible()) {
-            this.startRecordMaxActionTimer();
+            updateLastReadActionID(this.props.reportID);
         }
-    }
-
-    /**
-     * Set a timer for recording the max action
-     *
-     * @memberof ReportActionsView
-     */
-    startRecordMaxActionTimer() {
-        this.timers.push(setTimeout(() => updateLastReadActionID(this.props.reportID), 3000));
     }
 
     /**
