@@ -81,9 +81,10 @@ const ReportActionItemIOUPreview = ({
                     <View style={styles.flex1}>
                         <Text style={styles.h1}>{cachedTotal}</Text>
                         <Text style={styles.mt2}>
-                            {managerName}
-                            {' owes '}
-                            {ownerName}
+                            {iou.hasOutstandingIOU
+                                ? `${managerName} owes ${ownerName}`
+                                : `${ownerName} paid ${managerName}`
+                            }
                         </Text>
                     </View>
                     <View style={styles.iouPreviewBoxAvatar}>
