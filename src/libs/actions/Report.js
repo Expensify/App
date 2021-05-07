@@ -187,7 +187,7 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         currency: transaction.currency,
         created: transaction.created,
         comment: transaction.comment,
-    }));
+    })).reverse();
 
     return {
         reportID: reportData.reportID,
@@ -360,7 +360,6 @@ function setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatRe
     // Persist IOU Report data to Onyx
     const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
     Onyx.merge(iouReportKey, iouReportObject);
-    console.debug('merge IOU: ', iouReportObject);
 
     // We don't always want to update the chatReport, as the IOU could be an old settled report
     if (!shouldUpdateChatReport) {

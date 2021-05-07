@@ -8,7 +8,10 @@ import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle'
 
 const propTypes = {
     // The chatReport which the transaction is associated with
-    chatReportID: PropTypes.number.isRequired, // todo: string is passed!
+    chatReportID: PropTypes.number.isRequired,
+
+    // ID for the IOU report
+    iouReportID: PropTypes.number.isRequired,
 
     // The report action which we are displaying
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
@@ -25,7 +28,8 @@ const propTypes = {
         // The transaction amount
         amount: PropTypes.number,
 
-        transactionID: PropTypes.number, // todo: string is passed!
+        // The transaction ID
+        transactionID: PropTypes.number,
 
         // Was this transaction created by the current user
         createdByUser: PropTypes.bool,
@@ -44,7 +48,8 @@ class ReportTransaction extends Component {
 
     removeTransaction() {
         rejectTransaction({
-            reportID: this.props.chatReportID,
+            reportID: this.props.iouReportID,
+            chatReportID: this.props.chatReportID,
             transactionID: this.props.transaction.transactionID,
             comment: 'no comment',
         });
@@ -61,7 +66,8 @@ class ReportTransaction extends Component {
                         {this.props.action.message[0].text}
                     </Text>
                 </ReportActionItemSingle>
-                {this.props.canReject && (
+                {/* this.props.canReject && ( // TODO: reject transaction will be implemented by the followup issue */}
+                {false && (
                     <Pressable
                         style={[styles.button, styles.alignItemsStart, styles.mb3]}
                         onPress={() => this.removeTransaction()}
