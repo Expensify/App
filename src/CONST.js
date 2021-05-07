@@ -77,6 +77,11 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'API is offline',
     },
+    NETWORK: {
+        METHOD: {
+            POST: 'post',
+        },
+    },
     NVP: {
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
