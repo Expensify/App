@@ -2,9 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import {getSimplifiedIOUReport, fetchChatReportsByIDs} from './Report';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
+import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByID} from './Report';
 
 /**
  * Retrieve the users preferred currency
@@ -130,6 +128,7 @@ function settleIOUReport({
             }
         })
         .then(fetchChatReportsByIDs(chatReportID))
+        .then(fetchIOUReportByID(reportID, chatReportID, true)) // As we can garuntee the settled report was previously active, we should update the chatReport data too.
         .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }
