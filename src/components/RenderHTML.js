@@ -8,7 +8,7 @@ import HTML, {
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import Config from '../CONFIG';
-import styles, {webViewStyles} from '../styles/styles';
+import styles, {webViewStyles, getFontFamilyMonospace} from '../styles/styles';
 import fontFamily from '../styles/fontFamily';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
@@ -22,6 +22,9 @@ const EXTRA_FONTS = [
     fontFamily.GTA_BOLD,
     fontFamily.GTA_ITALIC,
     fontFamily.MONOSPACE,
+    fontFamily.MONOSPACE_ITALIC,
+    fontFamily.MONOSPACE_BOLD,
+    fontFamily.MONOSPACE_BOLD_ITALIC,
     fontFamily.SYSTEM,
 ];
 
@@ -65,11 +68,28 @@ function CodeRenderer({
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
     const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style);
+
+    // Get the correct fontFamily variant based in the fontStyle and fontWeight
+    const font = getFontFamilyMonospace({
+        fontStyle: textStyle.fontStyle,
+        fontWeight: textStyle.fontWeight,
+    });
+
+    const textStyleOverride = {
+        fontFamily: font,
+
+        // We need to override this properties bellow that was defined in `textStyle`
+        // Because by default the `react-native-render-html` add a style in the elements,
+        // for example the <strong> tag has a fontWeight: "bold" and in the android it break the font
+        fontWeight: undefined,
+        fontStyle: undefined,
+    };
+
     return (
         <InlineCodeBlock
             TDefaultRenderer={TDefaultRenderer}
             boxModelStyle={boxModelStyle}
-            textStyle={textStyle}
+            textStyle={{...textStyle, ...textStyleOverride}}
             defaultRendererProps={defaultRendererProps}
             key={key}
         />

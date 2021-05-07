@@ -36,7 +36,6 @@ class BaseModal extends PureComponent {
      * Listens to specific keyboard keys when the modal has been opened
      */
     subscribeToKeyEvents() {
-        KeyboardShortcut.subscribe('Escape', this.props.onClose, [], true);
         KeyboardShortcut.subscribe('Enter', this.props.onSubmit, [], true);
     }
 
@@ -44,7 +43,6 @@ class BaseModal extends PureComponent {
      * Stops listening to keyboard keys when modal has been closed
      */
     unsubscribeFromKeyEvents() {
-        KeyboardShortcut.unsubscribe('Escape');
         KeyboardShortcut.unsubscribe('Enter');
     }
 
@@ -75,10 +73,14 @@ class BaseModal extends PureComponent {
                     }
                     this.props.onClose();
                 }}
+
+                // Note: Escape key on web/desktop will trigger onBackButtonPress callback
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 onBackButtonPress={this.props.onClose}
                 onModalShow={() => {
                     this.subscribeToKeyEvents();
                     setModalVisibility(true);
+                    this.props.onModalShow();
                 }}
                 onModalHide={this.hideModalAndRemoveEventListeners}
                 onSwipeComplete={this.props.onClose}

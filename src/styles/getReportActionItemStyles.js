@@ -32,5 +32,6 @@ export function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGro
         ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
         ...positioning.r4,
         position: 'absolute',
+        zIndex: 1,
     };
 }
