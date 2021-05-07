@@ -54,7 +54,6 @@ class ResendValidationForm extends React.Component {
             formSuccess: 'Link has been re-sent',
         });
 
-        debugger;
         if (this.props.account.closed) {
             reopenAccount();
             console.debug('Account is closed: Sending link to reopen account.');
