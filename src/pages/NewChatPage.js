@@ -12,6 +12,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -48,6 +49,7 @@ class NewChatPage extends Component {
         super(props);
 
         this.createNewChat = this.createNewChat.bind(this);
+        this.activateOptionsList = this.activateOptionsList.bind(this);
 
         const {
             personalDetails,
@@ -62,6 +64,7 @@ class NewChatPage extends Component {
             searchValue: '',
             personalDetails,
             userToInvite,
+            isReady: false,
         };
     }
 
@@ -92,6 +95,10 @@ class NewChatPage extends Component {
         return sections;
     }
 
+    activateOptionsList() {
+        this.setState({isReady: true});
+    }
+
     /**
      * Creates a new chat with the option
      * @param {Object} option
@@ -112,12 +119,14 @@ class NewChatPage extends Component {
         );
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={this.activateOptionsList}>
                 <HeaderWithCloseButton
                     title="New Chat"
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.flex1, styles.w100]}>
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <FullScreenLoadingIndicator visible={!this.state.isReady} />
+                    {this.state.isReady && (
                     <OptionsSelector
                         sections={sections}
                         value={this.state.searchValue}
@@ -143,6 +152,7 @@ class NewChatPage extends Component {
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                     />
+                    )}
                 </View>
                 <KeyboardSpacer />
             </ScreenWrapper>
