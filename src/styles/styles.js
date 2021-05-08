@@ -1,5 +1,4 @@
 import fontFamily from './fontFamily';
-import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
@@ -15,6 +14,7 @@ import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
 import positioning from './utilities/positioning';
+import codeStyles from './codeStyles';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -854,7 +854,14 @@ const styles = {
 
     emojiItem: {
         width: '12.5%',
+        height: 40,
         textAlign: 'center',
+        borderRadius: 8,
+    },
+
+    emojiItemHighlighted: {
+        transition: '0.2s ease',
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     chatItemEmojiButton: {
@@ -1343,6 +1350,37 @@ const styles = {
         scrollbarWidth: 'none',
     },
 
+    codeWordWrapper: {
+        ...codeStyles.codeWordWrapper,
+    },
+
+    codeWordStyle: {
+        borderLeftWidth: 0,
+        borderRightWidth: 0,
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        justifyContent: 'center',
+        ...codeStyles.codeWordStyle,
+    },
+
+    codeFirstWordStyle: {
+        borderLeftWidth: 1,
+        borderTopLeftRadius: 4,
+        borderBottomLeftRadius: 4,
+        paddingLeft: 5,
+    },
+
+    codeLastWordStyle: {
+        borderRightWidth: 1,
+        borderTopRightRadius: 4,
+        borderBottomRightRadius: 4,
+        paddingRight: 5,
+    },
+
     fullScreenLoading: {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
@@ -1363,8 +1401,6 @@ const styles = {
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
-    marginTop: 4,
-    marginBottom: 4,
     borderColor: themeColors.border,
     backgroundColor: themeColors.textBackground,
 };
@@ -1378,7 +1414,7 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
-            fontStyle: italic,
+            fontStyle: 'italic',
         },
 
         del: {
@@ -1388,7 +1424,7 @@ const webViewStyles = {
 
         strong: {
             fontFamily: fontFamily.GTA_BOLD,
-            fontWeight: fontWeightBold,
+            fontWeight: 'bold',
         },
 
         a: styles.link,
@@ -1419,11 +1455,11 @@ const webViewStyles = {
 
         code: {
             ...baseCodeTagStyles,
+            ...codeStyles.codeTextStyle,
             paddingLeft: 5,
             paddingRight: 5,
-            paddingBottom: 2,
-            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
+            fontSize: 13,
         },
 
         img: {
@@ -1436,6 +1472,7 @@ const webViewStyles = {
     baseFontStyle: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
     },
 };
@@ -1647,6 +1684,20 @@ function getModalPaddingStyles({
     };
 }
 
+/**
+ * Takes fontStyle and fontWeight and returns the correct fontFamily
+ *
+ * @param {Object} params
+ * @returns {String}
+ */
+function getFontFamilyMonospace({fontStyle, fontWeight}) {
+    const italic = fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
+    const bold = fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
+    const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
+
+    return italicBold || bold || italic || fontFamily.MONOSPACE;
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1665,4 +1716,5 @@ export {
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
     getModalPaddingStyles,
+    getFontFamilyMonospace,
 };
