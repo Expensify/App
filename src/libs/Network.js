@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ActiveClientManager from './ActiveClientManager';
+import CONST from '../CONST';
 
 let isQueuePaused = false;
 
@@ -193,7 +194,7 @@ setInterval(processNetworkRequestQueue, 1000);
  * @param {Boolean} shouldUseSecure - Whether we should use the secure API
  * @returns {Promise}
  */
-function post(command, data = {}, type = 'post', shouldUseSecure = false) {
+function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     return new Promise((resolve, reject) => {
         // Add the write request to a queue of actions to perform
         networkRequestQueue.push({
