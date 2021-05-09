@@ -382,12 +382,13 @@ function DeleteLogin(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.returnValueList
+ * @param {Boolean} shouldUseSecure
  * @returns {Promise}
  */
-function Get(parameters) {
+function Get(parameters, shouldUseSecure = false) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
-    return Network.post(commandName, parameters);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, shouldUseSecure);
 }
 
 /**
@@ -690,6 +691,21 @@ function CreateIOUSplit(parameters) {
 }
 
 /**
+ * @returns {Promise}
+ */
+function Wallet_GetOnfidoSDKToken() {
+    return Network.post('Wallet_GetOnfidoSDKToken', {}, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @returns {Promise}
+ */
+function Plaid_GetLinkToken() {
+    return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
+}
+
+
+/**
  * @param {object} parameters
  * @param {number} [parameters.latitude]
  * @param {number} [parameters.longitude]
@@ -723,6 +739,7 @@ export {
     Mobile_GetConstants,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
+    Plaid_GetLinkToken,
     Push_Authenticate,
     Report_AddComment,
     Report_GetHistory,
@@ -741,6 +758,7 @@ export {
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
+    Wallet_GetOnfidoSDKToken,
     GetPreferredCurrency,
     GetCurrencyList,
 };
