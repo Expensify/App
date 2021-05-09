@@ -62,7 +62,7 @@ function getDisplayName(login, personalDetail) {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
     // so that the option looks cleaner in our UI.
     const userLogin = Str.removeSMSDomain(login);
-    const userDetails = personalDetail || personalDetails[login];
+    const userDetails = personalDetail || lodashGet(personalDetails, login);
 
     if (!userDetails) {
         return userLogin;
@@ -108,9 +108,10 @@ function formatPersonalDetails(personalDetailsList) {
 
 /**
  * Get the personal details for our organization
+ * @returns {Promise}
  */
-function fetch() {
-    API.Get({
+function fetchPersonalDetails() {
+    return API.Get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
@@ -312,10 +313,10 @@ function deleteAvatar(login) {
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
-NetworkConnection.onReconnect(fetch);
+NetworkConnection.onReconnect(fetchPersonalDetails);
 
 export {
-    fetch,
+    fetchPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,

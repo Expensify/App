@@ -27,6 +27,9 @@
 		8821A238A081483FA947BC4E /* GTAmericaExp-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */; };
 		A9C9A416BDA70688EBD7F801 /* libPods-ExpensifyCash.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B41FE47F80F455FB6E019B5E /* libPods-ExpensifyCash.a */; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
+		52477A09739546F4814EA25F /* GTAmericaExpMono-Bd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 0DE5D096095C41EE96746C9E /* GTAmericaExpMono-Bd.otf */; };
+		ED814D34526B415CAFA0451E /* GTAmericaExpMono-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */; };
+		DB77016704074197AB6633BB /* GTAmericaExpMono-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +75,11 @@
 		EC5C9C2B205FECC0A67CA878 /* libPods-ExpensifyCash-ExpensifyCashTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ExpensifyCash-ExpensifyCashTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
+		ED2AB27DDDFCCE3CD100EA0C /* libPods-ExpensifyCash-ExpensifyCashTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ExpensifyCash-ExpensifyCashTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F4BC0E78FF1E9BD8B2D38C66 /* Pods-ExpensifyCash.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash.debug.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash/Pods-ExpensifyCash.debug.xcconfig"; sourceTree = "<group>"; };
+		0DE5D096095C41EE96746C9E /* GTAmericaExpMono-Bd.otf */ = {isa = PBXFileReference; name = "GTAmericaExpMono-Bd.otf"; path = "../assets/fonts/GTAmericaExpMono-Bd.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */ = {isa = PBXFileReference; name = "GTAmericaExpMono-BdIt.otf"; path = "../assets/fonts/GTAmericaExpMono-BdIt.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */ = {isa = PBXFileReference; name = "GTAmericaExpMono-RgIt.otf"; path = "../assets/fonts/GTAmericaExpMono-RgIt.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,6 +192,9 @@
 				A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */,
 				DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */,
 				918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */,
+				0DE5D096095C41EE96746C9E /* GTAmericaExpMono-Bd.otf */,
+				3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */,
+				5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -310,6 +321,9 @@
 				6856B78873B64C44A92E51DB /* GTAmericaExp-MdIt.otf in Resources */,
 				8821A238A081483FA947BC4E /* GTAmericaExp-RgIt.otf in Resources */,
 				70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */,
+				52477A09739546F4814EA25F /* GTAmericaExpMono-Bd.otf in Resources */,
+				ED814D34526B415CAFA0451E /* GTAmericaExpMono-BdIt.otf in Resources */,
+				DB77016704074197AB6633BB /* GTAmericaExpMono-RgIt.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
