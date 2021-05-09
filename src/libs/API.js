@@ -704,7 +704,6 @@ function Plaid_GetLinkToken() {
     return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
 }
 
-
 /**
  * @param {object} parameters
  * @param {number} [parameters.latitude]
