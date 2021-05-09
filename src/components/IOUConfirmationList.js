@@ -18,6 +18,15 @@ const propTypes = {
     // Callback to inform parent modal of success
     onConfirm: PropTypes.func.isRequired,
 
+    // User's currency preference
+    selectedCurrency: PropTypes.shape({
+        // Currency code for the selected currency
+        currencyCode: PropTypes.string,
+
+        // Currency symbol for the selected currency
+        currencySymbol: PropTypes.string,
+    }).isRequired,
+
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
 
@@ -90,12 +99,12 @@ class IOUConfirmationList extends Component {
 
                 // Convert from cent to bigger form
                 // USD is temporary and there must be support for other currencies in the future
-                `$${this.calculateAmount(true) / 100}`,
+                `${this.props.selectedCurrency.currencySymbol}${this.calculateAmount(true) / 100}`,
             );
 
             // Cents is temporary and there must be support for other currencies in the future
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                `$${this.calculateAmount() / 100}`);
+                `${this.props.selectedCurrency.currencySymbol}${this.calculateAmount() / 100}`);
 
             sections.push({
                 title: 'WHO PAID?',
@@ -112,7 +121,7 @@ class IOUConfirmationList extends Component {
         } else {
         // $ Should be replaced by currency symbol once available
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                `$${this.props.iouAmount}`);
+                `${this.props.selectedCurrency.currencySymbol}${this.props.iouAmount}`);
 
             sections.push({
                 title: 'TO',
@@ -234,7 +243,8 @@ class IOUConfirmationList extends Component {
                 <View style={[styles.ph5, styles.pb3]}>
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
-                        text={this.props.hasMultipleParticipants ? 'Split' : `Request $${this.props.iouAmount}`}
+                        text={this.props.hasMultipleParticipants
+                            ? 'Split' : `Request ${this.props.selectedCurrency.currencySymbol}${this.props.iouAmount}`}
                         onClick={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>

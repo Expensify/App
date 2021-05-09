@@ -221,12 +221,13 @@ class IOUModal extends Component {
      */
     createTransaction(splits) {
         if (splits) {
+            console.debug(splits);
             createIOUSplit({
                 comment: this.state.comment,
 
                 // should send in cents to API
                 amount: this.state.amount * 100,
-                currency: this.state.selectedCurrency,
+                currency: this.state.selectedCurrency.currencySymbol,
                 splits,
             });
             return;
@@ -237,7 +238,7 @@ class IOUModal extends Component {
 
             // should send in cents to API
             amount: this.state.amount * 100,
-            currency: this.state.selectedCurrency,
+            currency: this.state.selectedCurrency.currencySymbol,
             debtorEmail: this.state.participants[0].login,
         });
     }
