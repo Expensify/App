@@ -221,7 +221,6 @@ class IOUModal extends Component {
      */
     createTransaction(splits) {
         if (splits) {
-            console.debug(splits);
             createIOUSplit({
                 comment: this.state.comment,
 
