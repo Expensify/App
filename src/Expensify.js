@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {View, StatusBar} from 'react-native';
+import {View, StatusBar, AppState} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import BootSplash from './libs/BootSplash';
@@ -15,6 +15,7 @@ import migrateOnyx from './libs/migrateOnyx';
 import styles from './styles/styles';
 import PushNotification from './libs/Notification/PushNotification';
 import UpdateAppModal from './components/UpdateAppModal';
+import Visibility from './libs/Visibility';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -75,6 +76,7 @@ class Expensify extends PureComponent {
         // Initialize this client as being an active client
         ActiveClientManager.init();
         this.hideSplash = this.hideSplash.bind(this);
+        this.initializeClient = this.initializeClient.bind(true);
         this.state = {
             isOnyxMigrated: false,
         };
@@ -92,6 +94,8 @@ class Expensify extends PureComponent {
 
                 this.setState({isOnyxMigrated: true});
             });
+
+        AppState.addEventListener('change', this.initializeClient);
     }
 
     componentDidUpdate(prevProps) {
@@ -120,8 +124,18 @@ class Expensify extends PureComponent {
         }
     }
 
+    componentWillUnmount() {
+        AppState.removeEventListener('change', this.initializeClient);
+    }
+
     getAuthToken() {
         return lodashGet(this.props, 'session.authToken', null);
+    }
+
+    initializeClient() {
+        if (Visibility.isVisible()) {
+            ActiveClientManager.init();
+        }
     }
 
     hideSplash() {
