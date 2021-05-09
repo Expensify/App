@@ -7,15 +7,13 @@ const clientID = Str.guid();
 const maxClients = 20;
 
 let activeClients;
-let setReady = null;
 
-// Whether the client Manager has started
-let isInit = false;
+// Whether the clientID is set
+let didInitialize = false;
 
-// Are we ready to determine active Client?
-const isReady = new Promise((res) => {
-    setReady = res;
-});
+// Internal callback to be fired to mark ActiveClientManager as ready
+// Due to Client's Id will be set asynchronously, we want to call this callback on completion.
+let onReadyCallback = null;
 
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
@@ -25,8 +23,8 @@ Onyx.connect({
             activeClients.shift();
             Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
         }
-        if (isInit) {
-            setReady();
+        if (didInitialize) {
+            onReadyCallback();
         }
     },
 });
@@ -36,7 +34,21 @@ Onyx.connect({
  */
 function init() {
     Onyx.merge(ONYXKEYS.ACTIVE_CLIENTS, [clientID]);
-    isInit = true;
+    didInitialize = true;
+}
+
+/**
+ * Allow to run any task after ActiveClientManager has successfully initialized
+ *
+ * @returns {Promise<void>}
+ */
+function isReady() {
+    if (didInitialize) {
+        return Promise.resolve();
+    }
+    return new Promise((res) => {
+        onReadyCallback = res;
+    });
 }
 
 /**
