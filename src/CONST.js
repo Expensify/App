@@ -63,8 +63,8 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
-        HOT: 'hot',
         COLD: 'cold',
+        REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
     },
     MESSAGES: {
         // eslint-disable-next-line max-len
@@ -77,6 +77,11 @@ const CONST = {
     },
     ERROR: {
         API_OFFLINE: 'API is offline',
+    },
+    NETWORK: {
+        METHOD: {
+            POST: 'post',
+        },
     },
     NVP: {
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
@@ -115,6 +120,9 @@ const CONST = {
     },
 
     EMOJI_PICKER_SIZE: 360,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
+    EMOJI_PICKER_ITEM_HEIGHT: 40,
+    EMOJI_PICKER_HEADER_HEIGHT: 38,
 
     EMAIL: {
         CHRONOS: 'chronos@expensify.com',
@@ -124,6 +132,14 @@ const CONST = {
         DEV: 'DEV',
         STAGING: 'STG',
         PRODUCTION: 'PROD',
+    },
+
+    // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
+    // from backgound). The times are based on how long it generally seems to take for the app to become interactive
+    // in each scenario.
+    FETCH_ACTIONS_DELAY: {
+        STARTUP: 8000,
+        RECONNECT: 1000,
     },
 };
 
