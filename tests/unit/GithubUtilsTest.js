@@ -59,8 +59,9 @@ describe('GithubUtils', () => {
             tag: '1.0.1-47',
             title: 'Andrew Test Issue',
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
+            deployBlockers: [],
         };
-        const expectedResponseWithDeployBlockers = baseExpectedResponse;
+        const expectedResponseWithDeployBlockers = {...baseExpectedResponse};
         expectedResponseWithDeployBlockers.deployBlockers = [
             {
                 url: 'https://github.com/Expensify/Expensify.cash/issues/1',
@@ -78,6 +79,24 @@ describe('GithubUtils', () => {
                 isResolved: false,
             },
         ];
+
+        test('Test finding an open issue with no PRs successfully', () => {
+            const octokit = new Octokit();
+            const github = new GithubUtils(octokit);
+            const bareIssue = {
+                ...baseIssue,
+                // eslint-disable-next-line max-len
+                body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n'
+            };
+
+            const bareExpectedResponse = {
+                ...baseExpectedResponse,
+                PRList: [],
+            };
+
+            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]});
+            return github.getStagingDeployCash().then(data => expect(data).toStrictEqual(bareExpectedResponse));
+        });
 
         test('Test finding an open issue successfully', () => {
             const octokit = new Octokit();
