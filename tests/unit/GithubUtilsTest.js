@@ -21,9 +21,9 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n',
+            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n',
         };
-        const issueWithDeployBlockers = baseIssue;
+        const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
         issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n';
 
