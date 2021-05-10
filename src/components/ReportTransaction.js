@@ -21,7 +21,7 @@ const propTypes = {
 const ReportTransaction = ({
     action,
 }) => (
-    <View styles={[styles.mb5]}>
+    <View>
         <ReportActionItemSingle
             action={action}
             outerViewStyles={[styles.reportTransaction]}
