@@ -14,10 +14,6 @@ const propTypes = {
     // All the data of the action
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // The linked IOUReport, used for Onyx subscription
-    // eslint-disable-next-line react/no-unused-prop-types
-    iouReportID: PropTypes.number.isRequired,
-
     // The associated chatReport
     chatReportID: PropTypes.number.isRequired,
 
@@ -25,18 +21,6 @@ const propTypes = {
     shouldDisplayPreviewComp: PropTypes.bool.isRequired,
 
     /* --- Onyx Props --- */
-    // Active IOU Report for current report
-    iou: PropTypes.shape({
-        // Email address of the manager in this iou report
-        managerEmail: PropTypes.string,
-
-        // Email address of the creator of this iou report
-        ownerEmail: PropTypes.string,
-
-        // Outstanding amount of this transaction
-        cachedTotal: PropTypes.string,
-    }),
-
     // ChatReport associated with iouReport
     chatReport: PropTypes.shape({
         // The participants of this report
@@ -81,9 +65,9 @@ class ReportActionItemIOUAction extends Component {
                     showViewDetailsLink={!hasMultipleParticipants}
                     onViewDetailsPressed={this.launchIOUDetailsModal}
                 />
-                {this.props.shouldDisplayPreviewComp && !_.isEmpty(this.props.iou) && (
+                {this.props.shouldDisplayPreviewComp && (
                     <ReportActionItemIOUPreview
-                        iou={this.props.iou}
+                        iouReportID={this.props.action.originalMessage.IOUReportID}
                         session={this.props.session}
                         onPayButtonPressed={this.launchIOUDetailsModal}
                     />
@@ -98,9 +82,6 @@ ReportActionItemIOUAction.defaultProps = defaultProps;
 ReportActionItemIOUAction.displayName = 'ReportActionItemIOUAction';
 
 export default withOnyx({
-    iou: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-    },
     chatReport: {
         key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
     },

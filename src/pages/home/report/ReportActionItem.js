@@ -21,9 +21,6 @@ const propTypes = {
     // The ID of the report this action is on.
     reportID: PropTypes.number.isRequired,
 
-    // IOU report ID associated with current report
-    iouReportID: PropTypes.number.isRequired,
-
     // All the data of the action item
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
@@ -67,7 +64,6 @@ class ReportActionItem extends Component {
             || this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
-            || this.props.iouReportID !== nextProps.iouReportID
             || (this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator)
             || !_.isEqual(this.props.action, nextProps.action);
     }
@@ -106,7 +102,6 @@ class ReportActionItem extends Component {
         const children = this.props.action.actionName === 'IOU'
             ? (
                 <ReportActionItemIOUAction
-                    iouReportID={this.props.iouReportID}
                     chatReportID={this.props.reportID}
                     action={this.props.action}
                     shouldDisplayPreviewComp={this.props.hasOutstandingIOU && this.props.isMostRecentIOUReportAction}

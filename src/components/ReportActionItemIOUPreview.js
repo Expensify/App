@@ -15,6 +15,17 @@ const propTypes = {
     // Callback for the Pay/Settle button
     onPayButtonPressed: PropTypes.func,
 
+    // The active IOUReport, used for Onyx subscription
+    // eslint-disable-next-line react/no-unused-prop-types
+    iouReportID: PropTypes.number.isRequired,
+
+    // Session info for the currently logged in user.
+    session: PropTypes.shape({
+        // Currently logged in user email
+        email: PropTypes.string,
+    }).isRequired,
+
+    /* --- Onyx Props --- */
     // Active IOU Report for current report
     iou: PropTypes.shape({
         // Email address of the manager in this iou report
@@ -30,13 +41,6 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }).isRequired,
 
-    // Session info for the currently logged in user.
-    session: PropTypes.shape({
-        // Currently logged in user email
-        email: PropTypes.string,
-    }).isRequired,
-
-    /* --- Onyx Props --- */
     // All of the personal details for everyone
     personalDetails: PropTypes.objectOf(PropTypes.shape({
 
@@ -123,5 +127,8 @@ ReportActionItemIOUPreview.displayName = 'ReportActionItemIOUPreview';
 export default withOnyx({
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS,
+    },
+    iou: {
+        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
     },
 })(ReportActionItemIOUPreview);
