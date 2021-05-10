@@ -56,13 +56,10 @@ class ResendValidationForm extends React.Component {
 
         if (this.props.account.closed) {
             reopenAccount();
-            console.debug('Account is closed: Sending link to reopen account.');
         } else if (!this.props.account.validated) {
             resendValidationLink();
-            console.debug('Account is unvalidated: Sending validation link.');
         } else {
             resetPassword();
-            console.debug('Account forgot password: Sending reset password link.');
         }
 
         this.successMessageTimer = setTimeout(() => {
