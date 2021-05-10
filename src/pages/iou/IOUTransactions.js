@@ -43,6 +43,7 @@ class IOUTransactions extends PureComponent {
                             chatReportID={this.props.chatReportID}
                             iouReportID={this.props.iouReportID}
                             action={actionForTransaction}
+                            key={actionForTransaction.originalMessage.IOUTransactionID}
                         />
                     );
                 })}
