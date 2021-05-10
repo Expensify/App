@@ -4,8 +4,13 @@ import React from 'react';
 // to the original ref.
 const flatListRef = React.createRef();
 
+/**
+ * Scroll to the provided index.
+ *
+ * @param {Object} index
+ */
 function scrollToIndex(index) {
-    return flatListRef.current.scrollToIndex(index);
+    flatListRef.current.scrollToIndex(index);
 }
 
 export {
