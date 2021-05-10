@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, ActivityIndicator} from 'react-native';
+import {View, ActivityIndicator, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -111,28 +111,29 @@ class IOUDetailsModal extends Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
-                    <View
-                        pointerEvents="box-none"
-                        style={[styles.detailsPageContainer, styles.p5]}
-                    >
-                        <ReportActionItemIOUPreview
-                            iou={this.props.iouReport}
-                            session={this.props.session}
-                            shouldHidePayButton
-                        />
-                        <IOUTransactions
-                            chatReportID={Number(this.props.route.params.chatReportID)}
-                            iouReportID={Number(this.props.route.params.iouReportID)}
-                            transactions={this.props.iouReport.transactions}
-                            hasOutstandingIOU={this.props.iouReport.hasOutstandingIOU}
-                        />
+                    <View style={[styles.flex1, styles.justifyContentBetween]}>
+                        <ScrollView contentContainerStyle={{flexGrow: 1, paddingStart:20, paddingEnd:20}}>
+                            <ReportActionItemIOUPreview
+                                iou={this.props.iouReport}
+                                session={this.props.session}
+                                shouldHidePayButton
+                            />
+                            <IOUTransactions
+                                chatReportID={Number(this.props.route.params.chatReportID)}
+                                iouReportID={Number(this.props.route.params.iouReportID)}
+                                transactions={this.props.iouReport.transactions}
+                                hasOutstandingIOU={this.props.iouReport.hasOutstandingIOU}
+                            />
+                        </ScrollView>
                         {(this.props.iouReport.hasOutstandingIOU
                             && this.props.iouReport.managerEmail === sessionEmail && (
-                            <ButtonWithLoader
-                                text="I'll settle up elsewhere"
-                                isLoading={this.props.iou.loading}
-                                onClick={this.performIOUSettlement}
-                            />
+                            <View style={styles.p5}>
+                                <ButtonWithLoader
+                                    text="I'll settle up elsewhere"
+                                    isLoading={this.props.iou.loading}
+                                    onClick={this.performIOUSettlement}
+                                />
+                            </View>
                         ))}
                     </View>
                 )}
