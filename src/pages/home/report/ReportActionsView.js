@@ -89,6 +89,13 @@ class ReportActionsView extends React.Component {
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
 
+        // We are debouncing this call with a specific delay so that when all items in the list layout we can measure
+        // the total time it took to complete.
+        this.recordTimeToMeasureItemLayout = _.debounce(
+            this.recordTimeToMeasureItemLayout.bind(this),
+            CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME,
+        );
+
         this.state = {
             isLoadingMoreChats: false,
         };
@@ -113,7 +120,6 @@ class ReportActionsView extends React.Component {
         setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
 
         fetchActions(this.props.reportID);
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -186,6 +192,10 @@ class ReportActionsView extends React.Component {
         if (this.keyboardEvent) {
             this.keyboardEvent.remove();
         }
+
+        // We must cancel the debounce function so that we do not call the function when switching to a new chat before
+        // the previous one has finished loading completely.
+        this.recordTimeToMeasureItemLayout.cancel();
 
         AppState.removeEventListener('change', this.onVisibilityChange);
 
@@ -298,6 +308,16 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Runs each time a ReportActionItem is laid out. This method is debounced so we wait until the component has
+     * finished laying out items before recording the chat as switched.
+     */
+    recordTimeToMeasureItemLayout() {
+        // We are offsetting the time measurement here so that we can subtract our debounce time from the initial time
+        // and get the actual time it took to load the report
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD, CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME);
+    }
+
+    /**
      * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
      * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
      * rows is hidden beneath other rows.
@@ -343,6 +363,7 @@ class ReportActionsView extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 iouReportID={this.props.report.iouReportID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
+                onLayout={this.recordTimeToMeasureItemLayout}
             />
         );
     }
