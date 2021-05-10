@@ -17,7 +17,7 @@ const propTypes = {
 
     // The active IOUReport, used for Onyx subscription
     // eslint-disable-next-line react/no-unused-prop-types
-    iouReportID: PropTypes.number.isRequired,
+    iouReportID: PropTypes.number,
 
     // Session info for the currently logged in user.
     session: PropTypes.shape({
@@ -51,6 +51,7 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
+    iouReportID: undefined,
     shouldHidePayButton: false,
     onPayButtonPressed: null,
 };
