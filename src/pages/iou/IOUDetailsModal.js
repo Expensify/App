@@ -28,7 +28,7 @@ const matchType = PropTypes.shape({
 
 const defaultProps = {
     iou: {},
-    iouReport: {},
+    iouReport: null,
 };
 
 const propTypes = {
@@ -96,7 +96,7 @@ class IOUDetailsModal extends Component {
 
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
-        const reportIsLoading = this.props.iouReport === undefined;
+        const reportIsLoading = this.props.iouReport === null;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
