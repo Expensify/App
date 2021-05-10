@@ -8,6 +8,7 @@ import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import {getReportParticipantsTitle} from './reportUtils';
+import {translate} from './translate';
 import Permissions from './Permissions';
 
 /**
@@ -18,6 +19,7 @@ import Permissions from './Permissions';
 
 let currentUserLogin;
 let countryCodeByIP;
+let preferredLocale;
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
@@ -128,6 +130,11 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: val => countryCodeByIP = val || 1,
+});
+
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: val => preferredLocale = val || 'en',
 });
 
 /**
@@ -451,12 +458,12 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  */
 function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
+        return translate(preferredLocale, 'messages.maxParticipantsReached');
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return CONST.MESSAGES.NO_PHONE_NUMBER;
+            return translate(preferredLocale, 'messages.noPhoneNumber');
         }
 
         return searchValue;
