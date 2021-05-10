@@ -66,11 +66,6 @@ const CONST = {
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
     },
-    MESSAGES: {
-        // eslint-disable-next-line max-len
-        NO_PHONE_NUMBER: 'Please enter a phone number including the country code e.g +447814266907',
-        MAXIMUM_PARTICIPANTS_REACHED: 'You\'ve reached the maximum number of participants for a group chat.',
-    },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
@@ -90,14 +85,6 @@ const CONST = {
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
-    PRONOUNS: {
-        HE_HIM_HIS: 'He/him',
-        SHE_HER_HERS: 'She/her',
-        THEY_THEM_THEIRS: 'They/them',
-        ZE_HIR_HIRS: 'Ze/hir',
-        SELF_SELECT: 'Self-select',
-        CALL_ME_BY_MY_NAME: 'Call me by my name',
-    },
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
