@@ -128,7 +128,7 @@ function settleIOUReport({
                 console.error(data.message);
             }
         })
-        .then(fetchChatReportsByIDs(chatReportID))
+        .then(fetchChatReportsByIDs([chatReportID]))
         .then(fetchIOUReportByID(reportID, chatReportID, true))
         .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
