@@ -123,8 +123,7 @@ class ReportActionContextMenu extends React.Component {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
                 shouldShow: false,
-                onPress: () => {
-                },
+                onPress: () => {},
             },
         ];
 
