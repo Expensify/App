@@ -17,8 +17,14 @@ const propTypes = {
     /* Onyx Keys */
     // Whether or not to show the Compose Input
     session: PropTypes.shape({
-        shouldShowComposeInput: PropTypes.bool.isRequired,
-    }).isRequired,
+        shouldShowComposeInput: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    session: {
+        shouldShowComposeInput: true,
+    },
 };
 
 const ReportView = ({reportID, session}) => (
@@ -38,6 +44,8 @@ const ReportView = ({reportID, session}) => (
 );
 
 ReportView.propTypes = propTypes;
+ReportView.defaultProps = defaultProps;
+
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
