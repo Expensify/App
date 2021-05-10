@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Pressable} from 'react-native';
+import {View, Pressable, Dimensions} from 'react-native';
 import Icon from './Icon';
 import {Phone} from './Icon/Expensicons';
 import Popover from './Popover';
@@ -10,7 +10,11 @@ import GoogleMeetIcon from '../../assets/images/google-meet.svg';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import withWindowDimensions from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+
+const propTypes = {
+    ...windowDimensionsPropTypes,
+};
 
 class VideoChatButtonAndMenu extends Component {
     constructor(props) {
@@ -42,6 +46,14 @@ class VideoChatButtonAndMenu extends Component {
             isVideoChatMenuActive: false,
             videoChatIconPosition: {x: 0, y: 0},
         };
+    }
+
+    componentDidMount() {
+        Dimensions.addEventListener('change', this.measureVideoChatIconPosition);
+    }
+
+    componentWillUnmount() {
+        Dimensions.removeEventListener('change', this.measureVideoChatIconPosition);
     }
 
     /**
@@ -111,4 +123,5 @@ class VideoChatButtonAndMenu extends Component {
 }
 
 VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
+VideoChatButtonAndMenu.propTypes = propTypes;
 export default withWindowDimensions(VideoChatButtonAndMenu);
