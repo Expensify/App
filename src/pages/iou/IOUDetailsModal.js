@@ -16,26 +16,25 @@ import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPrev
 import IOUTansactionPropTypes from './IOUTansactionPropTypes';
 import IOUTransactions from './IOUTransactions';
 
-const matchType = PropTypes.shape({
-    params: PropTypes.shape({
-        // chatReportID passed via route /iou/:chatReportID // todo: drop /iou/
-        chatReportID: PropTypes.string,
-
-        // iouReportID passed via route /iou/:iouReportID
-        iouReportID: PropTypes.string,
-    }),
-});
-
 const defaultProps = {
     iou: {},
     iouReport: null,
 };
 
 const propTypes = {
-    /* Onyx Props */
-    // Route params
-    route: matchType.isRequired,
+    // URL Route params
+    route: PropTypes.shape({
+        // Params from the URL path
+        params: PropTypes.shape({
+            // chatReportID passed via route /iou/:chatReportID
+            chatReportID: PropTypes.string,
 
+            // iouReportID passed via route /iou/:iouReportID
+            iouReportID: PropTypes.string,
+        }),
+    }).isRequired,
+
+    /* Onyx Props */
     // Holds data related to IOU view state, rather than the underlying IOU data.
     iou: PropTypes.shape({
         // Is the IOU Report currently being settled
