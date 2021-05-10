@@ -134,24 +134,9 @@ function settleIOUReport({
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }
 
-/**
- * Decline or cancel a transaction
- */
-function rejectTransaction({
-    reportID, chatReportID, transactionID, comment,
-}) {
-    API.RejectTransaction({
-        reportID,
-        transactionID,
-        comment,
-    })
-        .then(fetchIOUReportByID(reportID, chatReportID, true));
-}
-
 export {
     getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
-    rejectTransaction,
     settleIOUReport,
 };
