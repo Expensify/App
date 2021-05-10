@@ -113,6 +113,18 @@ describe('GithubUtils', () => {
                 .then(data => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
+        test('Test finding an open issue successfully and parsing with blockers w/o carriage returns', () => {
+            const octokit = new Octokit();
+            const github = new GithubUtils(octokit);
+
+            const modifiedIssueWithDeployBlockers = {...issueWithDeployBlockers};
+            modifiedIssueWithDeployBlockers.body = modifiedIssueWithDeployBlockers.body.replace(/\r/g, '');
+
+            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [modifiedIssueWithDeployBlockers]});
+            return github.getStagingDeployCash()
+                .then(data => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
+        });
+
         test('Test finding an open issue without a body', () => {
             const octokit = new Octokit();
             const github = new GithubUtils(octokit);
