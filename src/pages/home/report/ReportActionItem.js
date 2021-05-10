@@ -38,6 +38,9 @@ const propTypes = {
 
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
+
+    // Runs when the view enclosing the chat message lays out indicating it has rendered
+    onLayout: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -122,7 +125,7 @@ class ReportActionItem extends Component {
                             {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
-                            <View style={getReportActionItemStyle(hovered)}>
+                            <View style={getReportActionItemStyle(hovered)} onLayout={this.props.onLayout}>
                                 {!this.props.displayAsGroup
                                     ? (
                                         <ReportActionItemSingle action={this.props.action}>

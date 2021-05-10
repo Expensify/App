@@ -30,6 +30,7 @@ import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -66,6 +67,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -87,9 +89,14 @@ class ReportActionsView extends React.Component {
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
-        this.startRecordMaxActionTimer = this.startRecordMaxActionTimer.bind(this);
         this.sortedReportActions = [];
-        this.timers = [];
+
+        // We are debouncing this call with a specific delay so that when all items in the list layout we can measure
+        // the total time it took to complete.
+        this.recordTimeToMeasureItemLayout = _.debounce(
+            this.recordTimeToMeasureItemLayout.bind(this),
+            CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME,
+        );
 
         this.state = {
             isLoadingMoreChats: false,
@@ -115,7 +122,6 @@ class ReportActionsView extends React.Component {
         setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
 
         fetchActions(this.props.reportID);
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -167,10 +173,10 @@ class ReportActionsView extends React.Component {
                 this.scrollToListBottom();
             }
 
-            // When the last action changes, wait three seconds, then record the max action
+            // When the last action changes, record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
             if (shouldRecordMaxAction) {
-                this.startRecordMaxActionTimer();
+                updateLastReadActionID(this.props.reportID);
             }
         }
 
@@ -180,7 +186,7 @@ class ReportActionsView extends React.Component {
             prevProps.isDrawerOpen !== this.props.isDrawerOpen
             || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
         )) {
-            this.startRecordMaxActionTimer();
+            updateLastReadActionID(this.props.reportID);
         }
     }
 
@@ -189,9 +195,12 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
+        // We must cancel the debounce function so that we do not call the function when switching to a new chat before
+        // the previous one has finished loading completely.
+        this.recordTimeToMeasureItemLayout.cancel();
+
         AppState.removeEventListener('change', this.onVisibilityChange);
 
-        _.each(this.timers, timer => clearTimeout(timer));
         unsubscribeFromReportChannel(this.props.reportID);
     }
 
@@ -200,17 +209,8 @@ class ReportActionsView extends React.Component {
      */
     onVisibilityChange() {
         if (Visibility.isVisible()) {
-            this.startRecordMaxActionTimer();
+            updateLastReadActionID(this.props.reportID);
         }
-    }
-
-    /**
-     * Set a timer for recording the max action
-     *
-     * @memberof ReportActionsView
-     */
-    startRecordMaxActionTimer() {
-        this.timers.push(setTimeout(() => updateLastReadActionID(this.props.reportID), 3000));
     }
 
     /**
@@ -218,6 +218,11 @@ class ReportActionsView extends React.Component {
      * displaying.
      */
     loadMoreChats() {
+        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
+        if (this.state.isLoadingMoreChats) {
+            return;
+        }
+
         const minSequenceNumber = _.chain(this.props.reportActions)
             .pluck('sequenceNumber')
             .min()
@@ -305,6 +310,16 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Runs each time a ReportActionItem is laid out. This method is debounced so we wait until the component has
+     * finished laying out items before recording the chat as switched.
+     */
+    recordTimeToMeasureItemLayout() {
+        // We are offsetting the time measurement here so that we can subtract our debounce time from the initial time
+        // and get the actual time it took to load the report
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD, CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME);
+    }
+
+    /**
      * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
      * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
      * rows is hidden beneath other rows.
@@ -350,6 +365,7 @@ class ReportActionsView extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 iouReportID={this.props.report.iouReportID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
+                onLayout={this.recordTimeToMeasureItemLayout}
             />
         );
     }
@@ -364,7 +380,9 @@ class ReportActionsView extends React.Component {
         if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <Text style={[styles.textP]}>Be the first person to comment!</Text>
+                    <Text style={[styles.textP]}>
+                        {this.props.translate('reportActionsView.beFirstPersonToComment')}
+                    </Text>
                 </View>
             );
         }
@@ -394,6 +412,7 @@ ReportActionsView.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
+    withLocalize,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,

@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.38-0",
+  "version": "1.0.41-3",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -57,7 +57,7 @@
     "electron-log": "^4.2.4",
     "electron-serve": "^1.0.0",
     "electron-updater": "^4.3.4",
-    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#d5edd0a956ef5c12fb6e9493d1f4608289f82a0e",
+    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#05b8a007e9faa8e3b7a1ddd7348503acca6f4e95",
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
     "lodash": "4.17.21",
