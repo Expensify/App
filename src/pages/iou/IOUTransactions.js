@@ -10,7 +10,7 @@ import IOUTansactionPropTypes from './IOUTansactionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
 
 const propTypes = {
-    reportActions: PropTypes.arrayOf(PropTypes.shape(ReportActionPropTypes)), // should this be array/object?
+    reportActions: PropTypes.shape(ReportActionPropTypes),
 
     // ReportID for the associated chat report
     chatReportID: PropTypes.number.isRequired,
