@@ -18,7 +18,7 @@ const propTypes = {
     onPasteFile: PropTypes.func,
 
     // A ref to forward to the text input
-    forwardedRef: PropTypes.func.isRequired,
+    forwardedRef: PropTypes.func,
 
     // General styles to apply to the text input
     // eslint-disable-next-line react/forbid-prop-types
@@ -62,6 +62,7 @@ const defaultProps = {
     onDrop: () => {},
     isDisabled: false,
     autoFocus: false,
+    forwardedRef: null,
 };
 
 const IMAGE_EXTENSIONS = {
