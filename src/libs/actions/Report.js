@@ -425,6 +425,16 @@ function removeOptimisticActions(reportID) {
 }
 
 /**
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
+function setNewMarkerPosition(reportID, sequenceNumber) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        newMarkerSequenceNumber: sequenceNumber,
+    });
+}
+
+/**
  * Updates a report in the store with a new report action
  *
  * @param {Number} reportID
@@ -958,16 +968,6 @@ function updateLastReadActionID(reportID, sequenceNumber) {
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber: lastReadSequenceNumber,
-    });
-}
-
-/**
- * @param {Number} reportID
- * @param {Number} sequenceNumber
- */
-function setNewMarkerPosition(reportID, sequenceNumber) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        newMarkerSequenceNumber: sequenceNumber,
     });
 }
 
