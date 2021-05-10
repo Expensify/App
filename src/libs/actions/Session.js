@@ -72,6 +72,35 @@ function signOut() {
 }
 
 /**
+ * Reopen the account and send the user a link to set password
+ *
+ * @param {String} [login]
+ */
+function reopenAccount(login = credentials.login) {
+    console.debug('Account is closed: Sending link to reopen account.');
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
+    API.User_ReopenAccount({email: login})
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        });
+}
+
+/**
+ * Resend the validation link to the user that is validating their account
+ * this happens in the createAccount() flow
+ *
+ * @param {String} [login]
+ */
+function resendValidationLink(login = credentials.login) {
+    console.debug('Account is unvalidated: Sending validation link.');
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
+    API.ResendValidateCode({email: login})
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        });
+}
+
+/**
  * Checks the API to see if an account exists for the given login
  *
  * @param {String} login
@@ -95,6 +124,10 @@ function fetchAccountDetails(login) {
 
                 if (!response.accountExists) {
                     createAccount(login);
+                } else if (response.isClosed) {
+                    reopenAccount(login);
+                } else if (!response.validated) {
+                    resendValidationLink(login);
                 }
             }
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
@@ -187,32 +220,10 @@ function signIn(password, twoFactorAuthCode) {
 }
 
 /**
- * Reopn the account and send the user a link to set password
- */
-function reopenAccount() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
-    API.User_ReopenAccount({email: credentials.login})
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
-}
-
-/**
- * Resend the validation link to the user that is validating their account
- * this happens in the createAccount() flow
- */
-function resendValidationLink() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
-    API.ResendValidateCode({email: credentials.login})
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        });
-}
-
-/**
  * User forgot the password so let's send them the link to reset their password
  */
 function resetPassword() {
+    console.debug('Account forgot password: Sending reset password link.');
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
     API.ResetPassword({email: credentials.login})
         .finally(() => {
