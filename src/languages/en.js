@@ -9,7 +9,6 @@ export default {
         to: 'To',
         optional: 'Optional',
         split: 'Split',
-        request: ({amount}) => `Request ${amount}`,
         new: 'NEW',
         search: 'Search',
         next: 'Next',
@@ -99,6 +98,7 @@ export default {
         confirm: 'Confirm',
         splitBill: 'Split Bill',
         requestMoney: 'Request Money',
+        request: ({amount}) => `Request ${amount}`,
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',

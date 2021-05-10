@@ -262,7 +262,7 @@ class IOUConfirmationList extends Component {
                         isLoading={this.props.iou.loading}
                         text={this.props.hasMultipleParticipants
                             ? this.props.translate('common.split')
-                            : this.props.translate('common.request', {amount: this.props.iouAmount})}
+                            : this.props.translate('iou.request', {amount: this.props.iouAmount})}
                         onClick={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
