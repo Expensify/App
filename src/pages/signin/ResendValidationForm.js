@@ -8,6 +8,8 @@ import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {reopenAccount, resendValidationLink, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -23,6 +25,8 @@ const propTypes = {
         // Weather or not the account is closed
         closed: PropTypes.bool,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -51,7 +55,7 @@ class ResendValidationForm extends React.Component {
      */
     validateAndSubmitForm() {
         this.setState({
-            formSuccess: 'Link has been re-sent',
+            formSuccess: this.props.translate('resendValidationForm.linkHasBeenResent'),
         });
 
         if (this.props.account.closed) {
@@ -72,12 +76,12 @@ class ResendValidationForm extends React.Component {
             <>
                 <View>
                     <Text style={[styles.textP]}>
-                        We&apos;ve sent you a magic sign in link – just click on it to log in!
+                        {this.props.translate('resendValidationForm.weSentYouMagicSignInLink')}
                     </Text>
                 </View>
                 <View style={[styles.mt4]}>
                     <ButtonWithLoader
-                        text="Resend Link"
+                        text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
                         onClick={this.validateAndSubmitForm}
                     />
@@ -97,6 +101,9 @@ class ResendValidationForm extends React.Component {
 ResendValidationForm.propTypes = propTypes;
 ResendValidationForm.defaultProps = defaultProps;
 
-export default withOnyx({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(ResendValidationForm);
+export default compose(
+    withLocalize,
+    withOnyx({
+        account: {key: ONYXKEYS.ACCOUNT},
+    }),
+)(ResendValidationForm);
