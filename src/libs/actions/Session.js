@@ -77,7 +77,6 @@ function signOut() {
  * @param {String} [login]
  */
 function reopenAccount(login = credentials.login) {
-    console.debug('Account is closed: Sending link to reopen account.');
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
     API.User_ReopenAccount({email: login})
         .finally(() => {
@@ -92,7 +91,6 @@ function reopenAccount(login = credentials.login) {
  * @param {String} [login]
  */
 function resendValidationLink(login = credentials.login) {
-    console.debug('Account is unvalidated: Sending validation link.');
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
     API.ResendValidateCode({email: login})
         .finally(() => {
@@ -223,7 +221,6 @@ function signIn(password, twoFactorAuthCode) {
  * User forgot the password so let's send them the link to reset their password
  */
 function resetPassword() {
-    console.debug('Account forgot password: Sending reset password link.');
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
     API.ResetPassword({email: credentials.login})
         .finally(() => {
