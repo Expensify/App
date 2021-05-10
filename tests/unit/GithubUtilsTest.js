@@ -86,7 +86,7 @@ describe('GithubUtils', () => {
             const bareIssue = {
                 ...baseIssue,
                 // eslint-disable-next-line max-len
-                body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n'
+                body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n',
             };
 
             const bareExpectedResponse = {
