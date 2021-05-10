@@ -54,18 +54,29 @@ message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResul
 message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
 /**
- * Create comment on each pull request
+ * Comment Single PR
+ *
+ * @param {Object} pr
+ * @returns {Promise<void>}
  */
-prList.forEach((pr) => {
-    githubUtils.createComment(github.context.repo.repo, pr, message, octokit)
+function commentPR(pr) {
+    return githubUtils.createComment(github.context.repo.repo, pr, message, octokit)
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
+
+            // Sleep for 1 sec before making another request
+            return new Promise(res => setTimeout(res, 1000));
         })
         .catch((err) => {
             console.log(`Unable to write comment on #${pr} 😞`);
             core.setFailed(err.message);
         });
-});
+}
+
+/**
+ * Create comment on each pull request
+ */
+prList.reduce((promise, pr) => promise.then(() => commentPR(pr)), Promise.resolve());
 
 
 /***/ }),
