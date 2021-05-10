@@ -13,6 +13,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import {settleIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
 import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
+import IOUTansactionPropTypes from './IOUTansactionPropTypes';
 import IOUTransactions from './IOUTransactions';
 
 const matchType = PropTypes.shape({
@@ -26,8 +27,8 @@ const matchType = PropTypes.shape({
 });
 
 const defaultProps = {
-    iouReport: undefined,
     iou: {},
+    iouReport: {},
 };
 
 const propTypes = {
@@ -55,16 +56,8 @@ const propTypes = {
         // Owner is the person who is owed money
         ownerEmail: PropTypes.string,
 
-        transactions: PropTypes.arrayOf(PropTypes.shape({
-            // The transaction currency
-            currency: PropTypes.string,
-
-            // The transaction amount
-            total: PropTypes.number,
-
-            // The transaction comment
-            comment: PropTypes.string,
-        })),
+        // The IOU transactions
+        transactions: PropTypes.arrayOf(PropTypes.shape(IOUTansactionPropTypes)),
 
         // Is the IOU report settled?
         hasOutstandingIOU: PropTypes.bool,
@@ -112,7 +105,7 @@ class IOUDetailsModal extends Component {
                 />
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
-                        <ScrollView contentContainerStyle={{flexGrow: 1, paddingStart:20, paddingEnd:20}}>
+                        <ScrollView contentContainerStyle={{flexGrow: 1, paddingStart: 20, paddingEnd: 20}}>
                             <ReportActionItemIOUPreview
                                 iou={this.props.iouReport}
                                 session={this.props.session}
