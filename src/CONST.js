@@ -65,11 +65,6 @@ const CONST = {
         SWITCH_REPORT: 'switch_report',
         COLD: 'cold',
     },
-    MESSAGES: {
-        // eslint-disable-next-line max-len
-        NO_PHONE_NUMBER: 'noPhoneNumberMessage',
-        MAXIMUM_PARTICIPANTS_REACHED: 'maxParticipantsReachedMessage',
-    },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
@@ -84,14 +79,6 @@ const CONST = {
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
-    PRONOUNS: {
-        HE_HIM_HIS: 'pronouns.heHimHis',
-        SHE_HER_HERS: 'pronouns.sheHerHers',
-        THEY_THEM_THEIRS: 'pronouns.theyThemTheirs',
-        ZE_HIR_HIRS: 'pronouns.zeHirHirs',
-        SELF_SELECT: 'pronouns.selfSelect',
-        CALL_ME_BY_MY_NAME: 'pronouns.callMeByMyName',
-    },
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',

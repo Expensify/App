@@ -102,16 +102,14 @@ class ProfilePage extends Component {
             pronouns,
             timezone = {},
         } = props.myPersonalDetails;
-        const pronounsKeyList = Object.values(CONST.PRONOUNS);
-        const pronounsList = [];
-        pronounsKeyList.map(pronounKey => pronounsList.push(this.props.translate(pronounKey)));
+        const pronounsList = Object.values(this.props.translate('pronouns'));
 
         let currentUserPronouns = pronouns;
         let initialSelfSelectedPronouns = '';
 
         // This handles populating the self-selected pronouns in the form
         if (pronouns && !pronounsList.includes(pronouns)) {
-            currentUserPronouns = this.props.translate(CONST.PRONOUNS.SELF_SELECT);
+            currentUserPronouns = this.props.translate('pronouns.selfSelect');
             initialSelfSelectedPronouns = pronouns;
         }
 
@@ -201,7 +199,7 @@ class ProfilePage extends Component {
         setPersonalDetails({
             firstName,
             lastName,
-            pronouns: pronouns === this.props.translate(CONST.PRONOUNS.SELF_SELECT)
+            pronouns: pronouns === this.props.translate('pronouns.selfSelect')
                 ? selfSelectedPronouns
                 : pronouns,
             timezone: {
@@ -342,7 +340,7 @@ class ProfilePage extends Component {
                                 icon={() => <Icon src={DownArrow} />}
                             />
                         </View>
-                        {this.state.pronouns === this.props.translate(CONST.PRONOUNS.SELF_SELECT) && (
+                        {this.state.pronouns === this.props.translate('pronouns.selfSelect') && (
                         <TextInput
                             style={styles.textInput}
                             value={this.state.selfSelectedPronouns}

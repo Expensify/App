@@ -458,12 +458,12 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  */
 function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return translate(preferredLocale, CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED);
+        return translate(preferredLocale, 'messages.maxParticipantsReached');
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return translate(preferredLocale, CONST.MESSAGES.NO_PHONE_NUMBER);
+            return translate(preferredLocale, 'messages.noPhoneNumber');
         }
 
         return searchValue;

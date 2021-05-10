@@ -59,7 +59,7 @@ class ReportTypingIndicator extends React.Component {
                         ]}
                         >
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
-                            {this.props.translate('reportTypingIndicator.isTyping')}
+                            {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
                         </Text>
                     </View>
                 );
@@ -72,9 +72,9 @@ class ReportTypingIndicator extends React.Component {
                         ]}
                         >
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
-                            {this.props.translate('reportTypingIndicator.and')}
+                            {` ${this.props.translate('common.and')} `}
                             <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[1])}</Text>
-                            {this.props.translate('reportTypingIndicator.areTyping')}
+                            {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
                         </Text>
                     </View>
                 );
@@ -89,7 +89,7 @@ class ReportTypingIndicator extends React.Component {
                             <Text style={[styles.textStrong]}>
                                 {this.props.translate('reportTypingIndicator.multipleUsers')}
                             </Text>
-                            {this.props.translate('reportTypingIndicator.areTyping')}
+                            {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
                         </Text>
                     </View>
                 );
