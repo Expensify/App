@@ -26,15 +26,11 @@ const propTypes = {
         // The transaction comment
         comment: PropTypes.string,
     })),
-
-    // Is the IOU report settled?
-    hasOutstandingIOU: PropTypes.bool,
 };
 
 const defaultProps = {
     reportActions: [],
     transactions: [],
-    hasOutstandingIOU: false,
 };
 
 class IOUTransactions extends PureComponent {
@@ -52,9 +48,7 @@ class IOUTransactions extends PureComponent {
                         <ReportTransaction
                             chatReportID={this.props.chatReportID}
                             iouReportID={this.props.iouReportID}
-                            transaction={transaction}
                             action={actionForTransaction}
-                            canReject={this.props.hasOutstandingIOU}
                         />
                     );
                 })}
