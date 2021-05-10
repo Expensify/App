@@ -48,6 +48,9 @@ const propTypes = {
     /* --- Onyx Props --- */
     // Draft message - if this is set the comment is in 'edit' mode
     draftMessage: PropTypes.string,
+
+    // Runs when the view enclosing the chat message lays out indicating it has rendered
+    onLayout: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -146,7 +149,10 @@ class ReportActionItem extends Component {
                             {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
-                            <View style={getReportActionItemStyle(hovered || this.props.draftMessage)}>
+                            <View
+                                style={getReportActionItemStyle(hovered || this.props.draftMessage)}
+                                onLayout={this.props.onLayout}
+                            >
                                 {!this.props.displayAsGroup
                                     ? (
                                         <ReportActionItemSingle action={this.props.action}>
