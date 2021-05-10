@@ -46,9 +46,6 @@ const propTypes = {
 
         // Whether there is an outstanding amount in IOU
         hasOutstandingIOU: PropTypes.bool,
-
-        // IOU report ID associated with current report
-        iouReportID: PropTypes.number,
     }),
 
     // Array of report actions for this report
@@ -128,8 +125,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU
-            || this.props.report.iouReportID !== nextProps.report.iouReportID) {
+        if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU) {
             return true;
         }
 
@@ -350,7 +346,6 @@ class ReportActionsView extends React.Component {
                 shouldDisplayNewIndicator={this.initialNewMarkerPosition > 0
                     && item.action.sequenceNumber === this.initialNewMarkerPosition}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
-                iouReportID={this.props.report.iouReportID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
             />
         );
