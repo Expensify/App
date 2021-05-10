@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
@@ -36,7 +37,7 @@ const defaultProps = {
 class IOUTransactions extends PureComponent {
     render() {
         return (
-            <View>
+            <View style={[styles.mt3]}>
                 {_.map(this.props.transactions, (transaction) => {
                     const actionForTransaction = _.find(this.props.reportActions, (action) => {
                         if (action && action.originalMessage) {
