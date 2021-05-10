@@ -516,6 +516,13 @@ function updateReportWithNewAction(reportID, reportAction) {
     if (lodashGet(reportAction, 'actorEmail') === 'concierge@expensify.com') {
         return;
     }
+
+    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0) and, set the
+    // marker above the incoming message.
+    if (lodashGet(allReports, reportID).newMarkerSequenceNumber === 0 && updatedReportObject.unreadActionCount > 0) {
+        const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
+        setNewMarkerPosition(reportID, oldestUnreadSeq);
+    }
     console.debug('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction,

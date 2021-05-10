@@ -197,12 +197,6 @@ class ReportActionsView extends React.Component {
      */
     onVisibilityChange() {
         if (Visibility.isVisible()) {
-            // When the report becomes visible, if the New marker is not already set and we have unread actions,
-            // set the marker above the first (oldest) unread sequence.
-            if (this.props.report.newMarkerSequenceNumber === 0 && this.props.report.unreadActionCount > 0) {
-                const oldestUnreadSeq = (this.props.report.maxSequenceNumber - this.props.report.unreadActionCount) + 1;
-                setNewMarkerPosition(this.props.reportID, oldestUnreadSeq);
-            }
             updateLastReadActionID(this.props.reportID);
         }
     }
