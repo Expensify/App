@@ -228,7 +228,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
-            console.error(`No iouReportData found for reportID ${iouReportID}`);
+            console.error(`No iouReportData found for reportID ${iouReportID}, report it most likely settled.`);
             return;
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
