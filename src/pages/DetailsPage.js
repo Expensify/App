@@ -110,7 +110,6 @@ const DetailsPage = ({personalDetails, route}) => {
                                                 {moment().tz(details.timezone.selected).zoneAbbr()}
                                             </Text>
                                         )} 
-                                        
                                     </Text>
                                     
   
