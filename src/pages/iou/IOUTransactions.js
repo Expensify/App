@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
+import IOUTansactionPropTypes from './IOUTansactionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
 
 const propTypes = {
@@ -17,20 +18,12 @@ const propTypes = {
     // ReportID for the associated IOU report
     iouReportID: PropTypes.number.isRequired,
 
-    transactions: PropTypes.arrayOf(PropTypes.shape({
-        // The transaction currency
-        currency: PropTypes.string,
-
-        // The transaction amount
-        total: PropTypes.number,
-
-        // The transaction comment
-        comment: PropTypes.string,
-    })),
+    // Transactions for this IOU report
+    transactions: PropTypes.arrayOf(PropTypes.shape(IOUTansactionPropTypes)),
 };
 
 const defaultProps = {
-    reportActions: [],
+    reportActions: {},
     transactions: [],
 };
 
