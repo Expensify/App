@@ -39,7 +39,7 @@ const propTypes = {
 
         // Is the IOU report settled?
         hasOutstandingIOU: PropTypes.bool,
-    }).isRequired,
+    }),
 
     // All of the personal details for everyone
     personalDetails: PropTypes.objectOf(PropTypes.shape({
@@ -50,6 +50,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    iou: {},
     shouldHidePayButton: false,
     onPayButtonPressed: null,
 };
