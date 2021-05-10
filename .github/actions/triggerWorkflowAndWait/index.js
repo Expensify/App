@@ -16,13 +16,13 @@ const GithubUtils = __nccwpck_require__(7999);
 const promiseWhile = __nccwpck_require__(4502);
 
 /**
- * The maximum amount of time we'll wait for a new workflow to start after sending the workflow_dispatch event.
+ * The maximum amount of time (in ms) we'll wait for a new workflow to start after sending the workflow_dispatch event.
  * @type {number}
  */
 const NEW_WORKFLOW_TIMEOUT = 120000;
 
 /**
- * The rate at which we'll poll the GitHub API to check for workflow status changes.
+ * The rate in ms at which we'll poll the GitHub API to check for workflow status changes.
  * @type {number}
  */
 const POLL_RATE = 10000;
