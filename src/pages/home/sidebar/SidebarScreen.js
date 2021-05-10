@@ -10,6 +10,8 @@ import ROUTES from '../../../ROUTES';
 import Timing from '../../../libs/actions/Timing';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
 import {
     ChatBubble,
     Users,
@@ -21,6 +23,8 @@ import Permissions from '../../../libs/Permissions';
 const propTypes = {
     // propTypes for withWindowDimensions
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 class SidebarScreen extends Component {
@@ -101,25 +105,25 @@ class SidebarScreen extends Component {
                             menuItems={[
                                 {
                                     icon: ChatBubble,
-                                    text: 'New Chat',
+                                    text: this.props.translate('sidebarScreen.newChat'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
                                 ...(Permissions.canUseIOU() ? [
                                     {
                                         icon: MoneyCircle,
-                                        text: 'Request Money',
+                                        text: this.props.translate('iou.requestMoney'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
                                     },
                                 ] : []),
                                 {
                                     icon: Users,
-                                    text: 'New Group',
+                                    text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
                                 ...(Permissions.canUseIOU() ? [
                                     {
                                         icon: Receipt,
-                                        text: 'Split Bill',
+                                        text: this.props.translate('iou.splitBill'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
@@ -133,4 +137,7 @@ class SidebarScreen extends Component {
 }
 
 SidebarScreen.propTypes = propTypes;
-export default withWindowDimensions(SidebarScreen);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(SidebarScreen);

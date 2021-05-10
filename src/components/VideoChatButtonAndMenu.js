@@ -11,8 +11,11 @@ import CONST from '../CONST';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
 
 const propTypes = {
+    ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
@@ -26,12 +29,12 @@ class VideoChatButtonAndMenu extends Component {
         this.menuItemData = [
             {
                 icon: ZoomIcon,
-                text: 'Zoom',
+                text: props.translate('videoChatButtonAndMenu.zoom'),
                 onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
             },
             {
                 icon: GoogleMeetIcon,
-                text: 'Google Meet',
+                text: props.translate('videoChatButtonAndMenu.googleMeet'),
                 onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
             },
         ].map(item => ({
@@ -122,6 +125,9 @@ class VideoChatButtonAndMenu extends Component {
     }
 }
 
-VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
 VideoChatButtonAndMenu.propTypes = propTypes;
-export default withWindowDimensions(VideoChatButtonAndMenu);
+VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(VideoChatButtonAndMenu);
