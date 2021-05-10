@@ -12,6 +12,7 @@ import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -27,6 +28,8 @@ const propTypes = {
 
     // Controls the visibility of this component.
     isVisible: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -42,9 +45,9 @@ class ReportActionContextMenu extends React.Component {
         this.CONTEXT_ACTIONS = [
             // Copy to clipboard
             {
-                text: 'Copy to Clipboard',
+                text: this.props.translate('reportActionContextMenu.copyToClipboard'),
                 icon: ClipboardIcon,
-                successText: 'Copied!',
+                successText: this.props.translate('reportActionContextMenu.copied'),
                 successIcon: Checkmark,
                 shouldShow: true,
 
@@ -67,14 +70,14 @@ class ReportActionContextMenu extends React.Component {
             },
 
             {
-                text: 'Copy Link',
+                text: this.props.translate('reportActionContextMenu.copyLink'),
                 icon: LinkCopy,
                 shouldShow: false,
                 onPress: () => {},
             },
 
             {
-                text: 'Mark as Unread',
+                text: this.props.translate('reportActionContextMenu.markAsUnread'),
                 icon: Mail,
                 successIcon: Checkmark,
                 shouldShow: true,
@@ -85,14 +88,14 @@ class ReportActionContextMenu extends React.Component {
             },
 
             {
-                text: 'Edit Comment',
+                text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
                 shouldShow: false,
                 onPress: () => {},
             },
 
             {
-                text: 'Delete Comment',
+                text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
                 shouldShow: false,
                 onPress: () => {},
@@ -124,4 +127,4 @@ class ReportActionContextMenu extends React.Component {
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
 
-export default ReportActionContextMenu;
+export default withLocalize(ReportActionContextMenu);

@@ -39,6 +39,7 @@ import getButtonState from '../../../libs/getButtonState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -81,6 +82,7 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -304,7 +306,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        title="Upload Attachment"
+                        title={this.props.translate('reportActionCompose.uploadAttachment')}
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
@@ -337,7 +339,7 @@ class ReportActionCompose extends React.Component {
                                                         hasMultipleParticipants
                                                             ? {
                                                                 icon: Receipt,
-                                                                text: 'Split Bill',
+                                                                text: this.props.translate('iou.splitBill'),
                                                                 onSelected: () => {
                                                                     Navigation.navigate(
                                                                         ROUTES.getIouSplitRoute(this.props.reportID),
@@ -346,7 +348,7 @@ class ReportActionCompose extends React.Component {
                                                             }
                                                             : {
                                                                 icon: MoneyCircle,
-                                                                text: 'Request Money',
+                                                                text: this.props.translate('iou.requestMoney'),
                                                                 onSelected: () => {
                                                                     Navigation.navigate(
                                                                         ROUTES.getIouRequestRoute(this.props.reportID),
@@ -356,7 +358,7 @@ class ReportActionCompose extends React.Component {
                                                     ] : []),
                                                     {
                                                         icon: Paperclip,
-                                                        text: 'Add Attachment',
+                                                        text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
                                                             openPicker({
                                                                 onPicked: (file) => {
@@ -375,7 +377,7 @@ class ReportActionCompose extends React.Component {
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
-                                    placeholder="Write something..."
+                                    placeholder={this.props.translate('reportActionCompose.writeSomething')}
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
@@ -466,7 +468,7 @@ class ReportActionCompose extends React.Component {
                                 height={variables.iconSizeExtraSmall}
                             />
                             <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                You appear to be offline.
+                                {this.props.translate('reportActionCompose.youAppearToBeOffline')}
                             </Text>
                         </View>
                     </View>
@@ -483,6 +485,7 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withNavigationFocus,
+    withLocalize,
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
