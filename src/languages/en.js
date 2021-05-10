@@ -9,7 +9,7 @@ export default {
         to: 'To',
         optional: 'Optional',
         split: 'Split',
-        request: 'Request',
+        request: ({amount}) => `Request ${amount}`,
         new: 'NEW',
         search: 'Search',
         next: 'Next',
@@ -26,6 +26,7 @@ export default {
         continue: 'Continue',
         phoneNumber: 'Phone Number',
         email: 'Email',
+        and: 'and',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -82,9 +83,8 @@ export default {
         beFirstPersonToComment: 'Be the first person to comment',
     },
     reportTypingIndicator: {
-        isTyping: ' is typing...',
-        and: ' and ',
-        areTyping: ' are typing...',
+        isTyping: 'is typing...',
+        areTyping: 'are typing...',
         multipleUsers: 'Multiple users',
     },
     sidebarScreen: {
@@ -225,7 +225,9 @@ export default {
         selfSelect: 'Self-select',
         callMeByMyName: 'Call me by my name',
     },
-    noPhoneNumberMessage: 'Please enter a phone number including the country code e.g +447814266907',
-    maxParticipantsReachedMessage: 'You\'ve reached the maximum number of participants for a group chat.',
     cameraPermissionsNotGranted: 'Camera permissions not granted',
+    messages: {
+        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
+        maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
+    },
 };
