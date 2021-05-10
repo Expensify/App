@@ -242,7 +242,6 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
-            console.debug(`No iouReportData found for reportID ${iouReportID}, report is most likely settled.`);
             return;
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
