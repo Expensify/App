@@ -31,6 +31,7 @@ import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import {flatListRef, scrollToIndex} from '../../../libs/ReportScrollManager';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -67,6 +68,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -378,7 +380,9 @@ class ReportActionsView extends React.Component {
         if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <Text style={[styles.textP]}>Be the first person to comment!</Text>
+                    <Text style={[styles.textP]}>
+                        {this.props.translate('reportActionsView.beFirstPersonToComment')}
+                    </Text>
                 </View>
             );
         }
@@ -408,6 +412,7 @@ ReportActionsView.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
+    withLocalize,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,

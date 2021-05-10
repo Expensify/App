@@ -12,8 +12,10 @@ import {setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft} fro
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
+import compose from '../../../libs/compose';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -42,6 +44,7 @@ const propTypes = {
         // Email of the logged in person
         email: PropTypes.string,
     }),
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -59,9 +62,9 @@ class ReportActionContextMenu extends React.Component {
         this.CONTEXT_ACTIONS = [
             // Copy to clipboard
             {
-                text: 'Copy to Clipboard',
+                text: this.props.translate('reportActionContextMenu.copyToClipboard'),
                 icon: ClipboardIcon,
-                successText: 'Copied!',
+                successText: this.props.translate('reportActionContextMenu.copied'),
                 successIcon: Checkmark,
                 shouldShow: true,
 
@@ -84,15 +87,14 @@ class ReportActionContextMenu extends React.Component {
             },
 
             {
-                text: 'Copy Link',
+                text: this.props.translate('reportActionContextMenu.copyLink'),
                 icon: LinkCopy,
                 shouldShow: false,
-                onPress: () => {
-                },
+                onPress: () => {},
             },
 
             {
-                text: 'Mark as Unread',
+                text: this.props.translate('reportActionContextMenu.markAsUnread'),
                 icon: Mail,
                 successIcon: Checkmark,
                 shouldShow: true,
@@ -103,7 +105,7 @@ class ReportActionContextMenu extends React.Component {
             },
 
             {
-                text: 'Edit Comment',
+                text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
                 shouldShow: this.props.reportAction.actorEmail === this.props.session.email
                     && !isReportMessageAttachment(this.getActionText()),
@@ -118,7 +120,7 @@ class ReportActionContextMenu extends React.Component {
             },
 
             {
-                text: 'Delete Comment',
+                text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
                 shouldShow: false,
                 onPress: () => {
@@ -163,8 +165,11 @@ class ReportActionContextMenu extends React.Component {
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
 
-export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ReportActionContextMenu);
+export default compose(
+    withLocalize,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(ReportActionContextMenu);
