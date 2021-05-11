@@ -5,6 +5,8 @@ import {
     TouchableOpacity,
     Pressable,
     InteractionManager,
+    Text,
+    Dimensions,
 } from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
@@ -16,7 +18,13 @@ import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
 import {
-    Plus, Send, Emoji, Paperclip,
+    Plus,
+    Send,
+    Emoji,
+    Paperclip,
+    Offline,
+    MoneyCircle,
+    Receipt,
 } from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
@@ -26,11 +34,16 @@ import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
 import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
-import withWindowDimensions from '../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
+import variables from '../../../styles/variables';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Permissions from '../../../libs/Permissions';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -53,7 +66,7 @@ const propTypes = {
 
         // participants associated with current report
         participants: PropTypes.arrayOf(PropTypes.string),
-    }).isRequired,
+    }),
 
     /* Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -64,11 +77,21 @@ const propTypes = {
     // Is composer screen focused
     isFocused: PropTypes.bool.isRequired,
 
+    // Information about the network
+    network: PropTypes.shape({
+        // Is the network currently offline or not
+        isOffline: PropTypes.bool,
+    }),
+
+    ...windowDimensionsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     comment: '',
     modal: {},
+    report: {},
+    network: {isOffline: false},
 };
 
 class ReportActionCompose extends React.Component {
@@ -88,6 +111,10 @@ class ReportActionCompose extends React.Component {
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+        this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
+        this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
+        this.emojiPopoverAnchor = null;
+        this.emojiSearchInput = null;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -104,6 +131,10 @@ class ReportActionCompose extends React.Component {
         };
     }
 
+    componentDidMount() {
+        Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
+    }
+
     componentDidUpdate(prevProps) {
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
@@ -113,6 +144,10 @@ class ReportActionCompose extends React.Component {
             this.setIsFocused(true);
             this.focus();
         }
+    }
+
+    componentWillUnmount() {
+        Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
     /**
@@ -146,7 +181,7 @@ class ReportActionCompose extends React.Component {
      * Focus the composer text input
      */
     focus() {
-        if (this.textInput) {
+        if (this.textInput && this.textInput.focus) {
             // There could be other animations running while we trigger manual focus.
             // This prevents focus from making those animations janky.
             InteractionManager.runAfterInteractions(() => {
@@ -203,16 +238,23 @@ class ReportActionCompose extends React.Component {
     /**
      * Show the ReportActionContextMenu modal popover.
      *
-     * @param {Object} [event] - A press event.
      */
-    showEmojiPicker(event) {
+    showEmojiPicker() {
         this.textInput.blur();
-        this.state.emojiPopoverAnchorPosition = {
-            horizontal: event.nativeEvent.pageX,
-            vertical: event.nativeEvent.pageY,
-        };
         this.setState({isEmojiPickerVisible: true});
     }
+
+    /**
+     * This gets called onLayout to find the cooridnates of the Anchor for the Emoji Picker.
+     */
+    measureEmojiPopoverAnchorPosition() {
+        if (this.emojiPopoverAnchor) {
+            this.emojiPopoverAnchor.measureInWindow((x, y) => this.setState({
+                emojiPopoverAnchorPosition: {horizontal: x, vertical: y},
+            }));
+        }
+    }
+
 
     /**
      * Hide the ReportActionContextMenu modal popover.
@@ -231,6 +273,15 @@ class ReportActionCompose extends React.Component {
         this.textInput.value = this.comment + emoji;
         this.setIsFocused(true);
         this.updateComment(this.textInput.value);
+    }
+
+    /**
+     * Focus the search input in the emoji picker.
+     */
+    focusEmojiSearchInput() {
+        if (this.emojiSearchInput) {
+            this.emojiSearchInput.focus();
+        }
     }
 
     /**
@@ -273,7 +324,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        title="Upload Attachment"
+                        title={this.props.translate('reportActionCompose.uploadAttachment')}
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
@@ -288,10 +339,6 @@ class ReportActionCompose extends React.Component {
                                                 onPress={(e) => {
                                                     e.preventDefault();
                                                     this.setMenuVisibility(true);
-
-                                                    /* Keep last focus inside the input so that focus is restored
-                                                     on modal close. Otherwise breaks modal 2 modal transition */
-                                                    this.focus();
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
@@ -306,9 +353,30 @@ class ReportActionCompose extends React.Component {
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
+                                                    ...(Permissions.canUseIOU() ? [
+                                                        hasMultipleParticipants
+                                                            ? {
+                                                                icon: Receipt,
+                                                                text: this.props.translate('iou.splitBill'),
+                                                                onSelected: () => {
+                                                                    Navigation.navigate(
+                                                                        ROUTES.getIouSplitRoute(this.props.reportID),
+                                                                    );
+                                                                },
+                                                            }
+                                                            : {
+                                                                icon: MoneyCircle,
+                                                                text: this.props.translate('iou.requestMoney'),
+                                                                onSelected: () => {
+                                                                    Navigation.navigate(
+                                                                        ROUTES.getIouRequestRoute(this.props.reportID),
+                                                                    );
+                                                                },
+                                                            },
+                                                    ] : []),
                                                     {
                                                         icon: Paperclip,
-                                                        text: 'Add Attachment',
+                                                        text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
                                                             openPicker({
                                                                 onPicked: (file) => {
@@ -318,18 +386,6 @@ class ReportActionCompose extends React.Component {
                                                         },
                                                     },
                                                 ]}
-
-                                            /**
-                                             * Temporarily hiding IOU Modal options while Modal is incomplete. Will
-                                             * be replaced by a beta flag once IOUConfirm is completed.
-                                            menuOptions={hasMultipleParticipants
-                                                ? [
-                                                    CONST.MENU_ITEM_KEYS.SPLIT_BILL,
-                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]
-                                                : [
-                                                    CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
-                                                    CONST.MENU_ITEM_KEYS.ATTACHMENT_PICKER]}
-                                            */
                                             />
                                         </>
                                     )}
@@ -339,7 +395,7 @@ class ReportActionCompose extends React.Component {
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
-                                    placeholder="Write something..."
+                                    placeholder={this.props.translate('reportActionCompose.writeSomething')}
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
@@ -378,6 +434,7 @@ class ReportActionCompose extends React.Component {
                     <Popover
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
+                        onModalShow={this.focusEmojiSearchInput}
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
@@ -388,6 +445,7 @@ class ReportActionCompose extends React.Component {
                     >
                         <EmojiPickerMenu
                             onEmojiSelected={this.addEmojiToTextBox}
+                            ref={el => this.emojiSearchInput = el}
                         />
                     </Popover>
                     <Pressable
@@ -395,6 +453,8 @@ class ReportActionCompose extends React.Component {
                             styles.chatItemEmojiButton,
                             getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                         ])}
+                        ref={el => this.emojiPopoverAnchor = el}
+                        onLayout={this.measureEmojiPopoverAnchorPosition}
                         onPress={this.showEmojiPicker}
                     >
                         {({hovered, pressed}) => (
@@ -415,7 +475,24 @@ class ReportActionCompose extends React.Component {
                         <Icon src={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>
                 </View>
-                <ReportTypingIndicator reportID={this.props.reportID} />
+                {this.props.network.isOffline ? (
+                    <View style={[styles.chatItemComposeSecondaryRow]}>
+                        <View style={[
+                            styles.chatItemComposeSecondaryRowOffset,
+                            styles.flexRow,
+                            styles.alignItemsCenter]}
+                        >
+                            <Icon
+                                src={Offline}
+                                width={variables.iconSizeExtraSmall}
+                                height={variables.iconSizeExtraSmall}
+                            />
+                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                                {this.props.translate('reportActionCompose.youAppearToBeOffline')}
+                            </Text>
+                        </View>
+                    </View>
+                ) : <ReportTypingIndicator reportID={this.props.reportID} />}
             </View>
         );
     }
@@ -428,12 +505,16 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withNavigationFocus,
+    withLocalize,
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         },
         modal: {
             key: ONYXKEYS.MODAL,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
         },
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,

@@ -9,6 +9,9 @@ import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
+import openURLInNewTab from '../../../libs/openURLInNewTab';
+import CONST from '../../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // The children to show inside the layout
@@ -17,6 +20,8 @@ const propTypes = {
     // Whether we should show the welcome text
     // (the welcome screenshot always displays on wide views)
     shouldShowWelcomeText: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -42,7 +47,7 @@ const SignInPageLayoutWide = props => (
 
                 <View style={[styles.mb5]}>
                     <Text style={[styles.h1]}>
-                        Expensify.cash
+                        {props.translate('signInPage.expensifyDotCash')}
                     </Text>
                 </View>
                 <View style={[styles.signInPageFormContainer]}>
@@ -54,6 +59,28 @@ const SignInPageLayoutWide = props => (
                         <WelcomeText textSize="large" />
                     </View>
                     )}
+                <View>
+                    <Text style={[styles.textLabel]}>
+                        {`${props.translate('signInPage.expensifyIsOpenSource')}. ${
+                            props.translate('common.view')}`}
+                        {' '}
+                        <Text
+                            style={[styles.link]}
+                            onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
+                        >
+                            {props.translate('signInPage.theCode')}
+                        </Text>
+                        {`. ${props.translate('common.view')}`}
+                        {' '}
+                        <Text
+                            style={[styles.link]}
+                            onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
+                        >
+                            {props.translate('signInPage.openJobs')}
+                        </Text>
+                        .
+                    </Text>
+                </View>
                 <TermsAndLicenses />
             </View>
         </View>
@@ -65,4 +92,4 @@ SignInPageLayoutWide.defaultProps = defaultProps;
 SignInPageLayoutWide.displayName = 'SignInPageLayoutWide';
 
 
-export default SignInPageLayoutWide;
+export default withLocalize(SignInPageLayoutWide);

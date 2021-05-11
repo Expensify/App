@@ -8,6 +8,8 @@ import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import {getReportParticipantsTitle} from './reportUtils';
+import {translate} from './translate';
+import Permissions from './Permissions';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -17,6 +19,7 @@ import {getReportParticipantsTitle} from './reportUtils';
 
 let currentUserLogin;
 let countryCodeByIP;
+let preferredLocale;
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
@@ -127,6 +130,11 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: val => countryCodeByIP = val || 1,
+});
+
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: val => preferredLocale = val || 'en',
 });
 
 /**
@@ -286,7 +294,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && recentReportOptions.length === 0
             && personalDetailsOptions.length === 0
             && _.every(selectedOptions, option => option.login !== searchValue)
-            && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
+            && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
+            && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos())
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
         // current users international code based on their IP address.
@@ -357,18 +366,15 @@ function getNewChatOptions(
  *
  * @param {Object} myPersonalDetail
  * @param {String} amountText
- * @returns {Array}
+ * @returns {Object}
  */
-function getIOUConfirmationOptionsFromMyPersonalDetail(
-    myPersonalDetail,
-    amountText,
-) {
-    return [{
+function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountText) {
+    return {
         text: myPersonalDetail.displayName,
         alternateText: myPersonalDetail.login,
         icons: [myPersonalDetail.avatar],
         descriptiveText: amountText,
-    }];
+    };
 }
 
 /**
@@ -452,12 +458,12 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  */
 function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
+        return translate(preferredLocale, 'messages.maxParticipantsReached');
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return CONST.MESSAGES.NO_PHONE_NUMBER;
+            return translate(preferredLocale, 'messages.noPhoneNumber');
         }
 
         return searchValue;
