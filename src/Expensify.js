@@ -15,7 +15,6 @@ import migrateOnyx from './libs/migrateOnyx';
 import styles from './styles/styles';
 import PushNotification from './libs/Notification/PushNotification';
 import UpdateAppModal from './components/UpdateAppModal';
-import Environment from './libs/Environment';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
