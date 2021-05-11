@@ -84,40 +84,38 @@ const ReportActionItemIOUPreview = ({
     const cachedTotal = iou.cachedTotal ? iou.cachedTotal.replace(/[()]/g, '') : '';
 
     return (
-        <View style={[styles.chatItemMessage]}>
-            <View style={styles.iouPreviewBox}>
-                <View style={styles.flexRow}>
-                    <View style={styles.flex1}>
-                        <Text style={styles.h1}>{cachedTotal}</Text>
-                        <Text style={styles.mt2}>
-                            {iou.hasOutstandingIOU
-                                ? `${managerName} owes ${ownerName}`
-                                : `${ownerName} paid ${managerName}`}
-                        </Text>
-                    </View>
-                    <View style={styles.iouPreviewBoxAvatar}>
-                        <MultipleAvatars
-                            avatarImageURLs={[managerAvatar, ownerAvatar]}
-                            secondAvatarStyle={[styles.secondAvatarInline]}
-                        />
-                    </View>
+        <View style={styles.iouPreviewBox}>
+            <View style={styles.flexRow}>
+                <View style={styles.flex1}>
+                    <Text style={styles.h1}>{cachedTotal}</Text>
+                    <Text style={styles.mt2}>
+                        {iou.hasOutstandingIOU
+                            ? `${managerName} owes ${ownerName}`
+                            : `${ownerName} paid ${managerName}`}
+                    </Text>
                 </View>
-                {isCurrentUserManager && !shouldHidePayButton && (
-                    <TouchableOpacity
-                        style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
-                        onPress={onPayButtonPressed}
-                    >
-                        <Text
-                            style={[
-                                styles.buttonSmallText,
-                                styles.buttonSuccessText,
-                            ]}
-                        >
-                            Pay
-                        </Text>
-                    </TouchableOpacity>
-                )}
+                <View style={styles.iouPreviewBoxAvatar}>
+                    <MultipleAvatars
+                        avatarImageURLs={[managerAvatar, ownerAvatar]}
+                        secondAvatarStyle={[styles.secondAvatarInline]}
+                    />
+                </View>
             </View>
+            {isCurrentUserManager && !shouldHidePayButton && (
+                <TouchableOpacity
+                    style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
+                    onPress={onPayButtonPressed}
+                >
+                    <Text
+                        style={[
+                            styles.buttonSmallText,
+                            styles.buttonSuccessText,
+                        ]}
+                    >
+                        Pay
+                    </Text>
+                </TouchableOpacity>
+            )}
         </View>
     );
 };
