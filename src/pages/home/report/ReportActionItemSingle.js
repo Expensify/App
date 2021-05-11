@@ -20,7 +20,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     // Styles for the outermost View
-    outerViewStyles: PropTypes.arrayOf(PropTypes.object),
+    wrapperStyles: PropTypes.arrayOf(PropTypes.object),
 
     // Children view component for this action item
     children: PropTypes.node.isRequired,
@@ -28,14 +28,14 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    outerViewStyles: [styles.chatItem],
+    wrapperStyles: [styles.chatItem],
 };
 
 const ReportActionItemSingle = ({
     action,
     personalDetails,
     children,
-    outerViewStyles,
+    wrapperStyles,
 }) => {
     const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
@@ -49,7 +49,7 @@ const ReportActionItemSingle = ({
     // we should stop referring to the report history items entirely for this information.
     const personArray = displayName ? [{type: 'TEXT', text: displayName}] : action.person;
     return (
-        <View style={outerViewStyles}>
+        <View style={wrapperStyles}>
             <Avatar
                 style={[styles.actionAvatar]}
                 source={avatarUrl}

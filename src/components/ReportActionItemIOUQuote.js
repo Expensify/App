@@ -10,18 +10,18 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // Should the View Details link be displayed?
-    showViewDetailsLink: PropTypes.bool,
+    shouldShowViewDetailsLink: PropTypes.bool,
 
     // Callback invoked when View Details is pressed
     onViewDetailsPressed: PropTypes.func,
 };
 
 const defaultProps = {
-    showViewDetailsLink: false,
+    shouldShowViewDetailsLink: false,
     onViewDetailsPressed: null,
 };
 
-const ReportActionItemIOUQuote = ({action, showViewDetailsLink, onViewDetailsPressed}) => (
+const ReportActionItemIOUQuote = ({action, shouldShowViewDetailsLink, onViewDetailsPressed}) => (
     <View style={[styles.chatItemMessage]}>
         {_.map(action.message, (fragment, index) => (
             <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
@@ -29,7 +29,7 @@ const ReportActionItemIOUQuote = ({action, showViewDetailsLink, onViewDetailsPre
                     <Text style={[styles.chatItemMessage]}>
                         {fragment.text}
                     </Text>
-                    {showViewDetailsLink && (
+                    {shouldShowViewDetailsLink && (
                         <Text
                             style={[styles.chatItemMessageLink]}
                             onPress={onViewDetailsPressed}
