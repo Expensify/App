@@ -53,11 +53,14 @@ class IOUAmountPage extends React.Component {
     }
 
     componentDidMount() {
-        if (this.textInput) {
-            // Workaround: Input doesn't focus without a setTimeout
-            setTimeout(() => this.textInput.focus(), 300);
-        }
         this.setupEventHandlers();
+    }
+
+    componentDidUpdate(prevProps) {
+        // Component mounts before iou is finished loading, input focus doesn't work unless iou is loaded
+        if (this.textInput && prevProps.iou.loading !== this.props.iou.loading) {
+            this.textInput.focus();
+        }
     }
 
     componentWillUnmount() {
