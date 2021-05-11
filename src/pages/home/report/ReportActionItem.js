@@ -90,6 +90,7 @@ class ReportActionItem extends Component {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
+     * @param {string} [selection] - A copy text.
      */
     showPopover(event, selection) {
         const nativeEvent = event.nativeEvent || {};
