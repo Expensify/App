@@ -150,6 +150,10 @@ PODS:
     - nanopb/encode (= 1.30906.0)
   - nanopb/decode (1.30906.0)
   - nanopb/encode (1.30906.0)
+  - Onfido (20.1.0)
+  - onfido-react-native-sdk (1.3.3):
+    - Onfido (= 20.1.0)
+    - React
   - OpenSSL-Universal (1.1.180)
   - PromisesObjC (1.2.11)
   - RCTRequired (0.63.3)
@@ -459,6 +463,7 @@ DEPENDENCIES:
   - FlipperKit/SKIOSNetworkPlugin (= 0.75.1)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
   - React (from `../node_modules/react-native/`)
@@ -528,6 +533,7 @@ SPEC REPOS:
     - GoogleUtilities
     - libevent
     - nanopb
+    - Onfido
     - OpenSSL-Universal
     - PromisesObjC
     - YogaKit
@@ -543,6 +549,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/Folly.podspec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  onfido-react-native-sdk:
+    :path: "../node_modules/@onfido/react-native-sdk"
   RCTRequired:
     :path: "../node_modules/react-native/Libraries/RCTRequired"
   RCTTypeSafety:
@@ -657,6 +665,8 @@ SPEC CHECKSUMS:
   GoogleUtilities: 7f2f5a07f888cdb145101d6042bc4422f57e70b3
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   nanopb: 59317e09cf1f1a0af72f12af412d54edf52603fc
+  Onfido: 116a268e4cb8b767c15285e8071c2e8304673cdf
+  onfido-react-native-sdk: b8f1b7cbe1adab6479d735275772390161630dcd
   OpenSSL-Universal: 1aa4f6a6ee7256b83db99ec1ccdaa80d10f9af9b
   PromisesObjC: 8c196f5a328c2cba3e74624585467a557dcb482f
   RCTRequired: 48884c74035a0b5b76dbb7a998bd93bcfc5f2047
