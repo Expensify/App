@@ -50,15 +50,14 @@ class EmojiPickerMenu extends Component {
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index
         // If more emojis are ever added to emojis.js this will need to be updated or things will break
-        this.emojis = emojis;
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them (and only displays country codes)
-        if (getOperatingSystem() === CONST.OS.WINDOWS) {
-            this.emojis = emojis.slice(0, this.unfilteredHeaderIndices.pop());
-        }
-
+        this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
+            ? emojis.slice(0, this.unfilteredHeaderIndices.pop())
+            : emojis;
+        
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
