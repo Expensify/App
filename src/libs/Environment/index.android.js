@@ -4,67 +4,57 @@ import CONST from '../../CONST';
 import {version} from '../../../package.json';
 
 let environment = CONST.ENVIRONMENT.PRODUCTION;
-let isLoading = false;
-let callback = null;
+let hasSetEnvironment = false;
 
-function getEnvironment(updateEnvCallback) {
-    if (isLoading) {
-        callback = updateEnvCallback;
-    }
+function getEnvironment() {
+    return new Promise((resolve) => {
+        // If we've already set the environment, use the current value
+        if (hasSetEnvironment) {
+            return resolve(environment);
+        }
 
-    return environment;
-}
+        if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
+            hasSetEnvironment = true;
+            environment = CONST.ENVIRONMENT.DEV;
+            return resolve(environment);
+        }
 
-function setEnvironment() {
-    if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
-        environment = CONST.ENVIRONMENT.DEV;
-        return;
-    }
+        // If we haven't set the environment yet, check it
+        try {
+            fetch(CONST.PLAY_STORE_URL)
+                .then(res => res.text())
+                .then((text) => {
+                    console.log('start sleep');
+                    setTimeout(() => {
+                        console.log('done sleep');
+                        hasSetEnvironment = true;
+                        const match = text.match(/<span[^>]+class="htlgb"[^>]*>([-\d.]+)<\/span>/);
 
-    // Since we promote staging builds to production without creating a new build, check the google play listing to
-    // see if the current version is greater than the production one
-    try {
-        isLoading = true;
-        fetch(CONST.PLAY_STORE_URL)
-            .then(res => res.text())
-            .then((text) => {
-                console.log('start sleep');
-                setTimeout(() => {
-                    console.log('done sleep');
-                    const match = text.match(/<span[^>]+class="htlgb"[^>]*>([-\d.]+)<\/span>/);
-                    if (!match) {
-                        environment = CONST.ENVIRONMENT.PRODUCTION;
-                        isLoading = false;
-                        return;
-                    }
+                        // If we couldn't get a match, set the default to production
+                        // If the version is the same as the store version from the match, this is production
+                        if (!match || match[1].trim() === version) {
+                            environment = CONST.ENVIRONMENT.PRODUCTION;
+                        } else {
+                            // If the version isn't the same as the store version, and we aren't on dev, this is beta
+                            environment = CONST.ENVIRONMENT.STAGING;
+                        }
 
-                    const storeVersion = match[1].trim();
-                    if (storeVersion === version) {
-                        environment = CONST.ENVIRONMENT.PRODUCTION;
-                        isLoading = false;
-                        return;
-                    }
-
-                    // If the version isn't the same as the store version, and we aren't on dev, this is a beta build
-                    environment = CONST.ENVIRONMENT.STAGING;
-                    isLoading = false;
-
-                    if (callback) {
-                        callback(environment);
-                    }
-                }, 10000);
-            })
-            .catch(() => {
-                environment = CONST.ENVIRONMENT.PRODUCTION;
-                isLoading = false;
-            });
-    } catch (e) {
-        environment = CONST.ENVIRONMENT.PRODUCTION;
-        isLoading = false;
-    }
+                        resolve(environment);
+                    }, 10000);
+                })
+                .catch(() => {
+                    hasSetEnvironment = true;
+                    environment = CONST.ENVIRONMENT.PRODUCTION;
+                    resolve(environment);
+                });
+        } catch (e) {
+            hasSetEnvironment = true;
+            environment = CONST.ENVIRONMENT.PRODUCTION;
+            resolve(environment);
+        }
+    });
 }
 
 export default {
     getEnvironment,
-    setEnvironment,
 };
