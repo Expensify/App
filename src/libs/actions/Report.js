@@ -543,7 +543,8 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the
     // marker above the incoming message.
-    if (lodashGet(allReports, [reportID, 'newMarkerSequenceNumber'], 0) === 0 && updatedReportObject.unreadActionCount > 0) {
+    if (lodashGet(allReports, [reportID, 'newMarkerSequenceNumber'], 0) === 0
+        && updatedReportObject.unreadActionCount > 0) {
         const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
         setNewMarkerPosition(reportID, oldestUnreadSeq);
     }
