@@ -24,7 +24,7 @@ const ReportTransaction = ({
     <View>
         <ReportActionItemSingle
             action={action}
-            outerViewStyles={[styles.reportTransaction]}
+            wrapperStyles={[styles.reportTransaction]}
         >
             <Text style={[styles.chatItemMessage]}>
                 {action.message[0].text}

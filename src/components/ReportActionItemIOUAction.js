@@ -54,7 +54,7 @@ class ReportActionItemIOUAction extends Component {
             <View>
                 <ReportActionItemIOUQuote
                     action={this.props.action}
-                    showViewDetailsLink={!hasMultipleParticipants}
+                    shouldShowViewDetailsLink={!hasMultipleParticipants}
                     onViewDetailsPressed={this.launchIOUDetailsModal}
                 />
                 {this.props.shouldDisplayPreview && (

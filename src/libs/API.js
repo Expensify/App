@@ -469,7 +469,7 @@ function Graphite_Timer(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.reportID
+ * @param {Number} parameters.reportID
  * @param {String} parameters.paymentMethodType
  * @returns {Promise}
  */
