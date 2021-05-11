@@ -36,10 +36,9 @@ jobs:
             github-token: ${{ secrets.GITHUB_TOKEN }}
             pull-request-number: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
-        # TODO: Once https://github.com/pascalgn/automerge-action/pull/149 is merged, point back at the non-forked repo
         - name: Check for an auto merge
           # Version: 0.12.0
-          uses: roryabraham/automerge-action@ab4daa9e8408b60430a4cd8939c3374ecb08f355
+          uses: pascalgn/automerge-action@39d831e1bb389bd242626bc25d4060064a97181c
           env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
             PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
