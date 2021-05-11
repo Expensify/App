@@ -8,10 +8,10 @@ const propTypes = {
     src: PropTypes.func.isRequired,
 
     // The width of the icon.
-    width: PropTypes.number,
+    width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     // The height of the icon.
-    height: PropTypes.number,
+    height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     // The fill color for the icon.
     // Can be provided in hex, rgb, rgba, or as a valid react-native named color such as 'red' or 'blue'.
