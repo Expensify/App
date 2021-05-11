@@ -102,13 +102,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create new BUILD version
-        uses: convictional/trigger-workflow-and-wait@6acf1632a9a81ff2ee5a5a809d6c0fa519eeed3e
+        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
         with:
-          owner: Expensify
-          repo: Expensify.cash
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          workflow_file_name: createNewVersion.yml
-          inputs: '{ "SEMVER_LEVEL": "BUILD" }'
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          WORKFLOW: createNewVersion.yml
+          INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
 
       # TODO: only need to create this tag because of how the GitUtils work
       - name: Tag version
