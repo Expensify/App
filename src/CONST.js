@@ -128,6 +128,15 @@ const CONST = {
         STARTUP: 8000,
         RECONNECT: 1000,
     },
+
+    WALLET: {
+        STEP: {
+            ONFIDO: 'OnfidoStep',
+            ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            TERMS: 'TermsStep',
+            ACTIVATE: 'ActivateStep',
+        },
+    },
 };
 
 export default CONST;

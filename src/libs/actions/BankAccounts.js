@@ -1,3 +1,5 @@
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 
 function fetchBankAccountList() {
@@ -5,7 +7,18 @@ function fetchBankAccountList() {
     API.Get({returnValueList: 'bankAccountList'}, true);
 }
 
+function fetchUserWallet() {
+    API.Get({returnValueList: 'userWallet'})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.USER_WALLET, response.userWallet);
+        });
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     fetchBankAccountList,
+    fetchUserWallet,
 };
