@@ -6,10 +6,6 @@ function getEnvironment() {
     return lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
 }
 
-function setEnvironment() {
-}
-
 export default {
     getEnvironment,
-    setEnvironment,
 };

@@ -79,9 +79,6 @@ class Expensify extends PureComponent {
         this.state = {
             isOnyxMigrated: false,
         };
-
-        // Set environment values on startup
-        Environment.setEnvironment();
     }
 
     componentDidMount() {
