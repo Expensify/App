@@ -78,4 +78,7 @@ export default {
 
     // User's Expensify Wallet
     USER_WALLET: 'userWallet',
+
+    // Object containing Onfido SDK Token + applicantID
+    ONFIDO_APPLICANT_INFO: 'onfidoApplicantInfo',
 };

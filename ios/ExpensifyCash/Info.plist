@@ -63,8 +63,10 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Required for video capture</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Your camera is used to create chat attachments.</string>
+	<string>Your camera is used to create chat attachments, documents, and facial capture.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
