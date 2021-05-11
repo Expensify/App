@@ -15,11 +15,18 @@ class ExpensifyCashLogo extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updateBadgeState = this.updateBadgeState.bind(this);
-
         this.state = {
-            environment: Environment.getEnvironment(this.updateBadgeState),
+            environment: CONST.ENVIRONMENT.PRODUCTION,
         };
+    }
+
+    componentDidMount() {
+        Environment.getEnvironment()
+            .then((environment) => {
+                this.setState({
+                    environment,
+                });
+            });
     }
 
     updateBadgeState(environment) {
