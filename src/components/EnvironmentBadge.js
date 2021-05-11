@@ -4,27 +4,44 @@ import styles from '../styles/styles';
 import CONST from '../CONST';
 import Environment from '../libs/Environment';
 
-const EnvironmentBadge = () => {
-    const environment = Environment.getEnvironment();
+class EnvironmentBadge extends React.Component {
+    constructor() {
+        super();
 
-    // If we are on production, don't show any badge
-    if (environment === CONST.ENVIRONMENT.PRODUCTION) {
-        return null;
+        this.state = {
+            environment: CONST.ENVIRONMENT.PRODUCTION,
+        };
     }
 
-    let backgroundColorStyle = styles.badgeDanger;
-    if (environment === CONST.ENVIRONMENT.STAGING) {
-        backgroundColorStyle = styles.badgeSuccess;
+    componentDidMount() {
+        Environment.getEnvironment()
+            .then((environment) => {
+                this.setState({
+                    environment,
+                });
+            });
     }
 
-    return (
-        <View style={[styles.badge, backgroundColorStyle, styles.ml2]}>
-            <Text style={styles.badgeText}>
-                {environment}
-            </Text>
-        </View>
-    );
-};
+    render() {
+        // If we are on production, don't show any badge
+        if (this.state.environment === CONST.ENVIRONMENT.PRODUCTION) {
+            return null;
+        }
+
+        let backgroundColorStyle = styles.badgeDanger;
+        if (this.state.environment === CONST.ENVIRONMENT.STAGING) {
+            backgroundColorStyle = styles.badgeSuccess;
+        }
+
+        return (
+            <View style={[styles.badge, backgroundColorStyle, styles.ml2]}>
+                <Text style={styles.badgeText}>
+                    {this.state.environment}
+                </Text>
+            </View>
+        );
+    }
+}
 
 EnvironmentBadge.displayName = 'EnvironmentBadge';
 export default EnvironmentBadge;
