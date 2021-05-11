@@ -24,23 +24,19 @@ function getEnvironment() {
             fetch(CONST.PLAY_STORE_URL)
                 .then(res => res.text())
                 .then((text) => {
-                    console.log('start sleep');
-                    setTimeout(() => {
-                        console.log('done sleep');
-                        hasSetEnvironment = true;
-                        const match = text.match(/<span[^>]+class="htlgb"[^>]*>([-\d.]+)<\/span>/);
+                    hasSetEnvironment = true;
+                    const match = text.match(/<span[^>]+class="htlgb"[^>]*>([-\d.]+)<\/span>/);
 
-                        // If we couldn't get a match, set the default to production
-                        // If the version is the same as the store version from the match, this is production
-                        if (!match || match[1].trim() === version) {
-                            environment = CONST.ENVIRONMENT.PRODUCTION;
-                        } else {
-                            // If the version isn't the same as the store version, and we aren't on dev, this is beta
-                            environment = CONST.ENVIRONMENT.STAGING;
-                        }
+                    // If we couldn't get a match, set the default to production
+                    // If the version is the same as the store version from the match, this is production
+                    if (!match || match[1].trim() === version) {
+                        environment = CONST.ENVIRONMENT.PRODUCTION;
+                    } else {
+                        // If the version isn't the same as the store version, and we aren't on dev, this is beta
+                        environment = CONST.ENVIRONMENT.STAGING;
+                    }
 
-                        resolve(environment);
-                    }, 10000);
+                    resolve(environment);
                 })
                 .catch(() => {
                     hasSetEnvironment = true;
