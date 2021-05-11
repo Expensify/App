@@ -63,12 +63,13 @@ class AvatarWithIndicator extends PureComponent {
             duration: 3000,
             easing: Easing.linear,
             isInteraction: false,
+            useNativeDriver: true,
         })).start();
         Animated.spring(this.scale, {
             toValue: 1.35,
             tension: 1,
-            useNativeDriver: true,
             isInteraction: false,
+            useNativeDriver: true,
         }).start();
     }
 
@@ -76,8 +77,8 @@ class AvatarWithIndicator extends PureComponent {
         Animated.spring(this.scale, {
             toValue: 1,
             tension: 1,
-            useNativeDriver: true,
             isInteraction: false,
+            useNativeDriver: true,
         }).start(() => {
             this.rotate.resetAnimation();
             this.scale.resetAnimation();
