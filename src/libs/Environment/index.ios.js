@@ -6,6 +6,11 @@ import CONST from '../../CONST';
 let environment = CONST.ENVIRONMENT.PRODUCTION;
 let hasSetEnvironment = false;
 
+/**
+ * Returns a promise that resolves with the current environment string value
+ *
+ * @returns {Promise}
+ */
 function getEnvironment() {
     return new Promise((resolve) => {
         // If we've already set the environment, use the current value
