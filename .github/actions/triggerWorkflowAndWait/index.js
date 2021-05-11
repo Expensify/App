@@ -5,74 +5,160 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 7978:
+/***/ 9908:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
-const {GITHUB_OWNER, EXPENSIFY_CASH_REPO} = __nccwpck_require__(7999);
+const ActionUtils = __nccwpck_require__(970);
+const GithubUtils = __nccwpck_require__(7999);
+const promiseWhile = __nccwpck_require__(4502);
+
+/**
+ * The maximum amount of time (in ms) we'll wait for a new workflow to start after sending the workflow_dispatch event.
+ * It's two minutes :)
+ * @type {number}
+ */
+const NEW_WORKFLOW_TIMEOUT = 120000;
+
+/**
+ * The maximum amount of time (in ms) we'll wait for a workflow to complete before giving up.
+ * It's two hours :)
+ * @type {number}
+ */
+const WORKFLOW_COMPLETION_TIMEOUT = 7200000;
+
+/**
+ * The rate in ms at which we'll poll the GitHub API to check for workflow status changes.
+ * It's 10 seconds :)
+ * @type {number}
+ */
+const POLL_RATE = 10000;
 
 const run = function () {
     const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-    const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
+    const githubUtils = new GithubUtils(octokit);
+    const workflow = core.getInput('WORKFLOW', {required: true});
+    const inputs = ActionUtils.getJSONInput('INPUTS', {required: false}, {});
 
-    console.log(`Fetching issue number ${issueNumber}`);
+    console.log('This action has received the following inputs: ', {workflow, inputs});
 
-    return octokit.issues.get({
-        owner: GITHUB_OWNER,
-        repo: EXPENSIFY_CASH_REPO,
-        issue_number: issueNumber,
-    })
-        .then(({data}) => {
-            console.log('Checking for unverified PRs or unresolved deploy blockers', data);
+    if (_.keys(inputs).length > 10) {
+        const err = new Error('Inputs to the workflow_dispatch event cannot have more than 10 keys, or GitHub will 🤮');
+        console.error(err.message);
+        core.setFailed(err);
+        process.exit(1);
+    }
 
-            // Check the issue description to see if there are any unfinished/un-QAed items in the checklist.
-            const uncheckedBoxRegex = /-\s\[\s]/g;
-            const matches = uncheckedBoxRegex.exec(data.body);
-            if (matches !== null) {
-                console.log('An unverified PR or unresolved deploy blocker was found.');
-                core.setOutput('HAS_DEPLOY_BLOCKERS', true);
-                return;
-            }
+    // GitHub's createWorkflowDispatch returns a 204 No Content, so we need to:
+    // 1) Get the last workflow run
+    // 2) Trigger a new workflow run
+    // 3) Poll the API until a new one appears
+    // 4) Then we can poll and wait for that new workflow run to conclude
+    let previousWorkflowRunID;
+    let newWorkflowRunID;
+    let hasNewWorkflowStarted = false;
+    let workflowCompleted = false;
+    return githubUtils.getLatestWorkflowRunID(workflow)
+        .then((lastWorkflowRunID) => {
+            console.log(`Latest ${workflow} workflow run has ID: ${lastWorkflowRunID}`);
+            previousWorkflowRunID = lastWorkflowRunID;
 
-            return octokit.issues.listComments({
-                owner: GITHUB_OWNER,
-                repo: EXPENSIFY_CASH_REPO,
-                issue_number: issueNumber,
-                per_page: 100,
+            console.log(`Dispatching workflow: ${workflow}`);
+            return octokit.actions.createWorkflowDispatch({
+                owner: GithubUtils.GITHUB_OWNER,
+                repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                workflow_id: workflow,
+                ref: 'main',
+                inputs,
             });
         })
-        .then((comments) => {
-            console.log('Checking the last comment for the :shipit: seal of approval', comments);
 
-            // If comments is undefined that means we found an unchecked QA item in the
-            // issue description, so there's nothing more to do but return early.
-            if (_.isUndefined(comments)) {
-                return;
-            }
-
-            // If there are no comments, then we have not yet gotten the :shipit: seal of approval.
-            if (_.isEmpty(comments.data)) {
-                console.log('No comments found on issue');
-                core.setOutput('HAS_DEPLOY_BLOCKERS', true);
-                return;
-            }
-
-            console.log('Verifying that the last comment is the :shipit: seal of approval');
-            const lastComment = comments.data.pop();
-            const shipItRegex = /^:shipit:/g;
-            if (_.isNull(shipItRegex.exec(lastComment.body))) {
-                console.log('The last comment on the issue was not :shipit');
-                core.setOutput('HAS_DEPLOY_BLOCKERS', true);
-            } else {
-                console.log('Everything looks good, there are no deploy blockers!');
-                core.setOutput('HAS_DEPLOY_BLOCKERS', false);
-            }
+        .catch((err) => {
+            console.error(`Failed to dispatch workflow ${workflow}`, err);
+            core.setFailed(err);
+            process.exit(1);
         })
-        .catch((error) => {
-            console.error('A problem occurred while trying to communicate with the GitHub API', error);
-            core.setFailed(error);
+
+        // Wait for the new workflow to start
+        .then(() => {
+            let waitTimer = -POLL_RATE;
+            return promiseWhile(
+                () => !hasNewWorkflowStarted && waitTimer < NEW_WORKFLOW_TIMEOUT,
+                _.throttle(
+                    () => {
+                        console.log(`\n🤚 Waiting for a new ${workflow} workflow run to begin...`);
+                        return githubUtils.getLatestWorkflowRunID(workflow)
+                            .then((lastWorkflowRunID) => {
+                                newWorkflowRunID = lastWorkflowRunID;
+                                hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
+
+                                if (!hasNewWorkflowStarted) {
+                                    waitTimer += POLL_RATE;
+                                    if (waitTimer < NEW_WORKFLOW_TIMEOUT) {
+                                        // eslint-disable-next-line max-len
+                                        console.log(`After ${waitTimer / 1000} seconds, there's still no new ${workflow} workflow run 🙁`);
+                                    } else {
+                                        // eslint-disable-next-line max-len
+                                        const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT / 1000} seconds, the ${workflow} workflow did not start.`);
+                                        console.error(err);
+                                        core.setFailed(err);
+                                        process.exit(1);
+                                    }
+                                } else {
+                                    console.log(`\n🚀 New ${workflow} run with ID ${newWorkflowRunID} has started`);
+                                }
+                            })
+                            .catch((err) => {
+                                console.warn('Failed to fetch latest workflow run.', err);
+                            });
+                    },
+                    POLL_RATE,
+                ),
+            );
+        })
+
+        // Wait for the new workflow run to finish
+        .then(() => {
+            let waitTimer = -POLL_RATE;
+            return promiseWhile(
+                () => !workflowCompleted && waitTimer < WORKFLOW_COMPLETION_TIMEOUT,
+                _.throttle(
+                    () => {
+                        console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
+                        return octokit.actions.getWorkflowRun({
+                            owner: GithubUtils.GITHUB_OWNER,
+                            repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                            run_id: newWorkflowRunID,
+                        })
+                            .then(({data}) => {
+                                workflowCompleted = data.status === 'completed' && data.conclusion !== null;
+                                waitTimer += POLL_RATE;
+                                if (waitTimer > WORKFLOW_COMPLETION_TIMEOUT) {
+                                    // eslint-disable-next-line max-len
+                                    const err = new Error(`After ${WORKFLOW_COMPLETION_TIMEOUT / 1000 / 60 / 60} hours, workflow ${newWorkflowRunID} did not complete.`);
+                                    console.error(err);
+                                    core.setFailed(err);
+                                    process.exit(1);
+                                }
+                                if (workflowCompleted) {
+                                    if (data.conclusion === 'success') {
+                                        // eslint-disable-next-line max-len
+                                        console.log(`\n🎉 ${workflow} run ${newWorkflowRunID} completed successfully! 🎉`);
+                                    } else {
+                                        // eslint-disable-next-line max-len
+                                        const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunID} finished with conclusion ${data.conclusion}`);
+                                        console.error(err.message);
+                                        core.setFailed(err);
+                                        process.exit(1);
+                                    }
+                                }
+                            });
+                    },
+                    POLL_RATE,
+                ),
+            );
         });
 };
 
@@ -81,6 +167,35 @@ if (require.main === require.cache[eval('__filename')]) {
 }
 
 module.exports = run;
+
+
+/***/ }),
+
+/***/ 970:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param {String} name - The name of the input.
+ * @param {Object} options - Options to pass to core.getInput
+ * @param {*} [defaultValue] - A default value to provide for the input.
+ *                             Not required if the {required: true} option is given in the second arg to this function.
+ * @returns {any}
+ */
+function getJSONInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+
+module.exports = {
+    getJSONInput,
+};
 
 
 /***/ }),
@@ -338,12 +453,12 @@ class GithubUtils {
             per_page: 100,
         })
             .then(({data}) => {
-                const automatedPRs = _.pluck(
-                    _.filter(data, GithubUtils.isAutomatedPullRequest),
+                const automergePRs = _.pluck(
+                    _.filter(data, GithubUtils.isAutomergePullRequest),
                     'html_url',
                 );
                 const sortedPRList = _.chain(PRList)
-                    .difference(automatedPRs)
+                    .difference(automergePRs)
                     .unique()
                     .sortBy(GithubUtils.getPullRequestNumberFromURL)
                     .value();
@@ -379,7 +494,7 @@ class GithubUtils {
             })
             .catch(err => console.warn(
                 'Error generating StagingDeployCash issue body!',
-                'Automated PRs may not be properly filtered out. Continuing...',
+                'Automerge PRs may not be properly filtered out. Continuing...',
                 err,
             ));
     }
@@ -487,13 +602,14 @@ class GithubUtils {
     }
 
     /**
-     * Determine if a given pull request is an automated PR.
+     * Determine if a given pull request is an automerge PR.
      *
      * @param {Object} pullRequest
      * @returns {Boolean}
      */
-    static isAutomatedPullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
+    static isAutomergePullRequest(pullRequest) {
+        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify')
+            && _.contains(_.pluck(pullRequest.labels, 'name'), 'automerge');
     }
 }
 
@@ -501,6 +617,36 @@ module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
 module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
+
+
+/***/ }),
+
+/***/ 4502:
+/***/ ((module) => {
+
+/**
+ * Simulates a while loop where the condition is determined by the result of a Promise.
+ *
+ * @param {Function} condition
+ * @param {Function} action
+ * @returns {Promise}
+ */
+function promiseWhile(condition, action) {
+    return new Promise((resolve, reject) => {
+        const loop = function () {
+            if (!condition()) {
+                resolve();
+            } else {
+                Promise.resolve(action())
+                    .then(loop)
+                    .catch(reject);
+            }
+        };
+        loop();
+    });
+}
+
+module.exports = promiseWhile;
 
 
 /***/ }),
@@ -13253,6 +13399,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(7978);
+/******/ 	return __nccwpck_require__(9908);
 /******/ })()
 ;
