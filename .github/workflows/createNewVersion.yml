@@ -44,7 +44,7 @@ jobs:
         uses: Expensify/Expensify.cash/.github/actions/bumpVersion@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          SEMVER_LEVLE: ${{ github.event.inputs.SEMVER_LEVEL }}
+          SEMVER_LEVEL: ${{ github.event.inputs.SEMVER_LEVEL }}
 
       - name: Commit new version
         run: |
@@ -100,7 +100,7 @@ jobs:
           repo: Expensify.cash
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           workflow_file_name: automerge.yml
-          inputs: '{PULL_REQUEST_NUMBER: ${{ needs.createNewVersion.outputs.PULL_REQUEST_NUMBER }} }'
+          inputs: '{ "PULL_REQUEST_NUMBER": "${{ needs.createNewVersion.outputs.PULL_REQUEST_NUMBER }}" }'
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
