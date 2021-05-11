@@ -2,6 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
@@ -448,6 +449,19 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldUpdateChatReport) {
 }
 
 /**
+ * Updates a report action's message to be a new value.
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ * @param {Object} message
+ */
+function updateReportActionMessage(reportID, sequenceNumber, message) {
+    const actionToMerge = {};
+    actionToMerge[sequenceNumber] = {message: [message]};
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+}
+
+/**
  * Updates a report in the store with a new report action
  *
  * @param {Number} reportID
@@ -595,6 +609,26 @@ function subscribeToUserEvents() {
                 '[Report] Failed to subscribe to Pusher channel',
                 true,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
+            );
+        });
+
+    // Live-update a report's actions when an 'edit comment' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT} event sent by Pusher`, true, {
+                reportActionID: pushJSON.reportActionID,
+            },
+        );
+        updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT},
             );
         });
 
@@ -960,10 +994,11 @@ function addAction(reportID, text, file) {
  *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
-    // If we aren't specifying a sequenceNumber and have no maxSequenceNumber for this report then we should not update
-    // the last read. Most likely, we have just created the report and it has no comments. But we should err on the side
-    // of caution and do nothing in this case.
-    if (_.isUndefined(sequenceNumber) && _.isUndefined(reportMaxSequenceNumbers[reportID])) {
+    // If we aren't specifying a sequenceNumber and have no valid maxSequenceNumber for this report then we should not
+    // update the last read. Most likely, we have just created the report and it has no comments. But we should err on
+    // the side of caution and do nothing in this case.
+    if (_.isUndefined(sequenceNumber)
+        && (!reportMaxSequenceNumbers[reportID] && reportMaxSequenceNumbers[reportID] !== 0)) {
         return;
     }
 
@@ -1067,6 +1102,49 @@ Onyx.connect({
 // When the app reconnects from being offline, fetch all of the reports and their actions
 NetworkConnection.onReconnect(fetchAllReports);
 
+/**
+ * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
+ *
+ * @param {Number} reportID
+ * @param {Object} originalReportAction
+ * @param {String} htmlForNewComment
+ */
+function editReportComment(reportID, originalReportAction, htmlForNewComment) {
+    // Optimistically update the report action with the new message
+    const sequenceNumber = originalReportAction.sequenceNumber;
+    const newReportAction = {...originalReportAction};
+    const actionToMerge = {};
+    newReportAction.message[0].isEdited = true;
+    newReportAction.message[0].html = htmlForNewComment;
+    newReportAction.message[0].text = Str.stripHTML(htmlForNewComment);
+    actionToMerge[sequenceNumber] = newReportAction;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+
+    // Persist the updated report comment
+    API.Report_EditComment({
+        reportID,
+        reportActionID: originalReportAction.reportActionID,
+        reportComment: htmlForNewComment,
+        sequenceNumber,
+    })
+        .catch(() => {
+            // If it fails, reset Onyx
+            actionToMerge[sequenceNumber] = originalReportAction;
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+        });
+}
+
+/**
+ * Saves the draft for a comment report action. This will put the comment into "edit mode"
+ *
+ * @param {Number} reportID
+ * @param {Number} reportActionID
+ * @param {String} draftMessage
+ */
+function saveReportActionDraft(reportID, reportActionID, draftMessage) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1083,6 +1161,8 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     updateCurrentlyViewedReportID,
+    editReportComment,
+    saveReportActionDraft,
     getSimplifiedIOUReport,
     getSimplifiedReportObject,
 };

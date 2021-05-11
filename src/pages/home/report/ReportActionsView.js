@@ -30,6 +30,8 @@ import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
+import {flatListRef, scrollToIndex} from '../../../libs/ReportScrollManager';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // The ID of the report actions will be created for
@@ -63,6 +65,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -297,9 +300,7 @@ class ReportActionsView extends React.Component {
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
     scrollToListBottom() {
-        if (this.actionListElement) {
-            this.actionListElement.scrollToIndex({animated: false, index: 0});
-        }
+        scrollToIndex({animated: false, index: 0});
         updateLastReadActionID(this.props.reportID);
     }
 
@@ -358,6 +359,7 @@ class ReportActionsView extends React.Component {
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
+                index={index}
                 onLayout={this.recordTimeToMeasureItemLayout}
             />
         );
@@ -373,14 +375,16 @@ class ReportActionsView extends React.Component {
         if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <Text style={[styles.textP]}>Be the first person to comment!</Text>
+                    <Text style={[styles.textP]}>
+                        {this.props.translate('reportActionsView.beFirstPersonToComment')}
+                    </Text>
                 </View>
             );
         }
 
         return (
             <InvertedFlatList
-                ref={el => this.actionListElement = el}
+                ref={flatListRef}
                 data={this.sortedReportActions}
                 renderItem={this.renderItem}
                 CellRendererComponent={this.renderCell}
@@ -392,6 +396,7 @@ class ReportActionsView extends React.Component {
                 ListFooterComponent={this.state.isLoadingMoreChats
                     ? <ActivityIndicator size="small" color={themeColors.spinner} />
                     : null}
+                keyboardShouldPersistTaps="handled"
             />
         );
     }
@@ -403,6 +408,7 @@ ReportActionsView.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withDrawerState,
+    withLocalize,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
