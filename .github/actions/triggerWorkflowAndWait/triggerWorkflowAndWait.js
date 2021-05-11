@@ -7,12 +7,21 @@ const promiseWhile = require('../../libs/promiseWhile');
 
 /**
  * The maximum amount of time (in ms) we'll wait for a new workflow to start after sending the workflow_dispatch event.
+ * It's two minutes :)
  * @type {number}
  */
 const NEW_WORKFLOW_TIMEOUT = 120000;
 
 /**
+ * The maximum amount of time (in ms) we'll wait for a workflow to complete before giving up.
+ * It's two hours :)
+ * @type {number}
+ */
+const WORKFLOW_COMPLETION_TIMEOUT = 7200000;
+
+/**
  * The rate in ms at which we'll poll the GitHub API to check for workflow status changes.
+ * It's 10 seconds :)
  * @type {number}
  */
 const POLL_RATE = 10000;
@@ -82,7 +91,7 @@ const run = function () {
                                         console.log(`After ${waitTimer / 1000} seconds, there's still no new ${workflow} workflow run 🙁`);
                                     } else {
                                         // eslint-disable-next-line max-len
-                                        const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT} seconds, the ${workflow} workflow did not start.`);
+                                        const err = new Error(`After ${NEW_WORKFLOW_TIMEOUT / 1000} seconds, the ${workflow} workflow did not start.`);
                                         console.error(err);
                                         core.setFailed(err);
                                         process.exit(1);
@@ -101,34 +110,46 @@ const run = function () {
         })
 
         // Wait for the new workflow run to finish
-        .then(() => promiseWhile(
-            () => !workflowCompleted,
-            _.throttle(
-                () => {
-                    console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
-                    return octokit.actions.getWorkflowRun({
-                        owner: GithubUtils.GITHUB_OWNER,
-                        repo: GithubUtils.EXPENSIFY_CASH_REPO,
-                        run_id: newWorkflowRunID,
-                    })
-                        .then(({data}) => {
-                            workflowCompleted = data.status === 'completed' && data.conclusion !== null;
-                            if (workflowCompleted) {
-                                if (data.conclusion === 'success') {
-                                    console.log(`\n🎉 ${workflow} run ${newWorkflowRunID} completed successfully! 🎉`);
-                                } else {
+        .then(() => {
+            let waitTimer = -POLL_RATE;
+            return promiseWhile(
+                () => !workflowCompleted && waitTimer < WORKFLOW_COMPLETION_TIMEOUT,
+                _.throttle(
+                    () => {
+                        console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
+                        return octokit.actions.getWorkflowRun({
+                            owner: GithubUtils.GITHUB_OWNER,
+                            repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                            run_id: newWorkflowRunID,
+                        })
+                            .then(({data}) => {
+                                workflowCompleted = data.status === 'completed' && data.conclusion !== null;
+                                waitTimer += POLL_RATE;
+                                if (waitTimer > WORKFLOW_COMPLETION_TIMEOUT) {
                                     // eslint-disable-next-line max-len
-                                    const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunID} finished with conclusion ${data.conclusion}`);
-                                    console.error(err.message);
+                                    const err = new Error(`After ${WORKFLOW_COMPLETION_TIMEOUT / 1000 / 60 / 60} hours, workflow ${newWorkflowRunID} did not complete.`);
+                                    console.error(err);
                                     core.setFailed(err);
                                     process.exit(1);
                                 }
-                            }
-                        });
-                },
-                POLL_RATE,
-            ),
-        ));
+                                if (workflowCompleted) {
+                                    if (data.conclusion === 'success') {
+                                        // eslint-disable-next-line max-len
+                                        console.log(`\n🎉 ${workflow} run ${newWorkflowRunID} completed successfully! 🎉`);
+                                    } else {
+                                        // eslint-disable-next-line max-len
+                                        const err = new Error(`🙅‍ ${workflow} run ${newWorkflowRunID} finished with conclusion ${data.conclusion}`);
+                                        console.error(err.message);
+                                        core.setFailed(err);
+                                        process.exit(1);
+                                    }
+                                }
+                            });
+                    },
+                    POLL_RATE,
+                ),
+            );
+        });
 };
 
 if (require.main === module) {
