@@ -75,4 +75,7 @@ export default {
 
     // Indicates which locale should be used
     PREFERRED_LOCALE: 'preferredLocale',
+
+    // User's Expensify Wallet
+    USER_WALLET: 'userWallet',
 };

@@ -89,6 +89,11 @@ export default {
                     IOU_Bill_Root: ROUTES.IOU_BILL,
                 },
             },
+            EnablePayments: {
+                screens: {
+                    EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
+                },
+            },
         },
     },
 };
