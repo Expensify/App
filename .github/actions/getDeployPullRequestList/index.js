@@ -11,12 +11,13 @@ module.exports =
 const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
+const ActionUtils = __nccwpck_require__(970);
 const GitUtils = __nccwpck_require__(669);
 
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const inputTag = core.getInput('TAG', {required: true});
 
-const isProductionDeploy = JSON.parse(core.getInput('IS_PRODUCTION_DEPLOY', {required: false}));
+const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
 const itemToFetch = isProductionDeploy ? 'release' : 'tag';
 
 /**
@@ -71,6 +72,35 @@ getTagsOrReleases(isProductionDeploy)
         return core.setOutput('PR_LIST', pullRequestList);
     })
     .catch(error => core.setFailed(error));
+
+
+/***/ }),
+
+/***/ 970:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param {String} name - The name of the input.
+ * @param {Object} options - Options to pass to core.getInput
+ * @param {*} [defaultValue] - A default value to provide for the input.
+ *                             Not required if the {required: true} option is given in the second arg to this function.
+ * @returns {any}
+ */
+function getJSONInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+
+module.exports = {
+    getJSONInput,
+};
 
 
 /***/ }),
