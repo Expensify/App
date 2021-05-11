@@ -17,7 +17,7 @@ const propTypes = {
     chatReportID: PropTypes.number.isRequired,
 
     // Should render the preview Component?
-    shouldDisplayPreviewComp: PropTypes.bool.isRequired,
+    shouldDisplayPreview: PropTypes.bool.isRequired,
 
     /* --- Onyx Props --- */
     // ChatReport associated with iouReport
@@ -63,7 +63,7 @@ class ReportActionItemIOUAction extends Component {
                     showViewDetailsLink={isDMChat}
                     onViewDetailsPressed={this.launchIOUDetailsModal}
                 />
-                {this.props.shouldDisplayPreviewComp && (
+                {this.props.shouldDisplayPreview && (
                     <ReportActionItemIOUPreview
                         iouReportID={this.props.action.originalMessage.IOUReportID}
                         session={this.props.session}
