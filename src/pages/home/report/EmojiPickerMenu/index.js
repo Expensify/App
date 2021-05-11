@@ -53,7 +53,8 @@ class EmojiPickerMenu extends Component {
         this.emojis = emojis;
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
-        // If we're on windows, don't display the flag emojis (the last category), since Windows doesn't support them
+        // If we're on Windows, don't display the flag emojis (the last category),
+        // since Windows doesn't support them (and only displays country codes)
         if (getOperatingSystem() === CONST.OS.WINDOWS) {
             this.emojis = emojis.slice(0, this.unfilteredHeaderIndices.pop());
         }
