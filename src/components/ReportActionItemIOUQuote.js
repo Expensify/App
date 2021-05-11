@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles, {webViewStyles} from '../styles/styles';
+import styles from '../styles/styles';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 
 const propTypes = {
@@ -25,7 +25,7 @@ const ReportActionItemIOUQuote = ({action, shouldShowViewDetailsLink, onViewDeta
     <View style={[styles.chatItemMessage]}>
         {_.map(action.message, (fragment, index) => (
             <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
-                <View style={[webViewStyles.tagStyles.blockquote]}>
+                <View style={[styles.blockquote]}>
                     <Text style={[styles.chatItemMessage]}>
                         {fragment.text}
                     </Text>
