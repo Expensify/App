@@ -123,9 +123,9 @@ function settleIOUReport({
         reportID,
         paymentMethodType,
     })
-        .then((data) => {
-            if (data.jsonCode !== 200) {
-                console.error(data.message);
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(`Error while settling IOU: ${response.message}`);
             }
         })
         .then(fetchChatReportsByIDs([chatReportID]))
