@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -28,7 +28,7 @@ const defaultProps = {
     transactions: [],
 };
 
-class IOUTransactions extends PureComponent {
+class IOUTransactions extends Component {
     render() {
         return (
             <View style={[styles.mt3]}>
