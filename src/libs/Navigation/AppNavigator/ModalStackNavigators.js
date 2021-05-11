@@ -26,6 +26,7 @@ const DetailsModalStack = createStackNavigator();
 const ReportParticipantsModalStack = createStackNavigator();
 const IOURequestModalStack = createStackNavigator();
 const IOUBillModalStack = createStackNavigator();
+const AddBankAccountModalStack = createStackNavigator();
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -184,16 +185,16 @@ const SettingsModalStackNavigator = () => (
 );
 
 const AddBankAccountModalStackNavigator = () => (
-    <NewChatModalStack.Navigator
+    <AddBankAccountModalStack.Navigator
         screenOptions={{
             ...defaultSubRouteOptions,
         }}
     >
-        <NewChatModalStack.Screen
+        <AddBankAccountModalStack.Screen
             name="AddBankAccount_Root"
             component={AddBankAccountPage}
         />
-    </NewChatModalStack.Navigator>
+    </AddBankAccountModalStack.Navigator>
 );
 
 export {
