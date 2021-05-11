@@ -60,7 +60,10 @@ function withLocalizeHOC(WrappedComponent) {
     WithLocalize.displayName = `WithLocalize(${getComponentDisplayName(WrappedComponent)})`;
     WithLocalize.propTypes = {
         preferredLocale: PropTypes.string,
-        forwardedRef: PropTypes.func,
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
     };
     WithLocalize.defaultProps = {
         preferredLocale: 'en',
