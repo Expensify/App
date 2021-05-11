@@ -3,6 +3,7 @@ import {View, ActivityIndicator, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
@@ -74,6 +75,7 @@ class IOUDetailsModal extends Component {
         super(props);
 
         this.state = {
+            // Temporarily placeholder, as the Venmo/Paypal issue will introduce settlement types.
             settlementType: 'Elsewhere',
         };
 
@@ -81,7 +83,7 @@ class IOUDetailsModal extends Component {
     }
 
     componentDidMount() {
-        // We should not update the chatReport data here, as there is no guarantte this is the active IOU
+        // We should not update the chatReport data here, as there is no guarantee this is the active IOU
         fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID, false);
     }
 
@@ -95,7 +97,7 @@ class IOUDetailsModal extends Component {
 
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
-        const reportIsLoading = this.props.iouReport === null;
+        const reportIsLoading = _.isNull(this.props.iouReport);
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
