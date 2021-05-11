@@ -55,12 +55,12 @@ class ReportActionItemIOUAction extends Component {
     }
 
     render() {
-        const isDMChat = this.props.chatReport.participants.length === 1;
+        const hasMultipleParticipants = this.props.chatReport.participants.length >= 2;
         return (
             <View>
                 <ReportActionItemIOUQuote
                     action={this.props.action}
-                    showViewDetailsLink={isDMChat}
+                    showViewDetailsLink={!hasMultipleParticipants}
                     onViewDetailsPressed={this.launchIOUDetailsModal}
                 />
                 {this.props.shouldDisplayPreview && (
