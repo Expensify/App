@@ -55,7 +55,7 @@ class EmojiPickerMenu extends Component {
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them (and only displays country codes instead)
         this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
-            ? emojis.slice(0, this.unfilteredHeaderIndices.pop())
+            ? emojis.slice(0, this.unfilteredHeaderIndices.pop() * this.numColumns)
             : emojis;
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);

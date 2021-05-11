@@ -135,6 +135,7 @@ const CONST = {
         ANDROID: 'Android',
         IOS: 'iOS',
         LINUX: 'Linux',
+        NATIVE: 'Native',
     },
 };
 
