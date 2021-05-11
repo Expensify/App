@@ -1,0 +1,53 @@
+name: Update Production Branch
+on: workflow_dispatch
+jobs:
+  updateStaging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: staging
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Set Production Version
+        run: echo "PROD_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+
+      - name: Create Pull Request (production)
+        id: createPullRequest
+        # Version: 2.4.3
+        uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
+        with:
+          source_branch: staging
+          destination_branch: production
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          pr_title: Update version to ${{ env.PROD_VERSION }} on production
+          pr_body: Update version to ${{ env.PROD_VERSION }}
+
+      - name: Automerge pull request to update production
+        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          WORKFLOW: automerge.yml
+          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ steps.createPullRequest.outputs.pr_number }}" }'
+
+      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+      # the other workflows with the same change
+      - uses: 8398a7/action-slack@v3
+        name: Job failed Slack notification
+        if: ${{ failure() }}
+        with:
+          status: custom
+          fields: workflow, repo
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!here>`,
+                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
