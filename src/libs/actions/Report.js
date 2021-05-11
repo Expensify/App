@@ -197,12 +197,13 @@ function getSimplifiedReportObject(report) {
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
     const transactions = _.map(reportData.transactionList, transaction => ({
+        // TransactionID is returned from API as a String
         transactionID: Number(transaction.transactionID),
         amount: transaction.amount,
         currency: transaction.currency,
         created: transaction.created,
         comment: transaction.comment,
-    })).reverse();
+    })).reverse(); // transactionList is returned in desc order, but we desire asc order
 
     return {
         reportID: reportData.reportID,
