@@ -25,12 +25,6 @@ const propTypes = {
         // The participants of this report
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
-
-    // Session info for the currently logged in user.
-    session: PropTypes.shape({
-        // Currently logged in user email
-        email: PropTypes.string,
-    }).isRequired,
 };
 
 const defaultProps = {
@@ -66,7 +60,6 @@ class ReportActionItemIOUAction extends Component {
                 {this.props.shouldDisplayPreview && (
                     <ReportActionItemIOUPreview
                         iouReportID={this.props.action.originalMessage.IOUReportID}
-                        session={this.props.session}
                         onPayButtonPressed={this.launchIOUDetailsModal}
                     />
                 )}
@@ -82,8 +75,5 @@ ReportActionItemIOUAction.displayName = 'ReportActionItemIOUAction';
 export default withOnyx({
     chatReport: {
         key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
     },
 })(ReportActionItemIOUAction);

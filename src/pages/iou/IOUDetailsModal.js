@@ -107,7 +107,6 @@ class IOUDetailsModal extends Component {
                         <ScrollView contentContainerStyle={{flexGrow: 1, paddingStart: 20, paddingEnd: 20}}>
                             <ReportActionItemIOUPreview
                                 iou={this.props.iouReport}
-                                session={this.props.session}
                                 shouldHidePayButton
                             />
                             <IOUTransactions
