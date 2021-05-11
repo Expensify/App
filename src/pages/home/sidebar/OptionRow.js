@@ -112,7 +112,7 @@ const OptionRow = ({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
-        ({displayName, login}) => ({displayName, tooltip: login}),
+        ({displayName, firstName, login}) => ({displayName: firstName || displayName, tooltip: login}),
     );
 
     return (
