@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Pressable} from 'react-native';
+import {View, Pressable, Dimensions} from 'react-native';
 import Icon from './Icon';
 import {Phone} from './Icon/Expensicons';
 import Popover from './Popover';
@@ -13,6 +13,11 @@ import themeColors from '../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
+
+const propTypes = {
+    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
+};
 
 class VideoChatButtonAndMenu extends Component {
     constructor(props) {
@@ -44,6 +49,14 @@ class VideoChatButtonAndMenu extends Component {
             isVideoChatMenuActive: false,
             videoChatIconPosition: {x: 0, y: 0},
         };
+    }
+
+    componentDidMount() {
+        Dimensions.addEventListener('change', this.measureVideoChatIconPosition);
+    }
+
+    componentWillUnmount() {
+        Dimensions.removeEventListener('change', this.measureVideoChatIconPosition);
     }
 
     /**
@@ -112,13 +125,7 @@ class VideoChatButtonAndMenu extends Component {
     }
 }
 
-const propTypes = {
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
-};
-
 VideoChatButtonAndMenu.propTypes = propTypes;
-
 VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
 export default compose(
     withWindowDimensions,
