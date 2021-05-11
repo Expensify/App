@@ -83,8 +83,8 @@ class IOUDetailsModal extends Component {
     }
 
     componentDidMount() {
-        // We should not update the chatReport data here, as there is no guarantee this is the active IOU
-        fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID, false);
+        // As there is no guarantee this is the active IOU, we should avoid updating the chatReport here.
+        fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
     }
 
     performIOUSettlement() {
