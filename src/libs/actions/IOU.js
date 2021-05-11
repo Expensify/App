@@ -56,7 +56,7 @@ function getIOUReportsForNewTransaction(requestParams) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportsToUpdate);
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
         })
-        .catch(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: true}))
+        .catch(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: ''}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
 }
 
@@ -69,7 +69,7 @@ function getIOUReportsForNewTransaction(requestParams) {
  * @param {String} params.debtorEmail
  */
 function createIOUTransaction(params) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: ''});
     API.CreateIOUTransaction(params)
         .then(data => getIOUReportsForNewTransaction([data]));
 }
@@ -83,7 +83,7 @@ function createIOUTransaction(params) {
  * @param {String} params.currency
  */
 function createIOUSplit(params) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: ''});
 
     API.CreateChatReport({
         emailList: params.splits.map(participant => participant.email).join(','),
@@ -118,7 +118,7 @@ function createIOUSplit(params) {
 function settleIOUReport({
     chatReportID, reportID, paymentMethodType,
 }) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: ''});
     API.PayIOU({
         reportID,
         paymentMethodType,
@@ -130,7 +130,7 @@ function settleIOUReport({
         })
         .then(fetchChatReportsByIDs([chatReportID]))
         .then(fetchIOUReportByID(reportID, chatReportID, true))
-        .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}))
+        .catch((error) => Onyx.merge(ONYXKEYS.IOU, {error: error}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }
 
