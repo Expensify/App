@@ -102,6 +102,7 @@
     "@babel/preset-react": "^7.10.4",
     "@babel/runtime": "^7.11.2",
     "@octokit/core": "^3.3.1",
+    "@octokit/plugin-throttling": "^3.4.1",
     "@octokit/rest": "^18.3.5",
     "@react-native-community/eslint-config": "^2.0.0",
     "@svgr/webpack": "^5.5.0",

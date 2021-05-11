@@ -1,6 +1,9 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
+const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
+const {throttling} = require('@octokit/plugin-throttling');
 const GithubUtils = require('../../libs/GithubUtils');
+
+const OctokitThrottled = GitHub.plugin(throttling);
 
 const prList = JSON.parse(core.getInput('PR_LIST', {required: true}));
 const isProd = JSON.parse(
@@ -8,7 +11,27 @@ const isProd = JSON.parse(
 );
 const version = core.getInput('DEPLOY_VERSION', {required: true});
 const token = core.getInput('GITHUB_TOKEN', {required: true});
-const octokit = github.getOctokit(token);
+const octokit = new OctokitThrottled(getOctokitOptions(token, {
+    throttle: {
+        onRateLimit: (retryAfter, options) => {
+            console.warn(
+                `Request quota exhausted for request ${options.method} ${options.url}`,
+            );
+
+            // Retry twice after hitting a rate limit error, then give up
+            if (options.request.retryCount <= 1) {
+                console.log(`Retrying after ${retryAfter} seconds!`);
+                return true;
+            }
+        },
+        onAbuseLimit: (retryAfter, options) => {
+            // does not retry, only logs a warning
+            console.warn(
+                `Abuse detected for request ${options.method} ${options.url}`,
+            );
+        },
+    },
+}));
 const githubUtils = new GithubUtils(octokit);
 
 /**
@@ -50,12 +73,9 @@ message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
  * @returns {Promise<void>}
  */
 function commentPR(pr) {
-    return githubUtils.createComment(github.context.repo.repo, pr, message, octokit)
+    return githubUtils.createComment(GitHub.context.repo.repo, pr, message, octokit)
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
-
-            // Sleep for 1 sec before making another request
-            return new Promise(res => setTimeout(res, 1000));
         })
         .catch((err) => {
             console.log(`Unable to write comment on #${pr} 😞`);
