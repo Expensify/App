@@ -469,6 +469,7 @@ function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
         .then(iouReportObject => setLocalIOUReportAndChatData(iouReportObject, chatReportID))
         .catch(error => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
 }
+
 /**
  * @param {Number} reportID
  * @param {Number} sequenceNumber
