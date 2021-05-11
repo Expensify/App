@@ -48,7 +48,8 @@ jobs:
         uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: updateProduction.yml
+          WORKFLOW: updateProtectedBranch.yml
+          INPUTS: '{ "TARGET_BRANCH": "production" }'
 
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:

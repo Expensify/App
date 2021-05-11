@@ -35,6 +35,7 @@ jobs:
         run: |
           git checkout -b version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
           git push --set-upstream origin version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
+          echo "VERSION_BRANCH=version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Generate version
         id: bumpVersion
@@ -52,24 +53,14 @@ jobs:
             ./ios/ExpensifyCash/Info.plist \
             ./ios/ExpensifyCashTests/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+          git push origin ${{ env.VERSION_BRANCH }}
 
-      - name: Create Pull Request (main)
-        id: createPullRequest
-        uses: peter-evans/create-pull-request@09b9ac155b0d5ad7d8d157ed32158c1b73689109
-        with:
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          author: OSBotify <reactnative@expensify.com>
-          base: main
-          branch: version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
-          title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on main
-          body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
-
-      - name: Automerge the version-bump PR to update main
+      - name: Update main branch
         uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: automerge.yml
-          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ steps.createPullRequest.outputs.pull-request-number }}" }'
+          WORKFLOW: updateProtectedBranch.yml
+          INPUTS: '{ "TARGET_BRANCH": "main", "SOURCE_BRANCH": "${{ env.VERSION_BRANCH }}" }'
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
