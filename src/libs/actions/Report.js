@@ -974,10 +974,11 @@ function addAction(reportID, text, file) {
  *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
-    // If we aren't specifying a sequenceNumber and have no maxSequenceNumber for this report then we should not update
-    // the last read. Most likely, we have just created the report and it has no comments. But we should err on the side
-    // of caution and do nothing in this case.
-    if (_.isUndefined(sequenceNumber) && _.isUndefined(reportMaxSequenceNumbers[reportID])) {
+    // If we aren't specifying a sequenceNumber and have no valid maxSequenceNumber for this report then we should not
+    // update the last read. Most likely, we have just created the report and it has no comments. But we should err on
+    // the side of caution and do nothing in this case.
+    if (_.isUndefined(sequenceNumber)
+        && (!reportMaxSequenceNumbers[reportID] && reportMaxSequenceNumbers[reportID] !== 0)) {
         return;
     }
 
