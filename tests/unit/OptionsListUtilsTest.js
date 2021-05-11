@@ -234,8 +234,8 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[1].text).toBe('Invisible Woman');
         expect(results.personalDetails[2].login).toBe('natasharomanoff@expensify.com');
 
-        // Test for Concierge's existance in chat options
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '');
+        // Test for Concierge's existence in chat options
+        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
 
         // Concierge is included in the results by default and all the personalDetails should be returned
         // minus the currently logged in user
@@ -358,8 +358,8 @@ describe('OptionsListUtils', () => {
         expect(results.userToInvite).not.toBe(null);
         expect(results.userToInvite.login).toBe('+15005550006');
 
-        // Test Concierge's existance in new group options
-        results = OptionsListUtils.getNewGroupOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '');
+        // Test Concierge's existence in new group options
+        results = OptionsListUtils.getNewGroupOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
         // (minus the 5 that are already showing and the currently logged in user)
