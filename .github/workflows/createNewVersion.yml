@@ -12,9 +12,6 @@ jobs:
     if: github.actor == 'OSBotify'
     runs-on: macos-latest
 
-    outputs:
-      PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pull-request-number }}
-
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
@@ -67,38 +64,12 @@ jobs:
           title: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }} on main
           body: Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
-      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
-      # the other workflows with the same change
-      - uses: 8398a7/action-slack@v3
-        name: Job failed Slack notification
-        if: ${{ failure() }}
-        with:
-          status: custom
-          fields: workflow, repo
-          custom_payload: |
-            {
-              channel: '#announce',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!here>`,
-                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-  # Note: This is a separate job because trigger-workflow-and-wait doesn't work on a macOS runner
-  updateMain:
-    needs: createNewVersion
-    runs-on: ubuntu-latest
-    steps:
       - name: Automerge the version-bump PR to update main
         uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: automerge.yml
-          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ needs.createNewVersion.outputs.PULL_REQUEST_NUMBER }}" }'
+          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ steps.createPullRequest.outputs.pull-request-number }}" }'
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
