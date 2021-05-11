@@ -9,6 +9,13 @@ const propTypes = {
 
     // The children which should be contained in this wrapper component.
     children: PropTypes.node.isRequired,
+
+    // The ref to the search input (may be null on small screen widths)
+    forwardedRef: PropTypes.func,
+};
+
+const defaultProps = {
+    forwardedRef: () => {},
 };
 
 /**
@@ -22,6 +29,9 @@ class PressableWithSecondaryInteraction extends Component {
     }
 
     componentDidMount() {
+        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+            this.props.forwardedRef(this.pressableRef);
+        }
         this.pressableRef.addEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
     }
 
@@ -55,5 +65,6 @@ class PressableWithSecondaryInteraction extends Component {
 }
 
 PressableWithSecondaryInteraction.propTypes = propTypes;
-
-export default PressableWithSecondaryInteraction;
+PressableWithSecondaryInteraction.defaultProps = defaultProps;
+// eslint-disable-next-line react/jsx-props-no-spreading
+export default React.forwardRef((props, ref) => <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />);
