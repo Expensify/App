@@ -19,12 +19,6 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.number,
 
-    // Session info for the currently logged in user.
-    session: PropTypes.shape({
-        // Currently logged in user email
-        email: PropTypes.string,
-    }).isRequired,
-
     /* --- Onyx Props --- */
     // Active IOU Report for current report
     iou: PropTypes.shape({
@@ -47,6 +41,12 @@ const propTypes = {
         // This is either the user's full name, or their login if full name is an empty string
         displayName: PropTypes.string.isRequired,
     })).isRequired,
+
+    // Session info for the currently logged in user.
+    session: PropTypes.shape({
+        // Currently logged in user email
+        email: PropTypes.string,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -132,5 +132,8 @@ export default withOnyx({
     },
     iou: {
         key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(ReportActionItemIOUPreview);
