@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByID} from './Report';
+import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
 
 /**
  * Retrieve the users preferred currency
@@ -129,7 +129,7 @@ function settleIOUReport({
             }
         })
         .then(fetchChatReportsByIDs([chatReportID]))
-        .then(fetchIOUReportByID(reportID, chatReportID, true))
+        .then(fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID))
         .catch(error => Onyx.merge(ONYXKEYS.IOU, {error}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }

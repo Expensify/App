@@ -364,26 +364,32 @@ function fetchChatReportsByIDs(chatList) {
 }
 
 /**
- * Given IOU object and chat report ID save the data to Onyx.
+ * Given IOU object, save the data to Onyx.
+ *
+ * @param {Object} iouReportObject
+ * @param {Number} iouReportObject.stateNum
+ * @param {Number} iouReportObject.total
+ * @param {Number} iouReportObject.reportID
+ */
+ function setLocalIOUReportData(iouReportObject) {
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
+    Onyx.merge(iouReportKey, iouReportObject);
+}
+
+/**
+ * Given IOU object and associated chatReportID, save the data to Onyx.
  *
  * @param {Object} iouReportObject
  * @param {Number} iouReportObject.stateNum
  * @param {Number} iouReportObject.total
  * @param {Number} iouReportObject.reportID
  * @param {Number} chatReportID
- * @param {Boolean} shouldUpdateChatReport - should the local chatReport be updated too?
  */
-function setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatReport) {
-    // Persist IOU Report data to Onyx
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
-    Onyx.merge(iouReportKey, iouReportObject);
+function setLocalIOUReportAndChatData(iouReportObject, chatReportID) {
+    // First persist the IOU Report data to Onyx
+    setLocalIOUReportData(iouReportData);
 
-    // We don't always want to update the chatReport. If the IOU Report we have retrieved is a settled report, then
-    // we must not update the chatReport - as the chatReports association with the active IOUreport would be overidden.
-    if (!shouldUpdateChatReport) {
-        return;
-    }
-
+    // Now update the associated chatReport data to ensure it has reference to updated report
     const chatReportObject = {
         hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
         iouReportID: iouReportObject.reportID,
@@ -440,15 +446,27 @@ function removeOptimisticActions(reportID) {
 
 /**
  * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chat report ID, required in order to link the reports in Onyx
- * @param {Boolean} shouldUpdateChatReport - should we update and link the chat report to this IOU report?
+ * @param {Number} chatReportID - associated chatReportI which should be added to IOU report data
+ *
+ * Retrieve an IOU report, but do not associate it with the chatReportID. As an example, the user might be viewing an
+ * old settled report that does not have outstanding IOUs.
+ */ 
+function fetchIOUReportByID(iouReportID, chatReportID) {
+    fetchIOUReport(iouReportID, chatReportID)
+        .then(iouReportObject => setLocalIOUReportData(iouReportObject))
+        .catch(error => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
+}
+
+/**
+ * @param {Number} iouReportID - ID of the report we are fetching
+ * @param {Number} chatReportID - associated chatReportID which should be updated and linked 
  *
  * Fetch an IOU Report and persist to Onyx, associating the IOUReport with a chatReport only if it is the active IOU
  * report. Else we would break the link to the active IOU for that chatReport (breaking badge and preview Components).
  */
-function fetchIOUReportByID(iouReportID, chatReportID, shouldUpdateChatReport) {
+function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
-        .then(iouReportObject => setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatReport))
+        .then(iouReportObject => setLocalIOUReportAndChatData(iouReportObject, chatReportID))
         .catch(error => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
 }
 
@@ -525,9 +543,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     // If chat report receives an action with IOU, update IOU object
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
-
-        // As this flow is for a new Action, we definitely need to update the local chat Report
-        fetchIOUReportByID(iouReportID, reportID, true);
+        fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -1152,6 +1168,7 @@ export {
     fetchOrCreateChatReport,
     fetchChatReportsByIDs,
     fetchIOUReportByID,
+    fetchIOUReportByIDAndUpdateChatReport,
     addAction,
     updateLastReadActionID,
     setNewMarkerPosition,
