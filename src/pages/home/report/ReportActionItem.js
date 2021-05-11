@@ -121,7 +121,7 @@ class ReportActionItem extends Component {
                 <ReportActionItemIOUAction
                     chatReportID={this.props.reportID}
                     action={this.props.action}
-                    shouldDisplayPreviewComp={this.props.hasOutstandingIOU && this.props.isMostRecentIOUReportAction}
+                    shouldDisplayPreview={this.props.hasOutstandingIOU && this.props.isMostRecentIOUReportAction}
                 />
             );
         } else {
