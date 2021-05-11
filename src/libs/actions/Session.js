@@ -15,13 +15,6 @@ Onyx.connect({
     callback: val => credentials = val,
 });
 
-// Keep track of the current environment so we can reset it in Onyx when we signout and clear the store
-let currentEnvironment = CONST.ENVIRONMENT.PRODUCTION;
-Onyx.connect({
-    key: ONYXKEYS.ENVIRONMENT,
-    callback: val => currentEnvironment = val,
-});
-
 /**
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
  *
@@ -219,11 +212,7 @@ function resetPassword() {
  * Restart the sign in process by clearing everything from Onyx
  */
 function restartSignin() {
-    const environment = currentEnvironment;
     Onyx.clear();
-
-    // Set the environment here to ensure the correct icon is shown on the login screen
-    Onyx.set(ONYXKEYS.ENVIRONMENT, environment);
 }
 
 /**
