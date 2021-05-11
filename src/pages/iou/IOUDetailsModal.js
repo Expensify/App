@@ -40,8 +40,8 @@ const propTypes = {
         // Is the IOU Report currently being settled
         loading: PropTypes.bool,
 
-        // Whether or not transaction creation has resulted to error
-        error: PropTypes.bool,
+        // Error message, empty represents no error
+        error: PropTypes.string,
     }),
 
     // IOU Report data object

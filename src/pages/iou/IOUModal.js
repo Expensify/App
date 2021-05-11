@@ -35,8 +35,8 @@ const propTypes = {
         // Whether or not transaction creation has started
         creatingIOUTransaction: PropTypes.bool,
 
-        // Whether or not transaction creation has resulted to error
-        error: PropTypes.bool,
+        // Error message, empty represents no error
+        error: PropTypes.string,
     }).isRequired,
 
     // Personal details of all the users
