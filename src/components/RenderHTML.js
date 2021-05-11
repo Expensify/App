@@ -14,6 +14,7 @@ import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
 import AttachmentModal from './AttachmentModal';
 import ThumbnailImage from './ThumbnailImage';
+import withLocalize from './withLocalize';
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -96,7 +97,7 @@ function CodeRenderer({
     );
 }
 
-function ImgRenderer({tnode}) {
+function ImgRenderer({tnode, translate}) {
     const htmlAttribs = tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
@@ -134,7 +135,7 @@ function ImgRenderer({tnode}) {
 
     return (
         <AttachmentModal
-            title="Attachment"
+            title={translate('common.attachment')}
             sourceURL={source}
             isAuthTokenRequired={isAttachment}
         >
@@ -163,7 +164,7 @@ ImgRenderer.model = defaultHTMLElementModels.img;
 const renderers = {
     a: AnchorRenderer,
     code: CodeRenderer,
-    img: ImgRenderer,
+    img: withLocalize(ImgRenderer),
 };
 
 const propTypes = {
