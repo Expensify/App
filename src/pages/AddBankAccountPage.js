@@ -3,7 +3,6 @@ import React from 'react';
 import {
     ActivityIndicator,
     View,
-    Button,
     Text,
     TextInput,
 } from 'react-native';
@@ -26,6 +25,7 @@ import styles from '../styles/styles';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import ButtonWithLoader from '../components/ButtonWithLoader';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -59,6 +59,7 @@ class AddBankAccountPage extends React.Component {
         this.state = {
             selectedIndex: undefined,
             password: '',
+            isCreatingAccount: false,
         };
     }
 
@@ -79,6 +80,7 @@ class AddBankAccountPage extends React.Component {
     addSelectedAccount() {
         const account = this.getAccounts()[this.state.selectedIndex];
         addPlaidBankAccount(account, this.state.password, this.props.plaidLinkToken);
+        this.setState({isCreatingAccount: true});
     }
 
     render() {
@@ -139,28 +141,31 @@ class AddBankAccountPage extends React.Component {
                                 )}
                             </React.Fragment>
                         ))}
-                        {!_.isUndefined(this.state.selectedIndex) && (
-                            <View style={[styles.m5]}>
-                                <Text style={[styles.formLabel]}>
-                                    {this.props.translate('addBankAccountPage.enterPassword')}
-                                </Text>
-                                <TextInput
-                                    secureTextEntry
-                                    style={[styles.textInput]}
-                                    value={this.state.password}
-                                    autoCompleteType="password"
-                                    textContentType="password"
-                                    autoCapitalize="none"
-                                    autoFocus={canFocusInputOnScreenFocus()}
-                                    onChangeText={text => this.setState({password: text})}
-                                />
-                            </View>
-                        )}
-                        <Button
-                            title="Continue"
-                            onPress={this.addSelectedAccount}
-                            disabled={_.isUndefined(this.state.selectedIndex)}
-                        />
+                        <View style={[styles.m5]}>
+                            {!_.isUndefined(this.state.selectedIndex) && (
+                                <>
+                                    <Text style={[styles.formLabel]}>
+                                        {this.props.translate('addBankAccountPage.enterPassword')}
+                                    </Text>
+                                    <TextInput
+                                        secureTextEntry
+                                        style={[styles.textInput, styles.mb2]}
+                                        value={this.state.password}
+                                        autoCompleteType="password"
+                                        textContentType="password"
+                                        autoCapitalize="none"
+                                        autoFocus={canFocusInputOnScreenFocus()}
+                                        onChangeText={text => this.setState({password: text})}
+                                    />
+                                </>
+                            )}
+                            <ButtonWithLoader
+                                text={this.props.translate('common.continue')}
+                                isLoading={this.state.isCreatingAccount}
+                                onClick={this.addSelectedAccount}
+                                isDisabled={_.isUndefined(this.state.selectedIndex) || !this.state.password}
+                            />
+                        </View>
                     </View>
                 )}
             </ScreenWrapper>
