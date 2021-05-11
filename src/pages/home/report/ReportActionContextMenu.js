@@ -27,11 +27,15 @@ const propTypes = {
 
     // Controls the visibility of this component.
     isVisible: PropTypes.bool,
+    
+    // The copy selection of text.
+    selection: PropTypes.string,
 };
 
 const defaultProps = {
     isMini: false,
     isVisible: false,
+    selection: '',
 };
 
 class ReportActionContextMenu extends React.Component {
