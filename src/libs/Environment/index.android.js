@@ -19,20 +19,18 @@ function getEnvironment() {
             return resolve(environment);
         }
 
-        // If we haven't set the environment yet, check it
+        // If we haven't set the environment yet and we aren't on dev, check the play store listing to see if the
+        // current version matches production
         try {
             fetch(CONST.PLAY_STORE_URL)
                 .then(res => res.text())
                 .then((text) => {
                     hasSetEnvironment = true;
-                    const match = text.match(/<span[^>]+class="htlgb"[^>]*>([-\d.]+)<\/span>/);
+                    const productionVersionMatch = text.match(/<span[^>]+class="htlgb"[^>]*>([-\d.]+)<\/span>/);
 
-                    // If we couldn't get a match, set the default to production
-                    // If the version is the same as the store version from the match, this is production
-                    if (!match || match[1].trim() === version) {
-                        environment = CONST.ENVIRONMENT.PRODUCTION;
-                    } else {
-                        // If the version isn't the same as the store version, and we aren't on dev, this is beta
+                    // If we have a match for the production version regex and the current version is not the same
+                    // as the production version, we are on a beta build
+                    if (productionVersionMatch && productionVersionMatch[1].trim() !== version) {
                         environment = CONST.ENVIRONMENT.STAGING;
                     }
 
@@ -40,12 +38,10 @@ function getEnvironment() {
                 })
                 .catch(() => {
                     hasSetEnvironment = true;
-                    environment = CONST.ENVIRONMENT.PRODUCTION;
                     resolve(environment);
                 });
         } catch (e) {
             hasSetEnvironment = true;
-            environment = CONST.ENVIRONMENT.PRODUCTION;
             resolve(environment);
         }
     });

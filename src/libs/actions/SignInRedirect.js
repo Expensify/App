@@ -3,7 +3,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import PushNotification from '../Notification/PushNotification';
-import CONST from '../../CONST';
 import Timers from '../Timers';
 
 let currentURL;
