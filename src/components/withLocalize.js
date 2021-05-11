@@ -67,7 +67,7 @@ function withLocalizeHOC(WrappedComponent) {
     };
     WithLocalize.defaultProps = {
         preferredLocale: 'en',
-        forwardedRef: null,
+        forwardedRef: undefined,
     };
     return React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
