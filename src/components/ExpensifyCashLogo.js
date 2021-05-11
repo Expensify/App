@@ -23,9 +23,7 @@ class ExpensifyCashLogo extends React.Component {
     componentDidMount() {
         Environment.getEnvironment()
             .then((environment) => {
-                this.setState({
-                    environment,
-                });
+                this.setState({environment});
             });
     }
 
