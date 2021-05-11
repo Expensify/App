@@ -245,7 +245,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
             // This is occuring due to 'fetchChatReportsByIDs' calling this function with a IOUReportID that has
-            // already been settled. In this case it is expected that no data is returned from 'getIOU'. 
+            // already been settled. In this case it is expected that no data is returned from 'getIOU'.
             return;
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
