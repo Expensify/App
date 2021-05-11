@@ -371,7 +371,7 @@ function fetchChatReportsByIDs(chatList) {
  * @param {Number} iouReportObject.total
  * @param {Number} iouReportObject.reportID
  */
- function setLocalIOUReportData(iouReportObject) {
+function setLocalIOUReportData(iouReportObject) {
     const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
     Onyx.merge(iouReportKey, iouReportObject);
 }
@@ -387,7 +387,7 @@ function fetchChatReportsByIDs(chatList) {
  */
 function setLocalIOUReportAndChatData(iouReportObject, chatReportID) {
     // First persist the IOU Report data to Onyx
-    setLocalIOUReportData(iouReportData);
+    setLocalIOUReportData(iouReportObject);
 
     // Now update the associated chatReport data to ensure it has reference to updated report
     const chatReportObject = {
@@ -450,7 +450,7 @@ function removeOptimisticActions(reportID) {
  *
  * Retrieve an IOU report, but do not associate it with the chatReportID. As an example, the user might be viewing an
  * old settled report that does not have outstanding IOUs.
- */ 
+ */
 function fetchIOUReportByID(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
         .then(iouReportObject => setLocalIOUReportData(iouReportObject))
@@ -459,7 +459,7 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
 
 /**
  * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportID which should be updated and linked 
+ * @param {Number} chatReportID - associated chatReportID which should be updated and linked
  *
  * Fetch an IOU Report and persist to Onyx, associating the IOUReport with a chatReport only if it is the active IOU
  * report. Else we would break the link to the active IOU for that chatReport (breaking badge and preview Components).
