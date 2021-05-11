@@ -10,11 +10,21 @@ import ROUTES from '../../../ROUTES';
 import Timing from '../../../libs/actions/Timing';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
-import {ChatBubble, Users} from '../../../components/Icon/Expensicons';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
+import {
+    ChatBubble,
+    Users,
+    MoneyCircle,
+    Receipt,
+} from '../../../components/Icon/Expensicons';
+import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
     // propTypes for withWindowDimensions
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 class SidebarScreen extends Component {
@@ -95,26 +105,29 @@ class SidebarScreen extends Component {
                             menuItems={[
                                 {
                                     icon: ChatBubble,
-                                    text: 'New Chat',
+                                    text: this.props.translate('sidebarScreen.newChat'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
+                                ...(Permissions.canUseIOU() ? [
+                                    {
+                                        icon: MoneyCircle,
+                                        text: this.props.translate('iou.requestMoney'),
+                                        onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
+                                    },
+                                ] : []),
                                 {
                                     icon: Users,
-                                    text: 'New Group',
+                                    text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
+                                ...(Permissions.canUseIOU() ? [
+                                    {
+                                        icon: Receipt,
+                                        text: this.props.translate('iou.splitBill'),
+                                        onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                    },
+                                ] : []),
                             ]}
-
-                        /**
-                         * Temporarily hiding IOU Modal options while Modal is incomplete. Will
-                         * be replaced by a beta flag once IOUConfirm is completed.
-                        menuOptions={[
-                            CONST.MENU_ITEM_KEYS.NEW_CHAT,
-                            CONST.MENU_ITEM_KEYS.REQUEST_MONEY,
-                            CONST.MENU_ITEM_KEYS.NEW_GROUP,
-                            CONST.MENU_ITEM_KEYS.SPLIT_BILL,
-                        ]}
-                        */
                         />
                     </>
                 )}
@@ -124,4 +137,7 @@ class SidebarScreen extends Component {
 }
 
 SidebarScreen.propTypes = propTypes;
-export default withWindowDimensions(SidebarScreen);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(SidebarScreen);

@@ -141,6 +141,17 @@ Using arrow functions is the preferred way to write an anonymous function such a
     _.map(someArray, (item) => {...});
     ```
 
+Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
+
+    ```javascript
+    // Bad
+    const callback = _.noop;
+    const callback = () => { };
+
+    // Good
+    const callback = () => {};
+    ```
+
 ## `var`, `const` and `let`
 
 - Never use `var`

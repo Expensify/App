@@ -2,6 +2,8 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
     getReportActionItemStyle,
@@ -13,7 +15,10 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
+import ReportActionItemIOUPreview from '../../../components/ReportActionItemIOUPreview';
+import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
+import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 
 const propTypes = {
     // The ID of the report this action is on.
@@ -25,8 +30,33 @@ const propTypes = {
     // Should the comment have the appearance of being grouped with the previous comment?
     displayAsGroup: PropTypes.bool.isRequired,
 
+    // Is this the most recent IOU Action?
+    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
+
+    // Whether there is an outstanding amount in IOU
+    hasOutstandingIOU: PropTypes.bool,
+
+    // IOU report ID associated with current report
+    iouReportID: PropTypes.number,
+
     // Should we display the new indicator on top of the comment?
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
+
+    // Position index of the report action in the overall report FlatList view
+    index: PropTypes.number.isRequired,
+
+    /* --- Onyx Props --- */
+    // Draft message - if this is set the comment is in 'edit' mode
+    draftMessage: PropTypes.string,
+
+    // Runs when the view enclosing the chat message lays out indicating it has rendered
+    onLayout: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+    draftMessage: '',
+    iouReportID: undefined,
+    hasOutstandingIOU: false,
 };
 
 class ReportActionItem extends Component {
@@ -45,12 +75,17 @@ class ReportActionItem extends Component {
 
         this.showPopover = this.showPopover.bind(this);
         this.hidePopover = this.hidePopover.bind(this);
+        this.selection = '';
     }
 
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
-            || (this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator)
+            || this.props.draftMessage !== nextProps.draftMessage
+            || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
+            || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
+            || this.props.iouReportID !== nextProps.iouReportID
+            || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
             || !_.isEqual(this.props.action, nextProps.action);
     }
 
@@ -70,10 +105,12 @@ class ReportActionItem extends Component {
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
+     * @param {string} [selection] - A copy text.
      */
-    showPopover(event) {
+    showPopover(event, selection) {
         const nativeEvent = event.nativeEvent || {};
         this.capturePressLocation(nativeEvent);
+        this.selection = selection;
         this.setState({isPopoverVisible: true});
     }
 
@@ -85,18 +122,51 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        let children;
+        if (this.props.action.actionName === 'IOU') {
+            children = (
+                <ReportActionItemIOUPreview
+                    iouReportID={this.props.iouReportID}
+                    hasOutstandingIOU={this.props.hasOutstandingIOU}
+                    action={this.props.action}
+                    isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
+                />
+            );
+        } else {
+            children = !this.props.draftMessage
+                ? <ReportActionItemMessage action={this.props.action} />
+                : (
+                    <ReportActionItemMessageEdit
+                            action={this.props.action}
+                            draftMessage={this.props.draftMessage}
+                            reportID={this.props.reportID}
+                            index={this.props.index}
+                    />
+                );
+        }
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
                 <Hoverable>
                     {hovered => (
                         <View>
-                            {!hovered && this.props.shouldDisplayNewIndicator && (
+                            {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
-                            <View style={getReportActionItemStyle(hovered)}>
+                            <View
+                                style={getReportActionItemStyle(hovered || this.props.draftMessage)}
+                                onLayout={this.props.onLayout}
+                            >
                                 {!this.props.displayAsGroup
-                                    ? <ReportActionItemSingle action={this.props.action} />
-                                    : <ReportActionItemGrouped action={this.props.action} />}
+                                    ? (
+                                        <ReportActionItemSingle action={this.props.action}>
+                                            {children}
+                                        </ReportActionItemSingle>
+                                    )
+                                    : (
+                                        <ReportActionItemGrouped>
+                                            {children}
+                                        </ReportActionItemGrouped>
+                                    )}
                             </View>
                             <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
                                 <ReportActionContextMenu
@@ -106,6 +176,8 @@ class ReportActionItem extends Component {
                                         hovered
                                         && !this.state.isPopoverVisible
                                     }
+                                    draftMessage={this.props.draftMessage}
+                                    hidePopover={this.hidePopover}
                                     isMini
                                 />
                             </View>
@@ -118,8 +190,10 @@ class ReportActionItem extends Component {
                                 measureContent={() => (
                                     <ReportActionContextMenu
                                         isVisible
-                                        reportID={-1}
+                                        selection={this.selection}
+                                        reportID={this.props.reportID}
                                         reportAction={this.props.action}
+                                        hidePopover={this.hidePopover}
                                     />
                                 )}
                             >
@@ -127,6 +201,8 @@ class ReportActionItem extends Component {
                                     isVisible
                                     reportID={this.props.reportID}
                                     reportAction={this.props.action}
+                                    draftMessage={this.props.draftMessage}
+                                    hidePopover={this.hidePopover}
                                 />
                             </PopoverWithMeasuredContent>
                         </View>
@@ -138,5 +214,10 @@ class ReportActionItem extends Component {
 }
 
 ReportActionItem.propTypes = propTypes;
+ReportActionItem.defaultProps = defaultProps;
 
-export default ReportActionItem;
+export default withOnyx({
+    draftMessage: {
+        key: ({reportID, action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`,
+    },
+})(ReportActionItem);

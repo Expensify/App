@@ -11,11 +11,14 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
-import ExpensifyCashLogo from '../../assets/images/expensify-cash.svg';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import variables from '../styles/variables';
 import ButtonWithLoader from '../components/ButtonWithLoader';
+import themeColors from '../styles/themes/default';
+import SignInPageLayout from './signin/SignInPageLayout';
+import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -40,6 +43,8 @@ const propTypes = {
 
     // The accountID and validateCode are passed via the URL
     route: validateLinkPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -54,7 +59,7 @@ class SetPasswordPage extends Component {
     constructor(props) {
         super(props);
 
-        this.submitForm = this.submitForm.bind(this);
+        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
             password: '',
@@ -65,10 +70,10 @@ class SetPasswordPage extends Component {
     /**
      * Validate the form and then submit it
      */
-    submitForm() {
+    validateAndSubmitForm() {
         if (!this.state.password.trim()) {
             this.setState({
-                formError: 'Password cannot be blank',
+                formError: this.props.translate('setPasswordPage.passwordCannotBeBlank'),
             });
             return;
         }
@@ -85,47 +90,46 @@ class SetPasswordPage extends Component {
 
     render() {
         return (
-            <>
-                <View style={[styles.signInPage]}>
-                    <SafeAreaView>
-                        <View style={[styles.signInPageInner]}>
-                            <View style={[styles.signInPageLogo]}>
-                                <ExpensifyCashLogo
-                                    width={variables.componentSizeLarge}
-                                    height={variables.componentSizeLarge}
-                                />
-                            </View>
-                            <View style={[styles.mb4]}>
-                                <Text style={[styles.formLabel]}>Enter a password</Text>
-                                <TextInput
-                                    style={[styles.textInput]}
-                                    secureTextEntry
-                                    autoCompleteType="password"
-                                    textContentType="password"
-                                    value={this.state.password}
-                                    onChangeText={text => this.setState({password: text})}
-                                    onSubmitEditing={this.submitForm}
-                                />
-                            </View>
-                            <ButtonWithLoader
-                                text="Set Password"
-                                onClick={this.submitForm}
-                                isLoading={this.props.account.loading}
-                            />
-                            {this.state.formError && (
-                                <Text style={[styles.formError]}>
-                                    {this.state.formError}
-                                </Text>
-                            )}
-                            {!_.isEmpty(this.props.account.error) && (
-                                <Text style={[styles.formError]}>
-                                    {this.props.account.error}
-                                </Text>
-                            )}
-                        </View>
-                    </SafeAreaView>
-                </View>
-            </>
+            <SafeAreaView style={[styles.signInPage]}>
+                <SignInPageLayout>
+                    <View style={[styles.mb4]}>
+                        <Text style={[styles.formLabel]}>
+                            {this.props.translate('setPasswordPage.enterPassword')}
+                        </Text>
+                        <TextInput
+                            style={[styles.textInput]}
+                            value={this.state.password}
+                            secureTextEntry
+                            autoCompleteType="password"
+                            textContentType="password"
+                            onChangeText={text => this.setState({password: text})}
+                            onSubmitEditing={this.validateAndSubmitForm}
+                            autoCapitalize="none"
+                            placeholderTextColor={themeColors.placeholderText}
+                            autoFocus={canFocusInputOnScreenFocus()}
+                        />
+                    </View>
+                    <View>
+                        <ButtonWithLoader
+                            text={this.props.translate('setPasswordPage.setPassword')}
+                            isLoading={this.props.account.loading}
+                            onClick={this.validateAndSubmitForm}
+                        />
+                    </View>
+
+                    {this.state.formError && (
+                        <Text style={[styles.formError]}>
+                            {this.state.formError}
+                        </Text>
+                    )}
+
+                    {!_.isEmpty(this.props.account.error) && (
+                        <Text style={[styles.formError]}>
+                            {this.props.account.error}
+                        </Text>
+                    )}
+                </SignInPageLayout>
+            </SafeAreaView>
         );
     }
 }
@@ -133,7 +137,10 @@ class SetPasswordPage extends Component {
 SetPasswordPage.propTypes = propTypes;
 SetPasswordPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(SetPasswordPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        credentials: {key: ONYXKEYS.CREDENTIALS},
+        account: {key: ONYXKEYS.ACCOUNT},
+    }),
+)(SetPasswordPage);

@@ -14,6 +14,9 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
+import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -47,6 +50,8 @@ const propTypes = {
             type: PropTypes.string,
         }),
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -96,60 +101,68 @@ class AddSecondaryLoginPage extends Component {
     render() {
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.formType === CONST.LOGIN_TYPE.PHONE ? 'Add Phone Number' : 'Add Email Address'}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
-                    <View style={styles.flexGrow1}>
-                        <Text style={[styles.mb6, styles.textP]}>
-                            {this.formType === CONST.LOGIN_TYPE.PHONE
-                                ? 'Enter your preferred phone number and password to send a validation link.'
-                                : 'Enter your preferred email address and password to send a validation link.'}
-                        </Text>
-                        <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {this.formType === CONST.LOGIN_TYPE.PHONE ? 'Phone Number' : 'Email Address'}
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                            ? 'addSecondaryLoginPage.addPhoneNumber'
+                            : 'addSecondaryLoginPage.addEmailAddress')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
+                        <View style={styles.flexGrow1}>
+                            <Text style={[styles.mb6, styles.textP]}>
+                                {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                    ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
+                                    : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
                             </Text>
-                            <TextInput
-                                style={styles.textInput}
-                                value={this.state.login}
-                                onChangeText={login => this.setState({login})}
-                                autoFocus
-                                keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
-                                    ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
-                                returnKeyType="done"
-                            />
-                        </View>
-                        <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>Password</Text>
-                            <TextInput
-                                style={styles.textInput}
-                                value={this.state.password}
-                                onChangeText={password => this.setState({password})}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                onSubmitEditing={this.submitForm}
-                            />
-                        </View>
-                        {!_.isEmpty(this.props.user.error) && (
+                            <View style={styles.mb6}>
+                                <Text style={[styles.mb1, styles.formLabel]}>
+                                    {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                        ? 'common.phoneNumber'
+                                        : 'profilePage.emailAddress')}
+                                </Text>
+                                <TextInput
+                                    style={styles.textInput}
+                                    value={this.state.login}
+                                    onChangeText={login => this.setState({login})}
+                                    autoFocus
+                                    keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
+                                        ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
+                                    returnKeyType="done"
+                                />
+                            </View>
+                            <View style={styles.mb6}>
+                                <Text style={[styles.mb1, styles.formLabel]}>
+                                    {this.props.translate('addSecondaryLoginPage.password')}
+                                </Text>
+                                <TextInput
+                                    style={styles.textInput}
+                                    value={this.state.password}
+                                    onChangeText={password => this.setState({password})}
+                                    secureTextEntry
+                                    autoCompleteType="password"
+                                    textContentType="password"
+                                    onSubmitEditing={this.submitForm}
+                                />
+                            </View>
+                            {!_.isEmpty(this.props.user.error) && (
                             <Text style={styles.formError}>
                                 {this.props.user.error}
                             </Text>
-                        )}
+                            )}
+                        </View>
+                        <View style={[styles.flexGrow0]}>
+                            <ButtonWithLoader
+                                isDisabled={this.validateForm()}
+                                isLoading={this.props.user.loading}
+                                text={this.props.translate('addSecondaryLoginPage.sendValidation')}
+                                onClick={this.submitForm}
+                            />
+                        </View>
                     </View>
-                    <View style={[styles.flexGrow0]}>
-                        <ButtonWithLoader
-                            isDisabled={this.validateForm()}
-                            isLoading={this.props.user.loading}
-                            text="Send Validation"
-                            onClick={this.submitForm}
-                        />
-                    </View>
-                </View>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
@@ -159,8 +172,11 @@ AddSecondaryLoginPage.propTypes = propTypes;
 AddSecondaryLoginPage.defaultProps = defaultProps;
 AddSecondaryLoginPage.displayName = 'AddSecondaryLoginPage';
 
-export default withOnyx({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(AddSecondaryLoginPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(AddSecondaryLoginPage);

@@ -99,7 +99,7 @@ const exec = promisify(__nccwpck_require__(3129).exec);
 function getPullRequestsMergedBetween(fromRef, toRef) {
     return exec(`git log --format="%s" ${fromRef}...${toRef}`)
         .then(({stdout}) => (
-            [...stdout.matchAll(/Merge pull request #(\d{1,6})/g)]
+            [...stdout.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)]
                 .map(match => match[1])
         ));
 }
@@ -198,7 +198,13 @@ class GithubUtils {
      * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
     getStagingDeployCashPRList(issue) {
-        const PRListSection = issue.body.match(/pull requests:\*\*\r\n((?:.*\r\n)+)\r\n/)[1];
+        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:.*\r?\n)+)\r?\n/) || [];
+        if (PRListSection.length !== 2) {
+            // No PRs, return an empty array
+            console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
+            return [];
+        }
+        PRListSection = PRListSection[1];
         const unverifiedPRs = _.map(
             [...PRListSection.matchAll(new RegExp(`- \\[ ] (${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
@@ -230,7 +236,7 @@ class GithubUtils {
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r\n((?:.*\r\n)+)/) || [];
+        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:.*\r?\n)+)/) || [];
         if (deployBlockerSection.length !== 2) {
             return [];
         }

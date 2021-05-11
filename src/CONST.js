@@ -3,6 +3,8 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const CONST = {
     BETAS: {
         ALL: 'all',
+        CHRONOS_IN_CASH: 'chronosInCash',
+        IOU: 'IOU',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -16,6 +18,7 @@ const CONST = {
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     UPWORK_URL: 'https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&user_location_match=2',
+    GITHUB_URL: 'https://github.com/Expensify/Expensify.cash',
     TERMS_URL: 'https://use.expensify.com/terms',
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
@@ -30,6 +33,10 @@ const CONST = {
             TYPE: {
                 IOU: 'IOU',
             },
+        },
+        TYPE: {
+            CHAT: 'chat',
+            IOU: 'iou',
         },
     },
     MODAL: {
@@ -56,13 +63,8 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
-        HOT: 'hot',
         COLD: 'cold',
-    },
-    MESSAGES: {
-        // eslint-disable-next-line max-len
-        NO_PHONE_NUMBER: 'Please enter a phone number including the country code e.g +447814266907',
-        MAXIMUM_PARTICIPANTS_REACHED: 'You\'ve reached the maximum number of participants for a group chat.',
+        REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -71,6 +73,11 @@ const CONST = {
     ERROR: {
         API_OFFLINE: 'API is offline',
     },
+    NETWORK: {
+        METHOD: {
+            POST: 'post',
+        },
+    },
     NVP: {
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
@@ -78,14 +85,6 @@ const CONST = {
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
-    PRONOUNS: {
-        HE_HIM_HIS: 'He/him',
-        SHE_HER_HERS: 'She/her',
-        THEY_THEM_THEIRS: 'They/them',
-        ZE_HIR_HIRS: 'Ze/hir',
-        SELF_SELECT: 'Self-select',
-        CALL_ME_BY_MY_NAME: 'Call me by my name',
-    },
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
@@ -108,6 +107,27 @@ const CONST = {
     },
 
     EMOJI_PICKER_SIZE: 360,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
+    EMOJI_PICKER_ITEM_HEIGHT: 40,
+    EMOJI_PICKER_HEADER_HEIGHT: 38,
+
+    EMAIL: {
+        CHRONOS: 'chronos@expensify.com',
+    },
+
+    ENVIRONMENT: {
+        DEV: 'DEV',
+        STAGING: 'STG',
+        PRODUCTION: 'PROD',
+    },
+
+    // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
+    // from backgound). The times are based on how long it generally seems to take for the app to become interactive
+    // in each scenario.
+    FETCH_ACTIONS_DELAY: {
+        STARTUP: 8000,
+        RECONNECT: 1000,
+    },
 };
 
 export default CONST;

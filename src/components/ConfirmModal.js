@@ -8,6 +8,8 @@ import Modal from './Modal';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** Title of the modal */
@@ -31,12 +33,14 @@ const propTypes = {
     /** Modal content text */
     prompt: PropTypes.string,
 
+    ...withLocalizePropTypes,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    confirmText: 'Yes',
-    cancelText: 'No',
+    confirmText: '',
+    cancelText: '',
     prompt: '',
 };
 
@@ -68,7 +72,7 @@ const ConfirmModal = props => (
                         styles.buttonSuccessText,
                     ]}
                 >
-                    {props.confirmText}
+                    {props.confirmText || props.translate('common.yes')}
                 </Text>
             </TouchableOpacity>
 
@@ -77,7 +81,7 @@ const ConfirmModal = props => (
                 onPress={props.onCancel}
             >
                 <Text style={styles.buttonText}>
-                    {props.cancelText}
+                    {props.cancelText || props.translate('common.no')}
                 </Text>
             </TouchableOpacity>
         </View>
@@ -87,4 +91,7 @@ const ConfirmModal = props => (
 ConfirmModal.propTypes = propTypes;
 ConfirmModal.defaultProps = defaultProps;
 ConfirmModal.displayName = 'ConfirmModal';
-export default withWindowDimensions(ConfirmModal);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(ConfirmModal);
