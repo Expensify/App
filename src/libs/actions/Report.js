@@ -378,7 +378,8 @@ function setLocalIOUReportData(iouReportObject, chatReportID, shouldUpdateChatRe
     const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportObject.reportID}`;
     Onyx.merge(iouReportKey, iouReportObject);
 
-    // We don't always want to update the chatReport, as the IOU could be an old settled report
+    // We don't always want to update the chatReport. If the IOU Report we have retrieved is a settled report, then
+    // we must not update the chatReport - as the chatReports association with the active IOUreport would be overidden.
     if (!shouldUpdateChatReport) {
         return;
     }
@@ -524,11 +525,8 @@ function updateReportWithNewAction(reportID, reportAction) {
     // If chat report receives an action with IOU, update IOU object
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
-        if (!iouReportID) {
-            console.error('IOUReportID not found in report action data, this should not happen!');
-        }
 
-        // As this flow is for a new Action, we definately need to update the local chat Report
+        // As this flow is for a new Action, we definitely need to update the local chat Report
         fetchIOUReportByID(iouReportID, reportID, true);
     }
 
