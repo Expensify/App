@@ -27,7 +27,7 @@ const octokit = new OctokitThrottled(getOctokitOptions(token, {
                 `Request quota exhausted for request ${options.method} ${options.url}`,
             );
 
-            // Retry twice after hitting a rate limit error, then give up
+            // Retry once after hitting a rate limit error, then give up
             if (options.request.retryCount <= 1) {
                 console.log(`Retrying after ${retryAfter} seconds!`);
                 return true;
