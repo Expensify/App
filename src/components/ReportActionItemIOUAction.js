@@ -38,16 +38,6 @@ class ReportActionItemIOUAction extends Component {
         this.launchIOUDetailsModal = this.launchIOUDetailsModal.bind(this);
     }
 
-    /**
-     *
-     * Launch the IOU Details Modal, using data from the report action
-     */
-    launchIOUDetailsModal() {
-        Navigation.navigate(ROUTES.getIouDetailsRoute(
-            this.props.chatReportID, this.props.action.originalMessage.IOUReportID,
-        ));
-    }
-
     render() {
         const hasMultipleParticipants = this.props.chatReport.participants.length >= 2;
         return (
@@ -55,12 +45,16 @@ class ReportActionItemIOUAction extends Component {
                 <ReportActionItemIOUQuote
                     action={this.props.action}
                     shouldShowViewDetailsLink={!hasMultipleParticipants}
-                    onViewDetailsPressed={this.launchIOUDetailsModal}
+                    onViewDetailsPressed={Navigation.navigate(ROUTES.getIouDetailsRoute(
+                        this.props.chatReportID, this.props.action.originalMessage.IOUReportID,
+                    ))}
                 />
                 {this.props.shouldDisplayPreview && (
                     <ReportActionItemIOUPreview
                         iouReportID={this.props.action.originalMessage.IOUReportID}
-                        onPayButtonPressed={this.launchIOUDetailsModal}
+                        onPayButtonPressed={Navigation.navigate(ROUTES.getIouDetailsRoute(
+                            this.props.chatReportID, this.props.action.originalMessage.IOUReportID,
+                        ))}
                     />
                 )}
             </View>

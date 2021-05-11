@@ -91,7 +91,7 @@ export default {
             },
             IOU_Details: {
                 screens: {
-                    IOU_Details_Route: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,
+                    IOU_Details_Root: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,
                 },
             },
         },
