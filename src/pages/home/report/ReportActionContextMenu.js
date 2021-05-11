@@ -3,15 +3,19 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import {setNewMarkerPosition, updateLastReadActionID} from '../../../libs/actions/Report';
+import {setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft} from '../../../libs/actions/Report';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
+import compose from '../../../libs/compose';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
+import ONYXKEYS from '../../../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -27,15 +31,31 @@ const propTypes = {
 
     // Controls the visibility of this component.
     isVisible: PropTypes.bool,
-    
+
     // The copy selection of text.
     selection: PropTypes.string,
+
+    // Draft message - if this is set the comment is in 'edit' mode
+    draftMessage: PropTypes.string,
+
+    // Function to dismiss the popover containing this menu
+    hidePopover: PropTypes.func.isRequired,
+
+    /* Onyx Props */
+    // The session of the logged in person
+    session: PropTypes.shape({
+        // Email of the logged in person
+        email: PropTypes.string,
+    }),
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isMini: false,
     isVisible: false,
     selection: '',
+    session: {},
+    draftMessage: '',
 };
 
 class ReportActionContextMenu extends React.Component {
@@ -46,9 +66,9 @@ class ReportActionContextMenu extends React.Component {
         this.CONTEXT_ACTIONS = [
             // Copy to clipboard
             {
-                text: 'Copy to Clipboard',
+                text: this.props.translate('reportActionContextMenu.copyToClipboard'),
                 icon: ClipboardIcon,
-                successText: 'Copied!',
+                successText: this.props.translate('reportActionContextMenu.copied'),
                 successIcon: Checkmark,
                 shouldShow: true,
 
@@ -71,14 +91,14 @@ class ReportActionContextMenu extends React.Component {
             },
 
             {
-                text: 'Copy Link',
+                text: this.props.translate('reportActionContextMenu.copyLink'),
                 icon: LinkCopy,
                 shouldShow: false,
                 onPress: () => {},
             },
 
             {
-                text: 'Mark as Unread',
+                text: this.props.translate('reportActionContextMenu.markAsUnread'),
                 icon: Mail,
                 successIcon: Checkmark,
                 shouldShow: true,
@@ -89,14 +109,23 @@ class ReportActionContextMenu extends React.Component {
             },
 
             {
-                text: 'Edit Comment',
+                text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
-                shouldShow: false,
-                onPress: () => {},
+                shouldShow: this.props.reportAction.actorEmail === this.props.session.email
+                    && !isReportMessageAttachment(this.getActionText())
+                    && this.props.reportAction.reportActionID,
+                onPress: () => {
+                    this.props.hidePopover();
+                    saveReportActionDraft(
+                        this.props.reportID,
+                        this.props.reportAction.reportActionID,
+                        _.isEmpty(this.props.draftMessage) ? this.getActionText() : '',
+                    );
+                },
             },
 
             {
-                text: 'Delete Comment',
+                text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
                 shouldShow: false,
                 onPress: () => {},
@@ -104,6 +133,18 @@ class ReportActionContextMenu extends React.Component {
         ];
 
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
+
+        this.getActionText = this.getActionText.bind(this);
+    }
+
+    /**
+     * Gets the text (not HTML) portion of the message in an action.
+     *
+     * @return {String}
+     */
+    getActionText() {
+        const message = _.last(lodashGet(this.props.reportAction, 'message', null));
+        return lodashGet(message, 'text', '');
     }
 
     render() {
@@ -117,7 +158,7 @@ class ReportActionContextMenu extends React.Component {
                         successText={contextAction.successText}
                         isMini={this.props.isMini}
                         key={contextAction.text}
-                        onPress={contextAction.onPress}
+                        onPress={() => contextAction.onPress(this.props.reportAction)}
                     />
                 ))}
             </View>
@@ -128,4 +169,11 @@ class ReportActionContextMenu extends React.Component {
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
 
-export default ReportActionContextMenu;
+export default compose(
+    withLocalize,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(ReportActionContextMenu);
