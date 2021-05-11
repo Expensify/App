@@ -135,7 +135,13 @@ class GithubUtils {
      * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
     getStagingDeployCashPRList(issue) {
-        const PRListSection = issue.body.match(/pull requests:\*\*\r\n((?:.*\r\n)+)\r\n/)[1];
+        let PRListSection = issue.body.match(/pull requests:\*\*\r\n((?:.*\r\n)+)\r\n/) || [];
+        if (PRListSection.length !== 2) {
+            // No PRs, return an empty array
+            console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
+            return [];
+        }
+        PRListSection = PRListSection[1];
         const unverifiedPRs = _.map(
             [...PRListSection.matchAll(new RegExp(`- \\[ ] (${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({

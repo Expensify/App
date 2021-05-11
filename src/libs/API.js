@@ -546,6 +546,19 @@ function Report_TogglePinned(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.reportActionID
+ * @param {String} parameters.reportComment
+ * @return {Promise}
+ */
+function Report_EditComment(parameters) {
+    const commandName = 'Report_EditComment';
+    requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {Number} parameters.accountID
  * @param {Number} parameters.reportID
  * @param {Number} parameters.sequenceNumber
@@ -769,6 +782,7 @@ export {
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,
+    Report_EditComment,
     Report_UpdateLastRead,
     ResendValidateCode,
     ResetPassword,

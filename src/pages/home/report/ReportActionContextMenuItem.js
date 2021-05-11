@@ -86,7 +86,6 @@ class ReportActionContextMenuItem extends Component {
     }
 }
 
-
 ReportActionContextMenuItem.propTypes = propTypes;
 ReportActionContextMenuItem.defaultProps = defaultProps;
 ReportActionContextMenuItem.displayName = 'ReportActionContextMenuItem';

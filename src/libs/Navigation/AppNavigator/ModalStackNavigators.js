@@ -1,7 +1,7 @@
+import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
-import ROUTES from '../../../ROUTES';
 import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
@@ -17,185 +17,109 @@ import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryL
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 import AddBankAccountPage from '../../../pages/AddBankAccountPage';
 
-// Setup the modal stack navigators so we only have to create them once
-const SettingsModalStack = createStackNavigator();
-const NewChatModalStack = createStackNavigator();
-const NewGroupModalStack = createStackNavigator();
-const SearchModalStack = createStackNavigator();
-const DetailsModalStack = createStackNavigator();
-const ReportParticipantsModalStack = createStackNavigator();
-const IOURequestModalStack = createStackNavigator();
-const IOUBillModalStack = createStackNavigator();
-const AddBankAccountModalStack = createStackNavigator();
-
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
     headerShown: false,
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 };
 
-const IOUBillStackNavigator = () => (
-    <IOUBillModalStack.Navigator
-        path={ROUTES.IOU_BILL}
-        screenOptions={{
-            ...defaultSubRouteOptions,
-        }}
-    >
-        <IOUBillModalStack.Screen
-            name="IOU_Bill_Root"
-            component={IOUBillPage}
-            options={{
-                title: 'Split',
+/**
+ * Create a modal stack navigator with an array of sub-screens.
+ *
+ * @param {Object[]} screens array of screen config objects
+ * @returns {Function}
+ */
+function createModalStackNavigator(screens) {
+    const ModalStackNavigator = createStackNavigator();
+    return () => (
+        <ModalStackNavigator.Navigator
+            screenOptions={{
+                ...defaultSubRouteOptions,
             }}
-        />
-    </IOUBillModalStack.Navigator>
-);
+        >
+            {_.map(screens, screen => (
+                <ModalStackNavigator.Screen
+                    key={screen.name}
+                    name={screen.name}
+                    component={screen.Component}
+                />
+            ))}
+        </ModalStackNavigator.Navigator>
+    );
+}
 
-const IOURequestModalStackNavigator = () => (
-    <IOURequestModalStack.Navigator
-        path={ROUTES.IOU_REQUEST}
-        screenOptions={{
-            ...defaultSubRouteOptions,
-        }}
-    >
-        <IOURequestModalStack.Screen
-            name="IOU_Request_Root"
-            component={IOURequestPage}
-            options={{
-                title: 'Request',
-            }}
-        />
-    </IOURequestModalStack.Navigator>
-);
+const IOUBillStackNavigator = createModalStackNavigator([{
+    Component: IOUBillPage,
+    name: 'IOU_Bill_Root',
+}]);
 
-const DetailsModalStackNavigator = () => (
-    <DetailsModalStack.Navigator
-        path={ROUTES.DETAILS}
-        screenOptions={{
-            ...defaultSubRouteOptions,
-        }}
-    >
-        <DetailsModalStack.Screen
-            name="Details_Root"
-            component={DetailsPage}
-            options={{
-                title: 'Details',
-            }}
-        />
-    </DetailsModalStack.Navigator>
-);
+const IOURequestModalStackNavigator = createModalStackNavigator([{
+    Component: IOURequestPage,
+    name: 'IOU_Request_Root',
+}]);
 
-const ReportParticipantsModalStackNavigator = () => (
-    <ReportParticipantsModalStack.Navigator screenOptions={{...defaultSubRouteOptions}}>
-        <ReportParticipantsModalStack.Screen
-            name="ReportParticipants_Root"
-            component={ReportParticipantsPage}
-        />
-        <ReportParticipantsModalStack.Screen
-            name="ReportParticipants_Details"
-            component={DetailsPage}
-        />
-    </ReportParticipantsModalStack.Navigator>
-);
+const DetailsModalStackNavigator = createModalStackNavigator([{
+    Component: DetailsPage,
+    name: 'Details_Root',
+}]);
 
-const SearchModalStackNavigator = () => (
-    <SearchModalStack.Navigator
-        path={ROUTES.SEARCH}
-        screenOptions={{
-            ...defaultSubRouteOptions,
-        }}
-    >
-        <SearchModalStack.Screen
-            name="Search_Root"
-            component={SearchPage}
-            options={{
-                title: 'Search',
-            }}
-        />
-    </SearchModalStack.Navigator>
-);
+const ReportParticipantsModalStackNavigator = createModalStackNavigator([
+    {
+        Component: ReportParticipantsPage,
+        name: 'ReportParticipants_Root',
+    },
+    {
+        Component: DetailsPage,
+        name: 'ReportParticipants_Details',
+    },
+]);
 
-const NewGroupModalStackNavigator = () => (
-    <NewGroupModalStack.Navigator
-        path={ROUTES.NEW_GROUP}
-        screenOptions={{
-            ...defaultSubRouteOptions,
-        }}
-    >
-        <NewGroupModalStack.Screen
-            name="NewGroup_Root"
-            component={NewGroupPage}
-            options={{
-                title: 'New Group',
-            }}
-        />
-    </NewGroupModalStack.Navigator>
-);
+const SearchModalStackNavigator = createModalStackNavigator([{
+    Component: SearchPage,
+    name: 'Search_Root',
+}]);
 
-const NewChatModalStackNavigator = () => (
-    <NewChatModalStack.Navigator
-        path={ROUTES.NEW_CHAT}
-        screenOptions={{
-            ...defaultSubRouteOptions,
-        }}
-    >
-        <NewChatModalStack.Screen
-            name="NewChat_Root"
-            component={NewChatPage}
-            options={{
-                title: 'New Chat',
-            }}
-        />
-    </NewChatModalStack.Navigator>
-);
+const NewGroupModalStackNavigator = createModalStackNavigator([{
+    Component: NewGroupPage,
+    name: 'NewGroup_Root',
+}]);
 
-const SettingsModalStackNavigator = () => (
-    <SettingsModalStack.Navigator
-        path={ROUTES.SETTINGS}
-        screenOptions={{
-            ...defaultSubRouteOptions,
-            title: 'Settings',
-        }}
-    >
-        <SettingsModalStack.Screen
-            name="Settings_Root"
-            component={SettingsInitialPage}
-        />
-        <SettingsModalStack.Screen
-            name="Settings_Profile"
-            component={SettingsProfilePage}
-        />
-        <SettingsModalStack.Screen
-            name="Settings_Add_Secondary_Login"
-            component={SettingsAddSecondaryLoginPage}
-        />
-        <SettingsModalStack.Screen
-            name="Settings_Preferences"
-            component={SettingsPreferencesPage}
-        />
-        <SettingsModalStack.Screen
-            name="Settings_Password"
-            component={SettingsPasswordPage}
-        />
-        <SettingsModalStack.Screen
-            name="Settings_Payments"
-            component={SettingsPaymentsPage}
-        />
-    </SettingsModalStack.Navigator>
-);
+const NewChatModalStackNavigator = createModalStackNavigator([{
+    Component: NewChatPage,
+    name: 'NewChat_Root',
+}]);
 
-const AddBankAccountModalStackNavigator = () => (
-    <AddBankAccountModalStack.Navigator
-        screenOptions={{
-            ...defaultSubRouteOptions,
-        }}
-    >
-        <AddBankAccountModalStack.Screen
-            name="AddBankAccount_Root"
-            component={AddBankAccountPage}
-        />
-    </AddBankAccountModalStack.Navigator>
-);
+const SettingsModalStackNavigator = createModalStackNavigator([
+    {
+        Component: SettingsInitialPage,
+        name: 'Settings_Root',
+    },
+    {
+        Component: SettingsProfilePage,
+        name: 'Settings_Profile',
+    },
+    {
+        Component: SettingsAddSecondaryLoginPage,
+        name: 'Settings_Add_Secondary_Login',
+    },
+    {
+        Component: SettingsPreferencesPage,
+        name: 'Settings_Preferences',
+    },
+    {
+        Component: SettingsPasswordPage,
+        name: 'Settings_Password',
+    },
+    {
+        Component: SettingsPaymentsPage,
+        name: 'Settings_Payments',
+    },
+]);
+
+const AddBankAccountModalStackNavigator = createModalStackNavigator([{
+    Component: AddBankAccountPage,
+    name: 'AddBankAccount_Root',
+}]);
 
 export {
     IOUBillStackNavigator,
