@@ -57,7 +57,7 @@ class EmojiPickerMenu extends Component {
         this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
             ? emojis.slice(0, this.unfilteredHeaderIndices.pop())
             : emojis;
-        
+
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
