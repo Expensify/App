@@ -179,8 +179,7 @@ class AttachmentPicker extends Component {
      */
     setResult(attachment) {
         if (attachment && !attachment.didCancel && !attachment.error) {
-            if (attachment.width === -1 || attachment.height === -1)
-            {
+            if (attachment.width === -1 || attachment.height === -1) {
                 showImageCorruptionAlert();
                 return;
             }
