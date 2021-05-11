@@ -1410,6 +1410,14 @@ const styles = {
         opacity: 0,
         transform: 'translateX(-100%)',
     },
+
+    blockquote: {
+        borderLeftColor: themeColors.border,
+        borderLeftWidth: 4,
+        paddingLeft: 12,
+        marginTop: 4,
+        marginBottom: 4,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1445,17 +1453,6 @@ const webViewStyles = {
 
         li: {
             flexShrink: 1,
-        },
-
-        blockquote: {
-            borderLeftColor: themeColors.border,
-            borderLeftWidth: 4,
-            paddingLeft: 12,
-            marginTop: 4,
-            marginBottom: 4,
-
-            // Overwrite default HTML margin for blockquotes
-            marginLeft: 0,
         },
 
         pre: {
