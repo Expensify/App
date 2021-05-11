@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {Dimensions} from 'react-native';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
@@ -28,7 +29,7 @@ export default function (WrappedComponent) {
         constructor(props) {
             super(props);
 
-            this.onDimensionChange = this.onDimensionChange.bind(this);
+            this.onDimensionChange = _.debounce(this.onDimensionChange.bind(this), 100);
 
             const initialDimensions = Dimensions.get('window');
             const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
