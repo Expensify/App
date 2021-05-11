@@ -943,15 +943,14 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     // If we aren't specifying a sequenceNumber and have no maxSequenceNumber for this report then we should not update
     // the last read. Most likely, we have just created the report and it has no comments. But we should err on the side
     // of caution and do nothing in this case.
-    if (_.isUndefined(sequenceNumber)
-        && (_.isUndefined(reportMaxSequenceNumbers[reportID]) || _.isNull(reportMaxSequenceNumbers[reportID]))
-    ) {
+    if (_.isUndefined(sequenceNumber) && _.isUndefined(reportMaxSequenceNumbers[reportID])) {
         return;
     }
 
     // Need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot (the last read
     // action). If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action)
     const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
+
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items
