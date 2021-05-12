@@ -64,7 +64,15 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState);
+        if (this.props.isVisible
+            && (nextProps.windowWidth !== this.props.windowWidth
+                || nextProps.windowHeight !== this.props.windowHeight)) {
+            return true;
+        }
+        return !_.isEqual(
+            _.omit(this.props, ['windowWidth', 'windowHeight']),
+            _.omit(nextProps, ['windowWidth', 'windowHeight']),
+        ) || !_.isEqual(this.state, nextState);
     }
 
     /**
@@ -121,6 +129,7 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     render() {
+        console.debug('render');
         const adjustedAnchorPosition = this.calculateAdjustedAnchorPosition();
         const horizontalShift = computeHorizontalShift(
             adjustedAnchorPosition.left,
