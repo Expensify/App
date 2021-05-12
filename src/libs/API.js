@@ -5,6 +5,7 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
+import getPlatform from './getPlatform';
 
 let isAuthenticating;
 let credentials;
@@ -707,7 +708,10 @@ function CreateIOUSplit(parameters) {
  * @returns {Promise}
  */
 function Wallet_GetOnfidoSDKToken() {
-    return Network.post('Wallet_GetOnfidoSDKToken', {}, CONST.NETWORK.METHOD.POST, true);
+    const platform = getPlatform();
+    return Network.post('Wallet_GetOnfidoSDKToken', {
+        isViaExpensifyCashNative: platform === 'ios' || platform === 'android',
+    }, CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
