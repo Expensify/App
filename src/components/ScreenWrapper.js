@@ -24,13 +24,8 @@ const propTypes = {
     // Whether to include padding top
     includePaddingTop: PropTypes.bool,
 
-    // Called when navigated Screen's transition is finished.
-    onTransitionEnd: PropTypes.func,
-
-    // react-navigation navigation object available to screen components
+    // react-navigation object that will allow us to goBack()
     navigation: PropTypes.shape({
-        // Method to attach listner to Navigaton state.
-        addListener: PropTypes.func.isRequired,
 
         // Returns to the previous navigation state e.g. if this is inside a Modal we will dismiss it
         goBack: PropTypes.func,
@@ -41,39 +36,24 @@ const defaultProps = {
     style: [],
     includePaddingBottom: true,
     includePaddingTop: true,
-    onTransitionEnd: () => {},
     navigation: {
-        addListener: () => {},
         goBack: () => {},
     },
 };
 
 class ScreenWrapper extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            didScreenTransitionEnd: false,
-        };
-    }
-
     componentDidMount() {
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
+        this.unsubscribe = KeyboardShortcut.subscribe('Escape', () => {
             this.props.navigation.goBack();
         }, [], true);
-
-        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', () => {
-            this.setState({didScreenTransitionEnd: true});
-            this.props.onTransitionEnd();
-        });
     }
 
     componentWillUnmount() {
-        if (this.unsubscribeEscapeKey) {
-            this.unsubscribeEscapeKey();
+        if (!this.unsubscribe) {
+            return;
         }
-        if (this.unsubscribeTransitionEnd) {
-            this.unsubscribeTransitionEnd();
-        }
+
+        this.unsubscribe();
     }
 
     render() {
@@ -101,10 +81,7 @@ class ScreenWrapper extends React.Component {
                             <HeaderGap />
                             {// If props.children is a function, call it to provide the insets to the children.
                                 _.isFunction(this.props.children)
-                                    ? this.props.children({
-                                        insets,
-                                        didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                    })
+                                    ? this.props.children(insets)
                                     : this.props.children
                             }
                         </View>
