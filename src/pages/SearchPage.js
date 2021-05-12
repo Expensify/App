@@ -15,6 +15,9 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -47,6 +50,8 @@ const propTypes = {
 
     /* Window Dimensions Props */
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 class SearchPage extends Component {
@@ -56,7 +61,6 @@ class SearchPage extends Component {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
 
         this.selectReport = this.selectReport.bind(this);
-
         const {
             recentReports,
             personalDetails,
@@ -86,7 +90,7 @@ class SearchPage extends Component {
      */
     getSections() {
         const sections = [{
-            title: 'RECENT',
+            title: this.props.translate('iou.recents'),
             data: this.state.recentReports.concat(this.state.personalDetails),
             shouldShow: true,
             indexOffset: 0,
@@ -137,39 +141,46 @@ class SearchPage extends Component {
         );
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title="Search"
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        sections={sections}
-                        value={this.state.searchValue}
-                        onSelectRow={this.selectReport}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                                userToInvite,
-                            } = getSearchOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                recentReports,
-                                personalDetails,
-                            });
-                        }}
-                        headerMessage={headerMessage}
-                        hideSectionHeaders
-                        hideAdditionalOptionStates
-                        showTitleTooltip
-                    />
-                </View>
-                <KeyboardSpacer />
+                {({didScreenTransitionEnd}) => (
+                    <>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('common.search')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.selectReport}
+                                onChangeText={(searchValue = '') => {
+                                    const {
+                                        recentReports,
+                                        personalDetails,
+                                        userToInvite,
+                                    } = getSearchOptions(
+                                        this.props.reports,
+                                        this.props.personalDetails,
+                                        searchValue,
+                                    );
+                                    this.setState({
+                                        searchValue,
+                                        userToInvite,
+                                        recentReports,
+                                        personalDetails,
+                                    });
+                                }}
+                                headerMessage={headerMessage}
+                                hideSectionHeaders
+                                hideAdditionalOptionStates
+                                showTitleTooltip
+                            />
+                            )}
+                        </View>
+                        <KeyboardSpacer />
+                    </>
+                )}
             </ScreenWrapper>
         );
     }
@@ -178,14 +189,18 @@ class SearchPage extends Component {
 SearchPage.propTypes = propTypes;
 SearchPage.displayName = 'SearchPage';
 
-export default withWindowDimensions(withOnyx({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(SearchPage));
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(SearchPage);

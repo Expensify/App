@@ -14,6 +14,7 @@ import {
 import OptionsList from './OptionsList';
 import ButtonWithLoader from './ButtonWithLoader';
 import ONYXKEYS from '../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
@@ -62,6 +63,8 @@ const propTypes = {
     })).isRequired,
 
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 
     /* Onyx Props */
 
@@ -120,13 +123,13 @@ class IOUConfirmationList extends Component {
                 `${this.props.selectedCurrency.currencySymbol}${this.calculateAmount() / 100}`);
 
             sections.push({
-                title: 'WHO PAID?',
+                title: this.props.translate('iOUConfirmationList.whoPaid'),
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
             });
             sections.push({
-                title: 'WHO WAS THERE?',
+                title: this.props.translate('iOUConfirmationList.whoWasThere'),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
@@ -137,7 +140,7 @@ class IOUConfirmationList extends Component {
                 `${this.props.selectedCurrency.currencySymbol}${this.props.iouAmount}`);
 
             sections.push({
-                title: 'TO',
+                title: this.props.translate('common.to').toUpperCase(),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
@@ -245,7 +248,7 @@ class IOUConfirmationList extends Component {
                     />
                     <View>
                         <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                            WHAT&apos;S IT FOR?
+                            {this.props.translate('iOUConfirmationList.whatsItFor')}
                         </Text>
                     </View>
                     <View style={[styles.ph5]}>
@@ -253,7 +256,7 @@ class IOUConfirmationList extends Component {
                             style={[styles.textInput]}
                             value={this.props.comment}
                             onChangeText={this.props.onUpdateComment}
-                            placeholder="Optional"
+                            placeholder={this.props.translate('common.optional')}
                             placeholderTextColor={themeColors.placeholderText}
                         />
                     </View>
@@ -262,7 +265,9 @@ class IOUConfirmationList extends Component {
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
                         text={this.props.hasMultipleParticipants
-                            ? 'Split' : `Request ${this.props.selectedCurrency.currencySymbol}${this.props.iouAmount}`}
+                            ? this.props.translate('common.split')
+                            : this.props.translate('iou.request',
+                                {amount: `${this.props.selectedCurrency.currencySymbol}${this.props.iouAmount}`})}
                         onClick={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
@@ -275,9 +280,14 @@ IOUConfirmationList.displayName = 'IOUConfirmPage';
 IOUConfirmationList.propTypes = propTypes;
 IOUConfirmationList.defaultProps = defaultProps;
 
-export default compose(withOnyx({
-    iou: {key: ONYXKEYS.IOU},
-    myPersonalDetails: {
-        key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    },
-}), withSafeAreaInsets, withWindowDimensions)(IOUConfirmationList);
+export default compose(
+    withLocalize,
+    withSafeAreaInsets,
+    withWindowDimensions,
+    withOnyx({
+        iou: {key: ONYXKEYS.IOU},
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+    }),
+)(IOUConfirmationList);
