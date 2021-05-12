@@ -2,6 +2,7 @@ import React from 'react';
 import {
     View,
     Text,
+    InteractionManager,
     TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -52,29 +53,12 @@ class IOUAmountPage extends React.Component {
 
         this.updateAmountIfValidInput = this.updateAmountIfValidInput.bind(this);
         this.state = {
-            amount: props.selectedAmount || '',
+            amount: props.selectedAmount,
         };
     }
 
     componentDidMount() {
-        this.setupEventHandlers();
-    }
-
-    componentDidUpdate(prevProps) {
-        // Component mounts before iou is finished loading, input focus doesn't work unless iou is loaded
-        if (this.textInput && prevProps.iou.loading !== this.props.iou.loading) {
-            this.textInput.focus();
-        }
-    }
-
-    componentWillUnmount() {
-        this.cleanupEventHandlers();
-    }
-
-    /**
-     * Setup and attach keypress handler for navigating to the next screen
-     */
-    setupEventHandlers() {
+        // Setup and attach keypress handler for navigating to the next screen
         if (document) {
             this.keyDownHandler = (keyBoardEvent) => {
                 // Proceeds to the next screen if the amount isn't empty
@@ -84,12 +68,17 @@ class IOUAmountPage extends React.Component {
             };
             document.addEventListener('keydown', this.keyDownHandler);
         }
+
+        // Wait to trigger manual focus until other interactions are complete so the input exists
+        InteractionManager.runAfterInteractions(() => {
+            if (this.textInput) {
+                this.textInput.focus();
+            }
+        });
     }
 
-    /**
-     * Cleanup all keydown event listeners that we've set up
-     */
-    cleanupEventHandlers() {
+    // Cleanup all keydown event listeners that we've set up
+    componentWillUnmount() {
         if (document) {
             document.removeEventListener('keydown', this.keyDownHandler);
         }
