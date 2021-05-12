@@ -80,7 +80,6 @@ class IOUParticipantsSplit extends Component {
             props.personalDetails,
             '',
             props.participants,
-            true,
         );
 
         this.state = {
@@ -180,7 +179,6 @@ class IOUParticipantsSplit extends Component {
                 this.props.personalDetails,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                true,
             );
             return {
                 recentReports,
@@ -215,7 +213,6 @@ class IOUParticipantsSplit extends Component {
                             this.props.personalDetails,
                             searchValue,
                             [],
-                            true,
                         );
                         this.setState({
                             searchValue,
