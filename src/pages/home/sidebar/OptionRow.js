@@ -114,7 +114,7 @@ const OptionRow = ({
     const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, firstName, login}) => (
-            {displayName: isMultipleParticipant ? firstName : displayName, tooltip: login}
+            {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
         ),
     );
     const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');

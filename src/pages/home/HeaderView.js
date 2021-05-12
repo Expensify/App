@@ -57,7 +57,7 @@ const HeaderView = (props) => {
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
         ({displayName, firstName, login}) => (
-            {displayName: isMultipleParticipant ? firstName : displayName || login, tooltip: login}
+            {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
         ),
     );
     const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
