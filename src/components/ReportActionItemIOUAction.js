@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -31,36 +31,30 @@ const defaultProps = {
     chatReport: {},
 };
 
-class ReportActionItemIOUAction extends Component {
-    constructor(props) {
-        super(props);
-
-        this.launchIOUDetailsModal = this.launchIOUDetailsModal.bind(this);
-    }
-
-    render() {
-        const hasMultipleParticipants = this.props.chatReport.participants.length >= 2;
-        return (
-            <View>
-                <ReportActionItemIOUQuote
-                    action={this.props.action}
-                    shouldShowViewDetailsLink={!hasMultipleParticipants}
-                    onViewDetailsPressed={Navigation.navigate(ROUTES.getIouDetailsRoute(
-                        this.props.chatReportID, this.props.action.originalMessage.IOUReportID,
-                    ))}
-                />
-                {this.props.shouldDisplayPreview && (
-                    <ReportActionItemIOUPreview
-                        iouReportID={this.props.action.originalMessage.IOUReportID}
-                        onPayButtonPressed={Navigation.navigate(ROUTES.getIouDetailsRoute(
-                            this.props.chatReportID, this.props.action.originalMessage.IOUReportID,
-                        ))}
-                    />
-                )}
-            </View>
-        );
-    }
-}
+const ReportActionItemIOUAction = ({
+    action,
+    chatReportID,
+    shouldDisplayPreview,
+    chatReport,
+}) => (
+    <View>
+        <ReportActionItemIOUQuote
+            action={action}
+            shouldShowViewDetailsLink={chatReport.participants.length <= 2}
+            onViewDetailsPressed={() => Navigation.navigate(ROUTES.getIouDetailsRoute(
+                chatReportID, action.originalMessage.IOUReportID,
+            ))}
+        />
+        {shouldDisplayPreview && (
+            <ReportActionItemIOUPreview
+                iouReportID={action.originalMessage.IOUReportID}
+                onPayButtonPressed={() => Navigation.navigate(ROUTES.getIouDetailsRoute(
+                    chatReportID, action.originalMessage.IOUReportID,
+                ))}
+            />
+        )}
+    </View>
+);
 
 ReportActionItemIOUAction.propTypes = propTypes;
 ReportActionItemIOUAction.defaultProps = defaultProps;
