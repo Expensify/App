@@ -29,22 +29,46 @@ const defaultProps = {
 };
 
 class IOUTransactions extends Component {
+    constructor(props) {
+        super(props);
+
+        this.getActionForTransaction = this.getActionForTransaction.bind(this);
+    }
+
+    /**
+     * Given a transaction from an IOU Report, returns the chatReport action with a matching transactionID. Unless
+     * something has gone wrong with our storing logic, there should always exist an action for each transaction.
+     *
+     * @param {Object} transaction
+     * @returns {Object} action
+     */
+    getActionForTransaction(transaction) {
+        const matchedAction = _.find(this.props.reportActions, (action) => {
+            if (action && action.originalMessage
+                && action.originalMessage.IOUTransactionID === transaction.transactionID) {
+                return action;
+            }
+            return false;
+        });
+        if (!matchedAction) {
+            throw new Error(`Unable to locate a matching report action for transaction ${transaction.transactionID}!`);
+        }
+
+        return matchedAction;
+    }
+
     render() {
         return (
             <View style={[styles.mt3]}>
+                {/* For each IOU transaction, get the matching report action */}
                 {_.map(this.props.transactions, (transaction) => {
-                    const actionForTransaction = _.find(this.props.reportActions, (action) => {
-                        if (action && action.originalMessage) {
-                            return action.originalMessage.IOUTransactionID === transaction.transactionID;
-                        }
-                        return false;
-                    });
+                    const action = this.getActionForTransaction(transaction);
                     return (
                         <ReportTransaction
                             chatReportID={this.props.chatReportID}
                             iouReportID={this.props.iouReportID}
-                            action={actionForTransaction}
-                            key={actionForTransaction.originalMessage.IOUTransactionID}
+                            action={action}
+                            key={action.originalMessage.IOUTransactionID}
                         />
                     );
                 })}
