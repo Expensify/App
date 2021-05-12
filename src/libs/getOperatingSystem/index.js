@@ -1,24 +1,10 @@
-import {Platform} from 'react-native';
-import CONST from '../CONST';
+import CONST from '../../CONST';
 
 /**
- * Reads the current operating system.
+ * Reads the current operating system when running on Web/Mobile-Web/Desktop
  * @return {String | null}
  */
-function getOperatingSystem() {
-    // When running on a native device
-    if (!window || !window.navigator || !window.navigator.platform) {
-        switch (Platform.OS) {
-            case 'ios':
-                return CONST.OS.IOS;
-            case 'android':
-                return CONST.OS.ANDROID;
-            default:
-                return CONST.OS.NATIVE;
-        }
-    }
-
-    // When running on web, we can check window.navigator
+export default () => {
     const {userAgent, platform} = window.navigator;
     const macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'];
     const windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'];
@@ -37,6 +23,4 @@ function getOperatingSystem() {
         os = CONST.OS.LINUX;
     }
     return os;
-}
-
-export default getOperatingSystem;
+};
