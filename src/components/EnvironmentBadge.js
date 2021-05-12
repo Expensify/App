@@ -26,10 +26,9 @@ class EnvironmentBadge extends React.Component {
             return null;
         }
 
-        let backgroundColorStyle = styles.badgeDanger;
-        if (this.state.environment === CONST.ENVIRONMENT.STAGING) {
-            backgroundColorStyle = styles.badgeSuccess;
-        }
+        const backgroundColorStyle = this.state.environment === CONST.ENVIRONMENT.STAGING
+            ? styles.badgeSuccess
+            : styles.badgeDanger;
 
         return (
             <View style={[styles.badge, backgroundColorStyle, styles.ml2]}>
