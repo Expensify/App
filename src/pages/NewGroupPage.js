@@ -15,6 +15,8 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -44,6 +46,8 @@ const propTypes = {
     }).isRequired,
 
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 class NewGroupPage extends Component {
@@ -92,14 +96,14 @@ class NewGroupPage extends Component {
         }
 
         sections.push({
-            title: 'RECENTS',
+            title: this.props.translate('iou.recents'),
             data: this.state.recentReports,
             shouldShow: this.state.recentReports.length > 0,
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
-            title: 'CONTACTS',
+            title: this.props.translate('iou.contacts'),
             data: this.state.personalDetails,
             shouldShow: this.state.personalDetails.length > 0,
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
@@ -184,7 +188,7 @@ class NewGroupPage extends Component {
                 {({didScreenTransitionEnd}) => (
                     <>
                         <HeaderWithCloseButton
-                            title="New Group"
+                            title={this.props.translate('sidebarScreen.newGroup')}
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
@@ -222,21 +226,21 @@ class NewGroupPage extends Component {
                                         shouldFocusOnSelectRow
                                     />
                                     {this.state.selectedOptions?.length > 0 && (
-                                        <View style={[styles.ph5, styles.pb5]}>
-                                            <Pressable
-                                                onPress={this.createGroup}
-                                                style={({hovered}) => [
-                                                    styles.button,
-                                                    styles.buttonSuccess,
-                                                    styles.w100,
-                                                    hovered && styles.buttonSuccessHovered,
-                                                ]}
-                                            >
-                                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                                    Create Group
-                                                </Text>
-                                            </Pressable>
-                                        </View>
+                                    <View style={[styles.ph5, styles.pb5]}>
+                                        <Pressable
+                                            onPress={this.createGroup}
+                                            style={({hovered}) => [
+                                                styles.button,
+                                                styles.buttonSuccess,
+                                                styles.w100,
+                                                hovered && styles.buttonSuccessHovered,
+                                            ]}
+                                        >
+                                            <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                                                {this.props.translate('newGroupPage.createGroup')}
+                                            </Text>
+                                        </Pressable>
+                                    </View>
                                     )}
                                 </>
                             )}
@@ -251,14 +255,18 @@ class NewGroupPage extends Component {
 
 NewGroupPage.propTypes = propTypes;
 
-export default withWindowDimensions(withOnyx({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(NewGroupPage));
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(NewGroupPage);

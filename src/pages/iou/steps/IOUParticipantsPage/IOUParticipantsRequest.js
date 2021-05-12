@@ -4,6 +4,8 @@ import {withOnyx} from 'react-native-onyx';
 import {getNewChatOptions} from '../../../../libs/OptionsListUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import compose from '../../../../libs/compose';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -32,6 +34,8 @@ const propTypes = {
         reportID: PropTypes.number,
         reportName: PropTypes.string,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 class IOUParticipantsRequest extends Component {
@@ -44,6 +48,7 @@ class IOUParticipantsRequest extends Component {
             props.reports,
             props.personalDetails,
             '',
+            true,
         );
 
         this.state = {
@@ -61,7 +66,7 @@ class IOUParticipantsRequest extends Component {
     getSections() {
         const sections = [];
         sections.push({
-            title: 'CONTACTS',
+            title: this.props.translate('iou.contacts'),
             data: this.state.personalDetails,
             shouldShow: this.state.personalDetails.length > 0,
             indexOffset: 0,
@@ -101,6 +106,7 @@ class IOUParticipantsRequest extends Component {
                         this.props.reports,
                         this.props.personalDetails,
                         searchValue,
+                        true,
                     );
                     this.setState({
                         searchValue,
@@ -120,11 +126,14 @@ class IOUParticipantsRequest extends Component {
 IOUParticipantsRequest.displayName = 'IOUParticipantsRequest';
 IOUParticipantsRequest.propTypes = propTypes;
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(IOUParticipantsRequest);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+    }),
+)(IOUParticipantsRequest);
