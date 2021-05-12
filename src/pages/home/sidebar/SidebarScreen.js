@@ -102,7 +102,7 @@ class SidebarScreen extends Component {
                                 {
                                     icon: ChatBubble,
                                     text: 'New Chat',
-                                    onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
                                 ...(Permissions.canUseIOU() ? [
                                     {
@@ -114,7 +114,7 @@ class SidebarScreen extends Component {
                                 {
                                     icon: Users,
                                     text: 'New Group',
-                                    onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
                                 ...(Permissions.canUseIOU() ? [
                                     {

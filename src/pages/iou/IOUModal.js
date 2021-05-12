@@ -226,7 +226,7 @@ class IOUModal extends Component {
 
                 // should send in cents to API
                 amount: this.state.amount * 100,
-                currency: this.state.selectedCurrency.currencySymbol,
+                currency: this.state.selectedCurrency.currencyCode,
                 splits,
             });
             return;
@@ -237,7 +237,7 @@ class IOUModal extends Component {
 
             // should send in cents to API
             amount: this.state.amount * 100,
-            currency: this.state.selectedCurrency.currencySymbol,
+            currency: this.state.selectedCurrency.currencyCode,
             debtorEmail: this.state.participants[0].login,
         });
     }

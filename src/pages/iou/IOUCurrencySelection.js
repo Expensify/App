@@ -151,7 +151,6 @@ class IOUCurrencySelection extends Component {
     }
 
     render() {
-        const sections = this.getSections();
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -177,7 +176,7 @@ class IOUCurrencySelection extends Component {
                                 indicatorStyle="white"
                                 keyboardShouldPersistTaps="always"
                                 showsVerticalScrollIndicator={false}
-                                sections={sections}
+                                sections={this.getSections()}
                                 keyExtractor={option => option.currencyCode}
                                 stickySectionHeadersEnabled={false}
                                 renderItem={({item, key}) => (

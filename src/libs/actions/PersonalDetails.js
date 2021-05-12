@@ -240,7 +240,6 @@ function setPersonalDetails(details) {
 /**
  * Fetches the Currency preferences based on location
  * @param {bool} withLocation
- * @param {Object} details
  */
 function fetchCurrencyPreferences(withLocation) {
     let coords = {};
@@ -275,7 +274,6 @@ function fetchCurrencyPreferences(withLocation) {
 /**
  * Sets the onyx with the currency list from the network
  *
- * @param {Object} details
  */
 function getCurrencyList() {
     API.GetCurrencyList()
