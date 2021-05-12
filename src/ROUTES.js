@@ -23,6 +23,8 @@ export default {
     getReportRoute: reportID => `r/${reportID}`,
     IOU_BILL_CURRENCY: 'iou/split/:reportID/currency',
     IOU_REQUEST_CURRENCY: 'iou/request/:reportID/currency',
+    getIouRequestCurrencyRoute: reportID => `iou/request/${reportID}/currency`,
+    getIouBillCurrencyRoute: reportID => `iou/bill/${reportID}/currency`,
     IOU_REQUEST: 'iou/request/:reportID',
     IOU_BILL: 'iou/split/:reportID',
     getIouRequestRoute: reportID => `iou/request/${reportID}`,
