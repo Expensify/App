@@ -181,7 +181,7 @@ class ReportActionCompose extends React.Component {
      * Focus the composer text input
      */
     focus() {
-        if (this.textInput && this.textInput.focus) {
+        if (this.textInput) {
             // There could be other animations running while we trigger manual focus.
             // This prevents focus from making those animations janky.
             InteractionManager.runAfterInteractions(() => {

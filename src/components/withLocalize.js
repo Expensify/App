@@ -47,6 +47,7 @@ function withLocalizeHOC(WrappedComponent) {
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
+                ref={props.forwardedRef}
                 translate={translations.translate}
                 numberFormat={translations.numberFormat}
                 timestampToRelative={translations.timestampToRelative}
@@ -59,9 +60,14 @@ function withLocalizeHOC(WrappedComponent) {
     WithLocalize.displayName = `WithLocalize(${getComponentDisplayName(WrappedComponent)})`;
     WithLocalize.propTypes = {
         preferredLocale: PropTypes.string,
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
     };
     WithLocalize.defaultProps = {
         preferredLocale: 'en',
+        forwardedRef: undefined,
     };
     return React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
