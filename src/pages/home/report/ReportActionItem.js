@@ -233,7 +233,11 @@ class ReportActionItem extends Component {
                                 <UnreadActionIndicator />
                             )}
                             <View
-                                style={getReportActionItemStyle(hovered || this.props.draftMessage)}
+                                style={getReportActionItemStyle(
+                                    hovered
+                                    || this.state.isPopoverVisible
+                                    || this.props.draftMessage,
+                                )}
                                 onLayout={this.props.onLayout}
                             >
                                 {!this.props.displayAsGroup
