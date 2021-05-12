@@ -1,23 +1,21 @@
 import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {fetchUserWallet} from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import CONST from '../../CONST';
+import userWalletPropTypes from './userWalletPropTypes';
+
+// Steps
 import OnfidoStep from './OnfidoStep';
 import AdditionalDetailsStep from './AdditionalDetailsStep';
 import TermsStep from './TermsStep';
 import ActivateStep from './ActivateStep';
-import CONST from '../../CONST';
 
 const propTypes = {
-    // User's wallet information
-    userWallet: PropTypes.shape({
-        // What step in the activation flow are we on?
-        currentStep: PropTypes.string,
-    }),
+    ...userWalletPropTypes,
 };
 
 const defaultProps = {
@@ -45,7 +43,7 @@ class EnablePaymentsPage extends React.Component {
                 {currentStep === CONST.WALLET.STEP.ONFIDO && <OnfidoStep />}
                 {currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS && <AdditionalDetailsStep />}
                 {currentStep === CONST.WALLET.STEP.TERMS && <TermsStep />}
-                {currentStep === CONST.WALLET.STEP.ACTIVATE && <ActivateStep />}
+                {currentStep === CONST.WALLET.STEP.ACTIVATE && <ActivateStep userWallet={this.props.userWallet} />}
             </ScreenWrapper>
         );
     }
@@ -58,8 +56,8 @@ export default withOnyx({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
 
-        // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the stored
-        // values here.
+        // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
+        // stored values here.
         initWithStoredValues: false,
     },
 })(EnablePaymentsPage);
