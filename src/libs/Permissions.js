@@ -28,7 +28,8 @@ function canUseChronos() {
  * @returns {Boolean}
  */
 function canUseIOU() {
-    return _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas();
+    // return _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas();
+    return true;
 }
 
 export default {

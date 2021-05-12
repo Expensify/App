@@ -44,7 +44,11 @@ class IOUParticipantsRequest extends Component {
 
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
 
-        const {personalDetails, userToInvite} = getNewChatOptions(
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = getNewChatOptions(
             props.reports,
             props.personalDetails,
             '',
@@ -52,6 +56,7 @@ class IOUParticipantsRequest extends Component {
         );
 
         this.state = {
+            recentReports,
             personalDetails,
             userToInvite,
             searchValue: '',
@@ -65,6 +70,14 @@ class IOUParticipantsRequest extends Component {
      */
     getSections() {
         const sections = [];
+
+        sections.push({
+            title: this.props.translate('iou.recents'),
+            data: this.state.recentReports,
+            shouldShow: this.state.recentReports.length > 0,
+            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+        });
+
         sections.push({
             title: this.props.translate('iou.contacts'),
             data: this.state.personalDetails,
@@ -102,7 +115,11 @@ class IOUParticipantsRequest extends Component {
                 value={this.state.searchValue}
                 onSelectRow={this.addSingleParticipant}
                 onChangeText={(searchValue = '') => {
-                    const {personalDetails, userToInvite} = getNewChatOptions(
+                    const {
+                        recentReports,
+                        personalDetails,
+                        userToInvite,
+                    } = getNewChatOptions(
                         this.props.reports,
                         this.props.personalDetails,
                         searchValue,
@@ -110,11 +127,11 @@ class IOUParticipantsRequest extends Component {
                     );
                     this.setState({
                         searchValue,
+                        recentReports,
                         userToInvite,
                         personalDetails,
                     });
                 }}
-                hideSectionHeaders
                 disableArrowKeysActions
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
