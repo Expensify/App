@@ -247,4 +247,18 @@ export default {
         continueButtonText: 'Save & Continue',
         isRequiredField: 'is a required field.',
     },
+    termsStep: {
+        headerTitle: 'Terms and Fees',
+        haveReadAndAgree: 'I have read and agree to receive ',
+        electronicDisclosures: 'electronic disclosures',
+        agreeToThe: 'I agree to the ',
+        privacyPolicy: 'Privacy Policy',
+        walletAgreement: 'Wallet Agreement',
+        enablePayments: 'Enable Payments',
+    },
+    activateStep: {
+        headerTitle: 'Enable Payments',
+        activated: 'Your Expensify Wallet is ready to use.',
+        checkBackLater: 'We\'re still reviewing your information. Please check back later.',
+    },
 };

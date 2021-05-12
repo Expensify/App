@@ -144,6 +144,10 @@ const CONST = {
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
+        STATUS: {
+            GOLD: 'GOLD',
+            SILVER: 'SILVER',
+        },
     },
 };
 
