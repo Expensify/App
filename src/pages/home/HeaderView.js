@@ -53,9 +53,12 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
+    const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
-        ({firstName, login}) => ({displayName: firstName || login, tooltip: login}),
+        ({displayName, firstName, login}) => (
+            {displayName: isMultipleParticipant ? firstName : displayName || login, tooltip: login}
+        ),
     );
     const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
