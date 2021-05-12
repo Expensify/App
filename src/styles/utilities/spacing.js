@@ -25,8 +25,16 @@ export default {
         marginHorizontal: 4,
     },
 
+    mh5: {
+        marginHorizontal: 20,
+    },
+
     mv1: {
         marginVertical: 4,
+    },
+
+    mv2: {
+        marginVertical: 8,
     },
 
     mr0: {
