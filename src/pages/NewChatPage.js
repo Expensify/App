@@ -54,6 +54,7 @@ class NewChatPage extends Component {
         this.createNewChat = this.createNewChat.bind(this);
 
         const {
+            recentReports,
             personalDetails,
             userToInvite,
         } = getNewChatOptions(
@@ -64,6 +65,7 @@ class NewChatPage extends Component {
 
         this.state = {
             searchValue: '',
+            recentReports,
             personalDetails,
             userToInvite,
         };
@@ -76,6 +78,13 @@ class NewChatPage extends Component {
      */
     getSections() {
         const sections = [];
+
+        sections.push({
+            title: this.props.translate('iou.recents'),
+            data: this.state.recentReports,
+            shouldShow: this.state.recentReports.length > 0,
+            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+        });
 
         sections.push({
             title: this.props.translate('iou.contacts'),
@@ -128,6 +137,7 @@ class NewChatPage extends Component {
                         onSelectRow={this.createNewChat}
                         onChangeText={(searchValue = '') => {
                             const {
+                                recentReports,
                                 personalDetails,
                                 userToInvite,
                             } = getNewChatOptions(
@@ -137,12 +147,12 @@ class NewChatPage extends Component {
                             );
                             this.setState({
                                 searchValue,
+                                recentReports,
                                 userToInvite,
                                 personalDetails,
                             });
                         }}
                         headerMessage={headerMessage}
-                        hideSectionHeaders
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle

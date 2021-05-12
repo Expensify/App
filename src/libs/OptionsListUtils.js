@@ -367,6 +367,8 @@ function getNewChatOptions(
         searchValue,
         includePersonalDetails: true,
         excludeConcierge,
+        includeRecentReports: true,
+        maxRecentReportsToShow: 5,
     });
 }
 
