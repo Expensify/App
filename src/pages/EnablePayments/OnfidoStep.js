@@ -6,6 +6,7 @@ import Onfido from '../../components/Onfido';
 import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';
 import {fetchOnfidoToken} from '../../libs/actions/BankAccounts';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     onfidoApplicantInfo: PropTypes.shape({
@@ -29,7 +30,12 @@ class OnfidoStep extends React.Component {
         }
 
         return (
-            <Onfido sdkToken={this.props.onfidoApplicantInfo.sdkToken} />
+            <Onfido
+                sdkToken={this.props.onfidoApplicantInfo.sdkToken}
+                onUserExit={() => {
+                    Navigation.goBack();
+                }}
+            />
         );
     }
 }

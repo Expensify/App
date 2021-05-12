@@ -9,10 +9,11 @@ import CONST from './CONST';
 const expensifyCashURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://expensify.cash/'));
 const expensifyURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
 const ngrokURL = addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
+const secureNgrokURL = addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
-const secureURLRoot = addTrailingForwardSlash(lodashGet(
+const secureURLRoot = useNgrok && secureNgrokURL ? secureNgrokURL : addTrailingForwardSlash(lodashGet(
     Config, 'EXPENSIFY_URL_SECURE', 'https://secure.expensify.com/',
 ));
 
@@ -25,8 +26,7 @@ export default {
     APP_NAME: 'ExpensifyCash',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
-        // Note: This will be EXACTLY what is set for EXPENSIFY_URL_COM and EXPENSIFY_URL_SECURE whether the proxy is
-        // enabled or not.
+        // Note: This will be EXACTLY what is set for EXPENSIFY_URL_COM whether the proxy is enabled or not.
         URL_EXPENSIFY_COM: expensifyURL,
         URL_EXPENSIFY_SECURE: secureURLRoot,
         URL_EXPENSIFY_CASH: expensifyCashURL,

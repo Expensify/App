@@ -35,9 +35,7 @@ class Onfido extends React.Component {
             onError: () => {
 
             },
-            onUserExit: () => {
-
-            },
+            onUserExit: this.props.onUserExit,
             onModalRequestClose: () => {
 
             },
