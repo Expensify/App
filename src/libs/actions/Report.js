@@ -426,6 +426,16 @@ function removeOptimisticActions(reportID) {
 }
 
 /**
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
+function setNewMarkerPosition(reportID, sequenceNumber) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        newMarkerSequenceNumber: sequenceNumber,
+    });
+}
+
+/**
  * Updates a report action's message to be a new value.
  *
  * @param {Number} reportID
@@ -527,8 +537,16 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(reportAction, 'actorEmail') === 'concierge@expensify.com') {
+    if (lodashGet(reportAction, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
         return;
+    }
+
+    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the
+    // marker above the incoming message.
+    if (lodashGet(allReports, [reportID, 'newMarkerSequenceNumber'], 0) === 0
+        && updatedReportObject.unreadActionCount > 0) {
+        const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
+        setNewMarkerPosition(reportID, oldestUnreadSeq);
     }
     console.debug('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
@@ -828,7 +846,7 @@ function fetchAllReports(
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false);
+            return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
         .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
@@ -993,16 +1011,6 @@ function updateLastReadActionID(reportID, sequenceNumber) {
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber: lastReadSequenceNumber,
-    });
-}
-
-/**
- * @param {Number} reportID
- * @param {Number} sequenceNumber
- */
-function setNewMarkerPosition(reportID, sequenceNumber) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        newMarkerSequenceNumber: sequenceNumber,
     });
 }
 
