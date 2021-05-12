@@ -53,12 +53,11 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
-    const reportTitle = lodashGet(props.report, 'reportName', '');
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
         ({firstName, login}) => ({displayName: firstName || login, tooltip: login}),
     );
-    const fullTitle = displayNamesWithTooltips.map(({displayName})=> displayName).join(', ');
+    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
