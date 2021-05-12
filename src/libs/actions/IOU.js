@@ -128,8 +128,8 @@ function settleIOUReport({
                 throw new Error(`Error while settling IOU: ${response.message}`);
             }
         })
-        .then(fetchChatReportsByIDs([chatReportID]))
-        .then(fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID))
+        .then(() => fetchChatReportsByIDs([chatReportID]))
+        .then(() => fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID))
         .catch(error => Onyx.merge(ONYXKEYS.IOU, {error}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }
