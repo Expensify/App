@@ -76,6 +76,19 @@ jobs:
         if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
         run: exit 1
 
+      - name: Check changed files
+        if: ${{ github.event.inputs.TARGET_BRANCH == 'main' }}
+        id: changedFiles
+        # Version: 3.3.0
+        uses: futuratrepadeira/changed-files@1d252c611c64289d35243fc37ece7323ea5e93e1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ steps.createPullRequest.outputs.pr_number }}
+
+      - name: Validate changed files
+        if: ${{ github.event.inputs.TARGET_BRANCH == 'main' && steps.changedFiles.outputs.files_updated == 'android/app/build.gradle ios/ExpensifyCash/Info.plist ios/ExpensifyCashTests/Info.plist package-lock.json package.json' && steps.changedFiles.outputs.files_created == '' && steps.changedFiles.outputs.files_deleted == '' }}
+        run: exit 1
+
       # TODO: Once https://github.com/hmarr/auto-approve-action/pull/186 is merged, point back at the non-forked repo
       - name: Check for an auto approve
         # Version: 2.0.0
