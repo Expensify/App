@@ -12,6 +12,8 @@ import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import {getNewGroupOptions} from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import compose from '../../../../libs/compose';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -54,6 +56,8 @@ const propTypes = {
         reportID: PropTypes.number,
         reportName: PropTypes.string,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -76,6 +80,7 @@ class IOUParticipantsSplit extends Component {
             props.personalDetails,
             '',
             props.participants,
+            true,
         );
 
         this.state = {
@@ -106,7 +111,7 @@ class IOUParticipantsSplit extends Component {
         }
 
         sections.push({
-            title: 'RECENTS',
+            title: this.props.translate('iou.recents'),
             data: this.state.recentReports,
             shouldShow: this.state.recentReports.length > 0,
 
@@ -116,7 +121,7 @@ class IOUParticipantsSplit extends Component {
         });
 
         sections.push({
-            title: 'CONTACTS',
+            title: this.props.translate('iou.contacts'),
             data: this.state.personalDetails,
             shouldShow: this.state.personalDetails.length > 0,
 
@@ -175,6 +180,7 @@ class IOUParticipantsSplit extends Component {
                 this.props.personalDetails,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
+                true,
             );
             return {
                 recentReports,
@@ -191,7 +197,7 @@ class IOUParticipantsSplit extends Component {
         return (
             <View style={[styles.flex1, styles.w100]}>
                 <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
-                    To
+                    {this.props.translate('common.to')}
                 </Text>
                 <OptionsSelector
                     canSelectMultipleOptions
@@ -209,6 +215,7 @@ class IOUParticipantsSplit extends Component {
                             this.props.personalDetails,
                             searchValue,
                             [],
+                            true,
                         );
                         this.setState({
                             searchValue,
@@ -233,7 +240,7 @@ class IOUParticipantsSplit extends Component {
                             ]}
                         >
                             <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                Next
+                                {this.props.translate('common.next')}
                             </Text>
                         </Pressable>
                     </View>
@@ -247,11 +254,14 @@ IOUParticipantsSplit.displayName = 'IOUParticipantsSplit';
 IOUParticipantsSplit.propTypes = propTypes;
 IOUParticipantsSplit.defaultProps = defaultProps;
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(IOUParticipantsSplit);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+    }),
+)(IOUParticipantsSplit);

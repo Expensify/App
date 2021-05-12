@@ -172,7 +172,13 @@ class GithubUtils {
      * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
     getStagingDeployCashPRList(issue) {
-        const PRListSection = issue.body.match(/pull requests:\*\*\r\n((?:.*\r\n)+)\r\n/)[1];
+        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:.*\r?\n)+)\r?\n/) || [];
+        if (PRListSection.length !== 2) {
+            // No PRs, return an empty array
+            console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
+            return [];
+        }
+        PRListSection = PRListSection[1];
         const unverifiedPRs = _.map(
             [...PRListSection.matchAll(new RegExp(`- \\[ ] (${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
@@ -204,7 +210,7 @@ class GithubUtils {
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
     getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r\n((?:.*\r\n)+)/) || [];
+        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:.*\r?\n)+)/) || [];
         if (deployBlockerSection.length !== 2) {
             return [];
         }
@@ -394,6 +400,22 @@ class GithubUtils {
             issue_number: number,
             body: messageBody,
         });
+    }
+
+    /**
+     * Get the most recent workflow run for the given Expensify.cash workflow.
+     *
+     * @param {String} workflow
+     * @returns {Promise}
+     */
+    getLatestWorkflowRunID(workflow) {
+        console.log(`Fetching Expensify.cash workflow runs for ${workflow}...`);
+        return this.octokit.actions.listWorkflowRuns({
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            workflow_id: workflow,
+        })
+            .then(response => lodashGet(response, 'data.workflow_runs[0].id'));
     }
 
     /**
