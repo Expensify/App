@@ -5,8 +5,9 @@ import PropTypes from 'prop-types';
 import Onfido from '../../components/Onfido';
 import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';
-import {fetchOnfidoToken} from '../../libs/actions/BankAccounts';
+import {activateWallet, fetchOnfidoToken} from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
+import CONST from '../../CONST';
 
 const propTypes = {
     onfidoApplicantInfo: PropTypes.shape({
@@ -34,6 +35,14 @@ class OnfidoStep extends React.Component {
                 sdkToken={this.props.onfidoApplicantInfo.sdkToken}
                 onUserExit={() => {
                     Navigation.goBack();
+                }}
+                onSuccess={(data) => {
+                    activateWallet(CONST.WALLET.STEP.ONFIDO, {
+                        onfidoData: JSON.stringify({
+                            ...data,
+                            applicantID: this.props.onfidoApplicantInfo.applicantID,
+                        }),
+                    });
                 }}
             />
         );

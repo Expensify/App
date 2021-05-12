@@ -17,9 +17,7 @@ class Onfido extends React.Component {
                 captureDocument: {},
             },
         })
-            .then((success) => {
-                console.log(success);
-            })
+            .then(this.props.onSuccess)
             .catch((error) => {
                 if (error.message === 'User canceled flow') {
                     this.props.onUserExit();

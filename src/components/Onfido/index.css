@@ -1,5 +1,5 @@
 /* These style overrides are necessary so that the Onfido modal looks nice */
 .onfido-sdk-ui-Modal-inner {
-    border-style: none;
+    border-style: none !important;
     width: 100% !important;
 }

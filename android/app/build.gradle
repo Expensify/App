@@ -242,6 +242,8 @@ dependencies {
 
     // Crashlytics
     implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
+
+    implementation 'com.squareup.okhttp3:okhttp-urlconnection:4.+'
 }
 
 // Run this once to be able to run the application with BUCK
