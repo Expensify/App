@@ -308,10 +308,10 @@ class ReportActionCompose extends React.Component {
     render() {
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
+        const hasConciergeParticipant = _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
-
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -352,7 +352,7 @@ class ReportActionCompose extends React.Component {
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
-                                                    ...(Permissions.canUseIOU() ? [
+                                                    ...(!hasConciergeParticipant && Permissions.canUseIOU() ? [
                                                         hasMultipleParticipants
                                                             ? {
                                                                 icon: Receipt,
