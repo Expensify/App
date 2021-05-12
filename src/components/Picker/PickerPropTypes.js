@@ -7,6 +7,9 @@ const propTypes = {
     // Whether or not to show the disabled styles
     useDisabledStyles: PropTypes.bool,
 
+    // Disables interaction with the component
+    disabled: PropTypes.bool,
+
     // The items to display in the list of selections
     items: PropTypes.arrayOf(PropTypes.shape({
         // The value of the item that is being selected
@@ -33,6 +36,7 @@ const propTypes = {
 };
 const defaultProps = {
     useDisabledStyles: false,
+    disabled: false,
     placeholder: {},
     value: null,
 };
