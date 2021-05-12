@@ -93,7 +93,7 @@ class AddBankAccountPage extends React.Component {
                 />
                 {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
                     && <ActivityIndicator size="large" />}
-                {this.props.plaidLinkToken && (
+                {!_.isEmpty(this.props.plaidLinkToken) && (
                     <PlaidLink
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
