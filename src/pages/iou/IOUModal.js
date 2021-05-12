@@ -13,6 +13,8 @@ import {createIOUSplit, createIOUTransaction, getPreferredCurrency} from '../../
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -53,6 +55,8 @@ const propTypes = {
         // Avatar url of participant
         avatar: PropTypes.string,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -64,9 +68,9 @@ const defaultProps = {
 
 // Determines type of step to display within Modal, value provides the title for that page.
 const Steps = {
-    IOUAmount: 'Amount',
-    IOUParticipants: 'Participants',
-    IOUConfirm: 'Confirm',
+    IOUAmount: 'iou.amount',
+    IOUParticipants: 'iou.participants',
+    IOUConfirm: 'iou.confirm',
 };
 
 class IOUModal extends Component {
@@ -130,12 +134,15 @@ class IOUModal extends Component {
     getTitleForStep() {
         const currentStepIndex = this.state.currentStepIndex;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
-            return `${this.props.hasMultipleParticipants ? 'Split' : 'Request'} $${this.state.amount}`;
+            return `${this.props.hasMultipleParticipants
+                ? this.props.translate('common.split')
+                : this.props.translate('iou.request', {amount: this.state.amount})}`;
         }
         if (currentStepIndex === 0) {
-            return this.props.hasMultipleParticipants ? 'Split Bill' : 'Request Money';
+            return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
         }
-        return this.steps[currentStepIndex] || '';
+
+        return this.props.translate(this.steps[currentStepIndex]) || '';
     }
 
     addParticipants(participants) {
@@ -298,17 +305,20 @@ IOUModal.propTypes = propTypes;
 IOUModal.defaultProps = defaultProps;
 IOUModal.displayName = 'IOUModal';
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-    iousReport: {
-        key: ONYXKEYS.COLLECTION.REPORT_IOUS,
-    },
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-})(IOUModal);
+export default compose(
+    withLocalize,
+    withOnyx({
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+        iousReport: {
+            key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+        },
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+    }),
+)(IOUModal);
