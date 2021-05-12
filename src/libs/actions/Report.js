@@ -537,7 +537,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(reportAction, 'actorEmail') === 'concierge@expensify.com') {
+    if (lodashGet(reportAction, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
         return;
     }
 
@@ -846,7 +846,7 @@ function fetchAllReports(
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false);
+            return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
         .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
