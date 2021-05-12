@@ -19,7 +19,6 @@ import IOUTransactions from './IOUTransactions';
 
 const defaultProps = {
     iou: {},
-    iouReport: null,
 };
 
 const propTypes = {
@@ -61,7 +60,7 @@ const propTypes = {
 
         // Is the IOU report settled?
         hasOutstandingIOU: PropTypes.bool,
-    }),
+    }).isRequired,
 
     // Session info for the currently logged in user.
     session: PropTypes.shape({
@@ -97,7 +96,7 @@ class IOUDetailsModal extends Component {
 
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
-        const reportIsLoading = _.isNull(this.props.iouReport);
+        const reportIsLoading = _.isUndefined(this.props.iouReport);
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
