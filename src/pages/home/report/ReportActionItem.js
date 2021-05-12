@@ -80,6 +80,7 @@ class ReportActionItem extends Component {
         this.popoverAnchor = null;
         this.showPopover = this.showPopover.bind(this);
         this.hidePopover = this.hidePopover.bind(this);
+        this.measureContent = this.measureContent.bind(this);
         this.selection = '';
         this.measureContextMenuAnchorPosition = this.measureContextMenuAnchorPosition.bind(this);
     }
@@ -179,6 +180,24 @@ class ReportActionItem extends Component {
         this.setState({isPopoverVisible: false});
     }
 
+    /**
+     * Used to calculate the Context Menu Dimensions
+     *
+     * @returns {JSX}
+     * @memberof ReportActionItem
+     */
+    measureContent() {
+        return (
+            <ReportActionContextMenu
+                isVisible
+                selection={this.selection}
+                reportID={this.props.reportID}
+                reportAction={this.props.action}
+                hidePopover={this.hidePopover}
+            />
+        );
+    }
+
     render() {
         let children;
         if (this.props.action.actionName === 'IOU') {
@@ -242,33 +261,25 @@ class ReportActionItem extends Component {
                                     isMini
                                 />
                             </View>
-                            <PopoverWithMeasuredContent
-                                isVisible={this.state.isPopoverVisible}
-                                onClose={this.hidePopover}
-                                anchorPosition={this.state.popoverAnchorPosition}
-                                animationIn="fadeIn"
-                                animationOutTiming={1}
-                                measureContent={() => (
-                                    <ReportActionContextMenu
-                                        isVisible
-                                        selection={this.selection}
-                                        reportID={this.props.reportID}
-                                        reportAction={this.props.action}
-                                        hidePopover={this.hidePopover}
-                                    />
-                                )}
-                            >
-                                <ReportActionContextMenu
-                                    isVisible
-                                    reportID={this.props.reportID}
-                                    reportAction={this.props.action}
-                                    draftMessage={this.props.draftMessage}
-                                    hidePopover={this.hidePopover}
-                                />
-                            </PopoverWithMeasuredContent>
                         </View>
                     )}
                 </Hoverable>
+                <PopoverWithMeasuredContent
+                    isVisible={this.state.isPopoverVisible}
+                    onClose={this.hidePopover}
+                    anchorPosition={this.state.popoverAnchorPosition}
+                    animationIn="fadeIn"
+                    animationOutTiming={1}
+                    measureContent={this.measureContent}
+                >
+                    <ReportActionContextMenu
+                        isVisible
+                        reportID={this.props.reportID}
+                        reportAction={this.props.action}
+                        draftMessage={this.props.draftMessage}
+                        hidePopover={this.hidePopover}
+                    />
+                </PopoverWithMeasuredContent>
             </PressableWithSecondaryInteraction>
         );
     }
