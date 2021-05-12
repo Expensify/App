@@ -110,11 +110,14 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const isMultipleParticipant = option.participantsList.length > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
-        ({displayName, firstName, login}) => ({displayName: firstName || displayName, tooltip: login}),
+        ({displayName, firstName, login}) => (
+            {displayName: isMultipleParticipant ? firstName : displayName, tooltip: login}
+        ),
     );
-
+    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <Hoverable>
             {hovered => (
@@ -159,7 +162,7 @@ const OptionRow = ({
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
-                                    fullTitle={option.text}
+                                    fullTitle={fullTitle}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
