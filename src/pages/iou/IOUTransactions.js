@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
-import IOUTansactionPropTypes from './IOUTansactionPropTypes';
+import iouTansactionPropTypes from './iouTansactionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
 
 const propTypes = {
@@ -20,7 +20,7 @@ const propTypes = {
     iouReportID: PropTypes.number.isRequired,
 
     // Transactions for this IOU report
-    transactions: PropTypes.arrayOf(PropTypes.shape(IOUTansactionPropTypes)),
+    transactions: PropTypes.arrayOf(PropTypes.shape(iouTansactionPropTypes)),
 };
 
 const defaultProps = {
