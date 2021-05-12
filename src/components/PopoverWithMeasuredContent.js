@@ -29,6 +29,8 @@ const propTypes = {
     // A function with content to measure. This component will use this.props.children by default,
     // but in the case the children are not displayed, the measurement will not work.
     measureContent: PropTypes.func.isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
