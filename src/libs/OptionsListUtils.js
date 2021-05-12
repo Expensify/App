@@ -77,15 +77,13 @@ function getSearchText(report, personalDetailList) {
  * @param {Array<Object>} personalDetailList
  * @param {Object} [report]
  * @param {Object} draftComments
- * @param {Number} activeReportID
  * @param {Boolean} showChatPreviewLine
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
+function createOption(personalDetailList, report, draftComments, {showChatPreviewLine = false}) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
-        && (report.reportID !== activeReportID)
         && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
@@ -215,13 +213,13 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
-        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, activeReportID, {
+        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, {
             showChatPreviewLine,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, activeReportID, {
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, {
             showChatPreviewLine,
         })
     ));
@@ -309,7 +307,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
-        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID, {
+        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
