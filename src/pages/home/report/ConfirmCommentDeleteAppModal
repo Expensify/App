@@ -7,7 +7,7 @@ class ConfirmCommentDeleteAppModal extends PureComponent {
         super(props);
 
         this.state = {
-            isModalOpen: true,
+            isVisible: true,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
@@ -26,9 +26,9 @@ class ConfirmCommentDeleteAppModal extends PureComponent {
             <>
                 <ConfirmModal
                     title="Delete Comment"
-                    isVisible={this.state.isModalOpen}
+                    isVisible={this.state.isVisible}
                     onConfirm={this.submitAndClose}
-                    onCancel={() => this.setState({isModalOpen: false})}
+                    onCancel={() => this.setState({isVisible: false})}
                     prompt="Are you sure you want to delete this comment?"
                     confirmText="Delete"
                     cancelText="Cancel"
