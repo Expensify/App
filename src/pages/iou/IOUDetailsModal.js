@@ -14,7 +14,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import {settleIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
 import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
-import IOUTansactionPropTypes from './IOUTansactionPropTypes';
+import iouTansactionPropTypes from './iouTansactionPropTypes';
 import IOUTransactions from './IOUTransactions';
 
 const defaultProps = {
@@ -57,7 +57,7 @@ const propTypes = {
         ownerEmail: PropTypes.string,
 
         // The IOU transactions
-        transactions: PropTypes.arrayOf(PropTypes.shape(IOUTansactionPropTypes)),
+        transactions: PropTypes.arrayOf(PropTypes.shape(iouTansactionPropTypes)),
 
         // Is the IOU report settled?
         hasOutstandingIOU: PropTypes.bool,
