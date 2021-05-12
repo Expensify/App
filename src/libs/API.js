@@ -710,6 +710,7 @@ function CreateIOUSplit(parameters) {
 function Wallet_GetOnfidoSDKToken() {
     const platform = getPlatform();
     return Network.post('Wallet_GetOnfidoSDKToken', {
+        // We need to pass this so we can request a token with the correct referrer
         isViaExpensifyCashNative: platform === 'ios' || platform === 'android',
     }, CONST.NETWORK.METHOD.POST, true);
 }
@@ -719,6 +720,20 @@ function Wallet_GetOnfidoSDKToken() {
  */
 function Plaid_GetLinkToken() {
     return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.currentStep
+ * @param {String} [parameters.onfidoData] - JSON string
+ * @param {String} [parameters.personalDetails] - JSON string
+ * @param {Boolean} [parameters.hasAcceptedTerms]
+ * @returns {Promise}
+ */
+function Wallet_Activate(parameters) {
+    const commandName = 'Wallet_Activate';
+    requireParameters(['currentStep'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
 export {
@@ -757,5 +772,6 @@ export {
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
+    Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
 };

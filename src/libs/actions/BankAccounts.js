@@ -34,8 +34,28 @@ function fetchUserWallet() {
         });
 }
 
+/**
+ *
+ * @param {String} currentStep
+ * @param {Object} parameters
+ * @param {String} [parameters.onfidoData] - JSON string
+ * @param {String} [parameters.personalDetails] - JSON string
+ */
+function activateWallet(currentStep, parameters) {
+    API.Wallet_Activate({currentStep, ...parameters})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.USER_WALLET, response.userWallet);
+        });
+}
+window.activateWallet = activateWallet;
+
 export {
     fetchBankAccountList,
     fetchUserWallet,
     fetchOnfidoToken,
+    activateWallet,
 };

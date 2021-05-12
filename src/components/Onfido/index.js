@@ -29,9 +29,7 @@ class Onfido extends React.Component {
                 },
             ],
             smsNumberCountryCode: 'US',
-            onComplete: (derp) => {
-                console.log(derp);
-            },
+            onComplete: this.props.onSuccess,
             onError: () => {
 
             },
