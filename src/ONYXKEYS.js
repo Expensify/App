@@ -81,4 +81,7 @@ export default {
 
     // Object containing Onfido SDK Token + applicantID
     ONFIDO_APPLICANT_INFO: 'onfidoApplicantInfo',
+
+    // Stores information about additional details form entry
+    WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
 };

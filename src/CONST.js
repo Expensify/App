@@ -131,6 +131,13 @@ const CONST = {
     },
 
     WALLET: {
+        ERROR: {
+            IDENTITY_NOT_FOUND: 'Identity not found',
+            INVALID_SSN: 'Invalid SSN',
+            UNEXPECTED: 'Unexpected error',
+            MISSING_FIELD: 'Missing required additional details fields',
+            UNABLE_TO_VERIFY: 'Unable to verify identity',
+        },
         STEP: {
             ONFIDO: 'OnfidoStep',
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
