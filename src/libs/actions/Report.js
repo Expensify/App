@@ -2,6 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
@@ -18,6 +19,8 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import {isReportMessageAttachment} from '../reportUtils';
+import Timers from '../Timers';
+import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -56,7 +59,19 @@ Onyx.connect({
 
 const typingWatchTimers = {};
 
-// Keeps track of the max sequence number for each report
+/**
+ * Map of the most recent sequenceNumber for a reports_* key in Onyx by reportID.
+ *
+ * There are several sources that can set the most recent reportAction's sequenceNumber for a report:
+ *
+ *     - Fetching the report object
+ *     - Fetching the report history
+ *     - Optimistically creating a report action
+ *     - Handling a report action via Pusher
+ *
+ * Those values are stored in reportMaxSequenceNumbers and treated as the main source of truth for each report's max
+ * sequenceNumber.
+ */
 const reportMaxSequenceNumbers = {};
 
 // Keeps track of the last read for each report
@@ -268,7 +283,7 @@ function fetchIOUReportID(debtorEmail) {
  * chat report IDs
  *
  * @param {Array} chatList
- * @return {Promise} only used internally when fetchAllReports() is called
+ * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
  */
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
@@ -373,14 +388,19 @@ function setLocalIOUReportData(iouReportObject, chatReportID) {
  * Update the lastRead actionID and timestamp in local memory and Onyx
  *
  * @param {Number} reportID
- * @param {Number} sequenceNumber
+ * @param {Number} lastReadSequenceNumber
  */
-function setLocalLastRead(reportID, sequenceNumber) {
-    lastReadSequenceNumbers[reportID] = sequenceNumber;
+function setLocalLastRead(reportID, lastReadSequenceNumber) {
+    lastReadSequenceNumbers[reportID] = lastReadSequenceNumber;
+    const reportMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
 
-    // Update the report optimistically
+    // Determine the number of unread actions by deducting the last read sequence from the total. If, for some reason,
+    // the last read sequence is higher than the actual last sequence, let's just assume all actions are read
+    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber, 0);
+
+    // Update the report optimistically.
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        unreadActionCount: 0,
+        unreadActionCount,
         lastVisitedTimestamp: Date.now(),
     });
 }
@@ -403,6 +423,29 @@ function removeOptimisticActions(reportID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         optimisticReportActionIDs: [],
     });
+}
+
+/**
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ */
+function setNewMarkerPosition(reportID, sequenceNumber) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        newMarkerSequenceNumber: sequenceNumber,
+    });
+}
+
+/**
+ * Updates a report action's message to be a new value.
+ *
+ * @param {Number} reportID
+ * @param {Number} sequenceNumber
+ * @param {Object} message
+ */
+function updateReportActionMessage(reportID, sequenceNumber, message) {
+    const actionToMerge = {};
+    actionToMerge[sequenceNumber] = {message: [message]};
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
 }
 
 /**
@@ -494,8 +537,16 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(reportAction, 'actorEmail') === 'concierge@expensify.com') {
+    if (lodashGet(reportAction, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
         return;
+    }
+
+    // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the
+    // marker above the incoming message.
+    if (lodashGet(allReports, [reportID, 'newMarkerSequenceNumber'], 0) === 0
+        && updatedReportObject.unreadActionCount > 0) {
+        const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
+        setNewMarkerPosition(reportID, oldestUnreadSeq);
     }
     console.debug('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
@@ -556,6 +607,26 @@ function subscribeToUserEvents() {
                 '[Report] Failed to subscribe to Pusher channel',
                 true,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
+            );
+        });
+
+    // Live-update a report's actions when an 'edit comment' event is received.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT} event sent by Pusher`, true, {
+                reportActionID: pushJSON.reportActionID,
+            },
+        );
+        updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT},
             );
         });
 
@@ -677,7 +748,7 @@ function unsubscribeFromReportChannel(reportID) {
  *
  * @param {String[]} participants
  * @param {Boolean} shouldNavigate
- * @returns {Promise}
+ * @returns {Promise<Number[]>}
  */
 function fetchOrCreateChatReport(participants, shouldNavigate = true) {
     if (participants.length < 2) {
@@ -700,7 +771,10 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
                 // Redirect the logged in person to the new report
                 Navigation.navigate(ROUTES.getReportRoute(data.reportID));
             }
-            return data.reportID;
+
+            // We are returning an array with the reportID here since fetchAllReports calls this method or
+            // fetchChatReportsByIDs which returns an array of reportIDs.
+            return [data.reportID];
         });
 }
 
@@ -748,14 +822,13 @@ function fetchActions(reportID, offset) {
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
  * @param {Boolean} shouldDelayActionsFetch when the app loads we want to delay the fetching of additional actions
+ * @returns {Promise}
  */
 function fetchAllReports(
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
-    let reportIDs = [];
-
-    API.Get({
+    return API.Get({
         returnValueList: 'chatList',
     })
         .then((response) => {
@@ -764,7 +837,7 @@ function fetchAllReports(
             }
 
             // The cast here is necessary as Get rvl='chatList' may return an int or Array
-            reportIDs = String(response.chatList)
+            const reportIDs = String(response.chatList)
                 .split(',')
                 .filter(_.identity);
 
@@ -773,28 +846,44 @@ function fetchAllReports(
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false)
-                .then((createdReportID) => {
-                    reportIDs = [createdReportID];
-                });
+            return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
-        .then(() => {
+        .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
             }
 
-            // Optionally delay fetching report history as it significantly increases sign in to interactive time
-            _.delay(() => {
-                Log.info('[Report] Fetching report actions for reports', true, {reportIDs});
-                _.each(reportIDs, (reportID) => {
-                    fetchActions(reportID);
+            // Delay fetching report history as it significantly increases sign in to interactive time.
+            // Register the timer so we can clean it up if the user quickly logs out after logging in. If we don't
+            // cancel the timer we'll make unnecessary API requests from the sign in page.
+            Timers.register(setTimeout(() => {
+                // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
+                // content and improve chat switching experience by only downloading content we don't have yet.
+                // This improves performance significantly when reconnecting by limiting API requests and unnecessary
+                // data processing by Onyx.
+                const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
+                    isReportMissingActions(id, reportMaxSequenceNumbers[id])
+                ));
+
+                if (_.isEmpty(reportIDsToFetchActions)) {
+                    console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
+                    return;
+                }
+
+                console.debug('[Report] Fetching reportActions for reportIDs: ', {
+                    reportIDs: reportIDsToFetchActions,
+                });
+                _.each(reportIDsToFetchActions, (reportID) => {
+                    const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
+                    fetchActions(reportID, offset);
                 });
 
-            // We are waiting 8 seconds since this provides a good time window to allow the UI to finish loading before
-            // bogging it down with more requests and operations.
-            }, shouldDelayActionsFetch ? 8000 : 0);
+                // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
+                // more requests and operations. Startup delay is longer since there is a lot more work done to build
+                // up the UI when the app first initializes.
+            }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT));
         });
 }
 
@@ -898,21 +987,30 @@ function addAction(reportID, text, file) {
  * network layer handle the delayed write.
  *
  * @param {Number} reportID
- * @param {Number} sequenceNumber
+ * @param {Number} [sequenceNumber] This can be used to set the last read actionID to a specific
+ *  spot (eg. mark-as-unread). Otherwise, when this param is omitted, the highest sequence number becomes the one that
+ *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
-    const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID];
-    if (sequenceNumber < currentMaxSequenceNumber) {
+    // If we aren't specifying a sequenceNumber and have no valid maxSequenceNumber for this report then we should not
+    // update the last read. Most likely, we have just created the report and it has no comments. But we should err on
+    // the side of caution and do nothing in this case.
+    if (_.isUndefined(sequenceNumber)
+        && (!reportMaxSequenceNumbers[reportID] && reportMaxSequenceNumbers[reportID] !== 0)) {
         return;
     }
 
-    setLocalLastRead(reportID, sequenceNumber);
+    // Need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot (the last read
+    // action). If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action)
+    const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
+
+    setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items
     API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
-        sequenceNumber,
+        sequenceNumber: lastReadSequenceNumber,
     });
 }
 
@@ -990,9 +1088,50 @@ Onyx.connect({
 });
 
 // When the app reconnects from being offline, fetch all of the reports and their actions
-NetworkConnection.onReconnect(() => {
-    fetchAllReports();
-});
+NetworkConnection.onReconnect(fetchAllReports);
+
+/**
+ * Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI.
+ *
+ * @param {Number} reportID
+ * @param {Object} originalReportAction
+ * @param {String} htmlForNewComment
+ */
+function editReportComment(reportID, originalReportAction, htmlForNewComment) {
+    // Optimistically update the report action with the new message
+    const sequenceNumber = originalReportAction.sequenceNumber;
+    const newReportAction = {...originalReportAction};
+    const actionToMerge = {};
+    newReportAction.message[0].isEdited = true;
+    newReportAction.message[0].html = htmlForNewComment;
+    newReportAction.message[0].text = Str.stripHTML(htmlForNewComment);
+    actionToMerge[sequenceNumber] = newReportAction;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+
+    // Persist the updated report comment
+    API.Report_EditComment({
+        reportID,
+        reportActionID: originalReportAction.reportActionID,
+        reportComment: htmlForNewComment,
+        sequenceNumber,
+    })
+        .catch(() => {
+            // If it fails, reset Onyx
+            actionToMerge[sequenceNumber] = originalReportAction;
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+        });
+}
+
+/**
+ * Saves the draft for a comment report action. This will put the comment into "edit mode"
+ *
+ * @param {Number} reportID
+ * @param {Number} reportActionID
+ * @param {String} draftMessage
+ */
+function saveReportActionDraft(reportID, reportActionID, draftMessage) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
+}
 
 export {
     fetchAllReports,
@@ -1000,6 +1139,7 @@ export {
     fetchOrCreateChatReport,
     addAction,
     updateLastReadActionID,
+    setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,
     unsubscribeFromReportChannel,
@@ -1007,6 +1147,8 @@ export {
     broadcastUserIsTyping,
     togglePinnedState,
     updateCurrentlyViewedReportID,
+    editReportComment,
+    saveReportActionDraft,
     getSimplifiedIOUReport,
     getSimplifiedReportObject,
 };

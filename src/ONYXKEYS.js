@@ -13,6 +13,9 @@ export default {
     // false unless we sign out. If there are reports in storage when the app inits this will be `true`.
     INITIAL_REPORT_DATA_LOADED: 'initialReportDataLoaded',
 
+    // Boolean flag set whenever we are waiting for the reconnection callbacks to finish.
+    IS_LOADING_AFTER_RECONNECT: 'isLoadingAfterReconnect',
+
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
     // What the active route is for our navigator. Global route that determines what views to display.
@@ -65,7 +68,11 @@ export default {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+        REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
     },
+
+    // Indicates which locale should be used
+    PREFERRED_LOCALE: 'preferredLocale',
 };
