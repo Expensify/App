@@ -113,7 +113,6 @@ const CONST = {
 
     EMAIL: {
         CHRONOS: 'chronos@expensify.com',
-        CONCIERGE: 'concierge@expensify.com',
     },
 
     ENVIRONMENT: {
@@ -128,6 +127,15 @@ const CONST = {
     FETCH_ACTIONS_DELAY: {
         STARTUP: 8000,
         RECONNECT: 1000,
+    },
+
+    OS: {
+        WINDOWS: 'Windows',
+        MAC_OS: 'Mac OS',
+        ANDROID: 'Android',
+        IOS: 'iOS',
+        LINUX: 'Linux',
+        NATIVE: 'Native',
     },
 };
 

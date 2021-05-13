@@ -15,7 +15,6 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 
@@ -61,6 +60,7 @@ class SearchPage extends Component {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
 
         this.selectReport = this.selectReport.bind(this);
+
         const {
             recentReports,
             personalDetails,
@@ -141,46 +141,39 @@ class SearchPage extends Component {
         );
         return (
             <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
-                    <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.search')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
-                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
-                            {didScreenTransitionEnd && (
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.selectReport}
-                                onChangeText={(searchValue = '') => {
-                                    const {
-                                        recentReports,
-                                        personalDetails,
-                                        userToInvite,
-                                    } = getSearchOptions(
-                                        this.props.reports,
-                                        this.props.personalDetails,
-                                        searchValue,
-                                    );
-                                    this.setState({
-                                        searchValue,
-                                        userToInvite,
-                                        recentReports,
-                                        personalDetails,
-                                    });
-                                }}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                hideAdditionalOptionStates
-                                showTitleTooltip
-                            />
-                            )}
-                        </View>
-                        <KeyboardSpacer />
-                    </>
-                )}
+                <HeaderWithCloseButton
+                    title={this.props.translate('common.search')}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <View style={[styles.flex1, styles.w100]}>
+                    <OptionsSelector
+                        sections={sections}
+                        value={this.state.searchValue}
+                        onSelectRow={this.selectReport}
+                        onChangeText={(searchValue = '') => {
+                            const {
+                                recentReports,
+                                personalDetails,
+                                userToInvite,
+                            } = getSearchOptions(
+                                this.props.reports,
+                                this.props.personalDetails,
+                                searchValue,
+                            );
+                            this.setState({
+                                searchValue,
+                                userToInvite,
+                                recentReports,
+                                personalDetails,
+                            });
+                        }}
+                        headerMessage={headerMessage}
+                        hideSectionHeaders
+                        hideAdditionalOptionStates
+                        showTitleTooltip
+                    />
+                </View>
+                <KeyboardSpacer />
             </ScreenWrapper>
         );
     }

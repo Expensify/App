@@ -1485,6 +1485,7 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
+        flex: 1,
     },
 };
 
