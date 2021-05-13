@@ -8,14 +8,13 @@ import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import {setNewMarkerPosition, updateLastReadActionID} from '../../../libs/actions/Report';
+import {setNewMarkerPosition, updateLastReadActionID, deleteReportComment} from '../../../libs/actions/Report';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
 import ConfirmCommentDeleteAppModal from './ConfirmCommentDeleteAppModal';
 import ONYXKEYS from '../../../ONYXKEYS';
-import Log from '../../../libs/Log';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -80,7 +79,6 @@ class ReportActionContextMenu extends React.Component {
                 },
             },
 
-
             {
                 text: 'Copy Link',
                 icon: LinkCopy,
@@ -110,7 +108,6 @@ class ReportActionContextMenu extends React.Component {
                 icon: Trashcan,
                 shouldShow: () => this.props.reportAction.actorEmail === this.props.session.email,
                 onPress: () => {
-                    Log.info('isDeleteCommentConfirmModal', true);
                     this.setState({isDeleteCommentConfirmModal: true});
                 },
             },
@@ -126,6 +123,7 @@ class ReportActionContextMenu extends React.Component {
     // deleteReportComment(this.props.reportID, this.props.reportAction);
 
     deleteAccepted() {
+        deleteReportComment(this.props.reportID, this.props.reportAction);
         this.setState({isDeleteCommentConfirmModal: false});
     }
 
