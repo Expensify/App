@@ -15,6 +15,7 @@ import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
 import ConfirmCommentDeleteAppModal from './ConfirmCommentDeleteAppModal';
 import ONYXKEYS from '../../../ONYXKEYS';
+import ConfirmModal from "../../../components/ConfirmModal";
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -146,9 +147,14 @@ class ReportActionContextMenu extends React.Component {
                     />
                 ))}
                 {this.state.isDeleteCommentConfirmModal ? (
-                    <ConfirmCommentDeleteAppModal
+                    <ConfirmModal
+                        title="Delete Comment"
+                        isVisible={() => true}
+                        onConfirm={this.deleteAccepted}
                         onCancel={this.deleteCanceled}
-                        onSubmit={this.deleteAccepted}
+                        prompt="Are you sure you want to delete this comment?"
+                        confirmText="Delete"
+                        cancelText="Cancel"
                     />
                 ) : null}
             </View>
