@@ -86,7 +86,8 @@ class IOUDetailsModal extends Component {
     }
 
     componentDidMount() {
-        // As there is no guarantee this is the active IOU, we should avoid updating the chatReport here.
+        // Fetch the iouReport without linking it to the chatReport. Else, the chatReport's iouReportID field would
+        // wrongly be pointed to an old settled iouReport, overwriting the iouReportID of the open iouReport.
         fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
     }
 
