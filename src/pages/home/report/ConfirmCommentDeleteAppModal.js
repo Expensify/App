@@ -12,11 +12,6 @@ const propTypes = {
 class ConfirmCommentDeleteAppModal extends Component {
     constructor(props) {
         super(props);
-
-        this.state = {
-            isVisible: true,
-        };
-
         this.submitAndClose = this.submitAndClose.bind(this);
         this.cancelAndClose = this.cancelAndClose.bind(this);
     }
@@ -27,7 +22,6 @@ class ConfirmCommentDeleteAppModal extends Component {
     submitAndClose() {
         Log.info('submitAndClose', true);
         this.props.onSubmit();
-        this.setState({isVisible: false});
     }
 
     /**
@@ -36,7 +30,6 @@ class ConfirmCommentDeleteAppModal extends Component {
     cancelAndClose() {
         Log.info('cancelAndClose', true);
         this.props.onCancel();
-        this.setState({isVisible: false});
     }
 
     render() {
@@ -44,9 +37,9 @@ class ConfirmCommentDeleteAppModal extends Component {
             <>
                 <ConfirmModal
                     title="Delete Comment"
-                    isVisible={this.state.isVisible}
-                    onConfirm={Log.info('submitAndClose', true)}
-                    onCancel={Log.info('cancelAndClose', true)}
+                    isVisible={() => true}
+                    onConfirm={this.submitAndClose}
+                    onCancel={this.cancelAndClose}
                     prompt="Are you sure you want to delete this comment?"
                     confirmText="Delete"
                     cancelText="Cancel"
