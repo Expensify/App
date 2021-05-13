@@ -64,8 +64,6 @@ class AttachmentPicker extends Component {
 
         this.state = {
             isVisible: false,
-            result: null,
-            onPicked: () => {},
         };
 
         this.menuItemData = [
@@ -86,20 +84,20 @@ class AttachmentPicker extends Component {
             },
         ];
 
-        this.setResult = this.setResult.bind(this);
         this.close = this.close.bind(this);
-        this.completeAttachmentSelection = this.completeAttachmentSelection.bind(this);
+        this.pickAttachment = this.pickAttachment.bind(this);
     }
 
     /**
-     * Store the selected attachment mapped to an appropriate file interface
+     * Handles the image/document picker result and
+     * sends the selected attachment to the caller (parent component)
      *
      * @param {ImagePickerResponse|DocumentPickerResponse} attachment
      */
-    setResult(attachment) {
+    pickAttachment(attachment) {
         if (attachment && !attachment.didCancel && !attachment.error) {
             const result = getDataForUpload(attachment);
-            this.setState({result});
+            this.completeAttachmentSelection(result);
         }
     }
 
@@ -192,11 +190,8 @@ class AttachmentPicker extends Component {
      * @param {function} onPicked A callback that will be called with the selected attachment
      */
     open(onPicked) {
-        this.setState({
-            isVisible: true,
-            result: null,
-            onPicked,
-        });
+        this.completeAttachmentSelection = onPicked;
+        this.setState({isVisible: true});
     }
 
     /**
@@ -204,6 +199,25 @@ class AttachmentPicker extends Component {
      */
     close() {
         this.setState({isVisible: false});
+    }
+
+    /**
+     * Setup native attachment selection to start after this popover closes
+     *
+     * @param {{pickAttachment: function}} item - an item from this.menuItemData
+     */
+    selectItem(item) {
+        /* setTimeout delays execution to the frame after the modal closes
+        * without this on iOS closing the modal closes the gallery/camera as well */
+        this.onModalHide = () => setTimeout(
+            () => item.pickAttachment()
+                .then(this.pickAttachment)
+                .catch(console.error)
+                .finally(() => delete this.onModalHide),
+            10,
+        );
+
+        this.close();
     }
 
     /**
@@ -224,19 +238,16 @@ class AttachmentPicker extends Component {
                     onClose={this.close}
                     isVisible={this.state.isVisible}
                     anchorPosition={styles.createMenuPosition}
-                    onModalHide={this.completeAttachmentSelection}
+                    onModalHide={this.onModalHide}
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {
-                            this.menuItemData.map(({icon, text, pickAttachment}) => (
+                            this.menuItemData.map(item => (
                                 <MenuItem
-                                    key={text}
-                                    icon={icon}
-                                    title={text}
-                                    onPress={() => pickAttachment()
-                                        .then(this.setResult)
-                                        .then(this.close)
-                                        .catch(console.error)}
+                                    key={item.text}
+                                    icon={item.icon}
+                                    title={item.text}
+                                    onPress={() => this.selectItem(item)}
                                 />
                             ))
                         }
