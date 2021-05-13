@@ -16,6 +16,8 @@ import {fetchIOUReportByID} from '../../libs/actions/Report';
 import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
 import iouTansactionPropTypes from './iouTansactionPropTypes';
 import IOUTransactions from './IOUTransactions';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const defaultProps = {
     iou: {},
@@ -67,6 +69,8 @@ const propTypes = {
         // Currently logged in user email
         email: PropTypes.string,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 class IOUDetailsModal extends Component {
@@ -121,7 +125,7 @@ class IOUDetailsModal extends Component {
                             && this.props.iouReport.managerEmail === sessionEmail && (
                             <View style={styles.p5}>
                                 <ButtonWithLoader
-                                    text="I'll settle up elsewhere"
+                                    text={this.props.translate('iou.settleElsewhere')}
                                     isLoading={this.props.iou.loading}
                                     onClick={this.performIOUSettlement}
                                 />
@@ -138,14 +142,17 @@ IOUDetailsModal.propTypes = propTypes;
 IOUDetailsModal.displayName = 'IOUDetailsModal';
 IOUDetailsModal.defaultProps = defaultProps;
 
-export default withOnyx({
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
-    iouReport: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(IOUDetailsModal);
+export default compose(
+    withLocalize,
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+        iouReport: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${route.params.iouReportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(IOUDetailsModal);

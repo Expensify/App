@@ -98,7 +98,12 @@ export default {
         confirm: 'Confirm',
         splitBill: 'Split Bill',
         requestMoney: 'Request Money',
+        pay: 'Pay',
+        viewDetails: 'View Details',
+        settleElsewhere: 'I\'ll settle up elsewhere',
         request: ({amount}) => `Request ${amount}`,
+        owes: ({manager, owner}) => `${manager} owes ${owner}`,
+        paid: ({owner, manager}) => `${owner} paid ${manager}`,
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
