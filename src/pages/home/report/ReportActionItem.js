@@ -80,7 +80,6 @@ class ReportActionItem extends Component {
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
-            || (this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator)
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
             || !_.isEqual(this.props.action, nextProps.action);
     }
