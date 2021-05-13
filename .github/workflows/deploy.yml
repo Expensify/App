@@ -24,7 +24,7 @@ jobs:
   deployStaging:
     runs-on: ubuntu-latest
     needs: validate
-    if: ${{ needs.validate.outputs.isVersionBumpPR === 'true' && github.ref == 'refs/heads/staging' }}
+    if: ${{ needs.validate.outputs.isVersionBumpPR == 'true' && github.ref == 'refs/heads/staging' }}
 
     steps:
       - name: Checkout staging branch
