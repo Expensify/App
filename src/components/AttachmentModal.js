@@ -1,17 +1,21 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, TouchableOpacity, Text, Dimensions,
+    View, TouchableOpacity, Text,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
-import ModalWithHeader from './ModalWithHeader';
+import Modal from './Modal';
 import AttachmentView from './AttachmentView';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import variables from '../styles/variables';
 import ONYXKEYS from '../ONYXKEYS';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
+import compose from '../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import HeaderWithCloseButton from './HeaderWithCloseButton';
+import fileDownload from '../libs/fileDownload';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -29,6 +33,9 @@ const propTypes = {
     // Optional callback to fire when we want to preview an image and approve it for use.
     onConfirm: PropTypes.func,
 
+    // Optional callback to fire when we want to do something after modal hide.
+    onModalHide: PropTypes.func,
+
     // A function as a child to pass modal launching methods to
     children: PropTypes.func.isRequired,
 
@@ -39,6 +46,10 @@ const propTypes = {
     session: PropTypes.shape({
         authToken: PropTypes.string.isRequired,
     }).isRequired,
+
+    ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -46,9 +57,10 @@ const defaultProps = {
     sourceURL: null,
     onConfirm: null,
     isAuthTokenRequired: false,
+    onModalHide: () => {},
 };
 
-class AttachmentModal extends Component {
+class AttachmentModal extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -57,6 +69,24 @@ class AttachmentModal extends Component {
             file: null,
             sourceURL: props.sourceURL,
         };
+
+        this.submitAndClose = this.submitAndClose.bind(this);
+    }
+
+    /**
+     * Execute the onConfirm callback and close the modal.
+     */
+    submitAndClose() {
+        // If the modal has already been closed, don't allow another submission
+        if (!this.state.isModalOpen) {
+            return;
+        }
+
+        if (this.props.onConfirm) {
+            this.props.onConfirm(this.state.file);
+        }
+
+        this.setState({isModalOpen: false});
     }
 
     render() {
@@ -66,19 +96,26 @@ class AttachmentModal extends Component {
             required: this.props.isAuthTokenRequired,
         });
 
-        const isSmallScreen = Dimensions.get('window').width < variables.mobileResponsiveWidthBreakpoint;
-        const attachmentViewStyles = isSmallScreen
+        const attachmentViewStyles = this.props.isSmallScreenWidth
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
         return (
             <>
-                <ModalWithHeader
+                <Modal
                     type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                    onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
-                    title={this.props.title}
                     backgroundColor={themeColors.componentBG}
+                    onModalHide={this.props.onModalHide}
+                    propagateSwipe
                 >
+                    <HeaderWithCloseButton
+                        title={this.props.title}
+                        shouldShowBorderBottom
+                        onDownloadButtonPress={() => fileDownload(sourceURL)}
+                        onCloseButtonPress={() => this.setState({isModalOpen: false})}
+                    />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (
                             <AttachmentView sourceURL={sourceURL} file={this.state.file} />
@@ -90,10 +127,7 @@ class AttachmentModal extends Component {
                         <TouchableOpacity
                             style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
                             underlayColor={themeColors.componentBG}
-                            onPress={() => {
-                                this.props.onConfirm(this.state.file);
-                                this.setState({isModalOpen: false});
-                            }}
+                            onPress={this.submitAndClose}
                         >
                             <Text
                                 style={[
@@ -102,11 +136,11 @@ class AttachmentModal extends Component {
                                     styles.buttonConfirmText,
                                 ]}
                             >
-                                Upload
+                                {this.props.translate('common.upload')}
                             </Text>
                         </TouchableOpacity>
                     )}
-                </ModalWithHeader>
+                </Modal>
                 {this.props.children({
                     displayFileInModal: ({file}) => {
                         if (file instanceof File) {
@@ -127,8 +161,12 @@ class AttachmentModal extends Component {
 
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
-export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(AttachmentModal);
+export default compose(
+    withWindowDimensions,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+    withLocalize,
+)(AttachmentModal);

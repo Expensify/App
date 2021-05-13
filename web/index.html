@@ -3,7 +3,17 @@
 <head>
     <meta charset="utf-8" />
     <title>Expensify.cash</title>
-    <link rel="stylesheet" href="css/fonts.css" />
+    <meta name="description" content="Chat and payments are now the same thing. Launching Summer 2021, join the waitlist to be first in line!">
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:site" content="@expensify">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Expensify.cash">
+    <meta property="og:url" content="https://expensify.cash">
+    <meta property="og:title" content="Expensify.cash - Chat with friends to send and receive money">
+    <meta property="og:description" content="Chat and payments are now the same thing. Launching Summer 2021, join the waitlist to be first in line!">
+    <meta property="og:image" content="https://expensify.cash/og-preview-image.png">
+    <link rel="stylesheet" type="text/css" href="/css/fonts.css" />
+    <link rel="stylesheet" type="text/css" href="/css/pdf.css" />
     <style>
         html,
         body,
@@ -12,11 +22,19 @@
         #root > div > div {
             height: 100% !important;
         }
+        #drag-area {
+            -webkit-app-region: drag;
+        }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
-    <link rel="shortcut icon" id="favicon" href="favicon.png">
+    <link rel="shortcut icon" id="favicon" href="/favicon.png">
+    <% if (htmlWebpackPlugin.options.usePolyfillIO) { %>
+        <!-- polyfill.io is only needed on Web to support older browsers. It should not be loaded for desktop -->
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=default%2CResizeObserver&flags=gated"></script>
+    <% } %>
 </head>
 <body>
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" id="drag-area"></div>
     <div id="root"></div>
 </body>
 </html>

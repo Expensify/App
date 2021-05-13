@@ -1,8 +1,6 @@
 import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import CONFIG from '../CONFIG';
-import ONYXKEYS from '../ONYXKEYS';
-import NetworkConnection from './NetworkConnection';
+import CONST from '../CONST';
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
@@ -18,20 +16,7 @@ function processHTTPRequest(url, method = 'get', body = null) {
         method,
         body,
     })
-        .then(response => response.json())
-
-        // This will catch any HTTP network errors (like 404s and such), not to be confused with jsonCode which this
-        // does NOT catch
-        .catch(() => {
-            NetworkConnection.setOfflineStatus(true);
-
-            // Set an error state and signify we are done loading
-            Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
-
-            // Throw a new error to prevent any other `then()` in the promise chain from being triggered (until another
-            // catch() happens
-            throw new Error('API is offline');
-        });
+        .then(response => response.json());
 }
 
 /**
@@ -39,12 +24,14 @@ function processHTTPRequest(url, method = 'get', body = null) {
  * @param {String} command the name of the API command
  * @param {Object} data parameters for the API command
  * @param {String} type HTTP request type (get/post)
+ * @param {Boolean} shouldUseSecure should we use the secure server
  * @returns {Promise}
  */
-function xhr(command, data, type = 'post') {
+function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    return processHTTPRequest(`${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=${command}`, type, formData);
+    const apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;
+    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData);
 }
 
 /**

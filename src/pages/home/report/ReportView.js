@@ -1,65 +1,53 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
-import ReportActionView from './ReportActionsView';
+import {withOnyx} from 'react-native-onyx';
+import ReportActionsView from './ReportActionsView';
 import ReportActionCompose from './ReportActionCompose';
-import {addAction, subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '../../../libs/actions/Report';
+import {addAction} from '../../../libs/actions/Report';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
-import Timing from '../../../libs/actions/Timing';
-import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
+import SwipeableView from '../../../components/SwipeableView';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
-    // The ID of the report actions will be created for
+    /* The ID of the report the selected report */
     reportID: PropTypes.number.isRequired,
 
-    // Whether or not this report is the one that is currently being viewed
-    isActiveReport: PropTypes.bool.isRequired,
+    /* Onyx Keys */
+    // Whether or not to show the Compose Input
+    session: PropTypes.shape({
+        shouldShowComposeInput: PropTypes.bool,
+    }),
 };
 
-// This is a PureComponent so that it only re-renders when the reportID changes or when the report changes from
-// active to inactive (or vice versa). This should greatly reduce how often comments are re-rendered.
-class ReportView extends React.PureComponent {
-    componentDidMount() {
-        subscribeToReportTypingEvents(this.props.reportID);
+const defaultProps = {
+    session: {
+        shouldShowComposeInput: true,
+    },
+};
 
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
-    }
+const ReportView = ({reportID, session}) => (
+    <View key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
+        <ReportActionsView reportID={reportID} />
 
-    componentDidUpdate(props) {
-        if (!props.isActiveReport) {
-            Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.HOT);
-        }
-    }
-
-    componentWillUnmount() {
-        unsubscribeFromReportChannel(this.props.reportID);
-    }
-
-    render() {
-        // Only display the compose form for the active report because the form needs to get focus and
-        // calling focus() on 42 different forms doesn't work
-        const shouldShowComposeForm = this.props.isActiveReport;
-        return (
-            <View style={[styles.chatContent]}>
-                <ReportActionView
-                    reportID={this.props.reportID}
-                    isActiveReport={this.props.isActiveReport}
+        {session.shouldShowComposeInput && (
+            <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
+                <ReportActionCompose
+                    onSubmit={text => addAction(reportID, text)}
+                    reportID={reportID}
                 />
-
-                {shouldShowComposeForm && (
-                    <ReportActionCompose
-                        onSubmit={text => addAction(this.props.reportID, text)}
-                        reportID={this.props.reportID}
-                    />
-                )}
-
-                <KeyboardSpacer />
-            </View>
-        );
-    }
-}
+            </SwipeableView>
+        )}
+        <KeyboardSpacer />
+    </View>
+);
 
 ReportView.propTypes = propTypes;
+ReportView.defaultProps = defaultProps;
 
-export default ReportView;
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(ReportView);

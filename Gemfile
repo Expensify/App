@@ -1,5 +1,5 @@
 source "https://rubygems.org"
 
-gem "fastlane"
-gem "cocoapods"
-gem "xcpretty"
+gem "cocoapods", "~> 1"
+gem "fastlane", "~> 2"
+gem "xcpretty", "~> 0"

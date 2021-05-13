@@ -1,6 +1,6 @@
 <div align="center">
     <a href="https://Expensify.cash">
-        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/master/web/favicon.png" width="64" height="64" alt="Expensify.cash Icon">
+        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/main/web/favicon.png" width="64" height="64" alt="Expensify.cash Icon">
     </a>
     <h1>
         <a href="https://Expensify.cash">
@@ -27,7 +27,7 @@
 # Local development
 These instructions should get you set up ready to work on Expensify.cash 🙌
 
-## Getting Started 
+## Getting Started
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
@@ -101,7 +101,7 @@ This is a persistent storage solution wrapped in a Pub/Sub library. In general t
 
 - Onyx stores and retrieves data from persistent storage
 - Data is stored as key/value pairs, where the value can be anything from a single piece of data to a complex object
-- Collections of data are usually not stored as a single key (eg. an array with multiple objects), but as individual keys+ID (eg. `report_1234`, `report_4567`, etc.). Store collections as individual keys when a component will bind directly to one of those keys. For example: reports are stored as individual keys because `ChatLinkRow.js` binds to the individual report keys for each link. However, report actions are stored as an array of objects because nothing binds directly to a single report action.
+- Collections of data are usually not stored as a single key (eg. an array with multiple objects), but as individual keys+ID (eg. `report_1234`, `report_4567`, etc.). Store collections as individual keys when a component will bind directly to one of those keys. For example: reports are stored as individual keys because `OptionRow.js` binds to the individual report keys for each link. However, report actions are stored as an array of objects because nothing binds directly to a single report action.
 - Onyx allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
 - Anything needing to read Onyx data needs to:
     1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > local storage)
@@ -238,7 +238,7 @@ This application is built with the following principles.
 
 # Deploying
 ##  Continuous deployment / GitHub workflows
-Every PR merged into `master` will kick off the **Create a new version** GitHub workflow defined in `.github/workflows/version.yml`.
+Every PR merged into `main` will kick off the **Create a new version** GitHub workflow defined in `.github/workflows/version.yml`.
 It will look at the current version and increment it by one build version (using [`react-native-version`](https://www.npmjs.com/package/react-native-version)), create a PR with that new version, and tag the version.
 
 The PR will be merged automatically by the GitHub workflow **automerge** to keep the version always up to date.

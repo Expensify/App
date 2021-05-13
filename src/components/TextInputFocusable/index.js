@@ -2,20 +2,23 @@ import React from 'react';
 import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import mime from 'mime-types';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     // Maximum number of lines in the text input
     maxLines: PropTypes.number,
 
     // The default value of the comment box
-    defaultValue: PropTypes.string.isRequired,
+    defaultValue: PropTypes.string,
+
+    // The value of the comment box
+    value: PropTypes.string,
 
     // Callback method to handle pasting a file
     onPasteFile: PropTypes.func,
 
     // A ref to forward to the text input
-    forwardedRef: PropTypes.func.isRequired,
+    forwardedRef: PropTypes.func,
 
     // General styles to apply to the text input
     // eslint-disable-next-line react/forbid-prop-types
@@ -35,9 +38,20 @@ const propTypes = {
 
     // Callback to fire when a file is dropped on the text input
     onDrop: PropTypes.func,
+
+    // Whether or not this TextInput is disabled.
+    isDisabled: PropTypes.bool,
+
+    /* Set focus to this component the first time it renders. Override this in case you need to set focus on one
+    * field out of many, or when you want to disable autoFocus */
+    autoFocus: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    defaultValue: undefined,
+    value: undefined,
     maxLines: -1,
     onPasteFile: () => {},
     shouldClear: false,
@@ -46,6 +60,19 @@ const defaultProps = {
     onDragEnter: () => {},
     onDragLeave: () => {},
     onDrop: () => {},
+    isDisabled: false,
+    autoFocus: false,
+    forwardedRef: null,
+};
+
+const IMAGE_EXTENSIONS = {
+    'image/bmp': 'bmp',
+    'image/gif': 'gif',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/svg+xml': 'svg',
+    'image/tiff': 'tiff',
+    'image/webp': 'webp',
 };
 
 /**
@@ -55,17 +82,20 @@ class TextInputFocusable extends React.Component {
     constructor(props) {
         super(props);
 
+        const initialValue = props.defaultValue
+            ? `${props.defaultValue}`
+            : `${props.value || ''}`;
+
         this.state = {
             numberOfLines: 1,
             selection: {
-                start: this.props.defaultValue.length,
-                end: this.props.defaultValue.length,
+                start: initialValue.length,
+                end: initialValue.length,
             },
         };
     }
 
     componentDidMount() {
-        this.focusInput();
         this.updateNumberOfLines();
 
         // This callback prop is used by the parent component using the constructor to
@@ -149,11 +179,18 @@ class TextInputFocusable extends React.Component {
                         if (!response.ok) { throw Error(response.statusText); }
                         return response.blob();
                     })
-                    .then(x => new File([x], `pasted_image.${mime.extension(x.type)}`, {}))
+                    .then((x) => {
+                        const extension = IMAGE_EXTENSIONS[x.type];
+                        if (!extension) {
+                            throw new Error(this.props.translate('textInputFocusable.noExtentionFoundForMimeType'));
+                        }
+
+                        return new File([x], `pasted_image.${extension}`, {});
+                    })
                     .then(this.props.onPasteFile)
                     .catch((error) => {
-                        console.debug(error);
-                        alert(`There was a problem getting the image you pasted. \n${error.message}`);
+                        const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
+                        alert(`${errorDesc}. \n${error.message}`);
                     });
             }
         }
@@ -178,10 +215,6 @@ class TextInputFocusable extends React.Component {
         });
     }
 
-    focusInput() {
-        this.textInput.focus();
-    }
-
     render() {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
@@ -197,6 +230,7 @@ class TextInputFocusable extends React.Component {
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
+                disabled={this.props.isDisabled}
             />
         );
     }
@@ -205,7 +239,7 @@ class TextInputFocusable extends React.Component {
 TextInputFocusable.propTypes = propTypes;
 TextInputFocusable.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <TextInputFocusable {...props} forwardedRef={ref} />
-));
+)));

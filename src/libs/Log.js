@@ -1,16 +1,9 @@
 import Logger from 'expensify-common/lib/Logger';
-import Onyx from 'react-native-onyx';
 import * as API from './API';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';
 import {version} from '../../package.json';
-import ONYXKEYS from '../ONYXKEYS';
-
-let email;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => email = val ? val.email : null,
-});
+import NetworkConnection from './NetworkConnection';
 
 /**
  * Network interface for logger.
@@ -26,14 +19,6 @@ function serverLoggingCallback(params) {
         expensifyCashAppVersion: `expensifyCash[${getPlatform()}]${version}`,
     };
 
-    // If we are logging something and have no email
-    // then we do not want to include this. If we pass
-    // this as null or undefined that will literally
-    // appear in the logs instead of we@dont.know
-    if (email) {
-        requestParams.email = email;
-    }
-
     API.Log(requestParams);
 }
 
@@ -41,10 +26,13 @@ function serverLoggingCallback(params) {
 // used by other platforms. The server and client logging
 // callback methods are passed in here so we can decouple
 // the logging library from the logging methods.
-export default new Logger({
+const Log = new Logger({
     serverLoggingCallback,
     clientLoggingCallback: (message) => {
         console.debug(message);
     },
     isDebug: !CONFIG.IS_IN_PRODUCTION,
 });
+
+NetworkConnection.registerLogInfoCallback(Log.info);
+export default Log;

@@ -1,0 +1,115 @@
+name: Prepare production deploy
+
+on:
+  issues:
+    types: [closed]
+
+# The updateProduction and createNewStagingDeployCash jobs are executed when a StagingDeployCash is closed.
+jobs:
+  checkDeployBlockers:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'StagingDeployCash')
+
+    outputs:
+      hasDeployBlockers: ${{ steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS }}
+
+    steps:
+      - name: Check for any deploy blockers
+        id: checkDeployBlockers
+        uses: Expensify/Expensify.cash/.github/actions/checkDeployBlockers@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+      - name: Reopen and comment on issue
+        if: ${{ steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
+        uses: Expensify/Expensify.cash/.github/actions/reopenIssueWithComment@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT: |
+            This issue either has unchecked QA steps or has not yet been marked with the `:shipit:` emoji of approval.
+            Reopening!
+
+  # Update the production branch to trigger the production deploy.
+  updateProduction:
+    runs-on: ubuntu-latest
+
+    # Note: Anyone with Triage access to the Expensify.cash repo can trigger a production deploy
+    needs: checkDeployBlockers
+    if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: main
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Update production branch
+        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          WORKFLOW: updateProtectedBranch.yml
+          INPUTS: '{ "TARGET_BRANCH": "production" }'
+
+  # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
+  createNewStagingDeployCash:
+    runs-on: macos-latest
+    needs: checkDeployBlockers
+    if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
+    steps:
+      # Version: 2.3.4
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create new BUILD version
+        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          WORKFLOW: createNewVersion.yml
+          INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
+
+      - name: Pull main to get the new version
+        run: |
+          git pull origin main
+          echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+          echo "New version is ${{ env.NEW_VERSION }}"
+
+      # Note: we need to create this tag but not push it, because of how GitUtils.getPullRequestsMergedBetween works
+      - name: Tag version
+        run: git tag ${{ env.NEW_VERSION }}
+
+      - name: Create new StagingDeployCash
+        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          NPM_VERSION: ${{ env.NEW_VERSION }}
+
+      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+      # the other workflows with the same change
+      - uses: 8398a7/action-slack@v3
+        name: Job failed Slack notification
+        if: ${{ failure() }}
+        with:
+          status: custom
+          fields: workflow, repo
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!here>`,
+                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

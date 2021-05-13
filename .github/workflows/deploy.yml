@@ -1,0 +1,81 @@
+name: Deploy code to staging or production
+
+on:
+  push:
+    branches: [staging, production]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      isVersionBumpPR: ${{ steps.isVersionBumpPR.outputs.IS_AUTOMERGE_PR }}
+
+    steps:
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if merged pull request was an automatic version bump PR
+        id: isVersionBumpPR
+        run: echo "::set-output name=IS_AUTOMERGE_PR::${{ github.actor == 'OSBotify' }}"
+
+  deployStaging:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: ${{ needs.validate.outputs.isVersionBumpPR === 'true' && github.ref == 'refs/heads/staging' }}
+
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: staging
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Tag version
+        run: git tag $(npm run print-version --silent)
+
+      - name: 🚀 Push tags to trigger staging deploy 🚀
+        run: git push --tags
+
+  deployProduction:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: ${{ needs.validate.outputs.isVersionBumpPR == 'true' && github.ref == 'refs/heads/production' }}
+
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Checkout production branch
+        run: git checkout production
+
+      - name: Get current app version
+        run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+
+      - name: Get Release Pull Request List
+        id: getReleasePRList
+        uses: Expensify/Expensify.cash/.github/actions/getDeployPullRequestList@main
+        with:
+          TAG: ${{ env.PRODUCTION_VERSION }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          IS_PRODUCTION_DEPLOY: true
+
+      - name: Generate Release Body
+        id: getReleaseBody
+        uses: Expensify/Expensify.cash/.github/actions/getReleaseBody@main
+        with:
+          PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
+
+      - name: 🚀 Create release to trigger production deploy 🚀
+        uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
+        with:
+          tag_name: ${{ env.PRODUCTION_VERSION }}
+          body: ${{ steps.getReleaseBody.outputs.RELEASE_BODY }}
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+

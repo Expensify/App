@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
-import lodashGet from 'lodash.get';
+import lodashGet from 'lodash/get';
 import NotificationType from './NotificationType';
 
 const notificationEventActionMap = {};
@@ -105,7 +105,7 @@ function deregister() {
 
 /**
  * Bind a callback to a push notification of a given type.
- * See https://github.com/Expensify/Web-Expensify/blob/master/lib/MobilePushNotifications.php for the various
+ * See https://github.com/Expensify/Web-Expensify/blob/main/lib/MobilePushNotifications.php for the various
  * types of push notifications sent, along with the data that they provide.
  *
  * Note: This implementation allows for only one callback to be bound to an Event/Type pair. For example,

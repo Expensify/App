@@ -1,3 +1,5 @@
+import overflowAuto from './overflowAuto';
+
 /**
  * Overflow utility styles with Bootstrap inspired naming.
  *
@@ -15,4 +17,6 @@ export default {
     overflowScroll: {
         overflow: 'scroll',
     },
+
+    overflowAuto,
 };
