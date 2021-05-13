@@ -19,7 +19,7 @@ const propTypes = {
     // avatar size
     size: PropTypes.string,
 
-    // When true, shows sync indicator
+    // Whether we show the sync indicator
     isSyncing: PropTypes.bool,
 };
 
