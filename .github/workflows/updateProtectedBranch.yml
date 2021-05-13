@@ -57,7 +57,7 @@ jobs:
       - name: Create Pull Request
         id: createPullRequest
         # Version: 2.4.3
-        uses: repo-sync/pull-request@33777245b1aace1a58c87a29c90321aa7a74bd7d
+        uses: repo-sync/pull-request@65194d8015be7624d231796ddee1cd52a5023cb3
         with:
           source_branch: ${{ env.HEAD_BRANCH }}
           destination_branch: ${{ github.event.inputs.TARGET_BRANCH }}
