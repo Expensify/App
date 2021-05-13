@@ -1451,6 +1451,8 @@ const webViewStyles = {
             paddingRight: 8,
             paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
+            marginTop: 0,
+            marginBottom: 0,
         },
 
         code: {
