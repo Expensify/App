@@ -537,7 +537,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(reportAction, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
+    if (lodashGet(reportAction, 'actorEmail') === 'concierge@expensify.com') {
         return;
     }
 
@@ -846,7 +846,7 @@ function fetchAllReports(
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
+            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false);
         })
         .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
@@ -952,6 +952,7 @@ function addAction(reportID, text, file) {
 
             // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: optimisticReportActionID,
+            clientID: optimisticReportActionID,
             avatar: myPersonalDetails.avatar,
             timestamp: moment().unix(),
             message: [
