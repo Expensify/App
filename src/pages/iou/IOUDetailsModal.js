@@ -11,7 +11,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {settleIOUReport} from '../../libs/actions/IOU';
+import {payIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
 import ReportActionItemIOUPreview from '../../components/ReportActionItem/IOUPreview';
 import iouTansactionPropTypes from './iouTansactionPropTypes';
@@ -39,7 +39,7 @@ const propTypes = {
     /* Onyx Props */
     // Holds data related to IOU view state, rather than the underlying IOU data.
     iou: PropTypes.shape({
-        // Is the IOU Report currently being settled
+        // Is the IOU Report currently being paid?
         loading: PropTypes.bool,
 
         // Error message, empty represents no error
@@ -60,7 +60,7 @@ const propTypes = {
         // The IOU transactions
         transactions: PropTypes.arrayOf(PropTypes.shape(iouTansactionPropTypes)),
 
-        // Is the IOU report settled?
+        // Does the report have an outstanding IOU that needs to be paid?
         hasOutstandingIOU: PropTypes.bool,
     }).isRequired,
 
@@ -87,12 +87,12 @@ class IOUDetailsModal extends Component {
 
     componentDidMount() {
         // Fetch the iouReport without linking it to the chatReport. Else, the chatReport's iouReportID field would
-        // wrongly be pointed to an old settled iouReport, overwriting the iouReportID of the open iouReport.
+        // wrongly be pointed to an old paid iouReport, overwriting the iouReportID of the open iouReport.
         fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
     }
 
     performIOUSettlement() {
-        settleIOUReport({
+        payIOUReport({
             chatReportID: this.props.route.params.chatReportID,
             reportID: this.props.route.params.iouReportID,
             paymentMethodType: this.state.settlementType,

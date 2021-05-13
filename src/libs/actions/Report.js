@@ -203,7 +203,7 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         currency: transaction.currency,
         created: transaction.created,
         comment: transaction.comment,
-    })).reverse(); // transactionList is returned in desc order, but we desire asc order
+    })).reverse(); // transactionList returns in desc order, we desire asc order (they must be sorted by creation date)
 
     return {
         reportID: reportData.reportID,
@@ -245,7 +245,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
             // This is occuring due to 'fetchChatReportsByIDs' calling this function with a IOUReportID that has
-            // already been settled. In this case it is expected that no data is returned from 'getIOU'.
+            // already been paid. In this case it is expected that no data is returned from 'getIOU'.
             return;
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
@@ -449,7 +449,7 @@ function removeOptimisticActions(reportID) {
  * @param {Number} chatReportID - associated chatReportI which should be added to IOU report data
  *
  * Retrieve an iouReport, but do not associate it with the chatReport! As an example, the user might be viewing an old
- * settled report that does not have outstanding IOUs, thus we must not override the chatReports `iouReportID` value.
+ * paid report that does not have outstanding IOUs, thus we must not override the chatReports `iouReportID` value.
  */
 function fetchIOUReportByID(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
