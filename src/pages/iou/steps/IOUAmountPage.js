@@ -22,14 +22,8 @@ const propTypes = {
     // Whether or not this IOU has multiple participants
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    /* Navigation route context info provided by react navigation */
-    route: PropTypes.shape({
-        /* Route specific parameters used on this screen */
-        params: PropTypes.shape({
-            /* The ID of the report this screen should display */
-            reportID: PropTypes.string,
-        }).isRequired,
-    }).isRequired,
+    /* The ID of the report this screen should display */
+    reportID: PropTypes.string.isRequired,
 
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
@@ -125,8 +119,8 @@ class IOUAmountPage extends React.Component {
                 ]}
                 >
                     <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
-                        ? ROUTES.getIouBillCurrencyRoute(this.props.route.params.reportID)
-                        : ROUTES.getIouRequestCurrencyRoute(this.props.route.params.reportID))}
+                        ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
+                        : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
                         <Text style={styles.iouAmountText}>
                             {this.props.selectedCurrency.currencySymbol}
