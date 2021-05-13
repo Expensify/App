@@ -244,8 +244,8 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
-            // This is occuring due to 'fetchChatReportsByIDs' calling this function with a IOUReportID that has
-            // already been paid. In this case it is expected that no data is returned from 'getIOU'.
+            // IOU data for a report will be missing when the IOU report has already been settled.
+            // This is expected and we return early as no further processing can be done
             return;
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
@@ -418,11 +418,12 @@ function removeOptimisticActions(reportID) {
 }
 
 /**
- * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportI which should be added to IOU report data
+ * Retrieve an iouReport, but do not associate it with the chatReport. For example, the user could be viewing a paid
+ * report, and we must never override the chatReport's 'iouReportID' value with a paid report ID. Doing so would cause
+ * 'hasOutstandingIOU' to be set to false, preventing the IOUPreview and IOUBadge Components from displaying.
  *
- * Retrieve an iouReport, but do not associate it with the chatReport! As an example, the user might be viewing an old
- * paid report that does not have outstanding IOUs, thus we must not override the chatReports `iouReportID` value.
+ * @param {Number} iouReportID - ID of the report we are fetching
+ * @param {Number} chatReportID - associated chatReportID which should be added to IOU report data
  */
 function fetchIOUReportByID(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
@@ -431,11 +432,11 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
 }
 
 /**
- * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportID which should be updated and linked
- *
  * Retrieve an iouReport, associating it with a chatReport. This should be called in place of `fetchIOUReportByID`
  * when we believe that the iouReport is open and currently linked to the chatReport.
+ *
+ * @param {Number} iouReportID - ID of the report we are fetching
+ * @param {Number} chatReportID - associated chatReportID which should be updated and linked
  */
 function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)

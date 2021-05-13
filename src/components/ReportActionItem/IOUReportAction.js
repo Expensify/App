@@ -39,11 +39,12 @@ const ReportActionItemIOUAction = ({
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
     };
+    const hasMultipleParticipants = chatReport.participants.length >= 2;
     return (
         <>
             <ReportActionItemIOUQuote
                 action={action}
-                shouldShowViewDetailsLink={chatReport.participants.length <= 2}
+                shouldShowViewDetailsLink={!hasMultipleParticipants}
                 onViewDetailsPressed={launchDetailsModal}
             />
             {shouldDisplayPreview && (
