@@ -41,7 +41,7 @@ const getInitialReportScreenParams = _.once((reports) => {
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
-    return {reportID};
+    return {reportID: String(reportID)};
 });
 
 const MainDrawerNavigator = (props) => {
@@ -55,7 +55,7 @@ const MainDrawerNavigator = (props) => {
     * This is usually needed after login/create account and re-launches */
     return (
         <Drawer.Navigator
-            openByDefault
+            openByDefault={props.isSmallScreenWidth}
             drawerType={getNavigationDrawerType(props.isSmallScreenWidth)}
             drawerStyle={getNavigationDrawerStyle(
                 props.windowWidth,

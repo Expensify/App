@@ -11,10 +11,13 @@ import Popover from '../Popover';
 import MenuItem from '../MenuItem';
 import {Camera, Gallery, Paperclip} from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     ...basePropTypes,
     ...windowDimensionsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 /**
@@ -33,80 +36,6 @@ const imagePickerOptions = {
 const documentPickerOptions = {
     type: [RNDocumentPicker.types.allFiles],
 };
-
-/**
- * Inform the users when they need to grant camera access and guide them to settings
- */
-function showPermissionsAlert() {
-    Alert.alert(
-        'Camera Permission Required',
-        'Expensify.cash does not have access to your camera, please enable the permission and try again.',
-        [
-            {
-                text: 'Cancel',
-                style: 'cancel',
-            },
-            {
-                text: 'Settings',
-                onPress: () => Linking.openSettings(),
-            },
-        ],
-        {cancelable: false},
-    );
-}
-
-/**
- * A generic handling when we don't know the exact reason for an error
- *
- */
-function showGeneralAlert() {
-    Alert.alert(
-        'Attachment Error',
-        'An error occurred while selecting an attachment, please try again',
-    );
-}
-
-/**
- * Launch the DocumentPicker. Results are in the same format as ImagePicker
- *
- * @returns {Promise<DocumentPickerResponse>}
- */
-function showDocumentPicker() {
-    return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
-        if (!RNDocumentPicker.isCancel(error)) {
-            showGeneralAlert(error.message);
-            throw error;
-        }
-    });
-}
-
-/**
- * Common image picker handling
- *
- * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
- * @returns {Promise<ImagePickerResponse>}
- */
-function showImagePicker(imagePickerFunc) {
-    return new Promise((resolve, reject) => {
-        imagePickerFunc(imagePickerOptions, (response) => {
-            if (response.error) {
-                switch (response.error) {
-                    case 'Camera permissions not granted':
-                    case 'Permissions weren\'t granted':
-                        showPermissionsAlert();
-                        break;
-                    default:
-                        showGeneralAlert(response.error);
-                        break;
-                }
-
-                reject(new Error(`Error during attachment selection: ${response.error}`));
-            }
-
-            resolve(response);
-        });
-    });
-}
 
 /**
  * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
@@ -135,43 +64,115 @@ class AttachmentPicker extends Component {
 
         this.state = {
             isVisible: false,
-            result: null,
-            onPicked: () => {},
         };
 
         this.menuItemData = [
             {
                 icon: Camera,
-                text: 'Take Photo',
-                pickAttachment: () => showImagePicker(RNImagePicker.launchCamera),
+                text: this.props.translate('attachmentPicker.takePhoto'),
+                pickAttachment: () => this.showImagePicker(RNImagePicker.launchCamera),
             },
             {
                 icon: Gallery,
-                text: 'Choose from Gallery',
-                pickAttachment: () => showImagePicker(RNImagePicker.launchImageLibrary),
+                text: this.props.translate('attachmentPicker.chooseFromGallery'),
+                pickAttachment: () => this.showImagePicker(RNImagePicker.launchImageLibrary),
             },
             {
                 icon: Paperclip,
-                text: 'Choose Document',
-                pickAttachment: showDocumentPicker,
+                text: this.props.translate('attachmentPicker.chooseDocument'),
+                pickAttachment: this.showDocumentPicker,
             },
         ];
 
-        this.setResult = this.setResult.bind(this);
         this.close = this.close.bind(this);
-        this.completeAttachmentSelection = this.completeAttachmentSelection.bind(this);
+        this.pickAttachment = this.pickAttachment.bind(this);
     }
 
     /**
-     * Store the selected attachment mapped to an appropriate file interface
+     * Handles the image/document picker result and
+     * sends the selected attachment to the caller (parent component)
      *
      * @param {ImagePickerResponse|DocumentPickerResponse} attachment
      */
-    setResult(attachment) {
+    pickAttachment(attachment) {
         if (attachment && !attachment.didCancel && !attachment.error) {
             const result = getDataForUpload(attachment);
-            this.setState({result});
+            this.completeAttachmentSelection(result);
         }
+    }
+
+    /**
+     * Inform the users when they need to grant camera access and guide them to settings
+     */
+    showPermissionsAlert() {
+        Alert.alert(
+            this.props.translate('attachmentPicker.cameraPermissionRequired'),
+            this.props.translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+            [
+                {
+                    text: this.props.translate('common.cancel'),
+                    style: 'cancel',
+                },
+                {
+                    text: this.props.translate('common.settings'),
+                    onPress: () => Linking.openSettings(),
+                },
+            ],
+            {cancelable: false},
+        );
+    }
+
+    /**
+     * Common image picker handling
+     *
+     * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
+     * @returns {Promise<ImagePickerResponse>}
+     */
+    showImagePicker(imagePickerFunc) {
+        return new Promise((resolve, reject) => {
+            imagePickerFunc(imagePickerOptions, (response) => {
+                if (response.error) {
+                    switch (response.error) {
+                        case 'Camera permissions not granted':
+                        case 'Permissions weren\'t granted':
+                            this.showPermissionsAlert();
+                            break;
+                        default:
+                            this.showGeneralAlert(response.error);
+                            break;
+                    }
+                    const errorDescription = this.props.translate('attachmentPicker.errorDuringAttachmentSelection');
+                    reject(new Error(`${errorDescription}: ${response.error}`));
+                }
+
+                resolve(response);
+            });
+        });
+    }
+
+    /**
+     * A generic handling when we don't know the exact reason for an error
+     *
+     */
+    showGeneralAlert() {
+        Alert.alert(
+            this.props.translate('attachmentPicker.attachmentError'),
+            this.props.translate('attachmentPicker.errorWhileSelectingAttachment'),
+        );
+    }
+
+    /**
+     * Launch the DocumentPicker. Results are in the same format as ImagePicker
+     *
+     * @returns {Promise<DocumentPickerResponse>}
+     */
+    showDocumentPicker() {
+        return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
+            if (!RNDocumentPicker.isCancel(error)) {
+                this.showGeneralAlert(error.message);
+                throw error;
+            }
+        });
     }
 
     /**
@@ -189,11 +190,8 @@ class AttachmentPicker extends Component {
      * @param {function} onPicked A callback that will be called with the selected attachment
      */
     open(onPicked) {
-        this.setState({
-            isVisible: true,
-            result: null,
-            onPicked,
-        });
+        this.completeAttachmentSelection = onPicked;
+        this.setState({isVisible: true});
     }
 
     /**
@@ -201,6 +199,25 @@ class AttachmentPicker extends Component {
      */
     close() {
         this.setState({isVisible: false});
+    }
+
+    /**
+     * Setup native attachment selection to start after this popover closes
+     *
+     * @param {{pickAttachment: function}} item - an item from this.menuItemData
+     */
+    selectItem(item) {
+        /* setTimeout delays execution to the frame after the modal closes
+        * without this on iOS closing the modal closes the gallery/camera as well */
+        this.onModalHide = () => setTimeout(
+            () => item.pickAttachment()
+                .then(this.pickAttachment)
+                .catch(console.error)
+                .finally(() => delete this.onModalHide),
+            10,
+        );
+
+        this.close();
     }
 
     /**
@@ -221,19 +238,16 @@ class AttachmentPicker extends Component {
                     onClose={this.close}
                     isVisible={this.state.isVisible}
                     anchorPosition={styles.createMenuPosition}
-                    onModalHide={this.completeAttachmentSelection}
+                    onModalHide={this.onModalHide}
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {
-                            this.menuItemData.map(({icon, text, pickAttachment}) => (
+                            this.menuItemData.map(item => (
                                 <MenuItem
-                                    key={text}
-                                    icon={icon}
-                                    title={text}
-                                    onPress={() => pickAttachment()
-                                        .then(this.setResult)
-                                        .then(this.close)
-                                        .catch(console.error)}
+                                    key={item.text}
+                                    icon={item.icon}
+                                    title={item.text}
+                                    onPress={() => this.selectItem(item)}
                                 />
                             ))
                         }
@@ -247,4 +261,7 @@ class AttachmentPicker extends Component {
 
 AttachmentPicker.propTypes = propTypes;
 AttachmentPicker.displayName = 'AttachmentPicker';
-export default withWindowDimensions(AttachmentPicker);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(AttachmentPicker);

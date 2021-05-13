@@ -21,9 +21,9 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n',
+            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n',
         };
-        const issueWithDeployBlockers = baseIssue;
+        const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
         issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n';
 
@@ -59,8 +59,9 @@ describe('GithubUtils', () => {
             tag: '1.0.1-47',
             title: 'Andrew Test Issue',
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
+            deployBlockers: [],
         };
-        const expectedResponseWithDeployBlockers = baseExpectedResponse;
+        const expectedResponseWithDeployBlockers = {...baseExpectedResponse};
         expectedResponseWithDeployBlockers.deployBlockers = [
             {
                 url: 'https://github.com/Expensify/Expensify.cash/issues/1',
@@ -79,6 +80,24 @@ describe('GithubUtils', () => {
             },
         ];
 
+        test('Test finding an open issue with no PRs successfully', () => {
+            const octokit = new Octokit();
+            const github = new GithubUtils(octokit);
+            const bareIssue = {
+                ...baseIssue,
+                // eslint-disable-next-line max-len
+                body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n',
+            };
+
+            const bareExpectedResponse = {
+                ...baseExpectedResponse,
+                PRList: [],
+            };
+
+            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]});
+            return github.getStagingDeployCash().then(data => expect(data).toStrictEqual(bareExpectedResponse));
+        });
+
         test('Test finding an open issue successfully', () => {
             const octokit = new Octokit();
             const github = new GithubUtils(octokit);
@@ -90,6 +109,18 @@ describe('GithubUtils', () => {
             const octokit = new Octokit();
             const github = new GithubUtils(octokit);
             octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]});
+            return github.getStagingDeployCash()
+                .then(data => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
+        });
+
+        test('Test finding an open issue successfully and parsing with blockers w/o carriage returns', () => {
+            const octokit = new Octokit();
+            const github = new GithubUtils(octokit);
+
+            const modifiedIssueWithDeployBlockers = {...issueWithDeployBlockers};
+            modifiedIssueWithDeployBlockers.body = modifiedIssueWithDeployBlockers.body.replace(/\r/g, '');
+
+            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [modifiedIssueWithDeployBlockers]});
             return github.getStagingDeployCash()
                 .then(data => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });

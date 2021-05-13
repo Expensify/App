@@ -14,6 +14,8 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import OptionsList from '../components/OptionsList';
 import ROUTES from '../ROUTES';
 import personalDetailsPropType from './personalDetailsPropType';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,6 +41,8 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 /**
@@ -68,13 +72,18 @@ const getAllParticipants = (report, personalDetails) => {
     });
 };
 
-const ReportParticipantsPage = ({personalDetails, report, route}) => {
+const ReportParticipantsPage = ({
+    personalDetails,
+    report,
+    route,
+    translate,
+}) => {
     const participants = getAllParticipants(report, personalDetails);
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title="Details"
+                title={translate('detailsPage.details')}
                 onCloseButtonPress={Navigation.dismissModal}
             />
             <View
@@ -110,11 +119,14 @@ const ReportParticipantsPage = ({personalDetails, report, route}) => {
 ReportParticipantsPage.propTypes = propTypes;
 ReportParticipantsPage.displayName = 'ParticipantsPage';
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-})(ReportParticipantsPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+    }),
+)(ReportParticipantsPage);

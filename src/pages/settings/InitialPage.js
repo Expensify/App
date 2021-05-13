@@ -20,6 +20,8 @@ import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
 import openURLInNewTab from '../../libs/openURLInNewTab';
 import CONST from '../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
@@ -43,6 +45,8 @@ const propTypes = {
         // Email of the logged in person
         email: PropTypes.string,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -53,28 +57,28 @@ const defaultProps = {
 
 const menuItems = [
     {
-        title: 'Profile',
+        translationKey: 'common.profile',
         icon: Profile,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PROFILE); },
     },
     {
-        title: 'Preferences',
+        translationKey: 'common.preferences',
         icon: Gear,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
     },
     {
-        title: 'Change Password',
+        translationKey: 'initialSettingsPage.changePassword',
         icon: Lock,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PASSWORD); },
     },
     {
-        title: 'Payments',
+        translationKey: 'common.payments',
         icon: Wallet,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
 
     },
     {
-        title: 'Sign Out',
+        translationKey: 'initialSettingsPage.signOut',
         icon: SignOut,
         action: signOut,
     },
@@ -84,6 +88,7 @@ const InitialSettingsPage = ({
     myPersonalDetails,
     network,
     session,
+    translate,
 }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -94,7 +99,7 @@ const InitialSettingsPage = ({
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title="Settings"
+                title={translate('initialSettingsPage.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <View
@@ -127,7 +132,7 @@ const InitialSettingsPage = ({
                     {menuItems.map(item => (
                         <MenuItem
                             key={item.title}
-                            title={item.title}
+                            title={translate(item.translationKey)}
                             icon={item.icon}
                             onPress={() => item.action()}
                             shouldShowRightArrow
@@ -136,26 +141,26 @@ const InitialSettingsPage = ({
                 </View>
                 <View style={[styles.sidebarFooter]}>
                     <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        v
+                        {translate('initialSettingsPage.versionLetter')}
                         {version}
                     </Text>
                     <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        Read the
+                        {translate('initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1')}
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openURLInNewTab(CONST.TERMS_URL)}
                         >
-                            terms of service
+                            {translate('initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2')}
                         </Text>
                         {' '}
-                        and
+                        {translate('initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3')}
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
                         >
-                            privacy policy
+                            {translate('initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4')}
                         </Text>
                         .
                     </Text>
@@ -169,14 +174,17 @@ InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
 InitialSettingsPage.displayName = 'InitialSettingsPage';
 
-export default withOnyx({
-    myPersonalDetails: {
-        key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    },
-    network: {
-        key: ONYXKEYS.NETWORK,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(InitialSettingsPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(InitialSettingsPage);
