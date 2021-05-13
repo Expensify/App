@@ -1,19 +1,15 @@
 import {Animated} from 'react-native';
-import variables from '../../../styles/variables';
 
-export default (
-    isSmallScreen,
-    {
-        current: {progress},
-        inverted,
-        layouts: {
-            screen,
-        },
+export default ({
+    current: {progress},
+    inverted,
+    layouts: {
+        screen,
     },
-) => {
+}) => {
     const translateX = Animated.multiply(progress.interpolate({
         inputRange: [0, 1],
-        outputRange: [isSmallScreen ? screen.width : variables.sideBarWidth, 0],
+        outputRange: [screen.width, 0],
         extrapolate: 'clamp',
     }), inverted);
 

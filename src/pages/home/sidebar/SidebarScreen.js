@@ -81,7 +81,7 @@ class SidebarScreen extends Component {
                 includePaddingBottom={false}
                 style={[styles.sidebar]}
             >
-                {({insets}) => (
+                {insets => (
                     <>
                         <View style={[styles.flex1]}>
                             <SidebarLinks
@@ -106,7 +106,7 @@ class SidebarScreen extends Component {
                                 {
                                     icon: ChatBubble,
                                     text: this.props.translate('sidebarScreen.newChat'),
-                                    onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
+                                    onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                 },
                                 ...(Permissions.canUseIOU() ? [
                                     {

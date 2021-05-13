@@ -11,6 +11,7 @@ import TextInputFocusable from '../../../../components/TextInputFocusable';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
+import getOperatingSystem from '../../../../libs/getOperatingSystem';
 
 const propTypes = {
     // Function to add the selected emoji to the main compose text input
@@ -51,6 +52,12 @@ class EmojiPickerMenu extends Component {
         // If more emojis are ever added to emojis.js this will need to be updated or things will break
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
+        // If we're on Windows, don't display the flag emojis (the last category),
+        // since Windows doesn't support them (and only displays country codes instead)
+        this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
+            ? emojis.slice(0, this.unfilteredHeaderIndices.pop() * this.numColumns)
+            : emojis;
+
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
@@ -60,7 +67,7 @@ class EmojiPickerMenu extends Component {
         this.renderItem = this.renderItem.bind(this);
 
         this.state = {
-            filteredEmojis: emojis,
+            filteredEmojis: this.emojis,
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
             currentScrollOffset: 0,
@@ -130,7 +137,7 @@ class EmojiPickerMenu extends Component {
      * @param {String} arrowKey
      */
     highlightAdjacentEmoji(arrowKey) {
-        const firstNonHeaderIndex = this.state.filteredEmojis.length === emojis.length ? this.numColumns : 0;
+        const firstNonHeaderIndex = this.state.filteredEmojis.length === this.emojis.length ? this.numColumns : 0;
 
         // If nothing is highlighted and an arrow key is pressed
         // select the first emoji
@@ -188,7 +195,7 @@ class EmojiPickerMenu extends Component {
     scrollToHighlightedIndex() {
         // If there are headers in the emoji array, so we need to offset by their heights as well
         let numHeaders = 0;
-        if (this.state.filteredEmojis.length === emojis.length) {
+        if (this.state.filteredEmojis.length === this.emojis.length) {
             numHeaders = this.unfilteredHeaderIndices
                 .filter(i => this.state.highlightedIndex > i * this.numColumns).length;
         }
@@ -228,14 +235,14 @@ class EmojiPickerMenu extends Component {
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             this.setState({
-                filteredEmojis: emojis,
+                filteredEmojis: this.emojis,
                 headerIndices: this.unfilteredHeaderIndices,
                 highlightedIndex: this.numColumns,
             });
             return;
         }
 
-        const newFilteredEmojiList = _.filter(emojis, emoji => (
+        const newFilteredEmojiList = _.filter(this.emojis, emoji => (
             !emoji.header
             && emoji.code !== CONST.EMOJI_SPACER
             && _.find(emoji.keywords, keyword => keyword.includes(normalizedSearchTerm))
