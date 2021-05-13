@@ -163,8 +163,10 @@ class ReportActionsView extends React.Component {
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
+
+        // Record the max action when window is visible except when Drawer is open on small screen
         const shouldRecordMaxAction = Visibility.isVisible()
-            && !(this.props.isDrawerOpen && this.props.isSmallScreenWidth);
+            && (!this.props.isSmallScreenWidth || !this.props.isDrawerOpen);
 
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
