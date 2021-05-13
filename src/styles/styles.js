@@ -1153,8 +1153,7 @@ const styles = {
     },
 
     reportTransaction: {
-        paddingTop: 8,
-        paddingBottom: 8,
+        paddingVertical: 8,
         display: 'flex',
         flexDirection: 'row',
     },
@@ -1360,6 +1359,12 @@ const styles = {
         marginRight: -10,
     },
 
+    iouDetailsContainer: {
+        flexGrow: 1,
+        paddingStart: 20,
+        paddingEnd: 20,
+    },
+
     noScrollbars: {
         scrollbarWidth: 'none',
     },
@@ -1415,8 +1420,7 @@ const styles = {
         borderLeftColor: themeColors.border,
         borderLeftWidth: 4,
         paddingLeft: 12,
-        marginTop: 4,
-        marginBottom: 4,
+        marginVertical: 4,
     },
 };
 
