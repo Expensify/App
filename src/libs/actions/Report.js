@@ -448,8 +448,8 @@ function removeOptimisticActions(reportID) {
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportI which should be added to IOU report data
  *
- * Retrieve an IOU report, but do not associate it with the chatReportID. As an example, the user might be viewing an
- * old settled report that does not have outstanding IOUs.
+ * Retrieve an iouReport, but do not associate it with the chatReport! As an example, the user might be viewing an old
+ * settled report that does not have outstanding IOUs, thus we must not override the chatReports `iouReportID` value.
  */
 function fetchIOUReportByID(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
@@ -461,8 +461,8 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID which should be updated and linked
  *
- * Fetch an IOU Report and persist to Onyx, associating the IOUReport with a chatReport only if it is the active IOU
- * report. Else we would break the link to the active IOU for that chatReport (breaking badge and preview Components).
+ * Retrieve an iouReport, associating it with a chatReport. This should be called in place of `fetchIOUReportByID`
+ * when we believe that the iouReport is open and currently linked to the chatReport.  
  */
 function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
@@ -553,6 +553,9 @@ function updateReportWithNewAction(reportID, reportAction) {
     // If chat report receives an action with IOU, update IOU object
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
+
+        // We have been notified of an update to this iouReport, therefore it must be the currently open iouReport.
+        // Therefore we should make sure the chatReport points to this iouReportID after fetching it.
         fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
     }
 
