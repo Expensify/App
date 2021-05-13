@@ -174,6 +174,13 @@ function validateLogin(accountID, validateCode) {
     });
 }
 
+function isBlockedFromConcierge(expiresAt) {
+    const now = moment().format('YYYY-MM-DD');
+    const expires = moment(expiresAt).format('YYYY-MM-DD');
+
+    return now < expires;
+}
+
 export {
     changePassword,
     getBetas,
@@ -182,4 +189,5 @@ export {
     setExpensifyNewsStatus,
     setSecondaryLogin,
     validateLogin,
+    isBlockedFromConcierge,
 };
