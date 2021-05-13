@@ -7,13 +7,13 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import BigNumberPad from '../../../components/BigNumberPad';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import styles from '../../../../styles/styles';
+import BigNumberPad from '../../../../components/BigNumberPad';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import TextInputAutoWidth from '../../../../components/TextInputAutoWidth';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import compose from '../../../../libs/compose';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -47,6 +47,7 @@ const propTypes = {
 const defaultProps = {
     iou: {},
 };
+
 class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
@@ -69,7 +70,8 @@ class IOUAmountPage extends React.Component {
             document.addEventListener('keydown', this.keyDownHandler);
         }
 
-        // Wait to trigger manual focus until other interactions are complete so the input exists
+        // Input doesn't exist yet, likely due to navigation libraries delaying mount
+        // Wait until interactions are complete before trying to focus input
         InteractionManager.runAfterInteractions(() => {
             if (this.textInput) {
                 this.textInput.focus();
@@ -77,8 +79,8 @@ class IOUAmountPage extends React.Component {
         });
     }
 
-    // Cleanup all keydown event listeners that we've set up
     componentWillUnmount() {
+        // Cleanup all keydown event listeners that we've set up
         if (document) {
             document.removeEventListener('keydown', this.keyDownHandler);
         }
@@ -163,6 +165,7 @@ class IOUAmountPage extends React.Component {
         );
     }
 }
+
 IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
