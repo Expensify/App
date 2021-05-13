@@ -8,7 +8,6 @@ target 'ExpensifyCash' do
   permissions_path = '../node_modules/react-native-permissions/ios'
   use_react_native!(:path => config["reactNativePath"])
 
-
   pod 'Permission-LocationAccuracy', :path => "#{permissions_path}/LocationAccuracy"
   pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
   pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
