@@ -42,6 +42,7 @@ import variables from '../../../styles/variables';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     // A method to call when the form is submitted
@@ -81,6 +82,11 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
+    blockedFromConcierge: PropTypes.shape({
+
+        // The date that the user will be unblocked
+        expiresAt: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
@@ -88,6 +94,7 @@ const defaultProps = {
     modal: {},
     report: {},
     network: {isOffline: false},
+    blockedFromConcierge: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -293,6 +300,13 @@ class ReportActionCompose extends React.Component {
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
 
+        const isConciergeChat = this.props.report.participants
+            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE);
+        let isBlockedFromConcierge = false;
+        if (isConciergeChat && this.props.blockedFromConcierge) {
+            isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
+        }
+
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -322,6 +336,7 @@ class ReportActionCompose extends React.Component {
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
+                                                disabled={isBlockedFromConcierge}
                                             >
                                                 <Icon src={Plus} />
                                             </TouchableOpacity>
@@ -375,7 +390,11 @@ class ReportActionCompose extends React.Component {
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
-                                    placeholder="Write something..."
+                                    placeholder={
+                                        isBlockedFromConcierge
+                                            ? 'Communication is barred'
+                                            : 'Write something...'
+                                    }
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
@@ -400,7 +419,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={isComposeDisabled}
+                                    isDisabled={isComposeDisabled || isBlockedFromConcierge}
                                 />
 
                             </>
@@ -434,6 +453,7 @@ class ReportActionCompose extends React.Component {
                             getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                         ])}
                         onPress={this.showEmojiPicker}
+                        disabled={isBlockedFromConcierge}
                     >
                         {({hovered, pressed}) => (
                             <Icon
@@ -448,7 +468,7 @@ class ReportActionCompose extends React.Component {
                                 ? styles.buttonDisable : styles.buttonSuccess]}
                         onPress={this.submitForm}
                         underlayColor={themeColors.componentBG}
-                        disabled={this.state.isCommentEmpty}
+                        disabled={this.state.isCommentEmpty || isBlockedFromConcierge}
                     >
                         <Icon src={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>
@@ -495,6 +515,9 @@ export default compose(
         },
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        },
+        blockedFromConcierge: {
+            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
     }),
 )(ReportActionCompose);
