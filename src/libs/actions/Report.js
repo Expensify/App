@@ -462,7 +462,7 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
  * @param {Number} chatReportID - associated chatReportID which should be updated and linked
  *
  * Retrieve an iouReport, associating it with a chatReport. This should be called in place of `fetchIOUReportByID`
- * when we believe that the iouReport is open and currently linked to the chatReport.  
+ * when we believe that the iouReport is open and currently linked to the chatReport.
  */
 function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)

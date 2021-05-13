@@ -112,8 +112,7 @@ function createIOUSplit(params) {
 }
 
 /**
- * Settles an IOU Report. As we can guarantee that the settled report was previously active,
- * we should update the chatReport data too when calling `fetchIOUReportByID`.
+ * Settles an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
  */
 function settleIOUReport({
     chatReportID, reportID, paymentMethodType,
@@ -129,6 +128,8 @@ function settleIOUReport({
             }
         })
         .then(() => fetchChatReportsByIDs([chatReportID]))
+        // Any report that is being settled must be open, and must be currently set as open iouReport within the
+        // chatReport object. Therefore, we must also update the chatReport to break this existing link.
         .then(() => fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID))
         .catch(error => Onyx.merge(ONYXKEYS.IOU, {error}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
