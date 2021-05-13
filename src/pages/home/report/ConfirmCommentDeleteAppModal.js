@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
-import {propTypes, defaultProps} from './UpdateAppModalPropTypes';
-import ConfirmModal from '../ConfirmModal';
+import {propTypes, defaultProps} from '../../../components/UpdateAppModal/UpdateAppModalPropTypes';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 class ConfirmCommentDeleteAppModal extends PureComponent {
     constructor(props) {
@@ -18,7 +18,7 @@ class ConfirmCommentDeleteAppModal extends PureComponent {
      */
     submitAndClose() {
         this.props.onSubmit(this.state.file);
-        this.setState({isModalOpen: false});
+        this.setState({isVisible: false});
     }
 
     render() {

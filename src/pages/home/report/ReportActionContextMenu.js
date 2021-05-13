@@ -14,6 +14,7 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
 import ConfirmCommentDeleteAppModal from './ConfirmCommentDeleteAppModal';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -123,7 +124,7 @@ class ReportActionContextMenu extends React.Component {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
                 <ConfirmCommentDeleteAppModal
-                    isVisble = {this.state.isDeleteCommentConfirmModal}
+                    isVisble={this.state.isDeleteCommentConfirmModal}
                 />
                 {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow() && (
                     <ReportActionContextMenuItem
