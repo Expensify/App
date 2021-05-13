@@ -25,4 +25,7 @@ export default PropTypes.shape({
 
     // An additional avatar url - not the main avatar url but used within a message.
     iconUrl: PropTypes.string,
+
+    // Whether or not this ReportAction has been edited. Will only ever be true for comments
+    isEdited: PropTypes.bool,
 });

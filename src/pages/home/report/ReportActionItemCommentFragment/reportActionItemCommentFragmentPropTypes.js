@@ -6,4 +6,7 @@ export default {
 
     // Text of the COMMENT reportAction
     text: PropTypes.string.isRequired,
+
+    // Whether or not this COMMENT reportAction has been edited
+    isEdited: PropTypes.bool.isRequired,
 };

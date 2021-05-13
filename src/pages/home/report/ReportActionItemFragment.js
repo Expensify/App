@@ -47,7 +47,13 @@ class ReportActionItemFragment extends React.PureComponent {
                 }
 
                 // Only render HTML if we have html in the fragment
-                return <ReportActionItemCommentFragment html={fragment.html} text={fragment.text} />;
+                return (
+                    <ReportActionItemCommentFragment
+                        html={fragment.html}
+                        text={fragment.text}
+                        isEdited={fragment.isEdited}
+                    />
+                );
             case 'TEXT':
                 return <ReportActionItemTextFragment text={fragment.text} tooltip={tooltipText} />;
             case 'LINK':
