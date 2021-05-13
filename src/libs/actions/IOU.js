@@ -128,6 +128,7 @@ function settleIOUReport({
             }
         })
         .then(() => fetchChatReportsByIDs([chatReportID]))
+
         // Any report that is being settled must be open, and must be currently set as open iouReport within the
         // chatReport object. Therefore, we must also update the chatReport to break this existing link.
         .then(() => fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID))
