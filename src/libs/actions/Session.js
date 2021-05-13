@@ -86,7 +86,6 @@ function reopenAccount(login = credentials.login) {
 
 /**
  * Resend the validation link to the user that is validating their account
- * this happens in the createAccount() flow
  *
  * @param {String} [login]
  */
