@@ -4,9 +4,11 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import compose from '../libs/compose';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import MultipleAvatars from './MultipleAvatars';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     // Additional logic for displaying the pay button
@@ -47,6 +49,8 @@ const propTypes = {
         // Currently logged in user email
         email: PropTypes.string,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -62,6 +66,7 @@ const ReportActionItemIOUPreview = ({
     session,
     shouldHidePayButton,
     onPayButtonPressed,
+    translate,
 }) => {
     const sessionEmail = lodashGet(session, 'email', null);
 
@@ -90,8 +95,8 @@ const ReportActionItemIOUPreview = ({
                     <Text style={styles.h1}>{cachedTotal}</Text>
                     <Text style={styles.mt2}>
                         {iou.hasOutstandingIOU
-                            ? `${managerName} owes ${ownerName}`
-                            : `${ownerName} paid ${managerName}`}
+                            ? translate('iou.owes', {manager: managerName, owner: ownerName})
+                            : translate('iou.paid', {manager: managerName, owner: ownerName})}
                     </Text>
                 </View>
                 <View style={styles.iouPreviewBoxAvatar}>
@@ -112,7 +117,7 @@ const ReportActionItemIOUPreview = ({
                             styles.buttonSuccessText,
                         ]}
                     >
-                        Pay
+                        {translate('iou.pay')}
                     </Text>
                 </TouchableOpacity>
             )}
@@ -124,14 +129,17 @@ ReportActionItemIOUPreview.propTypes = propTypes;
 ReportActionItemIOUPreview.defaultProps = defaultProps;
 ReportActionItemIOUPreview.displayName = 'ReportActionItemIOUPreview';
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    iou: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ReportActionItemIOUPreview);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        iou: {
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(ReportActionItemIOUPreview);
