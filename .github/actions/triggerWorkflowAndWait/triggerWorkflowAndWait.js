@@ -1,6 +1,5 @@
 const _ = require('underscore');
 const core = require('@actions/core');
-const github = require('@actions/github');
 const ActionUtils = require('../../libs/ActionUtils');
 const GithubUtils = require('../../libs/GithubUtils');
 const promiseWhile = require('../../libs/promiseWhile');
@@ -27,8 +26,6 @@ const WORKFLOW_COMPLETION_TIMEOUT = 7200000;
 const POLL_RATE = 10000;
 
 const run = function () {
-    const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-    const githubUtils = new GithubUtils(octokit);
     const workflow = core.getInput('WORKFLOW', {required: true});
     const inputs = ActionUtils.getJSONInput('INPUTS', {required: false}, {});
 
@@ -50,13 +47,13 @@ const run = function () {
     let newWorkflowRunID;
     let hasNewWorkflowStarted = false;
     let workflowCompleted = false;
-    return githubUtils.getLatestWorkflowRunID(workflow)
+    return GithubUtils.getLatestWorkflowRunID(workflow)
         .then((lastWorkflowRunID) => {
             console.log(`Latest ${workflow} workflow run has ID: ${lastWorkflowRunID}`);
             previousWorkflowRunID = lastWorkflowRunID;
 
             console.log(`Dispatching workflow: ${workflow}`);
-            return octokit.actions.createWorkflowDispatch({
+            return GithubUtils.octokit.actions.createWorkflowDispatch({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 workflow_id: workflow,
@@ -79,7 +76,7 @@ const run = function () {
                 _.throttle(
                     () => {
                         console.log(`\n🤚 Waiting for a new ${workflow} workflow run to begin...`);
-                        return githubUtils.getLatestWorkflowRunID(workflow)
+                        return GithubUtils.getLatestWorkflowRunID(workflow)
                             .then((lastWorkflowRunID) => {
                                 newWorkflowRunID = lastWorkflowRunID;
                                 hasNewWorkflowStarted = newWorkflowRunID !== previousWorkflowRunID;
@@ -117,7 +114,7 @@ const run = function () {
                 _.throttle(
                     () => {
                         console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunID} to finish...`);
-                        return octokit.actions.getWorkflowRun({
+                        return GithubUtils.octokit.actions.getWorkflowRun({
                             owner: GithubUtils.GITHUB_OWNER,
                             repo: GithubUtils.EXPENSIFY_CASH_REPO,
                             run_id: newWorkflowRunID,
