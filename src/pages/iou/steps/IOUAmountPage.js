@@ -2,7 +2,6 @@ import React from 'react';
 import {
     View,
     Text,
-    TouchableOpacity,
     ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -15,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
+import Button from '../../../components/Button';
 
 const propTypes = {
     // Callback to inform parent modal of success
@@ -123,19 +123,14 @@ class IOUAmountPage extends React.Component {
                         )}
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
-                    {this.props.isSmallScreenWidth
-                        ? <BigNumberPad numberPressed={this.updateAmountIfValidInput} />
-                        : <View />}
-                    <TouchableOpacity
-                            style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
-                                this.state.amount.length === 0 ? styles.buttonSuccessDisabled : {}]}
-                            onPress={() => this.props.onStepComplete(this.state.amount)}
-                            disabled={this.state.amount.length === 0}
-                    >
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            {this.props.translate('common.next')}
-                        </Text>
-                    </TouchableOpacity>
+                    {this.props.isSmallScreenWidth && <BigNumberPad numberPressed={this.updateAmountIfValidInput} />}
+
+                    <Button
+                        style={[styles.w100, styles.mt5]}
+                        onPress={() => this.props.onStepComplete(this.state.amount)}
+                        isDisabled={this.state.amount.length === 0}
+                        text={this.props.translate('common.next')}
+                    />
                 </View>
             </View>
         );

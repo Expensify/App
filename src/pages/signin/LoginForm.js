@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import {fetchAccountDetails} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -89,10 +89,12 @@ class LoginForm extends React.Component {
                     />
                 </View>
                 <View>
-                    <ButtonWithLoader
+                    <Button
+                        success
+                        style={[styles.mb2]}
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}
-                        onClick={this.validateAndSubmitForm}
+                        onPress={this.validateAndSubmitForm}
                     />
                 </View>
 
