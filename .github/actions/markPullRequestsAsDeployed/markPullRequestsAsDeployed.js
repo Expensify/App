@@ -1,37 +1,13 @@
 const core = require('@actions/core');
-const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
-const {throttling} = require('@octokit/plugin-throttling');
+const {GitHub} = require('@actions/github/lib/utils');
 const ActionUtils = require('../../libs/ActionUtils');
 const GithubUtils = require('../../libs/GithubUtils');
 
-const OctokitThrottled = GitHub.plugin(throttling);
 
 const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
 const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
 const version = core.getInput('DEPLOY_VERSION', {required: true});
-const token = core.getInput('GITHUB_TOKEN', {required: true});
-const octokit = new OctokitThrottled(getOctokitOptions(token, {
-    throttle: {
-        onRateLimit: (retryAfter, options) => {
-            console.warn(
-                `Request quota exhausted for request ${options.method} ${options.url}`,
-            );
 
-            // Retry once after hitting a rate limit error, then give up
-            if (options.request.retryCount <= 1) {
-                console.log(`Retrying after ${retryAfter} seconds!`);
-                return true;
-            }
-        },
-        onAbuseLimit: (retryAfter, options) => {
-            // does not retry, only logs a warning
-            console.warn(
-                `Abuse detected for request ${options.method} ${options.url}`,
-            );
-        },
-    },
-}));
-const githubUtils = new GithubUtils(octokit);
 
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
@@ -72,7 +48,7 @@ message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
  * @returns {Promise<void>}
  */
 function commentPR(pr) {
-    return githubUtils.createComment(GitHub.context.repo.repo, pr, message, octokit)
+    return GithubUtils.createComment(GitHub.context.repo.repo, pr, message)
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
         })
