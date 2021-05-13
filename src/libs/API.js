@@ -35,6 +35,7 @@ function isAuthTokenRequired(command) {
         'User_SignUp',
         'ResendValidateCode',
         'ResetPassword',
+        'User_ReopenAccount',
         'ValidateEmail',
     ], command);
 }
@@ -638,6 +639,17 @@ function User_GetBetas() {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @returns {Promise}
+ */
+function User_ReopenAccount(parameters) {
+    const commandName = 'User_ReopenAccount';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -747,6 +759,7 @@ export {
     UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     reauthenticate,
