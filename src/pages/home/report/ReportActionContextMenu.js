@@ -136,12 +136,6 @@ class ReportActionContextMenu extends React.Component {
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {this.state.isDeleteCommentConfirmModal ? (
-                    <ConfirmCommentDeleteAppModal
-                        onCancel={this.deleteCanceled}
-                        onSubmit={this.deleteAccepted}
-                    />
-                ) : null}
                 {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow() && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
@@ -153,6 +147,12 @@ class ReportActionContextMenu extends React.Component {
                         onPress={contextAction.onPress}
                     />
                 ))}
+                {this.state.isDeleteCommentConfirmModal ? (
+                    <ConfirmCommentDeleteAppModal
+                        onCancel={this.deleteCanceled}
+                        onSubmit={this.deleteAccepted}
+                    />
+                ) : null}
             </View>
         );
     }
