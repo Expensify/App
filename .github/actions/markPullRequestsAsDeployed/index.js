@@ -9,39 +9,15 @@ module.exports =
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(2186);
-const {GitHub, getOctokitOptions} = __nccwpck_require__(3030);
-const {throttling} = __nccwpck_require__(9968);
+const {GitHub} = __nccwpck_require__(3030);
 const ActionUtils = __nccwpck_require__(970);
 const GithubUtils = __nccwpck_require__(7999);
 
-const OctokitThrottled = GitHub.plugin(throttling);
 
 const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
 const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
 const version = core.getInput('DEPLOY_VERSION', {required: true});
-const token = core.getInput('GITHUB_TOKEN', {required: true});
-const octokit = new OctokitThrottled(getOctokitOptions(token, {
-    throttle: {
-        onRateLimit: (retryAfter, options) => {
-            console.warn(
-                `Request quota exhausted for request ${options.method} ${options.url}`,
-            );
 
-            // Retry once after hitting a rate limit error, then give up
-            if (options.request.retryCount <= 1) {
-                console.log(`Retrying after ${retryAfter} seconds!`);
-                return true;
-            }
-        },
-        onAbuseLimit: (retryAfter, options) => {
-            // does not retry, only logs a warning
-            console.warn(
-                `Abuse detected for request ${options.method} ${options.url}`,
-            );
-        },
-    },
-}));
-const githubUtils = new GithubUtils(octokit);
 
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
@@ -82,7 +58,7 @@ message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
  * @returns {Promise<void>}
  */
 function commentPR(pr) {
-    return githubUtils.createComment(GitHub.context.repo.repo, pr, message, octokit)
+    return GithubUtils.createComment(GitHub.context.repo.repo, pr, message)
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
         })
@@ -134,6 +110,9 @@ module.exports = {
 
 const _ = __nccwpck_require__(4987);
 const lodashGet = __nccwpck_require__(6908);
+const core = __nccwpck_require__(2186);
+const {GitHub, getOctokitOptions} = __nccwpck_require__(3030);
+const {throttling} = __nccwpck_require__(9968);
 
 const GITHUB_OWNER = 'Expensify';
 const EXPENSIFY_CASH_REPO = 'Expensify.cash';
@@ -149,18 +128,49 @@ const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
 
 class GithubUtils {
     /**
-     * @param {Octokit} octokit - Authenticated Octokit object https://octokit.github.io/rest.js
+     * Either give an existing instance of Octokit or create a new one
+     *
+     * @readonly
+     * @static
+     * @memberof GithubUtils
      */
-    constructor(octokit) {
-        this.octokit = octokit;
+    static get octokit() {
+        if (this.octokitInternal) {
+            return this.octokitInternal;
+        }
+        const OctokitThrottled = GitHub.plugin(throttling);
+        const token = core.getInput('GITHUB_TOKEN', {required: true});
+        this.octokitInternal = new OctokitThrottled(getOctokitOptions(token, {
+            throttle: {
+                onRateLimit: (retryAfter, options) => {
+                    console.warn(
+                        `Request quota exhausted for request ${options.method} ${options.url}`,
+                    );
+
+                    // Retry once after hitting a rate limit error, then give up
+                    if (options.request.retryCount <= 1) {
+                        console.log(`Retrying after ${retryAfter} seconds!`);
+                        return true;
+                    }
+                },
+                onAbuseLimit: (retryAfter, options) => {
+                    // does not retry, only logs a warning
+                    console.warn(
+                        `Abuse detected for request ${options.method} ${options.url}`,
+                    );
+                },
+            },
+        }));
+        return this.octokitInternal;
     }
+
 
     /**
      * Finds one open `StagingDeployCash` issue via GitHub octokit library.
      *
      * @returns {Promise}
      */
-    getStagingDeployCash() {
+    static getStagingDeployCash() {
         return this.octokit.issues.listForRepo({
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
@@ -190,7 +200,7 @@ class GithubUtils {
      * @param {Object} issue
      * @returns {Object}
      */
-    getStagingDeployCashData(issue) {
+    static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
             const tag = issue.body.match(versionRegex)[0].replace(/`/g, '');
@@ -215,7 +225,7 @@ class GithubUtils {
      * @param {Object} issue
      * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
-    getStagingDeployCashPRList(issue) {
+    static getStagingDeployCashPRList(issue) {
         let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:.*\r?\n)+)\r?\n/) || [];
         if (PRListSection.length !== 2) {
             // No PRs, return an empty array
@@ -253,7 +263,7 @@ class GithubUtils {
      * @param {Object} issue
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
-    getStagingDeployCashDeployBlockers(issue) {
+    static getStagingDeployCashDeployBlockers(issue) {
         let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:.*\r?\n)+)/) || [];
         if (deployBlockerSection.length !== 2) {
             return [];
@@ -289,7 +299,7 @@ class GithubUtils {
      * @param {Array} PRList
      * @returns {Promise}
      */
-    createNewStagingDeployCash(title, tag, PRList) {
+    static createNewStagingDeployCash(title, tag, PRList) {
         return this.generateStagingDeployCashBody(tag, PRList)
             .then(body => this.octokit.issues.create({
                 owner: GITHUB_OWNER,
@@ -310,7 +320,7 @@ class GithubUtils {
      * @returns {Promise}
      * @throws {Error} If the StagingDeployCash could not be found or updated.
      */
-    updateStagingDeployCash(newTag = '', newPRs, newDeployBlockers) {
+    static updateStagingDeployCash(newTag = '', newPRs, newDeployBlockers) {
         let issueNumber;
         return this.getStagingDeployCash()
             .then(({
@@ -369,7 +379,7 @@ class GithubUtils {
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
      * @returns {Promise}
      */
-    generateStagingDeployCashBody(
+    static generateStagingDeployCashBody(
         tag,
         PRList,
         verifiedPRList = [],
@@ -436,7 +446,7 @@ class GithubUtils {
      * @param {String} messageBody - The comment message
      * @returns {Promise}
      */
-    createComment(repo, number, messageBody) {
+    static createComment(repo, number, messageBody) {
         console.log(`Writing comment on #${number}`);
         return this.octokit.issues.createComment({
             owner: GITHUB_OWNER,
@@ -452,7 +462,7 @@ class GithubUtils {
      * @param {String} workflow
      * @returns {Promise}
      */
-    getLatestWorkflowRunID(workflow) {
+    static getLatestWorkflowRunID(workflow) {
         console.log(`Fetching Expensify.cash workflow runs for ${workflow}...`);
         return this.octokit.actions.listWorkflowRuns({
             owner: GITHUB_OWNER,
