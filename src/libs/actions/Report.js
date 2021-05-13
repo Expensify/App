@@ -377,33 +377,6 @@ function setLocalIOUReportData(iouReportObject) {
 }
 
 /**
- * Given IOU object and associated chatReportID, save the data to Onyx.
- *
- * @param {Object} iouReportObject
- * @param {Number} iouReportObject.stateNum
- * @param {Number} iouReportObject.total
- * @param {Number} iouReportObject.reportID
- * @param {Number} chatReportID
- */
-function setLocalIOUReportAndChatData(iouReportObject, chatReportID) {
-    // First persist the IOU Report data to Onyx
-    setLocalIOUReportData(iouReportObject);
-
-    // Now update the associated chatReport data to ensure it has reference to updated report
-    const chatReportObject = {
-        hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
-        iouReportID: iouReportObject.reportID,
-    };
-
-    if (!chatReportObject.hasOutstandingIOU) {
-        chatReportObject.iouReportID = null;
-    }
-
-    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-    Onyx.merge(reportKey, chatReportObject);
-}
-
-/**
  * Update the lastRead actionID and timestamp in local memory and Onyx
  *
  * @param {Number} reportID
@@ -466,7 +439,23 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
  */
 function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
-        .then(iouReportObject => setLocalIOUReportAndChatData(iouReportObject, chatReportID))
+        .then((iouReportObject) => {
+            // First persist the IOU Report data to Onyx
+            setLocalIOUReportData(iouReportObject);
+
+            // Now update the associated chatReport data to ensure it has reference to updated report
+            const chatReportObject = {
+                hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
+                iouReportID: iouReportObject.reportID,
+            };
+
+            if (!chatReportObject.hasOutstandingIOU) {
+                chatReportObject.iouReportID = null;
+            }
+
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+            Onyx.merge(reportKey, chatReportObject);
+        })
         .catch(error => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
 }
 
