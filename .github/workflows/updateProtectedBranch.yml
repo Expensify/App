@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate target branch
-        if: ${{ !contains(['main', 'staging', 'production'], github.event.inputs.TARGET_BRANCH) }}
+        if: ${{ !contains(fromJSON('["main", "staging", "production"]'), github.event.inputs.TARGET_BRANCH) }}
         run: |
           echo "Target branch must be one of ['main', 'staging', 'production']"
           exit 1
