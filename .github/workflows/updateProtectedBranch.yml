@@ -102,7 +102,7 @@ jobs:
         uses: pascalgn/automerge-action@39d831e1bb389bd242626bc25d4060064a97181c
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
+          PULL_REQUEST: ${{ steps.createPullRequest.outputs.pr_number }}
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
