@@ -78,6 +78,7 @@ const CONST = {
         API_OFFLINE: 'API is offline',
     },
     NVP: {
+        BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
         TIMEZONE: 'timeZone',
