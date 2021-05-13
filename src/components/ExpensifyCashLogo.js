@@ -40,6 +40,4 @@ class ExpensifyCashLogo extends React.Component {
 }
 
 ExpensifyCashLogo.propTypes = propTypes;
-ExpensifyCashLogo.displayName = 'ExpensifyCashLogo';
-
 export default ExpensifyCashLogo;
