@@ -1,18 +1,21 @@
-name: Lock staging deploys during QA
+name: Create a new version
 
 on:
-  issues:
-    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      SEMVER_LEVEL:
+        description: One of {BUILD, PATCH, MINOR, MAJOR}
+        required: true
 
 jobs:
-  lockStagingDeploys:
-    if: ${{ github.event.label.name == '🔐 LockCashDeploys 🔐' && contains(github.event.issue.labels.*.name, 'StagingDeployCash') && github.actor != 'OSBotify' }}
+  createNewVersion:
+    if: github.actor == 'OSBotify'
     runs-on: macos-latest
+
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
-          ref: main
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -22,35 +25,42 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create new PATCH version
-        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+      - name: Set up git
+        run: |
+          git fetch
+          git checkout main
+          git config user.name OSBotify
+
+      - name: Create new branch
+        run: |
+          git checkout -b version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
+          git push --set-upstream origin version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}
+          echo "VERSION_BRANCH=version-${{ github.event.inputs.SEMVER_LEVEL }}-${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Generate version
+        id: bumpVersion
+        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: createNewVersion.yml
-          INPUTS: '{ "SEMVER_LEVEL": "PATCH" }'
+          SEMVER_LEVEL: ${{ github.event.inputs.SEMVER_LEVEL }}
 
-      - name: Update staging branch
+      - name: Commit new version
+        run: |
+          git add \
+            ./package.json \
+            ./package-lock.json \
+            ./android/app/build.gradle \
+            ./ios/ExpensifyCash/Info.plist \
+            ./ios/ExpensifyCashTests/Info.plist
+          git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+          git push origin ${{ env.VERSION_BRANCH }}
+
+      - name: Update main branch
         uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: updateProtectedBranch.yml
-          INPUTS: '{ "TARGET_BRANCH": "staging" }'
-
-      - name: Pull staging to get the new version
-        run: |
-          git pull origin staging
-          echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
-          echo "New version is ${{ env.NEW_VERSION }}"
-
-      # Note: we need to create this tag but not push it, because of how GitUtils.getPullRequestsMergedBetween works
-      - name: Tag version
-        run: git tag ${{ env.NEW_VERSION }}
-
-      - name: Update StagingDeployCash
-        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NPM_VERSION: ${{ env.NEW_VERSION }}
+          INPUTS: '{ "TARGET_BRANCH": "main", "SOURCE_BRANCH": "${{ env.VERSION_BRANCH }}" }'
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change
