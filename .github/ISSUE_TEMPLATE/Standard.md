@@ -1,6 +1,6 @@
 ---
 name: Standard issue template
-about: A standard template to follow when creating an issue in this repository
+about: A standard template to follow when creating a new issue in this repository
 labels: AutoAssignerTriage
 ---
 
