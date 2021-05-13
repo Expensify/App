@@ -33,7 +33,7 @@ const propTypes = {
         // Outstanding amount of this transaction
         cachedTotal: PropTypes.string,
 
-        // Is the IOU report settled?
+        // Does the report have an outstanding IOU that needs to be paid?
         hasOutstandingIOU: PropTypes.bool,
     }),
 
@@ -70,8 +70,7 @@ const ReportActionItemIOUPreview = ({
 }) => {
     const sessionEmail = lodashGet(session, 'email', null);
 
-    // Pay button should be visible to manager person in the report
-    // Check if the currently logged in user is the manager.
+    // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = iou.managerEmail === sessionEmail;
 
     const managerName = lodashGet(
