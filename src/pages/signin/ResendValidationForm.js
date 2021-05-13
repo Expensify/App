@@ -19,10 +19,10 @@ const propTypes = {
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
 
-        // Weather or not the account is validated
+        // Whether or not the account is validated
         validated: PropTypes.bool,
 
-        // Weather or not the account is closed
+        // Whether or not the account is closed
         closed: PropTypes.bool,
     }),
 
