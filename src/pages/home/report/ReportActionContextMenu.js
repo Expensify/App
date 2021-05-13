@@ -8,13 +8,14 @@ import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import {setNewMarkerPosition, updateLastReadActionID, deleteReportComment} from '../../../libs/actions/Report';
+import {setNewMarkerPosition, updateLastReadActionID} from '../../../libs/actions/Report';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
 import ConfirmCommentDeleteAppModal from './ConfirmCommentDeleteAppModal';
 import ONYXKEYS from '../../../ONYXKEYS';
+import Log from '../../../libs/Log';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -47,6 +48,9 @@ const defaultProps = {
 class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
+
+        this.deleteAccepted = this.deleteAccepted.bind(this);
+        this.deleteCanceled = this.deleteCanceled.bind(this);
 
         // A list of all the context actions in this menu.
         this.CONTEXT_ACTIONS = [
@@ -101,13 +105,13 @@ class ReportActionContextMenu extends React.Component {
                 shouldShow: () => false,
                 onPress: () => {},
             },
-
             {
                 text: 'Delete Comment',
                 icon: Trashcan,
                 shouldShow: () => this.props.reportAction.actorEmail === this.props.session.email,
                 onPress: () => {
-                    deleteReportComment(this.props.reportID, this.props.reportAction);
+                    Log.info('isDeleteCommentConfirmModal', true);
+                    this.setState({isDeleteCommentConfirmModal: true});
                 },
             },
         ];
@@ -119,13 +123,25 @@ class ReportActionContextMenu extends React.Component {
         };
     }
 
+    // deleteReportComment(this.props.reportID, this.props.reportAction);
+
+    deleteAccepted() {
+        this.setState({isDeleteCommentConfirmModal: false});
+    }
+
+    deleteCanceled() {
+        this.setState({isDeleteCommentConfirmModal: false});
+    }
 
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                <ConfirmCommentDeleteAppModal
-                    isVisble={this.state.isDeleteCommentConfirmModal}
-                />
+                {this.state.isDeleteCommentConfirmModal ? (
+                    <ConfirmCommentDeleteAppModal
+                        onCancel={this.deleteCanceled}
+                        onSubmit={this.deleteAccepted}
+                    />
+                ) : null}
                 {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow() && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
