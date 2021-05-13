@@ -13,7 +13,7 @@ const propTypes = {
     shouldClear: PropTypes.bool,
 
     // A ref to forward to the text input
-    forwardedRef: PropTypes.func.isRequired,
+    forwardedRef: PropTypes.func,
 
     // When the input has cleared whoever owns this input should know about it
     onClear: PropTypes.func,
@@ -31,6 +31,7 @@ const defaultProps = {
     onClear: () => {},
     autoFocus: false,
     isDisabled: false,
+    forwardedRef: null,
 };
 
 class TextInputFocusable extends React.Component {
