@@ -4,11 +4,11 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import compose from '../libs/compose';
-import styles from '../styles/styles';
-import ONYXKEYS from '../ONYXKEYS';
-import MultipleAvatars from './MultipleAvatars';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../../libs/compose';
+import styles from '../../styles/styles';
+import ONYXKEYS from '../../ONYXKEYS';
+import MultipleAvatars from '../MultipleAvatars';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     // Additional logic for displaying the pay button

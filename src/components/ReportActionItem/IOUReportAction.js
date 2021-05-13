@@ -2,12 +2,12 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
-import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
-import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
-import ReportActionItemIOUPreview from './ReportActionItemIOUPreview';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
+import ReportActionItemIOUQuote from './IOUQuote';
+import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
+import ReportActionItemIOUPreview from './IOUPreview';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     // All the data of the action
