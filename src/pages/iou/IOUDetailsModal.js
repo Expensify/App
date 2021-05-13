@@ -110,7 +110,7 @@ class IOUDetailsModal extends Component {
                 />
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
-                        <ScrollView contentContainerStyle={{flexGrow: 1, paddingStart: 20, paddingEnd: 20}}>
+                        <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
                             <ReportActionItemIOUPreview
                                 iou={this.props.iouReport}
                                 shouldHidePayButton
