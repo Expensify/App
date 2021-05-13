@@ -19,19 +19,15 @@ import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 
-const defaultProps = {
-    iou: {},
-};
-
 const propTypes = {
     // URL Route params
     route: PropTypes.shape({
         // Params from the URL path
         params: PropTypes.shape({
-            // chatReportID passed via route /iou/:chatReportID
+            // chatReportID passed via route: /iou/details/:chatReportID/:iouReportID
             chatReportID: PropTypes.string,
 
-            // iouReportID passed via route /iou/:iouReportID
+            // iouReportID passed via route: /iou/details/:chatReportID/:iouReportID
             iouReportID: PropTypes.string,
         }),
     }).isRequired,
@@ -71,6 +67,10 @@ const propTypes = {
     }).isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    iou: {},
 };
 
 class IOUDetailsModal extends Component {
@@ -140,7 +140,6 @@ class IOUDetailsModal extends Component {
 }
 
 IOUDetailsModal.propTypes = propTypes;
-IOUDetailsModal.displayName = 'IOUDetailsModal';
 IOUDetailsModal.defaultProps = defaultProps;
 
 export default compose(
