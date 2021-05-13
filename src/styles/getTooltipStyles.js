@@ -4,7 +4,7 @@ import colors from './colors';
 import themeColors from './themes/default';
 import fontFamily from './fontFamily';
 import variables from './variables';
-import {roundToNearestMultipleOfFour} from './util';
+import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 
 // This defines the proximity with the edge of the window in which tooltips should not be displayed.
 // If a tooltip is too close to the edge of the screen, we'll shift it towards the center.

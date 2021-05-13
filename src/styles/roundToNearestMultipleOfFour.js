@@ -18,5 +18,4 @@ function roundToNearestMultipleOfFour(n) {
     return 0;
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {roundToNearestMultipleOfFour};
+export default roundToNearestMultipleOfFour;

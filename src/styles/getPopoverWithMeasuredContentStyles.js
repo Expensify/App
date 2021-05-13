@@ -1,4 +1,4 @@
-import {roundToNearestMultipleOfFour} from './util';
+import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 import variables from './variables';
 
 /**

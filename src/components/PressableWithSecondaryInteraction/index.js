@@ -66,5 +66,7 @@ class PressableWithSecondaryInteraction extends Component {
 
 PressableWithSecondaryInteraction.propTypes = propTypes;
 PressableWithSecondaryInteraction.defaultProps = defaultProps;
-// eslint-disable-next-line react/jsx-props-no-spreading
-export default React.forwardRef((props, ref) => <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />);
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />
+));
