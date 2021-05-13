@@ -13,7 +13,18 @@ function scrollToIndex(index) {
     flatListRef.current.scrollToIndex(index);
 }
 
+/**
+ * Scroll to the bottom of the flatlist.
+ *
+ */
+function scrollToBottom() {
+    if (flatListRef.current) {
+        flatListRef.current.scrollToOffset({animated: false, offset: 0});
+    }
+}
+
 export {
     flatListRef,
     scrollToIndex,
+    scrollToBottom,
 };

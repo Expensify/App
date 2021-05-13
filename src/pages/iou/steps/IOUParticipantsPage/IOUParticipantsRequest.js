@@ -52,7 +52,6 @@ class IOUParticipantsRequest extends Component {
             props.reports,
             props.personalDetails,
             '',
-            true,
         );
 
         this.state = {
@@ -123,7 +122,6 @@ class IOUParticipantsRequest extends Component {
                         this.props.reports,
                         this.props.personalDetails,
                         searchValue,
-                        true,
                     );
                     this.setState({
                         searchValue,

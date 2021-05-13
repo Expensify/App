@@ -131,29 +131,6 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_CONCIERGE = {
-        ...REPORTS,
-
-        9: {
-            lastVisitedTimestamp: 1610666739302,
-            lastMessageTimestamp: 1,
-            isPinned: false,
-            reportID: 9,
-            participants: ['concierge@expensify.com'],
-            reportName: 'Concierge',
-            unreadActionCount: 1,
-        },
-    };
-
-    const PERSONAL_DETAILS_WITH_CONCIERGE = {
-        ...PERSONAL_DETAILS,
-
-        'concierge@expensify.com': {
-            displayName: 'Concierge',
-            login: 'concierge@expensify.com',
-        },
-    };
-
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
         Onyx.init({
@@ -234,29 +211,6 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
         expect(results.recentReports[0].text).toBe('Invisible Woman');
         expect(results.recentReports[1].text).toBe('Spider-Man');
-
-        // Test for Concierge's existence in chat options
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
-
-        // Concierge is included in the results by default. We should expect all the personalDetails to show
-        // (minus the 5 that are already showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 1 - 5);
-        expect(results.recentReports).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({login: 'concierge@expensify.com'}),
-            ]),
-        );
-
-        // Test by excluding Concierge from the results
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', true);
-
-        // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 2 - 5);
-        expect(results.personalDetails).not.toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({login: 'concierge@expensify.com'}),
-            ]),
-        );
     });
 
     it('getNewGroupOptions()', () => {
@@ -358,41 +312,6 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
         expect(results.userToInvite.login).toBe('+15005550006');
-
-        // Test Concierge's existence in new group options
-        results = OptionsListUtils.getNewGroupOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
-
-        // Concierge is included in the results by default. We should expect all the personalDetails to show
-        // (minus the 5 that are already showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 6);
-        expect(results.recentReports).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({login: 'concierge@expensify.com'}),
-            ]),
-        );
-
-        // Test by excluding Concierge from the results
-        results = OptionsListUtils.getNewGroupOptions(
-            REPORTS_WITH_CONCIERGE,
-            PERSONAL_DETAILS_WITH_CONCIERGE,
-            '',
-            [],
-            true,
-        );
-
-        // We should expect all the personalDetails to show (minus the 5 that are already showing,
-        // the currently logged in user and Concierge)
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 7);
-        expect(results.personalDetails).not.toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({login: 'concierge@expensify.com'}),
-            ]),
-        );
-        expect(results.recentReports).not.toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({login: 'concierge@expensify.com'}),
-            ]),
-        );
     });
 
     it('getSidebarOptions() with default priority mode', () => {
