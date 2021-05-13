@@ -8,7 +8,9 @@ import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import {setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft} from '../../../libs/actions/Report';
+import {
+    setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft, deleteReportComment,
+} from '../../../libs/actions/Report';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
@@ -16,7 +18,7 @@ import compose from '../../../libs/compose';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ConfirmModal from "../../../components/ConfirmModal";
+import ConfirmModal from '../../../components/ConfirmModal';
 
 const propTypes = {
     // The ID of the report this report action is attached to.
@@ -146,17 +148,6 @@ class ReportActionContextMenu extends React.Component {
         this.getActionText = this.getActionText.bind(this);
     }
 
-    // deleteReportComment(this.props.reportID, this.props.reportAction);
-
-    deleteAccepted() {
-        deleteReportComment(this.props.reportID, this.props.reportAction);
-        this.setState({isDeleteCommentConfirmModal: false});
-    }
-
-    deleteCanceled() {
-        this.setState({isDeleteCommentConfirmModal: false});
-    }
-
     /**
      * Gets the text (not HTML) portion of the message in an action.
      *
@@ -165,6 +156,15 @@ class ReportActionContextMenu extends React.Component {
     getActionText() {
         const message = _.last(lodashGet(this.props.reportAction, 'message', null));
         return lodashGet(message, 'text', '');
+    }
+
+    deleteAccepted() {
+        deleteReportComment(this.props.reportID, this.props.reportAction);
+        this.setState({isDeleteCommentConfirmModal: false});
+    }
+
+    deleteCanceled() {
+        this.setState({isDeleteCommentConfirmModal: false});
     }
 
     render() {
