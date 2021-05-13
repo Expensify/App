@@ -110,11 +110,14 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const isMultipleParticipant = option.participantsList.length > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
-        ({displayName, login}) => ({displayName, tooltip: login}),
+        ({displayName, firstName, login}) => (
+            {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
+        ),
     );
-
+    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <Hoverable>
             {hovered => (
@@ -159,7 +162,7 @@ const OptionRow = ({
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
-                                    fullTitle={option.text}
+                                    fullTitle={fullTitle}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
@@ -194,7 +197,7 @@ const OptionRow = ({
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
-                                    <Icon src={Pencil} height="16" width="16" />
+                                    <Icon src={Pencil} height={16} width={16} />
                                 </View>
                             )}
                             {option.hasOutstandingIOU && (
@@ -202,7 +205,7 @@ const OptionRow = ({
                             )}
                             {option.isPinned && (
                                 <View style={styles.ml2}>
-                                    <Icon src={Pin} height="16" width="16" />
+                                    <Icon src={Pin} height={16} width={16} />
                                 </View>
                             )}
                         </View>

@@ -6,6 +6,7 @@ import {
     Pressable,
     InteractionManager,
     Text,
+    Dimensions,
 } from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
@@ -33,12 +34,13 @@ import compose from '../../../libs/compose';
 import CreateMenu from '../../../components/CreateMenu';
 import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
-import withWindowDimensions from '../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
 import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -81,6 +83,8 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
+    ...windowDimensionsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -97,7 +101,6 @@ class ReportActionCompose extends React.Component {
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
-        this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
@@ -108,7 +111,8 @@ class ReportActionCompose extends React.Component {
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
         this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
-
+        this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
+        this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
 
         this.state = {
@@ -126,6 +130,10 @@ class ReportActionCompose extends React.Component {
         };
     }
 
+    componentDidMount() {
+        Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
+    }
+
     componentDidUpdate(prevProps) {
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
@@ -135,6 +143,10 @@ class ReportActionCompose extends React.Component {
             this.setIsFocused(true);
             this.focus();
         }
+    }
+
+    componentWillUnmount() {
+        Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
     /**
@@ -225,16 +237,23 @@ class ReportActionCompose extends React.Component {
     /**
      * Show the ReportActionContextMenu modal popover.
      *
-     * @param {Object} [event] - A press event.
      */
-    showEmojiPicker(event) {
+    showEmojiPicker() {
         this.textInput.blur();
-        this.state.emojiPopoverAnchorPosition = {
-            horizontal: event.nativeEvent.pageX,
-            vertical: event.nativeEvent.pageY,
-        };
         this.setState({isEmojiPickerVisible: true});
     }
+
+    /**
+     * This gets called onLayout to find the cooridnates of the Anchor for the Emoji Picker.
+     */
+    measureEmojiPopoverAnchorPosition() {
+        if (this.emojiPopoverAnchor) {
+            this.emojiPopoverAnchor.measureInWindow((x, y) => this.setState({
+                emojiPopoverAnchorPosition: {horizontal: x, vertical: y},
+            }));
+        }
+    }
+
 
     /**
      * Hide the ReportActionContextMenu modal popover.
@@ -304,7 +323,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        title="Upload Attachment"
+                        title={this.props.translate('reportActionCompose.uploadAttachment')}
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
@@ -337,7 +356,7 @@ class ReportActionCompose extends React.Component {
                                                         hasMultipleParticipants
                                                             ? {
                                                                 icon: Receipt,
-                                                                text: 'Split Bill',
+                                                                text: this.props.translate('iou.splitBill'),
                                                                 onSelected: () => {
                                                                     Navigation.navigate(
                                                                         ROUTES.getIouSplitRoute(this.props.reportID),
@@ -346,7 +365,7 @@ class ReportActionCompose extends React.Component {
                                                             }
                                                             : {
                                                                 icon: MoneyCircle,
-                                                                text: 'Request Money',
+                                                                text: this.props.translate('iou.requestMoney'),
                                                                 onSelected: () => {
                                                                     Navigation.navigate(
                                                                         ROUTES.getIouRequestRoute(this.props.reportID),
@@ -356,7 +375,7 @@ class ReportActionCompose extends React.Component {
                                                     ] : []),
                                                     {
                                                         icon: Paperclip,
-                                                        text: 'Add Attachment',
+                                                        text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
                                                             openPicker({
                                                                 onPicked: (file) => {
@@ -375,7 +394,7 @@ class ReportActionCompose extends React.Component {
                                     multiline
                                     ref={el => this.textInput = el}
                                     textAlignVertical="top"
-                                    placeholder="Write something..."
+                                    placeholder={this.props.translate('reportActionCompose.writeSomething')}
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerSubmitShortcut}
@@ -433,6 +452,8 @@ class ReportActionCompose extends React.Component {
                             styles.chatItemEmojiButton,
                             getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                         ])}
+                        ref={el => this.emojiPopoverAnchor = el}
+                        onLayout={this.measureEmojiPopoverAnchorPosition}
                         onPress={this.showEmojiPicker}
                     >
                         {({hovered, pressed}) => (
@@ -466,7 +487,7 @@ class ReportActionCompose extends React.Component {
                                 height={variables.iconSizeExtraSmall}
                             />
                             <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
-                                You appear to be offline.
+                                {this.props.translate('reportActionCompose.youAppearToBeOffline')}
                             </Text>
                         </View>
                     </View>
@@ -483,6 +504,7 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withNavigationFocus,
+    withLocalize,
     withOnyx({
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
