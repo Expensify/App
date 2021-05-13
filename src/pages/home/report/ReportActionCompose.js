@@ -101,7 +101,6 @@ class ReportActionCompose extends React.Component {
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
-        this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
@@ -181,7 +180,7 @@ class ReportActionCompose extends React.Component {
      * Focus the composer text input
      */
     focus() {
-        if (this.textInput && this.textInput.focus) {
+        if (this.textInput) {
             // There could be other animations running while we trigger manual focus.
             // This prevents focus from making those animations janky.
             InteractionManager.runAfterInteractions(() => {
@@ -309,10 +308,10 @@ class ReportActionCompose extends React.Component {
     render() {
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
-        const hasConciergeParticipant = this.props.report.participants.includes(CONST.EMAIL.CONCIERGE);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
+
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -353,7 +352,7 @@ class ReportActionCompose extends React.Component {
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
-                                                    ...(!hasConciergeParticipant && Permissions.canUseIOU() ? [
+                                                    ...(Permissions.canUseIOU() ? [
                                                         hasMultipleParticipants
                                                             ? {
                                                                 icon: Receipt,
