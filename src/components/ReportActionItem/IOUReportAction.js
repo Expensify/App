@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -36,25 +35,26 @@ const ReportActionItemIOUAction = ({
     chatReportID,
     shouldDisplayPreview,
     chatReport,
-}) => (
-    <View>
-        <ReportActionItemIOUQuote
-            action={action}
-            shouldShowViewDetailsLink={chatReport.participants.length <= 2}
-            onViewDetailsPressed={() => Navigation.navigate(ROUTES.getIouDetailsRoute(
-                chatReportID, action.originalMessage.IOUReportID,
-            ))}
-        />
-        {shouldDisplayPreview && (
-            <ReportActionItemIOUPreview
-                iouReportID={action.originalMessage.IOUReportID}
-                onPayButtonPressed={() => Navigation.navigate(ROUTES.getIouDetailsRoute(
-                    chatReportID, action.originalMessage.IOUReportID,
-                ))}
+}) => {
+    const launchDetailsModal = () => {
+        Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
+    };
+    return (
+        <>
+            <ReportActionItemIOUQuote
+                action={action}
+                shouldShowViewDetailsLink={chatReport.participants.length <= 2}
+                onViewDetailsPressed={launchDetailsModal}
             />
-        )}
-    </View>
-);
+            {shouldDisplayPreview && (
+                <ReportActionItemIOUPreview
+                    iouReportID={action.originalMessage.IOUReportID}
+                    onPayButtonPressed={launchDetailsModal}
+                />
+            )}
+        </>
+    );
+};
 
 ReportActionItemIOUAction.propTypes = propTypes;
 ReportActionItemIOUAction.defaultProps = defaultProps;
