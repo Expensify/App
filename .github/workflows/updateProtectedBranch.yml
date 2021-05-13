@@ -64,6 +64,7 @@ jobs:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           pr_title: Update version to ${{ env.NEW_VERSION }} on ${{ github.event.inputs.TARGET_BRANCH }}
           pr_body: Update version to ${{ env.NEW_VERSION }}
+          pr_label: automerge
 
       - name: Check if pull request is mergeable
         id: isPullRequestMergeable
