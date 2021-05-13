@@ -1,4 +1,6 @@
 ---
+name: ""
+about: ""
 labels: AutoAssignerTriage
 ---
 
