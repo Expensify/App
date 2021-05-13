@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {
     View,
     TextInput,
-    Pressable,
     ScrollView,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
