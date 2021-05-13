@@ -13,4 +13,5 @@ export const Default = Template.bind({});
 Default.args = {
     textSize: 'large',
     title: 'Chats',
+    shouldShowEnvironmentBadge: true,
 };
