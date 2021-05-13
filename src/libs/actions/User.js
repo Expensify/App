@@ -6,6 +6,7 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import moment from 'moment';
 
 let sessionAuthToken = '';
 Onyx.connect({
@@ -57,9 +58,10 @@ function getBetas() {
 function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
-        name: CONST.NVP.PAYPAL_ME_ADDRESS,
+        nvpNames: `${CONST.NVP.BLOCKED_FROM_CONCIERGE}, ${CONST.NVP.PAYPAL_ME_ADDRESS}`,
     })
         .then((response) => {
+
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
@@ -68,6 +70,10 @@ function getUserDetails() {
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
             Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, payPalMeAddress);
+
+            // Update the blockedFromConcierge NVP
+            const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, '');
+            Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
         });
 }
 
