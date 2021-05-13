@@ -21,10 +21,21 @@ const BaseReportActionItemCommentFragment = ({
 }) => (
     <View style={styles.flexRow}>
         {html !== text
-            ? <RenderHTML html={html} debug={false} defaultTextProps={selectable ? {selectable} : {}} />
-            : <Text selectable={selectable}>{Str.htmlDecode(text)}</Text>}
+            ? (
+                <RenderHTML
+                    html={html}
+                    debug={false}
+                    defaultTextProps={{selectable}}
+                    defaultWebViewProps={{selectable}}
+                />
+            ) : <Text selectable={selectable}>{Str.htmlDecode(text)}</Text>}
         {isEdited && (
-            <Text style={[styles.ml1]} fontSize={variables.fontSizeSmall} color={theme.textSupporting}>
+            <Text
+                style={[styles.ml1]}
+                fontSize={variables.fontSizeSmall}
+                color={theme.textSupporting}
+                selectable={false}
+            >
                 (edited)
             </Text>
         )}
