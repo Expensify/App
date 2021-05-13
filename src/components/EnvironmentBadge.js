@@ -40,5 +40,4 @@ class EnvironmentBadge extends React.Component {
     }
 }
 
-EnvironmentBadge.displayName = 'EnvironmentBadge';
 export default EnvironmentBadge;
