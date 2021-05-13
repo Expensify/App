@@ -54,7 +54,7 @@ const IOUBillStackNavigator = createModalStackNavigator([{
 },
 {
     Component: IOUCurrencySelection,
-    name: 'IOU_Bill_Currency_Root',
+    name: 'IOU_Bill_Currency',
 }]);
 
 const IOURequestModalStackNavigator = createModalStackNavigator([{
@@ -63,7 +63,7 @@ const IOURequestModalStackNavigator = createModalStackNavigator([{
 },
 {
     Component: IOUCurrencySelection,
-    name: 'IOU_Request_Currency_Root',
+    name: 'IOU_Request_Currency',
 }]);
 
 const DetailsModalStackNavigator = createModalStackNavigator([{

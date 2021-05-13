@@ -290,7 +290,9 @@ class IOUModal extends Component {
                             this.navigateToNextStep();
                         }}
                         currencySelected={this.currencySelected}
+                        reportID={this.props.route.params.reportID}
                         selectedCurrency={this.state.selectedCurrency}
+                        hasMultipleParticipants={this.props.hasMultipleParticipants}
                     />
                 )}
                 {currentStep === Steps.IOUParticipants && (
