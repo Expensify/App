@@ -1,5 +1,4 @@
 import fontFamily from './fontFamily';
-import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
@@ -10,6 +9,12 @@ import sizing from './utilities/sizing';
 import flex from './utilities/flex';
 import display from './utilities/display';
 import overflow from './utilities/overflow';
+import whiteSpace from './utilities/whiteSpace';
+import wordBreak from './utilities/wordBreak';
+import textInputAlignSelf from './utilities/textInputAlignSelf';
+import CONST from '../CONST';
+import positioning from './utilities/positioning';
+import codeStyles from './codeStyles';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -18,10 +23,14 @@ const styles = {
     ...flex,
     ...display,
     ...overflow,
+    ...positioning,
+    ...wordBreak,
+    ...whiteSpace,
 
     link: {
         color: themeColors.link,
         textDecorationColor: themeColors.link,
+        fontFamily: fontFamily.GTA,
     },
 
     h1: {
@@ -60,6 +69,13 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textMicroBold: {
+        color: themeColors.text,
+        fontWeight: fontWeightBold,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -81,22 +97,32 @@ const styles = {
         color: themeColors.textMutedReversed,
     },
 
+    colorMuted: {
+        color: themeColors.textSupporting,
+    },
+
+    colorHeading: {
+        color: themeColors.heading,
+    },
+
     button: {
-        borderColor: themeColors.border,
-        borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
+        backgroundColor: themeColors.buttonDefaultBG,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
+        paddingHorizontal: 12,
     },
 
     buttonText: {
-        color: themeColors.text,
+        color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonSmall: {
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeSmall,
         paddingTop: 6,
         paddingRight: 10,
@@ -107,10 +133,22 @@ const styles = {
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
     },
 
     buttonSuccess: {
         backgroundColor: themeColors.buttonSuccessBG,
+        borderWidth: 0,
+    },
+
+    buttonSuccessDisabled: {
+        opacity: 0.5,
+    },
+
+    buttonSuccessHovered: {
+        backgroundColor: themeColors.buttonSuccessHoveredBG,
         borderWidth: 0,
     },
 
@@ -132,6 +170,10 @@ const styles = {
         color: themeColors.textReversed,
     },
 
+    hoveredComponentBG: {
+        backgroundColor: themeColors.hoverComponentBG,
+    },
+
     touchableButtonImage: {
         alignItems: 'center',
         height: variables.componentSizeNormal,
@@ -140,55 +182,113 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
-    pill: {
+    picker: {
+        inputIOS: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            paddingBottom: 10,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeNormal,
+            opacity: 1,
+        },
+        inputWeb: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            paddingBottom: 10,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            appearance: 'none',
+            height: variables.componentSizeNormal,
+            opacity: 1,
+        },
+        inputAndroid: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            paddingLeft: 12,
+            paddingRight: 12,
+            paddingTop: 10,
+            paddingBottom: 10,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeNormal,
+            opacity: 1,
+        },
+        iconContainer: {
+            top: 12,
+            right: 12,
+            pointerEvents: 'none',
+        },
+    },
+
+    badge: {
+        backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
-        backgroundColor: themeColors.pillBG,
-        height: variables.componentSizeSmall,
+        height: variables.iconSizeNormal,
         flexDirection: 'row',
-        paddingTop: 6,
-        paddingBottom: 6,
-        paddingLeft: 7,
-        paddingRight: 7,
+        paddingHorizontal: 7,
         alignItems: 'center',
     },
 
-    pillText: {
-        color: themeColors.text,
-        weight: '400',
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
-        marginRight: 4,
-        userSelect: 'none',
-        maxWidth: 144,
-        whiteSpace: 'nowrap',
+    badgeSuccess: {
+        backgroundColor: themeColors.badgeSuccessBG,
     },
 
-    pillCancelIcon: {
-        width: 12,
-        height: 12,
+    badgeDanger: {
+        backgroundColor: themeColors.badgeDangerBG,
+    },
+
+    badgeText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        ...whiteSpace.noWrap,
     },
 
     headerText: {
-        fontFamily: fontFamily.GTA,
         color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: '700',
+        fontWeight: fontWeightBold,
+    },
+
+    headerGap: {
+        height: 12,
+    },
+
+    pushTextRight: {
+        left: 100000,
     },
 
     reportOptions: {
         marginLeft: 8,
     },
 
-    typingIndicator: {
+    chatItemComposeSecondaryRow: {
         height: 15,
         marginBottom: 5,
         marginTop: 5,
     },
 
-    typingIndicatorSubText: {
+    chatItemComposeSecondaryRowSubText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+    },
+
+    chatItemComposeSecondaryRowOffset: {
         marginLeft: 48,
     },
 
@@ -200,7 +300,7 @@ const styles = {
 
     textInput: {
         backgroundColor: themeColors.componentBG,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         borderColor: themeColors.border,
         borderWidth: 1,
@@ -214,6 +314,11 @@ const styles = {
         textAlignVertical: 'center',
     },
 
+    disabledTextInput: {
+        backgroundColor: colors.gray1,
+        color: colors.gray3,
+    },
+
     textInputReversed: addOutlineWidth({
         backgroundColor: themeColors.heading,
         borderColor: themeColors.text,
@@ -224,10 +329,12 @@ const styles = {
         borderColor: themeColors.icon,
     },
 
-    textInputNoOutline: addOutlineWidth({}, 0),
+    noOutline: addOutlineWidth({}, 0),
 
     formLabel: {
-        color: themeColors.text,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
         marginBottom: 8,
@@ -247,10 +354,17 @@ const styles = {
         marginBottom: 4,
     },
 
+    formHint: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+    },
+
     signInPage: {
         backgroundColor: themeColors.sidebar,
         padding: 20,
         minHeight: '100%',
+        flex: 1,
     },
 
     signInPageLogo: {
@@ -265,11 +379,6 @@ const styles = {
         width: '100%',
         marginBottom: 20,
         marginTop: 20,
-    },
-
-    signinLogo: {
-        height: variables.componentSizeLarge,
-        width: variables.componentSizeLarge,
     },
 
     signinWelcomeScreenshot: {
@@ -302,9 +411,16 @@ const styles = {
         width: '100%',
     },
 
-    loginFormContainer: {
+    signInPageFormContainer: {
         maxWidth: 295,
         width: '100%',
+    },
+
+    loginTermsText: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
     },
 
     // Sidebar Styles
@@ -313,24 +429,10 @@ const styles = {
         height: '100%',
     },
 
-    sidebarHeader: {
-        flexGrow: 0,
-    },
-
-    sidebarHeaderActive: {
-        flexGrow: 1,
-        height: '100%',
-    },
-
-    sidebarHeaderTop: {
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         height: 84,
         justifyContent: 'flex-start',
         paddingHorizontal: 20,
@@ -338,7 +440,7 @@ const styles = {
     },
 
     sidebarAvatar: {
-        backgroundColor: themeColors.text,
+        backgroundColor: themeColors.icon,
         borderRadius: 20,
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
@@ -346,13 +448,13 @@ const styles = {
 
     statusIndicator: {
         borderColor: themeColors.sidebar,
-        borderRadius: 7,
+        borderRadius: 6,
         borderWidth: 2,
         position: 'absolute',
-        right: -6,
-        bottom: 3,
-        height: 14,
-        width: 14,
+        right: -1,
+        bottom: -1,
+        height: 12,
+        width: 12,
         zIndex: 10,
     },
     statusIndicatorOnline: {
@@ -366,10 +468,10 @@ const styles = {
     floatingActionButton: {
         backgroundColor: themeColors.buttonSuccessBG,
         position: 'absolute',
-        height: variables.componentSizeNormal,
-        width: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
         right: 20,
-        bottom: 24,
+        bottom: 34,
         borderRadius: 999,
         alignItems: 'center',
         justifyContent: 'center',
@@ -382,7 +484,7 @@ const styles = {
         width: 200,
         textOverflow: 'ellipsis',
         overflow: 'hidden',
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
     sidebarFooterLink: {
@@ -394,10 +496,7 @@ const styles = {
     },
 
     sidebarListContainer: {
-        flex: 1,
-        flexGrow: 100,
         scrollbarWidth: 'none',
-        overflow: 'scroll',
         paddingBottom: 4,
     },
 
@@ -406,11 +505,33 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    createMenuPositionSidebar: {
+        left: 18,
+        bottom: 100,
+    },
+
+    createMenuPositionProfile: {
+        right: 18,
+        top: 100,
+    },
+
+    createMenuPositionReportActionCompose: {
+        left: 18 + variables.sideBarWidth,
+        bottom: 75,
+    },
+
+    createMenuContainer: {
+        width: variables.sideBarWidth - 40,
+        paddingVertical: 12,
+    },
+
     createMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
         paddingHorizontal: 20,
         paddingVertical: 12,
+        justifyContent: 'space-between',
+        width: '100%',
     },
 
     createMenuIcon: {
@@ -440,18 +561,31 @@ const styles = {
     sidebarLinkInner: {
         alignItems: 'center',
         flexDirection: 'row',
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+
+    sidebarInnerRow: {
         height: 64,
         paddingTop: 12,
-        paddingRight: 20,
         paddingBottom: 12,
-        paddingLeft: 20,
+    },
+
+    sidebarInnerRowSmall: {
+        height: 52,
+        paddingTop: 12,
+        paddingBottom: 12,
     },
 
     sidebarLinkText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
+    },
+
+    sidebarLinkHover: {
+        backgroundColor: themeColors.sidebarHover,
     },
 
     sidebarLinkActive: {
@@ -466,23 +600,49 @@ const styles = {
 
     sidebarLinkActiveText: {
         color: themeColors.text,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         textDecorationLine: 'none',
         overflow: 'hidden',
     },
 
-    chatSwitcherDisplayName: {
+    optionItemAvatarNameWrapper: {
+        minWidth: 0,
+        flex: 1,
+    },
+
+    optionDisplayName: {
         fontFamily: fontFamily.GTA,
         height: 18,
         lineHeight: 18,
-        whiteSpace: 'nowrap',
+        ...whiteSpace.noWrap,
     },
 
-    chatSwitcherLogin: {
+    optionDisplayNameCompact: {
+        minWidth: 'auto',
+        flexBasis: 'auto',
+        flexGrow: 0,
+        flexShrink: 0,
+    },
+
+    displayNameTooltipEllipsis: {
+        position: 'absolute',
+        opacity: 0,
+        right: 0,
+        bottom: 0,
+    },
+
+    optionAlternateText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
+    },
+
+    optionAlternateTextCompact: {
+        flexShrink: 1,
+        flexGrow: 1,
+        flexBasis: 'auto',
     },
 
     // App Content Wrapper styles
@@ -521,17 +681,6 @@ const styles = {
     LHNToggleIcon: {
         height: 15,
         width: 18,
-    },
-
-    LHNPencilIcon: {
-        height: 16,
-        width: 16,
-    },
-
-    attachmentCloseIcon: {
-        height: 20,
-        width: 20,
-        padding: 0,
     },
 
     chatContent: {
@@ -592,7 +741,7 @@ const styles = {
         lineHeight: 20,
         paddingRight: 5,
         paddingBottom: 4,
-        wordBreak: 'break-word',
+        ...wordBreak.breakWord,
     },
 
     chatItemMessageHeaderTimestamp: {
@@ -609,8 +758,12 @@ const styles = {
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
+        ...whiteSpace.preWrap,
+        ...wordBreak.breakWord,
+    },
+
+    chatItemUnsentMessage: {
+        opacity: 0.6,
     },
 
     chatItemCompose: {
@@ -632,36 +785,95 @@ const styles = {
     chatItemComposeBox: {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         minHeight: variables.componentSizeNormal,
     },
 
     textInputCompose: addOutlineWidth({
+        backgroundColor: themeColors.componentBG,
+        borderColor: themeColors.border,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
         borderWidth: 0,
         borderRadius: 0,
         height: 'auto',
-        minHeight: 38,
-        paddingTop: 10,
-        paddingRight: 8,
-        paddingBottom: 10,
-        paddingLeft: 8,
+        lineHeight: 20,
+
+        // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+        // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+
+        paddingHorizontal: 8,
+        marginVertical: 5,
+        paddingVertical: 0,
+        ...textInputAlignSelf.center,
+        textAlignVertical: 'center',
     }, 0),
 
     chatItemSubmitButton: {
         alignSelf: 'flex-end',
         borderRadius: 6,
         height: 32,
-        paddingTop: 8,
+        paddingTop: 6,
         paddingRight: 6,
-        paddingBottom: 8,
+        paddingBottom: 6,
         paddingLeft: 6,
         margin: 3,
         justifyContent: 'center',
     },
 
-    chatItemSubmitButtonIcon: {
-        height: 20,
-        width: 20,
+    emojiPickerContainer: {
+        backgroundColor: themeColors.componentBG,
+        minWidth: CONST.EMOJI_PICKER_SIZE,
+    },
+
+    emojiPickerList: {
+        height: 300,
+        width: '100%',
+        ...spacing.ph4,
+    },
+
+    emojiHeaderStyle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv3,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    // Emoji Picker Styles
+    emojiText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.iconSizeLarge,
+        textAlign: 'center',
+        ...spacing.pv1,
+        ...spacing.ph2,
+    },
+
+    emojiItem: {
+        width: '12.5%',
+        height: 40,
+        textAlign: 'center',
+        borderRadius: 8,
+    },
+
+    emojiItemHighlighted: {
+        transition: '0.2s ease',
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    chatItemEmojiButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
+        margin: 3,
+        justifyContent: 'center',
+    },
+
+    hoveredButton: {
+        backgroundColor: themeColors.buttonHoveredBG,
     },
 
     chatItemAttachButton: {
@@ -680,61 +892,11 @@ const styles = {
         backgroundColor: themeColors.sidebar,
         borderColor: themeColors.border,
         borderWidth: 1,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         height: 150,
         textAlign: 'center',
         verticalAlign: 'middle',
         width: 200,
-    },
-
-    chatSwitcherInputClear: {
-        alignSelf: 'flex-end',
-        height: variables.componentSizeNormal,
-        justifyContent: 'center',
-    },
-
-    chatSwitcherInputClearIcon: {
-        height: 24,
-        width: 24,
-    },
-
-    chatSwitcherGroupDMContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        backgroundColor: themeColors.appBG,
-        borderRadius: variables.componentBorderRadius,
-        borderWidth: 1,
-        borderColor: themeColors.border,
-        paddingTop: 0,
-        paddingRight: 3,
-        paddingBottom: 0,
-        paddingLeft: 5,
-    },
-
-    chatSwitcherPillsInput: {
-        alignItems: 'flex-start',
-        alignSelf: 'flex-start',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        maxWidth: 177,
-        overflow: 'hidden',
-    },
-
-    chatSwitcherInputGroup: {
-        minWidth: 1,
-    },
-
-    chatSwitcherGroupDMTextInput: {
-        backgroundColor: themeColors.componentBG,
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        flexGrow: 1,
-        height: variables.componentSizeSmall,
-        width: '100%',
-        marginTop: 5,
-        marginBottom: 5,
-        padding: 0,
     },
 
     chatSwticherPillWrapper: {
@@ -742,18 +904,13 @@ const styles = {
         marginRight: 4,
     },
 
-    chatSwitcherGo: {
-        borderRadius: 6,
-        height: 32,
-        marginBottom: 3,
-    },
-
-    navigationMenuOpenAbsolute: {
+    navigationModalOverlay: {
         position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        zIndex: 2,
+        width: '100%',
+        height: '100%',
+        transform: [{
+            translateX: -variables.sideBarWidth,
+        }],
     },
 
     sidebarVisible: {
@@ -768,39 +925,75 @@ const styles = {
     singleAvatar: {
         height: 24,
         width: 24,
+        backgroundColor: themeColors.icon,
         borderRadius: 24,
+    },
+
+    singleAvatarSmall: {
+        height: 18,
+        width: 18,
+        backgroundColor: themeColors.icon,
+        borderRadius: 18,
+    },
+
+    secondAvatar: {
+        position: 'absolute',
+        right: -18,
+        bottom: -18,
+        borderWidth: 3,
+        borderRadius: 30,
+        borderColor: 'transparent',
+    },
+
+    secondAvatarHovered: {
+        backgroundColor: themeColors.sidebarHover,
+        borderColor: themeColors.sidebarHover,
+    },
+
+    secondAvatarSmall: {
+        position: 'absolute',
+        right: -13,
+        bottom: -13,
+        borderWidth: 3,
+        borderRadius: 18,
+        borderColor: 'transparent',
+    },
+
+    secondAvatarInline: {
+        bottom: -3,
+        right: -25,
+        borderWidth: 3,
+        borderRadius: 18,
+        borderColor: themeColors.componentBG,
     },
 
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
+        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
-    singleLeftAvatar: {
-        marginTop: -variables.componentSizeNormal / 2,
-        borderRadius: 24,
-    },
-
-    singleRightAvatar: {
-        marginTop: 12,
-        height: 30,
-        width: 30,
-        borderRadius: 30,
-        left: -12,
-    },
-
-    avatarText: {
+    avatarSmall: {
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
         backgroundColor: themeColors.icon,
-        borderRadius: 24,
-        height: 24,
-        width: 24,
+        borderRadius: variables.avatarSizeSmall,
     },
 
     avatarInnerText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
         lineHeight: 24,
+        marginLeft: -3,
+        textAlign: 'center',
+    },
+
+    avatarInnerTextSmall: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeExtraSmall,
+        lineHeight: 18,
+        marginLeft: -2,
         textAlign: 'center',
     },
 
@@ -811,38 +1004,24 @@ const styles = {
 
     avatar: {
         backgroundColor: themeColors.sidebar,
+        borderColor: themeColors.sidebar,
     },
 
     focusedAvatar: {
         backgroundColor: themeColors.border,
+        borderColor: themeColors.border,
     },
 
     emptyAvatar: {
         marginRight: variables.componentSizeNormal - 24,
+        height: variables.avatarSizeNormal,
+        width: variables.avatarSizeNormal,
     },
 
-    chatSwitcherItemAvatarNameWrapper: {
-        minWidth: 0,
-        flex: 1,
-    },
-
-    chatSwitcherItemButton: {
-        backgroundColor: themeColors.sidebarButtonBG,
-        paddingTop: 6,
-        paddingRight: 8,
-        paddingBottom: 6,
-        paddingLeft: 8,
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeSmall,
-        marginLeft: 4,
-    },
-
-    chatSwitcherItemButtonText: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
-        fontWeight: fontWeightBold,
+    emptyAvatarSmall: {
+        marginRight: variables.componentSizeNormal - 28,
+        height: variables.avatarSizeSmall,
+        width: variables.avatarSizeSmall,
     },
 
     modalViewContainer: {
@@ -850,20 +1029,40 @@ const styles = {
         flex: 1,
     },
 
+    borderBottom: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+    },
+
     headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
         display: 'flex',
         paddingLeft: 20,
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         width: '100%',
     },
 
+    imageViewContainer: {
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     imageModalPDF: {
         flex: 1,
-        backgroundColor: themeColors.componentBG,
+        backgroundColor: themeColors.modalBackground,
+    },
+    PDFView: {
+        flex: 1,
+        backgroundColor: themeColors.modalBackground,
+        width: '100%',
+        height: '100%',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        overflowY: 'auto',
     },
 
     modalCenterContentContainer: {
@@ -883,21 +1082,12 @@ const styles = {
 
     defaultAttachmentView: {
         backgroundColor: themeColors.sidebar,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusNormal,
         borderWidth: 1,
         borderColor: themeColors.border,
         flexDirection: 'row',
-        paddingTop: 10,
-        paddingBottom: 10,
-        paddingRight: 20,
-        paddingLeft: 20,
+        padding: 20,
         alignItems: 'center',
-    },
-
-    defaultAttachmentViewIcon: {
-        width: 47,
-        height: 60,
-        marginRight: 20,
     },
 
     notFoundSafeArea: {
@@ -948,24 +1138,24 @@ const styles = {
         borderColor: colors.transparent,
     },
 
-    signOutButton: {
-        width: '95%',
-        alignSelf: 'center',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: themeColors.sidebarButtonBG,
-        borderRadius: variables.componentBorderRadius,
-        height: variables.componentSizeLarge,
+    reportActionContextMenuMiniButton: {
+        ...spacing.p1,
+        ...spacing.mv1,
+        ...spacing.mh1,
+        ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
-        height: '100%',
-        position: 'absolute',
+        flexGrow: 1,
         justifyContent: 'space-between',
-        backgroundColor: 'white',
         alignItems: 'center',
+    },
+
+    settingsPageBody: {
+        width: '100%',
+        justifyContent: 'space-around',
     },
 
     settingsPageColumn: {
@@ -980,47 +1170,237 @@ const styles = {
         width: '100%',
     },
 
-    largeAvatar: {
+    avatarLarge: {
         width: 80,
         height: 80,
     },
 
-    largeStatusIndicator: {
+    statusIndicatorLarge: {
         borderColor: themeColors.componentBG,
-        borderRadius: 14,
+        borderRadius: 8,
         borderWidth: 2,
         position: 'absolute',
-        right: 8,
+        right: 4,
         bottom: 4,
-        height: 14,
-        width: 14,
+        height: 16,
+        width: 16,
         zIndex: 10,
     },
 
-    settingsDisplayName: {
-        fontSize: 17,
+    displayName: {
+        fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
         color: themeColors.heading,
     },
 
-
     settingsLoginName: {
-        fontSize: 13,
+        fontSize: variables.fontSizeLabel,
         fontFamily: fontFamily.GTA,
         color: themeColors.textSupporting,
     },
 
-    settingsWrapper: {
+    pageWrapper: {
         width: '100%',
         alignItems: 'center',
+        padding: 20,
+    },
+
+    selectCircle: {
+        width: variables.componentSizeSmall,
+        height: variables.componentSizeSmall,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentSizeSmall / 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: themeColors.componentBG,
+        marginLeft: 8,
+    },
+
+    unreadIndicatorContainer: {
+        position: 'absolute',
+        top: -10,
+        left: 0,
+        width: '100%',
+        height: 20,
+        paddingHorizontal: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        zIndex: 1,
+    },
+
+    unreadIndicatorLine: {
+        height: 1,
+        backgroundColor: themeColors.unreadIndicator,
+        flexGrow: 1,
+        marginRight: 8,
+        opacity: 0.5,
+    },
+
+    unreadIndicatorText: {
+        color: themeColors.unreadIndicator,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeSmall,
+        fontWeight: fontWeightBold,
+    },
+
+    flipUpsideDown: {
+        transform: [{rotate: '180deg'}],
+    },
+
+    navigationSceneContainer: {
+        backgroundColor: themeColors.appBG,
+    },
+
+    navigationScreenCardStyle: {
+        backgroundColor: themeColors.appBG,
+        height: '100%',
+    },
+
+    invisible: {
+        position: 'absolute',
+        opacity: 0,
+    },
+
+    containerWithSpaceBetween: {
+        justifyContent: 'space-between',
+        width: '100%',
+        flex: 1,
+    },
+
+    detailsPageSectionContainer: {
+        alignSelf: 'flex-start',
+    },
+
+    detailsPageSectionVersion: {
+        alignSelf: 'center',
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeSmall,
+        height: 24,
+        lineHeight: 20,
+    },
+
+    switchTrack: {
+        width: 50,
+        height: 28,
+        justifyContent: 'center',
+        borderRadius: 20,
+        padding: 15,
+        backgroundColor: colors.green,
+    },
+
+    switchInactive: {
+        backgroundColor: colors.gray2,
+    },
+
+    switchThumb: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        position: 'absolute',
+        left: 4,
+        backgroundColor: colors.white,
+    },
+
+    checkboxContainer: {
+        backgroundColor: themeColors.componentBG,
+        borderRadius: 2,
+        height: 20,
+        width: 20,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    checkedContainer: {
+        backgroundColor: colors.blue,
+    },
+
+    iouAmountText: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
+    },
+
+    iouAmountTextInput: addOutlineWidth({
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.iouAmountTextSize,
+        color: themeColors.heading,
+    }, 0),
+
+    iouPreviewBox: {
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusCard,
+        padding: 20,
+        marginTop: 16,
+        maxWidth: 300,
+        width: '100%',
+    },
+
+    iouPreviewBoxAvatar: {
+        marginRight: -10,
+    },
+
+    noScrollbars: {
+        scrollbarWidth: 'none',
+    },
+
+    codeWordWrapper: {
+        ...codeStyles.codeWordWrapper,
+    },
+
+    codeWordStyle: {
+        borderLeftWidth: 0,
+        borderRightWidth: 0,
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        justifyContent: 'center',
+        ...codeStyles.codeWordStyle,
+    },
+
+    codeFirstWordStyle: {
+        borderLeftWidth: 1,
+        borderTopLeftRadius: 4,
+        borderBottomLeftRadius: 4,
+        paddingLeft: 5,
+    },
+
+    codeLastWordStyle: {
+        borderRightWidth: 1,
+        borderTopRightRadius: 4,
+        borderBottomRightRadius: 4,
+        paddingRight: 5,
+    },
+
+    fullScreenLoading: {
+        backgroundColor: themeColors.componentBG,
+        opacity: 0.8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+
+    hiddenElementOutsideOfWindow: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        opacity: 0,
+        transform: 'translateX(-100%)',
     },
 };
 
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
-    marginTop: 4,
-    marginBottom: 4,
     borderColor: themeColors.border,
     backgroundColor: themeColors.textBackground,
 };
@@ -1034,7 +1414,7 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
-            fontStyle: italic,
+            fontStyle: 'italic',
         },
 
         del: {
@@ -1044,10 +1424,14 @@ const webViewStyles = {
 
         strong: {
             fontFamily: fontFamily.GTA_BOLD,
-            fontWeight: fontWeightBold,
+            fontWeight: 'bold',
         },
 
         a: styles.link,
+
+        li: {
+            flexShrink: 1,
+        },
 
         blockquote: {
             borderLeftColor: themeColors.border,
@@ -1071,16 +1455,16 @@ const webViewStyles = {
 
         code: {
             ...baseCodeTagStyles,
+            ...codeStyles.codeTextStyle,
             paddingLeft: 5,
             paddingRight: 5,
-            paddingBottom: 2,
-            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
+            fontSize: 13,
         },
 
         img: {
             borderColor: themeColors.border,
-            borderRadius: variables.componentBorderRadius,
+            borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
         },
     },
@@ -1088,7 +1472,9 @@ const webViewStyles = {
     baseFontStyle: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
+        flex: 1,
     },
 };
 
@@ -1119,24 +1505,217 @@ function getSafeAreaMargins(insets) {
  * Return navigation menu styles.
  *
  * @param {Number} windowWidth
- * @param {Boolean} isSidebarShown
+ * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationMenuStyle(windowWidth, isSidebarShown) {
-    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+function getNavigationDrawerStyle(windowWidth, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
-            ...styles.navigationMenuOpenAbsolute,
-            width: isSidebarShown ? windowWidth : 0,
+            width: windowWidth,
+            height: '100%',
+            borderColor: themeColors.border,
         }
         : {
-            borderColor: themeColors.border,
-            borderRightWidth: 1,
+            height: '100%',
             width: variables.sideBarWidth,
+            borderRightColor: themeColors.border,
         };
+}
+
+function getNavigationDrawerType(isSmallScreenWidth) {
+    return isSmallScreenWidth ? 'slide' : 'permanent';
+}
+
+function getNavigationModalCardStyle(isSmallScreenWidth) {
+    return {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        backgroundColor: 'transparent',
+        height: '100%',
+    };
+}
+
+/**
+ * @param {Boolean} isZoomed
+ * @param {Boolean} isDragging
+ * @return {Object}
+ */
+function getZoomCursorStyle(isZoomed, isDragging) {
+    if (!isZoomed) {
+        return {cursor: 'zoom-in'};
+    }
+
+    return {
+        cursor: isDragging ? 'grabbing' : 'zoom-out',
+    };
+}
+
+/**
+ * @param {Boolean} isZoomed
+ * @return {Object}
+ */
+function getZoomSizingStyle(isZoomed) {
+    return {
+        height: isZoomed ? '250%' : '100%',
+        width: isZoomed ? '250%' : '100%',
+    };
+}
+
+/**
+ * Returns auto grow text input style
+ *
+ * @param {Number} width
+ * @return {Object}
+ */
+function getAutoGrowTextInputStyle(width) {
+    return {
+        minWidth: 5,
+        width,
+    };
+}
+
+/**
+ * Returns a style with backgroundColor and borderColor set to the same color
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundAndBorderStyle(backgroundColor) {
+    return {
+        backgroundColor,
+        borderColor: backgroundColor,
+    };
+}
+
+/**
+ * Returns a style with the specified backgroundColor
+ *
+ * @param {String} backgroundColor
+ * @returns {Object}
+ */
+function getBackgroundColorStyle(backgroundColor) {
+    return {
+        backgroundColor,
+    };
+}
+
+/**
+ * Generate a style for the background color of the button, based on its current state.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Object}
+ */
+function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return {backgroundColor: themeColors.buttonHoveredBG};
+        case CONST.BUTTON_STATES.PRESSED:
+            return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return {};
+    }
+}
+
+/**
+ * Generate fill color of an icon based on its state.
+ *
+ * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @returns {Object}
+ */
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+    switch (buttonState) {
+        case CONST.BUTTON_STATES.HOVERED:
+            return themeColors.text;
+        case CONST.BUTTON_STATES.PRESSED:
+            return themeColors.heading;
+        case CONST.BUTTON_STATES.COMPLETE:
+            return themeColors.iconSuccessFill;
+        case CONST.BUTTON_STATES.DEFAULT:
+        default:
+            return themeColors.icon;
+    }
+}
+
+/**
+ * @param {Animated.Value} rotate
+ * @param {Animated.Value} backgroundColor
+ * @returns {Object}
+ */
+function getAnimatedFABStyle(rotate, backgroundColor) {
+    return {
+        transform: [{rotate}],
+        backgroundColor,
+    };
+}
+
+/**
+ * @param {Number} width
+ * @param {Number} height
+ * @returns {Object}
+ */
+function getWidthAndHeightStyle(width, height) {
+    return {
+        width,
+        height,
+    };
+}
+
+/**
+ * @param {Object} params
+ * @returns {Object}
+ */
+function getModalPaddingStyles({
+    shouldAddBottomSafeAreaPadding,
+    shouldAddTopSafeAreaPadding,
+    safeAreaPaddingTop,
+    safeAreaPaddingBottom,
+    modalContainerStylePaddingTop,
+    modalContainerStylePaddingBottom,
+}) {
+    return {
+        paddingTop: shouldAddTopSafeAreaPadding
+            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
+            : modalContainerStylePaddingTop || 0,
+        paddingBottom: shouldAddBottomSafeAreaPadding
+            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
+            : modalContainerStylePaddingBottom || 0,
+    };
+}
+
+/**
+ * Takes fontStyle and fontWeight and returns the correct fontFamily
+ *
+ * @param {Object} params
+ * @returns {String}
+ */
+function getFontFamilyMonospace({fontStyle, fontWeight}) {
+    const italic = fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
+    const bold = fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
+    const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
+
+    return italicBold || bold || italic || fontFamily.MONOSPACE;
 }
 
 export default styles;
 export {
-    getSafeAreaPadding, getSafeAreaMargins, webViewStyles, getNavigationMenuStyle,
+    getSafeAreaPadding,
+    getSafeAreaMargins,
+    webViewStyles,
+    getNavigationDrawerStyle,
+    getNavigationDrawerType,
+    getNavigationModalCardStyle,
+    getZoomCursorStyle,
+    getZoomSizingStyle,
+    getAutoGrowTextInputStyle,
+    getBackgroundAndBorderStyle,
+    getBackgroundColorStyle,
+    getButtonBackgroundColorStyle,
+    getIconFillColor,
+    getAnimatedFABStyle,
+    getWidthAndHeightStyle,
+    getModalPaddingStyles,
+    getFontFamilyMonospace,
 };

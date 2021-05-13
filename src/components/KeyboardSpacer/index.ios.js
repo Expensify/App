@@ -4,16 +4,30 @@
  */
 import ReactNativeKeyboardSpacer from 'react-native-keyboard-spacer';
 import React from 'react';
-import {Dimensions} from 'react-native';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
-function hasSafeAreas() {
-    const dims = Dimensions.get('window');
-    const heightsIphonesWithNotches = [812, 896, 844, 926];
-    return (heightsIphonesWithNotches.includes(dims.height) || heightsIphonesWithNotches.includes(dims.width));
-}
+const propTypes = {
+    ...windowDimensionsPropTypes,
+};
 
-const KeyboardSpacer = () => (
-    <ReactNativeKeyboardSpacer topSpacing={hasSafeAreas() ? -30 : 0} />
-);
+const KeyboardSpacer = (props) => {
+    /**
+     * Checks to see if the iOS device has safe areas or not
+     *
+     * @param {Number} windowWidth
+     * @param {Number} windowHeight
+     * @returns {Boolean}
+     */
+    function hasSafeAreas(windowWidth, windowHeight) {
+        const heightsIphonesWithNotches = [812, 896, 844, 926];
+        return (heightsIphonesWithNotches.includes(windowHeight) || heightsIphonesWithNotches.includes(windowWidth));
+    }
 
-export default KeyboardSpacer;
+    return (
+        <ReactNativeKeyboardSpacer topSpacing={hasSafeAreas(props.windowWidth, props.windowHeight) ? -30 : 0} />
+    );
+};
+
+KeyboardSpacer.propTypes = propTypes;
+KeyboardSpacer.displayName = 'KeyboardSpacer';
+export default withWindowDimensions(KeyboardSpacer);

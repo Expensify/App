@@ -16,4 +16,8 @@ export default {
     dNone: {
         display: 'none',
     },
+
+    dInline: {
+        display: 'inline',
+    },
 };

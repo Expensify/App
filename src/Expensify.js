@@ -1,27 +1,20 @@
-import React, {Component} from 'react';
-import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import React, {PureComponent} from 'react';
+import {View, StatusBar} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import {recordCurrentlyViewedReportID, recordCurrentRoute} from './libs/actions/App';
-import HomePage from './pages/home/HomePage';
-import NotFoundPage from './pages/NotFound';
-import SetPasswordPage from './pages/SetPasswordPage';
-import SignInPage from './pages/signin/SignInPage';
+
+import BootSplash from './libs/BootSplash';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
-
-import styles from './styles/styles';
+import CONST from './CONST';
+import NavigationRoot from './libs/Navigation/NavigationRoot';
 import Log from './libs/Log';
-
-import {
-    Route,
-    Router,
-    Redirect,
-    Switch,
-} from './libs/Router';
-import ROUTES from './ROUTES';
+import migrateOnyx from './libs/migrateOnyx';
+import styles from './styles/styles';
 import PushNotification from './libs/Notification/PushNotification';
+import UpdateAppModal from './components/UpdateAppModal';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -30,8 +23,10 @@ Onyx.init({
     initialKeyStates: {
 
         // Clear any loading and error messages so they do not appear on app startup
-        [ONYXKEYS.SESSION]: {loading: false},
-        [ONYXKEYS.ACCOUNT]: {loading: false, error: ''},
+        [ONYXKEYS.SESSION]: {loading: false, shouldShowComposeInput: true},
+        [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
+        [ONYXKEYS.NETWORK]: {isOffline: false},
+        [ONYXKEYS.IOU]: {loading: false},
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
@@ -48,114 +43,123 @@ Onyx.registerLogger(({level, message}) => {
 const propTypes = {
     /* Onyx Props */
 
-    // A route set by Onyx that we will redirect to if present. Always empty on app init.
-    redirectTo: PropTypes.string,
+    // Session info for the currently logged in user.
+    session: PropTypes.shape({
+        // Currently logged in user authToken
+        authToken: PropTypes.string,
+
+        // Currently logged in user accountID
+        accountID: PropTypes.number,
+    }),
+
+    // Whether a new update is available and ready to install.
+    updateAvailable: PropTypes.bool,
+
+    // Whether the initial data needed to render the app is ready
+    initialReportDataLoaded: PropTypes.bool,
 };
 
 const defaultProps = {
-    redirectTo: '',
+    session: {
+        authToken: null,
+        accountID: null,
+    },
+    updateAvailable: false,
+    initialReportDataLoaded: false,
 };
 
-class Expensify extends Component {
+class Expensify extends PureComponent {
     constructor(props) {
         super(props);
 
         // Initialize this client as being an active client
         ActiveClientManager.init();
-
-        this.removeLoadingState = this.removeLoadingState.bind(this);
-
+        this.hideSplash = this.hideSplash.bind(this);
         this.state = {
-            isLoading: true,
-            authToken: null,
+            isOnyxMigrated: false,
         };
     }
 
     componentDidMount() {
-        Onyx.connect({
-            key: ONYXKEYS.SESSION,
-            callback: this.removeLoadingState,
-        });
+        // Run any Onyx schema migrations and then continue loading the main app
+        migrateOnyx()
+            .then(() => {
+                // When we don't have an authToken we'll want to show the sign in screen immediately so we'll hide our
+                // boot screen right away
+                if (!this.getAuthToken()) {
+                    this.hideSplash();
+                }
+
+                this.setState({isOnyxMigrated: true});
+            });
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (this.state.accountID && this.state.accountID !== prevState.accountID) {
-            PushNotification.register(this.state.accountID);
+    componentDidUpdate(prevProps) {
+        const previousAccountID = lodashGet(prevProps, 'session.accountID', null);
+        const currentAccountID = lodashGet(this.props, 'session.accountID', null);
+        if (currentAccountID && (currentAccountID !== previousAccountID)) {
+            PushNotification.register(currentAccountID);
+        }
+
+        // If we previously had no authToken and now have an authToken we'll want to reshow the boot splash screen so
+        // that we can remove it again once the content is ready
+        const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
+        if (this.getAuthToken() && !previousAuthToken) {
+            BootSplash.show({fade: true});
+        }
+
+        if (this.getAuthToken() && this.props.initialReportDataLoaded) {
+            BootSplash.getVisibilityStatus()
+                .then((value) => {
+                    if (value !== 'visible') {
+                        return;
+                    }
+
+                    this.hideSplash();
+                });
         }
     }
 
-    /**
-     * When the authToken is updated, the app should remove the loading state and handle the authToken
-     *
-     * @param {Object} session
-     * @param {String} session.authToken
-     */
-    removeLoadingState(session) {
-        this.setState({
-            authToken: session ? session.authToken : null,
-            accountID: session ? session.accountID : null,
-            isLoading: false,
+    getAuthToken() {
+        return lodashGet(this.props, 'session.authToken', null);
+    }
+
+    hideSplash() {
+        BootSplash.hide({fade: true}).then(() => {
+            // To prevent the splash from shifting positions we set status bar translucent after splash is hidden.
+            // on IOS it has no effect.
+            StatusBar.setTranslucent(true);
         });
     }
 
     render() {
-        // Until the authToken has been initialized from Onyx, display a blank page
-        if (this.state.isLoading) {
+        // Display a blank page until the onyx migration completes
+        if (!this.state.isOnyxMigrated) {
             return (
                 <View style={styles.genericView} />
             );
         }
         return (
-            <Router>
-                {/* If there is ever a property for redirecting, we do the redirect here */}
-                {/* Leave this as a ternary or else iOS throws an error about text not being wrapped in <Text> */}
-                {this.props.redirectTo ? <Redirect push to={this.props.redirectTo} /> : null}
-                <Route path="*" render={recordCurrentRoute} />
-
-                {/* We must record the currentlyViewedReportID when hitting the 404 page so */}
-                {/* that we do not try to redirect back to that report again */}
-                <Route path={[ROUTES.REPORT, ROUTES.NOT_FOUND]} exact render={recordCurrentlyViewedReportID} />
-
-                <Switch>
-                    <Route
-                        exact
-                        path={ROUTES.ROOT}
-                        render={() => (
-                            this.state.authToken
-                                ? <Redirect to={ROUTES.HOME} />
-                                : <Redirect to={ROUTES.SIGNIN} />
-                        )}
-                    />
-
-                    <Route path={[ROUTES.SET_PASSWORD]} component={SetPasswordPage} />
-                    <Route path={[ROUTES.NOT_FOUND]} component={NotFoundPage} />
-                    <Route path={[ROUTES.SIGNIN_WITH_EXITTO, ROUTES.SIGNIN]} component={SignInPage} />
-                    <Route
-                        path={[ROUTES.HOME, ROUTES.ROOT]}
-                        render={match => (
-
-                            // Need to do this for every page that the user needs to be logged in to access
-                            this.state.authToken
-                                ? <HomePage match={match} />
-                                : <Redirect to={ROUTES.SIGNIN} />
-                        )}
-                    />
-                </Switch>
-            </Router>
+            <>
+                {/* We include the modal for showing a new update at the top level so the option is always present. */}
+                {this.props.updateAvailable ? <UpdateAppModal /> : null}
+                <NavigationRoot authenticated={Boolean(this.getAuthToken())} />
+            </>
         );
     }
 }
 
 Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
-
 export default withOnyx({
-    redirectTo: {
-        key: ONYXKEYS.APP_REDIRECT_TO,
-
-        // Prevent the prefilling of Onyx data or else the app will always redirect to what the last value was set to.
-        // This ends up in a situation where you go to a report, refresh the page, and then rather than seeing the
-        // report you are brought back to the root of the site (ie. "/").
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    updateAvailable: {
+        key: ONYXKEYS.UPDATE_AVAILABLE,
         initWithStoredValues: false,
+    },
+    initialReportDataLoaded: {
+        key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
     },
 })(Expensify);

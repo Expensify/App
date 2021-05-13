@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Dimensions} from 'react-native';
+import {View} from 'react-native';
 import PDF from 'react-native-pdf';
-import styles from '../../styles/styles';
+import styles, {getWidthAndHeightStyle} from '../../styles/styles';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     // URL to full-sized image
@@ -11,6 +12,8 @@ const propTypes = {
     // Any additional styles to apply
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -31,10 +34,7 @@ const PDFView = props => (
             source={{uri: props.sourceURL}}
             style={[
                 styles.imageModalPDF,
-                {
-                    width: Dimensions.get('window').width,
-                    height: Dimensions.get('window').height,
-                },
+                getWidthAndHeightStyle(props.windowWidth, props.windowHeight),
             ]}
         />
     </View>
@@ -44,4 +44,4 @@ PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 PDFView.displayName = 'PDFView';
 
-export default PDFView;
+export default withWindowDimensions(PDFView);

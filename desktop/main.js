@@ -13,6 +13,9 @@ const log = require('electron-log');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 
+const isDev = process.env.NODE_ENV === 'development';
+const port = process.env.PORT || 8080;
+
 /**
  * Electron main process that handles wrapping the web application.
  *
@@ -22,6 +25,10 @@ const checkForUpdates = require('../src/libs/checkForUpdates');
 // TODO: Turn this off, use web-security after alpha launch, currently we receive a CORS issue preventing
 // the electron app from making any API requests.
 app.commandLine.appendSwitch('disable-web-security');
+
+// This is necessary for NetInfo to work correctly as it does not handle the NetworkInformation API events correctly
+// See: https://github.com/electron/electron/issues/22597
+app.commandLine.appendSwitch('enable-network-information-downlink-max');
 
 // Initialize the right click menu
 // See https://github.com/sindresorhus/electron-context-menu
@@ -36,8 +43,85 @@ autoUpdater.logger.transports.file.level = 'info';
 // See https://www.npmjs.com/package/electron-log
 Object.assign(console, log.functions);
 
+// setup Hot reload
+if (isDev) {
+    try {
+        require('electron-reloader')(module, {
+            watchRenderer: false,
+            ignore: [/^(desktop)/],
+        });
+        // eslint-disable-next-line no-empty
+    } catch {}
+}
+
+// This sets up the command line arguments used to manage the update. When
+// the --expected-update-version flag is set, the app will open pre-hidden
+// until it detects that it has been upgraded to the correct version.
+
+const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
+
+let expectedUpdateVersion;
+for (let i = 0; i < process.argv.length; i++) {
+    const arg = process.argv[i];
+    if (arg.startsWith(`${EXPECTED_UPDATE_VERSION_FLAG}=`)) {
+        expectedUpdateVersion = arg.substr((`${EXPECTED_UPDATE_VERSION_FLAG}=`).length);
+    }
+}
+
+// Add the listeners and variables required to ensure that auto-updating
+// happens correctly.
+let hasUpdate = false;
+let downloadedVersion;
+
+const quitAndInstallWithUpdate = () => {
+    if (!downloadedVersion) {
+        return;
+    }
+    app.relaunch({
+        args: [`${EXPECTED_UPDATE_VERSION_FLAG}=${downloadedVersion}`],
+    });
+    hasUpdate = true;
+    autoUpdater.quitAndInstall();
+};
+
+// Defines the system-level menu item for manually triggering an update after
+const updateAppMenuItem = new MenuItem({
+    label: 'Update Expensify.cash',
+    enabled: false,
+    click: quitAndInstallWithUpdate,
+});
+
+// Actual auto-update listeners
+const electronUpdater = browserWindow => ({
+    init: () => {
+        autoUpdater.on('update-downloaded', (info) => {
+            downloadedVersion = info.version;
+            updateAppMenuItem.enabled = true;
+            if (browserWindow.isVisible()) {
+                browserWindow.webContents.send('update-downloaded', info.version);
+            } else {
+                quitAndInstallWithUpdate();
+            }
+        });
+
+        ipcMain.on('start-update', quitAndInstallWithUpdate);
+        autoUpdater.checkForUpdates();
+    },
+    update: () => {
+        autoUpdater.checkForUpdates();
+    },
+});
+
 const mainWindow = (() => {
-    const loadURL = serve({directory: `${__dirname}/../dist`});
+    const loadURL = isDev
+        ? win => win.loadURL(`http://localhost:${port}`)
+        : serve({directory: `${__dirname}/../dist`});
+
+    // Prod and staging set the icon in the electron-builder config, so only update it here for dev
+    if (isDev) {
+        app.dock.setIcon(`${__dirname}/icon-dev.png`);
+        app.setName('Expensify.cash');
+    }
 
     return app.whenReady()
         .then(() => {
@@ -46,9 +130,16 @@ const mainWindow = (() => {
                 width: 1200,
                 height: 900,
                 webPreferences: {
+                    enableRemoteModule: true,
                     nodeIntegration: true,
                 },
+                titleBarStyle: 'hidden',
             });
+
+            // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
+            if (isDev) {
+                browserWindow.setTitle('Expensify.cash');
+            }
 
             // List the Expensify Chat instance under the Window menu, even when it's hidden
             const systemMenu = Menu.getApplicationMenu();
@@ -67,6 +158,9 @@ const mainWindow = (() => {
                     click: () => { browserWindow.webContents.goForward(); },
                 }],
             }));
+
+            const appMenu = systemMenu.items.find(item => item.role === 'appmenu');
+            appMenu.submenu.insert(1, updateAppMenuItem);
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
@@ -103,7 +197,7 @@ const mainWindow = (() => {
 
             // Closing the chat window should just hide it (vs. fully quitting the application)
             browserWindow.on('close', (evt) => {
-                if (!quitting) {
+                if (!quitting && !hasUpdate) {
                     evt.preventDefault();
                     browserWindow.hide();
                 }
@@ -120,7 +214,17 @@ const mainWindow = (() => {
             });
 
             app.on('before-quit', () => quitting = true);
-            app.on('activate', () => browserWindow.show());
+            app.on('activate', () => {
+                if (!expectedUpdateVersion || app.getVersion() === expectedUpdateVersion) {
+                    browserWindow.show();
+                }
+            });
+
+            // Hide the app if we expected to upgrade to a new version but never did.
+            if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
+                browserWindow.hide();
+                app.hide();
+            }
 
             ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
                 // This is how synchronous messages work in Electron
@@ -144,13 +248,17 @@ const mainWindow = (() => {
         })
 
         // After initializing and configuring the browser window, load the compiled JavaScript
-        .then(browserWindow => loadURL(browserWindow))
+        .then((browserWindow) => {
+            loadURL(browserWindow);
+            return browserWindow;
+        })
 
         // Start checking for JS updates
-        .then(() => checkForUpdates({
-            init: () => autoUpdater.checkForUpdatesAndNotify(),
-            update: () => autoUpdater.checkForUpdatesAndNotify(),
-        }));
+        .then((browserWindow) => {
+            if (!isDev) {
+                checkForUpdates(electronUpdater(browserWindow));
+            }
+        });
 });
 
 mainWindow().then(window => window);

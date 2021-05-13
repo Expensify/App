@@ -25,6 +25,7 @@ module.exports = () => {
             contentBase: path.join(__dirname, '../dist'),
             hot: true,
             ...proxySettings,
+            historyApiFallback: true,
         },
         plugins: [
             new webpack.DefinePlugin({

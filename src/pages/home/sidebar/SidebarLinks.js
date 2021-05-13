@@ -1,30 +1,27 @@
 import React from 'react';
-import {View, ScrollView, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import lodashOrderby from 'lodash.orderby';
-import get from 'lodash.get';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
-import styles from '../../../styles/styles';
+import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
-import ChatSwitcherView from './ChatSwitcherView';
 import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
-import {withRouter} from '../../../libs/Router';
-import ChatLinkRow from './ChatLinkRow';
-import {redirect} from '../../../libs/actions/App';
+import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import * as ChatSwitcher from '../../../libs/actions/ChatSwitcher';
-import {MagnifyingGlassIcon} from '../../../components/Expensicons';
+import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
+import OptionsList from '../../../components/OptionsList';
+import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
+import {getSidebarOptions} from '../../../libs/OptionsListUtils';
+import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
+import KeyboardSpacer from '../../../components/KeyboardSpacer';
+import CONST from '../../../CONST';
+import {participantPropTypes} from './optionPropTypes';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
-    // These are from withRouter
-    // eslint-disable-next-line react/forbid-prop-types
-    match: PropTypes.object.isRequired,
-
     // Toggles the navigation menu open and closed
     onLinkClick: PropTypes.func.isRequired,
 
@@ -35,7 +32,6 @@ const propTypes = {
     insets: SafeAreaInsetPropTypes.isRequired,
 
     /* Onyx Props */
-
     // List of reports
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
@@ -44,17 +40,10 @@ const propTypes = {
     })),
 
     // List of draft comments. We don't know the shape, since the keys include the report numbers
-    comments: PropTypes.objectOf(PropTypes.string),
-
-    // Current state of the chat switcher (active of inactive)
-    isChatSwitcherActive: PropTypes.bool,
+    draftComments: PropTypes.objectOf(PropTypes.string),
 
     // List of users' personal details
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-        login: PropTypes.string.isRequired,
-        avatarURL: PropTypes.string.isRequired,
-        displayName: PropTypes.string.isRequired,
-    })),
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
@@ -62,7 +51,7 @@ const propTypes = {
         displayName: PropTypes.string,
 
         // Avatar URL of the current user from their personal details
-        avatarURL: PropTypes.string,
+        avatar: PropTypes.string,
     }),
 
     // Information about the network
@@ -70,141 +59,127 @@ const propTypes = {
         // Is the network currently offline or not
         isOffline: PropTypes.bool,
     }),
+
+    // Currently viewed reportID
+    currentlyViewedReportID: PropTypes.string,
+
+    // Whether we are viewing below the responsive breakpoint
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    // The chat priority mode
+    priorityMode: PropTypes.string,
+
+    // Whether we have the necessary report data to load the sidebar
+    initialReportDataLoaded: PropTypes.bool,
 };
 
 const defaultProps = {
     reports: {},
-    isChatSwitcherActive: false,
-    comments: {},
+    draftComments: {},
     personalDetails: {},
-    myPersonalDetails: {},
+    myPersonalDetails: {
+        avatar: getDefaultAvatar(),
+    },
     network: null,
+    currentlyViewedReportID: '',
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    initialReportDataLoaded: false,
 };
 
-
-const SidebarLinks = (props) => {
-    const reportIDInUrl = parseInt(props.match.params.reportID, 10);
-    const sortedReports = lodashOrderby(props.reports, [
-        'isPinned',
-        'reportName',
-    ], [
-        'desc',
-        'asc',
-    ]);
-
-    /**
-     * Check if the report has a draft comment
-     *
-     * @param {Number} reportID
-     * @returns {Boolean}
-     */
-    function hasComment(reportID) {
-        const allComments = get(props.comments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, '');
-        return allComments.length > 0;
+class SidebarLinks extends React.Component {
+    showSearchPage() {
+        Navigation.navigate(ROUTES.SEARCH);
     }
 
-    // Filter the reports so that the only reports shown are pinned, unread, have draft
-    // comments (but are not the open one), and the one matching the URL
-    const reportsToDisplay = _.filter(sortedReports, report => (report.isPinned || (report.unreadActionCount > 0)
-            || report.reportID === reportIDInUrl
-            || (report.reportID !== reportIDInUrl && hasComment(report.reportID))));
+    render() {
+        // Wait until the reports are actually loaded before displaying the LHN
+        if (!this.props.initialReportDataLoaded) {
+            return null;
+        }
 
-    // Update styles to hide the report links if they should not be visible
-    const sidebarLinksStyle = !props.isChatSwitcherActive
-        ? [styles.sidebarListContainer]
-        : [styles.sidebarListContainer, styles.dNone];
+        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
 
-    const chatSwitcherStyle = props.isChatSwitcherActive
-        ? [styles.sidebarHeader, styles.sidebarHeaderActive]
-        : [styles.sidebarHeader];
+        const {recentReports} = getSidebarOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.props.draftComments,
+            activeReportID,
+            this.props.priorityMode,
+        );
 
-    return (
-        <View style={[styles.flex1, styles.h100, {marginTop: props.insets.top}]}>
-            <View style={[chatSwitcherStyle]}>
-                {props.isChatSwitcherActive && (
-                    <ChatSwitcherView
-                        onLinkClick={props.onLinkClick}
-                    />
-                )}
-            </View>
-            {!props.isChatSwitcherActive && (
-                <View style={[
-                    styles.flexRow,
-                    styles.sidebarHeaderTop,
-                    styles.justifyContentBetween,
-                    styles.alignItemsCenter,
-                ]}
+        const sections = [{
+            title: '',
+            indexOffset: 0,
+            data: recentReports,
+            shouldShow: true,
+        }];
+
+        return (
+            <View style={[styles.flex1, styles.h100]}>
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.ph5,
+                        styles.pv3,
+                        styles.justifyContentBetween,
+                        styles.alignItemsCenter,
+                    ]}
+                    nativeID="drag-area"
                 >
-                    <Header textSize="large" title="Chats" />
+                    <Header
+                        textSize="large"
+                        title="Chats"
+                        shouldShowEnvironmentBadge
+                    />
                     <TouchableOpacity
-                        style={[styles.flexRow, styles.sidebarHeaderTop]}
-                        onPress={() => ChatSwitcher.show()}
+                        style={[styles.flexRow, styles.ph5]}
+                        onPress={this.showSearchPage}
                     >
-                        <MagnifyingGlassIcon width={20} height={20} />
+                        <Icon src={MagnifyingGlass} />
                     </TouchableOpacity>
                     <TouchableOpacity
-                        onPress={props.onAvatarClick}
+                        onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator
-                            source={props.myPersonalDetails.avatarURL}
-                            isActive={props.network && !props.network.isOffline}
+                            source={this.props.myPersonalDetails.avatar}
+                            isActive={this.props.network && !this.props.network.isOffline}
                         />
                     </TouchableOpacity>
-
                 </View>
-            )}
-            <ScrollView
-                keyboardShouldPersistTaps="always"
-                style={sidebarLinksStyle}
-                bounces={false}
-                indicatorStyle="white"
-            >
-                {/* A report will not have a report name if it hasn't been fetched from the server yet */}
-                {/* so nothing is rendered */}
-                {_.map(reportsToDisplay, (report) => {
-                    const participantDetails = get(report, 'participants.length', 0) === 1
-                        ? get(props.personalDetails, report.participants[0], '') : '';
-                    const login = participantDetails ? participantDetails.login : '';
-                    return report.reportName && (
-                        <ChatLinkRow
-                            key={report.reportID}
-                            option={{
-                                text: participantDetails ? participantDetails.displayName : report.reportName,
-                                alternateText: Str.removeSMSDomain(login),
-                                type: participantDetails ? 'user' : 'report',
-
-                                // The icon for the row is set when we fetch personal details via
-                                // PersonalDetails.getFromReportParticipants()
-                                icons: report.icons,
-                                login,
-                                reportID: report.reportID,
-                                isUnread: report.unreadActionCount > 0,
-                                hasDraftComment: report.reportID !== reportIDInUrl && hasComment(report.reportID),
-                            }}
-                            onSelectRow={() => {
-                                redirect(ROUTES.getReportRoute(report.reportID));
-                                props.onLinkClick();
-                            }}
-                            optionIsFocused={report.reportID === reportIDInUrl}
-                        />
-                    );
-                })}
-            </ScrollView>
-        </View>
-    );
-};
+                <OptionsList
+                    contentContainerStyles={[
+                        styles.sidebarListContainer,
+                        {paddingBottom: getSafeAreaMargins(this.props.insets).marginBottom},
+                    ]}
+                    sections={sections}
+                    focusedIndex={_.findIndex(recentReports, (
+                        option => option.reportID === activeReportID
+                    ))}
+                    onSelectRow={(option) => {
+                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+                        this.props.onLinkClick();
+                    }}
+                    optionBackgroundColor={themeColors.sidebar}
+                    hideSectionHeaders
+                    showTitleTooltip
+                    disableFocusOptions={this.props.isSmallScreenWidth}
+                    optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                />
+                <KeyboardSpacer />
+            </View>
+        );
+    }
+}
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-SidebarLinks.displayName = 'SidebarLinks';
 
 export default compose(
-    withRouter,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        comments: {
+        draftComments: {
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
         personalDetails: {
@@ -216,9 +191,14 @@ export default compose(
         network: {
             key: ONYXKEYS.NETWORK,
         },
-        isChatSwitcherActive: {
-            key: ONYXKEYS.IS_CHAT_SWITCHER_ACTIVE,
-            initWithStoredValues: false,
+        currentlyViewedReportID: {
+            key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,
+        },
+        priorityMode: {
+            key: ONYXKEYS.NVP_PRIORITY_MODE,
+        },
+        initialReportDataLoaded: {
+            key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
         },
     }),
 )(SidebarLinks);

@@ -141,6 +141,17 @@ Using arrow functions is the preferred way to write an anonymous function such a
     _.map(someArray, (item) => {...});
     ```
 
+Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
+
+    ```javascript
+    // Bad
+    const callback = _.noop;
+    const callback = () => { };
+
+    // Good
+    const callback = () => {};
+    ```
+
 ## `var`, `const` and `let`
 
 - Never use `var`
@@ -281,7 +292,7 @@ So, if a new language feature isn't something we have agreed to support it's off
 Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
 
 - **Async/Await** - Use the native `Promise` instead
-- **Optional Chaining** - Use `lodash.get` to fetch a nested value instead
+- **Optional Chaining** - Use `lodash/get` to fetch a nested value instead
 
 # React Coding Standards
 
@@ -580,7 +591,7 @@ if (type.prototype && type.prototype.isPureReactComponent) {
 Always extend from `React.Component` and use a class component when:
 
 - A component needs some data passed to it from a parent holding the data in `this.state`. A class component would hold this data in state and pass it down to the child via props. - If you need to perform some kind of side-effect after the component mounts (`componentDidMount()`) or tweak a component's rendering performance.
-- A final case where you might need to use a class component is if you need to use a `ref`. We have not yet adopted hooks like `useRef()` so if you need a `ref` use a class component.
+- A final case where you might need to use a class component is if you need to use a `ref`. We have not yet adopted built-in React hooks like `useRef()` so if you need a `ref` use a class component.
 
 ```javascript
 // Bad
@@ -649,10 +660,42 @@ A common mistake with refs is using them to pass data back to a parent component
 
 There are several ways to use and declare refs and we prefer the [callback method](https://reactjs.org/docs/refs-and-the-dom.html#callback-refs).
 
+In addition, all refs should be declared in the constructor, rather than inline. This makes it easier to quickly see what refs are declared in the component:
+
+```jsx
+class BadRefComponent extends Component {
+    constructor(props) {
+        super(props);
+
+        // Bad: Ref is declared inline instead of in the constructor
+    }
+
+    render() {
+        return <View ref={el => this.myRef = el} />;
+    }
+}
+
+
+class GoodRefComponent extends Component {
+    constructor(props) {
+        super(props);
+
+        // Good: Ref is declared in the constructor
+        this.myRef = undefined;
+    }
+
+    render() {
+        return <View ref={el => this.myRef = el}/>;
+    }
+}
+
+```
+
 ## Are we allowed to use [insert brand new React feature]? Why or why not?
 
 We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to a very strict and stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. Participation in our React driven codebases shouldn't mean everyone is required to keep up to date on the latest and greatest features. So with that in mind, here are a few things we would ask you to not use:
 
-- Hooks - Use a class `Component` and relevant lifecycle methods instead of hooks
+- Hooks - Use a class `Component` and relevant lifecycle methods instead of hooks. One exception here is if a 3rd party library offers some functionality via hooks (and only hooks).
 - `createRef()` - Use a callback ref instead
 - Class properties - Use an anonymous arrow function when calling a method or bind your method in the `constructor()`
+- Static getters and setters - Use props directly or create a method that computes some value

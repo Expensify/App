@@ -1,18 +1,24 @@
 import _ from 'underscore';
 import * as Pusher from './Pusher/pusher';
 import * as API from './API';
+import Log from './Log';
+
+// It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
+// reconnect each time when we only need to reconnect once. This way, if an authToken is expired and we try to
+// subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
+const reauthenticate = _.throttle(() => {
+    Log.info('[Pusher] Re-authenticating and then reconnecting', true);
+    API.reauthenticate('Push_Authenticate')
+        .then(() => Pusher.reconnect())
+        .catch(() => {
+            console.debug(
+                '[PusherConnectionManager]',
+                'Unable to re-authenticate Pusher because we are offline.',
+            );
+        });
+}, 5000, {trailing: false});
 
 function init() {
-    /**
-     * Pusher.reconnect() calls disconnect and connect on the
-     * Pusher socket. In some cases, the authorizer might fail
-     * or an error will be returned due to an out of date authToken.
-     * Reconnect will preserve our existing subscriptions and retry
-     * connecting until it succeeds. We're throttling this call so
-     * that we retry as few times as possible.
-     */
-    const reconnectToPusher = _.throttle(Pusher.reconnect, 1000);
-
     /**
      * When authTokens expire they will automatically be refreshed.
      * The authorizer helps make sure that we are always passing the
@@ -21,23 +27,29 @@ function init() {
      */
     Pusher.registerCustomAuthorizer(channel => ({
         authorize: (socketID, callback) => {
-            console.debug('[Network] Attempting to authorize Pusher');
+            Log.info('[PusherConnectionManager] Attempting to authorize Pusher', true);
 
             API.Push_Authenticate({
                 socket_id: socketID,
                 channel_name: channel.name,
                 doNotRetry: true,
+                forceNetworkRequest: true,
             })
                 .then((data) => {
                     if (data.jsonCode === 407) {
-                        throw new Error(data.title);
+                        callback(new Error('Expensify session expired'), {auth: ''});
+
+                        // Attempt to refresh the authToken then reconnect to Pusher
+                        reauthenticate();
+                        return;
                     }
+
+                    Log.info('[PusherConnectionManager] Pusher authenticated successfully', true);
                     callback(null, data);
                 })
                 .catch((error) => {
-                    reconnectToPusher();
-                    console.debug('[Network] Failed to authorize Pusher');
-                    callback(new Error(`Error calling auth endpoint: ${error.message}`));
+                    Log.info('[PusherConnectionManager] Unhandled error: ', error);
+                    callback(error, {auth: ''});
                 });
         },
     }));
@@ -48,10 +60,17 @@ function init() {
      *
      * @params {string} eventName
      */
-    Pusher.registerSocketEventCallback((eventName) => {
+    Pusher.registerSocketEventCallback((eventName, data) => {
         switch (eventName) {
             case 'error':
-                reconnectToPusher();
+                Log.info('[PusherConnectionManager] error event', true, {error: data});
+                reauthenticate();
+                break;
+            case 'connected':
+                Log.info('[PusherConnectionManager] connected event', true);
+                break;
+            case 'disconnected':
+                Log.info('[PusherConnectionManager] disconnected event', true);
                 break;
             default:
                 break;
