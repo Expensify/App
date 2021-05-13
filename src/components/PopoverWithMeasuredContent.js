@@ -66,9 +66,12 @@ class PopoverWithMeasuredContent extends Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (this.props.isVisible
             && (nextProps.windowWidth !== this.props.windowWidth
-                || nextProps.windowHeight !== this.props.windowHeight)) {
+            || nextProps.windowHeight !== this.props.windowHeight)) {
             return true;
         }
+
+        // This component does not require re-render until any prop or state changes as we get the necessary info
+        // at first render. This component is attached to each message on the Chat list thus we prevent its re-renders
         return !_.isEqual(
             _.omit(this.props, ['windowWidth', 'windowHeight']),
             _.omit(nextProps, ['windowWidth', 'windowHeight']),
@@ -129,7 +132,6 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     render() {
-        console.debug('render');
         const adjustedAnchorPosition = this.calculateAdjustedAnchorPosition();
         const horizontalShift = computeHorizontalShift(
             adjustedAnchorPosition.left,

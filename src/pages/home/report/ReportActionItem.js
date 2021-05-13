@@ -107,6 +107,7 @@ class ReportActionItem extends Component {
 
     /**
      * Get the Context menu anchor position
+     * We calculate the achor coordinates from measureInWindow async method
      *
      * @returns {Promise<Object>}
      * @memberof ReportActionItem
