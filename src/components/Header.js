@@ -10,12 +10,12 @@ const propTypes = {
 
     /** Size of the displayed text */
     textSize: PropTypes.oneOf(['default', 'large']),
+
 };
 
 const defaultProps = {
     textSize: 'default',
 };
-
 const Header = props => (
     <View style={[styles.flex1]}>
         <Text numberOfLines={2} style={[styles.headerText, props.textSize === 'large' && styles.textLarge]}>
