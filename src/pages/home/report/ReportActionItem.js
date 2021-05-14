@@ -146,7 +146,9 @@ class ReportActionItem extends Component {
         }
         return (
             <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
-                <Hoverable>
+                <Hoverable
+                    resetsOnClickOutside={false}
+                >
                     {hovered => (
                         <View>
                             {this.props.shouldDisplayNewIndicator && (
