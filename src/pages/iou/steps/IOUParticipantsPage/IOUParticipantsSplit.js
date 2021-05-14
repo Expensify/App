@@ -25,13 +25,13 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    // Callback to add participants in IOUModal
+    /** Callback to add participants in IOUModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    // Selected participants from IOUMOdal with login
+    /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -45,10 +45,10 @@ const propTypes = {
         reportID: PropTypes.number,
     })),
 
-    // All of the personal details for everyone
+    /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
-    // All reports shared with the user
+    /** All reports shared with the user */
     reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
@@ -77,6 +77,7 @@ class IOUParticipantsSplit extends Component {
             props.personalDetails,
             '',
             props.participants,
+            true,
         );
 
         this.state = {
@@ -176,6 +177,7 @@ class IOUParticipantsSplit extends Component {
                 this.props.personalDetails,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
+                true,
             );
             return {
                 recentReports,
@@ -210,6 +212,7 @@ class IOUParticipantsSplit extends Component {
                             this.props.personalDetails,
                             searchValue,
                             [],
+                            true,
                         );
                         this.setState({
                             searchValue,

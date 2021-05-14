@@ -14,15 +14,15 @@ import compose from '../../libs/compose';
 const propTypes = {
     /* Onyx Props */
 
-    // The details about the account that the user is signing in with
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
 
-        // Whether or not the account is validated
+        /** Whether or not the account is validated */
         validated: PropTypes.bool,
 
-        // Whether or not the account is closed
+        /** Whether or not the account is closed */
         closed: PropTypes.bool,
     }),
 

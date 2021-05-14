@@ -22,26 +22,25 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
  */
 
 const propTypes = {
-    // Title of the modal header
-    title: PropTypes.string,
+    /** Determines title of the modal header depending on if we are uploading an attachment or not */
+    isUploadingAttachment: PropTypes.bool,
 
-    // Optional source URL for the image shown inside the .
-    // If not passed in via props must be specified when modal is opened.
+    /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
     sourceURL: PropTypes.string,
 
-    // Optional callback to fire when we want to preview an image and approve it for use.
+    /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
 
-    // Optional callback to fire when we want to do something after modal hide.
+    /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
-    // A function as a child to pass modal launching methods to
+    /** A function as a child to pass modal launching methods to */
     children: PropTypes.func.isRequired,
 
-    // Do the urls require an authToken?
+    /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool,
 
-    // Current user session
+    /** Current user session */
     session: PropTypes.shape({
         authToken: PropTypes.string.isRequired,
     }).isRequired,
@@ -52,7 +51,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    title: '',
+    isUploadingAttachment: false,
     sourceURL: null,
     onConfirm: null,
     isAuthTokenRequired: false,
@@ -110,8 +109,11 @@ class AttachmentModal extends PureComponent {
                     propagateSwipe
                 >
                     <HeaderWithCloseButton
-                        title={this.props.title}
+                        title={this.props.isUploadingAttachment
+                            ? this.props.translate('reportActionCompose.uploadAttachment')
+                            : this.props.translate('common.attachment')}
                         shouldShowBorderBottom
+                        shouldShowDownloadButton
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />

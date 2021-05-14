@@ -6,7 +6,7 @@ import styles from '../styles/styles';
 import Button from './Button';
 
 const propTypes = {
-    // Callback to inform parent modal with key pressed
+    /** Callback to inform parent modal with key pressed */
     numberPressed: PropTypes.func.isRequired,
 };
 

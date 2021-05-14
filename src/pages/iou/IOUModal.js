@@ -21,33 +21,33 @@ import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
  * IOU modal for requesting money and splitting bills.
  */
 const propTypes = {
-    // Whether the IOU is for a single request or a group bill split
+    /** Whether the IOU is for a single request or a group bill split */
     hasMultipleParticipants: PropTypes.bool,
 
-    // The report passed via the route
+    /** The report passed via the route */
     report: PropTypes.shape({
-        // Participants associated with current report
+        /** Participants associated with current report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
-    // Holds data related to IOU view state, rather than the underlying IOU data.
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
-        // Whether or not transaction creation has started
+        /** Whether or not transaction creation has started */
         creatingIOUTransaction: PropTypes.bool,
 
-        // Whether or not transaction creation has resulted to error
+        /** Whether or not transaction creation has resulted to error */
         error: PropTypes.bool,
     }).isRequired,
 
-    // Personal details of all the users
+    /** Personal details of all the users */
     personalDetails: PropTypes.shape({
-        // Primary login of participant
+        /** Primary login of participant */
         login: PropTypes.string,
 
-        // Display Name of participant
+        /** Display Name of participant */
         displayName: PropTypes.string,
 
-        // Avatar url of participant
+        /** Avatar url of participant */
         avatar: PropTypes.string,
     }).isRequired,
 

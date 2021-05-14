@@ -9,31 +9,31 @@ import themeColors from '../styles/themes/default';
 import OpacityView from './OpacityView';
 
 const propTypes = {
-    // The text for the button label
+    /** The text for the button label */
     text: PropTypes.string.isRequired,
 
-    // Indicates whether the button should be disabled and in the loading state
+    /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
 
-    // Indicates whether the button should be disabled
+    /** Indicates whether the button should be disabled */
     isDisabled: PropTypes.bool,
 
-    // A function that is called when the button is pressed
+    /** A function that is called when the button is clicked on */
     onPress: PropTypes.func.isRequired,
 
-    // Additional styles to add after local styles
+    /** Additional styles to add after local styles */
     style: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
         PropTypes.object,
     ]),
 
-    // Additional text styles
+    /** Additional text styles */
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
-    // Whether we should use the success theme color
+    /** Whether we should use the success theme color */
     success: PropTypes.bool,
 
-    // Optional content component to replace all inner contents of button
+    /** Optional content component to replace all inner contents of button */
     ContentComponent: PropTypes.func,
 };
 
