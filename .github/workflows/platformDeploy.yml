@@ -208,7 +208,7 @@ jobs:
           command: npm ci
 
       - name: Build docs
-        run: npm run build-storybook -- -o dist/docs
+        run: npm run build-storybook
 
       - name: Build web for production
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
