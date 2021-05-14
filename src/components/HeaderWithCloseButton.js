@@ -25,9 +25,6 @@ const propTypes = {
     /** Whether we should show a back icon */
     shouldShowBackButton: PropTypes.bool,
 
-    /** Fontsize for the text in the Header */
-    textSize: PropTypes.oneOf(['default', 'large']),
-
     /** Whether we should show a border on the bottom of the Header */
     shouldShowBorderBottom: PropTypes.bool,
 
@@ -40,7 +37,6 @@ const defaultProps = {
     onCloseButtonPress: () => {},
     onBackButtonPress: () => {},
     shouldShowBackButton: false,
-    textSize: 'large',
     shouldShowBorderBottom: false,
 };
 
@@ -63,7 +59,7 @@ const HeaderWithCloseButton = props => (
                 <Icon src={BackArrow} />
             </TouchableOpacity>
             )}
-            <Header title={props.title} textSize={props.textSize} />
+            <Header title={props.title} />
             <View style={[styles.reportOptions, styles.flexRow]}>
                 {
                     props.title === props.translate('common.attachment') && (
