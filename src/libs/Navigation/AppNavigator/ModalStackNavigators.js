@@ -11,6 +11,8 @@ import IOUBillPage from '../../../pages/iou/IOUBillPage';
 import SettingsInitialPage from '../../../pages/settings/InitialPage';
 import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
+import SettingsAboutPage from '../../../pages/settings/AboutPage';
+import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
@@ -108,6 +110,14 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsPasswordPage,
         name: 'Settings_Password',
+    },
+    {
+        Component: SettingsAboutPage,
+        name: 'Settings_About',
+    },
+    {
+        Component: SettingsAppDownloadLinks,
+        name: 'Settings_App_Download_Links',
     },
     {
         Component: SettingsPaymentsPage,

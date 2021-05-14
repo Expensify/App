@@ -29,9 +29,11 @@ export default {
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
-        expensifyDoesntHaveAccessToCamera: 'Expensify.cash does not have access to your camera, please enable the permission and try again.',
+        expensifyDoesntHaveAccessToCamera:
+            'Expensify.cash does not have access to your camera, please enable the permission and try again.',
         attachmentError: 'Attachment Error',
-        errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
+        errorWhileSelectingAttachment:
+            'An error occurred while selecting an attachment, please try again',
         errorDuringAttachmentSelection: 'Error during attachment selection',
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
@@ -39,16 +41,18 @@ export default {
     },
     textInputFocusable: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
-        problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
+        problemGettingImageYouPasted:
+            'There was a problem getting the image you pasted',
     },
     baseUpdateAppModal: {
         updateApp: 'Update App',
-        updatePrompt: 'A new version of Expensify.cash is available.\nUpdate now or restart the app at a later time to download the latest changes.',
+        updatePrompt:
+            'A new version of Expensify.cash is available.\nUpdate now or restart the app at a later time to download the latest changes.',
     },
     iOUConfirmationList: {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',
-        whatsItFor: 'WHAT\'S IT FOR?',
+        whatsItFor: "WHAT'S IT FOR?",
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -61,8 +65,10 @@ export default {
     phoneCountryCode: '1',
     welcomeText: {
         phrase1: 'With Expensify.cash, chat and payments are the same thing.',
-        phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
-        phrase3: 'Your payments get to you as fast as you can get your point across.',
+        phrase2:
+            "Money talks. And now that chat and payments are in one place, it's also easy.",
+        phrase3:
+            'Your payments get to you as fast as you can get your point across.',
     },
     reportActionCompose: {
         uploadAttachment: 'Upload Attachment',
@@ -101,17 +107,22 @@ export default {
         request: ({amount}) => `Request ${amount}`,
     },
     loginField: {
-        addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
-        numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
-        useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
-        emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
+        addYourPhoneToSettleViaVenmo:
+            'Add your phone number to settle up via Venmo.',
+        numberHasNotBeenValidated:
+            'The number has not yet been validated. Click the button to resend the validation link via text.',
+        useYourPhoneToSettleViaVenmo:
+            'Use your phone number to settle up via Venmo.',
+        emailHasNotBeenValidated:
+            'The email has not yet been validated. Click the button to resend the validation link via text.',
     },
     profilePage: {
         uploadPhoto: 'Upload Photo',
         removePhoto: 'Remove Photo',
         profile: 'Profile',
         editPhoto: 'Edit Photo',
-        tellUsAboutYourself: 'Tell us about yourself, we would love to get to know you!',
+        tellUsAboutYourself:
+            'Tell us about yourself, we would love to get to know you!',
         firstName: 'First Name',
         john: 'John',
         lastName: 'Last Name',
@@ -126,44 +137,71 @@ export default {
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add Phone Number',
         addEmailAddress: 'Add Email Address',
-        enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number and password to send a validation link.',
-        enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
+        enterPreferredPhoneNumberToSendValidationLink:
+            'Enter your preferred phone number and password to send a validation link.',
+        enterPreferredEmailToSendValidationLink:
+            'Enter your preferred email address and password to send a validation link.',
         sendValidation: 'Send Validation',
-
     },
     initialSettingsPage: {
         settings: 'Settings',
+        about: 'About',
+        aboutPage: {
+            appDownloadLinks: 'App Download Links',
+            viewTheCode: 'View the code',
+            viewOpenJobs: 'View open jobs',
+            reportABug: 'Report a bug',
+        },
+        appDownloadLinks: {
+            android: {
+                label: 'Android',
+            },
+            ios: {
+                label: 'iOS',
+            },
+            desktop: {
+                label: 'Desktop',
+            },
+        },
         signOut: 'Sign Out',
         versionLetter: 'v',
         changePassword: 'Change Password',
         readTheTermsAndPrivacyPolicy: {
-            phrase1: 'Read the',
-            phrase2: 'terms of service',
-            phrase3: 'and',
+            phrase1: 'Read the ',
+            phrase2: 'terms of service ',
+            phrase3: 'and ',
             phrase4: 'privacy policy',
+            phrase5: '.',
         },
     },
+
     passwordPage: {
         changePassword: 'Change Password',
-        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand Expensify.cash accounts.',
+        changingYourPasswordPrompt:
+            'Changing your password will update your password for both your Expensify.com\nand Expensify.cash accounts.',
         currentPassword: 'Current Password',
         newPassword: 'New Password',
-        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+        newPasswordPrompt:
+            'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
         confirmNewPassword: 'Confirm New Password',
     },
     paymentsPage: {
-        enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
+        enterYourUsernameToGetPaidViaPayPal:
+            'Enter your username to get paid back via PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal Account',
     },
     preferencesPage: {
         mostRecent: 'Most Recent',
-        mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
+        mostRecentModeDescription:
+            'This will display all chats by default, sorted by most recent, with pinned items at the top',
         focus: '#focus',
-        focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
+        focusModeDescription:
+            '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
         notifications: 'Notifications',
-        receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
+        receiveRelevantFeatureUpdatesAndExpensifyNews:
+            'Receive relevant feature updates and Expensify news',
         priorityMode: 'Priority Mode',
     },
     signInPage: {
@@ -177,7 +215,8 @@ export default {
         phrase2: 'terms of service',
         phrase3: 'and',
         phrase4: 'privacy policy',
-        phrase5: '. Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
+        phrase5:
+            '. Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
         phrase6: 'licenses',
     },
     passwordForm: {
@@ -193,7 +232,8 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: 'We\'ve sent you a magic sign in link – just click on it to log in!',
+        weSentYouMagicSignInLink:
+            "We've sent you a magic sign in link – just click on it to log in!",
         resendLink: 'Resend Link',
     },
     detailsPage: {
@@ -204,7 +244,8 @@ export default {
         createGroup: 'Create Group',
     },
     notFound: {
-        chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
+        chatYouLookingForCannotBeFound:
+            'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
     },
     setPasswordPage: {
@@ -225,7 +266,9 @@ export default {
     },
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
-        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
-        maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
+        noPhoneNumber:
+            'Please enter a phone number including the country code e.g +447814266907',
+        maxParticipantsReached:
+            "You've reached the maximum number of participants for a group chat.",
     },
 };

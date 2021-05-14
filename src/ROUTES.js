@@ -13,6 +13,8 @@ export default {
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_PASSWORD: 'settings/password',
+    SETTINGS_ABOUT: 'settings/about',
+    SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/appDownloadLinks',
     SETTINGS_PAYMENTS: 'settings/payments',
     SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,

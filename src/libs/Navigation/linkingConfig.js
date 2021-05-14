@@ -48,6 +48,14 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_About: {
+                        path: ROUTES.SETTINGS_ABOUT,
+                        exact: true,
+                    },
+                    Settings_App_Download_Links: {
+                        path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
+                        exact: true,
+                    },
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
