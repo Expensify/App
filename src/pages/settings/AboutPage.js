@@ -92,32 +92,35 @@ const AboutPage = ({translate, reports}) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <View style={styles.pageWrapper}>
-                <View style={[styles.settingsPageBody, styles.mb6]}>
-                    <Logo height={100} />
-                    <Text style={[styles.textLabel, styles.alignSelfCenter, styles.mv2, styles.colorMuted]}>
-                        v
-                        {version}
-                    </Text>
-                    <Text style={[styles.textLabel, styles.textP, styles.mv5]}>
-                        Expensify.cash is built by a community of open source developers
-                        from around the world. Come help us build the next generation of
-                        Expensify.
-                    </Text>
 
+            <View style={[styles.flex1]}>
+                <View style={styles.pageWrapper}>
+                    <View style={[styles.settingsPageBody, styles.mb6]}>
+                        <Logo height={100} />
+                        <Text style={[styles.textLabel, styles.alignSelfCenter, styles.mv2, styles.colorMuted]}>
+                            v
+                            {version}
+                        </Text>
+                        <Text style={[styles.textLabel, styles.textP, styles.mv5]}>
+                            Expensify.cash is built by a community of open source developers
+                            from around the world. Come help us build the next generation of
+                            Expensify.
+                        </Text>
+
+                    </View>
                 </View>
+                {menuItems.map(item => (
+                    <MenuItem
+                        key={item.title}
+                        title={translate(item.translationKey)}
+                        icon={item.icon}
+                        iconRight={item.iconRight}
+                        onPress={() => item.action()}
+                        shouldShowRightArrow
+                    />
+                ))}
             </View>
-            {menuItems.map(item => (
-                <MenuItem
-                    key={item.title}
-                    title={translate(item.translationKey)}
-                    icon={item.icon}
-                    iconRight={item.iconRight}
-                    onPress={() => item.action()}
-                    shouldShowRightArrow
-                />
-            ))}
-            <View style={[styles.sidebarFooter, styles.pAbsolute, styles.b0]}>
+            <View style={[styles.sidebarFooter, {alignContent: 'flex-end'}]}>
                 <Text
                     style={[styles.chatItemMessageHeaderTimestamp]}
                     numberOfLines={1}
