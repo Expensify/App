@@ -12,8 +12,8 @@ module.exports = ({config}) => {
     };
 
     // Necessary to overwrite the values in the existing DefinePlugin hardcoded to the Config staging values
-    const definePluginId = config.plugins.findIndex(p => p.constructor.name === 'DefinePlugin');
-    config.plugins[definePluginId].definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
+    const definePluginIndex = config.plugins.findIndex(plugin => plugin.constructor.name === 'DefinePlugin');
+    config.plugins[definePluginIndex].definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
     config.resolve.extensions.push('.web.js', '.website.js');
     return config;
 };
