@@ -128,8 +128,11 @@ function payIOUReport({
             }
             fetchChatReportsByIDs([chatReportID]);
 
-            // Any report that is being paid must be open, and must be currently set as open iouReport within the
-            // chatReport object. Therefore, we must also update the chatReport to break this existing link.
+            // Each chatReport cannot have more than one open iouReport at any time. While an iouReport is open, the
+            // chatReport stored in Onyx must have a reference to it via the 'iouReportID' field, preventing the need
+            // to retrieve linked reports via the API when rendering Components. All iouReport's being paid are open
+            // and will be currently set as the chatReports 'iouReportID' field. Therefore when paying an iou we must
+            // also update the chatReport, clearing the 'iouReportID' field and breaking the existing link
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
         })
         .catch((error) => {
