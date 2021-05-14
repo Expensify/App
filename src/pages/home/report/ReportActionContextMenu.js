@@ -181,17 +181,15 @@ class ReportActionContextMenu extends React.Component {
                         onPress={() => contextAction.onPress(this.props.reportAction)}
                     />
                 ))}
-                {this.state.isDeleteCommentConfirmModal ? (
-                    <ConfirmModal
-                        title="Delete Comment"
-                        isVisible={() => true}
-                        onConfirm={this.deleteAccepted}
-                        onCancel={this.deleteCanceled}
-                        prompt="Are you sure you want to delete this comment?"
-                        confirmText="Delete"
-                        cancelText="Cancel"
-                    />
-                ) : null}
+                <ConfirmModal
+                    title="Delete Comment"
+                    isVisible={this.state.isDeleteCommentConfirmModal}
+                    onConfirm={this.deleteAccepted}
+                    onCancel={this.deleteCanceled}
+                    prompt="Are you sure you want to delete this comment?"
+                    confirmText="Delete"
+                    cancelText="Cancel"
+                />
             </View>
         );
     }
