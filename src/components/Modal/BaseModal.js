@@ -30,7 +30,6 @@ class BaseModal extends PureComponent {
         this.unsubscribeFromKeyEvents();
         setModalVisibility(false);
         this.props.onModalHide();
-        this.props.onClose();
     }
 
     /**
