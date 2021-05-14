@@ -74,9 +74,7 @@ const defaultOptions = {
     type: 'success',
 };
 
-const outDistance = 0;
-
-// const outDistance = -255;
+const outDistance = -255;
 
 const PopUpNotification = forwardRef(({isSmallScreenWidth}, ref) => {
     const slideDown = useRef(new Animated.Value(outDistance)).current;
