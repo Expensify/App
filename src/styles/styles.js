@@ -471,7 +471,10 @@ const styles = {
     },
 
     statusIndicatorSyncing: {
-        padding: 1,
+        // padding: 1,
+        // borderRadius: 8,
+        // right: -2,
+        // bottom: -2,
     },
 
     statusIndicatorOnline: {
