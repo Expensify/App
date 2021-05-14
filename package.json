@@ -46,7 +46,7 @@
     "@react-native-firebase/analytics": "^7.6.7",
     "@react-native-firebase/app": "^8.4.5",
     "@react-native-firebase/crashlytics": "^8.4.9",
-    "@react-native-picker/picker": "^1.9.11",
+    "@react-native-picker/picker": "^1.15.0",
     "@react-navigation/compat": "^5.3.15",
     "@react-navigation/drawer": "5.12.5",
     "@react-navigation/native": "5.9.2",
