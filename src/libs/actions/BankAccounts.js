@@ -106,7 +106,6 @@ function addPlaidBankAccount(account, password, plaidLinkToken) {
             currency: 'USD',
             fieldsType: 'local',
             plaidAccessToken,
-            isForStripeConnect: false,
         }),
     })
         .then((response) => {
