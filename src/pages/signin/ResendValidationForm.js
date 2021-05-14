@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import ButtonWithLoader from '../../components/ButtonWithLoader';
-import {resendValidationLink, resetPassword} from '../../libs/actions/Session';
+import {reopenAccount, resendValidationLink, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -19,8 +19,11 @@ const propTypes = {
         // Whether or not a sign on form is loading (being submitted)
         loading: PropTypes.bool,
 
-        // Weather or not the account is validated
+        // Whether or not the account is validated
         validated: PropTypes.bool,
+
+        // Whether or not the account is closed
+        closed: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -55,12 +58,12 @@ class ResendValidationForm extends React.Component {
             formSuccess: this.props.translate('resendValidationForm.linkHasBeenResent'),
         });
 
-        if (!this.props.account.validated) {
+        if (this.props.account.closed) {
+            reopenAccount();
+        } else if (!this.props.account.validated) {
             resendValidationLink();
-            console.debug(this.props.translate('resendValidationForm.accountUnvalidated'));
         } else {
             resetPassword();
-            console.debug(this.props.translate('resendValidationForm.accountForgotPassword'));
         }
 
         this.successMessageTimer = setTimeout(() => {
