@@ -27,17 +27,22 @@ const propTypes = {
 
     /** A boolean flag that gives the icon a green fill if true */
     success: PropTypes.bool,
+
+    // Overrides the icon for shouldShowRightArrow
+    iconRight: PropTypes.element,
 };
 
 const defaultProps = {
     shouldShowRightArrow: false,
     wrapperStyle: {},
     success: false,
+    iconRight: ArrowRight,
 };
 
 const MenuItem = ({
     onPress,
     icon,
+    iconRight,
     title,
     shouldShowRightArrow,
     wrapperStyle,
@@ -65,7 +70,7 @@ const MenuItem = ({
                 </View>
                 {shouldShowRightArrow && (
                     <View style={styles.createMenuIcon}>
-                        <Icon src={ArrowRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
+                        <Icon src={iconRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
                     </View>
                 )}
             </>
