@@ -72,7 +72,7 @@ const propTypes = {
     // Whether we have the necessary report data to load the sidebar
     initialReportDataLoaded: PropTypes.bool,
 
-    // Syncing App Data
+    // Whether we are syncing app data
     isSyncingData: PropTypes.bool,
 };
 
