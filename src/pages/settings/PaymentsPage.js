@@ -17,6 +17,7 @@ import compose from '../../libs/compose';
 import Button from '../../components/Button';
 
 const propTypes = {
+    /** Username for PayPal.Me */
     payPalMeUsername: PropTypes.string,
 
     ...withLocalizePropTypes,

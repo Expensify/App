@@ -17,15 +17,15 @@ import compose from '../../libs/compose';
 const propTypes = {
     /* Onyx Props */
 
-    // The details about the account that the user is signing in with
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        // Whether or not the account already exists
+        /** Whether or not the account already exists */
         accountExists: PropTypes.bool,
 
-        // Whether or not two factor authentication is required
+        /** Whether or not two factor authentication is required */
         requiresTwoFactorAuth: PropTypes.bool,
 
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 
