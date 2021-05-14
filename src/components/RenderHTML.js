@@ -168,7 +168,10 @@ const renderers = {
 };
 
 const propTypes = {
+    /** HTML string to render */
     html: PropTypes.string.isRequired,
+
+    /** Optional debug flag */
     debug: PropTypes.bool,
 };
 

@@ -22,54 +22,54 @@ import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
-    // Toggles the navigation menu open and closed
+    /** Toggles the navigation menu open and closed */
     onLinkClick: PropTypes.func.isRequired,
 
-    // navigates to settings and hides sidebar
+    /** navigates to settings and hides sidebar */
     onAvatarClick: PropTypes.func.isRequired,
 
-    // Safe area insets required for mobile devices margins
+    /** Safe area insets required for mobile devices margins */
     insets: SafeAreaInsetPropTypes.isRequired,
 
     /* Onyx Props */
-    // List of reports
+    /** List of reports */
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
         unreadActionCount: PropTypes.number,
     })),
 
-    // List of draft comments. We don't know the shape, since the keys include the report numbers
+    /** List of draft comments. We don't know the shape, since the keys include the report numbers */
     draftComments: PropTypes.objectOf(PropTypes.string),
 
-    // List of users' personal details
+    /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
-    // The personal details of the person who is logged in
+    /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape({
-        // Display name of the current user from their personal details
+        /** Display name of the current user from their personal details */
         displayName: PropTypes.string,
 
-        // Avatar URL of the current user from their personal details
+        /** Avatar URL of the current user from their personal details */
         avatar: PropTypes.string,
     }),
 
-    // Information about the network
+    /** Information about the network */
     network: PropTypes.shape({
-        // Is the network currently offline or not
+        /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 
-    // Currently viewed reportID
+    /** Currently viewed reportID */
     currentlyViewedReportID: PropTypes.string,
 
-    // Whether we are viewing below the responsive breakpoint
+    /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
-    // The chat priority mode
+    /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    // Whether we have the necessary report data to load the sidebar
+    /** Whether we have the necessary report data to load the sidebar */
     initialReportDataLoaded: PropTypes.bool,
 };
 

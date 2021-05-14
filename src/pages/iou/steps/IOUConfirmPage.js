@@ -3,27 +3,27 @@ import PropTypes from 'prop-types';
 import IOUConfirmationList from '../../../components/IOUConfirmationList';
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
-    // callback to update comment from IOUModal
+    /** callback to update comment from IOUModal */
     onUpdateComment: PropTypes.func,
 
-    // comment value from IOUModal
+    /** comment value from IOUModal */
     comment: PropTypes.string,
 
-    // Should we request a single or multiple participant selection from user
+    /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    // IOU amount
+    /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
-    // Selected currency from the user
+    /** Selected currency from the user */
     // remove eslint disable after currency symbol is available
     // eslint-disable-next-line react/no-unused-prop-types
     selectedCurrency: PropTypes.string.isRequired,
 
-    // Selected participants from IOUMOdal with login
+    /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
