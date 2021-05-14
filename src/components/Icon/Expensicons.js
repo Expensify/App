@@ -35,11 +35,9 @@ import Link from '../../../assets/images/link.svg';
 import Eye from '../../../assets/images/eye.svg';
 import Android from '../../../assets/images/android.svg';
 import Apple from '../../../assets/images/apple.svg';
-
 import Bug from '../../../assets/images/bug.svg';
 import MoneyBag from '../../../assets/images/money-bag.svg';
 import Monitor from '../../../assets/images/monitor.svg';
-
 import NewWindow from '../../../assets/images/new-window.svg';
 
 export {
