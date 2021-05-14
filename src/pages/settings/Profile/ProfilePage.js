@@ -51,7 +51,7 @@ const propTypes = {
         /** Pronouns of the current user from their personal details */
         pronouns: PropTypes.string,
 
-        /** timezone of the current user from their personal details */
+        /** Timezone of the current user from their personal details */
         timezone: PropTypes.shape({
 
             /** Value of selected timezone */

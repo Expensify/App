@@ -6,10 +6,10 @@ const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
-    /** callback to update comment from IOUModal */
+    /** Callback to update comment from IOUModal */
     onUpdateComment: PropTypes.func,
 
-    /** comment value from IOUModal */
+    /** Comment value from IOUModal */
     comment: PropTypes.string,
 
     /** Should we request a single or multiple participant selection from user */

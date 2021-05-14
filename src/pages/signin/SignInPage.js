@@ -24,10 +24,10 @@ const propTypes = {
         /** Error to display when there is an account error returned */
         error: PropTypes.string,
 
-        /** Weather or not the account is validated */
+        /** Whether or not the account is validated */
         validated: PropTypes.bool,
 
-        /** Weather or not the account is validated */
+        /** Whether or not the account is validated */
         forgotPassword: PropTypes.bool,
     }),
 
