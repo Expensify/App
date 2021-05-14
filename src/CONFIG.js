@@ -20,7 +20,7 @@ const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : exp
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-    if (!useNgrok && expensifyURL.endsWith('dev') && !expensifyURLSecure.endsWith('dev')) {
+    if (!useNgrok && expensifyURL.includes('dev') && !expensifyURLSecure.includes('dev')) {
         throw new Error('EXPENSIFY_URL_SECURE must end with .dev when EXPENSIFY_URL_COM ends with .dev');
     }
 
