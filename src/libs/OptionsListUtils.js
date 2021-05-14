@@ -77,15 +77,13 @@ function getSearchText(report, personalDetailList) {
  * @param {Array<Object>} personalDetailList
  * @param {Object} [report]
  * @param {Object} draftComments
- * @param {Number} activeReportID
  * @param {Boolean} showChatPreviewLine
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
+function createOption(personalDetailList, report, draftComments, {showChatPreviewLine = false}) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
-        && (report.reportID !== activeReportID)
         && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
@@ -167,6 +165,7 @@ function isSearchStringMatch(searchValue, searchText) {
 function getOptions(reports, personalDetails, draftComments, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
+    excludeConcierge = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
@@ -214,19 +213,24 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
-        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, activeReportID, {
+        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, {
             showChatPreviewLine,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, activeReportID, {
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, {
             showChatPreviewLine,
         })
     ));
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+
+    if (excludeConcierge) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.CONCIERGE});
+    }
+
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -303,7 +307,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
-        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID, {
+        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
@@ -348,16 +352,19 @@ function getSearchOptions(
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
+ * @param {Boolean} excludeConcierge
  * @returns {Object}
  */
 function getNewChatOptions(
     reports,
     personalDetails,
     searchValue = '',
+    excludeConcierge,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
         includePersonalDetails: true,
+        excludeConcierge,
     });
 }
 
@@ -399,6 +406,7 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
+ * @param {Boolean} excludeConcierge
  * @returns {Object}
  */
 function getNewGroupOptions(
@@ -406,6 +414,7 @@ function getNewGroupOptions(
     personalDetails,
     searchValue = '',
     selectedOptions = [],
+    excludeConcierge,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
@@ -414,6 +423,7 @@ function getNewGroupOptions(
         includePersonalDetails: true,
         includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
+        excludeConcierge,
     });
 }
 

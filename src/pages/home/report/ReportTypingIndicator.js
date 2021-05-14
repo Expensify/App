@@ -10,7 +10,7 @@ import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
-    // Key-value pairs of user logins and whether or not they are typing. Keys are logins.
+    /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */
     userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
 
     ...withLocalizePropTypes,
