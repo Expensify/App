@@ -109,7 +109,13 @@ class IOUAmountPage extends React.Component {
                         {this.props.selectedCurrency}
                     </Text>
                     {this.props.isSmallScreenWidth
-                        ? <Text style={styles.iouAmountText}>{this.state.amount}</Text>
+                        ? (
+                            <Text
+                                style={styles.iouAmountText}
+                            >
+                                {this.state.amount}
+                            </Text>
+                        )
                         : (
                             <TextInputAutoWidth
                                 inputStyle={styles.iouAmountTextInput}
@@ -125,8 +131,12 @@ class IOUAmountPage extends React.Component {
                 </View>
                 <View style={[styles.w100, styles.justifyContentEnd]}>
                     {this.props.isSmallScreenWidth
-                        ? <BigNumberPad numberPressed={this.updateAmountIfValidInput} />
-                        : <View />}
+                        ? (
+                            <BigNumberPad
+                                numberPressed={this.updateAmountIfValidInput}
+                            />
+                        ) : <View />
+                    }
                     <TouchableOpacity
                         style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
                             this.state.amount.length === 0 ? styles.buttonSuccessDisabled : {}]}
