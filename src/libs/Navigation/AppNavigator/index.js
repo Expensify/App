@@ -4,7 +4,7 @@ import PublicScreens from './PublicScreens';
 import AuthScreens from './AuthScreens';
 
 const propTypes = {
-    // If we have an authToken this is true
+    /** If we have an authToken this is true */
     authenticated: PropTypes.bool.isRequired,
 };
 

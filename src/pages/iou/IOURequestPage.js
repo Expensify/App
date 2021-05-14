@@ -1,5 +1,12 @@
 import React from 'react';
 import IOUModal from './IOUModal';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-export default props => <IOUModal {...props} />;
+export default props => (
+    <ScreenWrapper>
+        {() => (
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            <IOUModal {...props} />
+        )}
+    </ScreenWrapper>
+);

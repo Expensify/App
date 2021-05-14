@@ -21,12 +21,12 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 
 const propTypes = {
-    // The chat priority mode
+    /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    // The details about the user that is signed in
+    /** The details about the user that is signed in */
     user: PropTypes.shape({
-        // Whether or not the user is subscribed to news updates
+        /** Whether or not the user is subscribed to news updates */
         expensifyNewsStatus: PropTypes.bool,
     }),
 
