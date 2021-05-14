@@ -13,6 +13,7 @@ import {Checkmark, Exclamation} from '../components/Icon/Expensicons';
 import ScreenWrapper from '../components/ScreenWrapper';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
+import variables from '../styles/variables';
 
 const desktopContainerStyle = {
     maxWidth: '380px',
@@ -33,30 +34,23 @@ const popupStyles = StyleSheet.create({
             macos: desktopContainerStyle,
             windows: desktopContainerStyle,
         }),
+        ...styles.ph5,
     },
     smallScreenWidth: {
         maxWidth: 'none',
     },
     box: {
         backgroundColor: colors.dark,
-        borderRadius: 8,
-        paddingVertical: 20,
-        paddingHorizontal: 30,
+        borderRadius: variables.componentBorderRadiusNormal,
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
         shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
+        ...styles.p5,
     },
     bodyText: {
-        color: '#fff',
-        fontSize: 16,
+        fontSize: variables.fontSizeNormal,
+        ...styles.colorReversed,
     },
 });
 
@@ -80,7 +74,9 @@ const defaultOptions = {
     type: 'success',
 };
 
-const outDistance = -255;
+const outDistance = 0;
+
+// const outDistance = -255;
 
 const PopUpNotification = forwardRef(({isSmallScreenWidth}, ref) => {
     const slideDown = useRef(new Animated.Value(outDistance)).current;
@@ -114,7 +110,7 @@ const PopUpNotification = forwardRef(({isSmallScreenWidth}, ref) => {
             }}
         >
             <Animated.View
-                style={[popupStyles.container, styles.ph5, isSmallScreenWidth && popupStyles.smallScreenWidth, {
+                style={[popupStyles.container, isSmallScreenWidth && popupStyles.smallScreenWidth, {
                     transform: [{translateY: slideDown}],
                 }]}
             >
