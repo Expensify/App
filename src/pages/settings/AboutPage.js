@@ -123,7 +123,7 @@ const AboutPage = ({translate, reports}) => {
                         />
                     ))}
                 </View>
-                <View style={[styles.sidebarFooter, {alignContent: 'flex-end'}]}>
+                <View style={[styles.sidebarFooter]}>
                     <Text
                         style={[styles.chatItemMessageHeaderTimestamp]}
                         numberOfLines={1}
