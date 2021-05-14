@@ -53,12 +53,14 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
-    const reportTitle = lodashGet(props.report, 'reportName', '');
+    const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
-        ({displayName, login}) => ({displayName, tooltip: login}),
+        ({displayName, firstName, login}) => (
+            {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
+        ),
     );
-
+    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -94,7 +96,7 @@ const HeaderView = (props) => {
                             />
                             <View style={[styles.flex1, styles.flexRow]}>
                                 <DisplayNames
-                                    fullTitle={reportTitle}
+                                    fullTitle={fullTitle}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}

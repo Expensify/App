@@ -167,6 +167,7 @@ function isSearchStringMatch(searchValue, searchText) {
 function getOptions(reports, personalDetails, draftComments, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
+    excludeConcierge = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
@@ -227,6 +228,11 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+
+    if (excludeConcierge) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.CONCIERGE});
+    }
+
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -348,18 +354,21 @@ function getSearchOptions(
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
+ * @param {Boolean} excludeConcierge
  * @returns {Object}
  */
 function getNewChatOptions(
     reports,
     personalDetails,
     searchValue = '',
+    excludeConcierge,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
         includePersonalDetails: true,
         includeRecentReports: true,
         maxRecentReportsToShow: 5,
+        excludeConcierge,
     });
 }
 
@@ -401,6 +410,7 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
+ * @param {Boolean} excludeConcierge
  * @returns {Object}
  */
 function getNewGroupOptions(
@@ -408,6 +418,7 @@ function getNewGroupOptions(
     personalDetails,
     searchValue = '',
     selectedOptions = [],
+    excludeConcierge,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
@@ -416,6 +427,7 @@ function getNewGroupOptions(
         includePersonalDetails: true,
         includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
+        excludeConcierge,
     });
 }
 
