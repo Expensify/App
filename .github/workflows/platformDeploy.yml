@@ -207,6 +207,9 @@ jobs:
           max_attempts: 5
           command: npm ci
 
+      - name: Build docs
+        run: npm run build-storybook -- -o dist/docs
+
       - name: Build web for production
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
         run: npm run build

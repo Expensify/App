@@ -114,6 +114,7 @@ class AttachmentModal extends PureComponent {
                             ? this.props.translate('reportActionCompose.uploadAttachment')
                             : this.props.translate('common.attachment')}
                         shouldShowBorderBottom
+                        shouldShowDownloadButton
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
