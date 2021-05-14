@@ -28,6 +28,7 @@ class OpacityView extends React.Component {
             Animated.timing(this.opacity, {
                 toValue: 0.5,
                 duration: 50,
+                useNativeDriver: true,
             }).start();
         }
 
@@ -35,6 +36,7 @@ class OpacityView extends React.Component {
             Animated.timing(this.opacity, {
                 toValue: 1,
                 duration: 50,
+                useNativeDriver: true,
             }).start();
         }
     }
