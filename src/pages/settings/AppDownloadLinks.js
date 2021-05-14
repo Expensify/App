@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView} from 'react-native';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -62,7 +62,7 @@ const PreferencesPage = ({translate}) => {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_ABOUT)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <View style={[styles.mt5]}>
+            <ScrollView style={[styles.mt5]} bounces={false}>
                 {menuItems.map(item => (
                     <MenuItem
                         key={item.title}
@@ -73,7 +73,7 @@ const PreferencesPage = ({translate}) => {
                         shouldShowRightArrow
                     />
                 ))}
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 };

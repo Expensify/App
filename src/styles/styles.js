@@ -1149,8 +1149,6 @@ const styles = {
         flexDirection: 'column',
         width: '100%',
         flexGrow: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
 
     settingsPageBody: {
