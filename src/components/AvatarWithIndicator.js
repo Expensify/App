@@ -8,6 +8,7 @@ import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import {Sync} from './Icon/Expensicons';
+import {getSyncingStyles} from '../styles/getAvatarWithIndicatorStyles';
 
 const propTypes = {
     // Is user active?
@@ -35,6 +36,7 @@ class AvatarWithIndicator extends PureComponent {
 
         this.rotate = new Animated.Value(0);
         this.scale = new Animated.Value(1);
+        this.startRotation = this.startRotation.bind(this);
         this.startSyncIndicator = this.startSyncIndicator.bind(this);
         this.stopSyncIndicator = this.stopSyncIndicator.bind(this);
     }
@@ -57,22 +59,46 @@ class AvatarWithIndicator extends PureComponent {
         this.stopSyncIndicator();
     }
 
-    startSyncIndicator() {
-        Animated.loop(Animated.timing(this.rotate, {
+    /**
+     * We need to manually loop the animations as `useNativeDriver` does not work well with Animated.loop.
+     *
+     * @memberof AvatarWithIndicator
+     */
+    startRotation() {
+        this.rotate.setValue(0);
+        Animated.timing(this.rotate, {
             toValue: 1,
             duration: 3000,
             easing: Easing.linear,
             isInteraction: false,
             useNativeDriver: true,
-        })).start();
+        }).start(({finished}) => {
+            if (finished) {
+                this.startRotation();
+            }
+        });
+    }
+
+    /**
+     * Start Animation for Indicator
+     *
+     * @memberof AvatarWithIndicator
+     */
+    startSyncIndicator() {
+        this.startRotation();
         Animated.spring(this.scale, {
-            toValue: 1.35,
+            toValue: 1.666,
             tension: 1,
             isInteraction: false,
             useNativeDriver: true,
         }).start();
     }
 
+    /**
+     * Stop Animation for Indicator
+     *
+     * @memberof AvatarWithIndicator
+     */
     stopSyncIndicator() {
         Animated.spring(this.scale, {
             toValue: 1,
@@ -90,19 +116,9 @@ class AvatarWithIndicator extends PureComponent {
         const indicatorStyles = [
             styles.alignItemsCenter,
             styles.justifyContentCenter,
-            {
-                transform: [{
-                    rotate: this.rotate.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: ['0deg', '-360deg'],
-                    }),
-                }, {
-                    scale: this.scale,
-                }],
-            },
-            this.props.isSyncing ? styles.statusIndicatorSyncing : null,
             this.props.size === 'large' ? styles.statusIndicatorLarge : styles.statusIndicator,
             this.props.isActive ? styles.statusIndicatorOnline : styles.statusIndicatorOffline,
+            getSyncingStyles(this.rotate, this.scale),
         ];
 
         return (
@@ -118,8 +134,8 @@ class AvatarWithIndicator extends PureComponent {
                         <Icon
                             src={Sync}
                             fill={themeColors.textReversed}
-                            width="100%"
-                            height="100%"
+                            width={6}
+                            height={6}
                         />
                     )}
                 </Animated.View>
