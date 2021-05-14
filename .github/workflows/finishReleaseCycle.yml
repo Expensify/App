@@ -77,9 +77,17 @@ jobs:
           WORKFLOW: createNewVersion.yml
           INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
 
-      - name: Pull main to get the new version
+      - name: Update staging branch to trigger staging deploy
+        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          WORKFLOW: updateProtectedBranch.yml
+          INPUTS: '{ "TARGET_BRANCH": "staging" }'
+
+      - name: Pull staging to get the new version
         run: |
-          git pull origin main
+          git checkout staging
+          git pull origin staging
           echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
           echo "New version is ${{ env.NEW_VERSION }}"
 

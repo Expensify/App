@@ -14,10 +14,10 @@ import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
 
 const propTypes = {
-    // Function to add the selected emoji to the main compose text input
+    /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: PropTypes.func.isRequired,
 
-    // The ref to the search input (may be null on small screen widths)
+    /** The ref to the search input (may be null on small screen widths) */
     forwardedRef: PropTypes.func,
 
     ...windowDimensionsPropTypes,

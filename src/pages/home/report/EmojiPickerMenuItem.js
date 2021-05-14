@@ -6,16 +6,16 @@ import getButtonState from '../../../libs/getButtonState';
 import Hoverable from '../../../components/Hoverable';
 
 const propTypes = {
-    // The unicode that is used to display the emoji
+    /** The unicode that is used to display the emoji */
     emoji: PropTypes.string.isRequired,
 
-    // The function to call when an emoji is selected
+    /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,
 
-    // Handles what to do when we hover over this item with our cursor
+    /** Handles what to do when we hover over this item with our cursor */
     onHover: PropTypes.func.isRequired,
 
-    // Whether this menu item is currently highlighted or not
+    /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool.isRequired,
 };
 

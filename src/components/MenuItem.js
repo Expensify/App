@@ -9,23 +9,23 @@ import {ArrowRight} from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
 
 const propTypes = {
-    // Any additional styles to apply
+    /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     wrapperStyle: PropTypes.object,
 
-    // Function to fire when component is pressed
+    /** Function to fire when component is pressed */
     onPress: PropTypes.func.isRequired,
 
-    // Icon to display on the left side of component
+    /** Icon to display on the left side of component */
     icon: PropTypes.elementType.isRequired,
 
-    // Text to display for the item
+    /** Text to display for the item */
     title: PropTypes.string.isRequired,
 
-    // Boolean whether to display the ArrowRight icon
+    /** Boolean whether to display the ArrowRight icon */
     shouldShowRightArrow: PropTypes.bool,
 
-    // A boolean flag that gives the icon a green fill if true
+    /** A boolean flag that gives the icon a green fill if true */
     success: PropTypes.bool,
 };
 
