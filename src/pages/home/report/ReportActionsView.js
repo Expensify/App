@@ -34,35 +34,35 @@ import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
-    // The ID of the report actions will be created for
+    /** The ID of the report actions will be created for */
     reportID: PropTypes.number.isRequired,
 
     /* Onyx Props */
 
-    // The report currently being looked at
+    /** The report currently being looked at */
     report: PropTypes.shape({
-        // Number of actions unread
+        /** Number of actions unread */
         unreadActionCount: PropTypes.number,
 
-        // The largest sequenceNumber on this report
+        /** The largest sequenceNumber on this report */
         maxSequenceNumber: PropTypes.number,
 
-        // The current position of the new marker
+        /** The current position of the new marker */
         newMarkerSequenceNumber: PropTypes.number,
 
-        // Whether there is an outstanding amount in IOU
+        /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
 
-        // IOU report ID associated with current report
+        /** IOU report ID associated with current report */
         iouReportID: PropTypes.number,
     }),
 
-    // Array of report actions for this report
+    /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
-    // The session of the logged in person
+    /** The session of the logged in person */
     session: PropTypes.shape({
-        // Email of the logged in person
+        /** Email of the logged in person */
         email: PropTypes.string,
     }),
 
@@ -163,8 +163,10 @@ class ReportActionsView extends React.Component {
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
+
+        // Record the max action when window is visible except when Drawer is open on small screen
         const shouldRecordMaxAction = Visibility.isVisible()
-            && !(this.props.isDrawerOpen && this.props.isSmallScreenWidth);
+            && (!this.props.isSmallScreenWidth || !this.props.isDrawerOpen);
 
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise

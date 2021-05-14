@@ -4,7 +4,10 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 
 const propTypes = {
+    /** Whether the switch is toggled to the on position */
     isOn: PropTypes.bool.isRequired,
+
+    /** Callback to fire when the switch is toggled */
     onToggle: PropTypes.func.isRequired,
 };
 

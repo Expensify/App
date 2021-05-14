@@ -21,35 +21,36 @@ import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 
 const propTypes = {
-    // The ID of the report this action is on.
+    /** The ID of the report this action is on. */
     reportID: PropTypes.number.isRequired,
 
-    // All the data of the action item
+    /** All the data of the action item */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // Should the comment have the appearance of being grouped with the previous comment?
+    /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: PropTypes.bool.isRequired,
 
-    // Is this the most recent IOU Action?
+    /** Is this the most recent IOU Action? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
-    // Whether there is an outstanding amount in IOU
+    /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU: PropTypes.bool,
 
-    // IOU report ID associated with current report
+    /** IOU report ID associated with current report */
     iouReportID: PropTypes.number,
 
-    // Should we display the new indicator on top of the comment?
+    /** Should we display the new indicator on top of the comment? */
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 
-    // Position index of the report action in the overall report FlatList view
+    /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
-    /* --- Onyx Props --- */
-    // Draft message - if this is set the comment is in 'edit' mode
+    /* Onyx Props */
+
+    /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    // Runs when the view enclosing the chat message lays out indicating it has rendered
+    /** Runs when the view enclosing the chat message lays out indicating it has rendered */
     onLayout: PropTypes.func.isRequired,
 };
 
