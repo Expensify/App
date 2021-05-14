@@ -159,8 +159,20 @@ export default {
         paddingVertical: 4,
     },
 
+    pv2: {
+        paddingVertical: 8,
+    },
+
     pv3: {
         paddingVertical: 12,
+    },
+
+    pv4: {
+        paddingVertical: 16,
+    },
+
+    pv5: {
+        paddingVertical: 20,
     },
 
     ph0: {
