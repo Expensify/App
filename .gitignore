@@ -69,3 +69,6 @@ fastlane/screenshots
 
 # Local DEV config
 /.env
+
+# Storybook build files
+storybook-static

@@ -26,4 +26,5 @@ export default {
     sideBarWidth: 375,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
+    gutterWidth: 16,
 };
