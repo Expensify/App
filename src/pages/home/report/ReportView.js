@@ -11,11 +11,12 @@ import SwipeableView from '../../../components/SwipeableView';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
-    /* The ID of the report the selected report */
+    /** The ID of the report the selected report */
     reportID: PropTypes.number.isRequired,
 
     /* Onyx Keys */
-    // Whether or not to show the Compose Input
+
+    /** Whether or not to show the Compose Input */
     session: PropTypes.shape({
         shouldShowComposeInput: PropTypes.bool,
     }),
