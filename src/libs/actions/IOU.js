@@ -124,7 +124,7 @@ function payIOUReport({
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
-                throw new Error(`Error while settling IOU: ${response.message}`);
+                throw new Error(response.message);
             }
             fetchChatReportsByIDs([chatReportID]);
 
@@ -132,7 +132,7 @@ function payIOUReport({
             // chatReport object. Therefore, we must also update the chatReport to break this existing link.
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
         })
-        .catch(error => {
+        .catch((error) => {
             console.error(`Error Paying iouReport: ${error}`);
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
