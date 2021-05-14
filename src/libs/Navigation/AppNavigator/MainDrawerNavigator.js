@@ -18,7 +18,7 @@ import ReportScreen from '../../../pages/home/ReportScreen';
 import {findLastAccessedReport} from '../../reportUtils';
 
 const propTypes = {
-    // Available reports that would be displayed in this navigator
+    /** Available reports that would be displayed in this navigator */
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
     })),
@@ -50,12 +50,12 @@ const MainDrawerNavigator = (props) => {
         return <FullScreenLoadingIndicator visible />;
     }
 
-    /* After the app initializes and reports are available the home navigation is mounted
-    * This way routing information is updated (if needed) based on the initial report ID resolved.
-    * This is usually needed after login/create account and re-launches */
+    // After the app initializes and reports are available the home navigation is mounted
+    // This way routing information is updated (if needed) based on the initial report ID resolved.
+    // This is usually needed after login/create account and re-launches
     return (
         <Drawer.Navigator
-            openByDefault
+            openByDefault={props.isSmallScreenWidth}
             drawerType={getNavigationDrawerType(props.isSmallScreenWidth)}
             drawerStyle={getNavigationDrawerStyle(
                 props.windowWidth,

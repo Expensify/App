@@ -19,15 +19,16 @@ import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
-    // Holds information about the users account that is logging in
+
+    /** Holds information about the users account that is logging in */
     account: PropTypes.shape({
-        // An error message to display to the user
+        /** An error message to display to the user */
         error: PropTypes.string,
 
-        // Success message to display when necessary
+        /** Success message to display when necessary */
         success: PropTypes.string,
 
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 

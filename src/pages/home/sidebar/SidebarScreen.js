@@ -21,7 +21,6 @@ import {
 import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
-    // propTypes for withWindowDimensions
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -81,7 +80,7 @@ class SidebarScreen extends Component {
                 includePaddingBottom={false}
                 style={[styles.sidebar]}
             >
-                {({insets}) => (
+                {insets => (
                     <>
                         <View style={[styles.flex1]}>
                             <SidebarLinks

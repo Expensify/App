@@ -129,6 +129,15 @@ const CONST = {
         STARTUP: 8000,
         RECONNECT: 1000,
     },
+
+    OS: {
+        WINDOWS: 'Windows',
+        MAC_OS: 'Mac OS',
+        ANDROID: 'Android',
+        IOS: 'iOS',
+        LINUX: 'Linux',
+        NATIVE: 'Native',
+    },
 };
 
 export default CONST;
