@@ -8,7 +8,7 @@ import {setCurrentURL} from '../actions/App';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
-    // Whether the current user is logged in with an authToken
+    /** Whether the current user is logged in with an authToken */
     authenticated: PropTypes.bool.isRequired,
 };
 
