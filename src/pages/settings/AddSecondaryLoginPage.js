@@ -135,7 +135,7 @@ class AddSecondaryLoginPage extends Component {
                             </View>
                             <View style={styles.mb6}>
                                 <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.props.translate('addSecondaryLoginPage.password')}
+                                    {this.props.translate('common.password')}
                                 </Text>
                                 <TextInput
                                     style={styles.textInput}

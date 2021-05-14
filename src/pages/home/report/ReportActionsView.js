@@ -30,7 +30,7 @@ import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
-import {flatListRef, scrollToIndex} from '../../../libs/ReportScrollManager';
+import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
@@ -163,8 +163,10 @@ class ReportActionsView extends React.Component {
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
+
+        // Record the max action when window is visible except when Drawer is open on small screen
         const shouldRecordMaxAction = Visibility.isVisible()
-            && !(this.props.isDrawerOpen && this.props.isSmallScreenWidth);
+            && (!this.props.isSmallScreenWidth || !this.props.isDrawerOpen);
 
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
@@ -304,7 +306,7 @@ class ReportActionsView extends React.Component {
      * scroll the list to the end. As a report can contain non-message actions, we should confirm that list data exists.
      */
     scrollToListBottom() {
-        scrollToIndex({animated: false, index: 0});
+        scrollToBottom();
         updateLastReadActionID(this.props.reportID);
     }
 
@@ -394,7 +396,7 @@ class ReportActionsView extends React.Component {
                 renderItem={this.renderItem}
                 CellRendererComponent={this.renderCell}
                 contentContainerStyle={[styles.chatContentScrollView]}
-                keyExtractor={item => `${item.action.sequenceNumber}`}
+                keyExtractor={item => `${item.action.clientID}` || `${item.action.sequenceNumber}`}
                 initialRowHeight={32}
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}
