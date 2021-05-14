@@ -95,11 +95,11 @@ const AboutPage = ({translate, reports}) => {
             <View style={styles.pageWrapper}>
                 <View style={[styles.settingsPageBody, styles.mb6]}>
                     <Logo height={100} />
-                    <Text style={[styles.textLabel, styles.alignSelfCenter, {marginVertical: 10}]}>
+                    <Text style={[styles.textLabel, styles.alignSelfCenter, styles.mv2, styles.colorMuted]}>
                         v
                         {version}
                     </Text>
-                    <Text style={[styles.textLabel, styles.textP, {marginVertical: 20}]}>
+                    <Text style={[styles.textLabel, styles.textP, styles.mv5]}>
                         Expensify.cash is built by a community of open source developers
                         from around the world. Come help us build the next generation of
                         Expensify.

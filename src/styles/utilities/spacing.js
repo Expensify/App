@@ -28,7 +28,21 @@ export default {
     mv1: {
         marginVertical: 4,
     },
+    mv2: {
+        marginVertical: 8,
+    },
 
+    mv3: {
+        marginVertical: 12,
+    },
+
+    mv4: {
+        marginVertical: 16,
+    },
+
+    mv5: {
+        marginVertical: 20,
+    },
     mr0: {
         marginRight: 0,
     },
