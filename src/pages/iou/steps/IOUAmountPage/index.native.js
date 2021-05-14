@@ -31,6 +31,13 @@ const propTypes = {
     /* Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
+    // react-navigation object
+    navigation: PropTypes.shape({
+
+        // Allows us to add a listener for the navigation transition end
+        addListener: PropTypes.func,
+    }).isRequired,
+
     /* Onyx Props */
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
@@ -54,6 +61,16 @@ class IOUAmountPage extends React.Component {
         this.state = {
             amount: props.selectedAmount,
         };
+    }
+
+    componentDidMount() {
+        // Input doesn't exist yet, likely due to navigation libraries delaying mount
+        // Wait until interactions are complete before trying to focus input
+        this.props.navigation.addListener('transitionEnd', () => {
+            if (this.textInput) {
+                this.textInput.focus();
+            }
+        });
     }
 
     /**
@@ -95,14 +112,14 @@ class IOUAmountPage extends React.Component {
                         ? <Text style={styles.iouAmountText}>{this.state.amount}</Text>
                         : (
                             <TextInputAutoWidth
-                                    inputStyle={styles.iouAmountTextInput}
-                                    textStyle={styles.iouAmountText}
-                                    onKeyPress={(event) => {
-                                        this.updateAmountIfValidInput(event.key);
-                                        event.preventDefault();
-                                    }}
-                                    ref={el => this.textInput = el}
-                                    value={this.state.amount}
+                                inputStyle={styles.iouAmountTextInput}
+                                textStyle={styles.iouAmountText}
+                                onKeyPress={(event) => {
+                                    this.updateAmountIfValidInput(event.key);
+                                    event.preventDefault();
+                                }}
+                                ref={el => this.textInput = el}
+                                value={this.state.amount}
                             />
                         )}
                 </View>
@@ -111,10 +128,10 @@ class IOUAmountPage extends React.Component {
                         ? <BigNumberPad numberPressed={this.updateAmountIfValidInput} />
                         : <View />}
                     <TouchableOpacity
-                            style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
-                                this.state.amount.length === 0 ? styles.buttonSuccessDisabled : {}]}
-                            onPress={() => this.props.onStepComplete(this.state.amount)}
-                            disabled={this.state.amount.length === 0}
+                        style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
+                            this.state.amount.length === 0 ? styles.buttonSuccessDisabled : {}]}
+                        onPress={() => this.props.onStepComplete(this.state.amount)}
+                        disabled={this.state.amount.length === 0}
                     >
                         <Text style={[styles.buttonText, styles.buttonSuccessText]}>
                             {this.props.translate('common.next')}

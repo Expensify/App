@@ -256,6 +256,7 @@ class IOUModal extends Component {
                         currencySelected={this.currencySelected}
                         selectedCurrency={this.state.selectedCurrency}
                         selectedAmount={this.state.amount}
+                        navigation={this.props.navigation}
                     />
                 )}
                 {currentStep === Steps.IOUParticipants && (
