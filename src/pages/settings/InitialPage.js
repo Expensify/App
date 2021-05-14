@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -121,7 +121,7 @@ const InitialSettingsPage = ({
                 title={translate('initialSettingsPage.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <View pointerEvents="box-none" style={[styles.settingsPageBackground]}>
+            <ScrollView pointerEvents="box-none" style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
                         <View style={[styles.mb3]}>
@@ -155,7 +155,7 @@ const InitialSettingsPage = ({
                         />
                     ))}
                 </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 };
