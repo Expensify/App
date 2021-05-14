@@ -193,8 +193,6 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        accountUnvalidated: 'Account is unvalidated',
-        accountForgotPassword: 'Account forgot password: Sending reset password link.',
         weSentYouMagicSignInLink: 'We\'ve sent you a magic sign in link – just click on it to log in!',
         resendLink: 'Resend Link',
     },

@@ -14,20 +14,20 @@ const propTypes = {
     // 2) windowDimensionsPropTypes, which is unneeded.
     ...(_.omit(popoverPropTypes, ['anchorPosition', ...(_.keys(windowDimensionsPropTypes))])),
 
-    // The horizontal and vertical anchors points for the popover
+    /** The horizontal and vertical anchors points for the popover */
     anchorPosition: PropTypes.shape({
         horizontal: PropTypes.number.isRequired,
         vertical: PropTypes.number.isRequired,
     }).isRequired,
 
-    // Where the popover should be positioned relative to the anchor points.
+    /** Where the popover should be positioned relative to the anchor points. */
     anchorOrigin: PropTypes.shape({
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    // A function with content to measure. This component will use this.props.children by default,
-    // but in the case the children are not displayed, the measurement will not work.
+    /** A function with content to measure. This component will use this.props.children by default,
+    but in the case the children are not displayed, the measurement will not work. */
     measureContent: PropTypes.func.isRequired,
 };
 

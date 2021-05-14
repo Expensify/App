@@ -6,7 +6,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
 
-    // Fontsize
+    /** Fontsize */
     textSize: PropTypes.oneOf(['default', 'large']),
 
     ...withLocalizePropTypes,

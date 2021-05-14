@@ -13,38 +13,39 @@ import MultipleAvatars from './MultipleAvatars';
 import styles from '../styles/styles';
 
 const propTypes = {
-    // All the data of the action
+    /** All the data of the action */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // Is this the most recent IOU Action?
+    /** Is this the most recent IOU Action? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
-    // Whether there is an outstanding amount in IOU
+    /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU: PropTypes.bool.isRequired,
 
-    /* --- Onyx Props --- */
-    // Active IOU Report for current report
+    /* Onyx Props */
+
+    /** Active IOU Report for current report */
     iou: PropTypes.shape({
-        // Email address of the manager in this iou report
+        /** Email address of the manager in this iou report */
         managerEmail: PropTypes.string,
 
-        // Email address of the creator of this iou report
+        /** Email address of the creator of this iou report */
         ownerEmail: PropTypes.string,
 
-        // Outstanding amount of this transaction
+        /** Outstanding amount of this transaction */
         cachedTotal: PropTypes.string,
     }),
 
-    // All of the personal details for everyone
+    /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(PropTypes.shape({
 
-        // This is either the user's full name, or their login if full name is an empty string
+        /** This is either the user's full name, or their login if full name is an empty string */
         displayName: PropTypes.string.isRequired,
     })).isRequired,
 
-    // Session info for the currently logged in user.
+    /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        // Currently logged in user email
+        /** Currently logged in user email */
         email: PropTypes.string,
     }).isRequired,
 };
