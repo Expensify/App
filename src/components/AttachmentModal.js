@@ -23,8 +23,8 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
  */
 
 const propTypes = {
-    /** Title of the modal header */
-    title: PropTypes.string,
+    /** Determines title of the modal header depending on if we are uploading an attachment or not */
+    isUploadingAttachment: PropTypes.bool,
 
     /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
     sourceURL: PropTypes.string,
@@ -52,7 +52,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    title: '',
+    isUploadingAttachment: false,
     sourceURL: null,
     onConfirm: null,
     isAuthTokenRequired: false,
@@ -110,7 +110,9 @@ class AttachmentModal extends PureComponent {
                     propagateSwipe
                 >
                     <HeaderWithCloseButton
-                        title={this.props.title}
+                        title={this.props.isUploadingAttachment
+                            ? this.props.translate('reportActionCompose.uploadAttachment')
+                            : this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
