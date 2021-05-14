@@ -9,10 +9,10 @@ const propTypes = {
     /** Title of the Header */
     title: PropTypes.string.isRequired,
 
-    // Should we show the environment badge (dev/stg)?
+    /** Should we show the environment badge (dev/stg)? */
     shouldShowEnvironmentBadge: PropTypes.bool,
 
-    // Fontsize
+    /** Fontsize */
     textSize: PropTypes.oneOf(['default', 'large']),
 };
 

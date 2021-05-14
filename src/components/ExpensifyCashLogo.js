@@ -7,7 +7,10 @@ import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 
 const propTypes = {
+    /** Width of logo */
     width: PropTypes.number.isRequired,
+
+    /** Height of logo */
     height: PropTypes.number.isRequired,
 };
 
