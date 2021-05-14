@@ -14,6 +14,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import variables from '../styles/variables';
+import fontFamily from '../styles/fontFamily';
 
 const desktopContainerStyle = {
     maxWidth: '380px',
@@ -50,6 +51,7 @@ const popupStyles = StyleSheet.create({
     },
     bodyText: {
         fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
         ...styles.colorReversed,
     },
 });
