@@ -48,6 +48,7 @@ const webpackConfig = {
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: 'apple-app-site-association'},
+                {from: 'storybook-static', to: 'docs'},
 
                 // These files are copied over as per instructions here
                 // https://github.com/wojtekmaj/react-pdf#copying-cmaps
