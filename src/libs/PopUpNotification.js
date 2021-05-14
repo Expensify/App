@@ -65,7 +65,7 @@ const types = {
     },
     warning: {
         icon: Exclamation,
-        iconColor: colors.orange,
+        iconColor: colors.yellow,
     },
 };
 
