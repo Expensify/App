@@ -203,7 +203,8 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         currency: transaction.currency,
         created: transaction.created,
         comment: transaction.comment,
-    })).reverse(); // transactionList returns in desc order, we desire asc order (they must be sorted by creation date)
+    })).reverse(); // `transactionList` data is returned ordered by desc creation date, they are changed to asc order
+    // because we must instead display them in the order that they were created (asc).
 
     return {
         reportID: reportData.reportID,
@@ -427,8 +428,7 @@ function removeOptimisticActions(reportID) {
  */
 function fetchIOUReportByID(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
-        .then(iouReportObject => setLocalIOUReportData(iouReportObject))
-        .catch(error => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
+        .then(iouReportObject => setLocalIOUReportData(iouReportObject));
 }
 
 /**
@@ -456,8 +456,7 @@ function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
             Onyx.merge(reportKey, chatReportObject);
-        })
-        .catch(error => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
+        });
 }
 
 /**
