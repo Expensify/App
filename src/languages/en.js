@@ -77,6 +77,9 @@ export default {
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
         deleteComment: 'Delete Comment',
+        deleteConfirmation: 'Are you sure you want to delete this comment?',
+        delete: 'Delete',
+        cancel: 'Cancel',
     },
     reportActionsView: {
         beFirstPersonToComment: 'Be the first person to comment',

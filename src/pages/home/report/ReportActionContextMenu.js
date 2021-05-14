@@ -182,13 +182,13 @@ class ReportActionContextMenu extends React.Component {
                     />
                 ))}
                 <ConfirmModal
-                    title="Delete Comment"
+                    title={this.props.translate('reportActionContextMenu.deleteComment')}
                     isVisible={this.state.isDeleteCommentConfirmModal}
                     onConfirm={this.deleteAccepted}
                     onCancel={this.deleteCanceled}
-                    prompt="Are you sure you want to delete this comment?"
-                    confirmText="Delete"
-                    cancelText="Cancel"
+                    prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
+                    confirmText={this.props.translate('reportActionContextMenu.delete')}
+                    cancelText={this.props.translate('reportActionContextMenu.cancel')}
                 />
             </View>
         );
