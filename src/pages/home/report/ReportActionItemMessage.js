@@ -9,12 +9,12 @@ import ReportActionItemFragment from './ReportActionItemFragment';
 import ReportActionPropTypes from './ReportActionPropTypes';
 
 const propTypes = {
-    // The report action
+    /** The report action */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // Information about the network
+    /** Information about the network */
     network: PropTypes.shape({
-        // Is the network currently offline or not
+        /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 };

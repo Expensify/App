@@ -16,6 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 
 const propTypes = {
+    /** Username for PayPal.Me */
     payPalMeUsername: PropTypes.string,
 
     ...withLocalizePropTypes,
