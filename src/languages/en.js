@@ -147,7 +147,7 @@ export default {
         settings: 'Settings',
         about: 'About',
         aboutPage: {
-            appDownloadLinks: 'App Download Links',
+            appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
             reportABug: 'Report a bug',
