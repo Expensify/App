@@ -126,12 +126,12 @@ function payIOUReport({
             if (response.jsonCode !== 200) {
                 throw new Error(`Error while settling IOU: ${response.message}`);
             }
-        })
-        .then(() => fetchChatReportsByIDs([chatReportID]))
+            fetchChatReportsByIDs([chatReportID]);
 
-        // Any report that is being paid must be open, and must be currently set as open iouReport within the
-        // chatReport object. Therefore, we must also update the chatReport to break this existing link.
-        .then(() => fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID))
+            // Any report that is being paid must be open, and must be currently set as open iouReport within the
+            // chatReport object. Therefore, we must also update the chatReport to break this existing link.
+            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+        })
         .catch(error => Onyx.merge(ONYXKEYS.IOU, {error}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }
