@@ -25,7 +25,7 @@ const propTypes = {
     /** Toggles the navigation menu open and closed */
     onLinkClick: PropTypes.func.isRequired,
 
-    /** navigates to settings and hides sidebar */
+    /** Navigates to settings and hides sidebar */
     onAvatarClick: PropTypes.func.isRequired,
 
     /** Safe area insets required for mobile devices margins */
