@@ -30,6 +30,7 @@ import Camera from '../../../assets/images/camera.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Offline from '../../../assets/images/offline.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
+import Exclamation from '../../../assets/images/exclamation.svg';
 
 export {
     ArrowRight,
@@ -64,4 +65,5 @@ export {
     Users,
     Wallet,
     SignOut,
+    Exclamation,
 };
