@@ -11,9 +11,9 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 
 const propTypes = {
-    // The credentials of the logged in person
+    /** The credentials of the logged in person */
     credentials: PropTypes.shape({
-        // The email the user logged in with
+        /** The email the user logged in with */
         login: PropTypes.string,
     }).isRequired,
 

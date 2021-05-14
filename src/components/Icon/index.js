@@ -4,17 +4,16 @@ import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
 
 const propTypes = {
-    // The asset to render.
+    /** The asset to render. */
     src: PropTypes.func.isRequired,
 
-    // The width of the icon.
+    /** The width of the icon. */
     width: PropTypes.number,
 
-    // The height of the icon.
+    /** The height of the icon. */
     height: PropTypes.number,
 
-    // The fill color for the icon.
-    // Can be provided in hex, rgb, rgba, or as a valid react-native named color such as 'red' or 'blue'.
+    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue' */
     fill: PropTypes.string,
 };
 

@@ -13,13 +13,13 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import personalDetailsPropType from '../../personalDetailsPropType';
 
 const propTypes = {
-    // All the data of the action
+    /** All the data of the action */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // All of the personalDetails
+    /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    // Children view component for this action item
+    /** Children view component for this action item */
     children: PropTypes.node.isRequired,
 };
 
