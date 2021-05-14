@@ -19,7 +19,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** A function that is called when the button is clicked on */
-    onPress: PropTypes.func.isRequired,
+    onPress: PropTypes.func,
 
     /** Additional styles to add after local styles */
     style: PropTypes.oneOfType([
@@ -40,6 +40,7 @@ const propTypes = {
 const defaultProps = {
     isLoading: false,
     isDisabled: false,
+    onPress: () => {},
     style: [],
     textStyles: [],
     success: false,
