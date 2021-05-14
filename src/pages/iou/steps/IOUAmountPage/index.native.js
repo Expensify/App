@@ -135,8 +135,7 @@ class IOUAmountPage extends React.Component {
                             <BigNumberPad
                                 numberPressed={this.updateAmountIfValidInput}
                             />
-                        ) : <View />
-                    }
+                        ) : <View />}
                     <TouchableOpacity
                         style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
                             this.state.amount.length === 0 ? styles.buttonSuccessDisabled : {}]}
