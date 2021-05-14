@@ -23,26 +23,25 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
  */
 
 const propTypes = {
-    // Title of the modal header
+    /** Title of the modal header */
     title: PropTypes.string,
 
-    // Optional source URL for the image shown inside the .
-    // If not passed in via props must be specified when modal is opened.
+    /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
     sourceURL: PropTypes.string,
 
-    // Optional callback to fire when we want to preview an image and approve it for use.
+    /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
 
-    // Optional callback to fire when we want to do something after modal hide.
+    /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
-    // A function as a child to pass modal launching methods to
+    /** A function as a child to pass modal launching methods to */
     children: PropTypes.func.isRequired,
 
-    // Do the urls require an authToken?
+    /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool,
 
-    // Current user session
+    /** Current user session */
     session: PropTypes.shape({
         authToken: PropTypes.string.isRequired,
     }).isRequired,
