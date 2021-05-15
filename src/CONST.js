@@ -17,6 +17,7 @@ const CONST = {
         PRESSED: 'pressed',
         COMPLETE: 'complete',
     },
+    CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
