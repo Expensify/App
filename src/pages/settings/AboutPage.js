@@ -40,11 +40,15 @@ const defaultProps = {
 
 const AboutPage = ({translate, reports}) => {
     const [reportID, setreportID] = useState(null);
-
     useEffect(() => {
-        const reportKey = _.findKey(reports, ['lastActorEmail', CONST.EMAIL.CONCIERGE]);
+        const reportKey = _.findKey(reports, ['reportName', CONST.CONCIERGE_CHAT_NAME]);
         if (reportKey) {
-            setreportID(reports[reportKey].reportID);
+            const report = reports[reportKey];
+            if (Array.isArray(report.participants)
+                && report.participants.length === 1
+                && report.participants[0] === CONST.EMAIL.CONCIERGE) {
+                setreportID(reports[reportKey].reportID);
+            }
         }
     }, [reports]);
 
