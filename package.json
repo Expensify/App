@@ -26,7 +26,7 @@
     "detox-build": "detox build --configuration ios.sim.debug",
     "detox-test": "detox test --configuration ios.sim.debug",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook",
+    "storybook-build": "build-storybook -o dist/docs",
     "gh-actions-build": "./.github/scripts/buildActions.sh",
     "gh-actions-validate": "./.github/scripts/validateActionsAndWorkflows.sh",
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js"
