@@ -52,6 +52,8 @@ const popupStyles = StyleSheet.create({
     bodyText: {
         fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA,
+        width: '90%',
+        lineHeight: variables.fontSizeNormalHeight,
         ...styles.colorReversed,
     },
 });
@@ -72,7 +74,7 @@ const types = {
 };
 
 const defaultOptions = {
-    bodyText: 'This is a text',
+    bodyText: '',
     type: 'success',
 };
 
