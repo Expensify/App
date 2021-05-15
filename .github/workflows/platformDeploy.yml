@@ -216,7 +216,7 @@ jobs:
         run: npm run build-staging
 
       - name: Build docs
-        run: npm run build-storybook -- -o docs
+        run: npm run build-storybook -- -o dist/docs
 
       - name: Deploy production to S3
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
