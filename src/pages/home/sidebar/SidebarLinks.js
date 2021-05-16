@@ -147,7 +147,7 @@ class SidebarLinks extends React.Component {
                         <AvatarWithIndicator
                             source={this.props.myPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
-                            isSyncing={this.props.isSyncingData}
+                            isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
                         />
                     </TouchableOpacity>
                 </View>
