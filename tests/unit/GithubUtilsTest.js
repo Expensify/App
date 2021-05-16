@@ -1,7 +1,26 @@
 /**
  * @jest-environment node
  */
+const core = require('@actions/core');
+const {Octokit} = require('@octokit/rest');
 const GithubUtils = require('../../.github/libs/GithubUtils');
+
+// Static mock function for core.getInput
+const mockGetInput = jest.fn().mockImplementation((arg) => {
+    if (arg === 'GITHUB_TOKEN') {
+        return 'fake_token';
+    }
+
+    if (arg === 'ISSUE_NUMBER') {
+        return 1;
+    }
+});
+
+beforeAll(() => {
+    // Mock core module
+    core.getInput = mockGetInput;
+    GithubUtils.octokitInternal = new Octokit();
+});
 
 describe('GithubUtils', () => {
     describe('getStagingDeployCash', () => {
@@ -388,7 +407,7 @@ describe('GithubUtils', () => {
         }));
 
         const octokit = mockGithub().getOctokit();
-        const githubUtils = class extends GithubUtils {};
+        const githubUtils = class extends GithubUtils { };
         githubUtils.octokitInternal = octokit;
         const tag = '1.0.2-12';
         const basePRList = [
