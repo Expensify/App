@@ -14,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 
@@ -55,7 +56,6 @@ class NewGroupPage extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
         this.createGroup = this.createGroup.bind(this);
-
         const {
             recentReports,
             personalDetails,
@@ -185,60 +185,69 @@ class NewGroupPage extends Component {
         );
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('sidebarScreen.newGroup')}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        canSelectMultipleOptions
-                        sections={sections}
-                        selectedOptions={this.state.selectedOptions}
-                        value={this.state.searchValue}
-                        onSelectRow={this.toggleOption}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                                userToInvite,
-                            } = getNewGroupOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                                [],
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                recentReports,
-                                personalDetails,
-                            });
-                        }}
-                        headerMessage={headerMessage}
-                        disableArrowKeysActions
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                        shouldFocusOnSelectRow
-                    />
-                    {this.state.selectedOptions?.length > 0 && (
-                        <View style={[styles.ph5, styles.pb5]}>
-                            <Pressable
-                                onPress={this.createGroup}
-                                style={({hovered}) => [
-                                    styles.button,
-                                    styles.buttonSuccess,
-                                    styles.w100,
-                                    hovered && styles.buttonSuccessHovered,
-                                ]}
-                            >
-                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                    {this.props.translate('newGroupPage.createGroup')}
-                                </Text>
-                            </Pressable>
+                {({didScreenTransitionEnd}) => (
+                    <>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('sidebarScreen.newGroup')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                                <>
+                                    <OptionsSelector
+                                        canSelectMultipleOptions
+                                        sections={sections}
+                                        selectedOptions={this.state.selectedOptions}
+                                        value={this.state.searchValue}
+                                        onSelectRow={this.toggleOption}
+                                        onChangeText={(searchValue = '') => {
+                                            const {
+                                                recentReports,
+                                                personalDetails,
+                                                userToInvite,
+                                            } = getNewGroupOptions(
+                                                this.props.reports,
+                                                this.props.personalDetails,
+                                                searchValue,
+                                                [],
+                                            );
+                                            this.setState({
+                                                searchValue,
+                                                userToInvite,
+                                                recentReports,
+                                                personalDetails,
+                                            });
+                                        }}
+                                        headerMessage={headerMessage}
+                                        disableArrowKeysActions
+                                        hideAdditionalOptionStates
+                                        forceTextUnreadStyle
+                                        shouldFocusOnSelectRow
+                                    />
+                                    {this.state.selectedOptions?.length > 0 && (
+                                    <View style={[styles.ph5, styles.pb5]}>
+                                        <Pressable
+                                            onPress={this.createGroup}
+                                            style={({hovered}) => [
+                                                styles.button,
+                                                styles.buttonSuccess,
+                                                styles.w100,
+                                                hovered && styles.buttonSuccessHovered,
+                                            ]}
+                                        >
+                                            <Text style={[styles.buttonText, styles.buttonSuccessText]}>
+                                                {this.props.translate('newGroupPage.createGroup')}
+                                            </Text>
+                                        </Pressable>
+                                    </View>
+                                    )}
+                                </>
+                            )}
                         </View>
-                    )}
-                </View>
-                <KeyboardSpacer />
+                        <KeyboardSpacer />
+                    </>
+                )}
             </ScreenWrapper>
         );
     }
