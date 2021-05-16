@@ -22,26 +22,27 @@ import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 
 const propTypes = {
-    // Toggles the navigationMenu open and closed
+    /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: PropTypes.func.isRequired,
 
     /* Onyx Props */
-    // The report currently being looked at
+
+    /** The report currently being looked at */
     report: PropTypes.shape({
-        // Name of the report
+        /** Name of the report */
         reportName: PropTypes.string,
 
-        // List of primarylogins of participants of the report
+        /** List of primarylogins of participants of the report */
         participants: PropTypes.arrayOf(PropTypes.string),
 
-        // ID of the report
+        /** ID of the report */
         reportID: PropTypes.number,
 
-        // Value indicating if the report is pinned or not
+        /** Value indicating if the report is pinned or not */
         isPinned: PropTypes.bool,
     }),
 
-    // Personal details of all the users
+    /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     ...windowDimensionsPropTypes,

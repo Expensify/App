@@ -11,9 +11,10 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 
 const propTypes = {
-    // URL to full-sized attachment
+    /** URL to full-sized attachment */
     sourceURL: PropTypes.string.isRequired,
 
+    /** File object maybe be instance of File or Object */
     file: PropTypes.shape({
         name: PropTypes.string,
     }),
