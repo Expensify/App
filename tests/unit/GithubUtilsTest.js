@@ -1,24 +1,10 @@
 /**
  * @jest-environment node
  */
-const core = require('@actions/core');
 const {Octokit} = require('@octokit/rest');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
-// Static mock function for core.getInput
-const mockGetInput = jest.fn().mockImplementation((arg) => {
-    if (arg === 'GITHUB_TOKEN') {
-        return 'fake_token';
-    }
-
-    if (arg === 'ISSUE_NUMBER') {
-        return 1;
-    }
-});
-
-beforeAll(() => {
-    // Mock core module
-    core.getInput = mockGetInput;
+beforeEach(() => {
     GithubUtils.octokitInternal = new Octokit();
 });
 
@@ -339,20 +325,19 @@ describe('GithubUtils', () => {
     });
 
     describe('createNewStagingDeployCash', () => {
-        GithubUtils.octokit.repos.listTags = jest.fn().mockResolvedValue({data: [{name: '1.0.2-0'}]});
-        GithubUtils.octokit.issues.create = jest.fn().mockImplementation(arg => Promise.resolve(arg));
+        test('Issue is successfully created', () => {
+            GithubUtils.octokit.repos.listTags = jest.fn().mockResolvedValue({data: [{name: '1.0.2-0'}]});
+            GithubUtils.octokit.issues.create = jest.fn().mockImplementation(arg => Promise.resolve(arg));
 
-        const title = 'Test StagingDeployCash title';
-        const tag = '1.0.2-12';
-        const PRList = [
-            'https://github.com/Expensify/Expensify.cash/pull/2',
-            'https://github.com/Expensify/Expensify.cash/pull/3',
-            'https://github.com/Expensify/Expensify.cash/pull/3',
-            'https://github.com/Expensify/Expensify.cash/pull/1',
-        ];
-
-        test('Issue is successfully created', () => (
-            GithubUtils.createNewStagingDeployCash(title, tag, PRList)
+            const title = 'Test StagingDeployCash title';
+            const tag = '1.0.2-12';
+            const PRList = [
+                'https://github.com/Expensify/Expensify.cash/pull/2',
+                'https://github.com/Expensify/Expensify.cash/pull/3',
+                'https://github.com/Expensify/Expensify.cash/pull/3',
+                'https://github.com/Expensify/Expensify.cash/pull/1',
+            ];
+            return GithubUtils.createNewStagingDeployCash(title, tag, PRList)
                 .then((newIssue) => {
                     expect(newIssue).toStrictEqual({
                         owner: GithubUtils.GITHUB_OWNER,
@@ -363,8 +348,8 @@ describe('GithubUtils', () => {
                         // eslint-disable-next-line max-len
                         body: `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/3\r\n\r\ncc @Expensify/applauseleads\r\n`,
                     });
-                })
-        ));
+                });
+        });
     });
 
     describe('generateStagingDeployCashBody', () => {
