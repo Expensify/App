@@ -3,7 +3,7 @@ import {View, FlatList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
-import styles from '../../../../styles/styles';
+import styles, {getEmojiPickerStyle} from '../../../../styles/styles';
 import themeColors from '../../../../styles/themes/default';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
@@ -309,7 +309,7 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             <View
-                style={styles.emojiPickerContainer}
+                style={[styles.emojiPickerContainer, getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 {!this.props.isSmallScreenWidth && (
