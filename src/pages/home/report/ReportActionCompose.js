@@ -125,7 +125,7 @@ class ReportActionCompose extends React.Component {
             // The horizontal and vertical position (relative to the window) where the emoji popover will display.
             emojiPopoverAnchorPosition: {
                 horizontal: 0,
-                verticalInverse: 0,
+                vertical: 0,
             },
         };
     }
@@ -249,7 +249,7 @@ class ReportActionCompose extends React.Component {
     measureEmojiPopoverAnchorPosition() {
         if (this.emojiPopoverAnchor) {
             this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
-                emojiPopoverAnchorPosition: {horizontal: x + width, verticalInverse: this.props.windowHeight - y},
+                emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
             }));
         }
     }
@@ -438,7 +438,7 @@ class ReportActionCompose extends React.Component {
                         animationInTiming={1}
                         animationOutTiming={1}
                         anchorPosition={{
-                            bottom: this.state.emojiPopoverAnchorPosition.verticalInverse,
+                            bottom: this.props.windowHeight - this.state.emojiPopoverAnchorPosition.vertical,
                             left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
                         }}
                     >
