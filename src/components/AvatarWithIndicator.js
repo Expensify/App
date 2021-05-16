@@ -11,13 +11,13 @@ import {Sync} from './Icon/Expensicons';
 import {getSyncingStyles} from '../styles/getAvatarWithIndicatorStyles';
 
 const propTypes = {
-    // Is user active?
+    /** Is user active? */
     isActive: PropTypes.bool,
 
-    // url for the avatar
+    /** URL for the avatar */
     source: PropTypes.string.isRequired,
 
-    // avatar size
+    /** Avatar size */
     size: PropTypes.string,
 
     // Whether we show the sync indicator
