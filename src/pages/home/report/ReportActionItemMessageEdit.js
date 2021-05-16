@@ -11,19 +11,19 @@ import toggleReportActionComposeView from '../../../libs/toggleReportActionCompo
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
-    // All the data of the action
+    /** All the data of the action */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // Draft message
+    /** Draft message */
     draftMessage: PropTypes.string.isRequired,
 
-    // ReportID that holds the comment we're editing
+    /** ReportID that holds the comment we're editing */
     reportID: PropTypes.number.isRequired,
 
-    // Position index of the report action in the overall report FlatList view
+    /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
-    /* Window Dimensions Props */
+    /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 };
 

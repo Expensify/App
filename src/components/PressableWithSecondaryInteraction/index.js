@@ -4,11 +4,18 @@ import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
 
 const propTypes = {
-    // The function that should be called when this pressable is LongPressed or right-clicked.
+    /** The function that should be called when this pressable is LongPressed or right-clicked. */
     onSecondaryInteraction: PropTypes.func.isRequired,
 
-    // The children which should be contained in this wrapper component.
+    /** The children which should be contained in this wrapper component. */
     children: PropTypes.node.isRequired,
+
+    // The ref to the search input (may be null on small screen widths)
+    forwardedRef: PropTypes.func,
+};
+
+const defaultProps = {
+    forwardedRef: () => {},
 };
 
 /**
@@ -22,6 +29,9 @@ class PressableWithSecondaryInteraction extends Component {
     }
 
     componentDidMount() {
+        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+            this.props.forwardedRef(this.pressableRef);
+        }
         this.pressableRef.addEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
     }
 
@@ -55,5 +65,8 @@ class PressableWithSecondaryInteraction extends Component {
 }
 
 PressableWithSecondaryInteraction.propTypes = propTypes;
-
-export default PressableWithSecondaryInteraction;
+PressableWithSecondaryInteraction.defaultProps = defaultProps;
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />
+));

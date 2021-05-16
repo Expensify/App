@@ -4,36 +4,17 @@ import colors from './colors';
 import themeColors from './themes/default';
 import fontFamily from './fontFamily';
 import variables from './variables';
+import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 
 // This defines the proximity with the edge of the window in which tooltips should not be displayed.
 // If a tooltip is too close to the edge of the screen, we'll shift it towards the center.
-const GUTTER_WIDTH = 16;
+const GUTTER_WIDTH = variables.gutterWidth;
 
 // The height of a tooltip pointer
 const POINTER_HEIGHT = 4;
 
 // The width of a tooltip pointer
 const POINTER_WIDTH = 12;
-
-/**
- * The Expensify.cash repo is very consistent about doing spacing in multiples of 4.
- * In an effort to maintain that consistency, we'll make sure that any distance we're shifting the tooltip
- * is a multiple of 4.
- *
- * @param {Number} n
- * @returns {Number}
- */
-function roundToNearestMultipleOfFour(n) {
-    if (n > 0) {
-        return Math.ceil(n / 4.0) * 4;
-    }
-
-    if (n < 0) {
-        return Math.floor(n / 4.0) * 4;
-    }
-
-    return 0;
-}
 
 /**
  * Compute the amount the tooltip needs to be horizontally shifted in order to keep it from displaying in the gutters.
