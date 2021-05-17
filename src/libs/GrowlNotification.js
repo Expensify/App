@@ -2,7 +2,7 @@ import React, {
     forwardRef, useImperativeHandle, useRef, useState,
 } from 'react';
 import {
-    StyleSheet, Text, View, Animated, Platform,
+    Text, View, Animated, Platform,
 } from 'react-native';
 import {
     Directions, FlingGestureHandler, State, TouchableWithoutFeedback,
@@ -13,50 +13,6 @@ import {Checkmark, Exclamation} from '../components/Icon/Expensicons';
 import ScreenWrapper from '../components/ScreenWrapper';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import variables from '../styles/variables';
-import fontFamily from '../styles/fontFamily';
-
-const desktopContainerStyle = {
-    maxWidth: '380px',
-    top: '20px',
-    right: 0,
-    position: 'fixed',
-};
-
-const popupStyles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'flex-start',
-        position: 'absolute',
-        width: '100%',
-        zIndex: 2,
-        ...Platform.select({
-            web: desktopContainerStyle,
-            macos: desktopContainerStyle,
-            windows: desktopContainerStyle,
-        }),
-        ...styles.ph5,
-    },
-    smallScreenWidth: {
-        maxWidth: 'none',
-    },
-    box: {
-        backgroundColor: colors.dark,
-        borderRadius: variables.componentBorderRadiusNormal,
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        shadowColor: '#000',
-        ...styles.p5,
-    },
-    bodyText: {
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA,
-        width: '90%',
-        lineHeight: variables.fontSizeNormalHeight,
-        ...styles.colorReversed,
-    },
-});
 
 const types = {
     success: {
@@ -80,7 +36,7 @@ const defaultOptions = {
 
 const outDistance = -255;
 
-const PopUpNotification = forwardRef(({isSmallScreenWidth}, ref) => {
+const GrowlNotification = forwardRef(({isSmallScreenWidth}, ref) => {
     const slideDown = useRef(new Animated.Value(outDistance)).current;
     const [options, setOptions] = useState(defaultOptions);
 
@@ -112,14 +68,23 @@ const PopUpNotification = forwardRef(({isSmallScreenWidth}, ref) => {
             }}
         >
             <Animated.View
-                style={[popupStyles.container, isSmallScreenWidth && popupStyles.smallScreenWidth, {
-                    transform: [{translateY: slideDown}],
-                }]}
+                style={[
+                    styles.growlNotificationContainer,
+                    styles.growlNotificationTranslateY(slideDown),
+                    {
+                        ...Platform.select({
+                            web: styles.growlNotificationDesktopContainer,
+                            macos: styles.growlNotificationDesktopContainer,
+                            windows: styles.growlNotificationDesktopContainer,
+                        }),
+                    },
+                    isSmallScreenWidth && styles.mwn,
+                ]}
             >
                 <TouchableWithoutFeedback onPress={() => fling(outDistance)}>
                     <ScreenWrapper>
-                        <View style={popupStyles.box}>
-                            <Text style={popupStyles.bodyText}>
+                        <View style={styles.growlNotificationBox}>
+                            <Text style={styles.growlNotificationText}>
                                 {options.bodyText}
                             </Text>
                             <Icon src={types[options.type].icon} fill={types[options.type].iconColor} />
@@ -131,6 +96,6 @@ const PopUpNotification = forwardRef(({isSmallScreenWidth}, ref) => {
     );
 });
 
-PopUpNotification.propTypes = windowDimensionsPropTypes;
+GrowlNotification.propTypes = windowDimensionsPropTypes;
 
-export default withWindowDimensions(PopUpNotification);
+export default withWindowDimensions(GrowlNotification);

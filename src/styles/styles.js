@@ -1396,6 +1396,44 @@ const styles = {
         opacity: 0,
         transform: 'translateX(-100%)',
     },
+
+    growlNotificationContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        position: 'absolute',
+        width: '100%',
+        zIndex: 2,
+        ...spacing.ph5,
+    },
+
+    growlNotificationDesktopContainer: {
+        maxWidth: '380px',
+        top: '20px',
+        right: 0,
+        position: 'fixed',
+    },
+
+    growlNotificationTranslateY: y => ({
+        transform: [{translateY: y}],
+    }),
+
+    growlNotificationBox: {
+        backgroundColor: colors.dark,
+        borderRadius: variables.componentBorderRadiusNormal,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        shadowColor: '#000',
+        ...spacing.p5,
+    },
+
+    growlNotificationText: {
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        width: '90%',
+        lineHeight: variables.fontSizeNormalHeight,
+        color: themeColors.textReversed,
+    },
 };
 
 const baseCodeTagStyles = {

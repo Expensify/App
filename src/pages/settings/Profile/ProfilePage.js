@@ -30,7 +30,7 @@ import CreateMenu from '../../../components/CreateMenu';
 import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import PopUpNotification from '../../../libs/PopUpNotification';
+import GrowlNotification from '../../../libs/GrowlNotification';
 
 const propTypes = {
     /* Onyx Props */
@@ -210,7 +210,7 @@ class ProfilePage extends Component {
                 selected: selectedTimezone,
             },
         });
-        this.notifRef.current.show(this.props.translate('profilePage.popupMessageOnSave'), 'success', 3000);
+        this.notifRef.current.show(this.props.translate('profilePage.growlMessageOnSave'), 'success', 3000);
     }
 
     /**
@@ -260,7 +260,7 @@ class ProfilePage extends Component {
 
         return (
             <ScreenWrapper>
-                <PopUpNotification ref={this.notifRef} />
+                <GrowlNotification ref={this.notifRef} />
                 <HeaderWithCloseButton
                     title={this.props.translate('common.profile')}
                     shouldShowBackButton

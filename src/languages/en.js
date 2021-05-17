@@ -122,7 +122,7 @@ export default {
         emailAddress: 'Email Address',
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
-        popupMessageOnSave: 'Your profile is successfully saved',
+        growlMessageOnSave: 'Your profile is successfully saved',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add Phone Number',
