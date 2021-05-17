@@ -64,6 +64,7 @@ function getSearchText(report, personalDetailList) {
     });
 
     if (report) {
+        searchTerms.push(report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
         searchTerms.push(...report.participants);
     }
@@ -97,7 +98,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
-    return {
+    const res = {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
             ? lastMessageText
@@ -118,6 +119,8 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
     };
+
+    return res;
 }
 
 Onyx.connect({

@@ -52,6 +52,10 @@ const propTypes = {
 
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(['compact', 'default']),
+
+    /* Whether we should display full display names for each option.
+     * If this is false, then we only display each participant's first name */
+    shouldShowFullDisplayNames: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -64,6 +68,7 @@ const defaultProps = {
     showTitleTooltip: false,
     mode: 'default',
     onSelectRow: null,
+    shouldShowFullDisplayNames: false,
 };
 
 const OptionRow = ({
@@ -78,6 +83,7 @@ const OptionRow = ({
     forceTextUnreadStyle,
     showTitleTooltip,
     mode,
+    shouldShowFullDisplayNames,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -114,7 +120,7 @@ const OptionRow = ({
     const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, firstName, login}) => (
-            {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
+            {displayName: (isMultipleParticipant && !shouldShowFullDisplayNames ? firstName : displayName) || login, tooltip: login}
         ),
     );
     const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
