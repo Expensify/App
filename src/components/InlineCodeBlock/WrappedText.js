@@ -19,14 +19,13 @@ function getTextMatrix(text) {
 }
 
 const propTypes = {
-    // Required text
+    /** Required text */
     children: PropTypes.string.isRequired,
 
-    // Style to be applied to Text
+    /** Style to be applied to Text */
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
-    // Style for each word(Token) in the text,
-    // remember that token also includes whitespaces among words
+    /** Style for each word(Token) in the text, remember that token also includes whitespaces among words */
     wordStyles: PropTypes.arrayOf(PropTypes.object),
 };
 

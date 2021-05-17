@@ -7,16 +7,16 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
-    // The text for the button label
+    /** The text for the button label */
     text: PropTypes.string.isRequired,
 
-    // Indicates whether the button should be disabled and in the loading state
+    /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
 
-    // Indicates whether the button should be disabled
+    /** Indicates whether the button should be disabled */
     isDisabled: PropTypes.bool,
 
-    // A function that is called when the button is clicked on
+    /** A function that is called when the button is clicked on */
     onClick: PropTypes.func.isRequired,
 };
 const defaultProps = {

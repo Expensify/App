@@ -8,28 +8,28 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import compose from '../../../../libs/compose';
 
 const personalDetailsPropTypes = PropTypes.shape({
-    // The login of the person (either email or phone number)
+    /** The login of the person (either email or phone number) */
     login: PropTypes.string.isRequired,
 
-    // The URL of the person's avatar (there should already be a default avatar if
-    // the person doesn't have their own avatar uploaded yet)
+    /** The URL of the person's avatar (there should already be a default avatar if the person doesn't have
+     * their own avatar uploaded yet) */
     avatar: PropTypes.string.isRequired,
 
-    // This is either the user's full name, or their login if full name is an empty string
+    /** This is either the user's full name, or their login if full name is an empty string */
     displayName: PropTypes.string.isRequired,
 });
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    // Callback to add participants in IOUModal
+    /** Callback to add participants in IOUModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    // All of the personal details for everyone
+    /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
-    // All reports shared with the user
+    /** All reports shared with the user */
     reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
@@ -48,6 +48,7 @@ class IOUParticipantsRequest extends Component {
             props.reports,
             props.personalDetails,
             '',
+            true,
         );
 
         this.state = {
@@ -105,6 +106,7 @@ class IOUParticipantsRequest extends Component {
                         this.props.reports,
                         this.props.personalDetails,
                         searchValue,
+                        true,
                     );
                     this.setState({
                         searchValue,

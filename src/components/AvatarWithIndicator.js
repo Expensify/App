@@ -5,15 +5,14 @@ import Avatar from './Avatar';
 import styles from '../styles/styles';
 
 const propTypes = {
-    // Is user active?
+    /** Is user active? */
     isActive: PropTypes.bool,
 
-    // url for the avatar
+    /** URL for the avatar */
     source: PropTypes.string.isRequired,
 
-    // avatar size
+    /** Avatar size */
     size: PropTypes.string,
-
 };
 
 const defaultProps = {

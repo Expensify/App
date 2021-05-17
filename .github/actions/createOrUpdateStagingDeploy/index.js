@@ -364,12 +364,12 @@ class GithubUtils {
             per_page: 100,
         })
             .then(({data}) => {
-                const automergePRs = _.pluck(
-                    _.filter(data, GithubUtils.isAutomergePullRequest),
+                const automatedPRs = _.pluck(
+                    _.filter(data, GithubUtils.isAutomatedPullRequest),
                     'html_url',
                 );
                 const sortedPRList = _.chain(PRList)
-                    .difference(automergePRs)
+                    .difference(automatedPRs)
                     .unique()
                     .sortBy(GithubUtils.getPullRequestNumberFromURL)
                     .value();
@@ -405,7 +405,7 @@ class GithubUtils {
             })
             .catch(err => console.warn(
                 'Error generating StagingDeployCash issue body!',
-                'Automerge PRs may not be properly filtered out. Continuing...',
+                'Automated PRs may not be properly filtered out. Continuing...',
                 err,
             ));
     }
@@ -426,6 +426,22 @@ class GithubUtils {
             issue_number: number,
             body: messageBody,
         });
+    }
+
+    /**
+     * Get the most recent workflow run for the given Expensify.cash workflow.
+     *
+     * @param {String} workflow
+     * @returns {Promise}
+     */
+    getLatestWorkflowRunID(workflow) {
+        console.log(`Fetching Expensify.cash workflow runs for ${workflow}...`);
+        return this.octokit.actions.listWorkflowRuns({
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            workflow_id: workflow,
+        })
+            .then(response => lodashGet(response, 'data.workflow_runs[0].id'));
     }
 
     /**
@@ -497,14 +513,13 @@ class GithubUtils {
     }
 
     /**
-     * Determine if a given pull request is an automerge PR.
+     * Determine if a given pull request is an automated PR.
      *
      * @param {Object} pullRequest
      * @returns {Boolean}
      */
-    static isAutomergePullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify')
-            && _.contains(_.pluck(pullRequest.labels, 'name'), 'automerge');
+    static isAutomatedPullRequest(pullRequest) {
+        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
     }
 }
 
