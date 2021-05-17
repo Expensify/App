@@ -4,10 +4,10 @@ import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
 
 const propTypes = {
-    // The function that should be called when this pressable is LongPressed or right-clicked.
+    /** The function that should be called when this pressable is LongPressed or right-clicked. */
     onSecondaryInteraction: PropTypes.func.isRequired,
 
-    // The children which should be contained in this wrapper component.
+    /** The children which should be contained in this wrapper component. */
     children: PropTypes.node.isRequired,
 };
 

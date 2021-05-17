@@ -10,11 +10,11 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import {updateCurrentlyViewedReportID} from '../../libs/actions/Report';
 
 const propTypes = {
-    /* Navigation route context info provided by react navigation */
+    /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
-        /* Route specific parameters used on this screen */
+        /** Route specific parameters used on this screen */
         params: PropTypes.shape({
-            /* The ID of the report this screen should display */
+            /** The ID of the report this screen should display */
             reportID: PropTypes.string,
         }).isRequired,
     }).isRequired,

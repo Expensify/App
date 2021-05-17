@@ -21,7 +21,6 @@ import {
 import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
-    // propTypes for withWindowDimensions
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
