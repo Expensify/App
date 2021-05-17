@@ -16,35 +16,35 @@ import compose from '../../../libs/compose';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /* Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    // Currency selection will be implemented later
-    // eslint-disable-next-line react/no-unused-prop-types
+    /* Currency selection will be implemented later */
+    /* eslint-disable-next-line react/no-unused-prop-types */
     currencySelected: PropTypes.func.isRequired,
 
-    // User's currency preference
+    /* User's currency preference */
     selectedCurrency: PropTypes.string.isRequired,
 
-    // Previously selected amount to show if the user comes back to this screen
+    /* Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
 
     /* Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
-    // react-navigation object
+    /* react-navigation object */
     navigation: PropTypes.shape({
 
-        // Allows us to add a listener for the navigation transition end
+        /* Allows us to add a listener for the navigation transition end */
         addListener: PropTypes.func,
     }).isRequired,
 
     /* Onyx Props */
 
-    // Holds data related to IOU view state, rather than the underlying IOU data.
+    /* Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
 
-        // Whether or not the IOU step is loading (retrieving users preferred currency)
+        /* Whether or not the IOU step is loading (retrieving users preferred currency) */
         loading: PropTypes.bool,
     }),
 
