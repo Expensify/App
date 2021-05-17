@@ -18,7 +18,7 @@ const propTypes = {
     /** Should render the preview Component? */
     shouldDisplayPreview: PropTypes.bool.isRequired,
 
-    /* --- Onyx Props --- */
+    /* Onyx Props */
     /** ChatReport associated with iouReport */
     chatReport: PropTypes.shape({
         /** The participants of this report */
