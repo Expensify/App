@@ -2,7 +2,7 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 
 const CONST = {
     APP_DOWNLOAD_LINKS: {
-        ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en_US&gl=US',
+        ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
     },
