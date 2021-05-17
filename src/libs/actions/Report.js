@@ -419,12 +419,19 @@ function removeOptimisticActions(reportID) {
 }
 
 /**
- * Retrieve an iouReport, but do not associate it with the chatReport. For example, the user could be viewing a paid
- * report, and we must never override the chatReport's 'iouReportID' value with a paid report ID. Doing so would cause
- * 'hasOutstandingIOU' to be set to false, preventing the IOUPreview and IOUBadge Components from displaying.
+ * If an iouReport is open (has an IOU, but is not yet paid) then we maintain a link between it and the associated
+ * chatReport in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU components:
+ * - chatReport: {id: 123, iouReportID: 987, ...}
+ * - iouReport: {id: 987, chatReportID: 123, ...}
+ *
+ * This function allows us to fetch an iouReport without updating the report link data, preventing the chatReport's
+ * 'iouReportID' value from being updated. As an example, this is desired when fetching historical reports, to avoid overwritting an
+ * open iouReportID with a closed iouReportID. If this was to occur, unpaid IOUs would not be highlighted to the user.
+ * 
+ * If updating the report link data is desired, use `fetchIOUReportByIDAndUpdateChatReportLink` instead.
  *
  * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportID which should be added to IOU report data
+ * @param {Number} chatReportID - associated chatReportID which should be updated and linked
  */
 function fetchIOUReportByID(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
@@ -432,19 +439,28 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
 }
 
 /**
- * Retrieve an iouReport, associating it with a chatReport. This should be called in place of `fetchIOUReportByID`
- * when we believe that the iouReport is open and currently linked to the chatReport.
+ * If an iouReport is open (has an IOU, but is not yet paid) then we maintain a link between it and the associated
+ * chatReport in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU components:
+ * - chatReport: {id: 123, iouReportID: 987, ...}
+ * - iouReport: {id: 987, chatReportID: 123, ...}
+ *
+ * This link must remain in sync when the iouReport is modified. This function forces a link update after fetching the
+ * iouReport and therefore should only be called if we are certain that the fetched iouReport is currently open or about
+ * to be made open - else we would overwrite the existing open report link with a closed report. 
+ *
+ * Examples of usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
+ * occur for a report that is currently open (notifications are not sent for closed reports, and you cannot pay a closed IOU). 
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID which should be updated and linked
  */
-function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
+function fetchIOUReportByIDAndUpdateChatReportLink(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
         .then((iouReportObject) => {
             // First persist the IOU Report data to Onyx
             setLocalIOUReportData(iouReportObject);
 
-            // Now update the associated chatReport data to ensure it has reference to updated report
+            // Now update the linked chatReport data to ensure it has reference to updated report
             const chatReportObject = {
                 hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
                 iouReportID: iouReportObject.reportID,
@@ -543,9 +559,10 @@ function updateReportWithNewAction(reportID, reportAction) {
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
 
-        // We have been notified of an update to this iouReport, therefore it must be the currently open iouReport.
-        // Therefore we should make sure the chatReport points to this iouReportID after fetching it.
-        fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
+        // This iouReport is open, so after fetching the report we must update the chatReport link. We can be sure that
+        // the iouReport is open, because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be triggered for
+        // open reports (or open reports that are about to be closed) -- see function for more info.
+        fetchIOUReportByIDAndUpdateChatReportLink(iouReportID, reportID);
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -1169,7 +1186,7 @@ export {
     fetchOrCreateChatReport,
     fetchChatReportsByIDs,
     fetchIOUReportByID,
-    fetchIOUReportByIDAndUpdateChatReport,
+    fetchIOUReportByIDAndUpdateChatReportLink,
     addAction,
     updateLastReadActionID,
     setNewMarkerPosition,

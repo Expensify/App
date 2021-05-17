@@ -85,9 +85,7 @@ class IOUDetailsModal extends Component {
         this.performIOUSettlement = this.performIOUSettlement.bind(this);
     }
 
-    componentDidMount() {
-        // Fetch the iouReport without linking it to the chatReport. Else, the chatReport's iouReportID field would
-        // wrongly be pointed to an old paid iouReport, overwriting the iouReportID of the open iouReport.
+    componentDidMount() { 
         fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
     }
 
