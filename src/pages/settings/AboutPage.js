@@ -135,6 +135,7 @@ const AboutPage = ({translate, reports}) => {
                         {translate(
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1',
                         )}
+                        {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openURLInNewTab(CONST.TERMS_URL)}
@@ -143,9 +144,11 @@ const AboutPage = ({translate, reports}) => {
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
                             )}
                         </Text>
+                        {' '}
                         {translate(
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3',
                         )}
+                        {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
@@ -153,10 +156,8 @@ const AboutPage = ({translate, reports}) => {
                             {translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
                             )}
-                            {translate(
-                                'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase5',
-                            )}
                         </Text>
+                        .
                     </Text>
                 </View>
             </ScrollView>

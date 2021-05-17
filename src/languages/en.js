@@ -154,11 +154,10 @@ export default {
         versionLetter: 'v',
         changePassword: 'Change Password',
         readTheTermsAndPrivacyPolicy: {
-            phrase1: 'Read the ',
-            phrase2: 'terms of service ',
-            phrase3: 'and ',
+            phrase1: 'Read the',
+            phrase2: 'terms of service',
+            phrase3: 'and',
             phrase4: 'privacy policy',
-            phrase5: '.',
         },
     },
 
