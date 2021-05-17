@@ -52,6 +52,9 @@ jobs:
                 text: '💥 New [Expensify.cash Deploy Blocker](${{ env.DEPLOY_BLOCKER_URL }}) found!',
               }]
             }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Comment on deferred PR
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
