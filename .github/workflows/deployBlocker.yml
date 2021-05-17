@@ -48,7 +48,6 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: "#DB4545",
-                pretext: `<!here>`,
                 text: '💥 New [Expensify.cash Deploy Blocker](${{ env.DEPLOY_BLOCKER_URL }}) found!',
               }]
             }
