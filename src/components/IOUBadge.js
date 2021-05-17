@@ -7,9 +7,9 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 
 const propTypes = {
-    // IOU Report data object
+    /** IOU Report data object */
     iouReport: PropTypes.shape({
-        // The total amount in cents
+        /** The total amount in cents */
         total: PropTypes.number,
     }),
 };

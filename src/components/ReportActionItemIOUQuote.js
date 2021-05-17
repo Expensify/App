@@ -7,7 +7,7 @@ import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
-    // All the data of the action
+    /** All the data of the action */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     // Should the View Details link be displayed?

@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 const propTypes = {
     children: PropTypes.element.isRequired,
 
-    // Callback to fire when the user swipes down on the child content
+    /** Callback to fire when the user swipes down on the child content */
     onSwipeDown: PropTypes.func.isRequired,
 };
 
