@@ -139,7 +139,7 @@ const InitialSettingsPage = ({
                             title={translate(item.translationKey)}
                             icon={item.icon}
                             onPress={() => item.action()}
-                            shouldShowRightArrow
+                            shouldShowRightIcon
                         />
                     ))}
                 </View>

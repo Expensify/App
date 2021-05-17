@@ -1,6 +1,5 @@
 import React from 'react';
 import {ScrollView} from 'react-native';
-
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -38,7 +37,6 @@ const AppDownloadLinksPage = ({translate}) => {
             iconRight: NewWindow,
             action: () => { openURLInNewTab(CONST.APP_DOWNLOAD_LINKS.DESKTOP); },
         },
-
     ];
 
     return (
@@ -57,7 +55,7 @@ const AppDownloadLinksPage = ({translate}) => {
                         icon={item.icon}
                         iconRight={item.iconRight}
                         onPress={() => item.action()}
-                        shouldShowRightArrow
+                        shouldShowRightIcon
                     />
                 ))}
             </ScrollView>
