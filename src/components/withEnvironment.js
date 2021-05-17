@@ -10,14 +10,6 @@ const environmentPropTypes = {
 };
 
 export default function (WrappedComponent) {
-    const propTypes = {
-        forwardedRef: PropTypes.func,
-    };
-
-    const defaultProps = {
-        forwardedRef: () => {},
-    };
-
     class WithEnvironment extends Component {
         constructor(props) {
             super(props);
@@ -35,25 +27,18 @@ export default function (WrappedComponent) {
         }
 
         render() {
-            const {forwardedRef, ...rest} = this.props;
             return (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
-                    ref={forwardedRef}
+                    {...this.props}
                     environment={this.state.environment}
                 />
             );
         }
     }
 
-    WithEnvironment.propTypes = propTypes;
-    WithEnvironment.defaultProps = defaultProps;
     WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
-    return React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithEnvironment {...props} forwardedRef={ref} />
-    ));
+    return WithEnvironment;
 }
 
 export {
