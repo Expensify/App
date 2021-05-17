@@ -1,12 +1,12 @@
 import PropTypes from 'prop-types';
 
 export default {
-    // The transaction currency
+    /** The transaction currency */
     currency: PropTypes.string,
 
-    // The transaction amount
+    /** The transaction amount */
     total: PropTypes.number,
 
-    // The transaction comment
+    /** The transaction comment */
     comment: PropTypes.string,
 };

@@ -19,7 +19,7 @@ const propTypes = {
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    /* Styles for the outermost View */
+    /** Styles for the outermost View */
     wrapperStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Children view component for this action item */

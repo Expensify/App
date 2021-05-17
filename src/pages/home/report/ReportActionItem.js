@@ -36,7 +36,7 @@ const propTypes = {
     /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU: PropTypes.bool,
 
-    /* Should we display the new indicator on top of the comment? */
+    /** Should we display the new indicator on top of the comment? */
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 
     /** Position index of the report action in the overall report FlatList view */
