@@ -98,7 +98,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
-    const res = {
+    return {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
             ? lastMessageText
@@ -119,8 +119,6 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
     };
-
-    return res;
 }
 
 Onyx.connect({
