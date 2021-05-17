@@ -422,10 +422,14 @@ function removeOptimisticActions(reportID) {
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, set as an iouReport field
+ * @returns {Object}
  */
 function fetchIOUReportByID(iouReportID, chatReportID) {
-    fetchIOUReport(iouReportID, chatReportID)
-        .then(iouReportObject => setLocalIOUReportData(iouReportObject));
+    return fetchIOUReport(iouReportID, chatReportID)
+        .then((iouReportObject) => {
+            setLocalIOUReportData(iouReportObject);
+            return iouReportObject;
+        });
 }
 
 /**
@@ -445,12 +449,9 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, used to sync the reports
  */
-function fetchIOUReportByIDAndUpdateChatReportLink(iouReportID, chatReportID) {
-    fetchIOUReport(iouReportID, chatReportID)
+function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
+    fetchIOUReportByID(iouReportID, chatReportID)
         .then((iouReportObject) => {
-            // First persist the IOU Report data to Onyx
-            setLocalIOUReportData(iouReportObject);
-
             // Now update the linked chatReport data to ensure it has a reference to the updated reportiouReportID
             const chatReportObject = {
                 hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
@@ -554,7 +555,7 @@ function updateReportWithNewAction(reportID, reportAction) {
         // triggered for open iouReports (an open iouReport has an IOU, but is not yet paid). After fetching the
         // iouReport we must update the chatReport, ensuring that it points to the correct iouReportID. If this
         // sync didn't occur, then new IOUs would not be displayed and paid IOUs would show as unpaid.
-        fetchIOUReportByIDAndUpdateChatReportLink(iouReportID, reportID);
+        fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -1178,7 +1179,7 @@ export {
     fetchOrCreateChatReport,
     fetchChatReportsByIDs,
     fetchIOUReportByID,
-    fetchIOUReportByIDAndUpdateChatReportLink,
+    fetchIOUReportByIDAndUpdateChatReport,
     addAction,
     updateLastReadActionID,
     setNewMarkerPosition,

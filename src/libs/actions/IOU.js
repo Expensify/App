@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReportLink} from './Report';
+import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
 
 /**
  * Retrieve the users preferred currency
@@ -133,7 +133,7 @@ function payIOUReport({
             // displaying IOU components. If we didn't sync the reportIDs, the paid IOU would still be shown to users
             // as unpaid. The iouReport being fetched here must be open, because only an open iouReoport can be paid.
             // Therefore, we should also update the chatReport link after fetching the iouReport.
-            fetchIOUReportByIDAndUpdateChatReportLink(reportID, chatReportID);
+            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
         })
         .catch((error) => {
             console.error(`Error Paying iouReport: ${error}`);
