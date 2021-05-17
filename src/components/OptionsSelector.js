@@ -65,7 +65,7 @@ const propTypes = {
     shouldFocusOnSelectRow: PropTypes.bool,
 
     /* Whether we should display full display names for each option.
-     * If this is false, then we only display each participant's first name */
+     * If this is false, then we only display each participant's first name for group chats */
     shouldShowFullDisplayNames: PropTypes.bool,
 
     ...withLocalizePropTypes,
