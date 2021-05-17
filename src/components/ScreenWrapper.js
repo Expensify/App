@@ -9,25 +9,24 @@ import HeaderGap from './HeaderGap';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
-    // Array of additional styles to add
+    /** Array of additional styles to add */
     style: PropTypes.arrayOf(PropTypes.object),
 
-    // Returns a function as a child to pass insets to or a node to render without insets
+    /** Returns a function as a child to pass insets to or a node to render without insets */
     children: PropTypes.oneOfType([
         PropTypes.node,
         PropTypes.func,
     ]).isRequired,
 
-    // Whether to include padding bottom
+    /** Whether to include padding bottom */
     includePaddingBottom: PropTypes.bool,
 
-    // Whether to include padding top
+    /** Whether to include padding top */
     includePaddingTop: PropTypes.bool,
 
-    // react-navigation object that will allow us to goBack()
+    /** react-navigation object that will allow us to goBack() */
     navigation: PropTypes.shape({
-
-        // Returns to the previous navigation state e.g. if this is inside a Modal we will dismiss it
+        /** Returns to the previous navigation state e.g. if this is inside a Modal we will dismiss it */
         goBack: PropTypes.func,
     }),
 };

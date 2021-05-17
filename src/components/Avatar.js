@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 
 const propTypes = {
-    // Url source for the avatar
+    /** Url source for the avatar */
     source: PropTypes.string,
 
-    // Extra styles to pass
+    /** Extra styles to pass */
     style: PropTypes.arrayOf(PropTypes.any),
 
-    // Set the size of Avatar
+    /** Set the size of Avatar */
     size: PropTypes.oneOf(['default', 'small']),
 };
 

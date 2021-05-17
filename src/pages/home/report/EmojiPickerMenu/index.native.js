@@ -7,7 +7,7 @@ import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 
 const propTypes = {
-    // Function to add the selected emoji to the main compose text input
+    /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: PropTypes.func.isRequired,
 };
 
