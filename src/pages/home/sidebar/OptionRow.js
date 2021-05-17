@@ -19,38 +19,38 @@ import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
 
 const propTypes = {
-    // Background Color of the Option Row
+    /** Background Color of the Option Row */
     backgroundColor: PropTypes.string,
 
-    // Style for hovered state
+    /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
 
-    // Option to allow the user to choose from can be type 'report' or 'user'
+    /** Option to allow the user to choose from can be type 'report' or 'user' */
     option: optionPropTypes.isRequired,
 
-    // Whether this option is currently in focus so we can modify its style
+    /** Whether this option is currently in focus so we can modify its style */
     optionIsFocused: PropTypes.bool.isRequired,
 
-    // A function that is called when an option is selected. Selected option is passed as a param
+    /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
 
-    // A flag to indicate whether to show additional optional states, such as pin and draft icons
+    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
     hideAdditionalOptionStates: PropTypes.bool,
 
-    // Whether we should show the selected state
+    /** Whether we should show the selected state */
     showSelectedState: PropTypes.bool,
 
-    // Whether this item is selected
+    /** Whether this item is selected */
     isSelected: PropTypes.bool,
 
-    // Force the text style to be the unread style
+    /** Force the text style to be the unread style */
     forceTextUnreadStyle: PropTypes.bool,
 
-    // Whether to show the title tooltip
+    /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    // Toggle between compact and default view
+    /** Toggle between compact and default view */
     mode: PropTypes.oneOf(['compact', 'default']),
 };
 
@@ -110,11 +110,14 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const isMultipleParticipant = option.participantsList.length > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
-        ({displayName, login}) => ({displayName, tooltip: login}),
+        ({displayName, firstName, login}) => (
+            {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
+        ),
     );
-
+    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <Hoverable>
             {hovered => (
@@ -159,7 +162,7 @@ const OptionRow = ({
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
-                                    fullTitle={option.text}
+                                    fullTitle={fullTitle}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
@@ -194,7 +197,7 @@ const OptionRow = ({
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
-                                    <Icon src={Pencil} height="16" width="16" />
+                                    <Icon src={Pencil} height={16} width={16} />
                                 </View>
                             )}
                             {option.hasOutstandingIOU && (
@@ -202,7 +205,7 @@ const OptionRow = ({
                             )}
                             {option.isPinned && (
                                 <View style={styles.ml2}>
-                                    <Icon src={Pin} height="16" width="16" />
+                                    <Icon src={Pin} height={16} width={16} />
                                 </View>
                             )}
                         </View>

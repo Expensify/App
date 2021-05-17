@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import CONFIG from '../CONFIG';
+import CONST from '../CONST';
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
@@ -26,7 +27,7 @@ function processHTTPRequest(url, method = 'get', body = null) {
  * @param {Boolean} shouldUseSecure should we use the secure server
  * @returns {Promise}
  */
-function xhr(command, data, type = 'post', shouldUseSecure = false) {
+function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
     const apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;

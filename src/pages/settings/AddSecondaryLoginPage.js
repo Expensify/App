@@ -15,27 +15,30 @@ import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
-    // The details about the user that is signed in
+
+    /** The details about the user that is signed in */
     user: PropTypes.shape({
-        // error associated with adding a secondary login
+        /** error associated with adding a secondary login */
         error: PropTypes.string,
 
-        // Whether the form is being submitted
+        /** Whether the form is being submitted */
         loading: PropTypes.bool,
 
-        // Whether or not the user is subscribed to news updates
+        /** Whether or not the user is subscribed to news updates */
         loginList: PropTypes.arrayOf(PropTypes.shape({
 
-            // Value of partner name
+            /** Value of partner name */
             partnerName: PropTypes.string,
 
-            // Phone/Email associated with user
+            /** Phone/Email associated with user */
             partnerUserID: PropTypes.string,
 
-            // Date of when login was validated
+            /** Date of when login was validated */
             validatedDate: PropTypes.string,
         })),
     }),
@@ -48,6 +51,8 @@ const propTypes = {
             type: PropTypes.string,
         }),
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -99,7 +104,9 @@ class AddSecondaryLoginPage extends Component {
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title={this.formType === CONST.LOGIN_TYPE.PHONE ? 'Add Phone Number' : 'Add Email Address'}
+                        title={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                            ? 'addSecondaryLoginPage.addPhoneNumber'
+                            : 'addSecondaryLoginPage.addEmailAddress')}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
                         onCloseButtonPress={() => Navigation.dismissModal()}
@@ -107,13 +114,15 @@ class AddSecondaryLoginPage extends Component {
                     <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
                         <View style={styles.flexGrow1}>
                             <Text style={[styles.mb6, styles.textP]}>
-                                {this.formType === CONST.LOGIN_TYPE.PHONE
-                                    ? 'Enter your preferred phone number and password to send a validation link.'
-                                    : 'Enter your preferred email address and password to send a validation link.'}
+                                {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                    ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
+                                    : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
                             </Text>
                             <View style={styles.mb6}>
                                 <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.formType === CONST.LOGIN_TYPE.PHONE ? 'Phone Number' : 'Email Address'}
+                                    {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                        ? 'common.phoneNumber'
+                                        : 'profilePage.emailAddress')}
                                 </Text>
                                 <TextInput
                                     style={styles.textInput}
@@ -126,7 +135,9 @@ class AddSecondaryLoginPage extends Component {
                                 />
                             </View>
                             <View style={styles.mb6}>
-                                <Text style={[styles.mb1, styles.formLabel]}>Password</Text>
+                                <Text style={[styles.mb1, styles.formLabel]}>
+                                    {this.props.translate('common.password')}
+                                </Text>
                                 <TextInput
                                     style={styles.textInput}
                                     value={this.state.password}
@@ -147,7 +158,7 @@ class AddSecondaryLoginPage extends Component {
                             <ButtonWithLoader
                                 isDisabled={this.validateForm()}
                                 isLoading={this.props.user.loading}
-                                text="Send Validation"
+                                text={this.props.translate('addSecondaryLoginPage.sendValidation')}
                                 onClick={this.submitForm}
                             />
                         </View>
@@ -162,8 +173,11 @@ AddSecondaryLoginPage.propTypes = propTypes;
 AddSecondaryLoginPage.defaultProps = defaultProps;
 AddSecondaryLoginPage.displayName = 'AddSecondaryLoginPage';
 
-export default withOnyx({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(AddSecondaryLoginPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(AddSecondaryLoginPage);
