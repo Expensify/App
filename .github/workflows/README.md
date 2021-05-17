@@ -72,3 +72,23 @@ In order to bundle actions with their dependencies into a single Node.js executa
        Do not try to use a relative path.
 - Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.
 - You can't use any dynamic values or environment variables in a `uses` statement
+- In general, it is a best practice to minimize any side-effects of each action. Using atomic ("dumb") actions that have a clear and simple purpose will promote reuse and make it easier to understand the workflows that use them.
+
+## Imperative Workflows
+
+We have a unique way of defining certain workflows which can be manually triggered by the `workflow_dispatch` event. See `createNewVersion.yml` and `updateProtectedBranch.yml` for examples. Used in combination with the custom [`triggerWorkflowAndWait` action](https://github.com/Expensify/Expensify.cash/blob/d07dcf4e3e0b3f11bec73726856e6d5f8624704c/.github/actions/triggerWorkflowAndWait/triggerWorkflowAndWait.js), workflows can be synchronously executed like a function from another workflow, like this:
+
+```yaml
+- name: Create new BUILD version
+  uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+  with:
+    GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+    WORKFLOW: createNewVersion.yml
+    INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
+```
+
+There are several reasons why we created these "imperative workflows" or "subroutines":
+
+1. It greatly simplifies the handling of race conditions, particularly when used in combination with the [`softprops/turnstyle` action](https://github.com/softprops/turnstyle).
+1. It promotes code reuse. A common set of yaml steps defined in a workflow can be extracted into an imperative workflow which can be executed from other workflows in just a few lines.
+1. If a workflow is defined to execute in response to the `workflow_dispatch` event, it can be manually started by an authorized actor in the GitHub UI.
