@@ -1422,6 +1422,10 @@ const styles = {
         paddingLeft: 12,
         marginVertical: 4,
     },
+
+    cursorDisabled: {
+        cursor: 'not-allowed',
+    },
 };
 
 const baseCodeTagStyles = {

@@ -130,6 +130,13 @@ const CONST = {
         RECONNECT: 1000,
     },
 
+    PLAID: {
+        EVENT: {
+            ERROR: 'ERROR',
+            EXIT: 'EXIT',
+        },
+    },
+
     OS: {
         WINDOWS: 'Windows',
         MAC_OS: 'Mac OS',
