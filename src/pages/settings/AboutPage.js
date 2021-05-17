@@ -24,13 +24,13 @@ import ONYXKEYS from '../../ONYXKEYS';
 const propTypes = {
     /**
      * Onyx Props
-     *  All reports shared with the user
+     * All reports shared with the user
     */
     reports: PropTypes.shape({
-        // ID of the report
+        /** ID of the report */
         reportID: PropTypes.number,
 
-        // Name of the report
+        /** Name of the report */
         reportName: PropTypes.string,
     }).isRequired,
 
