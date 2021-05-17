@@ -22,9 +22,7 @@ import {
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 
 const propTypes = {

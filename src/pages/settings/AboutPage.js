@@ -13,9 +13,7 @@ import {
     Link, Eye, MoneyBag, Bug, NewWindow,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import Logo from '../../../assets/images/expensify-cash.svg';
@@ -57,32 +55,24 @@ const AboutPage = ({translate, reports}) => {
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
             icon: Link,
-            action: () => {
-                Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
-            },
+            action: () => { Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS); },
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
             icon: Eye,
             iconRight: NewWindow,
-            action: () => {
-                openURLInNewTab(CONST.GITHUB_URL);
-            },
+            action: () => { openURLInNewTab(CONST.GITHUB_URL); },
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
             icon: MoneyBag,
             iconRight: NewWindow,
-            action: () => {
-                openURLInNewTab(CONST.UPWORK_URL);
-            },
+            action: () => { openURLInNewTab(CONST.UPWORK_URL); },
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.reportABug',
             icon: Bug,
-            action: () => {
-                if (reportID) { Navigation.navigate(ROUTES.getReportRoute(reportID)); }
-            },
+            action: () => { if (reportID) { Navigation.navigate(ROUTES.getReportRoute(reportID)); } },
         },
 
     ];
