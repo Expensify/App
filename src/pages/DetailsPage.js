@@ -101,15 +101,7 @@ const DetailsPage = ({personalDetails, route}) => {
                                     <Text style={[styles.textP]} numberOfLines={1}>
                                         {moment().tz(details.timezone.selected).format('LT')}
                                         {' '}
-                                        {isNaN(moment().tz(details.timezone.selected).zoneAbbr()) ? ( 
-                                            <Text>{moment().tz(details.timezone.selected).zoneAbbr()}</Text>
-                                        ) : (
-                                            <Text>
-                                                {moment.tz(details.timezone.selected).toString().split("-")[0].slice(-3)}
-                                                {' '}
-                                                {moment().tz(details.timezone.selected).zoneAbbr()}
-                                            </Text>
-                                        )}
+                                        {moment().tz(details.timezone.selected).zoneAbbr()}
                                     </Text>
                                 </View>
                             ) : null}
