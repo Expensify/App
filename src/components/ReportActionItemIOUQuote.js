@@ -21,7 +21,7 @@ const propTypes = {
 
 const defaultProps = {
     shouldShowViewDetailsLink: false,
-    onViewDetailsPressed: null,
+    onViewDetailsPressed: () => {},
 };
 
 const ReportActionItemIOUQuote = ({

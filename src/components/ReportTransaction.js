@@ -21,16 +21,14 @@ const propTypes = {
 const ReportTransaction = ({
     action,
 }) => (
-    <>
-        <ReportActionItemSingle
-            action={action}
-            wrapperStyles={[styles.reportTransaction]}
-        >
-            <Text style={[styles.chatItemMessage]}>
-                {action.message[0].text}
-            </Text>
-        </ReportActionItemSingle>
-    </>
+    <ReportActionItemSingle
+        action={action}
+        wrapperStyles={[styles.reportTransaction]}
+    >
+        <Text style={[styles.chatItemMessage]}>
+            {action.message[0].text}
+        </Text>
+    </ReportActionItemSingle>
 );
 
 ReportTransaction.displayName = 'ReportTransaction';
