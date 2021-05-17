@@ -6,23 +6,24 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import styles from '../../../../styles/styles';
-import BigNumberPad from '../../../../components/BigNumberPad';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import TextInputAutoWidth from '../../../../components/TextInputAutoWidth';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import compose from '../../../../libs/compose';
+import ONYXKEYS from '../../../ONYXKEYS';
+import styles from '../../../styles/styles';
+import BigNumberPad from '../../../components/BigNumberPad';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
-    /** Callback to inform parent modal of success */
+    // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
-    /** Currency selection will be implemented later */
+    // Currency selection will be implemented later
     // eslint-disable-next-line react/no-unused-prop-types
     currencySelected: PropTypes.func.isRequired,
 
-    /** User's currency preference */
+    // User's currency preference
     selectedCurrency: PropTypes.string.isRequired,
 
     // Previously selected amount to show if the user comes back to this screen
@@ -40,10 +41,10 @@ const propTypes = {
 
     /* Onyx Props */
 
-    /** Holds data related to IOU view state, rather than the underlying IOU data. */
+    // Holds data related to IOU view state, rather than the underlying IOU data.
     iou: PropTypes.shape({
 
-        /** Whether or not the IOU step is loading (retrieving users preferred currency) */
+        // Whether or not the IOU step is loading (retrieving users preferred currency)
         loading: PropTypes.bool,
     }),
 
@@ -53,6 +54,7 @@ const propTypes = {
 const defaultProps = {
     iou: {},
 };
+
 class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
@@ -64,13 +66,30 @@ class IOUAmountPage extends React.Component {
     }
 
     componentDidMount() {
-        // Input doesn't exist yet, likely due to navigation libraries delaying mount
-        // Wait until interactions are complete before trying to focus input
+        // Component is not initialized yet due to navigation transitions
+        // Wait until interactions are complete before trying to focus or attach listener
         this.props.navigation.addListener('transitionEnd', () => {
+            // Setup and attach keypress handler for navigating to the next screen
+            this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
+                if (this.state.amount !== '') {
+                    this.props.onStepComplete(this.state.amount);
+                }
+            }, [], true);
+
+            // Focus text input
             if (this.textInput) {
                 this.textInput.focus();
             }
         });
+    }
+
+    componentWillUnmount() {
+        // Cleanup all keydown event listeners that we've set up
+        if (!this.unsubscribe) {
+            return;
+        }
+
+        this.unsubscribe();
     }
 
     /**
@@ -80,6 +99,16 @@ class IOUAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountIfValidInput(key) {
+        // Backspace button is pressed
+        if (key === '<' || key === 'Backspace') {
+            if (this.state.amount.length > 0) {
+                this.setState(prevState => ({
+                    amount: prevState.amount.substring(0, prevState.amount.length - 1),
+                }));
+            }
+            return;
+        }
+
         this.setState((prevState) => {
             const newValue = `${prevState.amount}${key}`;
 
@@ -115,8 +144,7 @@ class IOUAmountPage extends React.Component {
                             >
                                 {this.state.amount}
                             </Text>
-                        )
-                        : (
+                        ) : (
                             <TextInputAutoWidth
                                 inputStyle={styles.iouAmountTextInput}
                                 textStyle={styles.iouAmountText}
@@ -137,8 +165,13 @@ class IOUAmountPage extends React.Component {
                             />
                         ) : <View />}
                     <TouchableOpacity
-                        style={[styles.button, styles.w100, styles.mt5, styles.buttonSuccess,
-                            this.state.amount.length === 0 ? styles.buttonSuccessDisabled : {}]}
+                        style={[
+                            styles.button,
+                            styles.w100,
+                            styles.mt5,
+                            styles.buttonSuccess,
+                            this.state.amount.length === 0 ? styles.buttonSuccessDisabled : {},
+                        ]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}
                         disabled={this.state.amount.length === 0}
                     >
