@@ -113,7 +113,7 @@ class IOUParticipantsSplit extends Component {
         sections.push({
             title: this.props.translate('iou.recents'),
             data: this.state.recentReports,
-            shouldShow: this.state.recentReports.length > 0,
+            shouldShow: !_.isEmpty(this.state.recentReports),
 
             // takes the sum off the length of all data
             // (this.state.selectedOptions) in previous sections
@@ -123,7 +123,7 @@ class IOUParticipantsSplit extends Component {
         sections.push({
             title: this.props.translate('iou.contacts'),
             data: this.state.personalDetails,
-            shouldShow: this.state.personalDetails.length > 0,
+            shouldShow: !_.isEmpty(this.state.personalDetails),
 
             // takes the sum off the length of all data
             // (this.state.selectedOptions, this.state.recentReports) in previous sections
