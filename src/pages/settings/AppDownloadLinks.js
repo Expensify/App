@@ -8,9 +8,7 @@ import {
     Android, Apple, NewWindow, Monitor,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import openURLInNewTab from '../../libs/openURLInNewTab';
@@ -26,25 +24,19 @@ const AppDownloadLinksPage = ({translate}) => {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
             icon: Android,
             iconRight: NewWindow,
-            action: () => {
-                openURLInNewTab(CONST.APP_DOWNLOAD_LINKS.ANDROID);
-            },
+            action: () => { openURLInNewTab(CONST.APP_DOWNLOAD_LINKS.ANDROID); },
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
             icon: Apple,
             iconRight: NewWindow,
-            action: () => {
-                openURLInNewTab(CONST.APP_DOWNLOAD_LINKS.IOS);
-            },
+            action: () => { openURLInNewTab(CONST.APP_DOWNLOAD_LINKS.IOS); },
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
             icon: Monitor,
             iconRight: NewWindow,
-            action: () => {
-                openURLInNewTab(CONST.APP_DOWNLOAD_LINKS.DESKTOP);
-            },
+            action: () => { openURLInNewTab(CONST.APP_DOWNLOAD_LINKS.DESKTOP); },
         },
 
     ];
