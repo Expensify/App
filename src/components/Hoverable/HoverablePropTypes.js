@@ -17,7 +17,7 @@ const propTypes = {
     /** Function that executes when the mouse leaves the children. */
     onHoverOut: PropTypes.func,
 
-    // If the mouse clicks outside should we dismiss hover.
+    // If the mouse clicks outside, should we dismiss hover?
     resetsOnClickOutside: PropTypes.bool,
 };
 
