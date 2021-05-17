@@ -10,7 +10,7 @@ import _ from 'underscore';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
 const propTypes = {
-    // Passed via forwardRef so we can access the FlatList ref
+    /** Passed via forwardRef so we can access the FlatList ref */
     innerRef: PropTypes.shape({
         current: PropTypes.instanceOf(FlatList),
     }).isRequired,
