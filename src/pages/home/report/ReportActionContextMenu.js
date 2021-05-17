@@ -162,7 +162,7 @@ class ReportActionContextMenu extends React.Component {
      * @return {Boolean}
      */
     isUserActorOfAction() {
-        return this.props.reportAction.actorEmail === this.props.session.email;
+        return this.props.reportAction.actorEmail === this.props.session.email && this.props.reportAction.reportActionID;
     }
 
     /**
