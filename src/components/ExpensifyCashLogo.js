@@ -12,18 +12,17 @@ const propTypes = {
     ...environmentPropTypes,
 };
 
-class ExpensifyCashLogo extends React.Component {
-    render() {
-        switch (this.props.environment) {
-            case CONST.ENVIRONMENT.PRODUCTION:
-                return <ProductionLogo width={this.props.width} height={this.props.height} />;
-            case CONST.ENVIRONMENT.STAGING:
-                return <StagingLogo width={this.props.width} height={this.props.height} />;
-            default:
-                return <DevLogo width={this.props.width} height={this.props.height} />;
-        }
+const ExpensifyCashLogo = (props) => {
+    switch (props.environment) {
+        case CONST.ENVIRONMENT.PRODUCTION:
+            return <ProductionLogo width={props.width} height={props.height} />;
+        case CONST.ENVIRONMENT.STAGING:
+            return <StagingLogo width={props.width} height={props.height} />;
+        default:
+            return <DevLogo width={props.width} height={props.height} />;
     }
-}
+};
 
+ExpensifyCashLogo.displayName = 'ExpensifyCashLogo';
 ExpensifyCashLogo.propTypes = propTypes;
 export default withEnvironment(ExpensifyCashLogo);
