@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
+import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReportLink} from './Report';
 
 /**
  * Retrieve the users preferred currency
@@ -128,12 +128,10 @@ function payIOUReport({
             }
             fetchChatReportsByIDs([chatReportID]);
 
-            // Each chatReport cannot have more than one open iouReport at any time. While an iouReport is open, the
-            // chatReport stored in Onyx must have a reference to it via the 'iouReportID' field, preventing the need
-            // to retrieve linked reports via the API when rendering Components. All iouReport's being paid are open
-            // and will be currently set as the chatReports 'iouReportID' field. Therefore when paying an iou we must
-            // also update the chatReport, clearing the 'iouReportID' field and breaking the existing link
-            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+            // An iouReport that is being paid must be open, and open iouReports are always linked to the associated
+            // chatReport via its Onyx data. As this link must be kept updated, after fetching the report we must also
+            // update the chatReport link - see function for more info.
+            fetchIOUReportByIDAndUpdateChatReportLink(reportID, chatReportID);
         })
         .catch((error) => {
             console.error(`Error Paying iouReport: ${error}`);
