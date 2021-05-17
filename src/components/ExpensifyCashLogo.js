@@ -4,7 +4,7 @@ import ProductionLogo from '../../assets/images/expensify-cash.svg';
 import DevLogo from '../../assets/images/expensify-cash-dev.svg';
 import StagingLogo from '../../assets/images/expensify-cash-stg.svg';
 import CONST from '../CONST';
-import Environment from '../libs/Environment/index';
+import Environment from '../libs/Environment';
 
 const propTypes = {
     width: PropTypes.number.isRequired,
