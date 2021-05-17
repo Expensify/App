@@ -171,6 +171,7 @@ class SearchPage extends Component {
                         hideSectionHeaders
                         hideAdditionalOptionStates
                         showTitleTooltip
+                        shouldShowFullDisplayNames
                     />
                 </View>
                 <KeyboardSpacer />

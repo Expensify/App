@@ -74,6 +74,10 @@ const propTypes = {
 
     /** Toggle between compact and default view of the option */
     optionMode: PropTypes.oneOf(['compact', 'default']),
+
+    /* Whether we should display full display names for each option.
+     * If this is false, then we only display each participant's first name */
+    shouldShowFullDisplayNames: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -94,6 +98,7 @@ const defaultProps = {
     innerRef: null,
     showTitleTooltip: false,
     optionMode: undefined,
+    shouldShowFullDisplayNames: false,
 };
 
 class OptionsList extends Component {
@@ -170,6 +175,7 @@ class OptionsList extends Component {
                 showSelectedState={this.props.canSelectMultipleOptions}
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                shouldShowFullDisplayNames={this.props.shouldShowFullDisplayNames}
             />
         );
     }
