@@ -21,19 +21,20 @@ import {version} from '../../../package.json';
 import openURLInNewTab from '../../libs/openURLInNewTab';
 import ONYXKEYS from '../../ONYXKEYS';
 
-
 const propTypes = {
-    // All reports shared with the user
+    /**
+     * Onyx Props
+     *  All reports shared with the user
+    */
     reports: PropTypes.shape({
+        // ID of the report
         reportID: PropTypes.number,
+
+        // Name of the report
         reportName: PropTypes.string,
     }).isRequired,
 
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-
 };
 
 const AboutPage = ({translate, reports}) => {
@@ -49,7 +50,6 @@ const AboutPage = ({translate, reports}) => {
             }
         }
     }, [reports]);
-
 
     const menuItems = [
         {
@@ -74,9 +74,7 @@ const AboutPage = ({translate, reports}) => {
             icon: Bug,
             action: () => { if (reportID) { Navigation.navigate(ROUTES.getReportRoute(reportID)); } },
         },
-
     ];
-
 
     return (
         <ScreenWrapper>
@@ -99,9 +97,7 @@ const AboutPage = ({translate, reports}) => {
                                 {version}
                             </Text>
                             <Text style={[styles.textLabel, styles.textP, styles.mv5]}>
-                                Expensify.cash is built by a community of open source developers
-                                from around the world. Come help us build the next generation of
-                                Expensify.
+                                {translate('initialSettingsPage.aboutPage.description')}
                             </Text>
 
                         </View>
@@ -113,7 +109,7 @@ const AboutPage = ({translate, reports}) => {
                             icon={item.icon}
                             iconRight={item.iconRight}
                             onPress={() => item.action()}
-                            shouldShowRightArrow
+                            shouldShowRightIcon
                         />
                     ))}
                 </View>
@@ -156,7 +152,6 @@ const AboutPage = ({translate, reports}) => {
 };
 
 AboutPage.propTypes = propTypes;
-AboutPage.defaultProps = defaultProps;
 AboutPage.displayName = 'PreferencesPage';
 
 export default compose(

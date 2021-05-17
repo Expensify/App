@@ -61,7 +61,7 @@ export default {
     phoneCountryCode: '1',
     welcomeText: {
         phrase1: 'With Expensify.cash, chat and payments are the same thing.',
-        phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
+        phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
     reportActionCompose: {
@@ -134,6 +134,7 @@ export default {
         settings: 'Settings',
         about: 'About',
         aboutPage: {
+            description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
             appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
@@ -160,7 +161,6 @@ export default {
             phrase4: 'privacy policy',
         },
     },
-
     passwordPage: {
         changePassword: 'Change Password',
         changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand Expensify.cash accounts.',
@@ -211,7 +211,7 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: "We've sent you a magic sign in link – just click on it to log in!",
+        weSentYouMagicSignInLink: 'We\'ve sent you a magic sign in link – just click on it to log in!',
         resendLink: 'Resend Link',
     },
     detailsPage: {
@@ -244,6 +244,6 @@ export default {
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
         noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
-        maxParticipantsReached: "You've reached the maximum number of participants for a group chat.",
+        maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
 };
