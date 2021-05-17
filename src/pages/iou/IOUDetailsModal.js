@@ -13,7 +13,7 @@ import ButtonWithLoader from '../../components/ButtonWithLoader';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {payIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
-import ReportActionItemIOUPreview from '../../components/ReportActionItem/IOUPreview';
+import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
 import iouTansactionPropTypes from './iouTansactionPropTypes';
 import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
