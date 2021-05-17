@@ -323,7 +323,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        title={this.props.translate('reportActionCompose.uploadAttachment')}
+                        isUploadingAttachment
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);

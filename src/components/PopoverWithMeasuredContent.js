@@ -4,15 +4,15 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/PopoverPropTypes';
-import {windowDimensionsPropTypes} from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';
+import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
 
 const propTypes = {
     // All popover props except:
     // 1) anchorPosition (which is overridden for this component)
-    // 2) windowDimensionsPropTypes, which is unneeded.
-    ...(_.omit(popoverPropTypes, ['anchorPosition', ...(_.keys(windowDimensionsPropTypes))])),
+    ...(_.omit(popoverPropTypes, ['anchorPosition'])),
 
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: PropTypes.shape({
@@ -29,6 +29,8 @@ const propTypes = {
     /** A function with content to measure. This component will use this.props.children by default,
     but in the case the children are not displayed, the measurement will not work. */
     measureContent: PropTypes.func.isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -62,7 +64,18 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState);
+        if (this.props.isVisible
+            && (nextProps.windowWidth !== this.props.windowWidth
+            || nextProps.windowHeight !== this.props.windowHeight)) {
+            return true;
+        }
+
+        // This component does not require re-render until any prop or state changes as we get the necessary info
+        // at first render. This component is attached to each message on the Chat list thus we prevent its re-renders
+        return !_.isEqual(
+            _.omit(this.props, ['windowWidth', 'windowHeight']),
+            _.omit(nextProps, ['windowWidth', 'windowHeight']),
+        ) || !_.isEqual(this.state, nextState);
     }
 
     /**
@@ -119,12 +132,27 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     render() {
+        const adjustedAnchorPosition = this.calculateAdjustedAnchorPosition();
+        const horizontalShift = computeHorizontalShift(
+            adjustedAnchorPosition.left,
+            this.popoverWidth,
+            this.props.windowWidth,
+        );
+        const verticalShift = computeVerticalShift(
+            adjustedAnchorPosition.top,
+            this.popoverHeight,
+            this.props.windowHeight,
+        );
+        const shifedAnchorPosition = {
+            left: adjustedAnchorPosition.left + horizontalShift,
+            top: adjustedAnchorPosition.top + verticalShift,
+        };
         return this.state.isContentMeasured
             ? (
                 <Popover
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
-                    anchorPosition={this.calculateAdjustedAnchorPosition()}
+                    anchorPosition={shifedAnchorPosition}
                 >
                     {this.props.measureContent()}
                 </Popover>
@@ -146,4 +174,4 @@ class PopoverWithMeasuredContent extends Component {
 PopoverWithMeasuredContent.propTypes = propTypes;
 PopoverWithMeasuredContent.defaultProps = defaultProps;
 
-export default PopoverWithMeasuredContent;
+export default withWindowDimensions(PopoverWithMeasuredContent);
