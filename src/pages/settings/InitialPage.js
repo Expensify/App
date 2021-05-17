@@ -64,37 +64,27 @@ const menuItems = [
     {
         translationKey: 'common.profile',
         icon: Profile,
-        action: () => {
-            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-        },
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PROFILE); },
     },
     {
         translationKey: 'common.preferences',
         icon: Gear,
-        action: () => {
-            Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
-        },
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
     },
     {
         translationKey: 'initialSettingsPage.changePassword',
         icon: Lock,
-        action: () => {
-            Navigation.navigate(ROUTES.SETTINGS_PASSWORD);
-        },
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PASSWORD); },
     },
     {
         translationKey: 'common.payments',
         icon: Wallet,
-        action: () => {
-            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-        },
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
     },
     {
         translationKey: 'initialSettingsPage.about',
         icon: Info,
-        action: () => {
-            Navigation.navigate(ROUTES.SETTINGS_ABOUT);
-        },
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
     },
     {
         translationKey: 'initialSettingsPage.signOut',
