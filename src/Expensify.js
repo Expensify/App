@@ -23,7 +23,7 @@ Onyx.init({
     initialKeyStates: {
 
         // Clear any loading and error messages so they do not appear on app startup
-        [ONYXKEYS.SESSION]: {loading: false},
+        [ONYXKEYS.SESSION]: {loading: false, shouldShowComposeInput: true},
         [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
         [ONYXKEYS.NETWORK]: {isOffline: false},
         [ONYXKEYS.IOU]: {loading: false},
@@ -43,19 +43,20 @@ Onyx.registerLogger(({level, message}) => {
 const propTypes = {
     /* Onyx Props */
 
-    // Session info for the currently logged in user.
+    /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        // Currently logged in user authToken
+
+        /** Currently logged in user authToken */
         authToken: PropTypes.string,
 
-        // Currently logged in user accountID
+        /** Currently logged in user accountID */
         accountID: PropTypes.number,
     }),
 
-    // Whether a new update is available and ready to install.
+    /** Whether a new update is available and ready to install. */
     updateAvailable: PropTypes.bool,
 
-    // Whether the initial data needed to render the app is ready
+    /** Whether the initial data needed to render the app is ready */
     initialReportDataLoaded: PropTypes.bool,
 };
 

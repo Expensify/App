@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Pressable} from 'react-native';
+import {View, Pressable, Dimensions} from 'react-native';
 import Icon from './Icon';
 import {Phone} from './Icon/Expensicons';
 import Popover from './Popover';
@@ -10,7 +10,14 @@ import GoogleMeetIcon from '../../assets/images/google-meet.svg';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import withWindowDimensions from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
+
+const propTypes = {
+    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
+};
 
 class VideoChatButtonAndMenu extends Component {
     constructor(props) {
@@ -22,12 +29,12 @@ class VideoChatButtonAndMenu extends Component {
         this.menuItemData = [
             {
                 icon: ZoomIcon,
-                text: 'Zoom',
+                text: props.translate('videoChatButtonAndMenu.zoom'),
                 onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
             },
             {
                 icon: GoogleMeetIcon,
-                text: 'Google Meet',
+                text: props.translate('videoChatButtonAndMenu.googleMeet'),
                 onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
             },
         ].map(item => ({
@@ -42,6 +49,14 @@ class VideoChatButtonAndMenu extends Component {
             isVideoChatMenuActive: false,
             videoChatIconPosition: {x: 0, y: 0},
         };
+    }
+
+    componentDidMount() {
+        Dimensions.addEventListener('change', this.measureVideoChatIconPosition);
+    }
+
+    componentWillUnmount() {
+        Dimensions.removeEventListener('change', this.measureVideoChatIconPosition);
     }
 
     /**
@@ -110,5 +125,9 @@ class VideoChatButtonAndMenu extends Component {
     }
 }
 
+VideoChatButtonAndMenu.propTypes = propTypes;
 VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
-export default withWindowDimensions(VideoChatButtonAndMenu);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(VideoChatButtonAndMenu);

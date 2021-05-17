@@ -14,37 +14,41 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import personalDetailsPropType from './personalDetailsPropType';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
-        // login passed via route /details/:login
+        /** login passed via route /details/:login */
         login: PropTypes.string,
 
-        // report ID passed
+        /** report ID passed */
         reportID: PropTypes.string,
     }),
 });
 
 const propTypes = {
     /* Onyx Props */
-    // The personal details of the person who is logged in
+
+    /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
 
-    // Route params
+    /** Route params */
     route: matchType.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
-const DetailsPage = ({personalDetails, route}) => {
+const DetailsPage = ({personalDetails, route, translate}) => {
     const details = personalDetails[route.params.login];
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowBackButton = Boolean(route.params.reportID);
-
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title="Details"
+                title={translate('detailsPage.details')}
                 shouldShowBackButton={shouldShowBackButton}
                 onBackButtonPress={Navigation.goBack}
                 onCloseButtonPress={() => Navigation.dismissModal()}
@@ -74,7 +78,9 @@ const DetailsPage = ({personalDetails, route}) => {
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {Str.isSMSLogin(details.login) ? 'Phone Number' : 'Email'}
+                                        {translate(Str.isSMSLogin(details.login)
+                                            ? 'common.phoneNumber'
+                                            : 'common.email')}
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
                                         {Str.isSMSLogin(details.login)
@@ -86,7 +92,7 @@ const DetailsPage = ({personalDetails, route}) => {
                             {details.pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        Preferred Pronouns
+                                        {translate('profilePage.preferredPronouns')}
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
                                         {details.pronouns}
@@ -96,7 +102,7 @@ const DetailsPage = ({personalDetails, route}) => {
                             {details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        Local Time
+                                        {translate('detailsPage.localTime')}
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
                                         {moment().tz(details.timezone.selected).format('LT')}
@@ -116,8 +122,11 @@ const DetailsPage = ({personalDetails, route}) => {
 DetailsPage.propTypes = propTypes;
 DetailsPage.displayName = 'DetailsPage';
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-})(DetailsPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+    }),
+)(DetailsPage);
