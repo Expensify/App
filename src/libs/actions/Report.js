@@ -552,8 +552,8 @@ function updateReportWithNewAction(reportID, reportAction) {
 
         // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
         // triggered for open iouReports (an open iouReport has an IOU, but is not yet paid). After fetching the
-        // iouReport we must update the chatReport link, ensuring that it points to the correct iouReportID. If this
-        // link update didn't occur, then new IOUs would not be displayed and paid IOUs would show as unpaid.
+        // iouReport we must update the chatReport, ensuring that it points to the correct iouReportID. If this
+        // sync didn't occur, then new IOUs would not be displayed and paid IOUs would show as unpaid.
         fetchIOUReportByIDAndUpdateChatReportLink(iouReportID, reportID);
     }
 
