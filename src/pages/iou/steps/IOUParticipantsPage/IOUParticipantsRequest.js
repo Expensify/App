@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import {getNewChatOptions} from '../../../../libs/OptionsListUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -74,14 +75,14 @@ class IOUParticipantsRequest extends Component {
         sections.push({
             title: this.props.translate('iou.recents'),
             data: this.state.recentReports,
-            shouldShow: this.state.recentReports.length > 0,
+            shouldShow: !_.isEmpty(this.state.recentReports),
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
             title: this.props.translate('iou.contacts'),
             data: this.state.personalDetails,
-            shouldShow: this.state.personalDetails.length > 0,
+            shouldShow: !_.isEmpty(this.state.personalDetails),
             indexOffset: 0,
         });
 
