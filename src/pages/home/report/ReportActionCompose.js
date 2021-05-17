@@ -46,40 +46,40 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 
 const propTypes = {
-    // A method to call when the form is submitted
+    /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
 
-    // The comment left by the user
+    /** The comment left by the user */
     comment: PropTypes.string,
 
-    // The ID of the report actions will be created for
+    /** The ID of the report actions will be created for */
     reportID: PropTypes.number.isRequired,
 
-    // Details about any modals being used
+    /** Details about any modals being used */
     modal: PropTypes.shape({
-        // Indicates if there is a modal currently visible or not
+        /** Indicates if there is a modal currently visible or not */
         isVisible: PropTypes.bool,
     }),
 
-    // The report currently being looked at
+    /** The report currently being looked at */
     report: PropTypes.shape({
 
-        // participants associated with current report
+        /** participants associated with current report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
-    /* Is the report view covered by the drawer */
+    /** Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
 
-    /* Is the window width narrow, like on a mobile device */
+    /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
-    // Is composer screen focused
+    /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
-    // Information about the network
+    /** Information about the network */
     network: PropTypes.shape({
-        // Is the network currently offline or not
+        /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 
@@ -323,7 +323,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        title={this.props.translate('reportActionCompose.uploadAttachment')}
+                        isUploadingAttachment
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
