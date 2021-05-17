@@ -253,8 +253,7 @@ class ReportActionsView extends React.Component {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
             .filter((action) => {
-                // To filter deleted comments out we need check if the action is of type ADDCOMMENT then the message
-                // should be not shown if it is empty (text or html equal to '').
+                // Only show non-empty ADDCOMMENT actions or IOU actions
                 const message = _.first(lodashGet(action, 'message', null));
                 const html = lodashGet(message, 'html', '');
                 const text = lodashGet(message, 'text', '');

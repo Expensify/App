@@ -66,11 +66,8 @@ class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
 
-        this.deleteAccepted = this.deleteAccepted.bind(this);
-        this.deleteCanceled = this.deleteCanceled.bind(this);
-
         // A list of all the context actions in this menu.
-        this.CONTEXT_ACTIONS = [
+        this.contextActions = [
             // Copy to clipboard
             {
                 text: this.props.translate('reportActionContextMenu.copyToClipboard'),
@@ -118,7 +115,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
-                shouldShow: () => this.props.reportAction.actorEmail === this.props.session.email
+                shouldShow: this.isUserActorOfAction()
                     && !isReportMessageAttachment(this.getActionText())
                     && this.props.reportAction.reportActionID,
                 onPress: () => {
@@ -133,19 +130,19 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
-                shouldShow: () => this.props.reportAction.actorEmail === this.props.session.email,
-                onPress: () => {
-                    this.setState({isDeleteCommentConfirmModal: true});
-                },
+                shouldShow: this.isUserActorOfAction(),
+                onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
             },
         ];
 
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
 
         this.state = {
-            isDeleteCommentConfirmModal: false,
+            isDeleteCommentConfirmModalVisible: false,
         };
 
+        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
+        this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.getActionText = this.getActionText.bind(this);
     }
 
@@ -159,19 +156,34 @@ class ReportActionContextMenu extends React.Component {
         return lodashGet(message, 'text', '');
     }
 
-    deleteAccepted() {
-        deleteReportComment(this.props.reportID, this.props.reportAction);
-        this.setState({isDeleteCommentConfirmModal: false});
+    /**
+     * Return if the current user is the actor of this action.
+     *
+     * @return {Boolean}
+     */
+    isUserActorOfAction() {
+        return this.props.reportAction.actorEmail === this.props.session.email;
     }
 
-    deleteCanceled() {
-        this.setState({isDeleteCommentConfirmModal: false});
+    /**
+     Confirms the deletion of the comment and hides the confirmation modal.
+     */
+    confirmDeleteAndHideModal() {
+        deleteReportComment(this.props.reportID, this.props.reportAction);
+        this.setState({isDeleteCommentConfirmModalVisible: false});
+    }
+
+    /**
+     Hides the confirmation modal for the delete.
+     */
+    hideDeleteConfirmModal() {
+        this.setState({isDeleteCommentConfirmModalVisible: false});
     }
 
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow() && (
+                {this.contextActions.map(contextAction => contextAction.shouldShow() && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
@@ -184,9 +196,9 @@ class ReportActionContextMenu extends React.Component {
                 ))}
                 <ConfirmModal
                     title={this.props.translate('reportActionContextMenu.deleteComment')}
-                    isVisible={this.state.isDeleteCommentConfirmModal}
-                    onConfirm={this.deleteAccepted}
-                    onCancel={this.deleteCanceled}
+                    isVisible={this.state.isDeleteCommentConfirmModalVisible}
+                    onConfirm={this.confirmDeleteAndHideModal}
+                    onCancel={this.hideDeleteConfirmModal}
                     prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
                     confirmText={this.props.translate('reportActionContextMenu.delete')}
                     cancelText={this.props.translate('reportActionContextMenu.cancel')}

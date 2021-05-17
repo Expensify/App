@@ -228,9 +228,7 @@ class ReportActionItem extends Component {
                 ref={ref => this.popoverAnchor = ref}
                 onSecondaryInteraction={this.showPopover}
             >
-                <Hoverable
-                    resetsOnClickOutside={false}
-                >
+                <Hoverable resetsOnClickOutside={false}>
                     {hovered => (
                         <View>
                             {this.props.shouldDisplayNewIndicator && (
