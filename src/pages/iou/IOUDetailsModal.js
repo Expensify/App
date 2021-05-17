@@ -14,7 +14,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import {payIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
 import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
-import iouTansactionPropTypes from './iouTansactionPropTypes';
+import iouTransactionPropTypes from './iouTransactionPropTypes';
 import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -54,11 +54,11 @@ const propTypes = {
         ownerEmail: PropTypes.string,
 
         /** The IOU transactions */
-        transactions: PropTypes.arrayOf(PropTypes.shape(iouTansactionPropTypes)),
+        transactions: PropTypes.arrayOf(PropTypes.shape(iouTransactionPropTypes)),
 
         /** Does the report have an outstanding IOU that needs to be paid? */
         hasOutstandingIOU: PropTypes.bool,
-    }).isRequired,
+    }),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
@@ -71,6 +71,7 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
+    iouReport: {},
 };
 
 class IOUDetailsModal extends Component {
@@ -82,14 +83,14 @@ class IOUDetailsModal extends Component {
             settlementType: 'Elsewhere',
         };
 
-        this.performIOUSettlement = this.performIOUSettlement.bind(this);
+        this.performIOUPayment = this.performIOUPayment.bind(this);
     }
 
     componentDidMount() {
         fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
     }
 
-    performIOUSettlement() {
+    performIOUPayment() {
         payIOUReport({
             chatReportID: this.props.route.params.chatReportID,
             reportID: this.props.route.params.iouReportID,
@@ -126,7 +127,7 @@ class IOUDetailsModal extends Component {
                                 <ButtonWithLoader
                                     text={this.props.translate('iou.settleElsewhere')}
                                     isLoading={this.props.iou.loading}
-                                    onClick={this.performIOUSettlement}
+                                    onClick={this.performIOUPayment}
                                 />
                             </View>
                         ))}

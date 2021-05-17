@@ -245,8 +245,8 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
-            // IOU data for a report will be missing when the IOU report has already been settled.
-            // This is expected and we return early as no further processing can be done
+            // IOU data for a report will be missing when the IOU report has already been paid.
+            // This is expected and we return early as no further processing can be done.
             return;
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
@@ -424,12 +424,12 @@ function removeOptimisticActions(reportID) {
  * - chatReport: {id: 123, iouReportID: 987, ...}
  * - iouReport: {id: 987, chatReportID: 123, ...}
  *
- * This function allows us to fetch an iouReport without updating the report link data, preventing the chatReport's
+ * This function allows us to fetch an iouReport without updating the linked chatReport, preventing the chatReport's
  * 'iouReportID' value from being updated. As an example, this is desired when fetching historical reports, to avoid
  * overwritting an open iouReportID with a closed iouReportID. If this was to occur, unpaid IOUs would not be
  * highlighted to the user.
  *
- * If updating the report link data is desired, use `fetchIOUReportByIDAndUpdateChatReportLink` instead.
+ * If updating the chatReport's data is desired, use `fetchIOUReportByIDAndUpdateChatReportLink` instead.
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, set as an iouReport field, but not used to maintain the link
@@ -447,10 +447,10 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
  *
  * This link must remain in sync when the iouReport is modified. This function forces a link update after fetching the
  * iouReport and therefore should only be called if we are certain that the fetched iouReport is currently open or about
- * to be made open - else we would overwrite the existing open report link with a closed report.
+ * to be made open - else we would overwrite the existing open iouReport link with a closed iouReport.
  *
  * Examples of usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
- * occur for a report that is currently open (notifications are not sent for closed reports, and you cannot pay a
+ * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a
  * closed IOU).
  *
  * @param {Number} iouReportID - ID of the report we are fetching
@@ -563,7 +563,7 @@ function updateReportWithNewAction(reportID, reportAction) {
 
         // This iouReport is open, so after fetching the report we must update the chatReport link. We can be sure that
         // the iouReport is open, because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be triggered for
-        // open reports (or open reports that are about to be closed) -- see function for more info.
+        // open iouReports -- see function for more info.
         fetchIOUReportByIDAndUpdateChatReportLink(iouReportID, reportID);
     }
 
