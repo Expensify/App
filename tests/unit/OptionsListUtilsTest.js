@@ -220,9 +220,11 @@ describe('OptionsListUtils', () => {
         // When we provide a search value that matches an email
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'peterparker@expensify.com');
 
-        // Then one option will be returned and it will be the correct option
+        // Then one recentReports will be returned and it will be the correct option
+        // personalDetails should be empty array
         expect(results.recentReports.length).toBe(1);
         expect(results.recentReports[0].text).toBe('Spider-Man');
+        expect(results.personalDetails.length).toBe(0);
 
         // When we provide a search value that matches a partial display name or email
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'man');
