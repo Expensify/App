@@ -1,16 +1,14 @@
 const _ = require('underscore');
 const core = require('@actions/core');
-const github = require('@actions/github');
 const moment = require('moment');
 const GithubUtils = require('../../libs/GithubUtils');
 const GitUtils = require('../../libs/GitUtils');
 
 const newVersion = core.getInput('NPM_VERSION');
-const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-const githubUtils = new GithubUtils(octokit);
 
-githubUtils.getStagingDeployCash()
-    .then(() => githubUtils.updateStagingDeployCash(
+
+GithubUtils.getStagingDeployCash()
+    .then(() => GithubUtils.updateStagingDeployCash(
         newVersion,
         _.filter(
             _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()),
@@ -31,7 +29,7 @@ githubUtils.getStagingDeployCash()
             console.log('No open StagingDeployCash found, creating a new one.');
 
             // Fetch all the StagingDeployCash issues
-            return octokit.issues.listForRepo({
+            return GithubUtils.octokit.issues.listForRepo({
                 log: console,
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
@@ -53,13 +51,13 @@ githubUtils.getStagingDeployCash()
         }
 
         // Parse the tag from the most recent StagingDeployCash
-        const lastTag = githubUtils.getStagingDeployCashData(githubResponse.data[0]).tag;
+        const lastTag = GithubUtils.getStagingDeployCashData(githubResponse.data[0]).tag;
         console.log('Found tag of previous StagingDeployCash:', lastTag);
 
         // Find the list of PRs merged between the last StagingDeployCash and the new version
         return GitUtils.getPullRequestsMergedBetween(lastTag, newVersion);
     })
-    .then(PRNumbers => githubUtils.createNewStagingDeployCash(
+    .then(PRNumbers => GithubUtils.createNewStagingDeployCash(
         `Deploy Checklist: Expensify.cash ${moment().format('YYYY-MM-DD')}`,
         newVersion,
         _.map(PRNumbers, GithubUtils.getPullRequestURLFromNumber),

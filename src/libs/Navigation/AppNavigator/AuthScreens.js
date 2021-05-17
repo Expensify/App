@@ -48,6 +48,7 @@ import {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
+    AddBankAccountModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -253,6 +254,12 @@ class AuthScreens extends React.Component {
                     name="IOU_Details"
                     options={modalScreenOptions}
                     component={IOUDetailsModalStackNavigator}
+                />
+                <RootStack.Screen
+                    name="AddBankAccount"
+                    options={modalScreenOptions}
+                    component={AddBankAccountModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
         );
