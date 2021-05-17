@@ -425,9 +425,10 @@ function removeOptimisticActions(reportID) {
  * - iouReport: {id: 987, chatReportID: 123, ...}
  *
  * This function allows us to fetch an iouReport without updating the report link data, preventing the chatReport's
- * 'iouReportID' value from being updated. As an example, this is desired when fetching historical reports, to avoid overwritting an
- * open iouReportID with a closed iouReportID. If this was to occur, unpaid IOUs would not be highlighted to the user.
- * 
+ * 'iouReportID' value from being updated. As an example, this is desired when fetching historical reports, to avoid
+ * overwritting an open iouReportID with a closed iouReportID. If this was to occur, unpaid IOUs would not be
+ * highlighted to the user.
+ *
  * If updating the report link data is desired, use `fetchIOUReportByIDAndUpdateChatReportLink` instead.
  *
  * @param {Number} iouReportID - ID of the report we are fetching
@@ -446,10 +447,11 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
  *
  * This link must remain in sync when the iouReport is modified. This function forces a link update after fetching the
  * iouReport and therefore should only be called if we are certain that the fetched iouReport is currently open or about
- * to be made open - else we would overwrite the existing open report link with a closed report. 
+ * to be made open - else we would overwrite the existing open report link with a closed report.
  *
  * Examples of usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
- * occur for a report that is currently open (notifications are not sent for closed reports, and you cannot pay a closed IOU). 
+ * occur for a report that is currently open (notifications are not sent for closed reports, and you cannot pay a
+ * closed IOU).
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID which should be updated and linked
