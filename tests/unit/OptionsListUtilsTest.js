@@ -1,4 +1,4 @@
-import _, {result} from 'underscore';
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
