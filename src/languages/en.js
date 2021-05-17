@@ -26,6 +26,7 @@ export default {
         phoneNumber: 'Phone Number',
         email: 'Email',
         and: 'and',
+        details: 'Details',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -202,7 +203,6 @@ export default {
         resendLink: 'Resend Link',
     },
     detailsPage: {
-        details: 'Details',
         localTime: 'Local Time',
     },
     newGroupPage: {
