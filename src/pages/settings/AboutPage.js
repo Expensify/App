@@ -173,7 +173,6 @@ export default compose(
     withLocalize,
     withOnyx({
         reports: {
-
             key: () => `${ONYXKEYS.COLLECTION.REPORT}`,
         },
     }),

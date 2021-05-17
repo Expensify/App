@@ -3,7 +3,6 @@ import {ScrollView} from 'react-native';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import {
     Android, Apple, NewWindow, Monitor,
@@ -21,11 +20,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-
-};
-
-const PreferencesPage = ({translate}) => {
+const AppDownloadLinksPage = ({translate}) => {
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
@@ -59,7 +54,7 @@ const PreferencesPage = ({translate}) => {
             <HeaderWithCloseButton
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_ABOUT)}
+                onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView style={[styles.mt5]} bounces={false}>
@@ -78,11 +73,9 @@ const PreferencesPage = ({translate}) => {
     );
 };
 
-PreferencesPage.propTypes = propTypes;
-PreferencesPage.defaultProps = defaultProps;
-PreferencesPage.displayName = 'PreferencesPage';
+AppDownloadLinksPage.propTypes = propTypes;
+AppDownloadLinksPage.displayName = 'PreferencesPage';
 
 export default compose(
     withLocalize,
-
-)(PreferencesPage);
+)(AppDownloadLinksPage);
