@@ -8,19 +8,19 @@ import addAuthTokenToURL from '../libs/addAuthTokenToURL';
 import styles, {getWidthAndHeightStyle} from '../styles/styles';
 
 const propTypes = {
-    // Source URL for the preview image
+    /** Source URL for the preview image */
     previewSourceURL: PropTypes.string.isRequired,
 
-    // Any additional styles to apply
+    /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    // Current user session
+    /** Current user session */
     session: PropTypes.shape({
         authToken: PropTypes.string.isRequired,
     }).isRequired,
 
-    // Do the urls require an authToken?
+    /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool.isRequired,
 };
 

@@ -81,9 +81,9 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
-    // Information about the network
+    /** Information about the network */
     network: PropTypes.shape({
-        // Is the network currently offline or not
+        /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 

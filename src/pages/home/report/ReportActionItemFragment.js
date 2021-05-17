@@ -11,16 +11,16 @@ import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 
 const propTypes = {
-    // The message fragment needing to be displayed
+    /** The message fragment needing to be displayed */
     fragment: ReportActionFragmentPropTypes.isRequired,
 
-    // Text to be shown for tooltip When Fragment is report Actor
+    /** Text to be shown for tooltip When Fragment is report Actor */
     tooltipText: PropTypes.string,
 
-    // Is this fragment an attachment?
+    /** Is this fragment an attachment? */
     isAttachment: PropTypes.bool,
 
-    // Does this fragment belong to a reportAction that has not yet loaded?
+    /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
 };
 
