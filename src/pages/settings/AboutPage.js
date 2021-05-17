@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -38,19 +38,6 @@ const propTypes = {
 };
 
 const AboutPage = ({translate, reports}) => {
-    const [reportID, setreportID] = useState(null);
-    useEffect(() => {
-        const reportKey = _.findKey(reports, ['reportName', CONST.CONCIERGE_CHAT_NAME]);
-        if (reportKey) {
-            const report = reports[reportKey];
-            if (Array.isArray(report.participants)
-                && report.participants.length === 1
-                && report.participants[0] === CONST.EMAIL.CONCIERGE) {
-                setreportID(reports[reportKey].reportID);
-            }
-        }
-    }, [reports]);
-
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
@@ -72,7 +59,17 @@ const AboutPage = ({translate, reports}) => {
         {
             translationKey: 'initialSettingsPage.aboutPage.reportABug',
             icon: Bug,
-            action: () => { if (reportID) { Navigation.navigate(ROUTES.getReportRoute(reportID)); } },
+            action: () => {
+                const reportKey = _.findKey(reports, ['reportName', CONST.CONCIERGE_CHAT_NAME]);
+                if (reportKey) {
+                    const report = reports[reportKey];
+                    if (Array.isArray(report.participants)
+                        && report.participants.length === 1
+                        && report.participants[0] === CONST.EMAIL.CONCIERGE) {
+                        Navigation.navigate(ROUTES.getReportRoute(report.reportID));
+                    }
+                }
+            },
         },
     ];
 
