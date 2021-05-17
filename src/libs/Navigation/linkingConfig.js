@@ -89,6 +89,11 @@ export default {
                     IOU_Bill_Root: ROUTES.IOU_BILL,
                 },
             },
+            AddBankAccount: {
+                screens: {
+                    AddBankAccount_Root: ROUTES.ADD_BANK_ACCOUNT,
+                },
+            },
         },
     },
 };
