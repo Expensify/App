@@ -432,7 +432,7 @@ function removeOptimisticActions(reportID) {
  * If updating the report link data is desired, use `fetchIOUReportByIDAndUpdateChatReportLink` instead.
  *
  * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportID which should be updated and linked
+ * @param {Number} chatReportID - associated chatReportID, set as an iouReport field, but not used to maintain the link
  */
 function fetchIOUReportByID(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
@@ -454,7 +454,7 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
  * closed IOU).
  *
  * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportID which should be updated and linked
+ * @param {Number} chatReportID - associated chatReportID, used to maintain the link between reports
  */
 function fetchIOUReportByIDAndUpdateChatReportLink(iouReportID, chatReportID) {
     fetchIOUReport(iouReportID, chatReportID)
