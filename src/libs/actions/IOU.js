@@ -130,9 +130,9 @@ function payIOUReport({
 
             // If an iouReport is open (has an IOU, but is not yet paid) then we maintain a link between it and the
             // associated chatReport in Onyx, simplifying IOU data retrieval and reducing necessary API calls when
-            // displaying IOU components. If the link isn't updated in this case, the paid IOU would still be shown
-            // to users as unpaid. The iouReport being fetched here must be open, because only an open iouReoport can
-            // be paid. Therefore, we should also update the chatReport link after fetching the iouReport.
+            // displaying IOU components. If we didn't sync the reportIDs, the paid IOU would still be shown to users
+            // as unpaid. The iouReport being fetched here must be open, because only an open iouReoport can be paid.
+            // Therefore, we should also update the chatReport link after fetching the iouReport.
             fetchIOUReportByIDAndUpdateChatReportLink(reportID, chatReportID);
         })
         .catch((error) => {
