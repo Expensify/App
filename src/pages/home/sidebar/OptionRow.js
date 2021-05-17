@@ -115,7 +115,7 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = option.participantsList.length > 1;
+    const isMultipleParticipant = option.participantsList && option.participantsList.length > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, firstName, login}) => (
