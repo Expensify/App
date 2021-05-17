@@ -39,7 +39,7 @@ const propTypes = {
         loading: PropTypes.bool,
 
         // Error message, empty represents no error
-        error: PropTypes.string,
+        error: PropTypes.bool,
     }),
 
     // IOU Report data object
