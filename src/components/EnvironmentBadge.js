@@ -2,24 +2,9 @@ import React from 'react';
 import {Text, View} from 'react-native';
 import styles from '../styles/styles';
 import CONST from '../CONST';
-import Environment from '../libs/Environment';
+import withEnvironment from './withEnvironment';
 
 class EnvironmentBadge extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            environment: CONST.ENVIRONMENT.PRODUCTION,
-        };
-    }
-
-    componentDidMount() {
-        Environment.getEnvironment()
-            .then((environment) => {
-                this.setState({environment});
-            });
-    }
-
     render() {
         // If we are on production, don't show any badge
         if (this.state.environment === CONST.ENVIRONMENT.PRODUCTION) {
@@ -40,4 +25,4 @@ class EnvironmentBadge extends React.Component {
     }
 }
 
-export default EnvironmentBadge;
+export default withEnvironment(EnvironmentBadge);
