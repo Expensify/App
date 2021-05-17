@@ -4,6 +4,11 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 import Environment from '../libs/Environment';
 import CONST from '../CONST';
 
+const environmentPropTypes = {
+    /** The string value representing the current environment */
+    environment: PropTypes.string.isRequired,
+};
+
 export default function (WrappedComponent) {
     const propTypes = {
         forwardedRef: PropTypes.func,
@@ -50,3 +55,7 @@ export default function (WrappedComponent) {
         <WithEnvironment {...props} forwardedRef={ref} />
     ));
 }
+
+export {
+    environmentPropTypes,
+};
