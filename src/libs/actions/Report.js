@@ -1013,9 +1013,7 @@ function deleteReportComment(reportID, reportAction) {
         reportComment: '',
     })
         .then((response) => {
-            if (response.jsonCode === 200) {
-                Log.info('Comment deleted succefully!', true);
-            } else {
+            if (response.jsonCode !== 200) {
                 // Reverse Optimistic Response
                 reportActionsToMerge[reportAction.sequenceNumber] = {
                     ...reportAction,
