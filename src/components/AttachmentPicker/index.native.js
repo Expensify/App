@@ -170,8 +170,8 @@
      */
      showImageCorruptionAlert() {
          Alert.alert(
-             'Attachment Error',
-             'An error occurred while selecting a corrupted attachment, please try another file',
+            this.props.translate('attachmentPicker.attachmentError'),
+            this.props.translate('attachmentPicker.errorWhileSelectingCorruptedImage'),
          );
      }
  
