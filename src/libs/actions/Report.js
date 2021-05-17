@@ -183,7 +183,7 @@ function getSimplifiedReportObject(report) {
  * Get a simplified version of an IOU report
  *
  * @param {Object} reportData
- * @param {Number} reportData.transactionID
+ * @param {String} reportData.transactionID
  * @param {Number} reportData.amount
  * @param {String} reportData.currency
  * @param {String} reportData.created
@@ -197,8 +197,7 @@ function getSimplifiedReportObject(report) {
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
     const transactions = _.map(reportData.transactionList, transaction => ({
-        // TransactionID is returned from API as a String
-        transactionID: Number(transaction.transactionID),
+        transactionID: transaction.transactionID,
         amount: transaction.amount,
         currency: transaction.currency,
         created: transaction.created,

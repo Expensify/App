@@ -44,8 +44,9 @@ class IOUTransactions extends Component {
      */
     getActionForTransaction(transaction) {
         const matchedAction = _.find(this.props.reportActions, (action) => {
+            // iouReport.transaction.transactionID is returned as a String, but the originalMessage value is Number
             if (action && action.originalMessage
-                && action.originalMessage.IOUTransactionID === transaction.transactionID) {
+                && action.originalMessage.IOUTransactionID.toString() === transaction.transactionID) {
                 return action;
             }
             return false;

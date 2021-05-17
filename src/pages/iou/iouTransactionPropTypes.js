@@ -14,5 +14,5 @@ export default {
     created: PropTypes.string,
 
     /** The ID of this report transaction */
-    transactionID: PropTypes.number,
+    transactionID: PropTypes.string,
 };
