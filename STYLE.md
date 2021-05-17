@@ -152,6 +152,29 @@ Empty functions (noop) should be declare as arrow functions with no whitespace i
     const callback = () => {};
     ```
 
+Functions with multiple return paths should prefer early returns over `else` or `else if` statements.
+
+```javascript
+    // Bad
+    function doSomething(shouldDoOtherThing) {
+        if (shouldDoOtherThing) {
+            doOtherThing();
+        } else {
+            doThing();
+        }
+    }
+
+    // Good
+    function doSomething(shouldDoOtherThing) {
+        if (shouldDoOtherThing) {
+            doOtherThing();
+            return;
+        }
+
+        doThing();
+    }
+```
+
 ## `var`, `const` and `let`
 
 - Never use `var`
