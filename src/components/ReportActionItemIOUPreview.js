@@ -17,7 +17,7 @@ const propTypes = {
     /** Callback for the Pay/Settle button */
     onPayButtonPressed: PropTypes.func,
 
-    /* The active IOUReport, used for Onyx subscription */
+    /** The active IOUReport, used for Onyx subscription */
     /* eslint-disable-next-line react/no-unused-prop-types */
     iouReportID: PropTypes.number,
 
@@ -34,7 +34,7 @@ const propTypes = {
         /** Outstanding amount of this transaction */
         cachedTotal: PropTypes.string,
 
-        // Does the report have an outstanding IOU that needs to be paid?
+        /** Does the report have an outstanding IOU that needs to be paid? */
         hasOutstandingIOU: PropTypes.bool,
     }),
 

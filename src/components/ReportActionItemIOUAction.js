@@ -9,19 +9,19 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 
 const propTypes = {
-    // All the data of the action
+    /** All the data of the action */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // The associated chatReport
+    /** The associated chatReport */
     chatReportID: PropTypes.number.isRequired,
 
-    // Should render the preview Component?
+    /** Should render the preview Component? */
     shouldDisplayPreview: PropTypes.bool.isRequired,
 
     /* --- Onyx Props --- */
-    // ChatReport associated with iouReport
+    /** ChatReport associated with iouReport */
     chatReport: PropTypes.shape({
-        // The participants of this report
+        /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 };

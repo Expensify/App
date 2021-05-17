@@ -20,49 +20,49 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 
 const propTypes = {
-    // URL Route params
+    /** URL Route params */
     route: PropTypes.shape({
-        // Params from the URL path
+        /** Params from the URL path */
         params: PropTypes.shape({
-            // chatReportID passed via route: /iou/details/:chatReportID/:iouReportID
+            /** chatReportID passed via route: /iou/details/:chatReportID/:iouReportID */
             chatReportID: PropTypes.string,
 
-            // iouReportID passed via route: /iou/details/:chatReportID/:iouReportID
+            /** iouReportID passed via route: /iou/details/:chatReportID/:iouReportID */
             iouReportID: PropTypes.string,
         }),
     }).isRequired,
 
     /* Onyx Props */
-    // Holds data related to IOU view state, rather than the underlying IOU data.
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
-        // Is the IOU Report currently being paid?
+        /** Is the IOU Report currently being paid? */
         loading: PropTypes.bool,
 
-        // Error message, empty represents no error
+        /** Error message, empty represents no error */
         error: PropTypes.bool,
     }),
 
-    // IOU Report data object
+    /** IOU Report data object */
     iouReport: PropTypes.shape({
-        // ID for the chatReport that this IOU is linked to
+        /** ID for the chatReport that this IOU is linked to */
         chatReportID: PropTypes.number,
 
-        // Manager is the person who currently owes money
+        /** Manager is the person who currently owes money */
         managerEmail: PropTypes.string,
 
-        // Owner is the person who is owed money
+        /** Owner is the person who is owed money */
         ownerEmail: PropTypes.string,
 
-        // The IOU transactions
+        /** The IOU transactions */
         transactions: PropTypes.arrayOf(PropTypes.shape(iouTansactionPropTypes)),
 
-        // Does the report have an outstanding IOU that needs to be paid?
+        /** Does the report have an outstanding IOU that needs to be paid? */
         hasOutstandingIOU: PropTypes.bool,
     }).isRequired,
 
-    // Session info for the currently logged in user.
+    /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        // Currently logged in user email
+        /** Currently logged in user email */
         email: PropTypes.string,
     }).isRequired,
 

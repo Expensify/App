@@ -10,10 +10,10 @@ const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // Should the View Details link be displayed?
+    /** Should the View Details link be displayed? */
     shouldShowViewDetailsLink: PropTypes.bool,
 
-    // Callback invoked when View Details is pressed
+    /** Callback invoked when View Details is pressed */
     onViewDetailsPressed: PropTypes.func,
 
     ...withLocalizePropTypes,
