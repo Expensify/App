@@ -5,8 +5,8 @@ import CONST from '../CONST';
 import Environment from '../libs/Environment';
 
 class EnvironmentBadge extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.state = {
             environment: CONST.ENVIRONMENT.PRODUCTION,
