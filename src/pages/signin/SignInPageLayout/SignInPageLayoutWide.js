@@ -14,11 +14,10 @@ import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
-    // The children to show inside the layout
+    /** The children to show inside the layout */
     children: PropTypes.node.isRequired,
 
-    // Whether we should show the welcome text
-    // (the welcome screenshot always displays on wide views)
+    /** Whether we should show the welcome text (the welcome screenshot always displays on wide views) */
     shouldShowWelcomeText: PropTypes.bool,
 
     ...withLocalizePropTypes,

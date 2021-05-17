@@ -6,18 +6,17 @@ import styles, {getAutoGrowTextInputStyle} from '../styles/styles';
 import TextInputFocusable from './TextInputFocusable';
 
 const propTypes = {
-
-    // The value of the comment box
+    /** The value of the comment box */
     value: PropTypes.string.isRequired,
 
-    // A ref to forward to the text input
+    /** A ref to forward to the text input */
     forwardedRef: PropTypes.func.isRequired,
 
-    // General styles to apply to the text input
+    /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
     inputStyle: PropTypes.object,
 
-    // Styles to apply to the text input
+    /** Styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
     textStyle: PropTypes.object.isRequired,
 };
