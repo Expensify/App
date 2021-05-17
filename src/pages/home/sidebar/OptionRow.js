@@ -55,7 +55,7 @@ const propTypes = {
 
     /* Whether we should display full display names of participants for group chat options.
      * If this is false, then we only display each participant's first name. */
-    shouldShowFullDisplayNames: PropTypes.bool,
+    shouldShowFullDisplayNames: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -68,7 +68,6 @@ const defaultProps = {
     showTitleTooltip: false,
     mode: 'default',
     onSelectRow: null,
-    shouldShowFullDisplayNames: false,
 };
 
 const OptionRow = ({
