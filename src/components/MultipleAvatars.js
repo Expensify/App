@@ -5,16 +5,15 @@ import styles from '../styles/styles';
 import Avatar from './Avatar';
 
 const propTypes = {
-    // Array of avatar URL
+    /** Array of avatar URL */
     avatarImageURLs: PropTypes.arrayOf(PropTypes.string),
 
-    // Set the sie of avatars
+    /** Set the sie of avatars */
     size: PropTypes.oneOf(['default', 'small']),
 
-    // Style for Second Avatar
+    /** Style for Second Avatar */
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
-
 };
 
 const defaultProps = {

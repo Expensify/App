@@ -1,11 +1,10 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
+const ActionUtils = require('../../libs/ActionUtils');
 const GithubUtils = require('../../libs/GithubUtils');
 
-const prList = JSON.parse(core.getInput('PR_LIST', {required: true}));
-const isProd = JSON.parse(
-    core.getInput('IS_PRODUCTION_DEPLOY', {required: true}),
-);
+const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
+const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
 const version = core.getInput('DEPLOY_VERSION', {required: true});
 const token = core.getInput('GITHUB_TOKEN', {required: true});
 const octokit = github.getOctokit(token);

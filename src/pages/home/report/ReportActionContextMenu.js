@@ -18,30 +18,34 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
-    // The ID of the report this report action is attached to.
+    /** The ID of the report this report action is attached to. */
     // eslint-disable-next-line react/no-unused-prop-types
     reportID: PropTypes.number.isRequired,
 
-    // The report action this context menu is attached to.
+    /** The report action this context menu is attached to. */
     reportAction: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // If true, this component will be a small, row-oriented menu that displays icons but not text.
-    // If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
+    /** If true, this component will be a small, row-oriented menu that displays icons but not text.
+    If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row. */
     isMini: PropTypes.bool,
 
-    // Controls the visibility of this component.
+    /** Controls the visibility of this component. */
     isVisible: PropTypes.bool,
 
-    // Draft message - if this is set the comment is in 'edit' mode
+    /** The copy selection of text. */
+    selection: PropTypes.string,
+
+    /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    // Function to dismiss the popover containing this menu
+    /** Function to dismiss the popover containing this menu */
     hidePopover: PropTypes.func.isRequired,
 
     /* Onyx Props */
-    // The session of the logged in person
+
+    /** The session of the logged in person */
     session: PropTypes.shape({
-        // Email of the logged in person
+        /** Email of the logged in person */
         email: PropTypes.string,
     }),
     ...withLocalizePropTypes,
@@ -50,6 +54,7 @@ const propTypes = {
 const defaultProps = {
     isMini: false,
     isVisible: false,
+    selection: '',
     session: {},
     draftMessage: '',
 };
@@ -74,7 +79,7 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {
                     const message = _.last(lodashGet(this.props.reportAction, 'message', null));
                     const html = lodashGet(message, 'html', '');
-                    const text = lodashGet(message, 'text', '');
+                    const text = props.selection || lodashGet(message, 'text', '');
                     const isAttachment = _.has(this.props.reportAction, 'isAttachment')
                         ? this.props.reportAction.isAttachment
                         : isReportMessageAttachment(text);
