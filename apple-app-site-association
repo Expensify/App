@@ -10,6 +10,7 @@
                     "/setpassword/*",
                     "/details/*",
                     "/v/*",
+                    "/add-bank-account/*",
                 ]
             }
         ]

@@ -106,7 +106,7 @@ const CONST = {
         PHONE_PAD: 'phone-pad',
     },
 
-    EMOJI_PICKER_SIZE: 360,
+    EMOJI_PICKER_SIZE: 392,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
@@ -128,6 +128,13 @@ const CONST = {
     FETCH_ACTIONS_DELAY: {
         STARTUP: 8000,
         RECONNECT: 1000,
+    },
+
+    PLAID: {
+        EVENT: {
+            ERROR: 'ERROR',
+            EXIT: 'EXIT',
+        },
     },
 
     OS: {
