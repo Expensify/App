@@ -26,4 +26,5 @@ const FullScreenLoadingIndicator = ({visible}) => visible && (
 
 FullScreenLoadingIndicator.propTypes = propTypes;
 FullScreenLoadingIndicator.defaultProps = defaultProps;
+
 export default FullScreenLoadingIndicator;
