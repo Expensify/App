@@ -22,10 +22,9 @@ import openURLInNewTab from '../../libs/openURLInNewTab';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
-    /**
-     * Onyx Props
-     * All reports shared with the user
-    */
+    /** Onyx Props */
+
+    /** All reports shared with the user */
     reports: PropTypes.shape({
         /** ID of the report */
         reportID: PropTypes.number,
