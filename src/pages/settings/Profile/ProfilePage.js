@@ -131,8 +131,7 @@ class ProfilePage extends Component {
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.getLogins = this.getLogins.bind(this);
         this.createMenuItems = this.createMenuItems.bind(this);
-
-        this.notifRef = createRef();
+        this.growlNotification = undefined;
     }
 
     componentDidUpdate(prevProps) {
@@ -211,7 +210,7 @@ class ProfilePage extends Component {
                 selected: selectedTimezone,
             },
         });
-        this.notifRef.current.show(this.props.translate('profilePage.growlMessageOnSave'), 'success', 3000);
+        this.growlNotification.show(this.props.translate('profilePage.growlMessageOnSave'), 'success', 3000);
     }
 
     /**
@@ -261,7 +260,7 @@ class ProfilePage extends Component {
 
         return (
             <ScreenWrapper>
-                <GrowlNotification ref={this.notifRef} />
+                <GrowlNotification ref={el => this.growlNotification = el} />
                 <HeaderWithCloseButton
                     title={this.props.translate('common.profile')}
                     shouldShowBackButton
