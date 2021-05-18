@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import getComponentDisplayName from '../libs/getComponentDisplayName';
 import Environment from '../libs/Environment';
 import CONST from '../CONST';
 
@@ -37,7 +36,6 @@ export default function (WrappedComponent) {
         }
     }
 
-    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
     return WithEnvironment;
 }
 
