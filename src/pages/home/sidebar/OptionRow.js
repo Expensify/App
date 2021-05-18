@@ -78,7 +78,6 @@ const OptionRow = ({
     forceTextUnreadStyle,
     showTitleTooltip,
     mode,
-    shouldShowFullDisplayNames,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -115,7 +114,7 @@ const OptionRow = ({
     const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, firstName, login}) => ({
-            displayName: (isMultipleParticipant && !shouldShowFullDisplayNames ? firstName : displayName) || login,
+            displayName: (isMultipleParticipant ? firstName : displayName) || login,
             tooltip: login,
         }),
     );
