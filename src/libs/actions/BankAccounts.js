@@ -20,6 +20,7 @@ function fetchPlaidLinkToken() {
             if (response.jsonCode !== 200) {
                 return;
             }
+
             Onyx.merge(ONYXKEYS.PLAID_LINK_TOKEN, response.linkToken);
         });
 }
@@ -163,18 +164,36 @@ function setAdditionalDetailsStep(loading, errorFields = null, additionalErrorMe
  * @param {String} currentStep
  * @param {Object} parameters
  * @param {String} [parameters.onfidoData] - JSON string
- * @param {String} [parameters.personalDetails] - JSON string
+ * @param {Object} [parameters.personalDetails] - JSON string
  */
 function activateWallet(currentStep, parameters) {
+    let personalDetails;
+    let onfidoData;
+
     if (!currentStep || !_.contains(CONST.WALLET.STEP, currentStep)) {
         throw new Error('Invalid currentStep passed to activateWallet()');
     }
 
-    if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
+    if (currentStep === CONST.WALLET.STEP.ONFIDO) {
+        onfidoData = parameters.onfidoData;
+    } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
         setAdditionalDetailsStep(true);
+
+        // Personal details are heavily validated on the API side. We will only do a quick check to ensure the values
+        // exist in some capacity and then stringify them.
+        const errorFields = _.reduce(CONST.WALLET.REQUIRED_ADDITIONAL_DETAILS_FIELDS, (missingFields, fieldName) => (
+            !personalDetails[fieldName] ? [...missingFields, fieldName] : missingFields
+        ), []);
+
+        if (!_.isEmpty(errorFields)) {
+            setAdditionalDetailsStep(false, errorFields);
+            return;
+        }
+
+        personalDetails = JSON.stringify(parameters.personalDetails);
     }
 
-    API.Wallet_Activate({currentStep, ...parameters})
+    API.Wallet_Activate({currentStep, personalDetails, onfidoData})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
