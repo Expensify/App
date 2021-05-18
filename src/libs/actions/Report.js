@@ -422,7 +422,7 @@ function removeOptimisticActions(reportID) {
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, set as an iouReport field
- * @returns {Object}
+ * @returns {Promise}
  */
 function fetchIOUReportByID(iouReportID, chatReportID) {
     return fetchIOUReport(iouReportID, chatReportID)
@@ -452,7 +452,7 @@ function fetchIOUReportByID(iouReportID, chatReportID) {
 function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
     fetchIOUReportByID(iouReportID, chatReportID)
         .then((iouReportObject) => {
-            // Now update the linked chatReport data to ensure it has a reference to the updated reportiouReportID
+            // Now sync the chatReport data to ensure it has a reference to the updated iouReportID
             const chatReportObject = {
                 hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
                 iouReportID: iouReportObject.reportID,
@@ -552,9 +552,9 @@ function updateReportWithNewAction(reportID, reportAction) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
 
         // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
-        // triggered for open iouReports (an open iouReport has an IOU, but is not yet paid). After fetching the
-        // iouReport we must update the chatReport, ensuring that it points to the correct iouReportID. If this
-        // sync didn't occur, then new IOUs would not be displayed and paid IOUs would show as unpaid.
+        // triggered for an open iouReport (an open iouReport has an IOU, but is not yet paid). After fetching the
+        // iouReport we must update the chatReport with the correct iouReportID. If we don't, then new IOUs would not
+        // be displayed and paid IOUs would show as unpaid.
         fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
     }
 
