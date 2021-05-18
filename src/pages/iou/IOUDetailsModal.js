@@ -58,7 +58,7 @@ const propTypes = {
 
         /** Does the report have an outstanding IOU that needs to be paid? */
         hasOutstandingIOU: PropTypes.bool,
-    }),
+    }).isRequired,
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
