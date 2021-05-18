@@ -10,7 +10,6 @@ import {
 import colors from '../../styles/colors';
 import Icon from '../../components/Icon';
 import {Checkmark, Exclamation} from '../../components/Icon/Expensicons';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 
@@ -67,18 +66,18 @@ const GrowlNotification = forwardRef((props, ref) => {
                 }
             }}
         >
-            <GrowlNotificationContainer translateY={translateY}>
-                <TouchableWithoutFeedback onPress={() => fling(outDistance)}>
-                    <ScreenWrapper>
+            <View style={styles.growlNotificationWrapper}>
+                <GrowlNotificationContainer translateY={translateY}>
+                    <TouchableWithoutFeedback onPress={() => fling(outDistance)}>
                         <View style={styles.growlNotificationBox}>
                             <Text style={styles.growlNotificationText}>
                                 {options.bodyText}
                             </Text>
                             <Icon src={types[options.type].icon} fill={types[options.type].iconColor} />
                         </View>
-                    </ScreenWrapper>
-                </TouchableWithoutFeedback>
-            </GrowlNotificationContainer>
+                    </TouchableWithoutFeedback>
+                </GrowlNotificationContainer>
+            </View>
         </FlingGestureHandler>
     );
 });
