@@ -46,7 +46,7 @@ jobs:
           destination_branch: staging
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           pr_title: '🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
-          pr_body: '🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
+          pr_body: '🍒 Cherry pick https://github.com/Expensify/Expensify.cash/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
           pr_label: automerge
 
       - name: Check if pull request is mergeable
@@ -58,7 +58,7 @@ jobs:
 
       - name: Auto-assign PR if it is not mergeable
         if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions-ecosystem/action-add-labels@a8ae047fee0ca28235f9764e1c478d2136dc15c1
         with:
           number: ${{ steps.createPullRequest.outputs.pr_number }}
           labels: |
