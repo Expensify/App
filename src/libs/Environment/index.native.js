@@ -1,6 +1,6 @@
-import Config from 'react-native-config';
 import lodashGet from 'lodash/get';
-import {NativeModules} from 'react-native';
+import Config from 'react-native-config';
+import betaChecker from './betaChecker';
 import CONST from '../../CONST';
 
 let environment = null;
@@ -22,9 +22,8 @@ function getEnvironment() {
             return resolve(environment);
         }
 
-        // Since we promote staging builds to production without creating a new build, check w/ the native side to see
-        // if this is staging (TestFlight) or production
-        NativeModules.EnvironmentChecker.isBeta()
+        // If we haven't set the environment yet and we aren't on dev, check to see if this is a beta build
+        betaChecker.isBetaBuild()
             .then((isBeta) => {
                 environment = isBeta ? CONST.ENVIRONMENT.STAGING : CONST.ENVIRONMENT.PRODUCTION;
                 resolve(environment);

@@ -12,6 +12,7 @@ const propTypes = {
 
     /** Height of logo */
     height: PropTypes.number.isRequired,
+
     ...environmentPropTypes,
 };
 
