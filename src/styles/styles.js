@@ -824,7 +824,6 @@ const styles = {
 
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
-        minWidth: CONST.EMOJI_PICKER_SIZE,
     },
 
     emojiPickerList: {
@@ -1396,6 +1395,10 @@ const styles = {
         opacity: 0,
         transform: 'translateX(-100%)',
     },
+
+    cursorDisabled: {
+        cursor: 'not-allowed',
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1699,6 +1702,18 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
     return italicBold || bold || italic || fontFamily.MONOSPACE;
 }
 
+/**
+ * Gives the width for Emoji picker Widget
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {String}
+ */
+function getEmojiPickerStyle(isSmallScreenWidth) {
+    return {
+        width: isSmallScreenWidth ? '100%' : CONST.EMOJI_PICKER_SIZE,
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1718,4 +1733,5 @@ export {
     getWidthAndHeightStyle,
     getModalPaddingStyles,
     getFontFamilyMonospace,
+    getEmojiPickerStyle,
 };
