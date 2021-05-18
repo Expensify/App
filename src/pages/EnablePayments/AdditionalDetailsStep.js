@@ -143,9 +143,8 @@ class AdditionalDetailsStep extends React.Component {
                             text={this.props.translate('additionalDetailsStep.continueButtonText')}
                             isLoading={this.props.walletAdditionalDetails.loading}
                             onClick={() => {
-                                // Submit the form values @TODO validate and handle errors
                                 activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-                                    personalDetails: JSON.stringify(this.state),
+                                    personalDetails: this.state,
                                 });
                             }}
                         />
