@@ -322,6 +322,7 @@ class EmojiPickerMenu extends Component {
                             style={styles.textInput}
                             defaultValue=""
                             ref={el => this.searchInput = el}
+                            autoFocus
                         />
                     </View>
                 )}
