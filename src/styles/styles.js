@@ -470,13 +470,6 @@ const styles = {
         zIndex: 10,
     },
 
-    statusIndicatorSyncing: {
-        // padding: 1,
-        // borderRadius: 8,
-        // right: -2,
-        // bottom: -2,
-    },
-
     statusIndicatorOnline: {
         backgroundColor: themeColors.online,
     },
