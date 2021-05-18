@@ -82,6 +82,7 @@ class SearchPage extends Component {
             recentReports,
             personalDetails,
             userToInvite,
+            showLoader: false,
         };
     }
 
@@ -145,9 +146,11 @@ class SearchPage extends Component {
                 headerMessage: '',
                 userToInvite: null,
                 recentReports: this.preserveRecentReports,
+                showLoader: false,
             });
             return;
         }
+
         let modifiedSearchValue = searchValue;
         const headerMessage = getHeaderMessage(
             this.state.personalDetails.length !== 0,
@@ -155,36 +158,52 @@ class SearchPage extends Component {
             searchValue,
         );
 
-        // this.setState({headerMessage});
 
-        if (/^\d+$/.test(searchValue)) {
+        if (/^\d+$/.test(searchValue) || /^[0-9]*$/.test(searchValue)) {
             // Appends country code
             if (!searchValue.includes('+')) {
                 modifiedSearchValue = `+${this.props.countryCode}${searchValue}`;
             }
+            API.IsValidPhoneNumber({phoneNumber: modifiedSearchValue}).then((resp) => {
+                if (resp.isValid) {
+                    const {recentReports, personalDetails, userToInvite} = getSearchOptions(
+                        this.props.reports,
+                        this.props.personalDetails,
+                        searchValue,
+                    );
+                    this.setState({
+                        userToInvite,
+                        recentReports,
+                        personalDetails,
+                        headerMessage: '',
+                    });
+                } else {
+                    this.setState({
+                        recentReports: this.preserveRecentReports,
+                        userToInvite: null,
+                        headerMessage,
+                    });
+                }
+                this.setState({showLoader: false});
+            });
+        } else {
+            const {recentReports, personalDetails, userToInvite} = getSearchOptions(
+                this.props.reports,
+                this.props.personalDetails,
+                searchValue,
+            );
+            this.setState(prevState => ({
+                userToInvite,
+                recentReports,
+                personalDetails,
+                headerMessage: getHeaderMessage(
+                    (prevState.recentReports.length + prevState.personalDetails.length) !== 0,
+                    Boolean(prevState.userToInvite),
+                    prevState.searchValue,
+                ),
+                showLoader: false,
+            }));
         }
-
-        API.IsValidPhoneNumber({phoneNumber: modifiedSearchValue}).then((resp) => {
-            if (resp.isValid) {
-                const {recentReports, personalDetails, userToInvite} = getSearchOptions(
-                    this.props.reports,
-                    this.props.personalDetails,
-                    searchValue,
-                );
-                this.setState({
-                    userToInvite,
-                    recentReports,
-                    personalDetails,
-                    headerMessage: '',
-                });
-            } else {
-                this.setState({
-                    recentReports: this.preserveRecentReports,
-                    userToInvite: null,
-                    headerMessage,
-                });
-            }
-        });
     }
 
     render() {
@@ -202,13 +221,14 @@ class SearchPage extends Component {
                         value={this.state.searchValue}
                         onSelectRow={this.selectReport}
                         onChangeText={(searchValue = '') => {
-                            this.setState({searchValue});
+                            this.setState({searchValue, showLoader: true});
                             this.validateInput(searchValue);
                         }}
                         headerMessage={this.state.headerMessage}
                         hideSectionHeaders
                         hideAdditionalOptionStates
                         showTitleTooltip
+                        showLoader={this.state.showLoader}
                     />
                 </View>
                 <KeyboardSpacer />

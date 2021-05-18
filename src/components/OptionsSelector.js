@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, ActivityIndicator} from 'react-native';
 import TextInputWithFocusStyles from './TextInputWithFocusStyles';
 import OptionsList from './OptionsList';
 import styles from '../styles/styles';
@@ -61,6 +61,9 @@ const propTypes = {
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
+    /** Whether to show the loading spinner */
+    showLoader: PropTypes.bool,
+
     /** Whether to focus the textinput after an option is selected */
     shouldFocusOnSelectRow: PropTypes.bool,
 
@@ -79,6 +82,7 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
+    showLoader: false,
 };
 
 class OptionsSelector extends Component {
@@ -203,6 +207,7 @@ class OptionsSelector extends Component {
                         placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
+                {this.props.showLoader && <ActivityIndicator size="small" style={[styles.mb3]} />}
                 <OptionsList
                     ref={el => this.list = el}
                     optionHoveredStyle={styles.hoveredComponentBG}
