@@ -4,6 +4,7 @@ import {
     OnfidoCaptureType,
 } from '@onfido/react-native-sdk';
 import onfidoPropTypes from './onfidoPropTypes';
+import CONST from '../../CONST';
 
 class Onfido extends React.Component {
     componentDidMount() {
@@ -19,7 +20,7 @@ class Onfido extends React.Component {
         })
             .then(this.props.onSuccess)
             .catch((error) => {
-                if (error.message === 'User canceled flow') {
+                if (error.message === CONST.ONFIDO.ERROR.USER_CANCELLED) {
                     this.props.onUserExit();
                 }
             });

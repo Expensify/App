@@ -12,6 +12,10 @@ const CONST = {
         PRESSED: 'pressed',
         COMPLETE: 'complete',
     },
+    PLATFORM: {
+        IOS: 'ios',
+        ANDROID: 'android',
+    },
     CLOUDFRONT_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
@@ -167,6 +171,9 @@ const CONST = {
             VIDEO: 'video',
         },
         SMS_NUMBER_COUNTRY_CODE: 'US',
+        ERROR: {
+            USER_CANCELLED: 'User canceled flow',
+        },
     },
 
     OS: {
