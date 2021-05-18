@@ -75,7 +75,7 @@ const propTypes = {
     /** Toggle between compact and default view of the option */
     optionMode: PropTypes.oneOf(['compact', 'default']),
 
-    /* Whether we should display full display names of participants for group chat options.
+    /** Whether we should display full display names of participants for group chat options.
      * If this is false, then we only display each participant's first name. */
     shouldShowFullDisplayNames: PropTypes.bool,
 };
