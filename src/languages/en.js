@@ -105,7 +105,7 @@ export default {
         settleElsewhere: 'I\'ll settle up elsewhere',
         request: ({amount}) => `Request ${amount}`,
         owes: ({manager, owner}) => `${manager} owes ${owner}`,
-        paid: ({owner, manager}) => `${owner} paid ${manager}`,
+        paid: ({owner, manager}) => `${manager} paid ${owner}`,
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
