@@ -1,13 +1,9 @@
 const _ = require('underscore');
 const core = require('@actions/core');
-const github = require('@actions/github');
 const GithubUtils = require('../../libs/GithubUtils');
 
 const run = function () {
-    const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
-    const githubUtils = new GithubUtils(octokit);
-
-    return githubUtils.getStagingDeployCash()
+    return GithubUtils.getStagingDeployCash()
         .then(({labels}) => {
             console.log(`Found StagingDeployCash with labels: ${_.pluck(labels, 'name')}`);
             core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐'));

@@ -20,15 +20,15 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 const propTypes = {
     /* Onyx Props */
 
-    // The details about the account that the user is signing in with
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        // An error message to display to the user
+        /** An error message to display to the user */
         error: PropTypes.string,
 
-        // Success message to display when necessary
+        /** Success message to display when necessary */
         success: PropTypes.string,
 
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 

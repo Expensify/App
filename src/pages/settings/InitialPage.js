@@ -25,24 +25,25 @@ import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
-    // The personal details of the person who is logged in
+
+    /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape({
-        // Display name of the current user from their personal details
+        /** Display name of the current user from their personal details */
         displayName: PropTypes.string,
 
-        // Avatar URL of the current user from their personal details
+        /** Avatar URL of the current user from their personal details */
         avatar: PropTypes.string,
     }),
 
-    // Information about the network
+    /** Information about the network */
     network: PropTypes.shape({
-        // Is the network currently offline or not
+        /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 
-    // The session of the logged in person
+    /** The session of the logged in person */
     session: PropTypes.shape({
-        // Email of the logged in person
+        /** Email of the logged in person */
         email: PropTypes.string,
     }),
 

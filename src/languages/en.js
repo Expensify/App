@@ -32,6 +32,7 @@ export default {
         expensifyDoesntHaveAccessToCamera: 'Expensify.cash does not have access to your camera, please enable the permission and try again.',
         attachmentError: 'Attachment Error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
+        errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
         errorDuringAttachmentSelection: 'Error during attachment selection',
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
@@ -212,6 +213,12 @@ export default {
         passwordCannotBeBlank: 'Password cannot be blank',
         enterPassword: 'Enter a password',
         setPassword: 'Set Password',
+    },
+    addBankAccountPage: {
+        enterPassword: 'Enter password',
+        addBankAccount: 'Add a Bank Account',
+        alreadyAdded: 'This account has already been added.',
+        selectAccount: 'Select an account:',
     },
     attachmentView: {
         unknownFilename: 'Unknown Filename',
