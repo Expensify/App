@@ -68,7 +68,7 @@ class AvatarWithIndicator extends PureComponent {
         this.rotate.setValue(0);
         Animated.timing(this.rotate, {
             toValue: 1,
-            duration: 3000,
+            duration: 2000,
             easing: Easing.linear,
             isInteraction: false,
             useNativeDriver: true,
