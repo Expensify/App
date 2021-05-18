@@ -149,6 +149,22 @@ const CONST = {
             SILVER: 'SILVER',
         },
     },
+
+    PLAID: {
+        EVENT: {
+            ERROR: 'ERROR',
+            EXIT: 'EXIT',
+        },
+    },
+
+    OS: {
+        WINDOWS: 'Windows',
+        MAC_OS: 'Mac OS',
+        ANDROID: 'Android',
+        IOS: 'iOS',
+        LINUX: 'Linux',
+        NATIVE: 'Native',
+    },
 };
 
 export default CONST;

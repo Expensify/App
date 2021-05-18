@@ -46,40 +46,40 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 
 const propTypes = {
-    // A method to call when the form is submitted
+    /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
 
-    // The comment left by the user
+    /** The comment left by the user */
     comment: PropTypes.string,
 
-    // The ID of the report actions will be created for
+    /** The ID of the report actions will be created for */
     reportID: PropTypes.number.isRequired,
 
-    // Details about any modals being used
+    /** Details about any modals being used */
     modal: PropTypes.shape({
-        // Indicates if there is a modal currently visible or not
+        /** Indicates if there is a modal currently visible or not */
         isVisible: PropTypes.bool,
     }),
 
-    // The report currently being looked at
+    /** The report currently being looked at */
     report: PropTypes.shape({
 
-        // participants associated with current report
+        /** participants associated with current report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
-    /* Is the report view covered by the drawer */
+    /** Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
 
-    /* Is the window width narrow, like on a mobile device */
+    /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
-    // Is composer screen focused
+    /** Is composer screen focused */
     isFocused: PropTypes.bool.isRequired,
 
-    // Information about the network
+    /** Information about the network */
     network: PropTypes.shape({
-        // Is the network currently offline or not
+        /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 
@@ -101,7 +101,6 @@ class ReportActionCompose extends React.Component {
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
-        this.submitForm = this.submitForm.bind(this);
         this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
@@ -181,7 +180,7 @@ class ReportActionCompose extends React.Component {
      * Focus the composer text input
      */
     focus() {
-        if (this.textInput && this.textInput.focus) {
+        if (this.textInput) {
             // There could be other animations running while we trigger manual focus.
             // This prevents focus from making those animations janky.
             InteractionManager.runAfterInteractions(() => {
@@ -309,7 +308,7 @@ class ReportActionCompose extends React.Component {
     render() {
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
-        const hasConciergeParticipant = this.props.report.participants.includes(CONST.EMAIL.CONCIERGE);
+        const hasConciergeParticipant = _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -324,7 +323,7 @@ class ReportActionCompose extends React.Component {
                 ]}
                 >
                     <AttachmentModal
-                        title={this.props.translate('reportActionCompose.uploadAttachment')}
+                        isUploadingAttachment
                         onConfirm={(file) => {
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);

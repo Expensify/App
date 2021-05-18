@@ -16,10 +16,10 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 
 const propTypes = {
 
-    // The children to show inside the layout
+    /** The children to show inside the layout */
     children: PropTypes.node.isRequired,
 
-    // Whether we should show the welcome elements
+    /** Whether we should show the welcome elements */
     shouldShowWelcomeText: PropTypes.bool,
     shouldShowWelcomeScreenshot: PropTypes.bool,
 

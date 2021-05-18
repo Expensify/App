@@ -48,6 +48,7 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
+    AddBankAccountModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -81,9 +82,9 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
-    // Information about the network
+    /** Information about the network */
     network: PropTypes.shape({
-        // Is the network currently offline or not
+        /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 
@@ -253,6 +254,12 @@ class AuthScreens extends React.Component {
                     name="EnablePayments"
                     options={modalScreenOptions}
                     component={EnablePaymentsStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="AddBankAccount"
+                    options={modalScreenOptions}
+                    component={AddBankAccountModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

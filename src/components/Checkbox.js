@@ -6,13 +6,13 @@ import Icon from './Icon';
 import {Checkmark} from './Icon/Expensicons';
 
 const propTypes = {
-    // Whether checkbox is checked
+    /** Whether checkbox is checked */
     isChecked: PropTypes.bool.isRequired,
 
-    // A function that is called when the box/label is clicked on
+    /** A function that is called when the box/label is clicked on */
     onClick: PropTypes.func.isRequired,
 
-    // Text that appears next to check box
+    /** Text that appears next to check box */
     label: PropTypes.string,
 };
 

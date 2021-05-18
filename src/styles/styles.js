@@ -1396,6 +1396,10 @@ const styles = {
         opacity: 0,
         transform: 'translateX(-100%)',
     },
+
+    cursorDisabled: {
+        cursor: 'not-allowed',
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1474,6 +1478,7 @@ const webViewStyles = {
         fontSize: variables.fontSizeNormal,
         lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
+        flex: 1,
     },
 };
 
