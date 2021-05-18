@@ -1396,6 +1396,10 @@ const styles = {
         opacity: 0,
         transform: 'translateX(-100%)',
     },
+
+    cursorDisabled: {
+        cursor: 'not-allowed',
+    },
 };
 
 const baseCodeTagStyles = {

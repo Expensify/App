@@ -56,6 +56,9 @@ const propTypes = {
     /* Whether we should display full display names of participants for group chat options.
      * If this is false, then we only display each participant's first name. */
     shouldShowFullDisplayNames: PropTypes.bool.isRequired,
+
+    /** Whether this option should be disabled */
+    isDisabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -68,6 +71,7 @@ const defaultProps = {
     showTitleTooltip: false,
     mode: 'default',
     onSelectRow: null,
+    isDisabled: false,
 };
 
 const OptionRow = ({
@@ -81,6 +85,7 @@ const OptionRow = ({
     isSelected,
     forceTextUnreadStyle,
     showTitleTooltip,
+    isDisabled,
     mode,
     shouldShowFullDisplayNames,
 }) => {
@@ -139,6 +144,7 @@ const OptionRow = ({
                         getBackgroundColorStyle(backgroundColor),
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
+                        isDisabled && styles.cursorDisabled,
                     ]}
                 >
                     <View style={sidebarInnerRowStyle}>
