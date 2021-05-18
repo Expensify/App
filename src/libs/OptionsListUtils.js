@@ -67,7 +67,6 @@ function getSearchText(report, personalDetailList) {
     });
 
     if (report) {
-        searchTerms.add(report.reportName);
         searchTerms.add(...report.reportName.split(',').map(name => name.trim()));
         searchTerms.add(...report.participants);
     }
