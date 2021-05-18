@@ -119,6 +119,12 @@ function addPlaidBankAccount(account, password, plaidLinkToken) {
         });
 }
 
+/**
+ * Fetch and save locally the Onfido SDK token and applicantID
+ * - The sdkToken is used to initialize the Onfido SDK client
+ * - The applicantID is combined with the data returned from the Onfido SDK as we need both to create an
+ *   identity check. Note: This happens in Web-Secure when we call Activate_Wallet on the OnfidoStep.
+ */
 function fetchOnfidoToken() {
     API.Wallet_GetOnfidoSDKToken()
         .then((response) => {
@@ -131,9 +137,11 @@ function fetchOnfidoToken() {
 }
 
 /**
- * @param {Boolean} loading
- * @param {String[]} [errorFields]
- * @param {String} [additionalErrorMessage]
+ * Privately used to update the additionalDetails object in Onyx (which will have various effects on the UI)
+ *
+ * @param {Boolean} loading whether we are making the API call to validate the user's provided personal details
+ * @param {String[]} [errorFields] an array of field names that should display errors in the UI
+ * @param {String} [additionalErrorMessage] an additional error message to display in the UI
  * @private
  */
 function setAdditionalDetailsStep(loading, errorFields = null, additionalErrorMessage = '') {
@@ -141,12 +149,27 @@ function setAdditionalDetailsStep(loading, errorFields = null, additionalErrorMe
 }
 
 /**
+ * This action can be called repeatedly with different steps until an Expensify Wallet has been activated.
+ *
+ * Possible steps:
+ *
+ *     - OnfidoStep - Creates an identity check by calling Onfido's API (via Web-Secure) with data returned from the SDK
+ *     - AdditionalDetailsStep - Validates a user's provided details against a series of checks
+ *     - TermsStep - Ensures that a user has agreed to all of the terms and conditions
+ *
+ * The API will always return the updated userWallet in the response as a convenience so we can avoid calling
+ * Get&returnValueList=userWallet after we call Wallet_Activate.
+ *
  * @param {String} currentStep
  * @param {Object} parameters
  * @param {String} [parameters.onfidoData] - JSON string
  * @param {String} [parameters.personalDetails] - JSON string
  */
 function activateWallet(currentStep, parameters) {
+    if (!currentStep || !_.contains(CONST.WALLET.STEP, currentStep)) {
+        throw new Error('Invalid currentStep passed to activateWallet()');
+    }
+
     if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
         setAdditionalDetailsStep(true);
     }
@@ -186,6 +209,15 @@ function activateWallet(currentStep, parameters) {
         });
 }
 
+/**
+ * Fetches information about a user's Expensify Wallet
+ *
+ * @typedef {Object} UserWallet
+ * @property {Number} availableBalance
+ * @property {Number} currentBalance
+ * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
+ * @property {('SILVER'|'GOLD')} status - will be GOLD when fully activated. SILVER is able to recieve funds only.
+ */
 function fetchUserWallet() {
     API.Get({returnValueList: 'userWallet'})
         .then((response) => {
@@ -193,7 +225,12 @@ function fetchUserWallet() {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.USER_WALLET, response.userWallet);
+            /**
+             * @type UserWallet
+             */
+            const userWallet = response.userWallet;
+
+            Onyx.merge(ONYXKEYS.USER_WALLET, userWallet);
         });
 }
 
