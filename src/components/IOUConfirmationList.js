@@ -224,6 +224,8 @@ class IOUConfirmationList extends Component {
     }
 
     render() {
+        /* eslint-disable-next-line max-len */
+        const buttonText = this.props.translate(this.props.hasMultipleParticipants ? 'common.split' : 'iou.request', {amount: this.props.numberFormat(this.props.iouAmount, {style: 'currency', currency: this.props.selectedCurrency})});
         return (
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
@@ -258,10 +260,9 @@ class IOUConfirmationList extends Component {
                     </View>
                 </View>
                 <View style={[styles.ph5, styles.pb3]}>
-                    {/* eslint-disable-next-line max-len */}
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
-                        text={this.props.translate(this.props.hasMultipleParticipants ? 'common.split' : 'iou.request', {amount: this.props.numberFormat(this.props.iouAmount, {style: 'currency', currency: this.props.selectedCurrency})})}
+                        text={buttonText}
                         onClick={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
