@@ -1,26 +1,25 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, Text} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import ONYXKEYS from '../ONYXKEYS';
-import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
-import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
-import Text from './Text';
-import MultipleAvatars from './MultipleAvatars';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import compose from '../libs/compose';
 import styles from '../styles/styles';
+import ONYXKEYS from '../ONYXKEYS';
+import MultipleAvatars from './MultipleAvatars';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
-    /** All the data of the action */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    /** Additional logic for displaying the pay button */
+    shouldHidePayButton: PropTypes.bool,
 
-    /** Is this the most recent IOU Action? */
-    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
+    /** Callback for the Pay/Settle button */
+    onPayButtonPressed: PropTypes.func,
 
-    /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU: PropTypes.bool.isRequired,
+    /** The active IOUReport, used for Onyx subscription */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    iouReportID: PropTypes.number,
 
     /* Onyx Props */
 
@@ -34,6 +33,9 @@ const propTypes = {
 
         /** Outstanding amount of this transaction */
         cachedTotal: PropTypes.string,
+
+        /** Does the report have an outstanding IOU that needs to be paid? */
+        hasOutstandingIOU: PropTypes.bool,
     }),
 
     /** All of the personal details for everyone */
@@ -48,20 +50,30 @@ const propTypes = {
         /** Currently logged in user email */
         email: PropTypes.string,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     iou: {},
+    iouReportID: undefined,
+    shouldHidePayButton: false,
+    onPayButtonPressed: null,
 };
 
 const ReportActionItemIOUPreview = ({
-    action,
-    isMostRecentIOUReportAction,
-    hasOutstandingIOU,
     iou,
     personalDetails,
     session,
+    shouldHidePayButton,
+    onPayButtonPressed,
+    translate,
 }) => {
+    const sessionEmail = lodashGet(session, 'email', null);
+
+    // Pay button should only be visible to the manager of the report.
+    const isCurrentUserManager = iou.managerEmail === sessionEmail;
+
     const managerName = lodashGet(
         personalDetails,
         [iou.managerEmail, 'displayName'],
@@ -74,51 +86,40 @@ const ReportActionItemIOUPreview = ({
     );
     const managerAvatar = lodashGet(personalDetails, [iou.managerEmail, 'avatar'], '');
     const ownerAvatar = lodashGet(personalDetails, [iou.ownerEmail, 'avatar'], '');
-    const sessionEmail = lodashGet(session, 'email', null);
     const cachedTotal = iou.cachedTotal ? iou.cachedTotal.replace(/[()]/g, '') : '';
 
-    // Pay button should be visible to manager person in the report
-    // Check if the currently logged in user is the manager.
-    const isCurrentUserManager = iou.managerEmail === sessionEmail;
-
     return (
-        <View>
-            <ReportActionItemIOUQuote action={action} />
-            {isMostRecentIOUReportAction
-                    && hasOutstandingIOU
-                    && !_.isEmpty(iou) && (
-                        <View style={styles.iouPreviewBox}>
-                            <View style={styles.flexRow}>
-                                <View style={styles.flex1}>
-                                    <Text style={styles.h1}>{cachedTotal}</Text>
-                                    <Text style={styles.mt2}>
-                                        {managerName}
-                                        {' owes '}
-                                        {ownerName}
-                                    </Text>
-                                </View>
-                                <View style={styles.iouPreviewBoxAvatar}>
-                                    <MultipleAvatars
-                                        avatarImageURLs={[managerAvatar, ownerAvatar]}
-                                        secondAvatarStyle={[styles.secondAvatarInline]}
-                                    />
-                                </View>
-                            </View>
-                            {isCurrentUserManager && (
-                                <TouchableOpacity
-                                    style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.buttonSmallText,
-                                            styles.buttonSuccessText,
-                                        ]}
-                                    >
-                                        Pay
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
+        <View style={styles.iouPreviewBox}>
+            <View style={styles.flexRow}>
+                <View style={styles.flex1}>
+                    <Text style={styles.h1}>{cachedTotal}</Text>
+                    <Text style={styles.mt2}>
+                        {iou.hasOutstandingIOU
+                            ? translate('iou.owes', {manager: managerName, owner: ownerName})
+                            : translate('iou.paid', {manager: managerName, owner: ownerName})}
+                    </Text>
+                </View>
+                <View style={styles.iouPreviewBoxAvatar}>
+                    <MultipleAvatars
+                        avatarImageURLs={[managerAvatar, ownerAvatar]}
+                        secondAvatarStyle={[styles.secondAvatarInline]}
+                    />
+                </View>
+            </View>
+            {isCurrentUserManager && !shouldHidePayButton && (
+                <TouchableOpacity
+                    style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
+                    onPress={onPayButtonPressed}
+                >
+                    <Text
+                        style={[
+                            styles.buttonSmallText,
+                            styles.buttonSuccessText,
+                        ]}
+                    >
+                        {translate('iou.pay')}
+                    </Text>
+                </TouchableOpacity>
             )}
         </View>
     );
@@ -128,14 +129,17 @@ ReportActionItemIOUPreview.propTypes = propTypes;
 ReportActionItemIOUPreview.defaultProps = defaultProps;
 ReportActionItemIOUPreview.displayName = 'ReportActionItemIOUPreview';
 
-export default withOnyx({
-    iou: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ReportActionItemIOUPreview);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        iou: {
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(ReportActionItemIOUPreview);
