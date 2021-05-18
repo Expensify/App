@@ -124,7 +124,7 @@ function addPlaidBankAccount(account, password, plaidLinkToken) {
  * Fetch and save locally the Onfido SDK token and applicantID
  * - The sdkToken is used to initialize the Onfido SDK client
  * - The applicantID is combined with the data returned from the Onfido SDK as we need both to create an
- *   identity check. Note: This happens in Web-Secure when we call Activate_Wallet on the OnfidoStep.
+ *   identity check. Note: This happens in Web-Secure when we call Activate_Wallet during the OnfidoStep.
  */
 function fetchOnfidoToken() {
     API.Wallet_GetOnfidoSDKToken()
