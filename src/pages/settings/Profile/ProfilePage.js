@@ -1,4 +1,4 @@
-import React, {Component, createRef} from 'react';
+import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {
@@ -210,6 +210,7 @@ class ProfilePage extends Component {
                 selected: selectedTimezone,
             },
         });
+
         this.growlNotification.show(this.props.translate('profilePage.growlMessageOnSave'), 'success', 3000);
     }
 
