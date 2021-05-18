@@ -52,10 +52,6 @@ const propTypes = {
 
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(['compact', 'default']),
-
-    /* Whether we should display full display names of participants for group chat options.
-     * If this is false, then we only display each participant's first name. */
-    shouldShowFullDisplayNames: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -82,7 +78,6 @@ const OptionRow = ({
     forceTextUnreadStyle,
     showTitleTooltip,
     mode,
-    shouldShowFullDisplayNames,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -119,7 +114,7 @@ const OptionRow = ({
     const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, firstName, login}) => ({
-            displayName: (isMultipleParticipant && !shouldShowFullDisplayNames ? firstName : displayName) || login,
+            displayName: (isMultipleParticipant ? firstName : displayName) || login,
             tooltip: login,
         }),
     );
