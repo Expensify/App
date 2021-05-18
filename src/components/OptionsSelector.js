@@ -64,10 +64,6 @@ const propTypes = {
     /** Whether to focus the textinput after an option is selected */
     shouldFocusOnSelectRow: PropTypes.bool,
 
-    /* Whether we should display full display names of participants for group chat options.
-     * If this is false, then we only display each participant's first name. */
-    shouldShowFullDisplayNames: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -83,7 +79,6 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
-    shouldShowFullDisplayNames: false,
 };
 
 class OptionsSelector extends Component {
@@ -222,7 +217,6 @@ class OptionsSelector extends Component {
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                     forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                     showTitleTooltip={this.props.showTitleTooltip}
-                    shouldShowFullDisplayNames={this.props.shouldShowFullDisplayNames}
                 />
             </View>
         );
