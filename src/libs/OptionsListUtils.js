@@ -338,11 +338,11 @@ function getSearchOptions(
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: true,
+        prioritizePinnedReports: false,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
-        sortByLastMessageTimestamp: true,
+        sortByLastMessageTimestamp: false,
     });
 }
 
