@@ -2,6 +2,7 @@ import './index.css';
 import React from 'react';
 import * as OnfidoSDK from 'onfido-sdk-ui';
 import onfidoPropTypes from './onfidoPropTypes';
+import CONST from '../../CONST';
 
 class Onfido extends React.Component {
     constructor(props) {
@@ -12,23 +13,23 @@ class Onfido extends React.Component {
     componentDidMount() {
         this.onfidoOut = OnfidoSDK.init({
             token: this.props.sdkToken,
-            containerId: 'onfido-mount',
+            containerId: CONST.ONFIDO.CONTAINER_ID,
             steps: [
                 {
-                    type: 'document',
+                    type: CONST.ONFIDO.TYPE.DOCUMENT,
                     options: {
                         forceCrossDevice: true,
                     },
                 },
                 {
-                    type: 'face',
+                    type: CONST.ONFIDO.TYPE.FACE,
                     options: {
-                        requestedVariant: 'video',
+                        requestedVariant: CONST.ONFIDO.VARIANT.VIDEO,
                         uploadFallback: false,
                     },
                 },
             ],
-            smsNumberCountryCode: 'US',
+            smsNumberCountryCode: CONST.ONFIDO.SMS_NUMBER_COUNTRY_CODE,
             onComplete: this.props.onSuccess,
             onError: () => {
 
@@ -48,7 +49,7 @@ class Onfido extends React.Component {
 
     render() {
         return (
-            <div id="onfido-mount" />
+            <div id={CONST.ONFIDO.CONTAINER_ID} />
         );
     }
 }
