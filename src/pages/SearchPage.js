@@ -15,38 +15,42 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
 
 const personalDetailsPropTypes = PropTypes.shape({
-    // The login of the person (either email or phone number)
+    /** The login of the person (either email or phone number) */
     login: PropTypes.string.isRequired,
 
-    // The URL of the person's avatar (there should already be a default avatar if
-    // the person doesn't have their own avatar uploaded yet)
+    /** The URL of the person's avatar (there should already be a default avatar if
+    the person doesn't have their own avatar uploaded yet) */
     avatar: PropTypes.string.isRequired,
 
-    // This is either the user's full name, or their login if full name is an empty string
+    /** This is either the user's full name, or their login if full name is an empty string */
     displayName: PropTypes.string.isRequired,
 });
 
 const propTypes = {
     /* Onyx Props */
 
-    // All of the personal details for everyone
+    /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
-    // All reports shared with the user
+    /** All reports shared with the user */
     reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
     }).isRequired,
 
-    // Session of currently logged in user
+    /** Session of currently logged in user */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
 
-    /* Window Dimensions Props */
+    /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 class SearchPage extends Component {
@@ -86,7 +90,7 @@ class SearchPage extends Component {
      */
     getSections() {
         const sections = [{
-            title: 'RECENT',
+            title: this.props.translate('iou.recents'),
             data: this.state.recentReports.concat(this.state.personalDetails),
             shouldShow: true,
             indexOffset: 0,
@@ -138,7 +142,7 @@ class SearchPage extends Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title="Search"
+                    title={this.props.translate('common.search')}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.w100]}>
@@ -178,14 +182,18 @@ class SearchPage extends Component {
 SearchPage.propTypes = propTypes;
 SearchPage.displayName = 'SearchPage';
 
-export default withWindowDimensions(withOnyx({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(SearchPage));
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(SearchPage);

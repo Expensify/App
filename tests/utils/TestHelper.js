@@ -1,5 +1,5 @@
 import {signIn, fetchAccountDetails} from '../../src/libs/actions/Session';
-import {fetch as fetchPersonalDetails} from '../../src/libs/actions/PersonalDetails';
+import {fetchPersonalDetails} from '../../src/libs/actions/PersonalDetails';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from './waitForPromisesToResolve';
 

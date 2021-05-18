@@ -4,22 +4,23 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
+import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 
 const propTypes = {
-    // The message fragment needing to be displayed
+    /** The message fragment needing to be displayed */
     fragment: ReportActionFragmentPropTypes.isRequired,
 
-    // Text to be shown for tooltip When Fragment is report Actor
+    /** Text to be shown for tooltip When Fragment is report Actor */
     tooltipText: PropTypes.string,
 
-    // Is this fragment an attachment?
+    /** Is this fragment an attachment? */
     isAttachment: PropTypes.bool,
 
-    // Does this fragment belong to a reportAction that has not yet loaded?
+    /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
 };
 
@@ -48,10 +49,23 @@ class ReportActionItemFragment extends React.PureComponent {
                 }
 
                 // Only render HTML if we have html in the fragment
-                return fragment.html !== fragment.text ? (
-                    <RenderHTML html={fragment.html} debug={false} />
-                ) : (
-                    <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
+                return (
+                    <View style={styles.flexRow}>
+                        {fragment.html !== fragment.text ? (
+                            <RenderHTML html={fragment.html} debug={false} />
+                        ) : (
+                            <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
+                        )}
+                        {fragment.isEdited && (
+                            <Text
+                                style={[styles.ml1]}
+                                fontSize={variables.fontSizeSmall}
+                                color={themeColors.textSupporting}
+                            >
+                                (edited)
+                            </Text>
+                        )}
+                    </View>
                 );
             case 'TEXT':
                 return (

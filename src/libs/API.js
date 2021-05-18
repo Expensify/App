@@ -35,6 +35,7 @@ function isAuthTokenRequired(command) {
         'User_SignUp',
         'ResendValidateCode',
         'ResetPassword',
+        'User_ReopenAccount',
         'ValidateEmail',
     ], command);
 }
@@ -382,12 +383,13 @@ function DeleteLogin(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.returnValueList
+ * @param {Boolean} shouldUseSecure
  * @returns {Promise}
  */
-function Get(parameters) {
+function Get(parameters, shouldUseSecure = false) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
-    return Network.post(commandName, parameters);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, shouldUseSecure);
 }
 
 /**
@@ -545,6 +547,19 @@ function Report_TogglePinned(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.reportActionID
+ * @param {String} parameters.reportComment
+ * @return {Promise}
+ */
+function Report_EditComment(parameters) {
+    const commandName = 'Report_EditComment';
+    requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {Number} parameters.accountID
  * @param {Number} parameters.reportID
  * @param {Number} parameters.sequenceNumber
@@ -624,6 +639,17 @@ function User_GetBetas() {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @returns {Promise}
+ */
+function User_ReopenAccount(parameters) {
+    const commandName = 'User_ReopenAccount';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -689,9 +715,67 @@ function CreateIOUSplit(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @returns {Promise}
+ */
+function Wallet_GetOnfidoSDKToken() {
+    return Network.post('Wallet_GetOnfidoSDKToken', {}, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @returns {Promise}
+ */
+function Plaid_GetLinkToken() {
+    return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.publicToken
+ * @param {Boolean} parameters.allowDebit
+ * @param {String} parameters.bank
+ * @returns {Promise}
+ */
+function BankAccount_Get(parameters) {
+    const commandName = 'BankAccount_Get';
+    requireParameters(['publicToken', 'allowDebit', 'bank'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.accountNumber
+ * @param {String} parameters.addressName
+ * @param {Boolean} parameters.allowDebit
+ * @param {Boolean} parameters.confirm
+ * @param {Boolean} parameters.isSavings
+ * @param {String} parameters.password
+ * @param {String} parameters.routingNumber
+ * @param {String} parameters.setupType
+ * @param {String} parameters.additionalData additional JSON data
+ * @returns {Promise}
+ */
+function BankAccount_Create(parameters) {
+    const commandName = 'BankAccount_Create';
+    requireParameters([
+        'accountNumber',
+        'addressName',
+        'allowDebit',
+        'confirm',
+        'isSavings',
+        'password',
+        'routingNumber',
+        'setupType',
+        'additionalData',
+    ], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
 export {
     getAuthToken,
     Authenticate,
+    BankAccount_Create,
+    BankAccount_Get,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -705,10 +789,12 @@ export {
     Mobile_GetConstants,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
+    Plaid_GetLinkToken,
     Push_Authenticate,
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,
+    Report_EditComment,
     Report_UpdateLastRead,
     ResendValidateCode,
     ResetPassword,
@@ -717,10 +803,12 @@ export {
     UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     reauthenticate,
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
+    Wallet_GetOnfidoSDKToken,
 };

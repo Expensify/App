@@ -8,6 +8,7 @@ import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import {getReportParticipantsTitle} from './reportUtils';
+import {translate} from './translate';
 import Permissions from './Permissions';
 
 /**
@@ -18,6 +19,7 @@ import Permissions from './Permissions';
 
 let currentUserLogin;
 let countryCodeByIP;
+let preferredLocale;
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
@@ -75,15 +77,13 @@ function getSearchText(report, personalDetailList) {
  * @param {Array<Object>} personalDetailList
  * @param {Object} [report]
  * @param {Object} draftComments
- * @param {Number} activeReportID
  * @param {Boolean} showChatPreviewLine
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
+function createOption(personalDetailList, report, draftComments, {showChatPreviewLine = false}) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
-        && (report.reportID !== activeReportID)
         && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
@@ -130,6 +130,11 @@ Onyx.connect({
     callback: val => countryCodeByIP = val || 1,
 });
 
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: val => preferredLocale = val || 'en',
+});
+
 /**
  * Searches for a match when provided with a value
  *
@@ -160,6 +165,7 @@ function isSearchStringMatch(searchValue, searchText) {
 function getOptions(reports, personalDetails, draftComments, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
+    excludeConcierge = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
@@ -207,19 +213,24 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
-        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, activeReportID, {
+        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, {
             showChatPreviewLine,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, activeReportID, {
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, {
             showChatPreviewLine,
         })
     ));
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+
+    if (excludeConcierge) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.CONCIERGE});
+    }
+
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -287,7 +298,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && recentReportOptions.length === 0
             && personalDetailsOptions.length === 0
             && _.every(selectedOptions, option => option.login !== searchValue)
-            && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
+            && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
             && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos())
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
@@ -296,7 +307,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
-        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID, {
+        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
@@ -341,16 +352,19 @@ function getSearchOptions(
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
+ * @param {Boolean} excludeConcierge
  * @returns {Object}
  */
 function getNewChatOptions(
     reports,
     personalDetails,
     searchValue = '',
+    excludeConcierge,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
         includePersonalDetails: true,
+        excludeConcierge,
     });
 }
 
@@ -392,6 +406,7 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
+ * @param {Boolean} excludeConcierge
  * @returns {Object}
  */
 function getNewGroupOptions(
@@ -399,6 +414,7 @@ function getNewGroupOptions(
     personalDetails,
     searchValue = '',
     selectedOptions = [],
+    excludeConcierge,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
@@ -407,6 +423,7 @@ function getNewGroupOptions(
         includePersonalDetails: true,
         includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
+        excludeConcierge,
     });
 }
 
@@ -451,12 +468,12 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  */
 function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
+        return translate(preferredLocale, 'messages.maxParticipantsReached');
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return CONST.MESSAGES.NO_PHONE_NUMBER;
+            return translate(preferredLocale, 'messages.noPhoneNumber');
         }
 
         return searchValue;

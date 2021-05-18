@@ -90,6 +90,7 @@ const KeyboardShortcut = {
      * @param {Function} callback The callback to call
      * @param {String|Array} modifiers Can either be shift or control
      * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
+     * @returns {Function} clean up method
      */
     subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
         const keyCode = this.getKeyCode(key);
@@ -97,6 +98,7 @@ const KeyboardShortcut = {
             events[keyCode] = [];
         }
         events[keyCode].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
+        return () => this.unsubscribe(key);
     },
 
     /**
