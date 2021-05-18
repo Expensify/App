@@ -13,29 +13,33 @@ import themeColors from '../../../styles/themes/default';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    // Currency selection will be implemented later
+    /** Currency selection will be implemented later */
     // eslint-disable-next-line react/no-unused-prop-types
     currencySelected: PropTypes.func.isRequired,
 
-    // User's currency preference
+    /** User's currency preference */
     selectedCurrency: PropTypes.string.isRequired,
 
-    /* Window Dimensions Props */
+    /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
     /* Onyx Props */
 
-    // Holds data related to IOU view state, rather than the underlying IOU data.
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
 
-        // Whether or not the IOU step is loading (retrieving users preferred currency)
+        /** Whether or not the IOU step is loading (retrieving users preferred currency) */
         loading: PropTypes.bool,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -129,7 +133,7 @@ class IOUAmountPage extends React.Component {
                             disabled={this.state.amount.length === 0}
                     >
                         <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            Next
+                            {this.props.translate('common.next')}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -141,6 +145,10 @@ IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 
-export default withWindowDimensions(withOnyx({
-    iou: {key: ONYXKEYS.IOU},
-})(IOUAmountPage));
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx({
+        iou: {key: ONYXKEYS.IOU},
+    }),
+)(IOUAmountPage);

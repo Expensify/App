@@ -24,11 +24,11 @@ const propTypes = {
     /** Whether we should show a back icon */
     shouldShowBackButton: PropTypes.bool,
 
-    /** Fontsize for the text in the Header */
-    textSize: PropTypes.oneOf(['default', 'large']),
-
     /** Whether we should show a border on the bottom of the Header */
     shouldShowBorderBottom: PropTypes.bool,
+
+    /** Whether we should show a download button */
+    shouldShowDownloadButton: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -37,8 +37,8 @@ const defaultProps = {
     onCloseButtonPress: () => {},
     onBackButtonPress: () => {},
     shouldShowBackButton: false,
-    textSize: 'large',
     shouldShowBorderBottom: false,
+    shouldShowDownloadButton: false,
 };
 
 const HeaderWithCloseButton = props => (
@@ -60,10 +60,10 @@ const HeaderWithCloseButton = props => (
                 <Icon src={BackArrow} />
             </TouchableOpacity>
             )}
-            <Header title={props.title} textSize={props.textSize} />
+            <Header title={props.title} />
             <View style={[styles.reportOptions, styles.flexRow]}>
                 {
-                    props.title === 'Attachment' && (
+                    props.shouldShowDownloadButton && (
                         <TouchableOpacity
                             onPress={props.onDownloadButtonPress}
                             style={[styles.touchableButtonImage]}

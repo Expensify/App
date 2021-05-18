@@ -35,8 +35,9 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
     2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it’ll help solve a problem.
     3. If there is no existing issue or Upwork job, create a new GitHub issue in the Expensify.cash repo.
     4. Make sure to fill out all the required information fields in the issue template.
-    5. Optional: If you would like to solve the bug or enhancement that you are proposing, please add a comment on your issue with a solution proposal.
-    6. Pause on this step until a member of the Expensify team responds on your issue with next steps.
+    5. Add the `AutoAssignerTriage` label to your issue.
+    6. Optional: If you would like to solve the bug or enhancement that you are proposing, please add a comment on your issue with a solution proposal.
+    7. Pause on this step until a member of the Expensify team responds on your issue with next steps.
 
 >**Note:** Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with results that are difficult to measure. We also prefer to identify and solve problems at their root. Given that, please ensure all proposed jobs fix a specific problem in a measurable way with evidence so they are easy to evaluate. Here's an example of a good problem/solution:
 >
@@ -84,6 +85,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 	3. Lint - All code must pass lint checks before a merge of a pull request
 13. Please never force push when a PR review has already started (because this messes with the PR review history)
 14. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
+15. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web). If you are unable to build to iOS/OSX due to using a Windows machine, please let the reviewers know so they can double check that platform themselves. 
 
 #### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.

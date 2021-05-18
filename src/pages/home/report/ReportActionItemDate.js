@@ -5,7 +5,7 @@ import DateUtils from '../../../libs/DateUtils';
 import styles from '../../../styles/styles';
 
 const propTypes = {
-    // UTC timestamp for when the action was created
+    /** UTC timestamp for when the action was created */
     timestamp: PropTypes.number.isRequired,
 };
 

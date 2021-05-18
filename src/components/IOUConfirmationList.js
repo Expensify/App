@@ -14,35 +14,36 @@ import {
 import OptionsList from './OptionsList';
 import ButtonWithLoader from './ButtonWithLoader';
 import ONYXKEYS from '../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
-    // Callback to update comment from IOUModal
+    /** Callback to update comment from IOUModal */
     onUpdateComment: PropTypes.func,
 
-    // Comment value from IOUModal
+    /** Comment value from IOUModal */
     comment: PropTypes.string,
 
-    // Should we request a single or multiple participant selection from user
+    /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    // Safe area insets required for mobile devices margins
+    /** Safe area insets required for mobile devices margins */
     insets: SafeAreaInsetPropTypes.isRequired,
 
-    // IOU amount
+    /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
-    // Selected currency from the user
-    // Remove eslint disable after currency symbol is available
+    /** Selected currency from the user
+    Remove eslint disable after currency symbol is available */
     // eslint-disable-next-line react/no-unused-prop-types
     selectedCurrency: PropTypes.string.isRequired,
 
-    // Selected participants from IOUMOdal with login
+    /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -59,25 +60,27 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
 
+    ...withLocalizePropTypes,
+
     /* Onyx Props */
 
-    // The personal details of the person who is logged in
+    /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape({
 
-        // Display name of the current user from their personal details
+        /** Display name of the current user from their personal details */
         displayName: PropTypes.string,
 
-        // Avatar URL of the current user from their personal details
+        /** Avatar URL of the current user from their personal details */
         avatar: PropTypes.string,
 
-        // Primary login of the user
+        /** Primary login of the user */
         login: PropTypes.string,
     }).isRequired,
 
-    // Holds data related to IOU view state, rather than the underlying IOU data.
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
 
-        // Whether or not the IOU step is loading (creating the IOU Report)
+        /** Whether or not the IOU step is loading (creating the IOU Report) */
         loading: PropTypes.bool,
     }),
 };
@@ -116,13 +119,13 @@ class IOUConfirmationList extends Component {
                 `$${this.calculateAmount() / 100}`);
 
             sections.push({
-                title: 'WHO PAID?',
+                title: this.props.translate('iOUConfirmationList.whoPaid'),
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
             });
             sections.push({
-                title: 'WHO WAS THERE?',
+                title: this.props.translate('iOUConfirmationList.whoWasThere'),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
@@ -133,7 +136,7 @@ class IOUConfirmationList extends Component {
                 `$${this.props.iouAmount}`);
 
             sections.push({
-                title: 'TO',
+                title: this.props.translate('common.to').toUpperCase(),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
@@ -241,7 +244,7 @@ class IOUConfirmationList extends Component {
                     />
                     <View>
                         <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                            WHAT&apos;S IT FOR?
+                            {this.props.translate('iOUConfirmationList.whatsItFor')}
                         </Text>
                     </View>
                     <View style={[styles.ph5]}>
@@ -249,7 +252,7 @@ class IOUConfirmationList extends Component {
                             style={[styles.textInput]}
                             value={this.props.comment}
                             onChangeText={this.props.onUpdateComment}
-                            placeholder="Optional"
+                            placeholder={this.props.translate('common.optional')}
                             placeholderTextColor={themeColors.placeholderText}
                         />
                     </View>
@@ -257,7 +260,9 @@ class IOUConfirmationList extends Component {
                 <View style={[styles.ph5, styles.pb3]}>
                     <ButtonWithLoader
                         isLoading={this.props.iou.loading}
-                        text={this.props.hasMultipleParticipants ? 'Split' : `Request $${this.props.iouAmount}`}
+                        text={this.props.hasMultipleParticipants
+                            ? this.props.translate('common.split')
+                            : this.props.translate('iou.request', {amount: this.props.iouAmount})}
                         onClick={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
@@ -270,9 +275,14 @@ IOUConfirmationList.displayName = 'IOUConfirmPage';
 IOUConfirmationList.propTypes = propTypes;
 IOUConfirmationList.defaultProps = defaultProps;
 
-export default compose(withOnyx({
-    iou: {key: ONYXKEYS.IOU},
-    myPersonalDetails: {
-        key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    },
-}), withSafeAreaInsets, withWindowDimensions)(IOUConfirmationList);
+export default compose(
+    withLocalize,
+    withSafeAreaInsets,
+    withWindowDimensions,
+    withOnyx({
+        iou: {key: ONYXKEYS.IOU},
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+    }),
+)(IOUConfirmationList);

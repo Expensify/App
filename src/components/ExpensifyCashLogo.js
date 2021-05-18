@@ -7,7 +7,10 @@ import CONST from '../CONST';
 import withEnvironment, {environmentPropTypes} from './withEnvironment';
 
 const propTypes = {
+    /** Width of logo */
     width: PropTypes.number.isRequired,
+
+    /** Height of logo */
     height: PropTypes.number.isRequired,
     ...environmentPropTypes,
 };

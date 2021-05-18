@@ -14,35 +14,39 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
 
 const personalDetailsPropTypes = PropTypes.shape({
-    // The login of the person (either email or phone number)
+    /** The login of the person (either email or phone number) */
     login: PropTypes.string.isRequired,
 
-    // The URL of the person's avatar (there should already be a default avatar if
-    // the person doesn't have their own avatar uploaded yet)
+    /** The URL of the person's avatar (there should already be a default avatar if
+    the person doesn't have their own avatar uploaded yet) */
     avatar: PropTypes.string.isRequired,
 
-    // This is either the user's full name, or their login if full name is an empty string
+    /** This is either the user's full name, or their login if full name is an empty string */
     displayName: PropTypes.string.isRequired,
 });
 
 const propTypes = {
-    // All of the personal details for everyone
+    /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
-    // All reports shared with the user
+    /** All reports shared with the user */
     reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
     }).isRequired,
 
-    // Session of currently logged in user
+    /** Session of currently logged in user */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
 
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 class NewGroupPage extends Component {
@@ -92,14 +96,14 @@ class NewGroupPage extends Component {
         }
 
         sections.push({
-            title: 'RECENTS',
+            title: this.props.translate('iou.recents'),
             data: this.state.recentReports,
             shouldShow: this.state.recentReports.length > 0,
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
-            title: 'CONTACTS',
+            title: this.props.translate('iou.contacts'),
             data: this.state.personalDetails,
             shouldShow: this.state.personalDetails.length > 0,
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
@@ -182,7 +186,7 @@ class NewGroupPage extends Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title="New Group"
+                    title={this.props.translate('sidebarScreen.newGroup')}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.w100]}>
@@ -214,6 +218,7 @@ class NewGroupPage extends Component {
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
+                        shouldFocusOnSelectRow
                     />
                     {this.state.selectedOptions?.length > 0 && (
                         <View style={[styles.ph5, styles.pb5]}>
@@ -227,7 +232,7 @@ class NewGroupPage extends Component {
                                 ]}
                             >
                                 <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                    Create Group
+                                    {this.props.translate('newGroupPage.createGroup')}
                                 </Text>
                             </Pressable>
                         </View>
@@ -241,14 +246,18 @@ class NewGroupPage extends Component {
 
 NewGroupPage.propTypes = propTypes;
 
-export default withWindowDimensions(withOnyx({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(NewGroupPage));
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(NewGroupPage);
