@@ -71,7 +71,6 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
-    iouReport: {},
 };
 
 class IOUDetailsModal extends Component {
