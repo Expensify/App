@@ -12,15 +12,16 @@ const propTypes = {
     ...environmentPropTypes,
 };
 
+const logoComponents = {
+    [CONST.ENVIRONMENT.DEV]: DevLogo,
+    [CONST.ENVIRONMENT.STAGING]: StagingLogo,
+    [CONST.ENVIRONMENT.PRODUCTION]: ProductionLogo,
+};
+
 const ExpensifyCashLogo = (props) => {
-    switch (props.environment) {
-        case CONST.ENVIRONMENT.PRODUCTION:
-            return <ProductionLogo width={props.width} height={props.height} />;
-        case CONST.ENVIRONMENT.STAGING:
-            return <StagingLogo width={props.width} height={props.height} />;
-        default:
-            return <DevLogo width={props.width} height={props.height} />;
-    }
+    // PascalCase is required for React components, so capitalize the const here
+    const LogoComponent = logoComponents[props.environment];
+    return (<LogoComponent width={props.width} height={props.height} />);
 };
 
 ExpensifyCashLogo.displayName = 'ExpensifyCashLogo';
