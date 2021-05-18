@@ -46,7 +46,7 @@ const documentPickerOptions = {
   */
 function getDataForUpload(fileData) {
     return {
-        name: fileData.fileName || 'chat_attachment',
+        name: fileData.name || 'chat_attachment',
         type: fileData.type,
         uri: fileData.uri,
     };
