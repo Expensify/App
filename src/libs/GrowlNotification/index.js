@@ -1,6 +1,4 @@
-import React, {
-    forwardRef, useImperativeHandle, useRef, useState,
-} from 'react';
+import React, {Component} from 'react';
 import {
     Text, View, Animated,
 } from 'react-native';
@@ -28,58 +26,64 @@ const types = {
     },
 };
 
-const defaultOptions = {
-    bodyText: '',
-    type: 'success',
-};
-
 const outDistance = -255;
 
-const GrowlNotification = forwardRef((props, ref) => {
-    const translateY = useRef(new Animated.Value(outDistance)).current;
-    const [options, setOptions] = useState(defaultOptions);
+class GrowlNotification extends Component {
+    constructor() {
+        super();
 
-    const fling = (val = 0) => {
-        Animated.spring(translateY, {
+        this.state = {
+            bodyText: '',
+            type: 'success',
+            translateY: new Animated.Value(outDistance),
+        };
+    }
+
+    show = (bodyText, type, duration = 2000) => {
+        this.setState({
+            bodyText,
+            type,
+        }, () => {
+            this.fling(0);
+            setTimeout(() => {
+                this.fling(outDistance);
+            }, duration);
+        });
+    }
+
+    fling = (val = outDistance) => {
+        Animated.spring(this.state.translateY, {
             toValue: val,
             duration: 80,
             useNativeDriver: true,
         }).start();
-    };
+    }
 
-    useImperativeHandle(ref, () => ({
-        show: (bodyText, type, duration = 2000) => {
-            setOptions({bodyText, type});
-            fling(0);
-            setTimeout(() => {
-                fling(outDistance);
-            }, duration);
-        },
-    }));
-
-    return (
-        <FlingGestureHandler
-            direction={Directions.UP}
-            onHandlerStateChange={({nativeEvent}) => {
-                if (nativeEvent.state === State.ACTIVE) {
-                    fling(outDistance);
-                }
-            }}
-        >
-            <View style={styles.growlNotificationWrapper}>
-                <GrowlNotificationContainer translateY={translateY}>
-                    <TouchableWithoutFeedback onPress={() => fling(outDistance)}>
-                        <View style={styles.growlNotificationBox}>
-                            <Text style={styles.growlNotificationText}>
-                                {options.bodyText}
-                            </Text>
-                            <Icon src={types[options.type].icon} fill={types[options.type].iconColor} />
-                        </View>
-                    </TouchableWithoutFeedback>
-                </GrowlNotificationContainer>
-            </View>
-        </FlingGestureHandler>
-    );
-});
+    render() {
+        return (
+            <FlingGestureHandler
+                direction={Directions.UP}
+                onHandlerStateChange={({nativeEvent}) => {
+                    if (nativeEvent.state === State.ACTIVE) {
+                        this.fling(outDistance);
+                    }
+                }}
+            >
+                <View style={styles.growlNotificationWrapper}>
+                    <GrowlNotificationContainer translateY={this.state.translateY}>
+                        <TouchableWithoutFeedback onPress={() => this.fling(outDistance)}>
+                            <View style={styles.growlNotificationBox}>
+                                <Text style={styles.growlNotificationText}>
+                                    {this.state.bodyText}
+                                </Text>
+                                <Icon src={types[this.state.type].icon} fill={types[this.state.type].iconColor} />
+                            </View>
+                        </TouchableWithoutFeedback>
+                    </GrowlNotificationContainer>
+                </View>
+            </FlingGestureHandler>
+        );
+    }
+}
 
 export default GrowlNotification;
