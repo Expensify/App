@@ -80,7 +80,7 @@ jobs:
           INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
 
       - name: Update staging branch from main
-        if: ${{ needs.chooseDeployActions.outputs.shouldCherryPick == 'false' }}
+        if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' }}
         uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -88,7 +88,7 @@ jobs:
           INPUTS: '{ "TARGET_BRANCH": "staging" }'
 
       - name: Cherry pick to staging
-        if: ${{ needs.chooseDeployActions.outputs.shouldCherryPick == 'true' }}
+        if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.shouldCherryPick == 'true' }}
         uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
