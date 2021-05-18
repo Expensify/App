@@ -1397,12 +1397,15 @@ const styles = {
         transform: 'translateX(-100%)',
     },
 
+    growlNotificationWrapper: {
+        zIndex: 2,
+    },
+
     growlNotificationContainer: {
         flex: 1,
         justifyContent: 'flex-start',
         position: 'absolute',
         width: '100%',
-        zIndex: 2,
         ...spacing.ph5,
     },
 
