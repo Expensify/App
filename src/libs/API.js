@@ -723,7 +723,7 @@ function Wallet_GetOnfidoSDKToken() {
     const platform = getPlatform();
     return Network.post('Wallet_GetOnfidoSDKToken', {
         // We need to pass this so we can request a token with the correct referrer
-        isViaExpensifyCashNative: platform === 'ios' || platform === 'android',
+        isViaExpensifyCashNative: platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID,
     }, CONST.NETWORK.METHOD.POST, true);
 }
 
