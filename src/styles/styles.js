@@ -1434,6 +1434,10 @@ const styles = {
         lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.textReversed,
     },
+
+    cursorDisabled: {
+        cursor: 'not-allowed',
+    },
 };
 
 const baseCodeTagStyles = {

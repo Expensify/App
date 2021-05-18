@@ -10,22 +10,22 @@ import {toLocalPhone, fromLocalPhone} from '../libs/LocalePhoneNumber';
 import numberFormat from '../libs/numberFormat';
 
 const withLocalizePropTypes = {
-    // Returns translated string for given locale and phrase
+    /** Returns translated string for given locale and phrase */
     translate: PropTypes.func.isRequired,
 
-    // Formats number formatted according to locale and options
+    /** Formats number formatted according to locale and options */
     numberFormat: PropTypes.func.isRequired,
 
-    // Converts a timestamp into a localized string representation that's relative to current moment in time
+    /** Converts a timestamp into a localized string representation that's relative to current moment in time */
     timestampToRelative: PropTypes.func.isRequired,
 
-    // Formats a timestamp to local date and time string
+    /** Formats a timestamp to local date and time string */
     timestampToDateTime: PropTypes.func.isRequired,
 
-    // Returns a locally converted phone number without the country code
+    /** Returns a locally converted phone number without the country code */
     toLocalPhone: PropTypes.func.isRequired,
 
-    // Returns an internationally converted phone number with the country code
+    /** Returns an internationally converted phone number with the country code */
     fromLocalPhone: PropTypes.func.isRequired,
 };
 
