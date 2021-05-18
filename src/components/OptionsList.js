@@ -94,6 +94,7 @@ const defaultProps = {
     innerRef: null,
     showTitleTooltip: false,
     optionMode: undefined,
+    shouldShowFullDisplayNames: false,
 };
 
 class OptionsList extends Component {
@@ -170,6 +171,7 @@ class OptionsList extends Component {
                 showSelectedState={this.props.canSelectMultipleOptions}
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                shouldShowFullDisplayNames={this.props.shouldShowFullDisplayNames}
             />
         );
     }

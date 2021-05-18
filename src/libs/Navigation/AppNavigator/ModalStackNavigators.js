@@ -15,6 +15,7 @@ import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
+import AddBankAccountPage from '../../../pages/AddBankAccountPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -115,6 +116,11 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const AddBankAccountModalStackNavigator = createModalStackNavigator([{
+    Component: AddBankAccountPage,
+    name: 'AddBankAccount_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -124,4 +130,5 @@ export {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
+    AddBankAccountModalStackNavigator,
 };
