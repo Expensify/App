@@ -56,20 +56,23 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
  * @return {String}
  */
 function getSearchText(report, personalDetailList) {
-    const searchTerms = [];
+    // Use a set because it skips adding duplicates
+    // which could potentially significantly speed up our
+    // regex search if someone has thousands of chats
+    const searchTerms = new Set();
 
     _.each(personalDetailList, (personalDetail) => {
-        searchTerms.push(personalDetail.displayName);
-        searchTerms.push(personalDetail.login);
+        searchTerms.add(personalDetail.displayName);
+        searchTerms.add(personalDetail.login);
     });
 
     if (report) {
-        searchTerms.push(report.reportName);
-        searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
-        searchTerms.push(...report.participants);
+        searchTerms.add(report.reportName);
+        searchTerms.add(...report.reportName.split(',').map(name => name.trim()));
+        searchTerms.add(...report.participants);
     }
 
-    return _.unique(searchTerms).join(' ');
+    return _.unique(Array.from(searchTerms)).join(' ');
 }
 
 /**
