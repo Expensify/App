@@ -118,9 +118,10 @@ const OptionRow = ({
     const isMultipleParticipant = option.participantsList.length > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
-        ({displayName, firstName, login}) => (
-            {displayName: (isMultipleParticipant && !shouldShowFullDisplayNames ? firstName : displayName) || login, tooltip: login}
-        ),
+        ({displayName, firstName, login}) => ({
+            displayName: (isMultipleParticipant && !shouldShowFullDisplayNames ? firstName : displayName) || login,
+            tooltip: login,
+        }),
     );
     const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
