@@ -5,7 +5,7 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
-    /* Controls whether the loader is mounted and displayed */
+    /** Controls whether the loader is mounted and displayed */
     visible: PropTypes.bool,
 };
 

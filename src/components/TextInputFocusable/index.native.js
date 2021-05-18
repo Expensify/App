@@ -9,20 +9,20 @@ import _ from 'underscore';
  */
 
 const propTypes = {
-    // If the input should clear, it actually gets intercepted instead of .clear()
+    /** If the input should clear, it actually gets intercepted instead of .clear() */
     shouldClear: PropTypes.bool,
 
-    // A ref to forward to the text input
+    /** A ref to forward to the text input */
     forwardedRef: PropTypes.func,
 
-    // When the input has cleared whoever owns this input should know about it
+    /** When the input has cleared whoever owns this input should know about it */
     onClear: PropTypes.func,
 
-    /* Set focus to this component the first time it renders. Override this in case you need to set focus on one
-    * field out of many, or when you want to disable autoFocus */
+    /** Set focus to this component the first time it renders.
+     * Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
 
-    /* Prevent edits and interactions like focus for this input. */
+    /** Prevent edits and interactions like focus for this input. */
     isDisabled: PropTypes.bool,
 };
 

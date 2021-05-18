@@ -73,6 +73,10 @@ export default {
         marginLeft: 16,
     },
 
+    ml5: {
+        marginLeft: 20,
+    },
+
     mt1: {
         marginTop: 4,
     },

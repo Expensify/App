@@ -16,31 +16,31 @@ import ResendValidationForm from './ResendValidationForm';
 const propTypes = {
     /* Onyx Props */
 
-    // The details about the account that the user is signing in with
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        // Whether or not the account already exists
+        /** Whether or not the account already exists */
         accountExists: PropTypes.bool,
 
-        // Error to display when there is an account error returned
+        /** Error to display when there is an account error returned */
         error: PropTypes.string,
 
-        // Weather or not the account is validated
+        /** Whether or not the account is validated */
         validated: PropTypes.bool,
 
-        // Weather or not the account is validated
+        /** Whether or not the account is validated */
         forgotPassword: PropTypes.bool,
     }),
 
-    // The credentials of the person signing in
+    /** The credentials of the person signing in */
     credentials: PropTypes.shape({
         login: PropTypes.string,
         password: PropTypes.string,
         twoFactorAuthCode: PropTypes.string,
     }),
 
-    // The session of the logged in person
+    /** The session of the logged in person */
     session: PropTypes.shape({
-        // Error to display when there is a session error returned
+        /** Error to display when there is a session error returned */
         authToken: PropTypes.string,
     }),
 };

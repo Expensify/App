@@ -10,22 +10,22 @@ import {toLocalPhone, fromLocalPhone} from '../libs/LocalePhoneNumber';
 import numberFormat from '../libs/numberFormat';
 
 const withLocalizePropTypes = {
-    // Returns translated string for given locale and phrase
+    /** Returns translated string for given locale and phrase */
     translate: PropTypes.func.isRequired,
 
-    // Formats number formatted according to locale and options
+    /** Formats number formatted according to locale and options */
     numberFormat: PropTypes.func.isRequired,
 
-    // Converts a timestamp into a localized string representation that's relative to current moment in time
+    /** Converts a timestamp into a localized string representation that's relative to current moment in time */
     timestampToRelative: PropTypes.func.isRequired,
 
-    // Formats a timestamp to local date and time string
+    /** Formats a timestamp to local date and time string */
     timestampToDateTime: PropTypes.func.isRequired,
 
-    // Returns a locally converted phone number without the country code
+    /** Returns a locally converted phone number without the country code */
     toLocalPhone: PropTypes.func.isRequired,
 
-    // Returns an internationally converted phone number with the country code
+    /** Returns an internationally converted phone number with the country code */
     fromLocalPhone: PropTypes.func.isRequired,
 };
 
@@ -47,6 +47,7 @@ function withLocalizeHOC(WrappedComponent) {
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
+                ref={props.forwardedRef}
                 translate={translations.translate}
                 numberFormat={translations.numberFormat}
                 timestampToRelative={translations.timestampToRelative}
@@ -59,9 +60,14 @@ function withLocalizeHOC(WrappedComponent) {
     WithLocalize.displayName = `WithLocalize(${getComponentDisplayName(WrappedComponent)})`;
     WithLocalize.propTypes = {
         preferredLocale: PropTypes.string,
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
     };
     WithLocalize.defaultProps = {
         preferredLocale: 'en',
+        forwardedRef: undefined,
     };
     return React.forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading

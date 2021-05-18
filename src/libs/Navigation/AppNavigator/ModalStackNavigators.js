@@ -16,6 +16,7 @@ import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 import EnablePaymentsPage from '../../../pages/EnablePayments';
+import AddBankAccountPage from '../../../pages/AddBankAccountPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -121,6 +122,11 @@ const EnablePaymentsStackNavigator = createModalStackNavigator([{
     name: 'EnablePayments_Root',
 }]);
 
+const AddBankAccountModalStackNavigator = createModalStackNavigator([{
+    Component: AddBankAccountPage,
+    name: 'AddBankAccount_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -131,4 +137,5 @@ export {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
+    AddBankAccountModalStackNavigator,
 };

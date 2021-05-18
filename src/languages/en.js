@@ -32,6 +32,7 @@ export default {
         expensifyDoesntHaveAccessToCamera: 'Expensify.cash does not have access to your camera, please enable the permission and try again.',
         attachmentError: 'Attachment Error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
+        errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
         errorDuringAttachmentSelection: 'Error during attachment selection',
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
@@ -193,8 +194,6 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        accountUnvalidated: 'Account is unvalidated',
-        accountForgotPassword: 'Account forgot password: Sending reset password link.',
         weSentYouMagicSignInLink: 'We\'ve sent you a magic sign in link – just click on it to log in!',
         resendLink: 'Resend Link',
     },
@@ -213,6 +212,12 @@ export default {
         passwordCannotBeBlank: 'Password cannot be blank',
         enterPassword: 'Enter a password',
         setPassword: 'Set Password',
+    },
+    addBankAccountPage: {
+        enterPassword: 'Enter password',
+        addBankAccount: 'Add a Bank Account',
+        alreadyAdded: 'This account has already been added.',
+        selectAccount: 'Select an account:',
     },
     attachmentView: {
         unknownFilename: 'Unknown Filename',

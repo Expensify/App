@@ -952,6 +952,7 @@ function addAction(reportID, text, file) {
 
             // Use the client generated ID as a optimistic action ID so we can remove it later
             sequenceNumber: optimisticReportActionID,
+            clientID: optimisticReportActionID,
             avatar: myPersonalDetails.avatar,
             timestamp: moment().unix(),
             message: [
