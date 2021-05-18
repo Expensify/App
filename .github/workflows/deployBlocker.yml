@@ -14,17 +14,19 @@ jobs:
     if: ${{ github.event.label.name == 'DeployBlockerCash' }}
 
     steps:
-      - name: Get URL & number of new deploy blocker (issue)
+      - name: Get URL, title, & number of new deploy blocker (issue)
         if: ${{ github.event_name == 'issues' }}
         run: |
           echo "DEPLOY_BLOCKER_URL=${{ github.event.issue.html_url }}" >> $GITHUB_ENV
           echo "DEPLOY_BLOCKER_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
+          echo "DEPLOY_BLOCKER_TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
 
-      - name: Get URL & number of new deploy blocker (pull request)
+      - name: Get URL, title, & number of new deploy blocker (pull request)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           echo "DEPLOY_BLOCKER_URL=${{ github.event.pull_request.html_url }}" >> $GITHUB_ENV
           echo "DEPLOY_BLOCKER_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          echo "DEPLOY_BLOCKER_TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_ENV
 
       - name: Update StagingDeployCash with new deploy blocker
         uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
@@ -48,7 +50,7 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: "#DB4545",
-                text: '💥 New [Expensify.cash Deploy Blocker](${{ env.DEPLOY_BLOCKER_URL }}) found!',
+                text: '💥 New E.cash Deploy Blocker: <${{ env.DEPLOY_BLOCKER_URL }}|${{ env.DEPLOY_BLOCKER_TITLE }}>',
               }]
             }
         env:
