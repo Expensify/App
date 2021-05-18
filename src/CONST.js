@@ -157,6 +157,18 @@ const CONST = {
         },
     },
 
+    ONFIDO: {
+        CONTAINER_ID: 'onfido-mount',
+        TYPE: {
+            DOCUMENT: 'document',
+            FACE: 'face',
+        },
+        VARIANT: {
+            VIDEO: 'video',
+        },
+        SMS_NUMBER_COUNTRY_CODE: 'US',
+    },
+
     OS: {
         WINDOWS: 'Windows',
         MAC_OS: 'Mac OS',
