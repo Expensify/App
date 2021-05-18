@@ -16,6 +16,7 @@ const GithubUtils = __nccwpck_require__(7999);
 
 const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
 const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
+const isCP = ActionUtils.getJSONInput('IS_CHERRY_PICK', {required: false}, false);
 const version = core.getInput('DEPLOY_VERSION', {required: true});
 
 
@@ -46,8 +47,9 @@ const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
     + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
+const deployVerb = isCP ? 'Cherry-picked' : 'Deployed';
 
-let message = `🚀 [Deployed](${workflowURL}) to ${isProd ? 'production' : 'staging'} in version: ${version}🚀`;
+let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'} in version: ${version}🚀`;
 message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
 message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
