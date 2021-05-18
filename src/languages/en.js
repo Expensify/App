@@ -8,7 +8,7 @@ export default {
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
-        split: 'Split',
+        split: ({amount}) => `Split ${amount}`,
         new: 'NEW',
         search: 'Search',
         next: 'Next',
