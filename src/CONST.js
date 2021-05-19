@@ -145,6 +145,14 @@ const CONST = {
         LINUX: 'Linux',
         NATIVE: 'Native',
     },
+
+    IOU: {
+        SETTLEMENT_TYPE: {
+            ELSEWHERE: 'elsewhere',
+            PAYPAL_ME: 'paypalMe',
+            VENMO: 'venmo',
+        },
+    },
 };
 
 export default CONST;
