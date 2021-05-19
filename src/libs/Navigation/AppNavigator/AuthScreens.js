@@ -119,7 +119,6 @@ class AuthScreens extends React.Component {
         User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
-        BankAccounts.fetchBankAccountList();
         UnreadIndicatorUpdater.listenForReportChanges();
 
         // Refresh the personal details, timezone and betas every 30 minutes
