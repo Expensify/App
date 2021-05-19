@@ -27,10 +27,12 @@ export default function (WrappedComponent) {
         }
 
         render() {
+            const {forwardedRef, ...rest} = this.props;
             return (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
+                    {...rest}
+                    ref={forwardedRef}
                     environment={this.state.environment}
                 />
             );
@@ -38,7 +40,19 @@ export default function (WrappedComponent) {
     }
 
     WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
-    return WithEnvironment;
+    WithEnvironment.propTypes = {
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
+    };
+    WithEnvironment.defaultProps = {
+        forwardedRef: undefined,
+    };
+    return React.forwardRef((props, ref) => (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <WithEnvironment {...props} forwardedRef={ref} />
+    ));
 }
 
 export {
