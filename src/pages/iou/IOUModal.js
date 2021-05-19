@@ -16,6 +16,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import CONST from '../../CONST';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -94,7 +95,7 @@ class IOUModal extends Component {
 
             // amount is currency in decimal format
             amount: '',
-            selectedCurrency: 'USD',
+            selectedCurrency: CONST.CURRENCY.USD,
             comment: '',
         };
 

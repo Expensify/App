@@ -20,6 +20,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import CreateMenu from '../../components/CreateMenu';
+import isAppInstalled from '../../libs/isAppInstalled';
 
 const propTypes = {
     /** URL Route params */
@@ -82,6 +83,7 @@ class IOUDetailsModal extends Component {
         this.state = {
             settlementType: CONST.IOU.SETTLEMENT_TYPE.ELSEWHERE,
             isSettlementMenuVisible: false,
+            canUseVenmo: false,
         };
 
         this.performIOUPayment = this.performIOUPayment.bind(this);
@@ -89,6 +91,27 @@ class IOUDetailsModal extends Component {
 
     componentDidMount() {
         fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
+        this.setCanUseVenmo();
+    }
+
+    setCanUseVenmo() {
+        if (this.props.iouReport !== CONST.CURRENCY.USD) {
+            // return
+        }
+
+        console.log(this.props.report);
+        // We can use Venmo if:
+        //   1. The app is installed
+        //   2. IOUReport.currency === USD
+        //   3. report.submitterPhoneNumbers contains a valid US number
+        isAppInstalled('venmo')
+            .then((isVenmoInstalled) => {
+                if (!isVenmoInstalled) {
+                    return;
+                }
+
+                this.setState({canUseVenmo: true});
+            });
     }
 
     setMenuVisibility(isSettlementMenuVisible) {
