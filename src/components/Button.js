@@ -87,7 +87,7 @@ const Button = (props) => {
             disabled={props.isLoading || props.isDisabled}
             style={[
                 ...additionalStyles,
-                styles.flex1,
+                props.shouldRemoveRightBorder ? styles.flex1 : undefined,
             ]}
         >
             {({pressed, hovered}) => (
