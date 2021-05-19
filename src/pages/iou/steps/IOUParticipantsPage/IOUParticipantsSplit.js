@@ -1,9 +1,5 @@
 import React, {Component} from 'react';
-import {
-    Pressable,
-    View,
-    Text,
-} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -14,6 +10,7 @@ import {getNewGroupOptions} from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
+import Button from '../../../../components/Button';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -230,19 +227,12 @@ class IOUParticipantsSplit extends Component {
                 />
                 {this.props.participants?.length > 0 && (
                     <View style={[styles.ph5, styles.pb5]}>
-                        <Pressable
+                        <Button
+                            success
+                            style={[styles.w100]}
                             onPress={this.finalizeParticipants}
-                            style={({hovered}) => [
-                                styles.button,
-                                styles.buttonSuccess,
-                                styles.w100,
-                                hovered && styles.buttonSuccessHovered,
-                            ]}
-                        >
-                            <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                {this.props.translate('common.next')}
-                            </Text>
-                        </Pressable>
+                            text={this.props.translate('common.next')}
+                        />
                     </View>
                 )}
             </View>

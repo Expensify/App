@@ -12,7 +12,7 @@ import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import {changePassword} from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -133,7 +133,9 @@ class PasswordPage extends Component {
                         )}
                     </View>
                     <View style={styles.flexGrow0}>
-                        <ButtonWithLoader
+                        <Button
+                            success
+                            style={[styles.mb2]}
                             isDisabled={!this.state.currentPassword || !this.state.newPassword
                                 || !this.state.confirmNewPassword
                                 || (this.state.newPassword !== this.state.confirmNewPassword)
@@ -141,7 +143,7 @@ class PasswordPage extends Component {
                                 || !this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING)}
                             isLoading={this.props.account.loading}
                             text={this.props.translate('common.save')}
-                            onClick={this.handleChangePassword}
+                            onPress={this.handleChangePassword}
                         />
                     </View>
                 </View>

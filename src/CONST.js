@@ -1,6 +1,11 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 
 const CONST = {
+    APP_DOWNLOAD_LINKS: {
+        ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
+        IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
+        DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
+    },
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
@@ -12,6 +17,7 @@ const CONST = {
         PRESSED: 'pressed',
         COMPLETE: 'complete',
     },
+    CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
@@ -106,7 +112,7 @@ const CONST = {
         PHONE_PAD: 'phone-pad',
     },
 
-    EMOJI_PICKER_SIZE: 360,
+    EMOJI_PICKER_SIZE: 392,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
