@@ -867,63 +867,77 @@ function fetchAllReports(
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
-    return API.Get({
-        returnValueList: 'chatList',
-    })
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                return;
-            }
+    API.GetAllReports().then((response) => {
+        if (response.jsonCode !== 200) {
+            return;
+        }
 
-            // The cast here is necessary as Get rvl='chatList' may return an int or Array
-            const reportIDs = String(response.chatList)
-                .split(',')
-                .filter(_.identity);
-
-            // Get all the chat reports if they have any, otherwise create one with concierge
-            if (reportIDs.length > 0) {
-                return fetchChatReportsByIDs(reportIDs);
-            }
-
-            return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
-        })
-        .then((returnedReportIDs) => {
-            Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
-
-            if (shouldRecordHomePageTiming) {
-                Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
-            }
-
-            // Delay fetching report history as it significantly increases sign in to interactive time.
-            // Register the timer so we can clean it up if the user quickly logs out after logging in. If we don't
-            // cancel the timer we'll make unnecessary API requests from the sign in page.
-            Timers.register(setTimeout(() => {
-                // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
-                // content and improve chat switching experience by only downloading content we don't have yet.
-                // This improves performance significantly when reconnecting by limiting API requests and unnecessary
-                // data processing by Onyx.
-                const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
-                    isReportMissingActions(id, reportMaxSequenceNumbers[id])
-                ));
-
-                if (_.isEmpty(reportIDsToFetchActions)) {
-                    console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
-                    return;
+        if (response.onyxInstructions) {
+            _.each(response.onyxInstructions, (instruction) => {
+                if (instruction.action === 'mergeCollection') {
+                    Onyx.mergeCollection(instruction.key, instruction.value);
                 }
+            });
+        }
+    });
 
-                console.debug('[Report] Fetching reportActions for reportIDs: ', {
-                    reportIDs: reportIDsToFetchActions,
-                });
-                _.each(reportIDsToFetchActions, (reportID) => {
-                    const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
-                    fetchActions(reportID, offset);
-                });
-
-                // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
-                // more requests and operations. Startup delay is longer since there is a lot more work done to build
-                // up the UI when the app first initializes.
-            }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT));
-        });
+    // return API.Get({
+    //     returnValueList: 'chatList',
+    // })
+    //     .then((response) => {
+    //         if (response.jsonCode !== 200) {
+    //             return;
+    //         }
+    //
+    //         // The cast here is necessary as Get rvl='chatList' may return an int or Array
+    //         const reportIDs = String(response.chatList)
+    //             .split(',')
+    //             .filter(_.identity);
+    //
+    //         // Get all the chat reports if they have any, otherwise create one with concierge
+    //         if (reportIDs.length > 0) {
+    //             return fetchChatReportsByIDs(reportIDs);
+    //         }
+    //
+    //         return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
+    //     })
+    //     .then((returnedReportIDs) => {
+    //         Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
+    //
+    //         if (shouldRecordHomePageTiming) {
+    //             Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
+    //         }
+    //
+    //         // Delay fetching report history as it significantly increases sign in to interactive time.
+    //         // Register the timer so we can clean it up if the user quickly logs out after logging in. If we don't
+    //         // cancel the timer we'll make unnecessary API requests from the sign in page.
+    //         Timers.register(setTimeout(() => {
+    //             // Filter reports to see which ones have actions we need to fetch so we can preload Onyx with new
+    //             // content and improve chat switching experience by only downloading content we don't have yet.
+    //             // This improves performance significantly when reconnecting by limiting API requests and unnecessary
+    //             // data processing by Onyx.
+    //             const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
+    //                 isReportMissingActions(id, reportMaxSequenceNumbers[id])
+    //             ));
+    //
+    //             if (_.isEmpty(reportIDsToFetchActions)) {
+    //                 console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
+    //                 return;
+    //             }
+    //
+    //             console.debug('[Report] Fetching reportActions for reportIDs: ', {
+    //                 reportIDs: reportIDsToFetchActions,
+    //             });
+    //             _.each(reportIDsToFetchActions, (reportID) => {
+    //                 const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
+    //                 fetchActions(reportID, offset);
+    //             });
+    //
+    //             // We are waiting a set amount of time to allow the UI to finish loading before bogging it down with
+    //             // more requests and operations. Startup delay is longer since there is a lot more work done to build
+    //             // up the UI when the app first initializes.
+    //         }, shouldDelayActionsFetch ? CONST.FETCH_ACTIONS_DELAY.STARTUP : CONST.FETCH_ACTIONS_DELAY.RECONNECT));
+    //     });
 }
 
 /**

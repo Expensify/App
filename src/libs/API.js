@@ -403,6 +403,11 @@ function GetAccountStatus(parameters) {
     return Network.post(commandName, parameters);
 }
 
+function GetAllReports() {
+    const commandName = 'GetAllReports';
+    return Network.post(commandName, {}, CONST.NETWORK.METHOD.POST);
+}
+
 /**
  * @param {Object} parameters
  * @param {String} parameters.debtorEmail
@@ -794,6 +799,7 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
+    GetAllReports,
     GetIOUReport,
     GetRequestCountryCode,
     Graphite_Timer,
