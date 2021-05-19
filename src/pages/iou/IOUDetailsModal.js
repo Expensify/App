@@ -170,7 +170,7 @@ class IOUDetailsModal extends Component {
                 }
 
                 this.setState(prevState => ({
-                    paymentOptions: [...prevState, CONST.IOU.PAYMENT_TYPE.VENMO],
+                    paymentOptions: [...prevState.paymentOptions, CONST.IOU.PAYMENT_TYPE.VENMO],
                 }));
             });
     }
@@ -207,7 +207,8 @@ class IOUDetailsModal extends Component {
                             && this.props.iouReport.managerEmail === sessionEmail && (
                             <View style={styles.p5}>
                                 <Button
-                                    shouldShowDropDownArrow
+                                    success
+                                    shouldShowDropDownArrow={this.state.paymentOptions.length > 1}
                                     text={paymentTypeText[this.state.paymentType]}
                                     isLoading={this.props.iou.loading}
                                     onPress={this.performIOUPayment}
@@ -215,21 +216,23 @@ class IOUDetailsModal extends Component {
                                         this.setMenuVisibility(true);
                                     }}
                                 />
-                                <CreateMenu
-                                    isVisible={this.state.isSettlementMenuVisible}
-                                    onClose={() => this.setMenuVisibility(false)}
-                                    onItemSelected={() => this.setMenuVisibility(false)}
-                                    anchorPosition={styles.createMenuPositionRightSidepane}
-                                    animationIn="fadeInUp"
-                                    animationOut="fadeOutDown"
-                                    headerText="Choose payment method:"
-                                    menuItems={_.map(this.state.paymentOptions, paymentType => ({
-                                        text: paymentTypeText[paymentType],
-                                        onSelected: () => {
-                                            this.setState({paymentType});
-                                        },
-                                    }))}
-                                />
+                                {this.state.paymentOptions.length > 1 && (
+                                    <CreateMenu
+                                        isVisible={this.state.isSettlementMenuVisible}
+                                        onClose={() => this.setMenuVisibility(false)}
+                                        onItemSelected={() => this.setMenuVisibility(false)}
+                                        anchorPosition={styles.createMenuPositionRightSidepane}
+                                        animationIn="fadeInUp"
+                                        animationOut="fadeOutDown"
+                                        headerText="Choose payment method:"
+                                        menuItems={_.map(this.state.paymentOptions, paymentType => ({
+                                            text: paymentTypeText[paymentType],
+                                            onSelected: () => {
+                                                this.setState({paymentType});
+                                            },
+                                        }))}
+                                    />
+                                )}
                             </View>
                         ))}
                     </View>
