@@ -86,7 +86,7 @@ class GrowlNotification extends Component {
             >
                 <View style={styles.growlNotificationWrapper}>
                     <GrowlNotificationContainer translateY={this.state.translateY}>
-                        <TouchableWithoutFeedback onPress={() => this.fling(INACTIVE_POSITION_Y)}>
+                        <TouchableWithoutFeedback onPress={this.fling}>
                             <View style={styles.growlNotificationBox}>
                                 <Text style={styles.growlNotificationText}>
                                     {this.state.bodyText}
