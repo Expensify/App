@@ -13,7 +13,7 @@ import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import ButtonWithLoader from '../components/ButtonWithLoader';
+import Button from '../components/Button';
 import themeColors from '../styles/themes/default';
 import SignInPageLayout from './signin/SignInPageLayout';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
@@ -110,10 +110,12 @@ class SetPasswordPage extends Component {
                         />
                     </View>
                     <View>
-                        <ButtonWithLoader
+                        <Button
+                            success
+                            style={[styles.mb2]}
                             text={this.props.translate('setPasswordPage.setPassword')}
                             isLoading={this.props.account.loading}
-                            onClick={this.validateAndSubmitForm}
+                            onPress={this.validateAndSubmitForm}
                         />
                     </View>
 
