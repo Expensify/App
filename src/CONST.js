@@ -150,11 +150,19 @@ const CONST = {
     },
 
     IOU: {
-        SETTLEMENT_TYPE: {
-            ELSEWHERE: 'elsewhere',
-            PAYPAL_ME: 'paypalMe',
-            VENMO: 'venmo',
+        // Note: These payment types are used when building IOU reportAction message values in the server and should
+        // not be changed.
+        PAYMENT_TYPE: {
+            ELSEWHERE: 'Elsewhere',
+            PAYPAL_ME: 'PayPal.me',
+            VENMO: 'Venmo',
         },
+    },
+
+    REGEX: {
+        US_PHONE: /^\+1\d{10}$/,
+        PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
+        NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
     },
 };
 

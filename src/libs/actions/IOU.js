@@ -1,5 +1,7 @@
+import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
@@ -112,10 +114,43 @@ function createIOUSplit(params) {
 }
 
 /**
+ * @private
+ *
+ * @param {Number} amount
+ * @param {String} submitterPhoneNumber
+ * @returns {String}
+ */
+function buildVenmoPaymentURL(amount, submitterPhoneNumber) {
+    const note = 'For%20Expensify.cash%20request';
+    return `venmo://paycharge?txn=pay&recipients=${submitterPhoneNumber}&amount=${amount}&note=${note}`;
+}
+
+/**
+ * @private
+ *
+ * @param {Number} amount
+ * @param {String} submitterPayPalMeAddress
+ * @param {String} currency
+ * @returns {String}
+ */
+function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
+    return `https://paypal.me/${submitterPayPalMeAddress}/${amount}${currency}`;
+}
+
+/**
  * Pays an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
+ *
+ * @param {Object} params
+ * @param {Number} params.chatReportID
+ * @param {Number} params.reportID
+ * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
+ * @param {Number} params.amount
+ * @param {String} params.currency
+ * @param {String} [params.submitterPhoneNumber] - used for Venmo
+ * @param {String} [params.submitterPayPalMeAddress]
  */
 function payIOUReport({
-    chatReportID, reportID, paymentMethodType,
+    chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
     API.PayIOU({
@@ -134,6 +169,14 @@ function payIOUReport({
             // iouReport being fetched here must be open, because only an open iouReoport can be paid.
             // Therefore, we should also sync the chatReport after fetching the iouReport.
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+
+            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+                Linking.openURL(buildVenmoPaymentURL(amount, submitterPhoneNumber));
+            }
+
+            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
+                Linking.openURL(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
+            }
         })
         .catch((error) => {
             console.error(`Error Paying iouReport: ${error}`);
