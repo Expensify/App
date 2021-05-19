@@ -8,6 +8,7 @@ import SearchPage from '../../../pages/SearchPage';
 import DetailsPage from '../../../pages/DetailsPage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
+import IOUDetailsModal from '../../../pages/iou/IOUDetailsModal';
 import SettingsInitialPage from '../../../pages/settings/InitialPage';
 import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
@@ -16,6 +17,7 @@ import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
+import AddBankAccountPage from '../../../pages/AddBankAccountPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -64,6 +66,11 @@ const IOURequestModalStackNavigator = createModalStackNavigator([{
 {
     Component: IOUCurrencySelection,
     name: 'IOU_Request_Currency',
+}]);
+
+const IOUDetailsModalStackNavigator = createModalStackNavigator([{
+    Component: IOUDetailsModal,
+    name: 'IOU_Details_Root',
 }]);
 
 const DetailsModalStackNavigator = createModalStackNavigator([{
@@ -124,13 +131,20 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const AddBankAccountModalStackNavigator = createModalStackNavigator([{
+    Component: AddBankAccountPage,
+    name: 'AddBankAccount_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
+    IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
+    AddBankAccountModalStackNavigator,
 };

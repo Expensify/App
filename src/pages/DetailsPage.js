@@ -19,20 +19,21 @@ import compose from '../libs/compose';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
-        // login passed via route /details/:login
+        /** login passed via route /details/:login */
         login: PropTypes.string,
 
-        // report ID passed
+        /** report ID passed */
         reportID: PropTypes.string,
     }),
 });
 
 const propTypes = {
     /* Onyx Props */
-    // The personal details of the person who is logged in
+
+    /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
 
-    // Route params
+    /** Route params */
     route: matchType.isRequired,
 
     ...withLocalizePropTypes,
@@ -47,7 +48,7 @@ const DetailsPage = ({personalDetails, route, translate}) => {
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('detailsPage.details')}
+                title={translate('common.details')}
                 shouldShowBackButton={shouldShowBackButton}
                 onBackButtonPress={Navigation.goBack}
                 onCloseButtonPress={() => Navigation.dismissModal()}

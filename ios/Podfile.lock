@@ -157,7 +157,8 @@ PODS:
     - RNPermissions
   - Permission-LocationWhenInUse (3.0.1):
     - RNPermissions
-  - PromisesObjC (1.2.11)
+  - Plaid (2.1.2)
+  - PromisesObjC (1.2.12)
   - RCTRequired (0.63.3)
   - RCTTypeSafety (0.63.3):
     - FBLazyVector (= 0.63.3)
@@ -338,6 +339,9 @@ PODS:
     - React-Core
   - react-native-pdf (6.2.2):
     - React-Core
+  - react-native-plaid-link-sdk (7.0.5):
+    - Plaid (~> 2.1.2)
+    - React-Core
   - react-native-progress-bar-android (1.0.4):
     - React
   - react-native-progress-view (1.2.3):
@@ -472,6 +476,7 @@ DEPENDENCIES:
   - Permission-LocationAccuracy (from `../node_modules/react-native-permissions/ios/LocationAccuracy`)
   - Permission-LocationAlways (from `../node_modules/react-native-permissions/ios/LocationAlways`)
   - Permission-LocationWhenInUse (from `../node_modules/react-native-permissions/ios/LocationWhenInUse`)
+  - Plaid (~> 2.1.2)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
   - React (from `../node_modules/react-native/`)
@@ -490,6 +495,7 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
+  - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
   - "react-native-progress-bar-android (from `../node_modules/@react-native-community/progress-bar-android`)"
   - "react-native-progress-view (from `../node_modules/@react-native-community/progress-view`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -544,6 +550,7 @@ SPEC REPOS:
     - libevent
     - nanopb
     - OpenSSL-Universal
+    - Plaid
     - PromisesObjC
     - YogaKit
 
@@ -596,6 +603,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pdf:
     :path: "../node_modules/react-native-pdf"
+  react-native-plaid-link-sdk:
+    :path: "../node_modules/react-native-plaid-link-sdk"
   react-native-progress-bar-android:
     :path: "../node_modules/@react-native-community/progress-bar-android"
   react-native-progress-view:
@@ -686,7 +695,8 @@ SPEC CHECKSUMS:
   Permission-LocationAccuracy: e8adff9ede1b23b43b7054a4500113d515fc87a8
   Permission-LocationAlways: 7f7f373d086af7a81b2f4f20d65d29266ca2043b
   Permission-LocationWhenInUse: 3ae82a9feb5da4e94e386dba17c7dd3531af9feb
-  PromisesObjC: 8c196f5a328c2cba3e74624585467a557dcb482f
+  Plaid: c02276ccc630a726a9ed790bf923d29839ff4017
+  PromisesObjC: 3113f7f76903778cf4a0586bd1ab89329a0b7b97
   RCTRequired: 48884c74035a0b5b76dbb7a998bd93bcfc5f2047
   RCTTypeSafety: edf4b618033c2f1c5b7bc3d90d8e085ed95ba2ab
   React: f36e90f3ceb976546e97df3403e37d226f79d0e3
@@ -703,6 +713,7 @@ SPEC CHECKSUMS:
   react-native-image-picker: 32d1ad2c0024ca36161ae0d5c2117e2d6c441f11
   react-native-netinfo: 52cf0ee8342548a485e28f4b09e56b477567244d
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
+  react-native-plaid-link-sdk: 1a6593e2d3d790e8113c29178d883eb883f8c032
   react-native-progress-bar-android: ce95a69f11ac580799021633071368d08aaf9ad8
   react-native-progress-view: 5816e8a6be812c2b122c6225a2a3db82d9008640
   react-native-safe-area-context: 01158a92c300895d79dee447e980672dc3fb85a6
@@ -734,6 +745,6 @@ SPEC CHECKSUMS:
   Yoga: 7d13633d129fd179e01b8953d38d47be90db185a
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: d7748590974e89a09ccf881a813dffd88e89aebd
+PODFILE CHECKSUM: 6eb5d43e785faa9b1fe52688d5bf7a328bd1b1cf
 
 COCOAPODS: 1.10.1

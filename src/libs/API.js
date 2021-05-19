@@ -35,6 +35,7 @@ function isAuthTokenRequired(command) {
         'User_SignUp',
         'ResendValidateCode',
         'ResetPassword',
+        'User_ReopenAccount',
         'ValidateEmail',
     ], command);
 }
@@ -469,6 +470,18 @@ function Graphite_Timer(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.paymentMethodType
+ * @returns {Promise}
+ */
+function PayIOU(parameters) {
+    const commandName = 'PayIOU';
+    requireParameters(['reportID', 'paymentMethodType'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.emailList
  * @returns {Promise}
  */
@@ -638,6 +651,17 @@ function User_GetBetas() {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @returns {Promise}
+ */
+function User_ReopenAccount(parameters) {
+    const commandName = 'User_ReopenAccount';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -718,6 +742,48 @@ function Plaid_GetLinkToken() {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.publicToken
+ * @param {Boolean} parameters.allowDebit
+ * @param {String} parameters.bank
+ * @returns {Promise}
+ */
+function BankAccount_Get(parameters) {
+    const commandName = 'BankAccount_Get';
+    requireParameters(['publicToken', 'allowDebit', 'bank'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.accountNumber
+ * @param {String} parameters.addressName
+ * @param {Boolean} parameters.allowDebit
+ * @param {Boolean} parameters.confirm
+ * @param {Boolean} parameters.isSavings
+ * @param {String} parameters.password
+ * @param {String} parameters.routingNumber
+ * @param {String} parameters.setupType
+ * @param {String} parameters.additionalData additional JSON data
+ * @returns {Promise}
+ */
+function BankAccount_Create(parameters) {
+    const commandName = 'BankAccount_Create';
+    requireParameters([
+        'accountNumber',
+        'addressName',
+        'allowDebit',
+        'confirm',
+        'isSavings',
+        'password',
+        'routingNumber',
+        'setupType',
+        'additionalData',
+    ], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
  * @param {object} parameters
  * @param {number} [parameters.latitude]
  * @param {number} [parameters.longitude]
@@ -738,6 +804,8 @@ function GetCurrencyList() {
 export {
     getAuthToken,
     Authenticate,
+    BankAccount_Create,
+    BankAccount_Get,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -749,6 +817,7 @@ export {
     Graphite_Timer,
     Log,
     Mobile_GetConstants,
+    PayIOU,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,
@@ -765,6 +834,7 @@ export {
     UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     reauthenticate,

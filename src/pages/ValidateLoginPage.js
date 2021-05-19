@@ -6,7 +6,7 @@ import {validateLogin} from '../libs/actions/User';
 const propTypes = {
     /* Onyx Props */
 
-    // The accountID and validateCode are passed via the URL
+    /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 };
 
