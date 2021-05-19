@@ -170,11 +170,11 @@ function payIOUReport({
             // Therefore, we should also sync the chatReport after fetching the iouReport.
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
 
+            // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
+            // selected something other than a manual settlement e.g. Venmo or PayPal.me
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
                 Linking.openURL(buildVenmoPaymentURL(amount, submitterPhoneNumber));
-            }
-
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
+            } else if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
                 Linking.openURL(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
             }
         })
