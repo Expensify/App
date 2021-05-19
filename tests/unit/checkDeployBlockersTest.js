@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 const core = require('@actions/core');
-const github = require('@actions/github');
+const GithubUtils = require('../../.github/libs/GithubUtils');
 const run = require('../../.github/actions/checkDeployBlockers/checkDeployBlockers');
 
 // Static mock function for core.getInput
@@ -32,7 +32,7 @@ beforeAll(() => {
             listComments: mockListComments,
         },
     };
-    github.getOctokit = jest.fn().mockImplementation(() => mocktokit);
+    GithubUtils.octokitInternal = mocktokit;
 });
 
 afterEach(() => {

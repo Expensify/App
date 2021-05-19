@@ -5,46 +5,46 @@ import ReactDOM from 'react-dom';
 import getTooltipStyles from '../../styles/getTooltipStyles';
 
 const propTypes = {
-    // Window width
+    /** Window width */
     windowWidth: PropTypes.number.isRequired,
 
-    // Tooltip Animation value
+    /** Tooltip Animation value */
     // eslint-disable-next-line react/forbid-prop-types
     animation: PropTypes.object.isRequired,
 
-    // The distance between the left side of the wrapper view and the left side of the window
+    /** The distance between the left side of the wrapper view and the left side of the window */
     xOffset: PropTypes.number.isRequired,
 
-    // The distance between the top of the wrapper view and the top of the window
+    /** The distance between the top of the wrapper view and the top of the window */
     yOffset: PropTypes.number.isRequired,
 
-    // The width of the tooltip wrapper
+    /** The width of the tooltip wrapper */
     wrapperWidth: PropTypes.number.isRequired,
 
-    // The Height of the tooltip wrapper
+    /** The Height of the tooltip wrapper */
     wrapperHeight: PropTypes.number.isRequired,
 
-    // The width of the tooltip itself
+    /** The width of the tooltip itself */
     tooltipWidth: PropTypes.number.isRequired,
 
-    // The Height of the tooltip itself
+    /** The Height of the tooltip itself */
     tooltipHeight: PropTypes.number.isRequired,
 
-    // Any additional amount to manually adjust the horizontal position of the tooltip.
-    // A positive value shifts the tooltip to the right, and a negative value shifts it to the left.
+    /** Any additional amount to manually adjust the horizontal position of the tooltip.
+    A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
     shiftHorizontal: PropTypes.number.isRequired,
 
-    // Any additional amount to manually adjust the vertical position of the tooltip.
-    // A positive value shifts the tooltip down, and a negative value shifts it up.
+    /** Any additional amount to manually adjust the vertical position of the tooltip.
+    A positive value shifts the tooltip down, and a negative value shifts it up. */
     shiftVertical: PropTypes.number.isRequired,
 
-    // Callback to set the Ref to the Tooltip
+    /** Callback to set the Ref to the Tooltip */
     setTooltipRef: PropTypes.func.isRequired,
 
-    // Text to be shown in the tooltip
+    /** Text to be shown in the tooltip */
     text: PropTypes.string.isRequired,
 
-    // Callback to be used to calulate the width and height of tooltip
+    /** Callback to be used to calulate the width and height of tooltip */
     measureTooltip: PropTypes.func.isRequired,
 };
 

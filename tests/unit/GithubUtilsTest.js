@@ -4,6 +4,10 @@
 const {Octokit} = require('@octokit/rest');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
+beforeEach(() => {
+    GithubUtils.octokitInternal = new Octokit();
+});
+
 describe('GithubUtils', () => {
     describe('getStagingDeployCash', () => {
         const baseIssue = {
@@ -81,8 +85,6 @@ describe('GithubUtils', () => {
         ];
 
         test('Test finding an open issue with no PRs successfully', () => {
-            const octokit = new Octokit();
-            const github = new GithubUtils(octokit);
             const bareIssue = {
                 ...baseIssue,
                 // eslint-disable-next-line max-len
@@ -94,62 +96,50 @@ describe('GithubUtils', () => {
                 PRList: [],
             };
 
-            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]});
-            return github.getStagingDeployCash().then(data => expect(data).toStrictEqual(bareExpectedResponse));
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [bareIssue]});
+            return GithubUtils.getStagingDeployCash().then(data => expect(data).toStrictEqual(bareExpectedResponse));
         });
 
         test('Test finding an open issue successfully', () => {
-            const octokit = new Octokit();
-            const github = new GithubUtils(octokit);
-            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]});
-            return github.getStagingDeployCash().then(data => expect(data).toStrictEqual(baseExpectedResponse));
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [baseIssue]});
+            return GithubUtils.getStagingDeployCash().then(data => expect(data).toStrictEqual(baseExpectedResponse));
         });
 
         test('Test finding an open issue successfully and parsing with deploy blockers', () => {
-            const octokit = new Octokit();
-            const github = new GithubUtils(octokit);
-            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]});
-            return github.getStagingDeployCash()
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueWithDeployBlockers]});
+            return GithubUtils.getStagingDeployCash()
                 .then(data => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
         test('Test finding an open issue successfully and parsing with blockers w/o carriage returns', () => {
-            const octokit = new Octokit();
-            const github = new GithubUtils(octokit);
-
             const modifiedIssueWithDeployBlockers = {...issueWithDeployBlockers};
             modifiedIssueWithDeployBlockers.body = modifiedIssueWithDeployBlockers.body.replace(/\r/g, '');
 
-            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [modifiedIssueWithDeployBlockers]});
-            return github.getStagingDeployCash()
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({
+                data: [modifiedIssueWithDeployBlockers],
+            });
+            return GithubUtils.getStagingDeployCash()
                 .then(data => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
         test('Test finding an open issue without a body', () => {
-            const octokit = new Octokit();
-            const github = new GithubUtils(octokit);
-
             const noBodyIssue = baseIssue;
             noBodyIssue.body = '';
 
-            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]});
-            return github.getStagingDeployCash()
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [noBodyIssue]});
+            return GithubUtils.getStagingDeployCash()
                 .catch(e => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue with correct data.')));
         });
 
         test('Test finding more than one issue', () => {
-            const octokit = new Octokit();
-            const github = new GithubUtils(octokit);
-            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{a: 1}, {b: 2}]});
-            return github.getStagingDeployCash()
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [{a: 1}, {b: 2}]});
+            return GithubUtils.getStagingDeployCash()
                 .catch(e => expect(e).toEqual(new Error('Found more than one StagingDeployCash issue.')));
         });
 
         test('Test finding no issues', () => {
-            const octokit = new Octokit();
-            const github = new GithubUtils(octokit);
-            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []});
-            return github.getStagingDeployCash()
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []});
+            return GithubUtils.getStagingDeployCash()
                 .catch(e => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue.')));
         });
     });
@@ -174,19 +164,17 @@ describe('GithubUtils', () => {
                 body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n',
             };
 
-            const octokit = new Octokit();
-            octokit.repos.listTags = jest.fn().mockResolvedValue({
+            GithubUtils.octokit.repos.listTags = jest.fn().mockResolvedValue({
                 data: [
                     {name: '1.0.1-0'},
                     {name: '1.0.1-47'},
                     {name: '1.0.1-48'},
                 ],
             });
-            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueBefore]});
-            octokit.issues.update = jest.fn().mockImplementation(arg => Promise.resolve(arg));
-            const githubUtils = new GithubUtils(octokit);
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueBefore]});
+            GithubUtils.octokit.issues.update = jest.fn().mockImplementation(arg => Promise.resolve(arg));
 
-            return githubUtils.updateStagingDeployCash(
+            return GithubUtils.updateStagingDeployCash(
                 '1.0.1-48',
                 [
                     'https://github.com/Expensify/Expensify.cash/pull/24',
@@ -226,19 +214,17 @@ describe('GithubUtils', () => {
                 body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n',
             };
 
-            const octokit = new Octokit();
-            octokit.repos.listTags = jest.fn().mockResolvedValue({
+            GithubUtils.octokit.repos.listTags = jest.fn().mockResolvedValue({
                 data: [
                     {name: '1.0.1-0'},
                     {name: '1.0.1-47'},
                     {name: '1.0.1-48'},
                 ],
             });
-            octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueBefore]});
-            octokit.issues.update = jest.fn().mockImplementation(arg => Promise.resolve(arg));
-            const githubUtils = new GithubUtils(octokit);
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueBefore]});
+            GithubUtils.octokit.issues.update = jest.fn().mockImplementation(arg => Promise.resolve(arg));
 
-            return githubUtils.updateStagingDeployCash(
+            return GithubUtils.updateStagingDeployCash(
                 undefined,
                 undefined,
                 ['https://github.com/Expensify/Expensify.cash/pull/24',
@@ -339,22 +325,19 @@ describe('GithubUtils', () => {
     });
 
     describe('createNewStagingDeployCash', () => {
-        const octokit = new Octokit();
-        octokit.repos.listTags = jest.fn().mockResolvedValue({data: [{name: '1.0.2-0'}]});
-        octokit.issues.create = jest.fn().mockImplementation(arg => Promise.resolve(arg));
-        const githubUtils = new GithubUtils(octokit);
+        test('Issue is successfully created', () => {
+            GithubUtils.octokit.repos.listTags = jest.fn().mockResolvedValue({data: [{name: '1.0.2-0'}]});
+            GithubUtils.octokit.issues.create = jest.fn().mockImplementation(arg => Promise.resolve(arg));
 
-        const title = 'Test StagingDeployCash title';
-        const tag = '1.0.2-12';
-        const PRList = [
-            'https://github.com/Expensify/Expensify.cash/pull/2',
-            'https://github.com/Expensify/Expensify.cash/pull/3',
-            'https://github.com/Expensify/Expensify.cash/pull/3',
-            'https://github.com/Expensify/Expensify.cash/pull/1',
-        ];
-
-        test('Issue is successfully created', () => (
-            githubUtils.createNewStagingDeployCash(title, tag, PRList)
+            const title = 'Test StagingDeployCash title';
+            const tag = '1.0.2-12';
+            const PRList = [
+                'https://github.com/Expensify/Expensify.cash/pull/2',
+                'https://github.com/Expensify/Expensify.cash/pull/3',
+                'https://github.com/Expensify/Expensify.cash/pull/3',
+                'https://github.com/Expensify/Expensify.cash/pull/1',
+            ];
+            return GithubUtils.createNewStagingDeployCash(title, tag, PRList)
                 .then((newIssue) => {
                     expect(newIssue).toStrictEqual({
                         owner: GithubUtils.GITHUB_OWNER,
@@ -365,8 +348,8 @@ describe('GithubUtils', () => {
                         // eslint-disable-next-line max-len
                         body: `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/3\r\n\r\ncc @Expensify/applauseleads\r\n`,
                     });
-                })
-        ));
+                });
+        });
     });
 
     describe('generateStagingDeployCashBody', () => {
@@ -409,8 +392,8 @@ describe('GithubUtils', () => {
         }));
 
         const octokit = mockGithub().getOctokit();
-        const githubUtils = new GithubUtils(octokit);
-
+        const githubUtils = class extends GithubUtils { };
+        githubUtils.octokitInternal = octokit;
         const tag = '1.0.2-12';
         const basePRList = [
             'https://github.com/Expensify/Expensify.cash/pull/2',
