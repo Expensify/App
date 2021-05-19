@@ -80,38 +80,34 @@ class IOUDetailsModal extends Component {
     constructor(props) {
         super(props);
 
+        // We always have the option to settle manually
+        const paymentOptions = [CONST.IOU.PAYMENT_TYPE.ELSEWHERE];
+
+        // Only allow settling via PayPal.me if the submitter has a name set
+        if (props.iouReport.submitterPayPalMeAddress) {
+            paymentOptions.push(CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
+        }
+
+        this.submitterPhoneNumber = undefined;
+        this.isComponentMounted = false;
+
         this.state = {
-            settlementType: CONST.IOU.SETTLEMENT_TYPE.ELSEWHERE,
+            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             isSettlementMenuVisible: false,
-            canUseVenmo: false,
+            paymentOptions,
         };
 
         this.performIOUPayment = this.performIOUPayment.bind(this);
     }
 
     componentDidMount() {
+        this.isComponentMounted = true;
         fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
-        this.setCanUseVenmo();
+        this.addVenmoPaymentOptionIfAvailable();
     }
 
-    setCanUseVenmo() {
-        if (this.props.iouReport !== CONST.CURRENCY.USD) {
-            // return
-        }
-
-        console.log(this.props.report);
-        // We can use Venmo if:
-        //   1. The app is installed
-        //   2. IOUReport.currency === USD
-        //   3. report.submitterPhoneNumbers contains a valid US number
-        isAppInstalled('venmo')
-            .then((isVenmoInstalled) => {
-                if (!isVenmoInstalled) {
-                    return;
-                }
-
-                this.setState({canUseVenmo: true});
-            });
+    componentWillUnmount() {
+        this.isComponentMounted = false;
     }
 
     setMenuVisibility(isSettlementMenuVisible) {
@@ -122,17 +118,70 @@ class IOUDetailsModal extends Component {
         payIOUReport({
             chatReportID: this.props.route.params.chatReportID,
             reportID: this.props.route.params.iouReportID,
-            paymentMethodType: this.state.settlementType,
+            paymentMethodType: this.state.paymentType,
+            amount: this.props.iouReport.total,
+            currency: this.props.iouReport.currency,
+            submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
+            submitterPhoneNumber: this.submitterPhoneNumber,
         });
+    }
+
+    /**
+     * @param {String} phoneNumber
+     * @returns {Boolean}
+     */
+    isValidUSPhone(phoneNumber) {
+        // Remove alphanumeric characters and validate that this is in fact a phone number
+        return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, ''))
+
+            // Next make sure it's a US phone number
+            && CONST.REGEX.US_PHONE.test(phoneNumber);
+    }
+
+    /**
+     * Checks to see if we can use Venmo. The following conditions must be met:
+     *
+     *   1. The IOU report currency is USD
+     *   2. The submitter has as a valid US phone number
+     *   3. Venmo app is installed
+     *
+     */
+    addVenmoPaymentOptionIfAvailable() {
+        if (this.props.iouReport.currency !== CONST.CURRENCY.USD) {
+            return;
+        }
+
+        const submitterPhoneNumbers = lodashGet(this.props.iouReport, 'submitterPhoneNumbers', []);
+
+        if (_.isEmpty(submitterPhoneNumbers)) {
+            return;
+        }
+
+        this.submitterPhoneNumber = _.find(submitterPhoneNumbers, this.isValidUSPhone);
+
+        if (!this.submitterPhoneNumber) {
+            return;
+        }
+
+        isAppInstalled('venmo')
+            .then((isVenmoInstalled) => {
+                if (!isVenmoInstalled || !this.isComponentMounted) {
+                    return;
+                }
+
+                this.setState(prevState => ({
+                    paymentOptions: [...prevState, CONST.IOU.PAYMENT_TYPE.VENMO],
+                }));
+            });
     }
 
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
-        const settlementTypeText = {
-            [CONST.IOU.SETTLEMENT_TYPE.VENMO]: this.props.translate('iou.settleVenmo'),
-            [CONST.IOU.SETTLEMENT_TYPE.PAYPAL_ME]: this.props.translate('iou.settlePaypalMe'),
-            [CONST.IOU.SETTLEMENT_TYPE.ELSEWHERE]: this.props.translate('iou.settleElsewhere'),
+        const paymentTypeText = {
+            [CONST.IOU.PAYMENT_TYPE.VENMO]: this.props.translate('iou.settleVenmo'),
+            [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: this.props.translate('iou.settlePaypalMe'),
+            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: this.props.translate('iou.settleElsewhere'),
         };
         return (
             <ScreenWrapper>
@@ -159,7 +208,7 @@ class IOUDetailsModal extends Component {
                             <View style={styles.p5}>
                                 <Button
                                     shouldShowDropDownArrow
-                                    text={settlementTypeText[this.state.settlementType]}
+                                    text={paymentTypeText[this.state.paymentType]}
                                     isLoading={this.props.iou.loading}
                                     onPress={this.performIOUPayment}
                                     onDropdownPress={() => {
@@ -174,10 +223,10 @@ class IOUDetailsModal extends Component {
                                     animationIn="fadeInUp"
                                     animationOut="fadeOutDown"
                                     headerText="Choose payment method:"
-                                    menuItems={_.map(CONST.IOU.SETTLEMENT_TYPE, settlementType => ({
-                                        text: settlementTypeText[settlementType],
+                                    menuItems={_.map(this.state.paymentOptions, paymentType => ({
+                                        text: paymentTypeText[paymentType],
                                         onSelected: () => {
-                                            this.setState({settlementType});
+                                            this.setState({paymentType});
                                         },
                                     }))}
                                 />
