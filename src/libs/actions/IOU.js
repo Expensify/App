@@ -122,7 +122,7 @@ function createIOUSplit(params) {
  */
 function buildVenmoPaymentURL(amount, submitterPhoneNumber) {
     const note = 'For%20Expensify.cash%20request';
-    return `venmo://paycharge?txn=pay&recipients=${submitterPhoneNumber}&amount=${amount}&note=${note}`;
+    return `venmo://paycharge?txn=pay&recipients=${submitterPhoneNumber}&amount=${(amount / 100)}&note=${note}`;
 }
 
 /**
@@ -134,7 +134,7 @@ function buildVenmoPaymentURL(amount, submitterPhoneNumber) {
  * @returns {String}
  */
 function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    return `https://paypal.me/${submitterPayPalMeAddress}/${amount}${currency}`;
+    return `https://paypal.me/${submitterPayPalMeAddress}/${(amount / 100)}${currency}`;
 }
 
 /**
@@ -173,9 +173,9 @@ function payIOUReport({
             // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
             // selected something other than a manual settlement e.g. Venmo or PayPal.me
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                Linking.openURL(buildVenmoPaymentURL(amount, submitterPhoneNumber));
-            } else if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
                 Linking.openURL(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
+            } else if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
+                Linking.openURL(buildVenmoPaymentURL(amount, submitterPhoneNumber));
             }
         })
         .catch((error) => {
