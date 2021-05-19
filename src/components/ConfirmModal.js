@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    TouchableOpacity, Text, View,
-} from 'react-native';
+import {Text, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Header from './Header';
 import Modal from './Modal';
@@ -10,6 +8,7 @@ import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
+import Button from './Button';
 
 const propTypes = {
     /** Title of the modal */
@@ -62,28 +61,17 @@ const ConfirmModal = props => (
                 {props.prompt}
             </Text>
 
-            <TouchableOpacity
-                style={[styles.button, styles.buttonSuccess, styles.mt4]}
+            <Button
+                success
+                style={[styles.mt4]}
                 onPress={props.onConfirm}
-            >
-                <Text
-                    style={[
-                        styles.buttonText,
-                        styles.buttonSuccessText,
-                    ]}
-                >
-                    {props.confirmText || props.translate('common.yes')}
-                </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={[styles.button, styles.mt3]}
+                text={props.confirmText || props.translate('common.yes')}
+            />
+            <Button
+                style={[styles.mt3]}
                 onPress={props.onCancel}
-            >
-                <Text style={styles.buttonText}>
-                    {props.cancelText || props.translate('common.no')}
-                </Text>
-            </TouchableOpacity>
+                text={props.cancelText || props.translate('common.no')}
+            />
         </View>
     </Modal>
 );

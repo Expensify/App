@@ -25,7 +25,7 @@ import styles from '../styles/styles';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import ButtonWithLoader from '../components/ButtonWithLoader';
+import Button from '../components/Button';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -159,10 +159,11 @@ class AddBankAccountPage extends React.Component {
                                     />
                                 </>
                             )}
-                            <ButtonWithLoader
+                            <Button
+                                success
                                 text={this.props.translate('common.continue')}
                                 isLoading={this.state.isCreatingAccount}
-                                onClick={this.addSelectedAccount}
+                                onPress={this.addSelectedAccount}
                                 isDisabled={_.isUndefined(this.state.selectedIndex) || !this.state.password}
                             />
                         </View>
