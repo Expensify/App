@@ -432,10 +432,8 @@ const styles = {
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'column',
-        height: 84,
-        justifyContent: 'flex-start',
-        paddingHorizontal: 20,
+        justifyContent: 'center',
+        paddingVertical: 20,
         width: '100%',
     },
 
@@ -1161,8 +1159,6 @@ const styles = {
         flexDirection: 'column',
         width: '100%',
         flexGrow: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
 
     settingsPageBody: {
