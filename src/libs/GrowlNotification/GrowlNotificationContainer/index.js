@@ -1,14 +1,8 @@
 import React from 'react';
 import {Animated} from 'react-native';
-import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-
-const propTypes = {
-    children: PropTypes.node.isRequired,
-    translateY: PropTypes.instanceOf(Animated.Value).isRequired,
-    ...windowDimensionsPropTypes,
-};
+import withWindowDimensions from '../../../components/withWindowDimensions';
+import propTypes from './GrowlNotificationContainerPropTypes';
 
 const GrowlNotificationContainer = ({children, translateY, isSmallScreenWidth}) => (
     <Animated.View
