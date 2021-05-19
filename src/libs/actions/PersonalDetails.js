@@ -284,7 +284,7 @@ function fetchCurrencyPreferences(withLocation) {
                     preferredCurrencySymbol: currencyList[currency].symbol,
                 });
         })
-        .catch(error => console.debug(error));
+        .catch(error => console.debug(`Error fetching currency preference: , ${error}`));
 }
 
 /**
