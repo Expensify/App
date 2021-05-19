@@ -37,7 +37,7 @@ export default function (WrappedComponent) {
         }
     }
 
-    WithEnvironment.displayName = `withDrawerState(${getComponentDisplayName(WrappedComponent)})`;
+    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
     return WithEnvironment;
 }
 
