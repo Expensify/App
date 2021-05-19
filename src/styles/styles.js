@@ -558,8 +558,8 @@ const styles = {
     },
 
     createMenuIcon: {
-        width: 40,
-        height: 40,
+        width: variables.componentSizeNormal,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -569,6 +569,10 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    menuItemTextContainer: {
+        minHeight: variables.componentSizeNormal,
     },
 
     chatLinkRowPressable: {
