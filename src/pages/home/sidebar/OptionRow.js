@@ -123,7 +123,6 @@ const OptionRow = ({
             {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
         ),
     );
-    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <Hoverable>
             {hovered => (
@@ -169,7 +168,7 @@ const OptionRow = ({
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
-                                    fullTitle={fullTitle}
+                                    fullTitle={option.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
