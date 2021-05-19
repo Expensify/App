@@ -173,15 +173,6 @@ Network.registerErrorHandler((queuedRequest, error) => {
 });
 
 /**
- * Access the current authToken
- *
- * @returns {String}
- */
-function getAuthToken() {
-    return authToken;
-}
-
-/**
  * @param {Object} parameters
  * @param {String} [parameters.useExpensifyLogin]
  * @param {String} parameters.partnerName
@@ -437,22 +428,6 @@ function Log(parameters) {
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     return Network.post(commandName, {...parameters, forceNetworkRequest: true});
-}
-
-/**
- * @param {Object} parameters
- * @param {String[]} data
- * @returns {Promise}
- */
-function Mobile_GetConstants(parameters) {
-    const commandName = 'Mobile_GetConstants';
-    requireParameters(['data'], parameters, commandName);
-
-    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
-    const finalParameters = parameters;
-    finalParameters.data = JSON.stringify(parameters.data);
-
-    return Network.post(commandName, finalParameters);
 }
 
 /**
@@ -730,13 +705,6 @@ function CreateIOUSplit(parameters) {
 /**
  * @returns {Promise}
  */
-function Wallet_GetOnfidoSDKToken() {
-    return Network.post('Wallet_GetOnfidoSDKToken', {}, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
- * @returns {Promise}
- */
 function Plaid_GetLinkToken() {
     return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
 }
@@ -784,7 +752,6 @@ function BankAccount_Create(parameters) {
 }
 
 export {
-    getAuthToken,
     Authenticate,
     BankAccount_Create,
     BankAccount_Get,
@@ -798,7 +765,6 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Log,
-    Mobile_GetConstants,
     PayIOU,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
@@ -823,5 +789,4 @@ export {
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
-    Wallet_GetOnfidoSDKToken,
 };
