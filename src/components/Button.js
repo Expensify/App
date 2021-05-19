@@ -2,11 +2,13 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    Text, Pressable, ActivityIndicator,
+    Text, Pressable, ActivityIndicator, View,
 } from 'react-native';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import OpacityView from './OpacityView';
+import {DownArrow} from './Icon/Expensicons';
+import Icon from './Icon';
 
 const propTypes = {
     /** The text for the button label */
@@ -35,6 +37,12 @@ const propTypes = {
 
     /** Optional content component to replace all inner contents of button */
     ContentComponent: PropTypes.func,
+
+    /** Should we show a drop down arrow to the right? */
+    shouldShowDropDownArrow: PropTypes.bool,
+
+    /** Callback function to fire when the dropdown element is pressed */
+    onDropdownPress: PropTypes.func,
 };
 
 const defaultProps = {
@@ -45,10 +53,13 @@ const defaultProps = {
     textStyles: [],
     success: false,
     ContentComponent: undefined,
+    shouldShowDropDownArrow: false,
+    onDropdownPress: () => {},
 };
 
 const Button = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+    const shouldUseSuccessStyles = props.shouldShowDropDownArrow || props.success;
 
     function renderContent() {
         const {ContentComponent} = props;
@@ -56,45 +67,74 @@ const Button = (props) => {
             return <ContentComponent />;
         }
 
-        return props.isLoading
-            ? (
-                <ActivityIndicator color={themeColors.textReversed} />
-            ) : (
-                <Text
-                    selectable={false}
-                    style={[
-                        styles.buttonText,
-                        props.success && styles.buttonSuccessText,
-                        ...props.textStyles,
-                    ]}
-                >
-                    {props.text}
-                </Text>
-            );
+        return (
+            <>
+                {props.isLoading
+                    ? (
+                        <ActivityIndicator color={themeColors.textReversed} />
+                    ) : (
+                        <Text
+                            selectable={false}
+                            style={[
+                                styles.buttonText,
+                                shouldUseSuccessStyles && styles.buttonSuccessText,
+                                ...props.textStyles,
+                            ]}
+                        >
+                            {props.text}
+                        </Text>
+                    )}
+            </>
+        );
     }
 
     return (
-        <Pressable
-            onPress={props.onPress}
-            disabled={props.isLoading || props.isDisabled}
-            style={[
-                ...additionalStyles,
-            ]}
-        >
-            {({pressed, hovered}) => (
-                <OpacityView
-                    shouldDim={pressed}
-                    style={[
-                        styles.button,
-                        props.success ? styles.buttonSuccess : undefined,
-                        props.isDisabled ? styles.buttonDisable : undefined,
-                        (props.success && hovered) ? styles.buttonSuccessHovered : undefined,
-                    ]}
+        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+            <Pressable
+                onPress={props.onPress}
+                disabled={props.isLoading || props.isDisabled}
+                style={[
+                    ...additionalStyles,
+                    styles.flex1,
+                ]}
+            >
+                {({pressed, hovered}) => (
+                    <OpacityView
+                        shouldDim={pressed}
+                        style={[
+                            styles.button,
+                            shouldUseSuccessStyles ? styles.buttonSuccess : undefined,
+                            props.isDisabled ? styles.buttonDisable : undefined,
+                            (shouldUseSuccessStyles && hovered) ? styles.buttonSuccessHovered : undefined,
+                            props.shouldShowDropDownArrow ? styles.noRightBorderRadius : undefined,
+                        ]}
+                    >
+                        {renderContent()}
+                    </OpacityView>
+                )}
+            </Pressable>
+            {props.shouldShowDropDownArrow && (
+                <Pressable
+                    onPress={props.onDropdownPress}
+                    disabled={props.isLoading || props.isDisabled}
                 >
-                    {renderContent()}
-                </OpacityView>
+                    {({pressed, hovered}) => (
+                        <OpacityView
+                            shouldDim={pressed}
+                            style={[
+                                styles.button,
+                                styles.buttonSuccess,
+                                hovered ? styles.buttonSuccessHovered : undefined,
+                                styles.noLeftBorderRadius,
+                                {marginLeft: 2}, // cc @shawnborton
+                            ]}
+                        >
+                            <Icon src={DownArrow} fill={themeColors.textReversed} />
+                        </OpacityView>
+                    )}
+                </Pressable>
             )}
-        </Pressable>
+        </View>
     );
 };
 
