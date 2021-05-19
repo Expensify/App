@@ -225,7 +225,7 @@ class IOUConfirmationList extends Component {
 
     render() {
         const buttonText = this.props.translate(
-            this.props.hasMultipleParticipants ? 'common.split' : 'iou.request', {
+            this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
                 amount: this.props.numberFormat(
                     this.props.iouAmount,
                     {style: 'currency', currency: this.props.selectedCurrency},

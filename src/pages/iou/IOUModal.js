@@ -127,7 +127,7 @@ class IOUModal extends Component {
         const currentStepIndex = this.state.currentStepIndex;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
             return this.props.translate(
-                this.props.hasMultipleParticipants ? 'common.split' : 'iou.request', {
+                this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
                     amount: this.props.numberFormat(
                         this.state.amount, {
                             style: 'currency',
