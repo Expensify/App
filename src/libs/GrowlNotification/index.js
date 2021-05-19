@@ -26,7 +26,7 @@ const types = {
     },
 };
 
-const outDistance = -255;
+const INACTIVE_POSITION_Y = -255;
 
 class GrowlNotification extends Component {
     constructor() {
@@ -35,7 +35,7 @@ class GrowlNotification extends Component {
         this.state = {
             bodyText: '',
             type: 'success',
-            translateY: new Animated.Value(outDistance),
+            translateY: new Animated.Value(INACTIVE_POSITION_Y),
         };
 
         this.show = this.show.bind(this);
@@ -56,7 +56,7 @@ class GrowlNotification extends Component {
         }, () => {
             this.fling(0);
             setTimeout(() => {
-                this.fling(outDistance);
+                this.fling(INACTIVE_POSITION_Y);
             }, duration);
         });
     }
@@ -66,7 +66,7 @@ class GrowlNotification extends Component {
      *
      * @param {number} val
     */
-    fling(val = outDistance) {
+    fling(val = INACTIVE_POSITION_Y) {
         Animated.spring(this.state.translateY, {
             toValue: val,
             duration: 80,
@@ -80,13 +80,13 @@ class GrowlNotification extends Component {
                 direction={Directions.UP}
                 onHandlerStateChange={({nativeEvent}) => {
                     if (nativeEvent.state === State.ACTIVE) {
-                        this.fling(outDistance);
+                        this.fling(INACTIVE_POSITION_Y);
                     }
                 }}
             >
                 <View style={styles.growlNotificationWrapper}>
                     <GrowlNotificationContainer translateY={this.state.translateY}>
-                        <TouchableWithoutFeedback onPress={() => this.fling(outDistance)}>
+                        <TouchableWithoutFeedback onPress={() => this.fling(INACTIVE_POSITION_Y)}>
                             <View style={styles.growlNotificationBox}>
                                 <Text style={styles.growlNotificationText}>
                                     {this.state.bodyText}
