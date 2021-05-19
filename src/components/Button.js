@@ -2,13 +2,11 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    Text, Pressable, ActivityIndicator, View,
+    Text, Pressable, ActivityIndicator,
 } from 'react-native';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import OpacityView from './OpacityView';
-import {DownArrow} from './Icon/Expensicons';
-import Icon from './Icon';
 
 const propTypes = {
     /** The text for the button label */
@@ -38,11 +36,8 @@ const propTypes = {
     /** Optional content component to replace all inner contents of button */
     ContentComponent: PropTypes.func,
 
-    /** Should we show a drop down arrow to the right? */
-    shouldShowDropDownArrow: PropTypes.bool,
-
-    /** Callback function to fire when the dropdown element is pressed */
-    onDropdownPress: PropTypes.func,
+    /** Should we remove the right border? */
+    shouldRemoveRightBorder: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -53,13 +48,11 @@ const defaultProps = {
     textStyles: [],
     success: false,
     ContentComponent: undefined,
-    shouldShowDropDownArrow: false,
-    onDropdownPress: () => {},
+    shouldRemoveRightBorder: false,
 };
 
 const Button = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
-    const shouldUseSuccessStyles = props.shouldShowDropDownArrow || props.success;
 
     function renderContent() {
         const {ContentComponent} = props;
@@ -77,7 +70,7 @@ const Button = (props) => {
                             selectable={false}
                             style={[
                                 styles.buttonText,
-                                shouldUseSuccessStyles && styles.buttonSuccessText,
+                                props.success && styles.buttonSuccessText,
                                 ...props.textStyles,
                             ]}
                         >
@@ -89,52 +82,29 @@ const Button = (props) => {
     }
 
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-            <Pressable
-                onPress={props.onPress}
-                disabled={props.isLoading || props.isDisabled}
-                style={[
-                    ...additionalStyles,
-                    styles.flex1,
-                ]}
-            >
-                {({pressed, hovered}) => (
-                    <OpacityView
-                        shouldDim={pressed}
-                        style={[
-                            styles.button,
-                            shouldUseSuccessStyles ? styles.buttonSuccess : undefined,
-                            props.isDisabled ? styles.buttonDisable : undefined,
-                            (shouldUseSuccessStyles && hovered) ? styles.buttonSuccessHovered : undefined,
-                            props.shouldShowDropDownArrow ? styles.noRightBorderRadius : undefined,
-                        ]}
-                    >
-                        {renderContent()}
-                    </OpacityView>
-                )}
-            </Pressable>
-            {props.shouldShowDropDownArrow && (
-                <Pressable
-                    onPress={props.onDropdownPress}
-                    disabled={props.isLoading || props.isDisabled}
+        <Pressable
+            onPress={props.onPress}
+            disabled={props.isLoading || props.isDisabled}
+            style={[
+                ...additionalStyles,
+                styles.flex1,
+            ]}
+        >
+            {({pressed, hovered}) => (
+                <OpacityView
+                    shouldDim={pressed}
+                    style={[
+                        styles.button,
+                        props.success ? styles.buttonSuccess : undefined,
+                        props.isDisabled ? styles.buttonDisable : undefined,
+                        (props.success && hovered) ? styles.buttonSuccessHovered : undefined,
+                        props.shouldRemoveRightBorder ? styles.noRightBorderRadius : undefined,
+                    ]}
                 >
-                    {({pressed, hovered}) => (
-                        <OpacityView
-                            shouldDim={pressed}
-                            style={[
-                                styles.button,
-                                styles.buttonSuccess,
-                                hovered ? styles.buttonSuccessHovered : undefined,
-                                styles.noLeftBorderRadius,
-                                styles.buttonDropdown,
-                            ]}
-                        >
-                            <Icon src={DownArrow} fill={themeColors.textReversed} />
-                        </OpacityView>
-                    )}
-                </Pressable>
+                    {renderContent()}
+                </OpacityView>
             )}
-        </View>
+        </Pressable>
     );
 };
 

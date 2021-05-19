@@ -9,7 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import Button from '../../components/Button';
+import ButtonWithDropdown from '../../components/ButtonWithDropdown';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {payIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
@@ -21,6 +21,7 @@ import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import CreateMenu from '../../components/CreateMenu';
 import isAppInstalled from '../../libs/isAppInstalled';
+import Button from '../../components/Button';
 
 const propTypes = {
     /** URL Route params */
@@ -206,16 +207,24 @@ class IOUDetailsModal extends Component {
                         {(this.props.iouReport.hasOutstandingIOU
                             && this.props.iouReport.managerEmail === sessionEmail && (
                             <View style={styles.p5}>
-                                <Button
-                                    success
-                                    shouldShowDropDownArrow={this.state.paymentOptions.length > 1}
-                                    text={paymentTypeText[this.state.paymentType]}
-                                    isLoading={this.props.iou.loading}
-                                    onPress={this.performIOUPayment}
-                                    onDropdownPress={() => {
-                                        this.setMenuVisibility(true);
-                                    }}
-                                />
+                                {this.state.paymentOptions.length > 1 ? (
+                                    <ButtonWithDropdown
+                                        success
+                                        buttonText={paymentTypeText[this.state.paymentType]}
+                                        isLoading={this.props.iou.loading}
+                                        onButtonPress={this.performIOUPayment}
+                                        onDropdownPress={() => {
+                                            this.setMenuVisibility(true);
+                                        }}
+                                    />
+                                ) : (
+                                    <Button
+                                        success
+                                        text={paymentTypeText[this.state.paymentType]}
+                                        isLoading={this.props.iou.loading}
+                                        onPress={this.performIOUPayment}
+                                    />
+                                )}
                                 {this.state.paymentOptions.length > 1 && (
                                     <CreateMenu
                                         isVisible={this.state.isSettlementMenuVisible}
