@@ -42,6 +42,13 @@ class GrowlNotification extends Component {
         this.fling = this.fling.bind(this);
     }
 
+    /**
+     * Show the growl notification
+     *
+     * @param {string} bodyText
+     * @param {string} type
+     * @param {number} duration - 2000
+    */
     show(bodyText, type, duration = 2000) {
         this.setState({
             bodyText,
@@ -54,6 +61,11 @@ class GrowlNotification extends Component {
         });
     }
 
+    /**
+     * animate growl notification
+     *
+     * @param {number} val
+    */
     fling(val = outDistance) {
         Animated.spring(this.state.translateY, {
             toValue: val,
