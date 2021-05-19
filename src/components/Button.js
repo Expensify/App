@@ -126,7 +126,7 @@ const Button = (props) => {
                                 styles.buttonSuccess,
                                 hovered ? styles.buttonSuccessHovered : undefined,
                                 styles.noLeftBorderRadius,
-                                {marginLeft: 2}, // cc @shawnborton
+                                styles.buttonDropdown,
                             ]}
                         >
                             <Icon src={DownArrow} fill={themeColors.textReversed} />
