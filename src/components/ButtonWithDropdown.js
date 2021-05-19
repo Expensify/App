@@ -1,17 +1,23 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import styles from '../styles/styles';
 import Button from './Button';
 import Icon from './Icon';
 import {DownArrow} from './Icon/Expensicons';
-import OpacityView from './OpacityView';
 import themeColors from '../styles/themes/default';
 
 const propTypes = {
+    /** Text to display for the main button */
     buttonText: PropTypes.string.isRequired,
+
+    /** Callback to execute when the main button is pressed */
     onButtonPress: PropTypes.func,
+
+    /** Callback to execute when the dropdown element is pressed */
     onDropdownPress: PropTypes.func,
+
+    /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
 };
 
@@ -28,27 +34,17 @@ const ButtonWithDropdown = props => (
             onPress={props.onButtonPress}
             text={props.buttonText}
             isLoading={props.isLoading}
-            shouldRemoveRightBorder
+            shouldRemoveRightBorderRadius
         />
-        <Pressable
+        <Button
+            success
+            style={[styles.buttonDropdown]}
             onPress={props.onDropdownPress}
-            disabled={props.isLoading}
-        >
-            {({pressed, hovered}) => (
-                <OpacityView
-                    shouldDim={pressed}
-                    style={[
-                        styles.button,
-                        styles.buttonSuccess,
-                        hovered ? styles.buttonSuccessHovered : undefined,
-                        styles.noLeftBorderRadius,
-                        styles.buttonDropdown,
-                    ]}
-                >
-                    <Icon src={DownArrow} fill={themeColors.textReversed} />
-                </OpacityView>
+            shouldRemoveLeftBorderRadius
+            ContentComponent={() => (
+                <Icon src={DownArrow} fill={themeColors.textReversed} />
             )}
-        </Pressable>
+        />
     </View>
 );
 
