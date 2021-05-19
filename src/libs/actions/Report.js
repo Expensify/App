@@ -1201,5 +1201,4 @@ export {
     editReportComment,
     saveReportActionDraft,
     getSimplifiedIOUReport,
-    getSimplifiedReportObject,
 };
