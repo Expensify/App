@@ -115,7 +115,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
-                shouldShow: () => this.isUserActorOfAction()
+                shouldShow: () => this.canEdit()
                     && !isReportMessageAttachment(this.getActionText())
                     && this.props.reportAction.reportActionID,
                 onPress: () => {
@@ -130,7 +130,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
-                shouldShow: () => this.isUserActorOfAction(),
+                shouldShow: () => this.canEdit(),
                 onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
             },
         ];
@@ -157,11 +157,11 @@ class ReportActionContextMenu extends React.Component {
     }
 
     /**
-     * Return if the current user is the actor of this action.
+     * Can the current user edit this report action?
      *
      * @return {Boolean}
      */
-    isUserActorOfAction() {
+    canEdit() {
         return this.props.reportAction.actorEmail === this.props.session.email
             && this.props.reportAction.reportActionID;
     }
