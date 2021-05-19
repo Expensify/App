@@ -9,7 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {payIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
@@ -18,6 +18,8 @@ import iouTransactionPropTypes from './iouTransactionPropTypes';
 import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import CONST from '../../CONST';
+import CreateMenu from '../../components/CreateMenu';
 
 const propTypes = {
     /** URL Route params */
@@ -78,8 +80,8 @@ class IOUDetailsModal extends Component {
         super(props);
 
         this.state = {
-            // Temporarily placeholder, as the Venmo/Paypal issue will introduce settlement types.
-            settlementType: 'Elsewhere',
+            settlementType: CONST.IOU.SETTLEMENT_TYPE.ELSEWHERE,
+            isSettlementMenuVisible: false,
         };
 
         this.performIOUPayment = this.performIOUPayment.bind(this);
@@ -87,6 +89,10 @@ class IOUDetailsModal extends Component {
 
     componentDidMount() {
         fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
+    }
+
+    setMenuVisibility(isSettlementMenuVisible) {
+        this.setState({isSettlementMenuVisible});
     }
 
     performIOUPayment() {
@@ -100,6 +106,11 @@ class IOUDetailsModal extends Component {
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
+        const settlementTypeText = {
+            [CONST.IOU.SETTLEMENT_TYPE.VENMO]: this.props.translate('iou.settleVenmo'),
+            [CONST.IOU.SETTLEMENT_TYPE.PAYPAL_ME]: this.props.translate('iou.settlePaypalMe'),
+            [CONST.IOU.SETTLEMENT_TYPE.ELSEWHERE]: this.props.translate('iou.settleElsewhere'),
+        };
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -123,10 +134,29 @@ class IOUDetailsModal extends Component {
                         {(this.props.iouReport.hasOutstandingIOU
                             && this.props.iouReport.managerEmail === sessionEmail && (
                             <View style={styles.p5}>
-                                <ButtonWithLoader
-                                    text={this.props.translate('iou.settleElsewhere')}
+                                <Button
+                                    shouldShowDropDownArrow
+                                    text={settlementTypeText[this.state.settlementType]}
                                     isLoading={this.props.iou.loading}
-                                    onClick={this.performIOUPayment}
+                                    onPress={this.performIOUPayment}
+                                    onDropdownPress={() => {
+                                        this.setMenuVisibility(true);
+                                    }}
+                                />
+                                <CreateMenu
+                                    isVisible={this.state.isSettlementMenuVisible}
+                                    onClose={() => this.setMenuVisibility(false)}
+                                    onItemSelected={() => this.setMenuVisibility(false)}
+                                    anchorPosition={styles.createMenuPositionRightSidepane}
+                                    animationIn="fadeInUp"
+                                    animationOut="fadeOutDown"
+                                    headerText="Choose payment method:"
+                                    menuItems={_.map(CONST.IOU.SETTLEMENT_TYPE, settlementType => ({
+                                        text: settlementTypeText[settlementType],
+                                        onSelected: () => {
+                                            this.setState({settlementType});
+                                        },
+                                    }))}
                                 />
                             </View>
                         ))}

@@ -530,9 +530,20 @@ const styles = {
         bottom: 75,
     },
 
+    createMenuPositionRightSidepane: {
+        right: 18,
+        bottom: 75,
+    },
+
     createMenuContainer: {
         width: variables.sideBarWidth - 40,
         paddingVertical: 12,
+    },
+
+    createMenuHeaderText: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        color: themeColors.heading,
     },
 
     createMenuItem: {
