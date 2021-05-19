@@ -248,8 +248,8 @@ class ReportActionCompose extends React.Component {
      */
     measureEmojiPopoverAnchorPosition() {
         if (this.emojiPopoverAnchor) {
-            this.emojiPopoverAnchor.measureInWindow((x, y) => this.setState({
-                emojiPopoverAnchorPosition: {horizontal: x, vertical: y},
+            this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
+                emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
             }));
         }
     }
@@ -438,7 +438,7 @@ class ReportActionCompose extends React.Component {
                         animationInTiming={1}
                         animationOutTiming={1}
                         anchorPosition={{
-                            top: this.state.emojiPopoverAnchorPosition.vertical - CONST.EMOJI_PICKER_SIZE,
+                            bottom: this.props.windowHeight - this.state.emojiPopoverAnchorPosition.vertical,
                             left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
                         }}
                     >

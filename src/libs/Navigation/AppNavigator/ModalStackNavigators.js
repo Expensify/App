@@ -8,6 +8,7 @@ import SearchPage from '../../../pages/SearchPage';
 import DetailsPage from '../../../pages/DetailsPage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
+import IOUDetailsModal from '../../../pages/iou/IOUDetailsModal';
 import SettingsInitialPage from '../../../pages/settings/InitialPage';
 import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
@@ -56,6 +57,11 @@ const IOUBillStackNavigator = createModalStackNavigator([{
 const IOURequestModalStackNavigator = createModalStackNavigator([{
     Component: IOURequestPage,
     name: 'IOU_Request_Root',
+}]);
+
+const IOUDetailsModalStackNavigator = createModalStackNavigator([{
+    Component: IOUDetailsModal,
+    name: 'IOU_Details_Root',
 }]);
 
 const DetailsModalStackNavigator = createModalStackNavigator([{
@@ -124,6 +130,7 @@ const AddBankAccountModalStackNavigator = createModalStackNavigator([{
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
+    IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,

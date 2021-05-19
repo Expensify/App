@@ -766,6 +766,13 @@ const styles = {
         opacity: 0.6,
     },
 
+    chatItemMessageLink: {
+        color: colors.blue,
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        lineHeight: 20,
+    },
+
     chatItemCompose: {
         minHeight: 65,
         marginBottom: 5,
@@ -824,7 +831,6 @@ const styles = {
 
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
-        minWidth: CONST.EMOJI_PICKER_SIZE,
     },
 
     emojiPickerList: {
@@ -1145,6 +1151,12 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
+    reportTransaction: {
+        paddingVertical: 8,
+        display: 'flex',
+        flexDirection: 'row',
+    },
+
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
@@ -1346,6 +1358,12 @@ const styles = {
         marginRight: -10,
     },
 
+    iouDetailsContainer: {
+        flexGrow: 1,
+        paddingStart: 20,
+        paddingEnd: 20,
+    },
+
     noScrollbars: {
         scrollbarWidth: 'none',
     },
@@ -1438,6 +1456,13 @@ const styles = {
         color: themeColors.textReversed,
     },
 
+    blockquote: {
+        borderLeftColor: themeColors.border,
+        borderLeftWidth: 4,
+        paddingLeft: 12,
+        marginVertical: 4,
+    },
+
     cursorDisabled: {
         cursor: 'not-allowed',
     },
@@ -1496,6 +1521,8 @@ const webViewStyles = {
             paddingRight: 8,
             paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
+            marginTop: 0,
+            marginBottom: 0,
         },
 
         code: {
@@ -1744,6 +1771,18 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
     return italicBold || bold || italic || fontFamily.MONOSPACE;
 }
 
+/**
+ * Gives the width for Emoji picker Widget
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {String}
+ */
+function getEmojiPickerStyle(isSmallScreenWidth) {
+    return {
+        width: isSmallScreenWidth ? '100%' : CONST.EMOJI_PICKER_SIZE,
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1763,4 +1802,5 @@ export {
     getWidthAndHeightStyle,
     getModalPaddingStyles,
     getFontFamilyMonospace,
+    getEmojiPickerStyle,
 };

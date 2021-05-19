@@ -26,6 +26,7 @@ export default {
         phoneNumber: 'Phone Number',
         email: 'Email',
         and: 'and',
+        details: 'Details',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -99,7 +100,12 @@ export default {
         confirm: 'Confirm',
         splitBill: 'Split Bill',
         requestMoney: 'Request Money',
+        pay: 'Pay',
+        viewDetails: 'View Details',
+        settleElsewhere: 'I\'ll settle up elsewhere',
         request: ({amount}) => `Request ${amount}`,
+        owes: ({manager, owner}) => `${manager} owes ${owner}`,
+        paid: ({owner, manager}) => `${manager} paid ${owner}`,
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
@@ -199,7 +205,6 @@ export default {
         resendLink: 'Resend Link',
     },
     detailsPage: {
-        details: 'Details',
         localTime: 'Local Time',
     },
     newGroupPage: {
