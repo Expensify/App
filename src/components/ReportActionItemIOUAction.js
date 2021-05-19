@@ -50,6 +50,7 @@ const ReportActionItemIOUAction = ({
             {shouldDisplayPreview && (
                 <ReportActionItemIOUPreview
                     iouReportID={action.originalMessage.IOUReportID}
+                    chatReportID
                     onPayButtonPressed={launchDetailsModal}
                 />
             )}
