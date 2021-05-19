@@ -30,8 +30,19 @@ import Camera from '../../../assets/images/camera.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Offline from '../../../assets/images/offline.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
+import Info from '../../../assets/images/info.svg';
+import Link from '../../../assets/images/link.svg';
+import Eye from '../../../assets/images/eye.svg';
+import Android from '../../../assets/images/android.svg';
+import Apple from '../../../assets/images/apple.svg';
+import Bug from '../../../assets/images/bug.svg';
+import MoneyBag from '../../../assets/images/money-bag.svg';
+import Monitor from '../../../assets/images/monitor.svg';
+import NewWindow from '../../../assets/images/new-window.svg';
 
 export {
+    Android,
+    Apple,
     ArrowRight,
     BackArrow,
     DownArrow,
@@ -64,4 +75,11 @@ export {
     Users,
     Wallet,
     SignOut,
+    Info,
+    Link,
+    Eye,
+    Bug,
+    MoneyBag,
+    Monitor,
+    NewWindow,
 };
