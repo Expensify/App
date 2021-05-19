@@ -3,7 +3,7 @@ import {View, FlatList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
-import styles from '../../../../styles/styles';
+import styles, {getEmojiPickerStyle} from '../../../../styles/styles';
 import themeColors from '../../../../styles/themes/default';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
@@ -14,10 +14,10 @@ import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
 
 const propTypes = {
-    // Function to add the selected emoji to the main compose text input
+    /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: PropTypes.func.isRequired,
 
-    // The ref to the search input (may be null on small screen widths)
+    /** The ref to the search input (may be null on small screen widths) */
     forwardedRef: PropTypes.func,
 
     ...windowDimensionsPropTypes,
@@ -309,7 +309,7 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             <View
-                style={styles.emojiPickerContainer}
+                style={[styles.emojiPickerContainer, getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 {!this.props.isSmallScreenWidth && (
@@ -322,6 +322,7 @@ class EmojiPickerMenu extends Component {
                             style={styles.textInput}
                             defaultValue=""
                             ref={el => this.searchInput = el}
+                            autoFocus
                         />
                     </View>
                 )}

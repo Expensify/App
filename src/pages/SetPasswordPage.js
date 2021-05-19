@@ -13,7 +13,7 @@ import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import ButtonWithLoader from '../components/ButtonWithLoader';
+import Button from '../components/Button';
 import themeColors from '../styles/themes/default';
 import SignInPageLayout from './signin/SignInPageLayout';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
@@ -23,25 +23,25 @@ import compose from '../libs/compose';
 const propTypes = {
     /* Onyx Props */
 
-    // The details about the account that the user is signing in with
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        // An error message to display to the user
+        /** An error message to display to the user */
         error: PropTypes.string,
 
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 
-    // The credentials of the logged in person
+    /** The credentials of the logged in person */
     credentials: PropTypes.shape({
-        // The email the user logged in with
+        /** The email the user logged in with */
         login: PropTypes.string,
 
-        // The password used to log in the user
+        /** The password used to log in the user */
         password: PropTypes.string,
     }),
 
-    // The accountID and validateCode are passed via the URL
+    /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 
     ...withLocalizePropTypes,
@@ -110,10 +110,12 @@ class SetPasswordPage extends Component {
                         />
                     </View>
                     <View>
-                        <ButtonWithLoader
+                        <Button
+                            success
+                            style={[styles.mb2]}
                             text={this.props.translate('setPasswordPage.setPassword')}
                             isLoading={this.props.account.loading}
-                            onClick={this.validateAndSubmitForm}
+                            onPress={this.validateAndSubmitForm}
                         />
                     </View>
 

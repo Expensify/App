@@ -1,8 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {
-    View, TouchableOpacity, Text,
-} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import Modal from './Modal';
@@ -13,6 +11,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import Button from './Button';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -23,26 +22,25 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
  */
 
 const propTypes = {
-    // Title of the modal header
-    title: PropTypes.string,
+    /** Determines title of the modal header depending on if we are uploading an attachment or not */
+    isUploadingAttachment: PropTypes.bool,
 
-    // Optional source URL for the image shown inside the .
-    // If not passed in via props must be specified when modal is opened.
+    /** Optional source URL for the image shown. If not passed in via props must be specified when modal is opened. */
     sourceURL: PropTypes.string,
 
-    // Optional callback to fire when we want to preview an image and approve it for use.
+    /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
 
-    // Optional callback to fire when we want to do something after modal hide.
+    /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
-    // A function as a child to pass modal launching methods to
+    /** A function as a child to pass modal launching methods to */
     children: PropTypes.func.isRequired,
 
-    // Do the urls require an authToken?
+    /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool,
 
-    // Current user session
+    /** Current user session */
     session: PropTypes.shape({
         authToken: PropTypes.string.isRequired,
     }).isRequired,
@@ -53,7 +51,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    title: '',
+    isUploadingAttachment: false,
     sourceURL: null,
     onConfirm: null,
     isAuthTokenRequired: false,
@@ -111,8 +109,11 @@ class AttachmentModal extends PureComponent {
                     propagateSwipe
                 >
                     <HeaderWithCloseButton
-                        title={this.props.title}
+                        title={this.props.isUploadingAttachment
+                            ? this.props.translate('reportActionCompose.uploadAttachment')
+                            : this.props.translate('common.attachment')}
                         shouldShowBorderBottom
+                        shouldShowDownloadButton
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
@@ -124,21 +125,13 @@ class AttachmentModal extends PureComponent {
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
-                            underlayColor={themeColors.componentBG}
+                        <Button
+                            success
+                            style={[styles.buttonConfirm]}
+                            textStyles={[styles.buttonConfirmText]}
+                            text={this.props.translate('common.upload')}
                             onPress={this.submitAndClose}
-                        >
-                            <Text
-                                style={[
-                                    styles.buttonText,
-                                    styles.buttonSuccessText,
-                                    styles.buttonConfirmText,
-                                ]}
-                            >
-                                {this.props.translate('common.upload')}
-                            </Text>
-                        </TouchableOpacity>
+                        />
                     )}
                 </Modal>
                 {this.props.children({

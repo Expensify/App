@@ -8,6 +8,7 @@ import {addTrailingForwardSlash} from './libs/Url';
 const REPORT = 'r';
 
 export default {
+    ADD_BANK_ACCOUNT: 'add-bank-account',
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -29,6 +30,9 @@ export default {
     IOU_BILL: 'iou/split/:reportID',
     getIouRequestRoute: reportID => `iou/request/${reportID}`,
     getIouSplitRoute: reportID => `iou/split/${reportID}`,
+    IOU_DETAILS: 'iou/details',
+    IOU_DETAILS_WITH_IOU_REPORT_ID: 'iou/details/:chatReportID/:iouReportID/',
+    getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',

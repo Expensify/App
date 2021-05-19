@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {
     View,
     TextInput,
-    Pressable,
     ScrollView,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -30,49 +29,51 @@ import CreateMenu from '../../../components/CreateMenu';
 import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
+import Button from '../../../components/Button';
 
 const propTypes = {
     /* Onyx Props */
-    // The personal details of the person who is logged in
+
+    /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape({
-        // Email/Phone login of the current user from their personal details
+        /** Email/Phone login of the current user from their personal details */
         login: PropTypes.string,
 
-        // Display first name of the current user from their personal details
+        /** Display first name of the current user from their personal details */
         firstName: PropTypes.string,
 
-        // Display last name of the current user from their personal details
+        /** Display last name of the current user from their personal details */
         lastName: PropTypes.string,
 
-        // Avatar URL of the current user from their personal details
+        /** Avatar URL of the current user from their personal details */
         avatar: PropTypes.string,
 
-        // Pronouns of the current user from their personal details
+        /** Pronouns of the current user from their personal details */
         pronouns: PropTypes.string,
 
-        // timezone of the current user from their personal details
+        /** Timezone of the current user from their personal details */
         timezone: PropTypes.shape({
 
-            // Value of selected timezone
+            /** Value of selected timezone */
             selected: PropTypes.string,
 
-            // Whether timezone is automatically set
+            /** Whether timezone is automatically set */
             automatic: PropTypes.bool,
         }),
     }),
 
-    // The details about the user that is signed in
+    /** The details about the user that is signed in */
     user: PropTypes.shape({
-        // Whether or not the user is subscribed to news updates
+        /** Whether or not the user is subscribed to news updates */
         loginList: PropTypes.arrayOf(PropTypes.shape({
 
-            // Value of partner name
+            /** Value of partner name */
             partnerName: PropTypes.string,
 
-            // Phone/Email associated with user
+            /** Phone/Email associated with user */
             partnerUserID: PropTypes.string,
 
-            // Date of when login was validated
+            /** Date of when login was validated */
             validatedDate: PropTypes.string,
         })),
     }),
@@ -270,19 +271,20 @@ class ProfilePage extends Component {
                     <AttachmentPicker>
                         {({openPicker}) => (
                             <>
-                                <Pressable
-                                    style={[styles.button, styles.alignSelfCenter, styles.mt3]}
+                                <Button
+                                    style={[styles.alignSelfCenter, styles.mt3]}
                                     onPress={() => this.setState({isEditPhotoMenuVisible: true})}
-                                >
-                                    <View style={styles.flexRow}>
-                                        <Icon src={DownArrow} />
-                                        <View style={styles.justifyContentCenter}>
-                                            <Text style={[styles.headerText, styles.ml2]}>
-                                                {this.props.translate('profilePage.editPhoto')}
-                                            </Text>
+                                    ContentComponent={() => (
+                                        <View style={[styles.flexRow]}>
+                                            <Icon src={DownArrow} />
+                                            <View style={styles.justifyContentCenter}>
+                                                <Text style={[styles.headerText, styles.ml2]}>
+                                                    {this.props.translate('profilePage.editPhoto')}
+                                                </Text>
+                                            </View>
                                         </View>
-                                    </View>
-                                </Pressable>
+                                    )}
+                                />
                                 <CreateMenu
                                     isVisible={this.state.isEditPhotoMenuVisible}
                                     onClose={() => this.setState({isEditPhotoMenuVisible: false})}
@@ -380,21 +382,13 @@ class ProfilePage extends Component {
                     />
                 </ScrollView>
                 <View style={[styles.ph5, styles.pb5]}>
-                    <Pressable
-                        disabled={isButtonDisabled}
+                    <Button
+                        success
+                        isDisabled={isButtonDisabled}
                         onPress={this.updatePersonalDetails}
-                        style={({hovered}) => [
-                            styles.button,
-                            styles.buttonSuccess,
-                            styles.w100,
-                            hovered && styles.buttonSuccessHovered,
-                            isButtonDisabled && styles.buttonDisable,
-                        ]}
-                    >
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            {this.props.translate('common.save')}
-                        </Text>
-                    </Pressable>
+                        style={[styles.w100]}
+                        text={this.props.translate('common.save')}
+                    />
                 </View>
             </ScreenWrapper>
         );
