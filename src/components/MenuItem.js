@@ -65,7 +65,7 @@ const MenuItem = ({
                             <Icon src={icon} fill={getIconFillColor(getButtonState(hovered, pressed, success))} />
                         </View>
                     )}
-                    <View style={styles.justifyContentCenter}>
+                    <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
                         <Text style={[styles.createMenuText, styles.ml3]}>
                             {title}
                         </Text>
