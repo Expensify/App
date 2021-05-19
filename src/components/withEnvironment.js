@@ -27,12 +27,11 @@ export default function (WrappedComponent) {
         }
 
         render() {
-            const {forwardedRef, ...rest} = this.props;
             return (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
-                    ref={forwardedRef}
+                    {...this.props}
+                    ref={this.props.forwardedRef}
                     environment={this.state.environment}
                 />
             );
