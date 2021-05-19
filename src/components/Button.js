@@ -51,8 +51,8 @@ const defaultProps = {
     textStyles: [],
     success: false,
     ContentComponent: undefined,
-    shouldRemoveRightBorder: false,
-    shouldRemoveLeftBorder: false,
+    shouldRemoveRightBorderRadius: false,
+    shouldRemoveLeftBorderRadius: false,
 };
 
 const Button = (props) => {
