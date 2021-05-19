@@ -36,8 +36,11 @@ const propTypes = {
     /** Optional content component to replace all inner contents of button */
     ContentComponent: PropTypes.func,
 
-    /** Should we remove the right border? */
-    shouldRemoveRightBorder: PropTypes.bool,
+    /** Should we remove the right border radius top + bottom? */
+    shouldRemoveRightBorderRadius: PropTypes.bool,
+
+    /** Should we remove the left border radius top + bottom? */
+    shouldRemoveLeftBorderRadius: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -49,6 +52,7 @@ const defaultProps = {
     success: false,
     ContentComponent: undefined,
     shouldRemoveRightBorder: false,
+    shouldRemoveLeftBorder: false,
 };
 
 const Button = (props) => {
@@ -87,7 +91,7 @@ const Button = (props) => {
             disabled={props.isLoading || props.isDisabled}
             style={[
                 ...additionalStyles,
-                props.shouldRemoveRightBorder ? styles.flex1 : undefined,
+                props.shouldRemoveRightBorderRadius ? styles.flex1 : undefined,
             ]}
         >
             {({pressed, hovered}) => (
@@ -98,7 +102,8 @@ const Button = (props) => {
                         props.success ? styles.buttonSuccess : undefined,
                         props.isDisabled ? styles.buttonDisable : undefined,
                         (props.success && hovered) ? styles.buttonSuccessHovered : undefined,
-                        props.shouldRemoveRightBorder ? styles.noRightBorderRadius : undefined,
+                        props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                        props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ]}
                 >
                     {renderContent()}
