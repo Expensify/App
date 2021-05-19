@@ -9,7 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {payIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
@@ -123,10 +123,11 @@ class IOUDetailsModal extends Component {
                         {(this.props.iouReport.hasOutstandingIOU
                             && this.props.iouReport.managerEmail === sessionEmail && (
                             <View style={styles.p5}>
-                                <ButtonWithLoader
+                                <Button
+                                    success
                                     text={this.props.translate('iou.settleElsewhere')}
                                     isLoading={this.props.iou.loading}
-                                    onClick={this.performIOUPayment}
+                                    onPress={this.performIOUPayment}
                                 />
                             </View>
                         ))}
