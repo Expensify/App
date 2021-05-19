@@ -238,6 +238,19 @@ function setPersonalDetails(details) {
 }
 
 /**
+ * Sets the onyx with the currency list from the network
+ * @returns {Object}
+ */
+function getCurrencyList() {
+    return API.GetCurrencyList()
+        .then((data) => {
+            const currencyListObject = JSON.parse(data.currencyList);
+            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
+            return currencyListObject;
+        });
+}
+
+/**
  * Fetches the Currency preferences based on location
  * @param {bool} withLocation
  */
@@ -252,6 +265,10 @@ function fetchCurrencyPreferences(withLocation) {
                 latitude: position.coords.latitude,
             };
         });
+        Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
+            {
+                isCurrencyPreferencesSaved: true,
+            });
     }
 
     API.GetPreferredCurrency({...coords})
@@ -259,33 +276,15 @@ function fetchCurrencyPreferences(withLocation) {
             currency = data.currency;
         })
         .then(API.GetCurrencyList)
-        .then((data) => {
-            const currencyList = JSON.parse(data.currencyList);
-            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyList);
-            return currencyList;
-        })
+        .then(getCurrencyList)
         .then((currencyList) => {
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
                 {
                     preferredCurrencyCode: currency,
                     preferredCurrencySymbol: currencyList[currency].symbol,
-                    isCurrencyPreferencesSaved: true,
                 });
         })
         .catch(error => console.debug(error));
-}
-
-/**
- * Sets the onyx with the currency list from the network
- *
- */
-function getCurrencyList() {
-    API.GetCurrencyList()
-        .then((data) => {
-            const currencyListObject = JSON.parse(data.currencyList);
-            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
-            return currencyListObject;
-        });
 }
 
 /**
