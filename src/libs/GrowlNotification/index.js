@@ -45,9 +45,9 @@ class GrowlNotification extends Component {
     /**
      * Show the growl notification
      *
-     * @param {string} bodyText
-     * @param {string} type
-     * @param {number} duration - 2000
+     * @param {String} bodyText
+     * @param {String} type
+     * @param {Number} duration - 2000
     */
     show(bodyText, type, duration = 2000) {
         this.setState({
@@ -64,7 +64,7 @@ class GrowlNotification extends Component {
     /**
      * animate growl notification
      *
-     * @param {number} val
+     * @param {Number} val
     */
     fling(val = INACTIVE_POSITION_Y) {
         Animated.spring(this.state.translateY, {

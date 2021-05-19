@@ -1,12 +1,7 @@
 import React from 'react';
 import {Animated} from 'react-native';
-import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-
-const propTypes = {
-    children: PropTypes.node.isRequired,
-    translateY: PropTypes.instanceOf(Animated.Value).isRequired,
-};
+import propTypes from './GrowlNotificationContainerPropTypes';
 
 const GrowlNotificationContainer = ({children, translateY}) => (
     <Animated.View
