@@ -470,6 +470,18 @@ function Graphite_Timer(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.paymentMethodType
+ * @returns {Promise}
+ */
+function PayIOU(parameters) {
+    const commandName = 'PayIOU';
+    requireParameters(['reportID', 'paymentMethodType'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.emailList
  * @returns {Promise}
  */
@@ -787,6 +799,7 @@ export {
     Graphite_Timer,
     Log,
     Mobile_GetConstants,
+    PayIOU,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,

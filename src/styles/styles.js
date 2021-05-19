@@ -766,6 +766,13 @@ const styles = {
         opacity: 0.6,
     },
 
+    chatItemMessageLink: {
+        color: colors.blue,
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        lineHeight: 20,
+    },
+
     chatItemCompose: {
         minHeight: 65,
         marginBottom: 5,
@@ -1144,6 +1151,12 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
+    reportTransaction: {
+        paddingVertical: 8,
+        display: 'flex',
+        flexDirection: 'row',
+    },
+
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
@@ -1345,6 +1358,12 @@ const styles = {
         marginRight: -10,
     },
 
+    iouDetailsContainer: {
+        flexGrow: 1,
+        paddingStart: 20,
+        paddingEnd: 20,
+    },
+
     noScrollbars: {
         scrollbarWidth: 'none',
     },
@@ -1394,6 +1413,13 @@ const styles = {
         left: 0,
         opacity: 0,
         transform: 'translateX(-100%)',
+    },
+
+    blockquote: {
+        borderLeftColor: themeColors.border,
+        borderLeftWidth: 4,
+        paddingLeft: 12,
+        marginVertical: 4,
     },
 
     cursorDisabled: {
