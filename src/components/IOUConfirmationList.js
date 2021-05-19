@@ -112,15 +112,22 @@ class IOUConfirmationList extends Component {
         if (this.props.hasMultipleParticipants) {
             const formattedMyPersonalDetails = getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
-
-                // Convert from cent to bigger form
-                // USD is temporary and there must be support for other currencies in the future
-                `${this.props.selectedCurrency.currencySymbol}${this.calculateAmount(true) / 100}`,
+                this.props.translate('iou.request',
+                    {
+                        amount: this.props.numberFormat(this.calculateAmount(true) / 100, {
+                            style: 'currency',
+                            currency: this.props.selectedCurrency.currencyCode,
+                        }),
+                    }),
             );
 
-            // Cents is temporary and there must be support for other currencies in the future
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                `${this.props.selectedCurrency.currencySymbol}${this.calculateAmount() / 100}`);
+                this.props.translate('iou.request', {
+                    amount: this.props.numberFormat(this.calculateAmount(true) / 100, {
+                        style: 'currency',
+                        currency: this.props.selectedCurrency.currencyCode,
+                    }),
+                }));
 
             sections.push({
                 title: this.props.translate('iOUConfirmationList.whoPaid'),
@@ -135,9 +142,13 @@ class IOUConfirmationList extends Component {
                 indexOffset: 0,
             });
         } else {
-        // $ Should be replaced by currency symbol once available
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                `${this.props.selectedCurrency.currencySymbol}${this.props.iouAmount}`);
+                this.props.translate('iou.request', {
+                    amount: this.props.numberFormat(this.props.iouAmount / 100, {
+                        style: 'currency',
+                        currency: this.props.selectedCurrency.currencyCode,
+                    }),
+                }));
 
             sections.push({
                 title: this.props.translate('common.to').toUpperCase(),
