@@ -157,6 +157,16 @@ const styles = {
         borderWidth: 0,
     },
 
+    noRightBorderRadius: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+    },
+
+    noLeftBorderRadius: {
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+    },
+
     buttonConfirm: {
         margin: 20,
     },

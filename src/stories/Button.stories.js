@@ -18,12 +18,18 @@ const Template = args => <Button {...args} />;
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 export const Default = Template.bind({});
 export const Loading = Template.bind({});
+export const Dropdown = Template.bind({});
 Default.args = {
     text: 'Save & Continue',
     success: true,
+    shouldShowDropDownArrow: true,
 };
 Loading.args = {
     text: 'Save & Continue',
     isLoading: true,
     success: true,
+};
+Dropdown.args = {
+    text: 'Pay with Venmo',
+    shouldShowDropDownArrow: true,
 };
