@@ -266,7 +266,11 @@ function fetchCurrencyPreferences(withLocation) {
         })
         .then((currencyList) => {
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
-                {preferredCurrencyCode: currency, preferredCurrencySymbol: currencyList[currency].symbol});
+                {
+                    preferredCurrencyCode: currency,
+                    preferredCurrencySymbol: currencyList[currency].symbol,
+                    isCurrencyPreferencesSaved: true,
+                });
         })
         .catch(error => console.debug(error));
 }

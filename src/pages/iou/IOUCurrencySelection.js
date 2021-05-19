@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import {getCurrencyList} from '../../libs/actions/PersonalDetails';
+import {fetchCurrencyPreferences, getCurrencyList} from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import {getCurrencyListForSections} from '../../libs/OptionsListUtils';
 import Text from '../../components/Text';
@@ -14,6 +14,8 @@ import TextInputWithFocusStyles from '../../components/TextInputWithFocusStyles'
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import compose from '../../libs/compose';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 /**
  * IOU Currency selection for selecting currency
@@ -28,6 +30,9 @@ const propTypes = {
 
         // Currency Symbol of the Preferred Currency
         preferredCurrencySymbol: PropTypes.string,
+
+        // Whether preferences for the currency are saved
+        isCurrencyPreferencesSaved: PropTypes.bool,
     }),
 
     // The currency list constant object from Onyx
@@ -41,6 +46,7 @@ const propTypes = {
         // ISO4217 Code for the currency
         ISO4217: PropTypes.string,
     })),
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -72,6 +78,9 @@ class IOUCurrencySelection extends Component {
 
     componentDidMount() {
         getCurrencyList();
+        if (!this.props.myPersonalDetails.isCurrencyPreferencesSaved) {
+            fetchCurrencyPreferences(true);
+        }
     }
 
     /**
@@ -84,7 +93,7 @@ class IOUCurrencySelection extends Component {
         const sections = [];
 
         sections.push({
-            title: 'ALL CURRENCIES',
+            title: this.props.translate('iOUCurrencySelection.allCurrencies'),
             data: this.state.currencyData,
             shouldShow: true,
             indexOffset: 0,
@@ -154,7 +163,7 @@ class IOUCurrencySelection extends Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title="Select a currency"
+                    title={this.props.translate('iOUCurrencySelection.selectCurrency')}
                     onCloseButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flex1, styles.w100]}>
@@ -225,7 +234,10 @@ IOUCurrencySelection.propTypes = propTypes;
 IOUCurrencySelection.defaultProps = defaultProps;
 IOUCurrencySelection.displayName = 'IOUCurrencySelection';
 
-export default withOnyx({
-    currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-    myPersonalDetails: {key: ONYXKEYS.MY_PERSONAL_DETAILS},
-})(IOUCurrencySelection);
+export default compose(
+    withLocalize,
+    withOnyx({
+        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+        myPersonalDetails: {key: ONYXKEYS.MY_PERSONAL_DETAILS},
+    }),
+)(IOUCurrencySelection);
