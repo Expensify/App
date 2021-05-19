@@ -64,6 +64,8 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
 
+    preferredLocale: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 
     /* Onyx Props */
@@ -267,7 +269,12 @@ class IOUConfirmationList extends Component {
                         text={this.props.hasMultipleParticipants
                             ? this.props.translate('common.split')
                             : this.props.translate('iou.request',
-                                {amount: `${this.props.selectedCurrency.currencySymbol}${this.props.iouAmount}`})}
+                                {
+                                    amount: this.props.numberFormat(this.props.preferredLocale, this.props.iouAmount, {
+                                        style: 'currency',
+                                        currency: this.props.serrlectedCurrency.currencySymbol,
+                                    }),
+                                })}
                         onClick={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
@@ -289,5 +296,6 @@ export default compose(
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
+        preferredLocale: {key: ONYXKEYS.PREFERRED_LOCALE},
     }),
 )(IOUConfirmationList);

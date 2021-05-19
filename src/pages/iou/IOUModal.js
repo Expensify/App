@@ -61,6 +61,8 @@ const propTypes = {
         avatar: PropTypes.string,
     }).isRequired,
 
+    preferredLocale: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -154,7 +156,12 @@ class IOUModal extends Component {
             return `${this.props.hasMultipleParticipants
                 ? this.props.translate('common.split')
                 : this.props.translate('iou.request',
-                    {amount: `${this.state.selectedCurrency.currencySymbol}${this.state.amount}`})}`;
+                    {
+                        amount: this.props.numberFormat(this.props.preferredLocale, this.state.amount, {
+                            style: 'currency',
+                            currency: this.state.selectedCurrency.currencySymbol,
+                        }),
+                    })}`;
         }
         if (currentStepIndex === 0) {
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
@@ -341,5 +348,6 @@ export default compose(
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
+        preferredLocale: {key: ONYXKEYS.PREFERRED_LOCALE},
     }),
 )(IOUModal);

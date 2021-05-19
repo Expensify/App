@@ -50,6 +50,10 @@ export default {
         whoWasThere: 'WHO WAS THERE?',
         whatsItFor: 'WHAT\'S IT FOR?',
     },
+    iOUCurrencySelection: {
+        selectCurrency: 'Select a Currency',
+        allCurrencies: 'ALL CURRENCIES',
+    },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
     },
