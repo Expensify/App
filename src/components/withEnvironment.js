@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import Environment from '../libs/Environment';
 import CONST from '../CONST';
+import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 const environmentPropTypes = {
     /** The string value representing the current environment */
@@ -36,6 +37,7 @@ export default function (WrappedComponent) {
         }
     }
 
+    WithEnvironment.displayName = `withDrawerState(${getComponentDisplayName(WrappedComponent)})`;
     return WithEnvironment;
 }
 
