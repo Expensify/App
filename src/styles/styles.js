@@ -157,6 +157,10 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonDropdown: {
+        marginLeft: 1,
+    },
+
     noRightBorderRadius: {
         borderTopRightRadius: 0,
         borderBottomRightRadius: 0,
