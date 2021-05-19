@@ -2,7 +2,6 @@ import React from 'react';
 import {
     View,
     Text,
-    TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -13,6 +12,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
+import Button from '../../../components/Button';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
@@ -164,21 +164,14 @@ class IOUAmountPage extends React.Component {
                                 numberPressed={this.updateAmountIfValidInput}
                             />
                         ) : <View />}
-                    <TouchableOpacity
-                        style={[
-                            styles.button,
-                            styles.w100,
-                            styles.mt5,
-                            styles.buttonSuccess,
-                            this.state.amount.length === 0 ? styles.buttonSuccessDisabled : {},
-                        ]}
+
+                    <Button
+                        success
+                        style={[styles.w100, styles.mt5]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}
-                        disabled={this.state.amount.length === 0}
-                    >
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            {this.props.translate('common.next')}
-                        </Text>
-                    </TouchableOpacity>
+                        isDisabled={this.state.amount.length === 0}
+                        text={this.props.translate('common.next')}
+                    />
                 </View>
             </View>
         );
