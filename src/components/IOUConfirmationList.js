@@ -224,8 +224,14 @@ class IOUConfirmationList extends Component {
     }
 
     render() {
-        /* eslint-disable-next-line max-len */
-        const buttonText = this.props.translate(this.props.hasMultipleParticipants ? 'common.split' : 'iou.request', {amount: this.props.numberFormat(this.props.iouAmount, {style: 'currency', currency: this.props.selectedCurrency})});
+        const buttonText = this.props.translate(
+            this.props.hasMultipleParticipants ? 'common.split' : 'iou.request', {
+                amount: this.props.numberFormat(
+                    this.props.iouAmount,
+                    {style: 'currency', currency: this.props.selectedCurrency},
+                ),
+            },
+        );
         return (
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
