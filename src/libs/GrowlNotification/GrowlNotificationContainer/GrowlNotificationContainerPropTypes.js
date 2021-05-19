@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
-    // GrowlNotification content
+    /** GrowlNotification content */
     children: PropTypes.node.isRequired,
 
-    // GrowlNotification Y postion, required to show or hide with fling animation
+    /** GrowlNotification Y postion, required to show or hide with fling animation */
     translateY: PropTypes.instanceOf(Animated.Value).isRequired,
 
     ...windowDimensionsPropTypes,

@@ -62,7 +62,7 @@ class GrowlNotification extends Component {
     }
 
     /**
-     * animate growl notification
+     * Animate growl notification
      *
      * @param {Number} val
     */
