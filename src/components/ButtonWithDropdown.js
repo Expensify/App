@@ -28,12 +28,7 @@ const ButtonWithDropdown = props => (
             onPress={props.onButtonPress}
             text={props.buttonText}
             isLoading={props.isLoading}
-        />
-        <Button
-            onPress={props.onDropdownPress}
-            ContentComponent={() => (
-                <Icon src={DownArrow} fill={themeColors.textReversed} />
-            )}
+            shouldRemoveRightBorder
         />
         <Pressable
             onPress={props.onDropdownPress}
