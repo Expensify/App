@@ -12,7 +12,7 @@ import {
     getIOUConfirmationOptionsFromParticipants,
 } from '../libs/OptionsListUtils';
 import OptionsList from './OptionsList';
-import ButtonWithLoader from './ButtonWithLoader';
+import Button from './Button';
 import ONYXKEYS from '../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
@@ -258,12 +258,14 @@ class IOUConfirmationList extends Component {
                     </View>
                 </View>
                 <View style={[styles.ph5, styles.pb3]}>
-                    <ButtonWithLoader
+                    <Button
+                        success
+                        style={[styles.mb2]}
                         isLoading={this.props.iou.loading}
                         text={this.props.hasMultipleParticipants
                             ? this.props.translate('common.split')
                             : this.props.translate('iou.request', {amount: this.props.iouAmount})}
-                        onClick={() => this.props.onConfirm(this.getSplits())}
+                        onPress={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
             </View>
