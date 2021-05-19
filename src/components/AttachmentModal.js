@@ -1,8 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {
-    View, TouchableOpacity, Text,
-} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import Modal from './Modal';
@@ -13,6 +11,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import addAuthTokenToURL from '../libs/addAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import Button from './Button';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -126,21 +125,13 @@ class AttachmentModal extends PureComponent {
 
                     {/* If we have an onConfirm method show a confirmation button */}
                     {this.props.onConfirm && (
-                        <TouchableOpacity
-                            style={[styles.button, styles.buttonSuccess, styles.buttonConfirm]}
-                            underlayColor={themeColors.componentBG}
+                        <Button
+                            success
+                            style={[styles.buttonConfirm]}
+                            textStyles={[styles.buttonConfirmText]}
+                            text={this.props.translate('common.upload')}
                             onPress={this.submitAndClose}
-                        >
-                            <Text
-                                style={[
-                                    styles.buttonText,
-                                    styles.buttonSuccessText,
-                                    styles.buttonConfirmText,
-                                ]}
-                            >
-                                {this.props.translate('common.upload')}
-                            </Text>
-                        </TouchableOpacity>
+                        />
                     )}
                 </Modal>
                 {this.props.children({
