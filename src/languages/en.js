@@ -138,10 +138,28 @@ export default {
         enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number and password to send a validation link.',
         enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
         sendValidation: 'Send Validation',
-
     },
     initialSettingsPage: {
         settings: 'Settings',
+        about: 'About',
+        aboutPage: {
+            description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            appDownloadLinks: 'App download links',
+            viewTheCode: 'View the code',
+            viewOpenJobs: 'View open jobs',
+            reportABug: 'Report a bug',
+        },
+        appDownloadLinks: {
+            android: {
+                label: 'Android',
+            },
+            ios: {
+                label: 'iOS',
+            },
+            desktop: {
+                label: 'Desktop',
+            },
+        },
         signOut: 'Sign Out',
         versionLetter: 'v',
         changePassword: 'Change Password',
