@@ -1,7 +1,7 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
-import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import focusApp from './focusApp';
+import NotificationGenerator from './NotificationGenerator';
 import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
 import ONYXKEYS from '../../../ONYXKEYS';
 
@@ -106,15 +106,10 @@ export default {
      * @param {Function} params.onClick
      */
     pushReportCommentNotification({reportAction, onClick}) {
-        const {person, message} = reportAction;
-        const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
-
-        // Specifically target the comment part of the message
-        const plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);
-
+        const {title, message} = NotificationGenerator.getReportActionNotificationPayload(reportAction);
         push({
-            title: `New message from ${plainTextPerson}`,
-            body: plainTextMessage,
+            title,
+            body: message,
             delay: 0,
             onClick,
         });
