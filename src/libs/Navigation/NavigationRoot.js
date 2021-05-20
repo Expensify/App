@@ -40,7 +40,7 @@ class NavigationRoot extends Component {
                 ref={navigationRef}
                 linking={linkingConfig}
                 documentTitle={{
-                    formatter: () => 'Expensify.cash',
+                    enabled: false,
                 }}
             >
                 <AppNavigator authenticated={this.props.authenticated} />

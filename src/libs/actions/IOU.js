@@ -28,7 +28,7 @@ function getPreferredCurrency() {
 function getIOUReportsForNewTransaction(requestParams) {
     return API.Get({
         returnValueList: 'reportStuff',
-        reportIDList: _.pluck(requestParams, 'reportID'),
+        reportIDList: _.pluck(requestParams, 'reportID').join(','),
         shouldLoadOptionalKeys: true,
         includePinnedReports: true,
     })
