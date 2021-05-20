@@ -20,4 +20,24 @@ export default {
     dInline: {
         display: 'inline',
     },
+
+    opacity0: {
+        opacity: 0,
+    },
+
+    opacity25: {
+        opacity: 0.25,
+    },
+
+    opacity50: {
+        opacity: 0.5,
+    },
+
+    opacity75: {
+        opacity: 0.75,
+    },
+
+    opacity100: {
+        opacity: 1,
+    },
 };

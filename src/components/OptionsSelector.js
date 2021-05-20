@@ -194,11 +194,11 @@ class OptionsSelector extends Component {
     render() {
         return (
             <View style={[styles.flex1]}>
-                <View style={[styles.ph5, styles.pv3]}>
+                <View style={[styles.ph5, styles.pv3, styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
                     <TextInputWithFocusStyles
                         styleFocusIn={[styles.textInputReversedFocus]}
                         ref={el => this.textInput = el}
-                        style={[styles.textInput]}
+                        style={[styles.textInput, styles.flex1]}
                         value={this.props.value}
                         onChangeText={this.props.onChangeText}
                         onKeyPress={this.handleKeyPress}
@@ -206,8 +206,12 @@ class OptionsSelector extends Component {
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                         placeholderTextColor={themeColors.placeholderText}
                     />
+                    <ActivityIndicator
+                        size="small"
+                        style={[styles.m2, this.props.showLoader ? styles.opacity100 : styles.opacity0]}
+                    />
                 </View>
-                {this.props.showLoader && <ActivityIndicator size="small" style={[styles.mb3]} />}
+
                 <OptionsList
                     ref={el => this.list = el}
                     optionHoveredStyle={styles.hoveredComponentBG}
@@ -218,11 +222,13 @@ class OptionsSelector extends Component {
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
                     headerMessage={this.props.headerMessage}
+                    headerMessageMinHeight={45}
                     disableFocusOptions={this.props.disableArrowKeysActions}
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                     forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                     showTitleTooltip={this.props.showTitleTooltip}
                 />
+
             </View>
         );
     }

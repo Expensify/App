@@ -140,14 +140,7 @@ class SearchPage extends Component {
     }
 
     validateInput(searchValue) {
-    // Clears the header message on clearing the input
         if (!searchValue) {
-            this.setState({
-                headerMessage: '',
-                userToInvite: null,
-                recentReports: this.preserveRecentReports,
-                showLoader: false,
-            });
             return;
         }
 
@@ -158,34 +151,39 @@ class SearchPage extends Component {
             searchValue,
         );
 
-
         if (/^\d+$/.test(searchValue) || /^[0-9]*$/.test(searchValue)) {
             // Appends country code
             if (!searchValue.includes('+')) {
                 modifiedSearchValue = `+${this.props.countryCode}${searchValue}`;
             }
-            API.IsValidPhoneNumber({phoneNumber: modifiedSearchValue}).then((resp) => {
-                if (resp.isValid) {
-                    const {recentReports, personalDetails, userToInvite} = getSearchOptions(
-                        this.props.reports,
-                        this.props.personalDetails,
-                        searchValue,
-                    );
-                    this.setState({
-                        userToInvite,
-                        recentReports,
-                        personalDetails,
-                        headerMessage: '',
-                    });
-                } else {
-                    this.setState({
-                        recentReports: this.preserveRecentReports,
-                        userToInvite: null,
-                        headerMessage,
-                    });
-                }
-                this.setState({showLoader: false});
-            });
+            API.IsValidPhoneNumber({phoneNumber: modifiedSearchValue}).then(
+                (resp) => {
+                    if (resp.isValid) {
+                        const {
+                            recentReports,
+                            personalDetails,
+                            userToInvite,
+                        } = getSearchOptions(
+                            this.props.reports,
+                            this.props.personalDetails,
+                            searchValue,
+                        );
+                        this.setState({
+                            userToInvite,
+                            recentReports,
+                            personalDetails,
+                            headerMessage: '',
+                        });
+                    } else {
+                        this.setState({
+                            recentReports: this.preserveRecentReports,
+                            userToInvite: null,
+                            headerMessage,
+                        });
+                    }
+                    this.setState({showLoader: false});
+                },
+            );
         } else {
             const {recentReports, personalDetails, userToInvite} = getSearchOptions(
                 this.props.reports,
@@ -197,7 +195,8 @@ class SearchPage extends Component {
                 recentReports,
                 personalDetails,
                 headerMessage: getHeaderMessage(
-                    (prevState.recentReports.length + prevState.personalDetails.length) !== 0,
+                    prevState.recentReports.length + prevState.personalDetails.length
+            !== 0,
                     Boolean(prevState.userToInvite),
                     prevState.searchValue,
                 ),
@@ -222,9 +221,23 @@ class SearchPage extends Component {
                         onSelectRow={this.selectReport}
                         onChangeText={(searchValue = '') => {
                             this.setState({searchValue, showLoader: true});
-                            this.validateInput(searchValue);
+
+                            // Clears the header message on clearing the input
+                            if (!searchValue) {
+                                this.validateInput.cancel();
+                                setTimeout(() => {
+                                    this.setState({
+                                        headerMessage: '',
+                                        userToInvite: null,
+                                        recentReports: this.preserveRecentReports,
+                                        showLoader: false,
+                                    });
+                                }, 0);
+                            } else {
+                                this.validateInput(searchValue);
+                            }
                         }}
-                        headerMessage={this.state.headerMessage}
+                        headerMessage={this.state.searchValue && this.state.headerMessage}
                         hideSectionHeaders
                         hideAdditionalOptionStates
                         showTitleTooltip
