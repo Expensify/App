@@ -174,15 +174,6 @@ Network.registerErrorHandler((queuedRequest, error) => {
 });
 
 /**
- * Access the current authToken
- *
- * @returns {String}
- */
-function getAuthToken() {
-    return authToken;
-}
-
-/**
  * @param {Object} parameters
  * @param {String} [parameters.useExpensifyLogin]
  * @param {String} parameters.partnerName
@@ -442,22 +433,6 @@ function Log(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String[]} data
- * @returns {Promise}
- */
-function Mobile_GetConstants(parameters) {
-    const commandName = 'Mobile_GetConstants';
-    requireParameters(['data'], parameters, commandName);
-
-    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
-    const finalParameters = parameters;
-    finalParameters.data = JSON.stringify(parameters.data);
-
-    return Network.post(commandName, finalParameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.name
  * @param {Number} parameters.value
  * @returns {Promise}
@@ -466,6 +441,18 @@ function Graphite_Timer(parameters) {
     const commandName = 'Graphite_Timer';
     requireParameters(['name', 'value'],
         parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.paymentMethodType
+ * @returns {Promise}
+ */
+function PayIOU(parameters) {
+    const commandName = 'PayIOU';
+    requireParameters(['reportID', 'paymentMethodType'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -791,7 +778,6 @@ function BankAccount_Create(parameters) {
 }
 
 export {
-    getAuthToken,
     Authenticate,
     BankAccount_Create,
     BankAccount_Get,
@@ -805,7 +791,7 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Log,
-    Mobile_GetConstants,
+    PayIOU,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,

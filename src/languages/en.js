@@ -26,6 +26,7 @@ export default {
         phoneNumber: 'Phone Number',
         email: 'Email',
         and: 'and',
+        details: 'Details',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -99,7 +100,12 @@ export default {
         confirm: 'Confirm',
         splitBill: 'Split Bill',
         requestMoney: 'Request Money',
+        pay: 'Pay',
+        viewDetails: 'View Details',
+        settleElsewhere: 'I\'ll settle up elsewhere',
         request: ({amount}) => `Request ${amount}`,
+        owes: ({manager, owner}) => `${manager} owes ${owner}`,
+        paid: ({owner, manager}) => `${manager} paid ${owner}`,
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
@@ -130,10 +136,28 @@ export default {
         enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number and password to send a validation link.',
         enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
         sendValidation: 'Send Validation',
-
     },
     initialSettingsPage: {
         settings: 'Settings',
+        about: 'About',
+        aboutPage: {
+            description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            appDownloadLinks: 'App download links',
+            viewTheCode: 'View the code',
+            viewOpenJobs: 'View open jobs',
+            reportABug: 'Report a bug',
+        },
+        appDownloadLinks: {
+            android: {
+                label: 'Android',
+            },
+            ios: {
+                label: 'iOS',
+            },
+            desktop: {
+                label: 'Desktop',
+            },
+        },
         signOut: 'Sign Out',
         versionLetter: 'v',
         changePassword: 'Change Password',
@@ -198,7 +222,6 @@ export default {
         resendLink: 'Resend Link',
     },
     detailsPage: {
-        details: 'Details',
         localTime: 'Local Time',
     },
     newGroupPage: {
