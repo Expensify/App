@@ -65,6 +65,16 @@ jobs:
             Engineering
             Hourly
 
+      - name: If PR is not mergeable, comment with instructions for assignee
+        if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
+        with:
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          number: ${{ steps.createPullRequest.outputs.pr_number }}
+          body: |
+            This pull request has a merge conflict and could not be automatically merged. :disappointed:
+            Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
+
       # TODO: Once https://github.com/hmarr/auto-approve-action/pull/186 is merged, point back at the non-forked repo
       - name: Check for an auto approve
         # Version: 2.0.0
