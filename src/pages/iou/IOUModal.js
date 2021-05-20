@@ -151,15 +151,16 @@ class IOUModal extends Component {
     getTitleForStep() {
         const currentStepIndex = this.state.currentStepIndex;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
-            return `${this.props.hasMultipleParticipants
-                ? this.props.translate('common.split')
-                : this.props.translate('iou.request',
-                    {
-                        amount: this.props.numberFormat(this.state.amount, {
+            return this.props.translate(
+                this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                    amount: this.props.numberFormat(
+                        this.state.amount, {
                             style: 'currency',
                             currency: this.state.selectedCurrency.currencyCode,
-                        }),
-                    })}`;
+                        },
+                    ),
+                },
+            );
         }
         if (currentStepIndex === 0) {
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
