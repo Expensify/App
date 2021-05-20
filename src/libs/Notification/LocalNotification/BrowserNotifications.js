@@ -106,7 +106,7 @@ export default {
      * @param {Function} params.onClick
      */
     pushReportCommentNotification({reportAction, onClick}) {
-        const {title, message} = NotificationGenerator.getReportActionNotificationPayload(reportAction);
+        const {title, message} = NotificationGenerator.getReportCommentNotificationPayload(reportAction);
         push({
             title,
             body: message,

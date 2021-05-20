@@ -85,7 +85,7 @@ function queueNotification(notification, handler) {
  */
 // TODO: maybe rename this from onClick to something more generic, maybe just onPress?
 function showCommentNotification({reportAction, onClick}) {
-    queueNotification(NotificationGenerator.getReportActionNotificationPayload(reportAction), onClick);
+    queueNotification(NotificationGenerator.getReportCommentNotificationPayload(reportAction), onClick);
 }
 
 export default {

@@ -6,7 +6,7 @@ import Str from 'expensify-common/lib/str';
  * @param {Object} reportAction
  * @returns {Object}
  */
-function getReportActionNotificationPayload(reportAction) {
+function getReportCommentNotificationPayload(reportAction) {
     const {person, message} = reportAction;
     const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
 
@@ -20,5 +20,5 @@ function getReportActionNotificationPayload(reportAction) {
 }
 
 export default {
-    getReportActionNotificationPayload,
+    getReportCommentNotificationPayload,
 };
