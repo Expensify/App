@@ -39,7 +39,7 @@ function getChannel() {
 }
 
 /**
- * Process the notification queue.
+ * Process the notification queue recursively.
  */
 function processQueue() {
     currentlyProcessingNotification = notificationQueue.shift();
