@@ -59,6 +59,8 @@ function getChannel() {
 
 /**
  * Process the notification queue recursively.
+ *
+ * @throws {Error}
  */
 function processQueue() {
     currentlyProcessingNotification = notificationQueue.shift();
@@ -84,6 +86,7 @@ function processQueue() {
  *
  * @param {Object} notification
  * @param {Function} handler
+ * @throws {Error}
  */
 function queueNotification(notification, handler) {
     // Add notification to the queue
@@ -101,6 +104,7 @@ function queueNotification(notification, handler) {
  * @param {Object} params
  * @param {Object} params.reportAction
  * @param {Function} params.onClick
+ * @throws {Error}
  */
 // TODO: maybe rename this from onClick to something more generic, maybe just onPress?
 function showCommentNotification({reportAction, onClick}) {
