@@ -2,6 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
+import Geolocation from 'react-native-geolocation-service';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
@@ -237,6 +238,56 @@ function setPersonalDetails(details) {
 }
 
 /**
+ * Sets the onyx with the currency list from the network
+ * @returns {Object}
+ */
+function getCurrencyList() {
+    return API.GetCurrencyList()
+        .then((data) => {
+            const currencyListObject = JSON.parse(data.currencyList);
+            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
+            return currencyListObject;
+        });
+}
+
+/**
+ * Fetches the Currency preferences based on location
+ * @param {bool} withLocation
+ */
+function fetchCurrencyPreferences(withLocation) {
+    let coords = {};
+    let currency = '';
+
+    if (withLocation) {
+        Geolocation.getCurrentPosition((position) => {
+            coords = {
+                longitude: position.coords.longitude,
+                latitude: position.coords.latitude,
+            };
+        });
+        Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
+            {
+                isCurrencyPreferencesSaved: true,
+            });
+    }
+
+    API.GetPreferredCurrency({...coords})
+        .then((data) => {
+            currency = data.currency;
+        })
+        .then(API.GetCurrencyList)
+        .then(getCurrencyList)
+        .then((currencyList) => {
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
+                {
+                    preferredCurrencyCode: currency,
+                    preferredCurrencySymbol: currencyList[currency].symbol,
+                });
+        })
+        .catch(error => console.debug(`Error fetching currency preference: , ${error}`));
+}
+
+/**
  * Sets the user's avatar image
  *
  * @param {File|Object} file
@@ -273,4 +324,6 @@ export {
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
+    fetchCurrencyPreferences,
+    getCurrencyList,
 };
