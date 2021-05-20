@@ -22,24 +22,29 @@ const propTypes = {
     /** Text to display for the item */
     title: PropTypes.string.isRequired,
 
-    /** Boolean whether to display the ArrowRight icon */
-    shouldShowRightArrow: PropTypes.bool,
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon: PropTypes.bool,
 
     /** A boolean flag that gives the icon a green fill if true */
     success: PropTypes.bool,
+
+    // Overrides the icon for shouldShowRightIcon
+    iconRight: PropTypes.element,
 };
 
 const defaultProps = {
-    shouldShowRightArrow: false,
+    shouldShowRightIcon: false,
     wrapperStyle: {},
     success: false,
+    iconRight: ArrowRight,
 };
 
 const MenuItem = ({
     onPress,
     icon,
+    iconRight,
     title,
-    shouldShowRightArrow,
+    shouldShowRightIcon,
     wrapperStyle,
     success,
 }) => (
@@ -63,9 +68,9 @@ const MenuItem = ({
                         </Text>
                     </View>
                 </View>
-                {shouldShowRightArrow && (
+                {shouldShowRightIcon && (
                     <View style={styles.createMenuIcon}>
-                        <Icon src={ArrowRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
+                        <Icon src={iconRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
                     </View>
                 )}
             </>
