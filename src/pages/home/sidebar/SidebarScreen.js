@@ -105,7 +105,7 @@ class SidebarScreen extends Component {
                                 {
                                     icon: ChatBubble,
                                     text: this.props.translate('sidebarScreen.newChat'),
-                                    onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
+                                    onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                 },
                                 ...(Permissions.canUseIOU() ? [
                                     {
