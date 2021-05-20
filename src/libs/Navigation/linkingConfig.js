@@ -48,6 +48,14 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_About: {
+                        path: ROUTES.SETTINGS_ABOUT,
+                        exact: true,
+                    },
+                    Settings_App_Download_Links: {
+                        path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
+                        exact: true,
+                    },
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
@@ -92,6 +100,11 @@ export default {
             IOU_Details: {
                 screens: {
                     IOU_Details_Root: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,
+                },
+            },
+            AddBankAccount: {
+                screens: {
+                    AddBankAccount_Root: ROUTES.ADD_BANK_ACCOUNT,
                 },
             },
         },

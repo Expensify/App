@@ -56,7 +56,7 @@ function getIOUReportsForNewTransaction(requestParams) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportsToUpdate);
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
         })
-        .catch(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: ''}))
+        .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
 }
 
@@ -69,7 +69,7 @@ function getIOUReportsForNewTransaction(requestParams) {
  * @param {String} params.debtorEmail
  */
 function createIOUTransaction(params) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: ''});
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
     API.CreateIOUTransaction(params)
         .then(data => getIOUReportsForNewTransaction([data]));
 }
@@ -83,7 +83,7 @@ function createIOUTransaction(params) {
  * @param {String} params.currency
  */
 function createIOUSplit(params) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: ''});
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 
     API.CreateChatReport({
         emailList: params.splits.map(participant => participant.email).join(','),
@@ -112,27 +112,33 @@ function createIOUSplit(params) {
 }
 
 /**
- * Settles an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
+ * Pays an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
  */
-function settleIOUReport({
+function payIOUReport({
     chatReportID, reportID, paymentMethodType,
 }) {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: ''});
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
     API.PayIOU({
         reportID,
         paymentMethodType,
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
-                throw new Error(`Error while settling IOU: ${response.message}`);
+                throw new Error(response.message);
             }
-        })
-        .then(() => fetchChatReportsByIDs([chatReportID]))
+            fetchChatReportsByIDs([chatReportID]);
 
-        // Any report that is being settled must be open, and must be currently set as open iouReport within the
-        // chatReport object. Therefore, we must also update the chatReport to break this existing link.
-        .then(() => fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID))
-        .catch(error => Onyx.merge(ONYXKEYS.IOU, {error}))
+            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
+            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
+            // components. If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
+            // iouReport being fetched here must be open, because only an open iouReoport can be paid.
+            // Therefore, we should also sync the chatReport after fetching the iouReport.
+            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+        })
+        .catch((error) => {
+            console.error(`Error Paying iouReport: ${error}`);
+            Onyx.merge(ONYXKEYS.IOU, {error: true});
+        })
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }
 
@@ -140,5 +146,5 @@ export {
     getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
-    settleIOUReport,
+    payIOUReport,
 };

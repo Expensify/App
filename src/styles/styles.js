@@ -432,10 +432,8 @@ const styles = {
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'column',
-        height: 84,
-        justifyContent: 'flex-start',
-        paddingHorizontal: 20,
+        justifyContent: 'center',
+        paddingVertical: 20,
         width: '100%',
     },
 
@@ -831,7 +829,6 @@ const styles = {
 
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
-        minWidth: CONST.EMOJI_PICKER_SIZE,
     },
 
     emojiPickerList: {
@@ -1153,8 +1150,7 @@ const styles = {
     },
 
     reportTransaction: {
-        paddingTop: 8,
-        paddingBottom: 8,
+        paddingVertical: 8,
         display: 'flex',
         flexDirection: 'row',
     },
@@ -1163,8 +1159,6 @@ const styles = {
         flexDirection: 'column',
         width: '100%',
         flexGrow: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
 
     settingsPageBody: {
@@ -1360,6 +1354,12 @@ const styles = {
         marginRight: -10,
     },
 
+    iouDetailsContainer: {
+        flexGrow: 1,
+        paddingStart: 20,
+        paddingEnd: 20,
+    },
+
     noScrollbars: {
         scrollbarWidth: 'none',
     },
@@ -1415,8 +1415,11 @@ const styles = {
         borderLeftColor: themeColors.border,
         borderLeftWidth: 4,
         paddingLeft: 12,
-        marginTop: 4,
-        marginBottom: 4,
+        marginVertical: 4,
+    },
+
+    cursorDisabled: {
+        cursor: 'not-allowed',
     },
 };
 
@@ -1473,6 +1476,8 @@ const webViewStyles = {
             paddingRight: 8,
             paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
+            marginTop: 0,
+            marginBottom: 0,
         },
 
         code: {
@@ -1721,6 +1726,18 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
     return italicBold || bold || italic || fontFamily.MONOSPACE;
 }
 
+/**
+ * Gives the width for Emoji picker Widget
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {String}
+ */
+function getEmojiPickerStyle(isSmallScreenWidth) {
+    return {
+        width: isSmallScreenWidth ? '100%' : CONST.EMOJI_PICKER_SIZE,
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1740,4 +1757,5 @@ export {
     getWidthAndHeightStyle,
     getModalPaddingStyles,
     getFontFamilyMonospace,
+    getEmojiPickerStyle,
 };

@@ -13,7 +13,6 @@ import {
     fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
-import * as BankAccounts from '../../actions/BankAccounts';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
@@ -48,6 +47,7 @@ import {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
+    AddBankAccountModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -81,9 +81,9 @@ const modalScreenListeners = {
 };
 
 const propTypes = {
-    // Information about the network
+    /** Information about the network */
     network: PropTypes.shape({
-        // Is the network currently offline or not
+        /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 
@@ -118,7 +118,6 @@ class AuthScreens extends React.Component {
         User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
-        BankAccounts.fetchBankAccountList();
         UnreadIndicatorUpdater.listenForReportChanges();
 
         // Refresh the personal details, timezone and betas every 30 minutes
@@ -253,6 +252,12 @@ class AuthScreens extends React.Component {
                     name="IOU_Details"
                     options={modalScreenOptions}
                     component={IOUDetailsModalStackNavigator}
+                />
+                <RootStack.Screen
+                    name="AddBankAccount"
+                    options={modalScreenOptions}
+                    component={AddBankAccountModalStackNavigator}
+                    listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
         );

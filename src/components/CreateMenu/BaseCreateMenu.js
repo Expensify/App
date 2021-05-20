@@ -11,7 +11,7 @@ import {
 } from './CreateMenuPropTypes';
 
 const propTypes = {
-    // Callback fired when the menu is completely closed
+    /** Callback fired when the menu is completely closed */
     onMenuHide: PropTypes.func,
 
     ...createMenuPropTypes,

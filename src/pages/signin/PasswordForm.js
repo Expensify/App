@@ -5,7 +5,7 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import themeColors from '../../styles/themes/default';
 import {signIn, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -17,15 +17,15 @@ import compose from '../../libs/compose';
 const propTypes = {
     /* Onyx Props */
 
-    // The details about the account that the user is signing in with
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        // Whether or not the account already exists
+        /** Whether or not the account already exists */
         accountExists: PropTypes.bool,
 
-        // Whether or not two factor authentication is required
+        /** Whether or not two factor authentication is required */
         requiresTwoFactorAuth: PropTypes.bool,
 
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 
@@ -107,10 +107,12 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
                 <View>
-                    <ButtonWithLoader
+                    <Button
+                        success
+                        style={[styles.mb2]}
                         text={this.props.translate('common.signIn')}
                         isLoading={this.props.account.loading}
-                        onClick={this.validateAndSubmitForm}
+                        onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink />
                 </View>

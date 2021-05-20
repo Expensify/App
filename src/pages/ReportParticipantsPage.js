@@ -19,25 +19,26 @@ import compose from '../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
-    // The personal details of the person who is logged in
+
+    /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
 
-    // The active report
+    /** The active report */
     report: PropTypes.shape({
-        // The list of icons
+        /** The list of icons */
         icons: PropTypes.arrayOf(PropTypes.string),
 
-        // The report name
+        /** The report name */
         reportName: PropTypes.string,
 
-        // Array of participants
+        /** Array of participants */
         participants: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
-    // Route params
+    /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
-            // Report ID passed via route r/:reportID/participants
+            /** Report ID passed via route r/:reportID/participants */
             reportID: PropTypes.string,
         }),
     }).isRequired,
@@ -83,7 +84,7 @@ const ReportParticipantsPage = ({
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('detailsPage.details')}
+                title={translate('common.details')}
                 onCloseButtonPress={Navigation.dismissModal}
             />
             <View
