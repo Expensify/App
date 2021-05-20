@@ -1,6 +1,25 @@
 import PushNotification from 'react-native-push-notification';
 import NotificationGenerator from './NotificationGenerator';
 
+/*
+ * Note: react-native-push-notification uses a single global event handler for `onNotification`.
+ * So in order to provide an API similar to that of BrowserNotifications,
+ * where we can simply pass a payload and an `onPress` callback, we need to process each notification by:
+ *
+ *     1. Setting the global `onNotification` event handler to be the `onPress` callback for the given notification.
+ *     2. Triggering the local push notification.
+ *     3. Resetting the global `onNotification` event handler.
+ *
+ * That's why we need to process notifications in a queue – otherwise we could produce the following race condition:
+ *
+ *     1. A notification + callback is dispatched (call it X)
+ *     2. We set the global `onNotification` event handler to be X.onPress
+ *     3. Another notification + callback is dispatched (call it Y)
+ *     4. We set the global `onNotification` event handler to be Y.onPress
+ *     5. X.notification is displayed.
+ *     6. The user taps X.notification, and Y.onPress is executed. 😵
+ */
+
 const notificationQueue = [];
 let currentlyProcessingNotification = null;
 let onNotification = () => {};
