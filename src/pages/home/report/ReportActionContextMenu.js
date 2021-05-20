@@ -201,8 +201,8 @@ class ReportActionContextMenu extends React.Component {
                     onConfirm={this.confirmDeleteAndHideModal}
                     onCancel={this.hideDeleteConfirmModal}
                     prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
-                    confirmText={this.props.translate('reportActionContextMenu.delete')}
-                    cancelText={this.props.translate('reportActionContextMenu.cancel')}
+                    confirmText={this.props.translate('common.delete')}
+                    cancelText={this.props.translate('common.cancel')}
                 />
             </View>
         );

@@ -26,6 +26,7 @@ export default {
         email: 'Email',
         and: 'and',
         details: 'Details',
+        delete: 'Delete',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -79,8 +80,6 @@ export default {
         editComment: 'Edit Comment',
         deleteComment: 'Delete Comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
-        delete: 'Delete',
-        cancel: 'Cancel',
     },
     reportActionsView: {
         beFirstPersonToComment: 'Be the first person to comment',
