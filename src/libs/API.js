@@ -35,6 +35,7 @@ function isAuthTokenRequired(command) {
         'User_SignUp',
         'ResendValidateCode',
         'ResetPassword',
+        'User_ReopenAccount',
         'ValidateEmail',
     ], command);
 }
@@ -170,15 +171,6 @@ Network.registerErrorHandler((queuedRequest, error) => {
     // Reject the queued request with an API offline error so that the original caller can handle it.
     queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
 });
-
-/**
- * Access the current authToken
- *
- * @returns {String}
- */
-function getAuthToken() {
-    return authToken;
-}
 
 /**
  * @param {Object} parameters
@@ -440,22 +432,6 @@ function Log(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String[]} data
- * @returns {Promise}
- */
-function Mobile_GetConstants(parameters) {
-    const commandName = 'Mobile_GetConstants';
-    requireParameters(['data'], parameters, commandName);
-
-    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
-    const finalParameters = parameters;
-    finalParameters.data = JSON.stringify(parameters.data);
-
-    return Network.post(commandName, finalParameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.name
  * @param {Number} parameters.value
  * @returns {Promise}
@@ -650,6 +626,17 @@ function User_GetBetas() {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @returns {Promise}
+ */
+function User_ReopenAccount(parameters) {
+    const commandName = 'User_ReopenAccount';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -718,20 +705,56 @@ function CreateIOUSplit(parameters) {
 /**
  * @returns {Promise}
  */
-function Wallet_GetOnfidoSDKToken() {
-    return Network.post('Wallet_GetOnfidoSDKToken', {}, CONST.NETWORK.METHOD.POST, true);
-}
-
-/**
- * @returns {Promise}
- */
 function Plaid_GetLinkToken() {
     return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.publicToken
+ * @param {Boolean} parameters.allowDebit
+ * @param {String} parameters.bank
+ * @returns {Promise}
+ */
+function BankAccount_Get(parameters) {
+    const commandName = 'BankAccount_Get';
+    requireParameters(['publicToken', 'allowDebit', 'bank'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.accountNumber
+ * @param {String} parameters.addressName
+ * @param {Boolean} parameters.allowDebit
+ * @param {Boolean} parameters.confirm
+ * @param {Boolean} parameters.isSavings
+ * @param {String} parameters.password
+ * @param {String} parameters.routingNumber
+ * @param {String} parameters.setupType
+ * @param {String} parameters.additionalData additional JSON data
+ * @returns {Promise}
+ */
+function BankAccount_Create(parameters) {
+    const commandName = 'BankAccount_Create';
+    requireParameters([
+        'accountNumber',
+        'addressName',
+        'allowDebit',
+        'confirm',
+        'isSavings',
+        'password',
+        'routingNumber',
+        'setupType',
+        'additionalData',
+    ], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
 export {
-    getAuthToken,
     Authenticate,
+    BankAccount_Create,
+    BankAccount_Get,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -742,7 +765,6 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Log,
-    Mobile_GetConstants,
     PayIOU,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
@@ -760,11 +782,11 @@ export {
     UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     reauthenticate,
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
-    Wallet_GetOnfidoSDKToken,
 };

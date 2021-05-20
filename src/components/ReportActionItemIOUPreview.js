@@ -11,42 +11,43 @@ import MultipleAvatars from './MultipleAvatars';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
-    // Additional logic for displaying the pay button
+    /** Additional logic for displaying the pay button */
     shouldHidePayButton: PropTypes.bool,
 
-    // Callback for the Pay/Settle button
+    /** Callback for the Pay/Settle button */
     onPayButtonPressed: PropTypes.func,
 
-    // The active IOUReport, used for Onyx subscription
-    // eslint-disable-next-line react/no-unused-prop-types
+    /** The active IOUReport, used for Onyx subscription */
+    /* eslint-disable-next-line react/no-unused-prop-types */
     iouReportID: PropTypes.number,
 
-    /* --- Onyx Props --- */
-    // Active IOU Report for current report
+    /* Onyx Props */
+
+    /** Active IOU Report for current report */
     iou: PropTypes.shape({
-        // Email address of the manager in this iou report
+        /** Email address of the manager in this iou report */
         managerEmail: PropTypes.string,
 
-        // Email address of the creator of this iou report
+        /** Email address of the creator of this iou report */
         ownerEmail: PropTypes.string,
 
-        // Outstanding amount of this transaction
+        /** Outstanding amount of this transaction */
         cachedTotal: PropTypes.string,
 
-        // Is the IOU report settled?
+        /** Does the report have an outstanding IOU that needs to be paid? */
         hasOutstandingIOU: PropTypes.bool,
     }),
 
-    // All of the personal details for everyone
+    /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(PropTypes.shape({
 
-        // This is either the user's full name, or their login if full name is an empty string
+        /** This is either the user's full name, or their login if full name is an empty string */
         displayName: PropTypes.string.isRequired,
     })).isRequired,
 
-    // Session info for the currently logged in user.
+    /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        // Currently logged in user email
+        /** Currently logged in user email */
         email: PropTypes.string,
     }).isRequired,
 
@@ -70,8 +71,7 @@ const ReportActionItemIOUPreview = ({
 }) => {
     const sessionEmail = lodashGet(session, 'email', null);
 
-    // Pay button should be visible to manager person in the report
-    // Check if the currently logged in user is the manager.
+    // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = iou.managerEmail === sessionEmail;
 
     const managerName = lodashGet(

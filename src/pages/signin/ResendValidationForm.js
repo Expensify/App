@@ -4,8 +4,8 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
-import {resendValidationLink, resetPassword} from '../../libs/actions/Session';
+import Button from '../../components/Button';
+import {reopenAccount, resendValidationLink, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -14,13 +14,16 @@ import compose from '../../libs/compose';
 const propTypes = {
     /* Onyx Props */
 
-    // The details about the account that the user is signing in with
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
 
-        // Weather or not the account is validated
+        /** Whether or not the account is validated */
         validated: PropTypes.bool,
+
+        /** Whether or not the account is closed */
+        closed: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -55,12 +58,12 @@ class ResendValidationForm extends React.Component {
             formSuccess: this.props.translate('resendValidationForm.linkHasBeenResent'),
         });
 
-        if (!this.props.account.validated) {
+        if (this.props.account.closed) {
+            reopenAccount();
+        } else if (!this.props.account.validated) {
             resendValidationLink();
-            console.debug(this.props.translate('resendValidationForm.accountUnvalidated'));
         } else {
             resetPassword();
-            console.debug(this.props.translate('resendValidationForm.accountForgotPassword'));
         }
 
         this.successMessageTimer = setTimeout(() => {
@@ -77,10 +80,12 @@ class ResendValidationForm extends React.Component {
                     </Text>
                 </View>
                 <View style={[styles.mt4]}>
-                    <ButtonWithLoader
+                    <Button
+                        success
+                        style={[styles.mb2]}
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
-                        onClick={this.validateAndSubmitForm}
+                        onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink />
                 </View>

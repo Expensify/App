@@ -12,10 +12,13 @@ import IOUDetailsModal from '../../../pages/iou/IOUDetailsModal';
 import SettingsInitialPage from '../../../pages/settings/InitialPage';
 import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
+import SettingsAboutPage from '../../../pages/settings/AboutPage';
+import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
+import AddBankAccountPage from '../../../pages/AddBankAccountPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -116,10 +119,23 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Password',
     },
     {
+        Component: SettingsAboutPage,
+        name: 'Settings_About',
+    },
+    {
+        Component: SettingsAppDownloadLinks,
+        name: 'Settings_App_Download_Links',
+    },
+    {
         Component: SettingsPaymentsPage,
         name: 'Settings_Payments',
     },
 ]);
+
+const AddBankAccountModalStackNavigator = createModalStackNavigator([{
+    Component: AddBankAccountPage,
+    name: 'AddBankAccount_Root',
+}]);
 
 export {
     IOUBillStackNavigator,
@@ -131,4 +147,5 @@ export {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
+    AddBankAccountModalStackNavigator,
 };

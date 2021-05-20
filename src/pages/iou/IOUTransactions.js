@@ -9,13 +9,13 @@ import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
 
 const propTypes = {
-    // Actions from the ChatReport
+    /** Actions from the ChatReport */
     reportActions: PropTypes.shape(ReportActionPropTypes),
 
-    // ReportID for the associated chat report
+    /** ReportID for the associated chat report */
     chatReportID: PropTypes.number.isRequired,
 
-    // ReportID for the associated IOU report
+    /** ReportID for the associated IOU report */
     iouReportID: PropTypes.number.isRequired,
 };
 

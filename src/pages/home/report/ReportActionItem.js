@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {Dimensions, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -21,32 +21,33 @@ import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 
 const propTypes = {
-    // The ID of the report this action is on.
+    /** The ID of the report this action is on. */
     reportID: PropTypes.number.isRequired,
 
-    // All the data of the action item
+    /** All the data of the action item */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // Should the comment have the appearance of being grouped with the previous comment?
+    /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: PropTypes.bool.isRequired,
 
-    // Is this the most recent IOU Action?
+    /** Is this the most recent IOU Action? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
-    // Whether there is an outstanding amount in IOU
+    /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU: PropTypes.bool,
 
-    // Should we display the new indicator on top of the comment?
+    /** Should we display the new indicator on top of the comment? */
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 
-    // Position index of the report action in the overall report FlatList view
+    /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
-    /* --- Onyx Props --- */
-    // Draft message - if this is set the comment is in 'edit' mode
+    /* Onyx Props */
+
+    /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    // Runs when the view enclosing the chat message lays out indicating it has rendered
+    /** Runs when the view enclosing the chat message lays out indicating it has rendered */
     onLayout: PropTypes.func.isRequired,
 };
 
@@ -61,40 +62,98 @@ class ReportActionItem extends Component {
 
         this.state = {
             isPopoverVisible: false,
+            cursorPosition: {
+                horizontal: 0,
+                vertical: 0,
+            },
+
+            // The horizontal and vertical position (relative to the screen) where the popover will display.
+            popoverAnchorPosition: {
+                horizontal: 0,
+                vertical: 0,
+            },
         };
 
-        // The horizontal and vertical position (relative to the screen) where the popover will display.
-        this.popoverAnchorPosition = {
-            horizontal: 0,
-            vertical: 0,
-        };
-
+        this.popoverAnchor = null;
         this.showPopover = this.showPopover.bind(this);
         this.hidePopover = this.hidePopover.bind(this);
+        this.measureContent = this.measureContent.bind(this);
         this.selection = '';
+        this.measureContextMenuAnchorPosition = this.measureContextMenuAnchorPosition.bind(this);
+    }
+
+    componentDidMount() {
+        Dimensions.addEventListener('change', this.measureContextMenuAnchorPosition);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
+            || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
             || this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
-            || (this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator)
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
             || !_.isEqual(this.props.action, nextProps.action);
     }
 
+    componentWillUnmount() {
+        Dimensions.removeEventListener('change', this.measureContextMenuAnchorPosition);
+    }
+
     /**
-     * Save the location of a native press event.
+     * Get the Context menu anchor position
+     * We calculate the achor coordinates from measureInWindow async method
+     *
+     * @returns {Promise<Object>}
+     * @memberof ReportActionItem
+     */
+    getMeasureLocation() {
+        return new Promise((res) => {
+            if (this.popoverAnchor) {
+                this.popoverAnchor.measureInWindow((x, y) => res({x, y}));
+            } else {
+                res({x: 0, y: 0});
+            }
+        });
+    }
+
+    /**
+     * Save the location of a native press event & set the Initial Context menu anchor coordinates
      *
      * @param {Object} nativeEvent
+     * @returns {Promise}
      */
     capturePressLocation(nativeEvent) {
-        this.popoverAnchorPosition = {
-            horizontal: nativeEvent.pageX,
-            vertical: nativeEvent.pageY,
-        };
+        return this.getMeasureLocation().then(({x, y}) => {
+            this.setState({
+                cursorPosition: {
+                    horizontal: nativeEvent.pageX - x,
+                    vertical: nativeEvent.pageY - y,
+                },
+                popoverAnchorPosition: {
+                    horizontal: nativeEvent.pageX,
+                    vertical: nativeEvent.pageY,
+                },
+            });
+        });
+    }
+
+    /**
+     * This gets called on Dimensions change to find the anchor coordinates for the action context menu.
+     */
+    measureContextMenuAnchorPosition() {
+        if (!this.state.isPopoverVisible) {
+            return;
+        }
+        this.getMeasureLocation().then(({x, y}) => {
+            this.setState(prev => ({
+                popoverAnchorPosition: {
+                    horizontal: prev.cursorPosition.horizontal + x,
+                    vertical: prev.cursorPosition.vertical + y,
+                },
+            }));
+        });
     }
 
     /**
@@ -105,9 +164,10 @@ class ReportActionItem extends Component {
      */
     showPopover(event, selection) {
         const nativeEvent = event.nativeEvent || {};
-        this.capturePressLocation(nativeEvent);
         this.selection = selection;
-        this.setState({isPopoverVisible: true});
+        this.capturePressLocation(nativeEvent).then(() => {
+            this.setState({isPopoverVisible: true});
+        });
     }
 
     /**
@@ -115,6 +175,24 @@ class ReportActionItem extends Component {
      */
     hidePopover() {
         this.setState({isPopoverVisible: false});
+    }
+
+    /**
+     * Used to calculate the Context Menu Dimensions
+     *
+     * @returns {JSX}
+     * @memberof ReportActionItem
+     */
+    measureContent() {
+        return (
+            <ReportActionContextMenu
+                isVisible
+                selection={this.selection}
+                reportID={this.props.reportID}
+                reportAction={this.props.action}
+                hidePopover={this.hidePopover}
+            />
+        );
     }
 
     render() {
@@ -140,7 +218,10 @@ class ReportActionItem extends Component {
                 );
         }
         return (
-            <PressableWithSecondaryInteraction onSecondaryInteraction={this.showPopover}>
+            <PressableWithSecondaryInteraction
+                ref={ref => this.popoverAnchor = ref}
+                onSecondaryInteraction={this.showPopover}
+            >
                 <Hoverable>
                     {hovered => (
                         <View>
@@ -148,7 +229,11 @@ class ReportActionItem extends Component {
                                 <UnreadActionIndicator />
                             )}
                             <View
-                                style={getReportActionItemStyle(hovered || this.props.draftMessage)}
+                                style={getReportActionItemStyle(
+                                    hovered
+                                    || this.state.isPopoverVisible
+                                    || this.props.draftMessage,
+                                )}
                                 onLayout={this.props.onLayout}
                             >
                                 {!this.props.displayAsGroup
@@ -176,33 +261,25 @@ class ReportActionItem extends Component {
                                     isMini
                                 />
                             </View>
-                            <PopoverWithMeasuredContent
-                                isVisible={this.state.isPopoverVisible}
-                                onClose={this.hidePopover}
-                                anchorPosition={this.popoverAnchorPosition}
-                                animationIn="fadeIn"
-                                animationOutTiming={1}
-                                measureContent={() => (
-                                    <ReportActionContextMenu
-                                        isVisible
-                                        selection={this.selection}
-                                        reportID={this.props.reportID}
-                                        reportAction={this.props.action}
-                                        hidePopover={this.hidePopover}
-                                    />
-                                )}
-                            >
-                                <ReportActionContextMenu
-                                    isVisible
-                                    reportID={this.props.reportID}
-                                    reportAction={this.props.action}
-                                    draftMessage={this.props.draftMessage}
-                                    hidePopover={this.hidePopover}
-                                />
-                            </PopoverWithMeasuredContent>
                         </View>
                     )}
                 </Hoverable>
+                <PopoverWithMeasuredContent
+                    isVisible={this.state.isPopoverVisible}
+                    onClose={this.hidePopover}
+                    anchorPosition={this.state.popoverAnchorPosition}
+                    animationIn="fadeIn"
+                    animationOutTiming={1}
+                    measureContent={this.measureContent}
+                >
+                    <ReportActionContextMenu
+                        isVisible
+                        reportID={this.props.reportID}
+                        reportAction={this.props.action}
+                        draftMessage={this.props.draftMessage}
+                        hidePopover={this.hidePopover}
+                    />
+                </PopoverWithMeasuredContent>
             </PressableWithSecondaryInteraction>
         );
     }

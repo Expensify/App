@@ -183,7 +183,7 @@ function getSimplifiedReportObject(report) {
  * Get a simplified version of an IOU report
  *
  * @param {Object} reportData
- * @param {Number} reportData.transactionID
+ * @param {String} reportData.transactionID
  * @param {Number} reportData.amount
  * @param {String} reportData.currency
  * @param {String} reportData.created
@@ -197,13 +197,13 @@ function getSimplifiedReportObject(report) {
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
     const transactions = _.map(reportData.transactionList, transaction => ({
-        // TransactionID is returned from API as a String
-        transactionID: Number(transaction.transactionID),
+        transactionID: transaction.transactionID,
         amount: transaction.amount,
         currency: transaction.currency,
         created: transaction.created,
         comment: transaction.comment,
-    })).reverse(); // transactionList is returned in desc order, but we desire asc order
+    })).reverse(); // `transactionList` data is returned ordered by desc creation date, they are changed to asc order
+    // because we must instead display them in the order that they were created (asc).
 
     return {
         reportID: reportData.reportID,
@@ -244,8 +244,8 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         const iouReportData = response.reports[iouReportID];
         if (!iouReportData) {
-            // This is occuring due to 'fetchChatReportsByIDs' calling this function with a IOUReportID that has
-            // already been settled. In this case it is expected that no data is returned from 'getIOU'.
+            // IOU data for a report will be missing when the IOU report has already been paid.
+            // This is expected and we return early as no further processing can be done.
             return;
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
@@ -377,33 +377,6 @@ function setLocalIOUReportData(iouReportObject) {
 }
 
 /**
- * Given IOU object and associated chatReportID, save the data to Onyx.
- *
- * @param {Object} iouReportObject
- * @param {Number} iouReportObject.stateNum
- * @param {Number} iouReportObject.total
- * @param {Number} iouReportObject.reportID
- * @param {Number} chatReportID
- */
-function setLocalIOUReportAndChatData(iouReportObject, chatReportID) {
-    // First persist the IOU Report data to Onyx
-    setLocalIOUReportData(iouReportObject);
-
-    // Now update the associated chatReport data to ensure it has reference to updated report
-    const chatReportObject = {
-        hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
-        iouReportID: iouReportObject.reportID,
-    };
-
-    if (!chatReportObject.hasOutstandingIOU) {
-        chatReportObject.iouReportID = null;
-    }
-
-    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-    Onyx.merge(reportKey, chatReportObject);
-}
-
-/**
  * Update the lastRead actionID and timestamp in local memory and Onyx
  *
  * @param {Number} reportID
@@ -445,29 +418,53 @@ function removeOptimisticActions(reportID) {
 }
 
 /**
- * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportI which should be added to IOU report data
+ * Fetch the iouReport and persist the data to Onyx.
  *
- * Retrieve an iouReport, but do not associate it with the chatReport! As an example, the user might be viewing an old
- * settled report that does not have outstanding IOUs, thus we must not override the chatReports `iouReportID` value.
+ * @param {Number} iouReportID - ID of the report we are fetching
+ * @param {Number} chatReportID - associated chatReportID, set as an iouReport field
+ * @returns {Promise}
  */
 function fetchIOUReportByID(iouReportID, chatReportID) {
-    fetchIOUReport(iouReportID, chatReportID)
-        .then(iouReportObject => setLocalIOUReportData(iouReportObject))
-        .catch(error => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
+    return fetchIOUReport(iouReportID, chatReportID)
+        .then((iouReportObject) => {
+            setLocalIOUReportData(iouReportObject);
+            return iouReportObject;
+        });
 }
 
 /**
- * @param {Number} iouReportID - ID of the report we are fetching
- * @param {Number} chatReportID - associated chatReportID which should be updated and linked
+ * If an iouReport is open (has an IOU, but is not yet paid) then we sync the reportIDs of both chatReport and
+ * iouReport in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU components:
+ * - chatReport: {id: 123, iouReportID: 987, ...}
+ * - iouReport: {id: 987, chatReportID: 123, ...}
  *
- * Retrieve an iouReport, associating it with a chatReport. This should be called in place of `fetchIOUReportByID`
- * when we believe that the iouReport is open and currently linked to the chatReport.
+ * The reports must remain in sync when the iouReport is modified. This function ensures that we sync reportIds after
+ * fetching the iouReport and therefore should only be called if we are certain that the fetched iouReport is currently
+ * open - else we would overwrite the existing open iouReportID with a closed iouReportID.
+ *
+ * Examples of usage include 'receieving a push notification', or 'paying an IOU', because both of these cases can only
+ * occur for an iouReport that is currently open (notifications are not sent for closed iouReports, and you cannot pay a
+ * closed IOU).
+ *
+ * @param {Number} iouReportID - ID of the report we are fetching
+ * @param {Number} chatReportID - associated chatReportID, used to sync the reports
  */
 function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
-    fetchIOUReport(iouReportID, chatReportID)
-        .then(iouReportObject => setLocalIOUReportAndChatData(iouReportObject, chatReportID))
-        .catch(error => console.error(`Error fetching IOU Report ${iouReportID}: ${error}`));
+    fetchIOUReportByID(iouReportID, chatReportID)
+        .then((iouReportObject) => {
+            // Now sync the chatReport data to ensure it has a reference to the updated iouReportID
+            const chatReportObject = {
+                hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
+                iouReportID: iouReportObject.reportID,
+            };
+
+            if (!chatReportObject.hasOutstandingIOU) {
+                chatReportObject.iouReportID = null;
+            }
+
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+            Onyx.merge(reportKey, chatReportObject);
+        });
 }
 
 /**
@@ -498,8 +495,9 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
  *
  * @param {Number} reportID
  * @param {Object} reportAction
+ * @param {String} notificationPreference On what cadence the user would like to be notified
  */
-function updateReportWithNewAction(reportID, reportAction) {
+function updateReportWithNewAction(reportID, reportAction, notificationPreference) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
     const initialLastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
@@ -554,13 +552,22 @@ function updateReportWithNewAction(reportID, reportAction) {
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
 
-        // We have been notified of an update to this iouReport, therefore it must be the currently open iouReport.
-        // Therefore we should make sure the chatReport points to this iouReportID after fetching it.
+        // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
+        // triggered for an open iouReport (an open iouReport has an IOU, but is not yet paid). After fetching the
+        // iouReport we must update the chatReport with the correct iouReportID. If we don't, then new IOUs would not
+        // be displayed and paid IOUs would show as unpaid.
         fetchIOUReportByIDAndUpdateChatReport(iouReportID, reportID);
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
         console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
+        return;
+    }
+
+    // We don't want to send a local notification if the user preference is daily or mute
+    if (notificationPreference === 'mute' || notificationPreference === 'daily') {
+        // eslint-disable-next-line max-len
+        console.debug(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
 
@@ -577,7 +584,7 @@ function updateReportWithNewAction(reportID, reportAction) {
     }
 
     // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(reportAction, 'actorEmail') === 'concierge@expensify.com') {
+    if (lodashGet(reportAction, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
         return;
     }
 
@@ -637,7 +644,7 @@ function subscribeToUserEvents() {
         Log.info(
             `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
         );
-        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
@@ -886,7 +893,7 @@ function fetchAllReports(
                 return fetchChatReportsByIDs(reportIDs);
             }
 
-            return fetchOrCreateChatReport([currentUserEmail, 'concierge@expensify.com'], false);
+            return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
         .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
@@ -1194,5 +1201,4 @@ export {
     editReportComment,
     saveReportActionDraft,
     getSimplifiedIOUReport,
-    getSimplifiedReportObject,
 };

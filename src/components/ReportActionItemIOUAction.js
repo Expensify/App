@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
@@ -10,19 +9,19 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 
 const propTypes = {
-    // All the data of the action
+    /** All the data of the action */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    // The associated chatReport
+    /** The associated chatReport */
     chatReportID: PropTypes.number.isRequired,
 
-    // Should render the preview Component?
+    /** Should render the preview Component? */
     shouldDisplayPreview: PropTypes.bool.isRequired,
 
-    /* --- Onyx Props --- */
-    // ChatReport associated with iouReport
+    /* Onyx Props */
+    /** ChatReport associated with iouReport */
     chatReport: PropTypes.shape({
-        // The participants of this report
+        /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 };
@@ -36,25 +35,27 @@ const ReportActionItemIOUAction = ({
     chatReportID,
     shouldDisplayPreview,
     chatReport,
-}) => (
-    <View>
-        <ReportActionItemIOUQuote
-            action={action}
-            shouldShowViewDetailsLink={chatReport.participants.length <= 2}
-            onViewDetailsPressed={() => Navigation.navigate(ROUTES.getIouDetailsRoute(
-                chatReportID, action.originalMessage.IOUReportID,
-            ))}
-        />
-        {shouldDisplayPreview && (
-            <ReportActionItemIOUPreview
-                iouReportID={action.originalMessage.IOUReportID}
-                onPayButtonPressed={() => Navigation.navigate(ROUTES.getIouDetailsRoute(
-                    chatReportID, action.originalMessage.IOUReportID,
-                ))}
+}) => {
+    const launchDetailsModal = () => {
+        Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
+    };
+    const hasMultipleParticipants = chatReport.participants.length >= 2;
+    return (
+        <>
+            <ReportActionItemIOUQuote
+                action={action}
+                shouldShowViewDetailsLink={!hasMultipleParticipants}
+                onViewDetailsPressed={launchDetailsModal}
             />
-        )}
-    </View>
-);
+            {shouldDisplayPreview && (
+                <ReportActionItemIOUPreview
+                    iouReportID={action.originalMessage.IOUReportID}
+                    onPayButtonPressed={launchDetailsModal}
+                />
+            )}
+        </>
+    );
+};
 
 ReportActionItemIOUAction.propTypes = propTypes;
 ReportActionItemIOUAction.defaultProps = defaultProps;

@@ -12,7 +12,7 @@ import {
     getIOUConfirmationOptionsFromParticipants,
 } from '../libs/OptionsListUtils';
 import OptionsList from './OptionsList';
-import ButtonWithLoader from './ButtonWithLoader';
+import Button from './Button';
 import ONYXKEYS from '../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
@@ -20,30 +20,30 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import compose from '../libs/compose';
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
-    // Callback to update comment from IOUModal
+    /** Callback to update comment from IOUModal */
     onUpdateComment: PropTypes.func,
 
-    // Comment value from IOUModal
+    /** Comment value from IOUModal */
     comment: PropTypes.string,
 
-    // Should we request a single or multiple participant selection from user
+    /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    // Safe area insets required for mobile devices margins
+    /** Safe area insets required for mobile devices margins */
     insets: SafeAreaInsetPropTypes.isRequired,
 
-    // IOU amount
+    /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
-    // Selected currency from the user
-    // Remove eslint disable after currency symbol is available
+    /** Selected currency from the user
+    Remove eslint disable after currency symbol is available */
     // eslint-disable-next-line react/no-unused-prop-types
     selectedCurrency: PropTypes.string.isRequired,
 
-    // Selected participants from IOUMOdal with login
+    /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -64,23 +64,23 @@ const propTypes = {
 
     /* Onyx Props */
 
-    // The personal details of the person who is logged in
+    /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape({
 
-        // Display name of the current user from their personal details
+        /** Display name of the current user from their personal details */
         displayName: PropTypes.string,
 
-        // Avatar URL of the current user from their personal details
+        /** Avatar URL of the current user from their personal details */
         avatar: PropTypes.string,
 
-        // Primary login of the user
+        /** Primary login of the user */
         login: PropTypes.string,
     }).isRequired,
 
-    // Holds data related to IOU view state, rather than the underlying IOU data.
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
 
-        // Whether or not the IOU step is loading (creating the IOU Report)
+        /** Whether or not the IOU step is loading (creating the IOU Report) */
         loading: PropTypes.bool,
     }),
 };
@@ -224,6 +224,14 @@ class IOUConfirmationList extends Component {
     }
 
     render() {
+        const buttonText = this.props.translate(
+            this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                amount: this.props.numberFormat(
+                    this.props.iouAmount,
+                    {style: 'currency', currency: this.props.selectedCurrency},
+                ),
+            },
+        );
         return (
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
@@ -258,12 +266,12 @@ class IOUConfirmationList extends Component {
                     </View>
                 </View>
                 <View style={[styles.ph5, styles.pb3]}>
-                    <ButtonWithLoader
+                    <Button
+                        success
+                        style={[styles.mb2]}
                         isLoading={this.props.iou.loading}
-                        text={this.props.hasMultipleParticipants
-                            ? this.props.translate('common.split')
-                            : this.props.translate('iou.request', {amount: this.props.iouAmount})}
-                        onClick={() => this.props.onConfirm(this.getSplits())}
+                        text={buttonText}
+                        onPress={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
             </View>

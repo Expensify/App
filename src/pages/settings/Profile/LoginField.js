@@ -11,20 +11,21 @@ import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import {resendValidateCode} from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Button from '../../../components/Button';
 
 const propTypes = {
-    // Label to display on login form
+    /** Label to display on login form */
     label: PropTypes.string.isRequired,
 
-    // Type associated with the login
+    /** Type associated with the login */
     type: PropTypes.oneOf([CONST.LOGIN_TYPE.EMAIL, CONST.LOGIN_TYPE.PHONE]).isRequired,
 
-    // Login associated with the user
+    /** Login associated with the user */
     login: PropTypes.shape({
-        // Phone/Email associated with user
+        /** Phone/Email associated with user */
         partnerUserID: PropTypes.string,
 
-        // Date of when login was validated
+        /** Date of when login was validated */
         validatedDate: PropTypes.string,
     }).isRequired,
 
@@ -105,18 +106,17 @@ class LoginField extends Component {
                             {this.props.login.partnerUserID}
                         </Text>
                         {!this.props.login.validatedDate && (
-                            <Pressable
-                                style={[styles.button, styles.mb2]}
+                            <Button
+                                style={[styles.mb2]}
                                 onPress={this.onResendClicked}
-                            >
-                                {this.state.showCheckmarkIcon ? (
+                                ContentComponent={() => (this.state.showCheckmarkIcon ? (
                                     <Icon fill={colors.black} src={Checkmark} />
                                 ) : (
                                     <Text style={styles.createMenuText}>
                                         {this.props.translate('common.resend')}
                                     </Text>
-                                )}
-                            </Pressable>
+                                ))}
+                            />
                         )}
                     </View>
                 )}
