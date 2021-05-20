@@ -10,7 +10,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import {activateWallet} from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
@@ -139,10 +139,11 @@ class AdditionalDetailsStep extends React.Component {
                                 {this.props.walletAdditionalDetails.additionalErrorMessage}
                             </Text>
                         )}
-                        <ButtonWithLoader
+                        <Button
+                            success
                             text={this.props.translate('additionalDetailsStep.continueButtonText')}
                             isLoading={this.props.walletAdditionalDetails.loading}
-                            onClick={() => {
+                            onPress={() => {
                                 activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
                                     personalDetails: this.state,
                                 });

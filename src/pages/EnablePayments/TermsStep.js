@@ -9,7 +9,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Checkbox from '../../components/Checkbox';
 import styles from '../../styles/styles';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import {activateWallet} from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 
@@ -84,10 +84,11 @@ class TermsStep extends React.Component {
                         </Text>
                     </View>
                     <View style={[styles.mv2]}>
-                        <ButtonWithLoader
+                        <Button
+                            success
                             text={this.props.translate('termsStep.enablePayments')}
                             isLoading={false}
-                            onClick={() => {
+                            onPress={() => {
                                 activateWallet(CONST.WALLET.STEP.TERMS, {
                                     hasAcceptedTerms: this.state.hasAcceptedDisclosure && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
                                 });
