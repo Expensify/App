@@ -1,17 +1,6 @@
 import LocalNotificationService from './LocalNotificationService';
 import NotificationGenerator from './NotificationGenerator';
-
-/**
- * Send a report comment notification.
- *
- * @param {Object} params
- * @param {Object} params.reportAction
- * @param {Function} params.onPress
- */
-function showCommentNotification({reportAction, onPress}) {
-    const commentNotification = NotificationGenerator.getReportCommentNotificationPayload(reportAction, onPress);
-    LocalNotificationService.queueNotification(commentNotification);
-}
+import commonNotifications from './common';
 
 /**
  * Send an update available notification.
@@ -22,6 +11,6 @@ function showUpdateAvailableNotification() {
 }
 
 export default {
-    showCommentNotification,
+    ...commonNotifications,
     showUpdateAvailableNotification,
 };
