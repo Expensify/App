@@ -751,6 +751,40 @@ function BankAccount_Create(parameters) {
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String[]} data
+ * @returns {Promise}
+ */
+function Mobile_GetConstants(parameters) {
+    const commandName = 'Mobile_GetConstants';
+    requireParameters(['data'], parameters, commandName);
+
+    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
+    const finalParameters = parameters;
+    finalParameters.data = JSON.stringify(parameters.data);
+
+    return Network.post(commandName, finalParameters);
+}
+
+/**
+ * @param {object} parameters
+ * @param {number} [parameters.latitude]
+ * @param {number} [parameters.longitude]
+ * @returns {Promise}
+ */
+function GetPreferredCurrency(parameters) {
+    const commandName = 'GetPreferredCurrency';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
+function GetCurrencyList() {
+    return Mobile_GetConstants({data: ['currencyList']});
+}
+
 export {
     Authenticate,
     BankAccount_Create,
@@ -789,4 +823,6 @@ export {
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
+    GetPreferredCurrency,
+    GetCurrencyList,
 };
