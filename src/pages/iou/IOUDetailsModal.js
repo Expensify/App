@@ -14,7 +14,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import {payIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
 import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
-import iouTransactionPropTypes from './iouTransactionPropTypes';
 import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -52,9 +51,6 @@ const propTypes = {
 
         /** Owner is the person who is owed money */
         ownerEmail: PropTypes.string,
-
-        /** The IOU transactions */
-        transactions: PropTypes.arrayOf(PropTypes.shape(iouTransactionPropTypes)),
 
         /** Does the report have an outstanding IOU that needs to be paid? */
         hasOutstandingIOU: PropTypes.bool,
