@@ -78,7 +78,9 @@ class IOUCurrencySelection extends Component {
 
     componentDidMount() {
         getCurrencyList();
-        fetchCurrencyPreferences(true);
+        if (!this.props.myPersonalDetails.isCurrencyPreferencesSaved) {
+            fetchCurrencyPreferences(true);
+        }
     }
 
     /**
