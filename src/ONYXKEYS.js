@@ -63,6 +63,12 @@ export default {
     // Contains the user preference for the LHN priority mode
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
+    // SDK token used to communicate with Plaid API
+    PLAID_LINK_TOKEN: 'plaidLinkToken',
+
+    // List of bank accounts returned by Plaid
+    PLAID_BANK_ACCOUNTS: 'plaidBankAccounts',
+
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',

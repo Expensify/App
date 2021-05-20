@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View, Text, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
@@ -16,6 +16,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
+import Button from '../components/Button';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -222,19 +223,12 @@ class NewGroupPage extends Component {
                     />
                     {this.state.selectedOptions?.length > 0 && (
                         <View style={[styles.ph5, styles.pb5]}>
-                            <Pressable
+                            <Button
+                                success
                                 onPress={this.createGroup}
-                                style={({hovered}) => [
-                                    styles.button,
-                                    styles.buttonSuccess,
-                                    styles.w100,
-                                    hovered && styles.buttonSuccessHovered,
-                                ]}
-                            >
-                                <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                    {this.props.translate('newGroupPage.createGroup')}
-                                </Text>
-                            </Pressable>
+                                style={[styles.w100]}
+                                text={this.props.translate('newGroupPage.createGroup')}
+                            />
                         </View>
                     )}
                 </View>

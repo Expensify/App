@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -52,6 +53,9 @@ const propTypes = {
 
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(['compact', 'default']),
+
+    // Whether this option should be disabled
+    isDisabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -64,6 +68,7 @@ const defaultProps = {
     showTitleTooltip: false,
     mode: 'default',
     onSelectRow: null,
+    isDisabled: false,
 };
 
 const OptionRow = ({
@@ -77,6 +82,7 @@ const OptionRow = ({
     isSelected,
     forceTextUnreadStyle,
     showTitleTooltip,
+    isDisabled,
     mode,
 }) => {
     const textStyle = optionIsFocused
@@ -110,7 +116,7 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = option.participantsList.length > 1;
+    const isMultipleParticipant = lodashGet(option, 'participantsList.length', 0) > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, firstName, login}) => (
@@ -133,6 +139,7 @@ const OptionRow = ({
                         getBackgroundColorStyle(backgroundColor),
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
+                        isDisabled && styles.cursorDisabled,
                     ]}
                 >
                     <View style={sidebarInnerRowStyle}>
