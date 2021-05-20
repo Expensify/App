@@ -74,7 +74,7 @@ class ReportActionContextMenu extends React.Component {
                 icon: ClipboardIcon,
                 successText: this.props.translate('reportActionContextMenu.copied'),
                 successIcon: Checkmark,
-                shouldShow: () => true,
+                shouldShow: true,
 
                 // If return value is true, we switch the `text` and `icon` on
                 // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -97,7 +97,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.copyLink'),
                 icon: LinkCopy,
-                shouldShow: () => false,
+                shouldShow: false,
                 onPress: () => {},
             },
 
@@ -105,7 +105,7 @@ class ReportActionContextMenu extends React.Component {
                 text: this.props.translate('reportActionContextMenu.markAsUnread'),
                 icon: Mail,
                 successIcon: Checkmark,
-                shouldShow: () => true,
+                shouldShow: true,
                 onPress: () => {
                     updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
                     setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
@@ -115,9 +115,8 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
-                shouldShow: () => this.canEdit
-                    && !isReportMessageAttachment(this.getActionText())
-                    && this.props.reportAction.reportActionID,
+                shouldShow: this.canEdit
+                    && !isReportMessageAttachment(this.getActionText()),
                 onPress: () => {
                     this.props.hidePopover();
                     saveReportActionDraft(
@@ -130,7 +129,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
-                shouldShow: () => this.canEdit,
+                shouldShow: this.canEdit(),
                 onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
             },
         ];
@@ -184,7 +183,7 @@ class ReportActionContextMenu extends React.Component {
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {this.contextActions.map(contextAction => contextAction.shouldShow() && (
+                {this.contextActions.map(contextAction => _.result(contextAction, 'shouldShow', false) && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
