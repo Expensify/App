@@ -8,8 +8,21 @@ on:
         required: true
 
 jobs:
+  validateActor:
+    runs-on: ubuntu-latest
+    outputs:
+      IS_DEPLOYER: ${{ steps.isUserDeployer.outputs.isTeamMember }}
+    steps:
+      - id: isUserDeployer
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: expensify-cash-deployers
+
   cherryPick:
-    if: github.actor == 'OSBotify'
+    needs: validateActor
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: ubuntu-latest
     steps:
       # Version: 2.3.4
