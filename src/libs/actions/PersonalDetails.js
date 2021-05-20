@@ -265,10 +265,6 @@ function fetchCurrencyPreferences(withLocation) {
                 latitude: position.coords.latitude,
             };
         });
-        Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
-            {
-                isCurrencyPreferencesSaved: true,
-            });
     }
 
     API.GetPreferredCurrency({...coords})
