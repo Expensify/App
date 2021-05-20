@@ -16,7 +16,7 @@ const optionPropTypes = PropTypes.shape({
     text: PropTypes.string.isRequired,
 
     // Subtitle to show under report displayName, mostly lastMessageText of the report
-    alternateText: PropTypes.string.isRequired,
+    alternateText: PropTypes.string,
 
     // List of participants of the report
     participantsList: PropTypes.arrayOf(participantPropTypes),
