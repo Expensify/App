@@ -252,12 +252,8 @@ class ReportActionsView extends React.Component {
                 // Only show non-empty ADDCOMMENT actions or IOU actions
                 const message = _.first(lodashGet(action, 'message', null));
                 const html = lodashGet(message, 'html', '');
-                const text = lodashGet(message, 'text', '');
                 return action.actionName === 'IOU'
-                    || (
-                        action.actionName === 'ADDCOMMENT'
-                        && (html !== '' || text !== '')
-                    );
+                    || (action.actionName === 'ADDCOMMENT' && html !== '');
             })
             .map((item, index) => ({action: item, index}))
             .value()
