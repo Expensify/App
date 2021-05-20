@@ -112,21 +112,16 @@ class IOUConfirmationList extends Component {
         if (this.props.hasMultipleParticipants) {
             const formattedMyPersonalDetails = getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
-                this.props.translate('iou.request',
-                    {
-                        amount: this.props.numberFormat(this.calculateAmount(true) / 100, {
-                            style: 'currency',
-                            currency: this.props.selectedCurrency.currencyCode,
-                        }),
-                    }),
+                this.props.numberFormat(this.props.iouAmount / 100, {
+                    style: 'currency',
+                    currency: this.props.selectedCurrency.currencyCode,
+                }),
             );
 
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                this.props.translate('iou.request', {
-                    amount: this.props.numberFormat(this.calculateAmount(true) / 100, {
-                        style: 'currency',
-                        currency: this.props.selectedCurrency.currencyCode,
-                    }),
+                this.props.numberFormat(this.props.iouAmount / 100, {
+                    style: 'currency',
+                    currency: this.props.selectedCurrency.currencyCode,
                 }));
 
             sections.push({
@@ -143,11 +138,9 @@ class IOUConfirmationList extends Component {
             });
         } else {
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                this.props.translate('iou.request', {
-                    amount: this.props.numberFormat(this.props.iouAmount / 100, {
-                        style: 'currency',
-                        currency: this.props.selectedCurrency.currencyCode,
-                    }),
+                this.props.numberFormat(this.props.iouAmount / 100, {
+                    style: 'currency',
+                    currency: this.props.selectedCurrency.currencyCode,
                 }));
 
             sections.push({
