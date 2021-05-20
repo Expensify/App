@@ -544,7 +544,7 @@ const styles = {
 
     createMenuHeaderText: {
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
+        fontSize: variables.fontSizeLabel,
         color: themeColors.heading,
     },
 
