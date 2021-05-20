@@ -98,7 +98,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const fullTitle = personalDetailList.map(({firstName}) => firstName).join(', ');
     return {
-        text: hasMultipleParticipants ? fullTitle : personalDetail.displayName,
+        text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login),
