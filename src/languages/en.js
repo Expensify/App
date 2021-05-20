@@ -8,7 +8,6 @@ export default {
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
-        split: 'Split',
         new: 'NEW',
         search: 'Search',
         next: 'Next',
@@ -51,6 +50,10 @@ export default {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',
         whatsItFor: 'WHAT\'S IT FOR?',
+    },
+    iOUCurrencySelection: {
+        selectCurrency: 'Select a Currency',
+        allCurrencies: 'ALL CURRENCIES',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -106,6 +109,7 @@ export default {
         request: ({amount}) => `Request ${amount}`,
         owes: ({manager, owner}) => `${manager} owes ${owner}`,
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
+        split: ({amount}) => `Split ${amount}`,
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',

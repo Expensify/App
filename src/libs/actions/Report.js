@@ -495,8 +495,9 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
  *
  * @param {Number} reportID
  * @param {Object} reportAction
+ * @param {String} notificationPreference On what cadence the user would like to be notified
  */
-function updateReportWithNewAction(reportID, reportAction) {
+function updateReportWithNewAction(reportID, reportAction, notificationPreference) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
     const initialLastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
@@ -560,6 +561,13 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     if (!ActiveClientManager.isClientTheLeader()) {
         console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
+        return;
+    }
+
+    // We don't want to send a local notification if the user preference is daily or mute
+    if (notificationPreference === 'mute' || notificationPreference === 'daily') {
+        // eslint-disable-next-line max-len
+        console.debug(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
 
@@ -636,7 +644,7 @@ function subscribeToUserEvents() {
         Log.info(
             `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
         );
-        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
@@ -1193,5 +1201,4 @@ export {
     editReportComment,
     saveReportActionDraft,
     getSimplifiedIOUReport,
-    getSimplifiedReportObject,
 };
