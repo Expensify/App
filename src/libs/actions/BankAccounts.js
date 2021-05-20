@@ -6,11 +6,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 
-function fetchBankAccountList() {
-    // Note: For the moment, we are just running this to verify that we can successfully return data from the secure API
-    API.Get({returnValueList: 'bankAccountList'}, true);
-}
-
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
  */
@@ -254,7 +249,6 @@ function fetchUserWallet() {
 }
 
 export {
-    fetchBankAccountList,
     fetchPlaidLinkToken,
     addPlaidBankAccount,
     getPlaidBankAccounts,

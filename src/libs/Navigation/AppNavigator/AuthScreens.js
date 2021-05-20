@@ -13,7 +13,6 @@ import {
     fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
-import * as BankAccounts from '../../actions/BankAccounts';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
@@ -41,6 +40,7 @@ import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
+    IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
@@ -119,7 +119,6 @@ class AuthScreens extends React.Component {
         User.getBetas();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
-        BankAccounts.fetchBankAccountList();
         UnreadIndicatorUpdater.listenForReportChanges();
 
         // Refresh the personal details, timezone and betas every 30 minutes
@@ -255,6 +254,11 @@ class AuthScreens extends React.Component {
                     options={modalScreenOptions}
                     component={EnablePaymentsStackNavigator}
                     listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="IOU_Details"
+                    options={modalScreenOptions}
+                    component={IOUDetailsModalStackNavigator}
                 />
                 <RootStack.Screen
                     name="AddBankAccount"
