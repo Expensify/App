@@ -171,6 +171,7 @@ const CONST = {
     ONFIDO: {
         CONTAINER_ID: 'onfido-mount',
         TYPE: {
+            WELCOME: 'welcome',
             DOCUMENT: 'document',
             FACE: 'face',
         },

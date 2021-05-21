@@ -2,6 +2,7 @@ import React from 'react';
 import {
     Onfido as OnfidoSDK,
     OnfidoCaptureType,
+    OnfidoDocumentType,
 } from '@onfido/react-native-sdk';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
@@ -15,7 +16,9 @@ class Onfido extends React.Component {
                 captureFace: {
                     type: OnfidoCaptureType.VIDEO,
                 },
-                captureDocument: {},
+                captureDocument: {
+                    type: OnfidoDocumentType.GENERIC,
+                },
             },
         })
             .then(this.props.onSuccess)
