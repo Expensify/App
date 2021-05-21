@@ -37,4 +37,4 @@ jobs:
                   remote-organization-name: 'Expensify'
                   remote-repository-name: 'CLA'
                   lock-pullrequest-aftermerge: false
-                  allowlist: OSBotify
+                  allowlist: OSBotify,snyk-bot
