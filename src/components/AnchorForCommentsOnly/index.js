@@ -21,7 +21,7 @@ const defaultProps = {
 };
 
 /*
- * This component acts as a switch between AnchorWithAuthToken and DefaultAnchor.
+ * This component acts as a switch between AnchorWithAuthToken and default BaseAnchorForCommentsOnly.
  * It is an optimization so that we can attach an auth token to a URL when one is required,
  * without using Onyx.connect on links that don't need an authToken.
  */
