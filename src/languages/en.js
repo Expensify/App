@@ -52,6 +52,10 @@ export default {
         whoWasThere: 'WHO WAS THERE?',
         whatsItFor: 'WHAT\'S IT FOR?',
     },
+    iOUCurrencySelection: {
+        selectCurrency: 'Select a Currency',
+        allCurrencies: 'ALL CURRENCIES',
+    },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
     },
@@ -131,6 +135,7 @@ export default {
         emailAddress: 'Email Address',
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
+        growlMessageOnSave: 'Your profile was successfully saved',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add Phone Number',
