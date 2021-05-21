@@ -122,12 +122,15 @@ function addPlaidBankAccount(account, password, plaidLinkToken) {
  *   identity check. Note: This happens in Web-Secure when we call Activate_Wallet during the OnfidoStep.
  */
 function fetchOnfidoToken() {
+    // Use Onyx.set() since we are resetting the Onfido flow completely.
+    Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: true});
     API.Wallet_GetOnfidoSDKToken()
         .then((response) => {
             const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
-            Onyx.merge(ONYXKEYS.ONFIDO_APPLICANT_INFO, {
+            Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
                 applicantID: apiResult.applicantID,
                 sdkToken: apiResult.sdkToken,
+                loading: false,
             });
         });
 }
@@ -171,6 +174,7 @@ function activateWallet(currentStep, parameters) {
 
     if (currentStep === CONST.WALLET.STEP.ONFIDO) {
         onfidoData = parameters.onfidoData;
+        Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
     } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
         setAdditionalDetailsStep(true);
 
@@ -191,6 +195,11 @@ function activateWallet(currentStep, parameters) {
     API.Wallet_Activate({currentStep, personalDetails, onfidoData})
         .then((response) => {
             if (response.jsonCode !== 200) {
+                if (currentStep === CONST.WALLET.STEP.ONFIDO) {
+                    Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: response.message, loading: false});
+                    return;
+                }
+
                 if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
                     if (response.title === CONST.WALLET.ERROR.MISSING_FIELD) {
                         setAdditionalDetailsStep(false, response.data.fieldNames);
@@ -212,12 +221,15 @@ function activateWallet(currentStep, parameters) {
                     setAdditionalDetailsStep(false);
                     return;
                 }
+
                 return;
             }
 
             Onyx.merge(ONYXKEYS.USER_WALLET, response.userWallet);
 
-            if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
+            if (currentStep === CONST.WALLET.STEP.ONFIDO) {
+                Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
+            } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
                 setAdditionalDetailsStep(false);
             }
         });

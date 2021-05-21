@@ -2,6 +2,7 @@ import React from 'react';
 import {
     Onfido as OnfidoSDK,
     OnfidoCaptureType,
+    OnfidoCountryCode,
     OnfidoDocumentType,
 } from '@onfido/react-native-sdk';
 import onfidoPropTypes from './onfidoPropTypes';
@@ -17,7 +18,8 @@ class Onfido extends React.Component {
                     type: OnfidoCaptureType.VIDEO,
                 },
                 captureDocument: {
-                    type: OnfidoDocumentType.GENERIC,
+                    docType: OnfidoDocumentType.GENERIC,
+                    countryCode: OnfidoCountryCode.USA,
                 },
             },
         })
