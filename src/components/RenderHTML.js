@@ -43,9 +43,13 @@ function computeImagesMaxWidth(contentWidth) {
 
 function AnchorRenderer({tnode, key, style}) {
     const htmlAttribs = tnode.attributes;
+
+    // An auth token is needed to download Expensify chat attachments
+    const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
     return (
         <AnchorForCommentsOnly
             href={htmlAttribs.href}
+            isAuthTokenRequired={isAttachment}
 
             // Unless otherwise specified open all links in
             // a new window. On Desktop this means that we will
