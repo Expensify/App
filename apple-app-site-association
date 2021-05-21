@@ -11,6 +11,7 @@
                     "/details/*",
                     "/v/*",
                     "/add-bank-account/*",
+                    "/iou/*",
                 ]
             }
         ]

@@ -48,6 +48,14 @@ export default {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
                     },
+                    Settings_About: {
+                        path: ROUTES.SETTINGS_ABOUT,
+                        exact: true,
+                    },
+                    Settings_App_Download_Links: {
+                        path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
+                        exact: true,
+                    },
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
@@ -82,11 +90,13 @@ export default {
             IOU_Request: {
                 screens: {
                     IOU_Request_Root: ROUTES.IOU_REQUEST,
+                    IOU_Request_Currency: ROUTES.IOU_REQUEST_CURRENCY,
                 },
             },
             IOU_Bill: {
                 screens: {
                     IOU_Bill_Root: ROUTES.IOU_BILL,
+                    IOU_Bill_Currency: ROUTES.IOU_BILL_CURRENCY,
                 },
             },
             IOU_Details: {
