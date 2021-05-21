@@ -5,6 +5,7 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
+import getPlatform from './getPlatform';
 
 let isAuthenticating;
 let credentials;
@@ -18,6 +19,14 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => authToken = val ? val.authToken : null,
 });
+
+let csrfToken;
+if (getPlatform() === 'web') {
+    const secure = new Uint32Array(1);
+    window.crypto.getRandomValues(secure);
+    csrfToken = secure[0];
+    window.document.cookie = `expensifyApp=${csrfToken};path=/;secure;samesite=strict;domain=www.expensify.com.dev`;
+}
 
 /**
  * Does this command require an authToken?
@@ -66,6 +75,11 @@ function addDefaultValuesToParameters(command, parameters) {
     }
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
+
+    // If we computed a csrfToken (web only) then add it to the request
+    if (csrfToken) {
+        finalParameters.csrfToken = csrfToken;
+    }
 
     // This application does not save its authToken in cookies like the classic Expensify app.
     // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
