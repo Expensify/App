@@ -17,6 +17,7 @@ import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
+import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 import EnablePaymentsPage from '../../../pages/EnablePayments';
 import AddBankAccountPage from '../../../pages/AddBankAccountPage';
@@ -55,11 +56,19 @@ function createModalStackNavigator(screens) {
 const IOUBillStackNavigator = createModalStackNavigator([{
     Component: IOUBillPage,
     name: 'IOU_Bill_Root',
+},
+{
+    Component: IOUCurrencySelection,
+    name: 'IOU_Bill_Currency',
 }]);
 
 const IOURequestModalStackNavigator = createModalStackNavigator([{
     Component: IOURequestPage,
     name: 'IOU_Request_Root',
+},
+{
+    Component: IOUCurrencySelection,
+    name: 'IOU_Request_Currency',
 }]);
 
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{

@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.49-0",
+  "version": "1.0.50-1",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -76,6 +76,7 @@
     "react-native-bootsplash": "^3.2.0",
     "react-native-config": "^1.4.0",
     "react-native-document-picker": "^4.0.0",
+    "react-native-geolocation-service": "^5.2.0",
     "react-native-gesture-handler": "1.9.0",
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^2.3.3",
@@ -83,6 +84,7 @@
     "react-native-modal": "^11.5.6",
     "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#586c76e7b90dbbde051d7ec7adbc4d53b2d51cd1",
     "react-native-pdf": "^6.2.2",
+    "react-native-permissions": "^3.0.1",
     "react-native-picker-select": "8.0.4",
     "react-native-plaid-link-sdk": "^7.0.5",
     "react-native-reanimated": "1.13.2",

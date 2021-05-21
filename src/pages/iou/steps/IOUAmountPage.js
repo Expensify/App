@@ -2,6 +2,7 @@ import React from 'react';
 import {
     View,
     Text,
+    TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -10,21 +11,35 @@ import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
-    /** Callback to inform parent modal of success */
+    // Whether or not this IOU has multiple participants
+    hasMultipleParticipants: PropTypes.bool.isRequired,
+
+    /* The ID of the report this screen should display */
+    reportID: PropTypes.string.isRequired,
+
+    // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
     /** Currency selection will be implemented later */
     // eslint-disable-next-line react/no-unused-prop-types
     currencySelected: PropTypes.func.isRequired,
 
-    /** User's currency preference */
-    selectedCurrency: PropTypes.string.isRequired,
+    // User's currency preference
+    selectedCurrency: PropTypes.shape({
+        // Currency code for the selected currency
+        currencyCode: PropTypes.string,
+
+        // Currency symbol for the selected currency
+        currencySymbol: PropTypes.string,
+    }).isRequired,
 
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
@@ -134,9 +149,14 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    <Text style={styles.iouAmountText}>
-                        {this.props.selectedCurrency}
-                    </Text>
+                    <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
+                        ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
+                        : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
+                    >
+                        <Text style={styles.iouAmountText}>
+                            {this.props.selectedCurrency.currencySymbol}
+                        </Text>
+                    </TouchableOpacity>
                     {this.props.isSmallScreenWidth
                         ? (
                             <Text
