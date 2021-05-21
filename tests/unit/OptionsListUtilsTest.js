@@ -193,13 +193,18 @@ describe('OptionsListUtils', () => {
     });
 
     it('getNewChatOptions()', () => {
+        // maxRecentReportsToShow in src/libs/OptionsListUtils.js
+        const MAX_RECENT_REPORTS = 5;
+
         // When we call getNewChatOptions() with no search value
         let results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, '');
 
-        // We should expect maxmimum of 5 recent reports to be returned
+        // We should expect maximimum of 5 recent reports to be returned
+        expect(results.recentReports.length).toBe(MAX_RECENT_REPORTS);
+
+        // We should expect all personalDetails to be returned,
         // minus the currently logged in user and recent reports count
-        expect(results.recentReports.length).toBe(5);
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 1 - 5);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 1 - MAX_RECENT_REPORTS);
 
         // Then the result which has an existing report should also have the reportID attached
         const personalDetailWithExistingReport = _.find(
@@ -239,7 +244,7 @@ describe('OptionsListUtils', () => {
 
         // Concierge is included in the results by default. We should expect all the personalDetails to show
         // (minus the 5 that are already showing and the currently logged in user)
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 1 - 5);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 1 - MAX_RECENT_REPORTS);
         expect(results.recentReports).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({login: 'concierge@expensify.com'}),
@@ -250,7 +255,7 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', true);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 2 - 5);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 2 - MAX_RECENT_REPORTS);
         expect(results.personalDetails).not.toEqual(
             expect.arrayContaining([
                 expect.objectContaining({login: 'concierge@expensify.com'}),
