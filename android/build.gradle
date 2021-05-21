@@ -8,6 +8,7 @@ buildscript {
         targetSdkVersion = 30
         androidXCore = "1.0.2"
         multiDexEnabled = true
+        googlePlayServicesVersion = "17.0.0"
     }
     repositories {
         google()
