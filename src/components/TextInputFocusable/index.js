@@ -3,6 +3,7 @@ import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Growl from '../../libs/Growl';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -93,6 +94,11 @@ class TextInputFocusable extends React.Component {
                 end: initialValue.length,
             },
         };
+        this.selection = {
+            start: initialValue.length,
+            end: initialValue.length,
+        };
+        this.setCursorPosition = this.setCursorPosition.bind(this);
     }
 
     componentDidMount() {
@@ -157,6 +163,16 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
+     * Keeps track of user cursor position on the Composer
+     *
+     * @param {*} {nativeEvent: {selection}}
+     * @memberof TextInputFocusable
+     */
+    setCursorPosition({nativeEvent: {selection}}) {
+        this.selection = selection;
+    }
+
+    /**
      * Check the paste event for an attachment, parse the data and
      * call onPasteFile from props with the selected file
      *
@@ -165,6 +181,7 @@ class TextInputFocusable extends React.Component {
     checkForAttachment(event) {
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
+        const TEXT_PLAIN = 'text/plain';
         if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
             event.preventDefault();
@@ -172,6 +189,7 @@ class TextInputFocusable extends React.Component {
         } else if (types.includes(TEXT_HTML)) {
             const domparser = new DOMParser();
             const embededImages = domparser.parseFromString(event.clipboardData.getData(TEXT_HTML), TEXT_HTML).images;
+            const pastedText = event.clipboardData.getData(TEXT_PLAIN);
             if (embededImages.length > 0) {
                 event.preventDefault();
                 fetch(embededImages[0].src)
@@ -188,9 +206,18 @@ class TextInputFocusable extends React.Component {
                         return new File([x], `pasted_image.${extension}`, {});
                     })
                     .then(this.props.onPasteFile)
-                    .catch((error) => {
+                    .catch(() => {
                         const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
-                        alert(`${errorDesc}. \n${error.message}`);
+                        Growl.show(errorDesc, 'error');
+
+                        // We can't paste synthatically as it is blocked from browser due not generated
+                        // directly by user action.
+                        // Thus set the value manually.
+                        this.textInput.value = this.textInput.value.substring(0, this.selection.start - 1)
+                        + pastedText + this.textInput.value.substring(this.selection.end);
+
+                        // To hide the scrollbar we set it manually
+                        this.textInput.rows = this.textInput.value.split('\n').length;
                     });
             }
         }
@@ -226,6 +253,7 @@ class TextInputFocusable extends React.Component {
                 onChange={() => {
                     this.updateNumberOfLines();
                 }}
+                onSelectionChange={this.setCursorPosition}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
