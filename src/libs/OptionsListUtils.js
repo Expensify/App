@@ -482,6 +482,24 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     return '';
 }
 
+/**
+ * Returns the currency list for sections display
+ *
+ * @param {Object} currencyOptions
+ * @param {String} searchValue
+ * @param {Object} selectedCurrency
+ * @returns {Array}
+ */
+function getCurrencyListForSections(currencyOptions, searchValue) {
+    const filteredOptions = currencyOptions.filter(currencyOption => (
+        isSearchStringMatch(searchValue, currencyOption.searchText)));
+
+    return {
+        // returns filtered options i.e. options with string match if search text is entered
+        currencyOptions: filteredOptions,
+    };
+}
+
 export {
     getSearchOptions,
     getNewChatOptions,
@@ -489,6 +507,7 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
+    getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
 };
