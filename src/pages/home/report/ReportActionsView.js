@@ -101,7 +101,6 @@ class ReportActionsView extends React.Component {
         };
 
         this.updateSortedReportActions(props.reportActions);
-        this.updateMostRecentIOUReportActionNumber(props.reportActions);
     }
 
     componentDidMount() {
@@ -125,7 +124,6 @@ class ReportActionsView extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.updateSortedReportActions(nextProps.reportActions);
-            this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
             return true;
         }
 
@@ -246,12 +244,25 @@ class ReportActionsView extends React.Component {
      * @param {Array<{sequenceNumber, actionName}>} reportActions
      */
     updateSortedReportActions(reportActions) {
-        this.sortedReportActions = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU')
-            .map((item, index) => ({action: item, index}))
-            .value()
-            .reverse();
+        const sortedReportActions = [];
+        const keys = Object.keys(reportActions);
+        let mostRecentIOUReportSequenceNumber;
+
+        for (let i = 0; i < keys.length; i++) {
+            const action = reportActions[keys[i]];
+            if (action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU') {
+                sortedReportActions.unshift({
+                    action, index: i,
+                });
+            }
+
+            if (action.actionName === 'IOU') {
+                mostRecentIOUReportSequenceNumber = action.sequenceNumber;
+            }
+        }
+
+        this.sortedReportActions = sortedReportActions;
+        this.mostRecentIOUReportSequenceNumber = mostRecentIOUReportSequenceNumber;
     }
 
     /**
@@ -281,19 +292,6 @@ class ReportActionsView extends React.Component {
         }
 
         return currentAction.action.actorEmail === previousAction.action.actorEmail;
-    }
-
-    /**
-     * Finds and updates most recent IOU report action number
-     *
-     * @param {Array<{sequenceNumber, actionName}>} reportActions
-     */
-    updateMostRecentIOUReportActionNumber(reportActions) {
-        this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'IOU')
-            .max(action => action.sequenceNumber)
-            .value().sequenceNumber;
     }
 
     /**
