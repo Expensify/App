@@ -170,7 +170,6 @@ class TextInputFocusable extends React.Component {
      */
     setCursorPosition({nativeEvent: {selection}}) {
         this.selection = selection;
-        console.debug(this.selection);
     }
 
     /**
