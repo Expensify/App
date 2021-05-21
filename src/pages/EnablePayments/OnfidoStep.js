@@ -12,10 +12,20 @@ import Button from '../../components/Button';
 import styles from '../../styles/styles';
 
 const propTypes = {
+    /** Stores various information used to build the UI and call any APIs */
     walletOnfidoData: PropTypes.shape({
+
+        /** Unique identifier returned from fetchOnfidoToken then re-sent to ActivateWallet with Onfido response data */
         applicantID: PropTypes.string,
+
+        /** Token used to initialize the Onfido SDK token */
         sdkToken: PropTypes.string,
+
+        /** Loading state to provide feedback when we are waiting for a request to finish */
         loading: PropTypes.bool,
+
+        /** Error message to inform the user of any problem that might occur */
+        error: PropTypes.string,
     }),
 };
 
