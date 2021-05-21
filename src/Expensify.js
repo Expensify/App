@@ -158,10 +158,10 @@ class Expensify extends PureComponent {
         }
         return (
             <>
+                <GrowlNotification ref={growlRef} />
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
                 {this.props.updateAvailable ? <UpdateAppModal /> : null}
                 <NavigationRoot authenticated={Boolean(this.getAuthToken())} />
-                <GrowlNotification ref={growlRef} />
             </>
         );
     }
