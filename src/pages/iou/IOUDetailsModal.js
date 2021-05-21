@@ -84,7 +84,7 @@ class IOUDetailsModal extends Component {
         // We always have the option to settle manually
         const paymentOptions = [CONST.IOU.PAYMENT_TYPE.ELSEWHERE];
 
-        // Only allow settling via PayPal.me if the submitter has a name set
+        // Only allow settling via PayPal.me if the submitter has a username set
         if (props.iouReport.submitterPayPalMeAddress) {
             paymentOptions.push(CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
         }
@@ -153,19 +153,19 @@ class IOUDetailsModal extends Component {
         }
 
         const submitterPhoneNumbers = lodashGet(this.props.iouReport, 'submitterPhoneNumbers', []);
-
         if (_.isEmpty(submitterPhoneNumbers)) {
             return;
         }
 
         this.submitterPhoneNumber = _.find(submitterPhoneNumbers, this.isValidUSPhone);
-
         if (!this.submitterPhoneNumber) {
             return;
         }
 
         isAppInstalled('venmo')
             .then((isVenmoInstalled) => {
+                // We will return early if the component has unmounted before the async call resolves. This prevents
+                // setting state on unmounted components which prints noisy warnings in the console.
                 if (!isVenmoInstalled || !this.isComponentMounted) {
                     return;
                 }
@@ -179,11 +179,12 @@ class IOUDetailsModal extends Component {
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
-        const paymentTypeText = {
+        const paymentTypeTextOptions = {
             [CONST.IOU.PAYMENT_TYPE.VENMO]: this.props.translate('iou.settleVenmo'),
             [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: this.props.translate('iou.settlePaypalMe'),
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: this.props.translate('iou.settleElsewhere'),
         };
+        const selectedPaymentType = paymentTypeTextOptions[this.state.paymentType];
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -210,7 +211,7 @@ class IOUDetailsModal extends Component {
                                 {this.state.paymentOptions.length > 1 ? (
                                     <ButtonWithDropdown
                                         success
-                                        buttonText={paymentTypeText[this.state.paymentType]}
+                                        buttonText={selectedPaymentType}
                                         isLoading={this.props.iou.loading}
                                         onButtonPress={this.performIOUPayment}
                                         onDropdownPress={() => {
@@ -220,7 +221,7 @@ class IOUDetailsModal extends Component {
                                 ) : (
                                     <Button
                                         success
-                                        text={paymentTypeText[this.state.paymentType]}
+                                        text={selectedPaymentType}
                                         isLoading={this.props.iou.loading}
                                         onPress={this.performIOUPayment}
                                     />
@@ -233,9 +234,9 @@ class IOUDetailsModal extends Component {
                                         anchorPosition={styles.createMenuPositionRightSidepane}
                                         animationIn="fadeInUp"
                                         animationOut="fadeOutDown"
-                                        headerText="Choose payment method:"
+                                        headerText={this.props.translate('iou.choosePaymentMethod')}
                                         menuItems={_.map(this.state.paymentOptions, paymentType => ({
-                                            text: paymentTypeText[paymentType],
+                                            text: paymentTypeTextOptions[paymentType],
                                             onSelected: () => {
                                                 this.setState({paymentType});
                                             },

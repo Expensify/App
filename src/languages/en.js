@@ -112,6 +112,7 @@ export default {
         owes: ({manager, owner}) => `${manager} owes ${owner}`,
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
         split: ({amount}) => `Split ${amount}`,
+        choosePaymentMethod: 'Choose payment method:',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
