@@ -66,6 +66,11 @@ class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
 
+        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
+        this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
+        this.getActionText = this.getActionText.bind(this);
+        this.canEdit = this.canEdit.bind(this);
+
         // A list of all the context actions in this menu.
         this.contextActions = [
             // Copy to clipboard
@@ -131,7 +136,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
-                shouldShow: () => this.canEdit(),
+                shouldShow: this.canEdit,
                 onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
             },
         ];
@@ -141,10 +146,6 @@ class ReportActionContextMenu extends React.Component {
         this.state = {
             isDeleteCommentConfirmModalVisible: false,
         };
-
-        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
-        this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
-        this.getActionText = this.getActionText.bind(this);
     }
 
     /**
