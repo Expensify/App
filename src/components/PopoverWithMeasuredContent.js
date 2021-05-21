@@ -61,6 +61,11 @@ class PopoverWithMeasuredContent extends Component {
         this.popoverHeight = 0;
 
         this.measurePopover = this.measurePopover.bind(this);
+        this.isComponentMounted = false;
+    }
+
+    componentDidMount() {
+        this.isComponentMounted = true;
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -78,12 +83,20 @@ class PopoverWithMeasuredContent extends Component {
         ) || !_.isEqual(this.state, nextState);
     }
 
+    componentWillUnmount() {
+        this.isComponentMounted = false;
+    }
+
     /**
      * Measure the size of the popover's content.
      *
      * @param {Object} nativeEvent
      */
     measurePopover({nativeEvent}) {
+        if (!this.isComponentMounted) {
+            return;
+        }
+
         this.popoverWidth = nativeEvent.layout.width;
         this.popoverHeight = nativeEvent.layout.height;
         this.setState({isContentMeasured: true});
