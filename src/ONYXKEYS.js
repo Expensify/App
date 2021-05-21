@@ -90,7 +90,7 @@ export default {
     USER_WALLET: 'userWallet',
 
     // Object containing Onfido SDK Token + applicantID
-    ONFIDO_APPLICANT_INFO: 'onfidoApplicantInfo',
+    WALLET_ONFIDO: 'walletOnfido',
 
     // Stores information about additional details form entry
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
