@@ -294,4 +294,7 @@ export default {
         activated: 'Your Expensify Wallet is ready to use.',
         checkBackLater: 'We\'re still reviewing your information. Please check back later.',
     },
+    session: {
+        offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
+    },
 };
