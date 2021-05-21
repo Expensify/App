@@ -63,7 +63,7 @@ const MultipleAvatars = ({
                         />
                     ) : (
                         <View
-                            style={singleAvatarStyles}
+                            style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                         >
                             <Text style={size === 'small'
                                 ? styles.avatarInnerTextSmall
