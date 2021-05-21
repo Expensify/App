@@ -28,7 +28,10 @@ class Avatar extends PureComponent {
 
         return (
             <Image
-                source={{uri: this.props.source}}
+                source={{
+                    uri: this.props.source,
+                    cache: 'force-cache',
+                }}
                 style={[
                     this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
                     ...this.props.style,
