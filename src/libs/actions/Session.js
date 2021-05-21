@@ -8,6 +8,7 @@ import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import Timing from './Timing';
 import CONST from '../../CONST';
+import {translate} from '../translate';
 
 let credentials = {};
 Onyx.connect({
@@ -133,7 +134,7 @@ function fetchAccountDetails(login) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .catch(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: 'Looks like you\'re not connected to internet. Can you check your connection and try again?'});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translate('', 'session.offlineMessage')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
