@@ -132,6 +132,9 @@ function fetchAccountDetails(login) {
             }
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
+        .catch(() => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: 'Looks like you\'re not connected to internet. Can you check your connection and try again?'});
+        })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
