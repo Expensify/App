@@ -48,7 +48,7 @@ const DetailsPage = ({personalDetails, route, translate}) => {
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('detailsPage.details')}
+                title={translate('common.details')}
                 shouldShowBackButton={shouldShowBackButton}
                 onBackButtonPress={Navigation.goBack}
                 onCloseButtonPress={() => Navigation.dismissModal()}
