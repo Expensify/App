@@ -8,7 +8,6 @@ export default {
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
-        split: 'Split',
         new: 'NEW',
         search: 'Search',
         next: 'Next',
@@ -51,6 +50,10 @@ export default {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',
         whatsItFor: 'WHAT\'S IT FOR?',
+    },
+    iOUCurrencySelection: {
+        selectCurrency: 'Select a Currency',
+        allCurrencies: 'ALL CURRENCIES',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -106,6 +109,7 @@ export default {
         request: ({amount}) => `Request ${amount}`,
         owes: ({manager, owner}) => `${manager} owes ${owner}`,
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
+        split: ({amount}) => `Split ${amount}`,
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
@@ -129,6 +133,7 @@ export default {
         emailAddress: 'Email Address',
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
+        growlMessageOnSave: 'Your profile was successfully saved',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add Phone Number',
@@ -136,10 +141,28 @@ export default {
         enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number and password to send a validation link.',
         enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
         sendValidation: 'Send Validation',
-
     },
     initialSettingsPage: {
         settings: 'Settings',
+        about: 'About',
+        aboutPage: {
+            description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            appDownloadLinks: 'App download links',
+            viewTheCode: 'View the code',
+            viewOpenJobs: 'View open jobs',
+            reportABug: 'Report a bug',
+        },
+        appDownloadLinks: {
+            android: {
+                label: 'Android',
+            },
+            ios: {
+                label: 'iOS',
+            },
+            desktop: {
+                label: 'Desktop',
+            },
+        },
         signOut: 'Sign Out',
         versionLetter: 'v',
         changePassword: 'Change Password',

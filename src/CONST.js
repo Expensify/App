@@ -1,6 +1,11 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 
 const CONST = {
+    APP_DOWNLOAD_LINKS: {
+        ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
+        IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
+        DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
+    },
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
@@ -12,6 +17,7 @@ const CONST = {
         PRESSED: 'pressed',
         COMPLETE: 'complete',
     },
+    CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
@@ -22,6 +28,7 @@ const CONST = {
     TERMS_URL: 'https://use.expensify.com/terms',
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
+    PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',

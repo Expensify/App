@@ -13,7 +13,6 @@ import {
     fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
-import * as BankAccounts from '../../actions/BankAccounts';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
@@ -117,9 +116,9 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
-        fetchAllReports(true, true);
+        PersonalDetails.fetchCurrencyPreferences();
+        fetchAllReports(true, true, true);
         fetchCountryCodeByRequestIP();
-        BankAccounts.fetchBankAccountList();
         UnreadIndicatorUpdater.listenForReportChanges();
 
         // Refresh the personal details, timezone and betas every 30 minutes

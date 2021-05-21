@@ -432,10 +432,8 @@ const styles = {
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'column',
-        height: 84,
-        justifyContent: 'flex-start',
-        paddingHorizontal: 20,
+        justifyContent: 'center',
+        paddingVertical: 20,
         width: '100%',
     },
 
@@ -1161,8 +1159,6 @@ const styles = {
         flexDirection: 'column',
         width: '100%',
         flexGrow: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
 
     settingsPageBody: {
@@ -1413,6 +1409,47 @@ const styles = {
         left: 0,
         opacity: 0,
         transform: 'translateX(-100%)',
+    },
+
+    growlNotificationWrapper: {
+        zIndex: 2,
+    },
+
+    growlNotificationContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        position: 'absolute',
+        width: '100%',
+        ...spacing.ph5,
+    },
+
+    growlNotificationDesktopContainer: {
+        maxWidth: '380px',
+        top: '20px',
+        right: 0,
+        position: 'fixed',
+    },
+
+    growlNotificationTranslateY: y => ({
+        transform: [{translateY: y}],
+    }),
+
+    growlNotificationBox: {
+        backgroundColor: colors.dark,
+        borderRadius: variables.componentBorderRadiusNormal,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        shadowColor: '#000',
+        ...spacing.p5,
+    },
+
+    growlNotificationText: {
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        width: '90%',
+        lineHeight: variables.fontSizeNormalHeight,
+        color: themeColors.textReversed,
     },
 
     blockquote: {
