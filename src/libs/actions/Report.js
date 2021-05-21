@@ -156,7 +156,7 @@ function getSimplifiedReportObject(report) {
     // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
     // We convert the line-breaks in html to space ' ' before striping the tags
     const lastMessageText = lodashGet(lastReportAction, ['message', 'html'], '')
-        .replace(/(<(br[^>]*)>)/gi, ' ')
+        .replace(/((<br[^>]*>)+)/gi, ' ')
         .replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, 'reportNameValuePairs.type') === 'chat'
         ? getChatReportName(report.sharedReportList)
@@ -957,7 +957,7 @@ function addAction(reportID, text, file) {
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? '[Attachment]'
-        : htmlForNewComment.replace(/(<(br[^>]*)>)/gi, ' ').replace(/<[^>]*>?/gm, '');
+        : htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' ').replace(/<[^>]*>?/gm, '');
 
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -1155,7 +1155,7 @@ function editReportComment(reportID, originalReportAction, htmlForNewComment) {
     const actionToMerge = {};
     newReportAction.message[0].isEdited = true;
     newReportAction.message[0].html = htmlForNewComment;
-    newReportAction.message[0].text = Str.stripHTML(htmlForNewComment);
+    newReportAction.message[0].text = Str.stripHTML(htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' '));
     actionToMerge[sequenceNumber] = newReportAction;
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
 
