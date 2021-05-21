@@ -64,25 +64,21 @@ const Button = (props) => {
             return <ContentComponent />;
         }
 
-        return (
-            <>
-                {props.isLoading
-                    ? (
-                        <ActivityIndicator color={themeColors.textReversed} />
-                    ) : (
-                        <Text
-                            selectable={false}
-                            style={[
-                                styles.buttonText,
-                                props.success && styles.buttonSuccessText,
-                                ...props.textStyles,
-                            ]}
-                        >
-                            {props.text}
-                        </Text>
-                    )}
-            </>
-        );
+        return props.isLoading
+            ? (
+                <ActivityIndicator color={themeColors.textReversed} />
+            ) : (
+                <Text
+                    selectable={false}
+                    style={[
+                        styles.buttonText,
+                        props.success && styles.buttonSuccessText,
+                        ...props.textStyles,
+                    ]}
+                >
+                    {props.text}
+                </Text>
+            );
     }
 
     return (
@@ -91,7 +87,6 @@ const Button = (props) => {
             disabled={props.isLoading || props.isDisabled}
             style={[
                 ...additionalStyles,
-                props.shouldRemoveRightBorderRadius ? styles.flex1 : undefined,
             ]}
         >
             {({pressed, hovered}) => (

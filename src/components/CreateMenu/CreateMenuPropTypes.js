@@ -43,11 +43,15 @@ const propTypes = {
         PropTypes.string,
         PropTypes.object,
     ]),
+
+    /** Optional non-interactive text to display as a header for any create menu */
+    headerText: PropTypes.string,
 };
 
 const defaultProps = {
     animationIn: 'fadeIn',
     animationOut: 'fadeOut',
+    headerText: undefined,
 };
 
 export {propTypes, defaultProps};

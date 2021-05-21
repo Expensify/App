@@ -35,6 +35,7 @@ const ButtonWithDropdown = props => (
             text={props.buttonText}
             isLoading={props.isLoading}
             shouldRemoveRightBorderRadius
+            additionalStyles={[styles.flex1]}
         />
         <Button
             success
