@@ -170,6 +170,7 @@ class TextInputFocusable extends React.Component {
      */
     setCursorPosition({nativeEvent: {selection}}) {
         this.selection = selection;
+        console.debug(this.selection);
     }
 
     /**
@@ -212,12 +213,14 @@ class TextInputFocusable extends React.Component {
 
                         // We can't paste synthatically as it is blocked from browser due not generated
                         // directly by user action.
-                        // Thus set the value manually.
-                        this.textInput.value = this.textInput.value.substring(0, this.selection.start - 1)
-                        + pastedText + this.textInput.value.substring(this.selection.end);
-
-                        // To hide the scrollbar we set it manually
-                        this.textInput.rows = this.textInput.value.split('\n').length;
+                        // Thus set the value manually. It won't trigger value chnage effect
+                        const beforeCursorText = this.textInput.value.substring(0, this.selection.start);
+                        const afterCursorText = this.textInput.value.substring(this.selection.end);
+                        this.textInput.value = beforeCursorText + pastedText + afterCursorText;
+                        this.updateNumberOfLines();
+                        this.props.onChangeText(this.textInput.value);
+                        const newCursorPosition = beforeCursorText.length + pastedText.length;
+                        this.setState({selection: {start: newCursorPosition, end: newCursorPosition}});
                     });
             }
         }
