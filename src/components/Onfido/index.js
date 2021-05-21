@@ -16,23 +16,12 @@ class Onfido extends React.Component {
             containerId: CONST.ONFIDO.CONTAINER_ID,
             steps: [
                 {
-                    type: CONST.ONFIDO.TYPE.WELCOME,
-                    options: {
-                        title: 'Activate Expensify Wallet',
-                        descriptions: [],
-                        nextButton: 'Continue',
-                    },
-                },
-                {
                     type: CONST.ONFIDO.TYPE.DOCUMENT,
                     options: {
                         useLiveDocumentCapture: true,
                         forceCrossDevice: true,
                         showCountrySelection: false,
                         documentTypes: {
-                            driving_licence: {
-                                country: null,
-                            },
                             national_identity_card: {
                                 country: null,
                             },

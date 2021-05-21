@@ -131,6 +131,7 @@ function fetchOnfidoToken() {
                 applicantID: apiResult.applicantID,
                 sdkToken: apiResult.sdkToken,
                 loading: false,
+                hasAcceptedPrivacyPolicy: true,
             });
         });
 }
