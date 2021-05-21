@@ -94,61 +94,65 @@ const ReportActionItemIOUPreview = ({
 
     const managerName = lodashGet(
         personalDetails,
-        [iouReport.managerEmail, 'displayName'],
+        [iouReport.managerEmail, 'firstName'],
         iouReport.managerEmail ? Str.removeSMSDomain(iouReport.managerEmail) : '',
     );
     const ownerName = lodashGet(
         personalDetails,
-        [iouReport.ownerEmail, 'displayName'],
+        [iouReport.ownerEmail, 'firstName'],
         iouReport.ownerEmail ? Str.removeSMSDomain(iouReport.ownerEmail) : '',
     );
     const managerAvatar = lodashGet(personalDetails, [iouReport.managerEmail, 'avatar'], '');
     const ownerAvatar = lodashGet(personalDetails, [iouReport.ownerEmail, 'avatar'], '');
     const cachedTotal = iouReport.cachedTotal ? iouReport.cachedTotal.replace(/[()]/g, '') : '';
-
     return (
         <View style={styles.iouPreviewBox}>
-            {reportIsLoading ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} /> : (
-                <View>
-                    <View style={styles.flexRow}>
-                        <View style={styles.flex1}>
-                            <Text style={styles.h1}>
-                                {cachedTotal}
-                                {' '}
-                                {!iouReport.hasOutstandingIOU && (
-                                    <Icon src={Checkmark} fill={themeColors.iconSuccessFill} height={16} width={16} />
-                                )}
-                            </Text>
-                            <Text style={styles.mt2}>
-                                {iouReport.hasOutstandingIOU
-                                    ? translate('iou.owes', {manager: managerName, owner: ownerName})
-                                    : translate('iou.paid', {manager: managerName, owner: ownerName})}
-                            </Text>
+            {reportIsLoading
+                ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} />
+                : (
+                    <View>
+                        <View style={styles.flexRow}>
+                            <View style={styles.flex1}>
+                                <View style={styles.flexRow}>
+                                    <Text style={styles.h1}>
+                                        {cachedTotal}
+                                    </Text>
+                                    {!iouReport.hasOutstandingIOU && (
+                                        <View style={styles.iouPreviewBoxCheckmark}>
+                                            <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+                            <View style={styles.iouPreviewBoxAvatar}>
+                                <MultipleAvatars
+                                    avatarImageURLs={[managerAvatar, ownerAvatar]}
+                                    secondAvatarStyle={[styles.secondAvatarInline]}
+                                />
+                            </View>
                         </View>
-                        <View style={styles.iouPreviewBoxAvatar}>
-                            <MultipleAvatars
-                                avatarImageURLs={[managerAvatar, ownerAvatar]}
-                                secondAvatarStyle={[styles.secondAvatarInline]}
-                            />
-                        </View>
-                    </View>
-                    {(isCurrentUserManager && !shouldHidePayButton && iouReport.hasOutstandingIOU && (
-                        <TouchableOpacity
-                            style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
-                            onPress={onPayButtonPressed}
-                        >
-                            <Text
-                                style={[
-                                    styles.buttonSmallText,
-                                    styles.buttonSuccessText,
-                                ]}
+                        <Text>
+                            {iouReport.hasOutstandingIOU
+                                ? translate('iou.owes', {manager: managerName, owner: ownerName})
+                                : translate('iou.paid', {manager: managerName, owner: ownerName})}
+                        </Text>
+                        {(isCurrentUserManager && !shouldHidePayButton && iouReport.hasOutstandingIOU && (
+                            <TouchableOpacity
+                                style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
+                                onPress={onPayButtonPressed}
                             >
-                                {translate('iou.pay')}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            )}
+                                <Text
+                                    style={[
+                                        styles.buttonSmallText,
+                                        styles.buttonSuccessText,
+                                    ]}
+                                >
+                                    {translate('iou.pay')}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                )}
         </View>
     );
 };

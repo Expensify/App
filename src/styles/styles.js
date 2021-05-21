@@ -1358,6 +1358,12 @@ const styles = {
 
     iouPreviewBoxAvatar: {
         marginRight: -10,
+        marginBottom: -10,
+    },
+
+    iouPreviewBoxCheckmark: {
+        marginLeft: 4,
+        alignSelf: 'center',
     },
 
     iouDetailsContainer: {
