@@ -29,7 +29,7 @@ import CreateMenu from '../../../components/CreateMenu';
 import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import GrowlNotification from '../../../libs/GrowlNotification';
+import GrowlNotification from '../../../components/GrowlNotification';
 import Button from '../../../components/Button';
 
 const propTypes = {
