@@ -17,6 +17,8 @@ import MultipleAvatars from './MultipleAvatars';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {fetchIOUReportByID} from '../libs/actions/Report';
 import themeColors from '../styles/themes/default';
+import Icon from './Icon';
+import {Checkmark} from './Icon/Expensicons';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -110,7 +112,13 @@ const ReportActionItemIOUPreview = ({
                 <View>
                     <View style={styles.flexRow}>
                         <View style={styles.flex1}>
-                            <Text style={styles.h1}>{cachedTotal}</Text>
+                            <Text style={styles.h1}>
+                                {cachedTotal}
+                                {' '}
+                                {!iouReport.hasOutstandingIOU && (
+                                    <Icon src={Checkmark} fill={themeColors.iconSuccessFill} height={16} width={16} />
+                                )}
+                            </Text>
                             <Text style={styles.mt2}>
                                 {iouReport.hasOutstandingIOU
                                     ? translate('iou.owes', {manager: managerName, owner: ownerName})
