@@ -1,10 +1,9 @@
 import React from 'react';
-import {
-    Text, TouchableOpacity, View,
-} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import Button from './Button';
 
 const propTypes = {
     /** Callback to inform parent modal with key pressed */
@@ -27,15 +26,12 @@ const BigNumberPad = ({numberPressed}) => (
                     // avoid unccessary space before the first column.
                     const marginLeft = columnIndex > 0 ? styles.ml3 : {};
                     return (
-                        <TouchableOpacity
+                        <Button
                             key={column}
-                            style={[styles.flex1, styles.button, marginLeft]}
+                            style={[styles.flex1, marginLeft]}
+                            text={column}
                             onPress={() => numberPressed(column)}
-                        >
-                            <Text style={[styles.buttonText]}>
-                                {column}
-                            </Text>
-                        </TouchableOpacity>
+                        />
                     );
                 })}
             </View>

@@ -148,8 +148,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001004602
-        versionName "1.0.46-2"
+        versionCode 1001005004
+        versionName "1.0.50-4"
     }
     splits {
         abi {
@@ -242,6 +242,11 @@ dependencies {
 
     // Crashlytics
     implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
+
+    // Plaid SDK
+    implementation project(':react-native-plaid-link-sdk')
+    // This okhttp3 dependency prevents the app from crashing - See https://github.com/plaid/react-native-plaid-link-sdk/issues/74#issuecomment-648435002
+    implementation "com.squareup.okhttp3:okhttp-urlconnection:4.+"
 }
 
 // Run this once to be able to run the application with BUCK

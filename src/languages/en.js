@@ -8,7 +8,6 @@ export default {
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
-        split: 'Split',
         new: 'NEW',
         search: 'Search',
         next: 'Next',
@@ -26,12 +25,14 @@ export default {
         phoneNumber: 'Phone Number',
         email: 'Email',
         and: 'and',
+        details: 'Details',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
         expensifyDoesntHaveAccessToCamera: 'Expensify.cash does not have access to your camera, please enable the permission and try again.',
         attachmentError: 'Attachment Error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
+        errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
         errorDuringAttachmentSelection: 'Error during attachment selection',
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
@@ -49,6 +50,10 @@ export default {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',
         whatsItFor: 'WHAT\'S IT FOR?',
+    },
+    iOUCurrencySelection: {
+        selectCurrency: 'Select a Currency',
+        allCurrencies: 'ALL CURRENCIES',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -98,7 +103,13 @@ export default {
         confirm: 'Confirm',
         splitBill: 'Split Bill',
         requestMoney: 'Request Money',
+        pay: 'Pay',
+        viewDetails: 'View Details',
+        settleElsewhere: 'I\'ll settle up elsewhere',
         request: ({amount}) => `Request ${amount}`,
+        owes: ({manager, owner}) => `${manager} owes ${owner}`,
+        paid: ({owner, manager}) => `${manager} paid ${owner}`,
+        split: ({amount}) => `Split ${amount}`,
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
@@ -122,6 +133,7 @@ export default {
         emailAddress: 'Email Address',
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
+        growlMessageOnSave: 'Your profile was successfully saved',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add Phone Number',
@@ -129,10 +141,28 @@ export default {
         enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number and password to send a validation link.',
         enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
         sendValidation: 'Send Validation',
-
     },
     initialSettingsPage: {
         settings: 'Settings',
+        about: 'About',
+        aboutPage: {
+            description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            appDownloadLinks: 'App download links',
+            viewTheCode: 'View the code',
+            viewOpenJobs: 'View open jobs',
+            reportABug: 'Report a bug',
+        },
+        appDownloadLinks: {
+            android: {
+                label: 'Android',
+            },
+            ios: {
+                label: 'iOS',
+            },
+            desktop: {
+                label: 'Desktop',
+            },
+        },
         signOut: 'Sign Out',
         versionLetter: 'v',
         changePassword: 'Change Password',
@@ -197,7 +227,6 @@ export default {
         resendLink: 'Resend Link',
     },
     detailsPage: {
-        details: 'Details',
         localTime: 'Local Time',
     },
     newGroupPage: {
@@ -211,6 +240,12 @@ export default {
         passwordCannotBeBlank: 'Password cannot be blank',
         enterPassword: 'Enter a password',
         setPassword: 'Set Password',
+    },
+    addBankAccountPage: {
+        enterPassword: 'Enter password',
+        addBankAccount: 'Add a Bank Account',
+        alreadyAdded: 'This account has already been added.',
+        selectAccount: 'Select an account:',
     },
     attachmentView: {
         unknownFilename: 'Unknown Filename',

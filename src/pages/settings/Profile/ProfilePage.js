@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {
     View,
     TextInput,
-    Pressable,
     ScrollView,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -30,6 +29,8 @@ import CreateMenu from '../../../components/CreateMenu';
 import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
+import GrowlNotification from '../../../libs/GrowlNotification';
+import Button from '../../../components/Button';
 
 const propTypes = {
     /* Onyx Props */
@@ -130,6 +131,7 @@ class ProfilePage extends Component {
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.getLogins = this.getLogins.bind(this);
         this.createMenuItems = this.createMenuItems.bind(this);
+        this.growlNotification = undefined;
     }
 
     componentDidUpdate(prevProps) {
@@ -208,6 +210,8 @@ class ProfilePage extends Component {
                 selected: selectedTimezone,
             },
         });
+
+        this.growlNotification.show(this.props.translate('profilePage.growlMessageOnSave'), 'success', 3000);
     }
 
     /**
@@ -257,6 +261,7 @@ class ProfilePage extends Component {
 
         return (
             <ScreenWrapper>
+                <GrowlNotification ref={el => this.growlNotification = el} />
                 <HeaderWithCloseButton
                     title={this.props.translate('common.profile')}
                     shouldShowBackButton
@@ -271,19 +276,20 @@ class ProfilePage extends Component {
                     <AttachmentPicker>
                         {({openPicker}) => (
                             <>
-                                <Pressable
-                                    style={[styles.button, styles.alignSelfCenter, styles.mt3]}
+                                <Button
+                                    style={[styles.alignSelfCenter, styles.mt3]}
                                     onPress={() => this.setState({isEditPhotoMenuVisible: true})}
-                                >
-                                    <View style={styles.flexRow}>
-                                        <Icon src={DownArrow} />
-                                        <View style={styles.justifyContentCenter}>
-                                            <Text style={[styles.headerText, styles.ml2]}>
-                                                {this.props.translate('profilePage.editPhoto')}
-                                            </Text>
+                                    ContentComponent={() => (
+                                        <View style={[styles.flexRow]}>
+                                            <Icon src={DownArrow} />
+                                            <View style={styles.justifyContentCenter}>
+                                                <Text style={[styles.headerText, styles.ml2]}>
+                                                    {this.props.translate('profilePage.editPhoto')}
+                                                </Text>
+                                            </View>
                                         </View>
-                                    </View>
-                                </Pressable>
+                                    )}
+                                />
                                 <CreateMenu
                                     isVisible={this.state.isEditPhotoMenuVisible}
                                     onClose={() => this.setState({isEditPhotoMenuVisible: false})}
@@ -381,21 +387,13 @@ class ProfilePage extends Component {
                     />
                 </ScrollView>
                 <View style={[styles.ph5, styles.pb5]}>
-                    <Pressable
-                        disabled={isButtonDisabled}
+                    <Button
+                        success
+                        isDisabled={isButtonDisabled}
                         onPress={this.updatePersonalDetails}
-                        style={({hovered}) => [
-                            styles.button,
-                            styles.buttonSuccess,
-                            styles.w100,
-                            hovered && styles.buttonSuccessHovered,
-                            isButtonDisabled && styles.buttonDisable,
-                        ]}
-                    >
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            {this.props.translate('common.save')}
-                        </Text>
-                    </Pressable>
+                        style={[styles.w100]}
+                        text={this.props.translate('common.save')}
+                    />
                 </View>
             </ScreenWrapper>
         );

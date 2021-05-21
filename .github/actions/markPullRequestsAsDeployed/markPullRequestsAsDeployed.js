@@ -1,14 +1,13 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
+const {GitHub} = require('@actions/github/lib/utils');
 const ActionUtils = require('../../libs/ActionUtils');
 const GithubUtils = require('../../libs/GithubUtils');
+
 
 const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
 const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
 const version = core.getInput('DEPLOY_VERSION', {required: true});
-const token = core.getInput('GITHUB_TOKEN', {required: true});
-const octokit = github.getOctokit(token);
-const githubUtils = new GithubUtils(octokit);
+
 
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
@@ -43,10 +42,13 @@ message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResul
 message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
 /**
- * Create comment on each pull request
+ * Comment Single PR
+ *
+ * @param {Object} pr
+ * @returns {Promise<void>}
  */
-prList.forEach((pr) => {
-    githubUtils.createComment(github.context.repo.repo, pr, message, octokit)
+function commentPR(pr) {
+    return GithubUtils.createComment(GitHub.context.repo.repo, pr, message)
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
         })
@@ -54,4 +56,9 @@ prList.forEach((pr) => {
             console.log(`Unable to write comment on #${pr} 😞`);
             core.setFailed(err.message);
         });
-});
+}
+
+/**
+ * Create comment on each pull request
+ */
+prList.reduce((promise, pr) => promise.then(() => commentPR(pr)), Promise.resolve());

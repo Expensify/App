@@ -30,7 +30,17 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
-    /** Holds data related to IOU view state, rather than the underlying IOU data. */
+    // The personal details of the person who is logged in
+    myPersonalDetails: PropTypes.shape({
+
+        // Preferred Currency Code of the current user
+        preferredCurrencyCode: PropTypes.string,
+
+        // Currency Symbol of the Preferred Currency
+        preferredCurrencySymbol: PropTypes.string,
+    }),
+
+    // Holds data related to IOU view state, rather than the underlying IOU data.
     iou: PropTypes.shape({
         /** Whether or not transaction creation has started */
         creatingIOUTransaction: PropTypes.bool,
@@ -58,6 +68,10 @@ const defaultProps = {
     hasMultipleParticipants: false,
     report: {
         participants: [],
+    },
+    myPersonalDetails: {
+        preferredCurrencyCode: 'USD',
+        preferredCurrencySymbol: '$',
     },
 };
 
@@ -94,7 +108,10 @@ class IOUModal extends Component {
 
             // amount is currency in decimal format
             amount: '',
-            selectedCurrency: 'USD',
+            selectedCurrency: {
+                currencyCode: props.myPersonalDetails.preferredCurrencyCode,
+                currencySymbol: props.myPersonalDetails.preferredCurrencySymbol,
+            },
             comment: '',
         };
 
@@ -116,6 +133,14 @@ class IOUModal extends Component {
         if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
             Navigation.dismissModal();
         }
+
+        if (prevProps.myPersonalDetails.preferredCurrencyCode
+            !== this.props.myPersonalDetails.preferredCurrencyCode) {
+            this.updateSelectedCurrency({
+                currencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
+                currencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
+            });
+        }
     }
 
     /**
@@ -126,9 +151,16 @@ class IOUModal extends Component {
     getTitleForStep() {
         const currentStepIndex = this.state.currentStepIndex;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
-            return `${this.props.hasMultipleParticipants
-                ? this.props.translate('common.split')
-                : this.props.translate('iou.request', {amount: this.state.amount})}`;
+            return this.props.translate(
+                this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                    amount: this.props.numberFormat(
+                        this.state.amount, {
+                            style: 'currency',
+                            currency: this.state.selectedCurrency.currencyCode,
+                        },
+                    ),
+                },
+            );
         }
         if (currentStepIndex === 0) {
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
@@ -140,6 +172,16 @@ class IOUModal extends Component {
     addParticipants(participants) {
         this.setState({
             participants,
+        });
+    }
+
+    /**
+     * Update the selected currency
+     * @param {Object} selectedCurrency
+     */
+    updateSelectedCurrency(selectedCurrency) {
+        this.setState({
+            selectedCurrency,
         });
     }
 
@@ -197,7 +239,7 @@ class IOUModal extends Component {
 
                 // should send in cents to API
                 amount: this.state.amount * 100,
-                currency: this.state.selectedCurrency,
+                currency: this.state.selectedCurrency.currencyCode,
                 splits,
             });
             return;
@@ -208,7 +250,7 @@ class IOUModal extends Component {
 
             // should send in cents to API
             amount: this.state.amount * 100,
-            currency: this.state.selectedCurrency,
+            currency: this.state.selectedCurrency.currencyCode,
             debtorEmail: this.state.participants[0].login,
         });
     }
@@ -254,7 +296,11 @@ class IOUModal extends Component {
                             this.navigateToNextStep();
                         }}
                         currencySelected={this.currencySelected}
+                        reportID={this.props.route.params.reportID}
                         selectedCurrency={this.state.selectedCurrency}
+                        hasMultipleParticipants={this.props.hasMultipleParticipants}
+                        selectedAmount={this.state.amount}
+                        navigation={this.props.navigation}
                     />
                 )}
                 {currentStep === Steps.IOUParticipants && (
@@ -299,6 +345,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(IOUModal);
