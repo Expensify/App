@@ -115,8 +115,10 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
-                shouldShow: this.canEdit
-                    && !isReportMessageAttachment(this.getActionText()),
+                shouldShow: () => (
+                    this.canEdit
+                    && !isReportMessageAttachment(this.getActionText())
+                ),
                 onPress: () => {
                     this.props.hidePopover();
                     saveReportActionDraft(
@@ -129,7 +131,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
-                shouldShow: this.canEdit(),
+                shouldShow: () => this.canEdit(),
                 onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
             },
         ];
