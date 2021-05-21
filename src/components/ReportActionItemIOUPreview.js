@@ -108,7 +108,7 @@ const ReportActionItemIOUPreview = ({
 
     return (
         <View style={styles.iouPreviewBox}>
-            {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
+            {reportIsLoading ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} /> : (
                 <View>
                     <View style={styles.flexRow}>
                         <View style={styles.flex1}>

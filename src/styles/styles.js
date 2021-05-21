@@ -1350,6 +1350,12 @@ const styles = {
         width: '100%',
     },
 
+    iouPreviewBoxLoading: {
+        minHeight: 66,
+        padding: 20,
+        width: '100%',
+    },
+
     iouPreviewBoxAvatar: {
         marginRight: -10,
     },
