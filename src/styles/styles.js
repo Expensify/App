@@ -455,6 +455,19 @@ const styles = {
         width: 12,
         zIndex: 10,
     },
+
+    statusIndicatorLarge: {
+        borderColor: themeColors.componentBG,
+        borderRadius: 8,
+        borderWidth: 2,
+        position: 'absolute',
+        right: 4,
+        bottom: 4,
+        height: 16,
+        width: 16,
+        zIndex: 10,
+    },
+
     statusIndicatorOnline: {
         backgroundColor: themeColors.online,
     },
@@ -1183,18 +1196,6 @@ const styles = {
         height: 80,
     },
 
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        borderRadius: 8,
-        borderWidth: 2,
-        position: 'absolute',
-        right: 4,
-        bottom: 4,
-        height: 16,
-        width: 16,
-        zIndex: 10,
-    },
-
     displayName: {
         fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
@@ -1409,6 +1410,47 @@ const styles = {
         left: 0,
         opacity: 0,
         transform: 'translateX(-100%)',
+    },
+
+    growlNotificationWrapper: {
+        zIndex: 2,
+    },
+
+    growlNotificationContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        position: 'absolute',
+        width: '100%',
+        ...spacing.ph5,
+    },
+
+    growlNotificationDesktopContainer: {
+        maxWidth: '380px',
+        top: '20px',
+        right: 0,
+        position: 'fixed',
+    },
+
+    growlNotificationTranslateY: y => ({
+        transform: [{translateY: y}],
+    }),
+
+    growlNotificationBox: {
+        backgroundColor: colors.dark,
+        borderRadius: variables.componentBorderRadiusNormal,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        shadowColor: '#000',
+        ...spacing.p5,
+    },
+
+    growlNotificationText: {
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        width: '90%',
+        lineHeight: variables.fontSizeNormalHeight,
+        color: themeColors.textReversed,
     },
 
     blockquote: {

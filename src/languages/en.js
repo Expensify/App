@@ -133,6 +133,7 @@ export default {
         emailAddress: 'Email Address',
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
+        growlMessageOnSave: 'Your profile was successfully saved',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add Phone Number',
@@ -261,5 +262,8 @@ export default {
     messages: {
         noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
+    },
+    session: {
+        offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
 };

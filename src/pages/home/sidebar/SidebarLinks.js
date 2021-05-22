@@ -71,6 +71,9 @@ const propTypes = {
 
     /** Whether we have the necessary report data to load the sidebar */
     initialReportDataLoaded: PropTypes.bool,
+
+    // Whether we are syncing app data
+    isSyncingData: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -84,6 +87,7 @@ const defaultProps = {
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     initialReportDataLoaded: false,
+    isSyncingData: false,
 };
 
 class SidebarLinks extends React.Component {
@@ -143,6 +147,7 @@ class SidebarLinks extends React.Component {
                         <AvatarWithIndicator
                             source={this.props.myPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
+                            isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
                         />
                     </TouchableOpacity>
                 </View>
@@ -199,6 +204,9 @@ export default compose(
         },
         initialReportDataLoaded: {
             key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
+        },
+        isSyncingData: {
+            key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
         },
     }),
 )(SidebarLinks);
