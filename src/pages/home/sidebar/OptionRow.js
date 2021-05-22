@@ -124,8 +124,6 @@ const OptionRow = ({
             {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
         ),
     );
-    const fullTitle = option.text ? option.text
-        : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <Hoverable>
             {hovered => (
