@@ -23,9 +23,9 @@ export default function linkTo(navigation, path) {
 
     // Traverse up to get the root navigation
     // eslint-disable-next-line no-cond-assign
-    // while ((current = root.dangerouslyGetParent())) {
-    //     root = current;
-    // }
+    while ((current = root.getParent())) {
+        root = current;
+    }
 
     const action = getActionFromState(state, linkingConfig.config);
 
