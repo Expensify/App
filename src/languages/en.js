@@ -26,6 +26,7 @@ export default {
         email: 'Email',
         and: 'and',
         details: 'Details',
+        privacyPolicy: 'Privacy Policy',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -263,6 +264,13 @@ export default {
         noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
+    onfidoStep: {
+        acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
+        facialScan: 'Onfido’s Facial Scan Policy and Release',
+        termsOfService: 'Terms of Service',
+        tryAgain: 'Try Again',
+        verifyIdentity: 'Verify Identity',
+    },
     additionalDetailsStep: {
         headerTitle: 'Additional Details',
         helpText: 'We need to confirm the following information before we can process this payment.',
@@ -285,7 +293,6 @@ export default {
         haveReadAndAgree: 'I have read and agree to receive ',
         electronicDisclosures: 'electronic disclosures',
         agreeToThe: 'I agree to the ',
-        privacyPolicy: 'Privacy Policy',
         walletAgreement: 'Wallet Agreement',
         enablePayments: 'Enable Payments',
     },
