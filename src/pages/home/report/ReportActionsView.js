@@ -414,7 +414,7 @@ ReportActionsView.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withDrawerState,
+    // withDrawerState,
     withLocalize,
     withOnyx({
         report: {
