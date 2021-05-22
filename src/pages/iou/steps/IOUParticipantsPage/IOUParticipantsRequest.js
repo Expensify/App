@@ -73,14 +73,14 @@ class IOUParticipantsRequest extends Component {
         const sections = [];
 
         sections.push({
-            title: this.props.translate('iou.recents'),
+            title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
-            title: this.props.translate('iou.contacts'),
+            title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
             shouldShow: !_.isEmpty(this.state.personalDetails),
             indexOffset: 0,

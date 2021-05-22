@@ -108,7 +108,7 @@ class IOUParticipantsSplit extends Component {
         }
 
         sections.push({
-            title: this.props.translate('iou.recents'),
+            title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
 
@@ -118,7 +118,7 @@ class IOUParticipantsSplit extends Component {
         });
 
         sections.push({
-            title: this.props.translate('iou.contacts'),
+            title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
             shouldShow: !_.isEmpty(this.state.personalDetails),
 
