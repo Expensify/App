@@ -73,30 +73,32 @@ class OnfidoStep extends React.Component {
                             }}
                         />
                     ) : (
-                        <View style={[styles.mh5, styles.mb5]}>
+                        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentBetween]}>
                             {!this.props.walletOnfidoData.hasAcceptedPrivacyPolicy && (
                                 <>
-                                    <Text style={[styles.mb5]}>
-                                        {'By continuing with the request to activate this Expensify wallet, you confirm that you have read, understand and accept '}
-                                        <TextLink
-                                            href="https://onfido.com/facial-scan-policy-and-release/"
-                                        >
-                                            Onfido’s Facial Scan Policy and Release
-                                        </TextLink>
-                                        {', '}
-                                        <TextLink
-                                            href="https://onfido.com/privacy/"
-                                        >
-                                            Privacy Policy
-                                        </TextLink>
-                                        {' and '}
-                                        <TextLink
-                                            href="https://onfido.com/terms-of-service/"
-                                        >
-                                            Terms of Service
-                                        </TextLink>
-                                        .
-                                    </Text>
+                                    <View style={styles.justifyContentCenter}>
+                                        <Text style={[styles.mb5]}>
+                                            {'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept '}
+                                            <TextLink
+                                                href="https://onfido.com/facial-scan-policy-and-release/"
+                                            >
+                                                Onfido’s Facial Scan Policy and Release
+                                            </TextLink>
+                                            {', '}
+                                            <TextLink
+                                                href="https://onfido.com/privacy/"
+                                            >
+                                                Privacy Policy
+                                            </TextLink>
+                                            {' and '}
+                                            <TextLink
+                                                href="https://onfido.com/terms-of-service/"
+                                            >
+                                                Terms of Service
+                                            </TextLink>
+                                            .
+                                        </Text>
+                                    </View>
                                     <Button
                                         success
                                         text="Agree & Continue"
