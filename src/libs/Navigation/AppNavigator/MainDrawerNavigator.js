@@ -56,17 +56,18 @@ const MainDrawerNavigator = (props) => {
     return (
         <Drawer.Navigator
             openByDefault={props.isSmallScreenWidth}
-            drawerType={getNavigationDrawerType(props.isSmallScreenWidth)}
-            drawerStyle={getNavigationDrawerStyle(
-                props.windowWidth,
-                props.isSmallScreenWidth,
-            )}
             sceneContainerStyle={styles.navigationSceneContainer}
-            edgeWidth={500}
-            drawerContent={() => <SidebarScreen />}
+            drawerContent={(props) => <SidebarScreen {...props} />}
             screenOptions={{
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
+                drawerType: getNavigationDrawerType(props.isSmallScreenWidth),
+                drawerStyle: getNavigationDrawerStyle(
+                    props.windowWidth,
+                    props.isSmallScreenWidth,
+                ),
+                swipeEdgeWidth: 500,
+                swipeEnabled: true,
             }}
         >
             <Drawer.Screen
