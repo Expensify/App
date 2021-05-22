@@ -12,6 +12,8 @@ import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
@@ -32,6 +34,8 @@ const propTypes = {
         /** Whether the user has accepted the privacy policy of Onfido or not */
         hasAcceptedPrivacyPolicy: PropTypes.bool,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -53,7 +57,7 @@ class OnfidoStep extends React.Component {
         return (
             <>
                 <HeaderWithCloseButton
-                    title="Verify Identity"
+                    title={this.props.translate('onfidoStep.verifyIdentity')}
                     onCloseButtonPress={() => Navigation.goBack()}
                 />
                 {
@@ -78,30 +82,30 @@ class OnfidoStep extends React.Component {
                                 <>
                                     <View style={styles.justifyContentCenter}>
                                         <Text style={[styles.mb5]}>
-                                            {'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept '}
+                                            {this.props.translate('onfidoStep.acceptTerms')}
                                             <TextLink
                                                 href="https://onfido.com/facial-scan-policy-and-release/"
                                             >
-                                                Onfido’s Facial Scan Policy and Release
+                                                {this.props.translate('onfidoStep.facialScan')}
                                             </TextLink>
                                             {', '}
                                             <TextLink
                                                 href="https://onfido.com/privacy/"
                                             >
-                                                Privacy Policy
+                                                {this.props.translate('common.privacyPolicy')}
                                             </TextLink>
                                             {' and '}
                                             <TextLink
                                                 href="https://onfido.com/terms-of-service/"
                                             >
-                                                Terms of Service
+                                                {this.props.translate('onfidoStep.termsOfService')}
                                             </TextLink>
                                             .
                                         </Text>
                                     </View>
                                     <Button
                                         success
-                                        text="Agree & Continue"
+                                        text={this.props.translate('common.continue')}
                                         isLoading={this.props.walletOnfidoData.loading}
                                         onPress={() => {
                                             fetchOnfidoToken();
@@ -118,7 +122,7 @@ class OnfidoStep extends React.Component {
                                     </Text>
                                     <Button
                                         success
-                                        text="Try again"
+                                        text={this.props.translate('onfidoStep.tryAgain')}
                                         onPress={() => {
                                             // Restart the flow so the user can try again.
                                             fetchOnfidoToken();
@@ -137,11 +141,14 @@ class OnfidoStep extends React.Component {
 OnfidoStep.propTypes = propTypes;
 OnfidoStep.defaultProps = defaultProps;
 
-export default withOnyx({
-    walletOnfidoData: {
-        key: ONYXKEYS.WALLET_ONFIDO,
+export default compose(
+    withLocalize,
+    withOnyx({
+        walletOnfidoData: {
+            key: ONYXKEYS.WALLET_ONFIDO,
 
-        // Let's get a new onfido token each time the user hits this flow (as it should only be once)
-        initWithStoredValues: false,
-    },
-})(OnfidoStep);
+            // Let's get a new onfido token each time the user hits this flow (as it should only be once)
+            initWithStoredValues: false,
+        },
+    }),
+)(OnfidoStep);

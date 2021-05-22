@@ -70,7 +70,7 @@ class TermsStep extends React.Component {
                                     // @TODO link to privacy policy
                                 }}
                             >
-                                <Text style={styles.link}>{`${this.props.translate('termsStep.privacyPolicy')} `}</Text>
+                                <Text style={styles.link}>{`${this.props.translate('common.privacyPolicy')} `}</Text>
                             </TouchableOpacity>
                             {`${this.props.translate('common.and')} `}
                             <TouchableOpacity
