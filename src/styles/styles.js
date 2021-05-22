@@ -455,6 +455,19 @@ const styles = {
         width: 12,
         zIndex: 10,
     },
+
+    statusIndicatorLarge: {
+        borderColor: themeColors.componentBG,
+        borderRadius: 8,
+        borderWidth: 2,
+        position: 'absolute',
+        right: 4,
+        bottom: 4,
+        height: 16,
+        width: 16,
+        zIndex: 10,
+    },
+
     statusIndicatorOnline: {
         backgroundColor: themeColors.online,
     },
@@ -1181,18 +1194,6 @@ const styles = {
     avatarLarge: {
         width: 80,
         height: 80,
-    },
-
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        borderRadius: 8,
-        borderWidth: 2,
-        position: 'absolute',
-        right: 4,
-        bottom: 4,
-        height: 16,
-        width: 16,
-        zIndex: 10,
     },
 
     displayName: {
