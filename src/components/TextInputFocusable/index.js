@@ -46,6 +46,15 @@ const propTypes = {
     Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
 
+    /** Update selection position on change */
+    onSelectionChange: PropTypes.func,
+
+    /** Selection Object */
+    selection: PropTypes.shape({
+        start: PropTypes.number,
+        end: PropTypes.number,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -63,6 +72,11 @@ const defaultProps = {
     isDisabled: false,
     autoFocus: false,
     forwardedRef: null,
+    onSelectionChange: () => { },
+    selection: {
+        start: 0,
+        end: 0,
+    },
 };
 
 const IMAGE_EXTENSIONS = {
@@ -127,6 +141,11 @@ class TextInputFocusable extends React.Component {
         }
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
+        }
+
+        if (prevProps.selection !== this.props.selection) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({selection: this.props.selection});
         }
     }
 
@@ -231,6 +250,7 @@ class TextInputFocusable extends React.Component {
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
                 disabled={this.props.isDisabled}
+                onSelectionChange={this.props.onSelectionChange}
             />
         );
     }
