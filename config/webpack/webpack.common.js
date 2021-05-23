@@ -13,6 +13,7 @@ const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new 
 
 const includeModules = [
     'react-native-animatable',
+    'react-native-reanimated',
     'react-native-picker-select',
     'react-native-web',
     '@react-native-picker',
