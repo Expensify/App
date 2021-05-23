@@ -24,6 +24,13 @@ const propTypes = {
 
     /** Prevent edits and interactions like focus for this input. */
     isDisabled: PropTypes.bool,
+
+    /** Selection Object */
+    selection: PropTypes.shape({
+        start: PropTypes.number,
+        end: PropTypes.number,
+    }),
+
 };
 
 const defaultProps = {
@@ -32,6 +39,10 @@ const defaultProps = {
     autoFocus: false,
     isDisabled: false,
     forwardedRef: null,
+    selection: {
+        start: 0,
+        end: 0,
+    },
 };
 
 class TextInputFocusable extends React.Component {
@@ -53,6 +64,8 @@ class TextInputFocusable extends React.Component {
     }
 
     render() {
+        // Selection Property not worked in IOS properly, So removed from props.
+        const {selection, ...newProps} = this.props;
         return (
             <TextInput
                 ref={el => this.textInput = el}
@@ -60,7 +73,7 @@ class TextInputFocusable extends React.Component {
                 rejectResponderTermination={false}
                 editable={!this.props.isDisabled}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...this.props}
+                {...newProps}
             />
         );
     }
