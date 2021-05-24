@@ -27,6 +27,8 @@ export default {
         and: 'and',
         details: 'Details',
         delete: 'Delete',
+        contacts: 'Contacts',
+        recents: 'Recents',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -98,8 +100,6 @@ export default {
         newGroup: 'New Group',
     },
     iou: {
-        contacts: 'CONTACTS',
-        recents: 'RECENTS',
         amount: 'Amount',
         participants: 'Participants',
         confirm: 'Confirm',
@@ -264,5 +264,8 @@ export default {
     messages: {
         noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
+    },
+    session: {
+        offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
 };
