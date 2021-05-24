@@ -272,7 +272,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             }
 
             // Finally check to see if this options is a match for the provided search string if we have one
-            if (searchValue && !isSearchStringMatch(searchValue, reportOption.searchText, reportOption.participantsSet)) {
+            const {searchText, participantsSet} = reportOption;
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantsSet)) {
                 continue;
             }
 
@@ -305,11 +306,10 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ))) {
                 return;
             }
-
-            if (searchValue && !isSearchStringMatch(searchValue, personalDetailOption.searchText, personalDetailOption.participantsSet)) {
+            const {searchText, participantsSet} = personalDetailOption;
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantsSet)) {
                 return;
             }
-
             personalDetailsOptions.push(personalDetailOption);
         });
     }
