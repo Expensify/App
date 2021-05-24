@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {
-    View, Text, TouchableOpacity, ScrollView,
+    View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView,
 } from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -16,6 +16,7 @@ import {activateWallet} from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import TextLink from '../../components/TextLink';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -107,54 +108,56 @@ class AdditionalDetailsStep extends React.Component {
         const errorFields = this.props.walletAdditionalDetails.errorFields || [];
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('additionalDetailsStep.headerTitle')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <View style={[styles.flex1]}>
-                    <View style={styles.ph5}>
-                        <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
-                        <TouchableOpacity
-                            style={styles.mb3}
-                            onPress={() => {
+                <KeyboardAvoidingView style={[styles.flex1]} behavior="height">
+                    <HeaderWithCloseButton
+                        title={this.props.translate('additionalDetailsStep.headerTitle')}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <View style={[styles.flex1]}>
+                        <View style={styles.ph5}>
+                            <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
+                            <TextLink
+                                style={styles.mb3}
                                 // @TODO Open link to help doc
-                            }}
+                                href=""
+                            >
+                                {this.props.translate('additionalDetailsStep.helpLink')}
+                            </TextLink>
+                            </TouchableOpacity>
+                        </View>
+                        <ScrollView
+                            contentContainerStyle={styles.p5}
                         >
-                            <Text style={styles.link}>{this.props.translate('additionalDetailsStep.helpLink')}</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <ScrollView
-                        contentContainerStyle={styles.p5}
-                    >
-                        {_.map(this.fields, field => (
-                            <TextInputWithLabel
-                                key={field.label}
-                                label={field.label}
-                                onChangeText={val => this.setState({[field.fieldName]: val})}
-                                value={this.state[field.fieldName]}
-                                hasError={errorFields.includes(field.fieldName)}
-                                errorText={`${field.label} ${this.requiredText}`}
+                            {_.map(this.fields, field => (
+                                <TextInputWithLabel
+                                    key={field.label}
+                                    label={field.label}
+                                    onChangeText={val => this.setState({[field.fieldName]: val})}
+                                    value={this.state[field.fieldName]}
+                                    hasError={errorFields.includes(field.fieldName)}
+                                    errorText={`${field.label} ${this.requiredText}`}
+                                />
+                            ))}
+                        </ScrollView>
+                        <View style={[styles.m5]}>
+                            {this.props.walletAdditionalDetails.additionalErrorMessage.length > 0 && (
+                                <Text style={[styles.formError, styles.mb2]}>
+                                    {this.props.walletAdditionalDetails.additionalErrorMessage}
+                                </Text>
+                            )}
+                            <Button
+                                success
+                                text={this.props.translate('additionalDetailsStep.continueButtonText')}
+                                isLoading={this.props.walletAdditionalDetails.loading}
+                                onPress={() => {
+                                    activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
+                                        personalDetails: this.state,
+                                    });
+                                }}
                             />
-                        ))}
-                    </ScrollView>
-                    <View style={[styles.m5]}>
-                        {this.props.walletAdditionalDetails.additionalErrorMessage.length > 0 && (
-                            <Text style={[styles.formError, styles.mb2]}>
-                                {this.props.walletAdditionalDetails.additionalErrorMessage}
-                            </Text>
-                        )}
-                        <Button
-                            success
-                            text={this.props.translate('additionalDetailsStep.continueButtonText')}
-                            isLoading={this.props.walletAdditionalDetails.loading}
-                            onPress={() => {
-                                activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
-                                    personalDetails: this.state,
-                                });
-                            }}
-                        />
+                        </View>
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
