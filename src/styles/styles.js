@@ -89,6 +89,10 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    textUppercase: {
+        textTransform: 'uppercase',
+    },
+
     colorReversed: {
         color: themeColors.textReversed,
     },
