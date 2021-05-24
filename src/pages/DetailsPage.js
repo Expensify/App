@@ -41,6 +41,7 @@ const DetailsPage = ({personalDetails, route}) => {
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowBackButton = Boolean(route.params.reportID);
     const timezone = moment().tz(details.timezone.selected);
+    
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
