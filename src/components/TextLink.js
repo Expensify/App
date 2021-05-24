@@ -24,13 +24,13 @@ const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
     return (
         <Pressable
-            style={additionalStyles}
+            style={[...additionalStyles]}
             onPress={() => {
                 openURLInNewTab(props.href);
             }}
         >
-            {(pressed, hovered) => (
-                <Text style={[styles.link, hovered ? styles.linkHovered : undefined]}>
+            {() => (
+                <Text style={[styles.link]}>
                     {props.children}
                 </Text>
             )}
