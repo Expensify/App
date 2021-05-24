@@ -42,6 +42,9 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
+    // Contains all relevant details to the policies that the user has access to
+    POLICY: 'policy',
+
     // Indicates whether an update is available and ready to beinstalled.
     UPDATE_AVAILABLE: 'updateAvailable',
 
