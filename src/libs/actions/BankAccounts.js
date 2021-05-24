@@ -164,10 +164,12 @@ function setAdditionalDetailsStep(loading, errorFields = null, additionalErrorMe
  * @param {Object} parameters
  * @param {String} [parameters.onfidoData] - JSON string
  * @param {Object} [parameters.personalDetails] - JSON string
+ * @param {Boolean} [parameters.hasAcceptedTerms]
  */
 function activateWallet(currentStep, parameters) {
     let personalDetails;
     let onfidoData;
+    let hasAcceptedTerms;
 
     if (!currentStep || !_.contains(CONST.WALLET.STEP, currentStep)) {
         throw new Error('Invalid currentStep passed to activateWallet()');
@@ -191,9 +193,17 @@ function activateWallet(currentStep, parameters) {
         }
 
         personalDetails = JSON.stringify(parameters.personalDetails);
+    } else if (currentStep === CONST.WALLET.STEP.TERMS) {
+        hasAcceptedTerms = parameters.hasAcceptedTerms;
+        Onyx.merge(ONYXKEYS.WALLET_TERMS, {loading: true});
     }
 
-    API.Wallet_Activate({currentStep, personalDetails, onfidoData})
+    API.Wallet_Activate({
+        currentStep,
+        personalDetails,
+        onfidoData,
+        hasAcceptedTerms,
+    })
         .then((response) => {
             if (response.jsonCode !== 200) {
                 if (currentStep === CONST.WALLET.STEP.ONFIDO) {
@@ -232,6 +242,8 @@ function activateWallet(currentStep, parameters) {
                 Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {error: '', loading: true});
             } else if (currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS) {
                 setAdditionalDetailsStep(false);
+            } else if (currentStep === CONST.WALLET.STEP.TERMS) {
+                Onyx.merge(ONYXKEYS.WALLET_TERMS, {loading: false});
             }
         });
 }

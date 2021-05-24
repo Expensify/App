@@ -111,17 +111,21 @@ class AdditionalDetailsStep extends React.Component {
                     title={this.props.translate('additionalDetailsStep.headerTitle')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <View style={[styles.mh5, styles.flex1]}>
-                    <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
-                    <TouchableOpacity
-                        style={styles.mb3}
-                        onPress={() => {
-                            // @TODO Open link to help doc
-                        }}
+                <View style={[styles.flex1]}>
+                    <View style={styles.ph5}>
+                        <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
+                        <TouchableOpacity
+                            style={styles.mb3}
+                            onPress={() => {
+                                // @TODO Open link to help doc
+                            }}
+                        >
+                            <Text style={styles.link}>{this.props.translate('additionalDetailsStep.helpLink')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <ScrollView
+                        contentContainerStyle={styles.p5}
                     >
-                        <Text style={styles.link}>{this.props.translate('additionalDetailsStep.helpLink')}</Text>
-                    </TouchableOpacity>
-                    <ScrollView>
                         {_.map(this.fields, field => (
                             <TextInputWithLabel
                                 key={field.label}
@@ -133,7 +137,7 @@ class AdditionalDetailsStep extends React.Component {
                             />
                         ))}
                     </ScrollView>
-                    <View style={[styles.mv2]}>
+                    <View style={[styles.m5]}>
                         {this.props.walletAdditionalDetails.additionalErrorMessage.length > 0 && (
                             <Text style={[styles.formError, styles.mb2]}>
                                 {this.props.walletAdditionalDetails.additionalErrorMessage}
