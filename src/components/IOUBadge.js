@@ -32,7 +32,7 @@ const IOUBadge = props => (
             numberOfLines={1}
         >
             {props.numberFormat(
-                props.iouReport.total,
+                props.iouReport.total / 100,
                 {style: 'currency', currency: props.iouReport.currency},
             )}
         </Text>
