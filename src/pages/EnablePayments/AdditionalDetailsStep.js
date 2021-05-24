@@ -114,7 +114,7 @@ class AdditionalDetailsStep extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     <View style={[styles.flex1]}>
-                        <View style={styles.ph5}>
+                        <View style={[styles.ph5]}>
                             <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
                             {/* @TODO Open link to help doc */}
                             <TextLink

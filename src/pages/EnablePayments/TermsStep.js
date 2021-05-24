@@ -65,16 +65,21 @@ class TermsStep extends React.Component {
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                         </Text>
                     </ScrollView>
-                    <View style={[styles.flexRow, styles.mb4, styles.flex1]}>
+                    <View style={[styles.flexRow, styles.mb4]}>
                         <Checkbox
                             isChecked={this.state.hasAcceptedDisclosure}
                             onClick={this.toggleDisclosure}
                         />
                         <TouchableOpacity
                             onPress={this.toggleDisclosure}
-                            style={[styles.w100]}
+                            style={[
+                                styles.ml2,
+                                styles.flexRow,
+                                styles.flexWrap,
+                                styles.alignItemsCenter,
+                            ]}
                         >
-                            <Text style={[styles.ml2, styles.textP, styles.flex1]}>
+                            <Text>
                                 {`${this.props.translate('termsStep.haveReadAndAgree')} `}
 
                                 {/* @TODO add external links */}
@@ -82,25 +87,35 @@ class TermsStep extends React.Component {
                             </Text>
                         </TouchableOpacity>
                     </View>
-                    <View style={[styles.flexRow, styles.mb4, styles.flex1]}>
+                    <View style={[styles.flexRow, styles.mb4]}>
                         <Checkbox
                             isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
                             onClick={this.togglePrivacyPolicy}
                         />
                         <TouchableOpacity
                             onPress={this.togglePrivacyPolicy}
+                            style={[
+                                styles.ml2,
+                                styles.flexRow,
+                                styles.flexWrap,
+                                styles.alignItemsCenter,
+                            ]}
                         >
-                            <Text style={[styles.ml2, styles.textP, styles.flex1]}>
+                            <Text>
                                 {`${this.props.translate('termsStep.agreeToThe')} `}
-
-                                {/* @TODO link to privacy policy */}
-                                <TextLink href="">{`${this.props.translate('common.privacyPolicy')} `}</TextLink>
-
-                                {`${this.props.translate('common.and')} `}
-
-                                {/* @TODO link to wallet agreement */}
-                                <TextLink href="">{`${this.props.translate('termsStep.walletAgreement')}.`}</TextLink>
                             </Text>
+
+                            {/* @TODO link to privacy policy */}
+                            <TextLink href="">
+                                {`${this.props.translate('common.privacyPolicy')} `}
+                            </TextLink>
+
+                            <Text>{`${this.props.translate('common.and')} `}</Text>
+
+                            {/* @TODO link to wallet agreement */}
+                            <TextLink href="">
+                                {`${this.props.translate('termsStep.walletAgreement')}.`}
+                            </TextLink>
                         </TouchableOpacity>
                     </View>
                     {this.state.error && (
