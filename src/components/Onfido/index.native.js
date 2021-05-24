@@ -3,6 +3,7 @@ import {
     Onfido as OnfidoSDK,
     OnfidoCaptureType,
     OnfidoDocumentType,
+    OnfidoCountryCode,
 } from '@onfido/react-native-sdk';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
@@ -18,6 +19,7 @@ class Onfido extends React.Component {
                 },
                 captureDocument: {
                     docType: OnfidoDocumentType.GENERIC,
+                    countryCode: OnfidoCountryCode.USA,
                 },
             },
         })
