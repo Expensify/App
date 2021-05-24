@@ -58,7 +58,6 @@ const defaultProps = {
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
-    console.debug(props.personalDetails);
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
         ({displayName, firstName, login}) => (
