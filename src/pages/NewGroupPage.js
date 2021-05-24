@@ -97,16 +97,16 @@ class NewGroupPage extends Component {
         }
 
         sections.push({
-            title: this.props.translate('iou.recents'),
+            title: this.props.translate('common.recents'),
             data: this.state.recentReports,
-            shouldShow: this.state.recentReports.length > 0,
+            shouldShow: !_.isEmpty(this.state.recentReports),
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
-            title: this.props.translate('iou.contacts'),
+            title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
-            shouldShow: this.state.personalDetails.length > 0,
+            shouldShow: !_.isEmpty(this.state.personalDetails),
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
 
