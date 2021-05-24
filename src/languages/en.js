@@ -26,6 +26,8 @@ export default {
         email: 'Email',
         and: 'and',
         details: 'Details',
+        contacts: 'Contacts',
+        recents: 'Recents',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -96,8 +98,6 @@ export default {
         newGroup: 'New Group',
     },
     iou: {
-        contacts: 'CONTACTS',
-        recents: 'RECENTS',
         amount: 'Amount',
         participants: 'Participants',
         confirm: 'Confirm',

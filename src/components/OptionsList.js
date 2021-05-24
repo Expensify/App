@@ -188,7 +188,7 @@ class OptionsList extends Component {
         if (title && shouldShow && !this.props.hideSectionHeaders) {
             return (
                 <View>
-                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
                         {title}
                     </Text>
                 </View>
