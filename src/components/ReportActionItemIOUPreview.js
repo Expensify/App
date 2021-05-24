@@ -83,27 +83,22 @@ const ReportActionItemIOUPreview = ({
     translate,
 }) => {
     const sessionEmail = lodashGet(session, 'email', null);
+    const managerEmail = iouReport.managerEmail || '';
+    const ownerEmail = iouReport.ownerEmail || '';
 
     // Pay button should only be visible to the manager of the report.
-    const isCurrentUserManager = iouReport.managerEmail === sessionEmail;
+    const isCurrentUserManager = managerEmail === sessionEmail;
     const reportIsLoading = _.isEmpty(iouReport);
 
     if (reportIsLoading) {
         fetchIOUReportByID(iouReportID, chatReportID);
     }
 
-    const managerName = lodashGet(
-        personalDetails,
-        [iouReport.managerEmail, 'firstName'],
-        iouReport.managerEmail ? Str.removeSMSDomain(iouReport.managerEmail) : '',
-    );
-    const ownerName = lodashGet(
-        personalDetails,
-        [iouReport.ownerEmail, 'firstName'],
-        iouReport.ownerEmail ? Str.removeSMSDomain(iouReport.ownerEmail) : '',
-    );
-    const managerAvatar = lodashGet(personalDetails, [iouReport.managerEmail, 'avatar'], '');
-    const ownerAvatar = lodashGet(personalDetails, [iouReport.ownerEmail, 'avatar'], '');
+    const managerName = lodashGet(personalDetails, [managerEmail, 'firstName'], '')
+                        || Str.removeSMSDomain(managerEmail);
+    const ownerName = lodashGet(personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
+    const managerAvatar = lodashGet(personalDetails, [managerEmail, 'avatar'], '');
+    const ownerAvatar = lodashGet(personalDetails, [ownerEmail, 'avatar'], '');
     const cachedTotal = iouReport.cachedTotal ? iouReport.cachedTotal.replace(/[()]/g, '') : '';
     return (
         <View style={styles.iouPreviewBox}>
