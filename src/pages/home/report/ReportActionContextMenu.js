@@ -36,12 +36,15 @@ const propTypes = {
     isVisible: PropTypes.bool,
 
     /** The copy selection of text. */
+    // eslint-disable-next-line
     selection: PropTypes.string,
 
     /** Draft message - if this is set the comment is in 'edit' mode */
+    // eslint-disable-next-line
     draftMessage: PropTypes.string,
 
     /** Function to dismiss the popover containing this menu */
+    // eslint-disable-next-line
     hidePopover: PropTypes.func.isRequired,
 
     /* Onyx Props */
@@ -62,6 +65,86 @@ const defaultProps = {
     draftMessage: '',
 };
 
+/**
+ * A list of all the context actions in this menu.
+ *
+ * @param {ReportActionContextMenu} contextMenu
+ * @returns {Array<Object>}
+ */
+const contextActions = function (contextMenu) {
+    return [
+        // Copy to clipboard
+        {
+            text: contextMenu.props.translate('reportActionContextMenu.copyToClipboard'),
+            icon: ClipboardIcon,
+            successText: contextMenu.props.translate('reportActionContextMenu.copied'),
+            successIcon: Checkmark,
+            shouldShow: true,
+
+            // If return value is true, we switch the `text` and `icon` on
+            // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
+            // the `text` and `icon`
+            onPress: (menu) => {
+                const message = _.last(lodashGet(menu.props.reportAction, 'message', null));
+                const html = lodashGet(message, 'html', '');
+                const text = menu.props.selection || lodashGet(message, 'text', '');
+                const isAttachment = _.has(menu.props.reportAction, 'isAttachment')
+                    ? menu.props.reportAction.isAttachment
+                    : isReportMessageAttachment(text);
+                if (!isAttachment) {
+                    Clipboard.setString(text);
+                } else {
+                    Clipboard.setString(html);
+                }
+            },
+        },
+
+        {
+            text: contextMenu.props.translate('reportActionContextMenu.copyLink'),
+            icon: LinkCopy,
+            shouldShow: false,
+            onPress: () => {},
+        },
+
+        {
+            text: contextMenu.props.translate('reportActionContextMenu.markAsUnread'),
+            icon: Mail,
+            successIcon: Checkmark,
+            shouldShow: true,
+            onPress: (menu) => {
+                updateLastReadActionID(menu.props.reportID, menu.props.reportAction.sequenceNumber);
+                setNewMarkerPosition(menu.props.reportID, menu.props.reportAction.sequenceNumber);
+            },
+        },
+
+        {
+            text: contextMenu.props.translate('reportActionContextMenu.editComment'),
+            icon: Pencil,
+            shouldShow: () => (
+                contextMenu.canEdit()
+                && !isReportMessageAttachment(contextMenu.getActionText())
+            ),
+            onPress: (menu) => {
+                menu.props.hidePopover();
+                saveReportActionDraft(
+                    menu.props.reportID,
+                    menu.props.reportAction.reportActionID,
+                    _.isEmpty(menu.props.draftMessage) ? menu.getActionText() : '',
+                );
+            },
+        },
+
+        {
+            text: contextMenu.props.translate('reportActionContextMenu.deleteComment'),
+            icon: Trashcan,
+            shouldShow: contextMenu.canEdit,
+            onPress: (menu) => {
+                menu.setState({isDeleteCommentConfirmModalVisible: true});
+            },
+        },
+    ];
+};
+
 class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
@@ -70,76 +153,6 @@ class ReportActionContextMenu extends React.Component {
         this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.getActionText = this.getActionText.bind(this);
         this.canEdit = this.canEdit.bind(this);
-
-        // A list of all the context actions in this menu.
-        this.contextActions = [
-            // Copy to clipboard
-            {
-                text: this.props.translate('reportActionContextMenu.copyToClipboard'),
-                icon: ClipboardIcon,
-                successText: this.props.translate('reportActionContextMenu.copied'),
-                successIcon: Checkmark,
-                shouldShow: true,
-
-                // If return value is true, we switch the `text` and `icon` on
-                // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
-                // the `text` and `icon`
-                onPress: () => {
-                    const message = _.last(lodashGet(this.props.reportAction, 'message', null));
-                    const html = lodashGet(message, 'html', '');
-                    const text = props.selection || lodashGet(message, 'text', '');
-                    const isAttachment = _.has(this.props.reportAction, 'isAttachment')
-                        ? this.props.reportAction.isAttachment
-                        : isReportMessageAttachment(text);
-                    if (!isAttachment) {
-                        Clipboard.setString(text);
-                    } else {
-                        Clipboard.setString(html);
-                    }
-                },
-            },
-
-            {
-                text: this.props.translate('reportActionContextMenu.copyLink'),
-                icon: LinkCopy,
-                shouldShow: false,
-                onPress: () => {},
-            },
-
-            {
-                text: this.props.translate('reportActionContextMenu.markAsUnread'),
-                icon: Mail,
-                successIcon: Checkmark,
-                shouldShow: true,
-                onPress: () => {
-                    updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
-                    setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
-                },
-            },
-
-            {
-                text: this.props.translate('reportActionContextMenu.editComment'),
-                icon: Pencil,
-                shouldShow: () => (
-                    this.canEdit()
-                    && !isReportMessageAttachment(this.getActionText())
-                ),
-                onPress: () => {
-                    this.props.hidePopover();
-                    saveReportActionDraft(
-                        this.props.reportID,
-                        this.props.reportAction.reportActionID,
-                        _.isEmpty(this.props.draftMessage) ? this.getActionText() : '',
-                    );
-                },
-            },
-            {
-                text: this.props.translate('reportActionContextMenu.deleteComment'),
-                icon: Trashcan,
-                shouldShow: this.canEdit,
-                onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
-            },
-        ];
 
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
 
@@ -180,7 +193,7 @@ class ReportActionContextMenu extends React.Component {
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {this.contextActions.map(contextAction => _.result(contextAction, 'shouldShow', false) && (
+                {contextActions(this).map(contextAction => _.result(contextAction, 'shouldShow', false) && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
@@ -188,7 +201,7 @@ class ReportActionContextMenu extends React.Component {
                         successText={contextAction.successText}
                         isMini={this.props.isMini}
                         key={contextAction.text}
-                        onPress={() => contextAction.onPress(this.props.reportAction)}
+                        onPress={() => contextAction.onPress(this)}
                     />
                 ))}
                 <ConfirmModal
