@@ -250,6 +250,7 @@ class ReportActionsView extends React.Component {
             .sortBy('sequenceNumber')
             .filter((action) => {
                 // Only show non-empty ADDCOMMENT actions or IOU actions
+                // Empty ADDCOMMENT actions typically mean they have been deleted and should not be shown
                 const message = _.first(lodashGet(action, 'message', null));
                 const html = lodashGet(message, 'html', '');
                 return action.actionName === 'IOU'

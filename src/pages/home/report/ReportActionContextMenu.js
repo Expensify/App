@@ -168,17 +168,11 @@ class ReportActionContextMenu extends React.Component {
             && this.props.reportAction.reportActionID;
     }
 
-    /**
-     Confirms the deletion of the comment and hides the confirmation modal.
-     */
     confirmDeleteAndHideModal() {
         deleteReportComment(this.props.reportID, this.props.reportAction);
         this.setState({isDeleteCommentConfirmModalVisible: false});
     }
 
-    /**
-     Hides the confirmation modal for the delete.
-     */
     hideDeleteConfirmModal() {
         this.setState({isDeleteCommentConfirmModalVisible: false});
     }
