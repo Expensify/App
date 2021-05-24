@@ -13,7 +13,7 @@ const propTypes = {
     children: PropTypes.string.isRequired,
 
     /** Additional style props (optional) */
-    style: PropTypes.oneOf([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
+    style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
 };
 
 const defaultProps = {
