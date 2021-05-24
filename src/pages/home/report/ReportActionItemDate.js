@@ -19,4 +19,4 @@ const ReportActionItemDate = props => (
 ReportActionItemDate.propTypes = propTypes;
 ReportActionItemDate.displayName = 'ReportActionItemDate';
 
-export default memo(withLocalize(ReportActionItemDate));
+export default withLocalize(memo(ReportActionItemDate));
