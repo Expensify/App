@@ -213,7 +213,7 @@ class TextInputFocusable extends React.Component {
 
                         // We can't paste synthatically as it is blocked from browser due not generated
                         // directly by user action.
-                        // Thus set the value manually. It won't trigger value chnage effect
+                        // Thus set the value manually. It won't trigger value change effect
                         const beforeCursorText = this.textInput.value.substring(0, this.selection.start);
                         const afterCursorText = this.textInput.value.substring(this.selection.end);
                         this.textInput.value = beforeCursorText + pastedText + afterCursorText;
