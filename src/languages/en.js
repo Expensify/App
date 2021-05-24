@@ -295,6 +295,7 @@ export default {
         agreeToThe: 'I agree to the ',
         walletAgreement: 'Wallet Agreement',
         enablePayments: 'Enable Payments',
+        termsMustBeAccepted: 'Terms must be accepted',
     },
     activateStep: {
         headerTitle: 'Enable Payments',

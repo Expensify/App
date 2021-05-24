@@ -94,4 +94,7 @@ export default {
 
     // Stores information about additional details form entry
     WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
+
+    // Object containing Wallet terms step state
+    WALLET_TERMS: 'walletTerms',
 };
