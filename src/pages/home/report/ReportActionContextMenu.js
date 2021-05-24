@@ -121,7 +121,7 @@ class ReportActionContextMenu extends React.Component {
                 text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
                 shouldShow: () => (
-                    this.canEdit
+                    this.canEdit()
                     && !isReportMessageAttachment(this.getActionText())
                 ),
                 onPress: () => {
