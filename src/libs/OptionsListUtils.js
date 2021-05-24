@@ -100,7 +100,21 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         + _.unescape(report.lastMessageText)
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-
+    const participantsSet = new Set();
+    personalDetailList.forEach((participant) => {
+        if (participant.login) {
+            participantsSet.add(participant.login.toLowerCase());
+        }
+        if (participant.firstName) {
+            participantsSet.add(participant.firstName.toLowerCase());
+        }
+        if (participant.lastName) {
+            participantsSet.add(participant.lastName.toLowerCase());
+        }
+        if (participant.displayName) {
+            participantsSet.add(participant.displayName.toLowerCase());
+        }
+    });
     return {
         text: report ? report.reportName : personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
@@ -109,6 +123,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         icons: report ? report.icons : [personalDetail.avatar],
         tooltipText,
         participantsList: personalDetailList,
+        participantsSet,
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
@@ -144,14 +159,16 @@ Onyx.connect({
  *
  * @param {String} searchValue
  * @param {String} searchText
+ * @param {Set<String>} participantsSet
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText) {
+function isSearchStringMatch(searchValue, searchText, participantsSet) {
     const searchWords = searchValue.split(' ');
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch);
+        return matchRegex.test(valueToSearch)
+            || participantsSet.has(word.trim().replace(new RegExp(/,/g), ''));
     });
 }
 
@@ -255,7 +272,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             }
 
             // Finally check to see if this options is a match for the provided search string if we have one
-            if (searchValue && !isSearchStringMatch(searchValue, reportOption.searchText)) {
+            if (searchValue && !isSearchStringMatch(searchValue, reportOption.searchText, reportOption.participantsSet)) {
                 continue;
             }
 
@@ -289,7 +306,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
                 return;
             }
 
-            if (searchValue && !isSearchStringMatch(searchValue, personalDetailOption.searchText)) {
+            if (searchValue && !isSearchStringMatch(searchValue, personalDetailOption.searchText, personalDetailOption.participantsSet)) {
                 return;
             }
 
