@@ -2,6 +2,7 @@ import React from 'react';
 import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import themeColors from '../../styles/themes/default';
 
 /**
  * On native layers we like to have the Text Input not focused so the user can read new chats without they keyboard in
@@ -55,6 +56,7 @@ class TextInputFocusable extends React.Component {
     render() {
         return (
             <TextInput
+                placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 maxHeight={116}
                 rejectResponderTermination={false}
