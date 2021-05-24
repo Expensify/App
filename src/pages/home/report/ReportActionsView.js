@@ -391,7 +391,11 @@ class ReportActionsView extends React.Component {
                 renderItem={this.renderItem}
                 CellRendererComponent={this.renderCell}
                 contentContainerStyle={[styles.chatContentScrollView]}
-                keyExtractor={item => `${item.action.clientID}` || `${item.action.sequenceNumber}`}
+
+                // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
+                // shouldn't happen, but might be possible in some rare cases.
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                keyExtractor={item => `${item.action.sequenceNumber}${item.action.clientID}`}
                 initialRowHeight={32}
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}

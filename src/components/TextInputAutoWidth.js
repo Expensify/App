@@ -19,10 +19,14 @@ const propTypes = {
     /** Styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
     textStyle: PropTypes.object.isRequired,
+
+    /** Optional placeholder to show when there is no value */
+    placeholder: PropTypes.string,
 };
 
 const defaultProps = {
     inputStyle: {},
+    placeholder: '',
 };
 
 class TextInputAutoWidth extends React.Component {
@@ -54,7 +58,7 @@ class TextInputAutoWidth extends React.Component {
                     style={[this.props.textStyle, styles.hiddenElementOutsideOfWindow]}
                     onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
                 >
-                    {this.props.value}
+                    {this.props.value || this.props.placeholder}
                 </Text>
             </View>
         );
