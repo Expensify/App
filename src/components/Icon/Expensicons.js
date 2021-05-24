@@ -36,6 +36,7 @@ import Profile from '../../../assets/images/profile.svg';
 import Receipt from '../../../assets/images/receipt.svg';
 import Send from '../../../assets/images/send.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
+import Sync from '../../../assets/images/sync.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
 import Users from '../../../assets/images/users.svg';
 import Upload from '../../../assets/images/upload.svg';
@@ -80,6 +81,7 @@ export {
     Receipt,
     Send,
     SignOut,
+    Sync,
     Trashcan,
     Upload,
     Users,

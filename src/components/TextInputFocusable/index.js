@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -250,6 +251,7 @@ class TextInputFocusable extends React.Component {
         const propsWithoutStyles = _.omit(this.props, 'style');
         return (
             <TextInput
+                placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}
                 onChange={() => {
