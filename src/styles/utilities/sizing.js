@@ -15,4 +15,8 @@ export default {
     w50: {
         width: '50%',
     },
+
+    mwn: {
+        maxWidth: 'auto',
+    },
 };

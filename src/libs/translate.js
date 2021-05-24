@@ -7,12 +7,12 @@ import translations from '../languages/translations';
 /**
  * Return translated string for given locale and phrase
  *
- * @param {String} locale eg 'en', 'es-ES'
+ * @param {String} [locale] eg 'en', 'es-ES'
  * @param {String|Array} phrase
- * @param {Object} variables
- * @returns {string}
+ * @param {Object} [variables]
+ * @returns {String}
  */
-function translate(locale, phrase, variables = {}) {
+function translate(locale = 'en', phrase, variables = {}) {
     const localeLanguage = locale.substring(0, 2);
     const fullLocale = lodashGet(translations, locale, {});
     const language = lodashGet(translations, localeLanguage, {});

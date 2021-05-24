@@ -84,7 +84,7 @@ const ReportParticipantsPage = ({
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('detailsPage.details')}
+                title={translate('common.details')}
                 onCloseButtonPress={Navigation.dismissModal}
             />
             <View
