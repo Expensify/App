@@ -11,7 +11,7 @@ import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import {setSecondaryLogin} from '../../libs/actions/User';
 import ONYXKEYS from '../../ONYXKEYS';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
@@ -155,11 +155,13 @@ class AddSecondaryLoginPage extends Component {
                             )}
                         </View>
                         <View style={[styles.flexGrow0]}>
-                            <ButtonWithLoader
+                            <Button
+                                success
+                                style={[styles.mb2]}
                                 isDisabled={this.validateForm()}
                                 isLoading={this.props.user.loading}
                                 text={this.props.translate('addSecondaryLoginPage.sendValidation')}
-                                onClick={this.submitForm}
+                                onPress={this.submitForm}
                             />
                         </View>
                     </View>

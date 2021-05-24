@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -30,7 +31,7 @@ const propTypes = {
     option: optionPropTypes.isRequired,
 
     /** Whether this option is currently in focus so we can modify its style */
-    optionIsFocused: PropTypes.bool.isRequired,
+    optionIsFocused: PropTypes.bool,
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
@@ -68,6 +69,7 @@ const defaultProps = {
     mode: 'default',
     onSelectRow: null,
     isDisabled: false,
+    optionIsFocused: false,
 };
 
 const OptionRow = ({
@@ -115,14 +117,15 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = option.participantsList.length > 1;
+    const isMultipleParticipant = lodashGet(option, 'participantsList.length', 0) > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, firstName, login}) => (
             {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
         ),
     );
-    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+    const fullTitle = option.text ? option.text
+        : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <Hoverable>
             {hovered => (
