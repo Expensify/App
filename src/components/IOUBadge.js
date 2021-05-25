@@ -11,18 +11,31 @@ const propTypes = {
     iouReport: PropTypes.shape({
         /** The total amount in cents */
         total: PropTypes.number,
+
+        /** The owner of the IOUReport */
+        ownerEmail: PropTypes.string,
     }),
+
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }).isRequired,
 };
 
 const defaultProps = {
     iouReport: {
         total: 0,
+        ownerEmail: null,
     },
 };
 
 const IOUBadge = props => (
     <View
-        style={[styles.badge, styles.badgeSuccess, styles.ml2]}
+        style={[
+            styles.badge,
+            styles.ml2,
+            props.session.email === props.iouReport.ownerEmail ? styles.badgeSuccess : styles.badgeDanger,
+        ]}
     >
         <Text
             style={styles.badgeText}
@@ -39,5 +52,8 @@ IOUBadge.defaultProps = defaultProps;
 export default withOnyx({
     iouReport: {
         key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(IOUBadge);
