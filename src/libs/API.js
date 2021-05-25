@@ -493,6 +493,18 @@ function Push_Authenticate(parameters) {
 }
 
 /**
+ * @param {Object} parameters 
+ * @param {String} parameters.reportID
+ * @param {String} parameters.transactionID
+ * @returns 
+ */
+function RejectTransaction(parameters) {
+    const commandName = 'RejectTransaction';
+    requireParameters(['reportID', 'transactionID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.reportComment
  * @param {Number} parameters.reportID
@@ -804,6 +816,7 @@ export {
     PersonalDetails_Update,
     Plaid_GetLinkToken,
     Push_Authenticate,
+    RejectTransaction,
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,
