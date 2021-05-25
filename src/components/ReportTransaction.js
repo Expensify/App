@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Text, View, Pressable} from 'react-native';
-import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
@@ -58,17 +57,15 @@ class ReportTransaction extends Component {
                         style={[
                             styles.buttonSmall,
                             styles.chatItemComposeSecondaryRowOffset,
-                            styles.mb3
+                            styles.mb3,
                         ]}
                         onPress={() => this.rejectTransaction()}
                     >
-                        <Text style={[styles.buttonSmallText]}>
-                            {'Cancel'}
-                        </Text>
+                        <Text style={[styles.buttonSmallText]}>Cancel</Text>
                     </Pressable>
                 )}
             </View>
-        )
+        );
     }
 }
 
