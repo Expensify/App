@@ -210,7 +210,13 @@ export default {
     setPasswordPage: {
         passwordCannotBeBlank: 'Password cannot be blank',
         enterPassword: 'Enter a password',
+        confirmNewPassword: 'Confirm the password',
         setPassword: 'Set Password',
+        passwordsDontMatch: 'Passwords must match',
+
+        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+
+
     },
     attachmentView: {
         unknownFilename: 'Unknown Filename',

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, TextInput} from 'react-native';
+import {TextInput, View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {isEmpty} from 'underscore';
@@ -16,6 +16,7 @@ import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {changePassword} from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import TestComp from './TestComp';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,6 +39,7 @@ const propTypes = {
 const defaultProps = {
     account: {},
 };
+
 class PasswordPage extends Component {
     constructor(props) {
         super(props);
@@ -144,8 +146,10 @@ class PasswordPage extends Component {
                             onClick={this.handleChangePassword}
                         />
                     </View>
+                    <TestComp />
                 </View>
             </ScreenWrapper>
+
         );
     }
 }
