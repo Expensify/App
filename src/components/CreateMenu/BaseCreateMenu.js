@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {View} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import Popover from '../Popover';
 import styles from '../../styles/styles';
@@ -35,6 +35,15 @@ class BaseCreateMenu extends PureComponent {
                 animationOut={this.props.animationOut}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
+                    {this.props.headerText && (
+                        <View style={styles.createMenuItem}>
+                            <Text
+                                style={[styles.createMenuHeaderText, styles.ml3]}
+                            >
+                                {this.props.headerText}
+                            </Text>
+                        </View>
+                    )}
                     {this.props.menuItems.map(item => (
                         <MenuItem
                             key={item.text}
