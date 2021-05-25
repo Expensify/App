@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Text, View, Pressable} from 'react-native';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
@@ -17,6 +18,13 @@ const propTypes = {
 
     /** The report action which we are displaying */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
+
+    /** Can this transaction be rejected? */
+    canReject: PropTypes.bool,
+};
+
+const defaultProps = {
+    canReject: false,
 };
 
 class ReportTransaction extends Component {
@@ -35,7 +43,6 @@ class ReportTransaction extends Component {
     }
 
     render() {
-        const canReject = this.props.action.originalMessage.type === 'create';
         return (
             <View styles={[styles.mb5]}>
                 <ReportActionItemSingle
@@ -46,7 +53,7 @@ class ReportTransaction extends Component {
                         {this.props.action.message[0].text}
                     </Text>
                 </ReportActionItemSingle>
-                {canReject && (
+                {this.props.canReject && (
                     <Pressable
                         style={[
                             styles.buttonSmall,
@@ -66,5 +73,6 @@ class ReportTransaction extends Component {
 }
 
 ReportTransaction.displayName = 'ReportTransaction';
+ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
 export default ReportTransaction;
