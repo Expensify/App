@@ -100,7 +100,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const participantsSet = new Set();
-    personalDetailList.forEach((participant) => {
+    _.each(personalDetailList, (participant) => {
         if (participant.login) {
             participantsSet.add(participant.login.toLowerCase());
         }
