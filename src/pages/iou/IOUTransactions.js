@@ -32,15 +32,12 @@ const IOUTransactions = ({
         {_.map(reportActions, (reportAction) => {
             if (reportAction.actionName === 'IOU'
                 && reportAction.originalMessage.IOUReportID === iouReportID) {
-                // Cancelled/declined actions reuse the original transactionID, so we must make the key unique
-                const transactionKey = `${reportAction.originalMessage.IOUTransactionID}-
-                ${reportAction.originalMessage.type}`;
                 return (
                     <ReportTransaction
                         chatReportID={chatReportID}
                         iouReportID={iouReportID}
                         action={reportAction}
-                        key={transactionKey}
+                        key={reportAction.sequenceNumber}
                     />
                 );
             }
