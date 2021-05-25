@@ -19,4 +19,8 @@ export default {
     mwn: {
         maxWidth: 'auto',
     },
+
+    w1: {
+        width: 4,
+    },
 };

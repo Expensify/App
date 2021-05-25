@@ -488,6 +488,13 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+
+    // If this is the most recent message, update the lastMessageText in the report object as well
+    if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            lastMessageText: message.html,
+        });
+    }
 }
 
 /**
