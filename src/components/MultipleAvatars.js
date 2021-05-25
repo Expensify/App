@@ -1,8 +1,9 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Image, Text, View} from 'react-native';
+import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
+import Text from './Text';
 
 const propTypes = {
     /** Array of avatar URL */
