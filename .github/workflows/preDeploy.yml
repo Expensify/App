@@ -38,7 +38,7 @@ jobs:
 
       - name: Check if merged pull request has `CP Staging` label
         id: shouldCherryPick
-        run: echo "::set-output name=SHOULD_CHERRY_PICK::${{ contains(steps.getMergedPullRequest.labels, 'CP Staging') }}
+        run: echo "::set-output name=SHOULD_CHERRY_PICK::${{ contains(steps.getMergedPullRequest.labels, 'CP Staging') }}"
 
   skipDeploy:
     runs-on: ubuntu-latest
