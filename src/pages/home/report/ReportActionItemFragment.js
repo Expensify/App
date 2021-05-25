@@ -49,24 +49,26 @@ class ReportActionItemFragment extends React.PureComponent {
                 }
 
                 // Only render HTML if we have html in the fragment
-                return (
-                    <View style={styles.flexRow}>
-                        {fragment.html !== fragment.text ? (
-                            <RenderHTML html={fragment.html} debug={false} />
-                        ) : (
-                            <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
-                        )}
-                        {fragment.isEdited && (
+                return fragment.html !== fragment.text
+                    ? (
+                        <RenderHTML
+                            html={fragment.html + (fragment.isEdited ? '<edited/>' : '')}
+                            debug={false}
+                        />
+                    ) : (
+                        <Text selectable>
+                            {Str.htmlDecode(fragment.text)}
+                            {fragment.isEdited && (
                             <Text
-                                style={[styles.ml1]}
+                                style={styles.ml1}
                                 fontSize={variables.fontSizeSmall}
                                 color={themeColors.textSupporting}
                             >
                                 (edited)
                             </Text>
-                        )}
-                    </View>
-                );
+                            )}
+                        </Text>
+                    );
             case 'TEXT':
                 return (
                     <Tooltip text={tooltipText}>
