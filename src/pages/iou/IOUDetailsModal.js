@@ -85,7 +85,7 @@ class IOUDetailsModal extends Component {
         const paymentOptions = [CONST.IOU.PAYMENT_TYPE.ELSEWHERE];
 
         // Only allow settling via PayPal.me if the submitter has a username set
-        if (props.iouReport.submitterPayPalMeAddress) {
+        if (lodashGet(props, 'iouReport.submitterPayPalMeAddress')) {
             paymentOptions.push(CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
         }
 
@@ -148,11 +148,11 @@ class IOUDetailsModal extends Component {
      *
      */
     addVenmoPaymentOptionIfAvailable() {
-        if (this.props.iouReport.currency !== CONST.CURRENCY.USD) {
+        if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD) {
             return;
         }
 
-        const submitterPhoneNumbers = lodashGet(this.props.iouReport, 'submitterPhoneNumbers', []);
+        const submitterPhoneNumbers = lodashGet(this.props, 'iouReport.submitterPhoneNumbers', []);
         if (_.isEmpty(submitterPhoneNumbers)) {
             return;
         }
