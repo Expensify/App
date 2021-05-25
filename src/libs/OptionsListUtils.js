@@ -56,9 +56,8 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
  * @return {String}
  */
 function getSearchText(report, personalDetailList) {
-    // Use a set because it skips adding duplicates
-    // which could potentially significantly speed up our
-    // regex search if someone has thousands of chats
+    // Use a set because it skips adding duplicates,
+    // which could potentially significantly speed up our regex search if someone has thousands of chats
     const searchTerms = new Set();
 
     _.each(personalDetailList, (personalDetail) => {
