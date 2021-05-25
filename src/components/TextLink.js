@@ -29,8 +29,8 @@ const TextLink = (props) => {
                 openURLInNewTab(props.href);
             }}
         >
-            {() => (
-                <Text style={[styles.link]}>
+            {({hovered, pressed}) => (
+                <Text style={[styles.link, (hovered || pressed) ? styles.linkHovered : undefined]}>
                     {props.children}
                 </Text>
             )}

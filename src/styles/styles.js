@@ -33,6 +33,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
     },
 
+    linkHovered: {
+        color: themeColors.linkHover,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
