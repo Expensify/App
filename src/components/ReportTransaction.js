@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Text} from 'react-native';
+import {Text, View, Pressable} from 'react-native';
 import styles from '../styles/styles';
+import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
 
@@ -18,18 +19,51 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 };
 
-const ReportTransaction = ({
-    action,
-}) => (
-    <ReportActionItemSingle
-        action={action}
-        wrapperStyles={[styles.reportTransaction]}
-    >
-        <Text style={[styles.chatItemMessage]}>
-            {action.message[0].text}
-        </Text>
-    </ReportActionItemSingle>
-);
+class ReportTransaction extends Component {
+    constructor(props) {
+        super(props);
+
+        this.rejectTransaction = this.rejectTransaction.bind(this);
+    }
+
+    rejectTransaction() {
+        rejectTransaction({
+            reportID: this.props.iouReportID,
+            chatReportID: this.props.chatReportID,
+            transactionID: this.props.action,
+        });
+    }
+
+    render() {
+        const canReject = this.props.action.originalMessage.type === 'create';
+        return (
+            <View styles={[styles.mb5]}>
+                <ReportActionItemSingle
+                    action={this.props.action}
+                    wrapperStyles={[styles.reportTransaction]}
+                >
+                    <Text style={[styles.chatItemMessage]}>
+                        {this.props.action.message[0].text}
+                    </Text>
+                </ReportActionItemSingle>
+                {canReject && (
+                    <Pressable
+                        style={[
+                            styles.buttonSmall,
+                            styles.chatItemComposeSecondaryRowOffset,
+                            styles.mb3
+                        ]}
+                        onPress={() => this.rejectTransaction()}
+                    >
+                        <Text style={[styles.buttonSmallText]}>
+                            {'Cancel'}
+                        </Text>
+                    </Pressable>
+                )}
+            </View>
+        )
+    }
+}
 
 ReportTransaction.displayName = 'ReportTransaction';
 ReportTransaction.propTypes = propTypes;

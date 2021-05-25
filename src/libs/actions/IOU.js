@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
+import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByID, fetchIOUReportByIDAndUpdateChatReport} from './Report';
 
 /**
  * Retrieve the users preferred currency
@@ -112,6 +112,34 @@ function createIOUSplit(params) {
 }
 
 /**
+ * Reject an iouReport transaction. Declining and cancelling transactions are done via the same Auth command.
+ *
+ * @param {Object} params
+ * @param {Number} params.number
+ * @param {Number} params.number
+ * @param {String} params.number
+ */
+function rejectTransaction({
+    reportID, transactionID, comment
+}) {
+    API.RejectTransaction({
+        reportID,
+        transactionID,
+        comment,
+    })
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+
+            fetchChatReportsByIDs([chatReportID]);
+
+            // todo
+            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+        });
+}
+
+/**
  * Pays an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
  */
 function payIOUReport({
@@ -146,5 +174,6 @@ export {
     getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
+    rejectTransaction,
     payIOUReport,
 };
