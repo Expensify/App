@@ -25,7 +25,10 @@ const defaultProps = {
 const MultipleAvatars = ({
     avatarImageURLs, size, secondAvatarStyle,
 }) => {
-    const avatarContainerStyles = size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
+    const avatarContainerStyles = [
+        size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar,
+        styles.avatarWrapper,
+    ];
     const singleAvatarStyles = size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [
         size === 'small' ? styles.secondAvatarSmall : styles.secondAvatar,
