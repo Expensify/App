@@ -123,7 +123,7 @@ class AvatarWithIndicator extends PureComponent {
 
         return (
             <View
-                style={[this.props.size === 'large' ? styles.avatarLarge : styles.sidebarAvatar]}
+                style={[this.props.size === 'large' ? styles.avatarLarge : styles.sidebarAvatar, styles.avatarWrapper]}
             >
                 <Avatar
                     style={[this.props.size === 'large' ? styles.avatarLarge : null]}

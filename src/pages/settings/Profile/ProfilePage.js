@@ -269,10 +269,12 @@ class ProfilePage extends Component {
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                    <Avatar
-                        style={[styles.avatarLarge, styles.alignSelfCenter]}
-                        source={this.props.myPersonalDetails.avatar}
-                    />
+                    <View style={styles.avatarWrapper}>
+                        <Avatar
+                            style={[styles.avatarLarge, styles.alignSelfCenter]}
+                            source={this.props.myPersonalDetails.avatar}
+                        />
+                    </View>
                     <AttachmentPicker>
                         {({openPicker}) => (
                             <>
