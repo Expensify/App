@@ -63,7 +63,7 @@ const DetailsPage = ({personalDetails, route, translate}) => {
                     <View>
                         <View style={styles.pageWrapper}>
                             <View
-                                style={[styles.avatarLarge, styles.mb3]}
+                                style={[styles.avatarLarge, styles.mb3, styles.avatarWrapper]}
                             >
                                 <Avatar
                                     style={[styles.avatarLarge]}
