@@ -1,4 +1,5 @@
-import React from 'react';
+import _ from 'underscore';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
@@ -30,7 +31,7 @@ const defaultProps = {
     chatReport: {},
 };
 
-const ReportActionItemIOUAction = ({
+const ReportActionItemIOUAction = memo(({
     action,
     chatReportID,
     shouldDisplayPreview,
@@ -55,11 +56,17 @@ const ReportActionItemIOUAction = ({
             )}
         </>
     );
-};
+}, (prevProps, nextProps) => (
+    prevProps.chatReportID === nextProps.chatReportID
+        && prevProps.shouldDisplayPreview === nextProps.shouldDisplayPreview
+        && _.isEqual(prevProps.chatReport, nextProps.chatReport)
+        && _.isEqual(prevProps.action, nextProps.action)
+));
 
 ReportActionItemIOUAction.propTypes = propTypes;
 ReportActionItemIOUAction.defaultProps = defaultProps;
 ReportActionItemIOUAction.displayName = 'ReportActionItemIOUAction';
+ReportActionItemIOUAction.whyDidYouRender = true;
 
 export default withOnyx({
     chatReport: {

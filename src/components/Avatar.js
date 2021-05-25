@@ -1,4 +1,5 @@
-import React, {PureComponent} from 'react';
+import _ from 'underscore';
+import React, {memo} from 'react';
 import {Image} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -20,25 +21,27 @@ const defaultProps = {
     size: 'default',
 };
 
-class Avatar extends PureComponent {
-    render() {
-        if (!this.props.source) {
-            return null;
-        }
-
-        return (
-            <Image
-                source={{uri: this.props.source}}
-                style={[
-                    this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
-                    ...this.props.style,
-                ]}
-            />
-        );
+const Avatar = (props) => {
+    if (!props.source) {
+        return null;
     }
-}
+
+    return (
+        <Image
+            source={{uri: props.source}}
+            style={[
+                props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
+                ...props.style,
+            ]}
+        />
+    );
+};
 
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
 Avatar.whyDidYouRender = true;
-export default Avatar;
+
+export default memo(Avatar, (prevProps, nextProps) => (
+    prevProps.source === nextProps.source
+        && _.isEqual(prevProps.style, nextProps.style)
+));

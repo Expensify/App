@@ -255,7 +255,7 @@ class ReportActionItem extends Component {
             >
                 <Hoverable>
                     {hovered => (
-                        <View>
+                        <>
                             {this.props.shouldDisplayNewIndicator && (
                                 <UnreadActionIndicator />
                             )}
@@ -297,7 +297,7 @@ class ReportActionItem extends Component {
                                     isMini
                                 />
                             </View>
-                        </View>
+                        </>
                     )}
                 </Hoverable>
                 <PopoverWithMeasuredContent
