@@ -252,7 +252,7 @@ class ReportActionCompose extends React.Component {
             }
 
             // Trigger the edit box for last sent message if CTRL/CMD+ArrowUp is pressed
-            if (e.ctrlKey && e.key === 'ArrowUp' && this.state.isCommentEmpty) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowUp' && this.state.isCommentEmpty) {
                 e.preventDefault();
 
                 const reportActionKey = _.find(
