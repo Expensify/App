@@ -988,7 +988,7 @@ const styles = {
     avatarInnerText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 24,
+        lineHeight: undefined,
         marginLeft: -3,
         textAlign: 'center',
     },
@@ -996,7 +996,7 @@ const styles = {
     avatarInnerTextSmall: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeExtraSmall,
-        lineHeight: 18,
+        lineHeight: undefined,
         marginLeft: -2,
         textAlign: 'center',
     },
