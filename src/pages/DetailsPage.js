@@ -40,7 +40,7 @@ const DetailsPage = ({personalDetails, route}) => {
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowBackButton = Boolean(route.params.reportID);
-    const timezone = moment().tz(details.timezone.selected);
+    const timezone = moment().tz(details.timezone.selected); 
     
     return (
         <ScreenWrapper>
