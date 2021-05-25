@@ -45,6 +45,7 @@ const DetailsPage = ({personalDetails, route, translate}) => {
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowBackButton = Boolean(route.params.reportID);
+    
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
