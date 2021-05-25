@@ -50,12 +50,10 @@ const ReportActionItemSingle = ({
     const personArray = displayName ? [{type: 'TEXT', text: displayName}] : action.person;
     return (
         <View style={wrapperStyles}>
-            <View style={styles.avatarWrapper}>
-                <Avatar
-                    style={[styles.actionAvatar]}
-                    source={avatarUrl}
-                />
-            </View>
+            <Avatar
+                style={[styles.actionAvatar]}
+                source={avatarUrl}
+            />
             <View style={[styles.chatItemRight]}>
                 <View style={[styles.chatItemMessageHeader]}>
                     {_.map(personArray, (fragment, index) => (
