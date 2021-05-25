@@ -493,10 +493,10 @@ function Push_Authenticate(parameters) {
 }
 
 /**
- * @param {Object} parameters 
+ * @param {Object} parameters
  * @param {String} parameters.reportID
  * @param {String} parameters.transactionID
- * @returns 
+ * @returns {Promise}
  */
 function RejectTransaction(parameters) {
     const commandName = 'RejectTransaction';

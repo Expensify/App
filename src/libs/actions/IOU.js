@@ -2,7 +2,11 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByID, fetchIOUReportByIDAndUpdateChatReport} from './Report';
+import {
+    getSimplifiedIOUReport,
+    fetchChatReportsByIDs,
+    fetchIOUReportByIDAndUpdateChatReport,
+} from './Report';
 
 /**
  * Retrieve the users preferred currency
@@ -120,7 +124,7 @@ function createIOUSplit(params) {
  * @param {String} params.number
  */
 function rejectTransaction({
-    reportID, transactionID, comment
+    reportID, transactionID, comment,
 }) {
     API.RejectTransaction({
         reportID,
@@ -132,10 +136,14 @@ function rejectTransaction({
                 throw new Error(response.message);
             }
 
+            /*
+            TODO
+
             fetchChatReportsByIDs([chatReportID]);
 
             // todo
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+            */
         });
 }
 
