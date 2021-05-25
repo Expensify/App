@@ -14,6 +14,9 @@ import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
 import AttachmentModal from './AttachmentModal';
 import ThumbnailImage from './ThumbnailImage';
+import variables from '../styles/variables';
+import themeColors from '../styles/themes/default';
+import Text from './Text';
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -96,6 +99,21 @@ function CodeRenderer({
     );
 }
 
+function EditedRenderer(props) {
+    const {tnode, TDefaultRenderer, ...defaultRendererProps} = props;
+    return (
+        <Text
+        // eslint-disable-next-line react/jsx-props-no-spreading
+            {...defaultRendererProps}
+            style={styles.ml1}
+            fontSize={variables.fontSizeSmall}
+            color={themeColors.textSupporting}
+        >
+            (edited)
+        </Text>
+    );
+}
+
 function ImgRenderer({tnode}) {
     const htmlAttribs = tnode.attributes;
 
@@ -158,12 +176,14 @@ function ImgRenderer({tnode}) {
 AnchorRenderer.model = defaultHTMLElementModels.a;
 CodeRenderer.model = defaultHTMLElementModels.code;
 ImgRenderer.model = defaultHTMLElementModels.img;
+EditedRenderer.model = defaultHTMLElementModels.span;
 
 // Define the custom render methods
 const renderers = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImgRenderer,
+    edited: EditedRenderer,
 };
 
 const propTypes = {
