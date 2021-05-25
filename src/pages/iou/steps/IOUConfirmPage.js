@@ -18,10 +18,14 @@ const propTypes = {
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
-    /** Selected currency from the user */
-    // remove eslint disable after currency symbol is available
-    // eslint-disable-next-line react/no-unused-prop-types
-    selectedCurrency: PropTypes.string.isRequired,
+    // User's currency preference
+    selectedCurrency: PropTypes.shape({
+        // Currency code for the selected currency
+        currencyCode: PropTypes.string,
+
+        // Currency symbol for the selected currency
+        currencySymbol: PropTypes.string,
+    }).isRequired,
 
     /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
