@@ -74,6 +74,8 @@ class TermsStep extends React.Component {
                             onPress={this.toggleDisclosure}
                             style={[
                                 styles.ml2,
+                                styles.pr2,
+                                styles.w100,
                                 styles.flexRow,
                                 styles.flexWrap,
                                 styles.alignItemsCenter,
@@ -96,6 +98,8 @@ class TermsStep extends React.Component {
                             onPress={this.togglePrivacyPolicy}
                             style={[
                                 styles.ml2,
+                                styles.pr2,
+                                styles.w100,
                                 styles.flexRow,
                                 styles.flexWrap,
                                 styles.alignItemsCenter,
