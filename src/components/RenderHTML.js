@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {useWindowDimensions, TouchableOpacity} from 'react-native';
@@ -100,15 +101,16 @@ function CodeRenderer({
 }
 
 function EditedRenderer(props) {
-    const {tnode, TDefaultRenderer, ...defaultRendererProps} = props;
+    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
     return (
         <Text
-        // eslint-disable-next-line react/jsx-props-no-spreading
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
-            style={styles.ml1}
             fontSize={variables.fontSizeSmall}
             color={themeColors.textSupporting}
         >
+            {/* Native devices do not support margin between nested text */}
+            <Text style={styles.w1}>{' '}</Text>
             (edited)
         </Text>
     );

@@ -60,10 +60,11 @@ class ReportActionItemFragment extends React.PureComponent {
                             {Str.htmlDecode(fragment.text)}
                             {fragment.isEdited && (
                             <Text
-                                style={styles.ml1}
                                 fontSize={variables.fontSizeSmall}
                                 color={themeColors.textSupporting}
                             >
+                                {/* Native devices do not support margin between nested text */}
+                                <Text style={styles.w1}>{' '}</Text>
                                 (edited)
                             </Text>
                             )}
