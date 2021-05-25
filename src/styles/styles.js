@@ -69,6 +69,11 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textMicroGTA: {
+        fontSize: variables.fontSizeSmall,
+        fontFamily: fontFamily.GTA,
+    },
+
     textMicroBold: {
         color: themeColors.text,
         fontWeight: fontWeightBold,

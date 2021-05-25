@@ -82,7 +82,6 @@ class SearchPage extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-            showLoader: false,
         };
     }
 
@@ -181,7 +180,6 @@ class SearchPage extends Component {
                             headerMessage,
                         });
                     }
-                    this.setState({showLoader: false});
                 },
             );
         } else {
@@ -194,13 +192,8 @@ class SearchPage extends Component {
                 userToInvite,
                 recentReports,
                 personalDetails,
-                headerMessage: getHeaderMessage(
-                    prevState.recentReports.length + prevState.personalDetails.length
-            !== 0,
-                    Boolean(prevState.userToInvite),
-                    prevState.searchValue,
-                ),
-                showLoader: false,
+                headerMessage: prevState.recentReports.length + prevState.personalDetails.length
+            !== 0 ? this.props.translate('messages.noEmailOrPhone') : '',
             }));
         }
     }
@@ -220,7 +213,7 @@ class SearchPage extends Component {
                         value={this.state.searchValue}
                         onSelectRow={this.selectReport}
                         onChangeText={(searchValue = '') => {
-                            this.setState({searchValue, showLoader: true});
+                            this.setState({searchValue});
 
                             // Clears the header message on clearing the input
                             if (!searchValue) {
@@ -230,18 +223,18 @@ class SearchPage extends Component {
                                         headerMessage: '',
                                         userToInvite: null,
                                         recentReports: this.preserveRecentReports,
-                                        showLoader: false,
                                     });
                                 }, 0);
                             } else {
                                 this.validateInput(searchValue);
                             }
                         }}
-                        headerMessage={this.state.searchValue && this.state.headerMessage}
+                        headerMessage={
+                           this.state.headerMessage
+}
                         hideSectionHeaders
                         hideAdditionalOptionStates
                         showTitleTooltip
-                        showLoader={this.state.showLoader}
                     />
                 </View>
                 <KeyboardSpacer />

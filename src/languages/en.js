@@ -261,6 +261,7 @@ export default {
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
         noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
+        noEmailOrPhone: 'Please enter a valid email address or phone number.',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     session: {

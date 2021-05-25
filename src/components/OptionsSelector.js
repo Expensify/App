@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, ActivityIndicator} from 'react-native';
+import {View} from 'react-native';
 import TextInputWithFocusStyles from './TextInputWithFocusStyles';
 import OptionsList from './OptionsList';
 import styles from '../styles/styles';
@@ -61,9 +61,6 @@ const propTypes = {
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    /** Whether to show the loading spinner */
-    showLoader: PropTypes.bool,
-
     /** Whether to focus the textinput after an option is selected */
     shouldFocusOnSelectRow: PropTypes.bool,
 
@@ -82,7 +79,6 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
-    showLoader: false,
 };
 
 class OptionsSelector extends Component {
@@ -194,7 +190,15 @@ class OptionsSelector extends Component {
     render() {
         return (
             <View style={[styles.flex1]}>
-                <View style={[styles.ph5, styles.pv3, styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
+                <View style={[
+                    styles.ph5,
+                    styles.pt3,
+                    styles.pb1,
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                ]}
+                >
                     <TextInputWithFocusStyles
                         styleFocusIn={[styles.textInputReversedFocus]}
                         ref={el => this.textInput = el}
@@ -205,10 +209,6 @@ class OptionsSelector extends Component {
                         placeholder={this.props.placeholderText
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                         placeholderTextColor={themeColors.placeholderText}
-                    />
-                    <ActivityIndicator
-                        size="small"
-                        style={[styles.m2, this.props.showLoader ? styles.opacity100 : styles.opacity0]}
                     />
                 </View>
 
@@ -222,7 +222,7 @@ class OptionsSelector extends Component {
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
                     headerMessage={this.props.headerMessage}
-                    headerMessageMinHeight={45}
+                    headerMessageMinHeight={40}
                     disableFocusOptions={this.props.disableArrowKeysActions}
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                     forceTextUnreadStyle={this.props.forceTextUnreadStyle}
