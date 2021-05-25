@@ -46,7 +46,8 @@ const DetailsPage = ({personalDetails, route, translate}) => {
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowBackButton = Boolean(route.params.reportID);
     const timezone = moment().tz(details.timezone.selected);
-
+    const currentTime = isNaN(timezone.zoneAbbr()) ? timezone.zoneAbbr() : `${timezone.toString().split("-")[0].slice(-3)} ${timezone.zoneAbbr()}` 
+    
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -107,17 +108,7 @@ const DetailsPage = ({personalDetails, route, translate}) => {
                                         {translate('detailsPage.localTime')}
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
-                                        {moment().tz(details.timezone.selected).format('LT')}
-                                        {' '}
-                                        {isNaN(timezone.zoneAbbr()) ? (
-                                            <Text>{timezone.zoneAbbr()}</Text>
-                                        ) : (
-                                            <Text>
-                                            {timezone.toString().split("-")[0].slice(-3)}
-                                            {' '}
-                                            {timezone.zoneAbbr()}
-                                            </Text>
-                                        )}
+                                        {timezone.format('LT')}{' '}{currentTime}
                                     </Text>
                                 </View>
                             ) : null}
