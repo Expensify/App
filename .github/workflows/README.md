@@ -60,6 +60,8 @@ If you make any changes to an action's implementation, you must always recompile
 
 In order to bundle actions with their dependencies into a single Node.js executable script, we use [`ncc`](https://github.com/vercel/ncc). In order to make this easier, we've added an `npm` script to `package.json`, so you can just run `npm run gh-actions-build`. If you create a new action, make sure that you update `.github/scripts/buildActions.sh` to include your new action. Also, be sure that you always run `npm install` before recompiling if you added new dependencies, or they won't be included in the bundled executable. :)
 
+**Note:** If you have a Windows machine, the compiled output will be different than on a Unix machine, which will cause test failures in your PR. So you'll need to run the compilation script on a Mac or Linux machine instead, using whatever means suits you (i.e: another physical device, Docker container, EC2 instance, etc...)
+
 ### Important tips about creating GitHub Actions
 
 - When calling your GitHub Action from one of our workflows, you must:
