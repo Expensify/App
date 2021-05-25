@@ -785,6 +785,19 @@ function GetCurrencyList() {
     return Mobile_GetConstants({data: ['currencyList']});
 }
 
+/**
+ * Validates PhoneNumber
+ *
+ * @param {Object} parameters
+ * @param {String} parameters.phoneNumber
+ * @returns {Promise}
+ */
+function IsValidPhoneNumber(parameters) {
+    const commandName = 'IsValidPhoneNumber';
+    requireParameters(['phoneNumber'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     BankAccount_Create,
@@ -798,6 +811,7 @@ export {
     GetIOUReport,
     GetRequestCountryCode,
     Graphite_Timer,
+    IsValidPhoneNumber,
     Log,
     PayIOU,
     PersonalDetails_GetForEmails,
