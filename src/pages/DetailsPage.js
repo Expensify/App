@@ -62,14 +62,11 @@ const DetailsPage = ({personalDetails, route, translate}) => {
                 {details ? (
                     <View>
                         <View style={styles.pageWrapper}>
-                            <View
-                                style={[styles.avatarLarge, styles.mb3, styles.avatarWrapper]}
-                            >
-                                <Avatar
-                                    style={[styles.avatarLarge]}
-                                    source={details.avatar}
-                                />
-                            </View>
+                            <Avatar
+                                containerStyle={[styles.avatarLarge, styles.mb3, styles.avatarWrapper]}
+                                style={[styles.avatarLarge]}
+                                source={details.avatar}
+                            />
                             <Text style={[styles.displayName, styles.mt1, styles.mb6]} numberOfLines={1}>
                                 {details.displayName
                                     ? details.displayName
