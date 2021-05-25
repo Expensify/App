@@ -89,6 +89,10 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    textUppercase: {
+        textTransform: 'uppercase',
+    },
+
     colorReversed: {
         color: themeColors.textReversed,
     },
@@ -455,6 +459,19 @@ const styles = {
         width: 12,
         zIndex: 10,
     },
+
+    statusIndicatorLarge: {
+        borderColor: themeColors.componentBG,
+        borderRadius: 8,
+        borderWidth: 2,
+        position: 'absolute',
+        right: 4,
+        bottom: 4,
+        height: 16,
+        width: 16,
+        zIndex: 10,
+    },
+
     statusIndicatorOnline: {
         backgroundColor: themeColors.online,
     },
@@ -976,6 +993,7 @@ const styles = {
         width: variables.componentSizeNormal,
         backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
+        pointerEvents: 'none',
     },
 
     avatarSmall: {
@@ -983,6 +1001,7 @@ const styles = {
         width: variables.avatarSizeSmall,
         backgroundColor: themeColors.icon,
         borderRadius: variables.avatarSizeSmall,
+        pointerEvents: 'none',
     },
 
     avatarInnerText: {
@@ -1181,18 +1200,6 @@ const styles = {
     avatarLarge: {
         width: 80,
         height: 80,
-    },
-
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        borderRadius: 8,
-        borderWidth: 2,
-        position: 'absolute',
-        right: 4,
-        bottom: 4,
-        height: 16,
-        width: 16,
-        zIndex: 10,
     },
 
     displayName: {
