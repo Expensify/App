@@ -40,4 +40,5 @@ class Avatar extends PureComponent {
 
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
+Avatar.whyDidYouRender = true;
 export default Avatar;

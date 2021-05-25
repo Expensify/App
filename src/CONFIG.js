@@ -60,4 +60,5 @@ export default {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
     },
+    USE_WDYR: lodashGet(Config, 'USE_WDYR', false),
 };

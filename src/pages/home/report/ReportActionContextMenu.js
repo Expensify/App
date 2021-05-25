@@ -3,7 +3,6 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
@@ -12,9 +11,7 @@ import {setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft} fro
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
-import compose from '../../../libs/compose';
 import {isReportMessageAttachment} from '../../../libs/reportUtils';
-import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
@@ -41,13 +38,9 @@ const propTypes = {
     /** Function to dismiss the popover containing this menu */
     hidePopover: PropTypes.func.isRequired,
 
-    /* Onyx Props */
+    /** Current user's email from session */
+    currentUserEmail: PropTypes.string,
 
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Email of the logged in person */
-        email: PropTypes.string,
-    }),
     ...withLocalizePropTypes,
 };
 
@@ -55,8 +48,8 @@ const defaultProps = {
     isMini: false,
     isVisible: false,
     selection: '',
-    session: {},
     draftMessage: '',
+    currentUserEmail: '',
 };
 
 class ReportActionContextMenu extends React.Component {
@@ -112,7 +105,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
-                shouldShow: this.props.reportAction.actorEmail === this.props.session.email
+                shouldShow: this.props.reportAction.actorEmail === this.props.currentUserEmail
                     && !isReportMessageAttachment(this.getActionText())
                     && this.props.reportAction.reportActionID,
                 onPress: () => {
@@ -169,12 +162,6 @@ class ReportActionContextMenu extends React.Component {
 
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
+ReportActionContextMenu.whyDidYouRender = true;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(ReportActionContextMenu);
+export default withLocalize(ReportActionContextMenu);

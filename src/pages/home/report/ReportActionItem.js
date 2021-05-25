@@ -19,6 +19,7 @@ import ReportActionItemIOUAction from '../../../components/ReportActionItemIOUAc
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
+import personalDetailsPropType from '../../personalDetailsPropType';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -49,11 +50,30 @@ const propTypes = {
 
     /** Runs when the view enclosing the chat message lays out indicating it has rendered */
     onLayout: PropTypes.func.isRequired,
+
+    /** All user personal details */
+    personalDetails: personalDetailsPropType,
+
+    /** Network object containing user's offline state */
+    network: PropTypes.shape({
+        offline: PropTypes.bool,
+    }),
+
+    /** The session of the logged in person */
+    session: PropTypes.shape({
+        /** Email of the logged in person */
+        email: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
+    personalDetails: {},
+    network: {
+        offline: false,
+    },
+    session: {},
 };
 
 class ReportActionItem extends Component {
@@ -94,7 +114,10 @@ class ReportActionItem extends Component {
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
-            || !_.isEqual(this.props.action, nextProps.action);
+            || this.props.network.offline !== nextProps.network.offline
+            || !_.isEqual(this.props.session, nextProps.session)
+            || !_.isEqual(this.props.action, nextProps.action)
+            || !_.isEqual(this.props.personalDetails, nextProps.personalDetails);
     }
 
     componentWillUnmount() {
@@ -191,6 +214,7 @@ class ReportActionItem extends Component {
                 reportID={this.props.reportID}
                 reportAction={this.props.action}
                 hidePopover={this.hidePopover}
+                currentUserEmail={this.props.session.email}
             />
         );
     }
@@ -207,16 +231,23 @@ class ReportActionItem extends Component {
             );
         } else {
             children = !this.props.draftMessage
-                ? <ReportActionItemMessage action={this.props.action} />
+                ? (
+                    <ReportActionItemMessage
+                        action={this.props.action}
+                        isOffline={this.props.network.offline}
+                    />
+                )
                 : (
                     <ReportActionItemMessageEdit
-                            action={this.props.action}
-                            draftMessage={this.props.draftMessage}
-                            reportID={this.props.reportID}
-                            index={this.props.index}
+                        action={this.props.action}
+                        draftMessage={this.props.draftMessage}
+                        reportID={this.props.reportID}
+                        index={this.props.index}
                     />
                 );
         }
+
+        const {avatar, displayName} = this.props.personalDetails[this.props.action.actorEmail] || {};
         return (
             <PressableWithSecondaryInteraction
                 ref={el => this.popoverAnchor = el}
@@ -238,7 +269,11 @@ class ReportActionItem extends Component {
                             >
                                 {!this.props.displayAsGroup
                                     ? (
-                                        <ReportActionItemSingle action={this.props.action}>
+                                        <ReportActionItemSingle
+                                            action={this.props.action}
+                                            avatar={avatar}
+                                            displayName={displayName}
+                                        >
                                             {children}
                                         </ReportActionItemSingle>
                                     )
@@ -258,6 +293,7 @@ class ReportActionItem extends Component {
                                     }
                                     draftMessage={this.props.draftMessage}
                                     hidePopover={this.hidePopover}
+                                    currentUserEmail={this.props.session.email}
                                     isMini
                                 />
                             </View>
@@ -278,6 +314,7 @@ class ReportActionItem extends Component {
                         reportAction={this.props.action}
                         draftMessage={this.props.draftMessage}
                         hidePopover={this.hidePopover}
+                        currentUserEmail={this.props.session.email}
                     />
                 </PopoverWithMeasuredContent>
             </PressableWithSecondaryInteraction>
@@ -287,9 +324,19 @@ class ReportActionItem extends Component {
 
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
+ReportActionItem.whyDidYouRender = true;
 
 export default withOnyx({
     draftMessage: {
         key: ({reportID, action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
+    },
+    network: {
+        key: ONYXKEYS.NETWORK,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(ReportActionItem);

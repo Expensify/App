@@ -1,6 +1,5 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -9,35 +8,37 @@ import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
-import ONYXKEYS from '../../../ONYXKEYS';
-import personalDetailsPropType from '../../personalDetailsPropType';
 
 const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
-
-    /** All of the personalDetails */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** Styles for the outermost View */
     wrapperStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Children view component for this action item */
     children: PropTypes.node.isRequired,
+
+    /** Avatar url */
+    avatar: PropTypes.string,
+
+    /** Display name froim personal details */
+    displayName: PropTypes.string,
 };
 
 const defaultProps = {
-    personalDetails: {},
+    avatar: '',
+    displayName: '',
     wrapperStyles: [styles.chatItem],
 };
 
 const ReportActionItemSingle = ({
     action,
-    personalDetails,
+    avatar,
+    displayName,
     children,
     wrapperStyles,
 }) => {
-    const {avatar, displayName} = personalDetails[action.actorEmail] || {};
     const avatarUrl = action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
 
@@ -75,8 +76,5 @@ const ReportActionItemSingle = ({
 
 ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-})(ReportActionItemSingle);
+ReportActionItemSingle.whyDidYouRender = true;
+export default memo(ReportActionItemSingle);

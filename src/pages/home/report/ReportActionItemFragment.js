@@ -104,5 +104,5 @@ class ReportActionItemFragment extends React.PureComponent {
 ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
 ReportActionItemFragment.displayName = 'ReportActionItemFragment';
-
+ReportActionItemFragment.whyDidYouRender = true;
 export default ReportActionItemFragment;

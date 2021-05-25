@@ -2,8 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -12,19 +10,15 @@ const propTypes = {
     /** The report action */
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
-    /** Information about the network */
-    network: PropTypes.shape({
-        /** Is the network currently offline or not */
-        isOffline: PropTypes.bool,
-    }),
+    isOffline: PropTypes.bool,
 };
 
 const defaultProps = {
-    network: {isOffline: false},
+    isOffline: false,
 };
 
-const ReportActionItemMessage = ({action, network}) => {
-    const isUnsent = network.isOffline && action.loading;
+const ReportActionItemMessage = ({action, isOffline}) => {
+    const isUnsent = isOffline && action.loading;
     return (
         <View style={[styles.chatItemMessage, isUnsent && styles.chatItemUnsentMessage]}>
             {_.map(_.compact(action.message), (fragment, index) => (
@@ -42,9 +36,6 @@ const ReportActionItemMessage = ({action, network}) => {
 ReportActionItemMessage.propTypes = propTypes;
 ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
+ReportActionItemMessage.whyDidYouRender = true;
 
-export default withOnyx({
-    network: {
-        key: ONYXKEYS.NETWORK,
-    },
-})(ReportActionItemMessage);
+export default ReportActionItemMessage;
