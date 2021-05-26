@@ -6,6 +6,6 @@ const getProductionConfig = require('./productionConfig');
 
 const env = dotenv.config({path: path.resolve(__dirname, '../../.env.production')}).parsed;
 
-console.log('derpydoodoo');
+console.log('caca');
 
 module.exports = merge(common, getProductionConfig(env));
