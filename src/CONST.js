@@ -1,6 +1,11 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 
 const CONST = {
+    APP_DOWNLOAD_LINKS: {
+        ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
+        IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
+        DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
+    },
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
@@ -12,6 +17,10 @@ const CONST = {
         PRESSED: 'pressed',
         COMPLETE: 'complete',
     },
+    CURRENCY: {
+        USD: 'USD',
+    },
+    CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
@@ -22,6 +31,7 @@ const CONST = {
     TERMS_URL: 'https://use.expensify.com/terms',
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
+    PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -106,7 +116,7 @@ const CONST = {
         PHONE_PAD: 'phone-pad',
     },
 
-    EMOJI_PICKER_SIZE: 360,
+    EMOJI_PICKER_SIZE: 392,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
@@ -130,6 +140,13 @@ const CONST = {
         RECONNECT: 1000,
     },
 
+    PLAID: {
+        EVENT: {
+            ERROR: 'ERROR',
+            EXIT: 'EXIT',
+        },
+    },
+
     OS: {
         WINDOWS: 'Windows',
         MAC_OS: 'Mac OS',
@@ -137,6 +154,22 @@ const CONST = {
         IOS: 'iOS',
         LINUX: 'Linux',
         NATIVE: 'Native',
+    },
+
+    IOU: {
+        // Note: These payment types are used when building IOU reportAction message values in the server and should
+        // not be changed.
+        PAYMENT_TYPE: {
+            ELSEWHERE: 'Elsewhere',
+            PAYPAL_ME: 'PayPal.me',
+            VENMO: 'Venmo',
+        },
+    },
+
+    REGEX: {
+        US_PHONE: /^\+1\d{10}$/,
+        PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
+        NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
     },
 };
 

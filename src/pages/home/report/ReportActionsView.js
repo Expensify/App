@@ -52,9 +52,6 @@ const propTypes = {
 
         /** Whether there is an outstanding amount in IOU */
         hasOutstandingIOU: PropTypes.bool,
-
-        /** IOU report ID associated with current report */
-        iouReportID: PropTypes.number,
     }),
 
     /** Array of report actions for this report */
@@ -151,8 +148,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU
-            || this.props.report.iouReportID !== nextProps.report.iouReportID) {
+        if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU) {
             return true;
         }
 
@@ -364,7 +360,6 @@ class ReportActionsView extends React.Component {
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
-                iouReportID={this.props.report.iouReportID}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
                 onLayout={this.recordTimeToMeasureItemLayout}
@@ -396,7 +391,11 @@ class ReportActionsView extends React.Component {
                 renderItem={this.renderItem}
                 CellRendererComponent={this.renderCell}
                 contentContainerStyle={[styles.chatContentScrollView]}
-                keyExtractor={item => `${item.action.clientID}` || `${item.action.sequenceNumber}`}
+
+                // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
+                // shouldn't happen, but might be possible in some rare cases.
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                keyExtractor={item => `${item.action.sequenceNumber}${item.action.clientID}`}
                 initialRowHeight={32}
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}

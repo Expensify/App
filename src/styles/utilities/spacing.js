@@ -28,7 +28,21 @@ export default {
     mv1: {
         marginVertical: 4,
     },
+    mv2: {
+        marginVertical: 8,
+    },
 
+    mv3: {
+        marginVertical: 12,
+    },
+
+    mv4: {
+        marginVertical: 16,
+    },
+
+    mv5: {
+        marginVertical: 20,
+    },
     mr0: {
         marginRight: 0,
     },
@@ -63,6 +77,10 @@ export default {
 
     ml4: {
         marginLeft: 16,
+    },
+
+    ml5: {
+        marginLeft: 20,
     },
 
     mt1: {
@@ -145,8 +163,20 @@ export default {
         paddingVertical: 4,
     },
 
+    pv2: {
+        paddingVertical: 8,
+    },
+
     pv3: {
         paddingVertical: 12,
+    },
+
+    pv4: {
+        paddingVertical: 16,
+    },
+
+    pv5: {
+        paddingVertical: 20,
     },
 
     ph0: {
