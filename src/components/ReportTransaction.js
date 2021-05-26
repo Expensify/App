@@ -37,7 +37,8 @@ class ReportTransaction extends Component {
         rejectTransaction({
             reportID: this.props.iouReportID,
             chatReportID: this.props.chatReportID,
-            transactionID: this.props.action,
+            transactionID: this.props.action.originalMessage.IOUTransactionID,
+            comment: '',
         });
     }
 
