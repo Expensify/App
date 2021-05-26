@@ -42,7 +42,6 @@ const IOUTransactions = ({
         <View style={[styles.mt3]}>
             {_.map(reportActions, (reportAction) => {
                 if (reportAction.actionName === 'IOU'
-                    && reportAction.originalMessage.IOUTransactionID
                     && reportAction.originalMessage.IOUReportID === iouReportID) {
                     // TODO, remove rejected transactions from the array
                     const rejectable = rejectedTransactions.includes(reportAction.originalMessage.IOUTransactionID);
