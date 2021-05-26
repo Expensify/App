@@ -16,7 +16,7 @@ const propTypes = {
     chatReportID: PropTypes.number.isRequired,
 
     /** Should render the preview Component? */
-    shouldDisplayPreview: PropTypes.bool.isRequired,
+    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     /* Onyx Props */
     /** ChatReport associated with iouReport */
@@ -33,7 +33,7 @@ const defaultProps = {
 const ReportActionItemIOUAction = ({
     action,
     chatReportID,
-    shouldDisplayPreview,
+    isMostRecentIOUReportAction,
     chatReport,
 }) => {
     const launchDetailsModal = () => {
@@ -47,7 +47,7 @@ const ReportActionItemIOUAction = ({
                 shouldShowViewDetailsLink={!hasMultipleParticipants}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {shouldDisplayPreview && (
+            {isMostRecentIOUReportAction && (
                 <ReportActionItemIOUPreview
                     iouReportID={action.originalMessage.IOUReportID}
                     onPayButtonPressed={launchDetailsModal}

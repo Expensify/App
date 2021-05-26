@@ -69,6 +69,11 @@ const ReportActionItemIOUPreview = ({
     onPayButtonPressed,
     translate,
 }) => {
+    // Component should only be displayed if an IOU transaction is outstanding, or if the report has been paid.
+    if (!iou.hasOutstandingIOU && !iou.isPaid) {
+        return null;
+    }
+
     const sessionEmail = lodashGet(session, 'email', null);
 
     // Pay button should only be visible to the manager of the report.
