@@ -50,6 +50,7 @@ import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ReportActionPropTypes from './ReportActionPropTypes';
+import {canEditReportAction} from '../../../libs/reportUtils';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -257,14 +258,12 @@ class ReportActionCompose extends React.Component {
 
                 const reportActionKey = _.find(
                     Object.keys(this.props.reportActions).reverse(),
-                    key => this.props.reportActions[key].actorEmail === this.props.session.email,
+                    key => canEditReportAction(this.props.reportActions[key], this.props.session.email),
                 );
 
                 if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
                     const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                    if (reportActionID) {
-                        saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).text);
-                    }
+                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).text);
                 }
             }
         }
