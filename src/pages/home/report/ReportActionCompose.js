@@ -262,7 +262,9 @@ class ReportActionCompose extends React.Component {
 
                 if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
                     const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).text);
+                    if (reportActionID) {
+                        saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).text);
+                    }
                 }
             }
         }
