@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -30,7 +31,7 @@ const propTypes = {
     option: optionPropTypes.isRequired,
 
     /** Whether this option is currently in focus so we can modify its style */
-    optionIsFocused: PropTypes.bool.isRequired,
+    optionIsFocused: PropTypes.bool,
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
@@ -52,6 +53,9 @@ const propTypes = {
 
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(['compact', 'default']),
+
+    // Whether this option should be disabled
+    isDisabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -64,6 +68,8 @@ const defaultProps = {
     showTitleTooltip: false,
     mode: 'default',
     onSelectRow: null,
+    isDisabled: false,
+    optionIsFocused: false,
 };
 
 const OptionRow = ({
@@ -77,6 +83,7 @@ const OptionRow = ({
     isSelected,
     forceTextUnreadStyle,
     showTitleTooltip,
+    isDisabled,
     mode,
 }) => {
     const textStyle = optionIsFocused
@@ -110,14 +117,13 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = option.participantsList.length > 1;
+    const isMultipleParticipant = lodashGet(option, 'participantsList.length', 0) > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, firstName, login}) => (
             {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
         ),
     );
-    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <Hoverable>
             {hovered => (
@@ -133,6 +139,7 @@ const OptionRow = ({
                         getBackgroundColorStyle(backgroundColor),
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
+                        isDisabled && styles.cursorDisabled,
                     ]}
                 >
                     <View style={sidebarInnerRowStyle}>
@@ -162,7 +169,7 @@ const OptionRow = ({
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
-                                    fullTitle={fullTitle}
+                                    fullTitle={option.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
