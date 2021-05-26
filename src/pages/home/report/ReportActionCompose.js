@@ -118,7 +118,7 @@ class ReportActionCompose extends React.Component {
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
-        this.triggerShortcut = this.triggerShortcut.bind(this);
+        this.triggerHotkeyActions = this.triggerHotkeyActions.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.showEmojiPicker = this.showEmojiPicker.bind(this);
@@ -243,7 +243,7 @@ class ReportActionCompose extends React.Component {
      *
      * @param {Object} e
      */
-    triggerShortcut(e) {
+    triggerHotkeyActions(e) {
         if (e) {
             // Submit the form when Enter is pressed
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -433,7 +433,7 @@ class ReportActionCompose extends React.Component {
                                     placeholder={this.props.translate('reportActionCompose.writeSomething')}
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
-                                    onKeyPress={this.triggerShortcut}
+                                    onKeyPress={this.triggerHotkeyActions}
                                     onDragEnter={() => this.setState({isDraggingOver: true})}
                                     onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
