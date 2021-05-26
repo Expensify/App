@@ -18,7 +18,7 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {isReportMessageAttachment} from '../reportUtils';
+import {isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 
@@ -919,9 +919,19 @@ function fetchAllReports(
                 // content and improve chat switching experience by only downloading content we don't have yet.
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
                 // data processing by Onyx.
-                const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
+                const reportIDsWithMissingActions = _.filter(returnedReportIDs, id => (
                     isReportMissingActions(id, reportMaxSequenceNumbers[id])
                 ));
+
+                // Once we have the reports that are missing actions we will find the intersection between the most
+                // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
+                // set to avoid making too many network requests at once.
+                const reportIDsToFetchActions = _.chain(sortReportsByLastVisited(allReports))
+                    .map(report => report.reportID)
+                    .reverse()
+                    .intersection(reportIDsWithMissingActions)
+                    .slice(0, 10)
+                    .value();
 
                 if (_.isEmpty(reportIDsToFetchActions)) {
                     console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
