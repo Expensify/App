@@ -217,6 +217,8 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         total: reportData.total,
         status: reportData.status,
         stateNum: reportData.stateNum,
+        submitterPayPalMeAddress: reportData.submitterPayPalMeAddress,
+        submitterPhoneNumbers: reportData.submitterPhoneNumbers,
         hasOutstandingIOU: reportData.stateNum === 1 && reportData.total !== 0,
     };
 }
@@ -488,6 +490,13 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+
+    // If this is the most recent message, update the lastMessageText in the report object as well
+    if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            lastMessageText: message.html,
+        });
+    }
 }
 
 /**
