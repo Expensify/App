@@ -63,7 +63,7 @@ const DetailsPage = ({personalDetails, route, translate}) => {
                     <View>
                         <View style={styles.pageWrapper}>
                             <Avatar
-                                containerStyle={[styles.avatarLarge, styles.mb3, styles.avatarWrapper]}
+                                containerStyle={[styles.avatarLarge, styles.mb3]}
                                 style={[styles.avatarLarge]}
                                 source={details.avatar}
                             />
