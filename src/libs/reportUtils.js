@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
@@ -36,8 +37,16 @@ function findLastAccessedReport(reports) {
         .value();
 }
 
+function canEditReportAction(reportAction, sessionEmail) {
+    return reportAction.actorEmail === sessionEmail
+        && reportAction.reportActionID
+        && reportAction.actionName !== 'IOU'
+        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
+    canEditReportAction,
 };
