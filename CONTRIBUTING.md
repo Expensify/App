@@ -10,6 +10,9 @@ You can create as many accounts as needed in order to test your changes directly
 ## Code of Conduct
 This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
 
+## Restrictions
+At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran, Cuba, or Syria.
+
 ## Asking Questions
 If you have any general questions, please ask in the #expensify-open-source Slack channel. To request an invite to the channel, just email contributors@expensify.com with the subject `Slack Channel Invite` and we'll send you an invite! The Expensify team will not be able to respond to direct messages in Slack.
 

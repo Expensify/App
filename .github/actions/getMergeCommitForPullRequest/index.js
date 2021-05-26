@@ -5,75 +5,35 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 519:
+/***/ 265:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(2186);
-const {GitHub} = __nccwpck_require__(3030);
 const ActionUtils = __nccwpck_require__(970);
 const GithubUtils = __nccwpck_require__(7999);
 
-
-const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
-const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
-const isCP = ActionUtils.getJSONInput('IS_CHERRY_PICK', {required: false}, false);
-const version = core.getInput('DEPLOY_VERSION', {required: true});
-
-
-/**
- * Return a nicely formatted message for the table based on the result of the GitHub action job
- *
- * @param {string} platformResult
- * @returns {string}
- */
-function getDeployTableMessage(platformResult) {
-    switch (platformResult) {
-        case 'success':
-            return `${platformResult} ✅`;
-        case 'cancelled':
-            return `${platformResult} 🔪`;
-        case 'skipped':
-            return `${platformResult} 🚫`;
-        case 'failure':
-        default:
-            return `${platformResult} ❌`;
-    }
-}
-
-const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
-const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
-const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
-const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
-
-const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
-    + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
-const deployVerb = isCP ? 'Cherry-picked' : 'Deployed';
-
-let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'} in version: ${version}🚀`;
-message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
-message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
-
-/**
- * Comment Single PR
- *
- * @param {Object} pr
- * @returns {Promise<void>}
- */
-function commentPR(pr) {
-    return GithubUtils.createComment(GitHub.context.repo.repo, pr, message)
-        .then(() => {
-            console.log(`Comment created on #${pr} successfully 🎉`);
-        })
-        .catch((err) => {
-            console.log(`Unable to write comment on #${pr} 😞`);
-            core.setFailed(err.message);
-        });
-}
-
-/**
- * Create comment on each pull request
- */
-prList.reduce((promise, pr) => promise.then(() => commentPR(pr)), Promise.resolve());
+const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: true});
+console.log(`Getting merge_commit_sha for PR #${pullRequestNumber}`);
+GithubUtils.octokit.pulls.get({
+    owner: GithubUtils.GITHUB_OWNER,
+    repo: GithubUtils.EXPENSIFY_CASH_REPO,
+    pull_number: pullRequestNumber,
+})
+    .then(({data}) => {
+        const mergeCommitHash = data.merge_commit_sha;
+        if (mergeCommitHash) {
+            console.log(`PR #${pullRequestNumber} has merge_commit_sha ${mergeCommitHash}`);
+            core.setOutput('MERGE_COMMIT_SHA', mergeCommitHash);
+        } else {
+            const err = new Error(`Could not find merge_commit_sha for pull request ${pullRequestNumber}`);
+            console.error(err);
+            core.setFailed(err);
+        }
+    })
+    .catch((err) => {
+        console.log(`An unknown error occurred with the GitHub API: ${err}`);
+        core.setFailed(err);
+    });
 
 
 /***/ }),
@@ -15094,6 +15054,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(519);
+/******/ 	return __nccwpck_require__(265);
 /******/ })()
 ;

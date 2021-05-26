@@ -193,20 +193,25 @@ describe('OptionsListUtils', () => {
     });
 
     it('getNewChatOptions()', () => {
+        // maxRecentReportsToShow in src/libs/OptionsListUtils.js
+        const MAX_RECENT_REPORTS = 5;
+
         // When we call getNewChatOptions() with no search value
         let results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, '');
 
-        // Then no reports should be returned, only personalDetails and all the personalDetails should be returned
-        // minus the currently logged in user
-        expect(results.recentReports.length).toBe(0);
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 1);
+        // We should expect maximimum of 5 recent reports to be returned
+        expect(results.recentReports.length).toBe(MAX_RECENT_REPORTS);
+
+        // We should expect all personalDetails to be returned,
+        // minus the currently logged in user and recent reports count
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS) - 1 - MAX_RECENT_REPORTS);
 
         // Then the result which has an existing report should also have the reportID attached
         const personalDetailWithExistingReport = _.find(
             results.personalDetails,
-            personalDetail => personalDetail.login === 'reedrichards@expensify.com',
+            personalDetail => personalDetail.login === 'peterparker@expensify.com',
         );
-        expect(personalDetailWithExistingReport.reportID).toBe(3);
+        expect(personalDetailWithExistingReport.reportID).toBe(2);
 
         // When we provide a search value that does not match any personal details
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'magneto');
@@ -217,27 +222,30 @@ describe('OptionsListUtils', () => {
         // When we provide a search value that matches an email
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'peterparker@expensify.com');
 
-        // Then one option will be returned and it will be the correct option
-        expect(results.personalDetails.length).toBe(1);
-        expect(results.personalDetails[0].text).toBe('Spider-Man');
+        // Then one recentReports will be returned and it will be the correct option
+        // personalDetails should be empty array
+        expect(results.recentReports.length).toBe(1);
+        expect(results.recentReports[0].text).toBe('Spider-Man');
+        expect(results.personalDetails.length).toBe(0);
 
         // When we provide a search value that matches a partial display name or email
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'man');
 
         // Then several options will be returned and they will be each have the search string in their email or name
         // even though the currently logged in user matches they should not show.
-        expect(results.personalDetails.length).toBe(3);
-        expect(results.personalDetails[0].text).toBe('Spider-Man');
-        expect(results.personalDetails[1].text).toBe('Invisible Woman');
-        expect(results.personalDetails[2].login).toBe('natasharomanoff@expensify.com');
+        expect(results.personalDetails.length).toBe(1);
+        expect(results.recentReports.length).toBe(2);
+        expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
+        expect(results.recentReports[0].text).toBe('Invisible Woman');
+        expect(results.recentReports[1].text).toBe('Spider-Man');
 
         // Test for Concierge's existence in chat options
         results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
 
-        // Concierge is included in the results by default and all the personalDetails should be returned
-        // minus the currently logged in user
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 1);
-        expect(results.personalDetails).toEqual(
+        // Concierge is included in the results by default. We should expect all the personalDetails to show
+        // (minus the 5 that are already showing and the currently logged in user)
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 1 - MAX_RECENT_REPORTS);
+        expect(results.recentReports).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({login: 'concierge@expensify.com'}),
             ]),
@@ -247,7 +255,7 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', true);
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
-        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 2);
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 2 - MAX_RECENT_REPORTS);
         expect(results.personalDetails).not.toEqual(
             expect.arrayContaining([
                 expect.objectContaining({login: 'concierge@expensify.com'}),

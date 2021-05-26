@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import {getNewChatOptions} from '../../../../libs/OptionsListUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -44,7 +45,11 @@ class IOUParticipantsRequest extends Component {
 
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
 
-        const {personalDetails, userToInvite} = getNewChatOptions(
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = getNewChatOptions(
             props.reports,
             props.personalDetails,
             '',
@@ -52,6 +57,7 @@ class IOUParticipantsRequest extends Component {
         );
 
         this.state = {
+            recentReports,
             personalDetails,
             userToInvite,
             searchValue: '',
@@ -65,10 +71,18 @@ class IOUParticipantsRequest extends Component {
      */
     getSections() {
         const sections = [];
+
         sections.push({
-            title: this.props.translate('iou.contacts'),
+            title: this.props.translate('common.recents'),
+            data: this.state.recentReports,
+            shouldShow: !_.isEmpty(this.state.recentReports),
+            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+        });
+
+        sections.push({
+            title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
-            shouldShow: this.state.personalDetails.length > 0,
+            shouldShow: !_.isEmpty(this.state.personalDetails),
             indexOffset: 0,
         });
 
@@ -102,7 +116,11 @@ class IOUParticipantsRequest extends Component {
                 value={this.state.searchValue}
                 onSelectRow={this.addSingleParticipant}
                 onChangeText={(searchValue = '') => {
-                    const {personalDetails, userToInvite} = getNewChatOptions(
+                    const {
+                        recentReports,
+                        personalDetails,
+                        userToInvite,
+                    } = getNewChatOptions(
                         this.props.reports,
                         this.props.personalDetails,
                         searchValue,
@@ -110,11 +128,11 @@ class IOUParticipantsRequest extends Component {
                     );
                     this.setState({
                         searchValue,
+                        recentReports,
                         userToInvite,
                         personalDetails,
                     });
                 }}
-                hideSectionHeaders
                 disableArrowKeysActions
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
