@@ -9,15 +9,18 @@ import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import Button from '../../components/Button';
+import ButtonWithDropdown from '../../components/ButtonWithDropdown';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {payIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
 import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
-import iouTransactionPropTypes from './iouTransactionPropTypes';
 import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import CONST from '../../CONST';
+import CreateMenu from '../../components/CreateMenu';
+import isAppInstalled from '../../libs/isAppInstalled';
+import Button from '../../components/Button';
 
 const propTypes = {
     /** URL Route params */
@@ -53,12 +56,9 @@ const propTypes = {
         /** Owner is the person who is owed money */
         ownerEmail: PropTypes.string,
 
-        /** The IOU transactions */
-        transactions: PropTypes.arrayOf(PropTypes.shape(iouTransactionPropTypes)),
-
         /** Does the report have an outstanding IOU that needs to be paid? */
         hasOutstandingIOU: PropTypes.bool,
-    }).isRequired,
+    }),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
@@ -71,35 +71,117 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
+    iouReport: undefined,
 };
 
 class IOUDetailsModal extends Component {
     constructor(props) {
         super(props);
 
+        // We always have the option to settle manually
+        const paymentOptions = [CONST.IOU.PAYMENT_TYPE.ELSEWHERE];
+
+        // Only allow settling via PayPal.me if the submitter has a username set
+        if (lodashGet(props, 'iouReport.submitterPayPalMeAddress')) {
+            paymentOptions.push(CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
+        }
+
+        this.submitterPhoneNumber = undefined;
+        this.isComponentMounted = false;
+
         this.state = {
-            // Temporarily placeholder, as the Venmo/Paypal issue will introduce settlement types.
-            settlementType: 'Elsewhere',
+            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            isSettlementMenuVisible: false,
+            paymentOptions,
         };
 
         this.performIOUPayment = this.performIOUPayment.bind(this);
     }
 
     componentDidMount() {
+        this.isComponentMounted = true;
         fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
+        this.addVenmoPaymentOptionIfAvailable();
+    }
+
+    componentWillUnmount() {
+        this.isComponentMounted = false;
+    }
+
+    setMenuVisibility(isSettlementMenuVisible) {
+        this.setState({isSettlementMenuVisible});
     }
 
     performIOUPayment() {
         payIOUReport({
             chatReportID: this.props.route.params.chatReportID,
             reportID: this.props.route.params.iouReportID,
-            paymentMethodType: this.state.settlementType,
+            paymentMethodType: this.state.paymentType,
+            amount: this.props.iouReport.total,
+            currency: this.props.iouReport.currency,
+            submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
+            submitterPhoneNumber: this.submitterPhoneNumber,
         });
+    }
+
+    /**
+     * @param {String} phoneNumber
+     * @returns {Boolean}
+     */
+    isValidUSPhone(phoneNumber) {
+        // Remove alphanumeric characters and validate that this is in fact a phone number
+        return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, ''))
+
+            // Next make sure it's a US phone number
+            && CONST.REGEX.US_PHONE.test(phoneNumber);
+    }
+
+    /**
+     * Checks to see if we can use Venmo. The following conditions must be met:
+     *
+     *   1. The IOU report currency is USD
+     *   2. The submitter has as a valid US phone number
+     *   3. Venmo app is installed
+     *
+     */
+    addVenmoPaymentOptionIfAvailable() {
+        if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD) {
+            return;
+        }
+
+        const submitterPhoneNumbers = lodashGet(this.props, 'iouReport.submitterPhoneNumbers', []);
+        if (_.isEmpty(submitterPhoneNumbers)) {
+            return;
+        }
+
+        this.submitterPhoneNumber = _.find(submitterPhoneNumbers, this.isValidUSPhone);
+        if (!this.submitterPhoneNumber) {
+            return;
+        }
+
+        isAppInstalled('venmo')
+            .then((isVenmoInstalled) => {
+                // We will return early if the component has unmounted before the async call resolves. This prevents
+                // setting state on unmounted components which prints noisy warnings in the console.
+                if (!isVenmoInstalled || !this.isComponentMounted) {
+                    return;
+                }
+
+                this.setState(prevState => ({
+                    paymentOptions: [...prevState.paymentOptions, CONST.IOU.PAYMENT_TYPE.VENMO],
+                }));
+            });
     }
 
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
+        const paymentTypeTextOptions = {
+            [CONST.IOU.PAYMENT_TYPE.VENMO]: this.props.translate('iou.settleVenmo'),
+            [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: this.props.translate('iou.settlePaypalMe'),
+            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: this.props.translate('iou.settleElsewhere'),
+        };
+        const selectedPaymentType = paymentTypeTextOptions[this.state.paymentType];
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -116,19 +198,47 @@ class IOUDetailsModal extends Component {
                             <IOUTransactions
                                 chatReportID={Number(this.props.route.params.chatReportID)}
                                 iouReportID={Number(this.props.route.params.iouReportID)}
-                                transactions={this.props.iouReport.transactions}
                                 hasOutstandingIOU={this.props.iouReport.hasOutstandingIOU}
                             />
                         </ScrollView>
                         {(this.props.iouReport.hasOutstandingIOU
                             && this.props.iouReport.managerEmail === sessionEmail && (
                             <View style={styles.p5}>
-                                <Button
-                                    success
-                                    text={this.props.translate('iou.settleElsewhere')}
-                                    isLoading={this.props.iou.loading}
-                                    onPress={this.performIOUPayment}
-                                />
+                                {this.state.paymentOptions.length > 1 ? (
+                                    <ButtonWithDropdown
+                                        success
+                                        buttonText={selectedPaymentType}
+                                        isLoading={this.props.iou.loading}
+                                        onButtonPress={this.performIOUPayment}
+                                        onDropdownPress={() => {
+                                            this.setMenuVisibility(true);
+                                        }}
+                                    />
+                                ) : (
+                                    <Button
+                                        success
+                                        text={selectedPaymentType}
+                                        isLoading={this.props.iou.loading}
+                                        onPress={this.performIOUPayment}
+                                    />
+                                )}
+                                {this.state.paymentOptions.length > 1 && (
+                                    <CreateMenu
+                                        isVisible={this.state.isSettlementMenuVisible}
+                                        onClose={() => this.setMenuVisibility(false)}
+                                        onItemSelected={() => this.setMenuVisibility(false)}
+                                        anchorPosition={styles.createMenuPositionRightSidepane}
+                                        animationIn="fadeInUp"
+                                        animationOut="fadeOutDown"
+                                        headerText={this.props.translate('iou.choosePaymentMethod')}
+                                        menuItems={_.map(this.state.paymentOptions, paymentType => ({
+                                            text: paymentTypeTextOptions[paymentType],
+                                            onSelected: () => {
+                                                this.setState({paymentType});
+                                            },
+                                        }))}
+                                    />
+                                )}
                             </View>
                         ))}
                     </View>
