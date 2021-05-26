@@ -5,6 +5,6 @@ import CONFIG from './src/CONFIG';
 if (__DEV__ && CONFIG.USE_WDYR) {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
     whyDidYouRender(React, {
-        trackAllPureComponents: true,
+        trackAllPureComponents: false,
     });
 }

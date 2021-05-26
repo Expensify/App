@@ -91,8 +91,23 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.selectRow = this.selectRow.bind(this);
+    }
+
+    shouldComponentUpdate(prevProps) {
+        return !_.isEqual(prevProps, this.props);
+    }
+
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
+    }
+
+    selectRow(option) {
+        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+        this.props.onLinkClick();
     }
 
     render() {
@@ -160,10 +175,7 @@ class SidebarLinks extends React.Component {
                     focusedIndex={_.findIndex(recentReports, (
                         option => option.reportID === activeReportID
                     ))}
-                    onSelectRow={(option) => {
-                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-                        this.props.onLinkClick();
-                    }}
+                    onSelectRow={this.selectRow}
                     optionBackgroundColor={themeColors.sidebar}
                     hideSectionHeaders
                     showTitleTooltip
