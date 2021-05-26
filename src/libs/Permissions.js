@@ -1,7 +1,6 @@
 import _ from 'underscore';
-import Config from 'react-native-config';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
+import Environment from './Environment';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -11,14 +10,12 @@ Onyx.connect({
     callback: val => betas = val || [],
 });
 
-const isDevelopment = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV;
-
 /**
  * @private
  * @returns {Boolean}
  */
 function canUseAllBetas() {
-    return isDevelopment || _.contains(betas, CONST.BETAS.ALL);
+    return Environment.isDevelopment() || _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
