@@ -18,6 +18,9 @@ const propTypes = {
 
     /** ReportID for the associated IOU report */
     iouReportID: PropTypes.number.isRequired,
+
+    /** Email for the authenticated user */
+    userEmail: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -28,6 +31,7 @@ const IOUTransactions = ({
     reportActions,
     chatReportID,
     iouReportID,
+    userEmail,
 }) => {
     const rejectedTransactions = _.map(_.filter(reportActions, (reportAction) => {
         if (!reportAction.originalMessage || !reportAction.originalMessage.type) {
@@ -45,6 +49,7 @@ const IOUTransactions = ({
                     && reportAction.originalMessage.IOUReportID === iouReportID) {
                     // TODO, remove rejected transactions from the array
                     const rejectable = rejectedTransactions.includes(reportAction.originalMessage.IOUTransactionID);
+                    const isTransactionCreator = userEmail === reportAction.actorEmail;
                     return (
                         <ReportTransaction
                             chatReportID={chatReportID}
@@ -52,6 +57,7 @@ const IOUTransactions = ({
                             action={reportAction}
                             key={reportAction.sequenceNumber}
                             canReject={rejectable}
+                            isTransactionCreator={isTransactionCreator}
                         />
                     );
                 }

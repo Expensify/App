@@ -20,6 +20,9 @@ const propTypes = {
 
     /** Can this transaction be rejected? */
     canReject: PropTypes.bool,
+
+    /** Is the authenticated user the creator of this transaction? */
+    isTransactionCreator: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -63,7 +66,9 @@ class ReportTransaction extends Component {
                             ]}
                             onPress={() => this.rejectTransaction()}
                         >
-                            <Text style={[styles.buttonSmallText]}>Cancel</Text>
+                            <Text style={[styles.buttonSmallText]}>
+                                {this.props.isTransactionCreator ? 'Cancel' : 'Decline'}
+                            </Text>
                         </Pressable>
                     </View>
                 )}
