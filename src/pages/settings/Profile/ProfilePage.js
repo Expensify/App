@@ -270,7 +270,7 @@ class ProfilePage extends Component {
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <Avatar
-                        styles={[styles.avatarLarge, styles.alignSelfCenter]}
+                        style={[styles.avatarLarge, styles.alignSelfCenter]}
                         source={this.props.myPersonalDetails.avatar}
                     />
                     <AttachmentPicker>

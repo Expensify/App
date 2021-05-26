@@ -126,7 +126,7 @@ class AvatarWithIndicator extends PureComponent {
                 style={[this.props.size === 'large' ? styles.avatarLarge : styles.sidebarAvatar]}
             >
                 <Avatar
-                    styles={[this.props.size === 'large' ? styles.avatarLarge : null]}
+                    style={[this.props.size === 'large' ? styles.avatarLarge : null]}
                     source={this.props.source}
                 />
                 <Animated.View style={StyleSheet.flatten(indicatorStyles)}>

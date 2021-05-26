@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -8,7 +9,10 @@ const propTypes = {
     source: PropTypes.string,
 
     /** Extra styles to pass */
-    styles: PropTypes.arrayOf(PropTypes.object),
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
 
     /** Extra styles to pass to View wrapper */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -19,7 +23,7 @@ const propTypes = {
 
 const defaultProps = {
     source: '',
-    styles: [],
+    style: [],
     containerStyles: [],
     size: 'default',
 };
@@ -30,13 +34,17 @@ class Avatar extends PureComponent {
             return null;
         }
 
+        const propsStyle = _.isArray(this.props.style)
+            ? this.props.style
+            : [this.props.style];
+
         return (
             <View style={[...this.props.containerStyles, styles.avatarWrapper]}>
                 <Image
                     source={{uri: this.props.source}}
                     style={[
                         this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
-                        ...this.props.styles,
+                        ...propsStyle,
                     ]}
                 />
             </View>
