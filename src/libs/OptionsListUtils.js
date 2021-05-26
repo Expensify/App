@@ -99,19 +99,19 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         + _.unescape(report.lastMessageText)
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-    const participantNames = new Set();
+    const participantNames = {};
     _.each(personalDetailList, (participant) => {
         if (participant.login) {
-            participantNames.add(participant.login.toLowerCase());
+            participantNames[participant.login.toLowerCase()] = true;
         }
         if (participant.firstName) {
-            participantNames.add(participant.firstName.toLowerCase());
+            participantNames[participant.firstName.toLowerCase()] = true;
         }
         if (participant.lastName) {
-            participantNames.add(participant.lastName.toLowerCase());
+            participantNames[participant.lastName.toLowerCase()] = true;
         }
         if (participant.displayName) {
-            participantNames.add(participant.displayName.toLowerCase());
+            participantNames[participant.displayName.toLowerCase()] = true;
         }
     });
     return {
@@ -158,7 +158,7 @@ Onyx.connect({
  *
  * @param {String} searchValue
  * @param {String} searchText
- * @param {Set<String>} participantNames
+ * @param {Object} participantNames
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText, participantNames) {
@@ -167,7 +167,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames) {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
         return matchRegex.test(valueToSearch)
-            || participantNames.has(word.trim().replace(new RegExp(/,/g), ''));
+            || participantNames[word.trim().replace(new RegExp(/,/g), '')];
     });
 }
 
