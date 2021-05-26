@@ -37,6 +37,13 @@ function findLastAccessedReport(reports) {
         .value();
 }
 
+/**
+ * Check whether user can edit report action
+ *
+ * @param {Object} reportAction
+ * @param {String} sessionEmail
+ * @returns {Boolean}
+ */
 function canEditReportAction(reportAction, sessionEmail) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
