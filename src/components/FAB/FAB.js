@@ -4,7 +4,6 @@ import {
 } from 'react-native';
 import Icon from '../Icon';
 import {Plus} from '../Icon/Expensicons';
-// eslint-disable-next-line no-unused-vars
 import styles, {getAnimatedFABStyle} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import fabPropTypes from './fabPropTypes';
@@ -43,13 +42,11 @@ class FAB extends PureComponent {
     }
 
     render() {
-        // eslint-disable-next-line no-unused-vars
         const rotate = this.animatedValue.interpolate({
             inputRange: [0, 1],
             outputRange: ['0deg', '135deg'],
         });
 
-        // eslint-disable-next-line no-unused-vars
         const backgroundColor = this.animatedValue.interpolate({
             inputRange: [0, 1],
             outputRange: [themeColors.buttonSuccessBG, themeColors.buttonDefaultBG],
@@ -65,7 +62,7 @@ class FAB extends PureComponent {
                 onPress={this.props.onPress}
                 style={[
                     styles.floatingActionButton,
-                    {backgroundColor: '#f00'},
+                    getAnimatedFABStyle(rotate, backgroundColor),
                 ]}
             >
                 <AnimatedIcon src={Plus} fill={fill} />
