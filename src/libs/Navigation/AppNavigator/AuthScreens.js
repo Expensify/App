@@ -177,6 +177,7 @@ class AuthScreens extends React.Component {
                 // a header will briefly open and close the keyboard and crash Android.
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 keyboardHandlingEnabled={false}
+                detachInactiveScreens={false}
             >
                 {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
                 <RootStack.Screen
