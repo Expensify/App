@@ -99,6 +99,8 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         + _.unescape(report.lastMessageText)
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
+
+    // Using an object instead of an array since we can check if it has a key in constant time
     const participantNames = {};
     _.each(personalDetailList, (participant) => {
         if (participant.login) {
