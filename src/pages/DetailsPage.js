@@ -76,7 +76,7 @@ const DetailsPage = ({
                             <Text style={[styles.displayName, styles.mt1, styles.mb6]} numberOfLines={1}>
                                 {details.displayName && isSMSLogin
                                     ? toLocalPhone(details.displayName)
-                                    : details.displayName}
+                                    : details.displayName || null}
                             </Text>
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
