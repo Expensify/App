@@ -10,7 +10,7 @@ import translations from '../languages/translations';
  *
  * @param {String} locale eg 'en', 'es-ES'
  * @param {String} number
- * @returns {string}
+ * @returns {String}
  */
 function toLocalPhone(locale, number) {
     const numString = lodashTrim(number);
@@ -31,7 +31,7 @@ function toLocalPhone(locale, number) {
  *
  * @param {String} locale eg 'en', 'es-ES'
  * @param {String} number
- * @returns {string}
+ * @returns {String}
  */
 function fromLocalPhone(locale, number) {
     const numString = lodashTrim(number);
