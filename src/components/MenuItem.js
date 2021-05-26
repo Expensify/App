@@ -29,7 +29,7 @@ const propTypes = {
     success: PropTypes.bool,
 
     // Overrides the icon for shouldShowRightIcon
-    iconRight: PropTypes.element,
+    iconRight: PropTypes.elementType,
 };
 
 const defaultProps = {
