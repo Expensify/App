@@ -129,6 +129,8 @@ platform :ios do
         }
     )
 
+    # TODO: Remove this Exception handling when https://github.com/fastlane/fastlane/issues/18408 is resolved
+    # See: https://github.com/Expensify/Expensify.cash/pull/3166 for more information
     rescue Exception => e
       if e.message.include? "Another build is in review"
         UI.important("Another build is already in external beta review. Skipping external beta review submission")
