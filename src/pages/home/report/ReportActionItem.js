@@ -2,8 +2,6 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {Dimensions, View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
     getReportActionItemStyle,
@@ -287,9 +285,4 @@ class ReportActionItem extends Component {
 
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
-
-export default withOnyx({
-    draftMessage: {
-        key: ({reportID, action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`,
-    },
-})(ReportActionItem);
+export default ReportActionItem;
