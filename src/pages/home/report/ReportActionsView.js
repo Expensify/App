@@ -82,6 +82,7 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
+        this.keyExtractor = this.keyExtractor.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
@@ -317,6 +318,16 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * @param {Object} item
+     * @returns {String}
+     */
+    keyExtractor(item) {
+        // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
+        // shouldn't happen, but might be possible in some rare cases.
+        return `${item.action.sequenceNumber}${item.action.clientID}`;
+    }
+
+    /**
      * This function overrides the CellRendererComponent (defaults to a plain View), giving each ReportActionItem a
      * higher z-index than the one below it. This prevents issues where the ReportActionContextMenu overlapping between
      * rows is hidden beneath other rows.
@@ -391,11 +402,7 @@ class ReportActionsView extends React.Component {
                 renderItem={this.renderItem}
                 CellRendererComponent={this.renderCell}
                 contentContainerStyle={[styles.chatContentScrollView]}
-
-                // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
-                // shouldn't happen, but might be possible in some rare cases.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                keyExtractor={item => `${item.action.sequenceNumber}${item.action.clientID}`}
+                keyExtractor={this.keyExtractor}
                 initialRowHeight={32}
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}
