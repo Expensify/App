@@ -62,7 +62,7 @@ class FAB extends PureComponent {
                 onPress={this.props.onPress}
                 style={[
                     styles.floatingActionButton,
-                    getAnimatedFABStyle(rotate, backgroundColor),
+                    {backgroundColor: '#f00'},
                 ]}
             >
                 <AnimatedIcon src={Plus} fill={fill} />
