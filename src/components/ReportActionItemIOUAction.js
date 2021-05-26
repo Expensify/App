@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
@@ -27,7 +28,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    chatReport: {},
+    chatReport: {
+        participants: [],
+    },
 };
 
 const ReportActionItemIOUAction = ({
@@ -39,7 +42,7 @@ const ReportActionItemIOUAction = ({
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
     };
-    const hasMultipleParticipants = chatReport.participants.length >= 2;
+    const hasMultipleParticipants = lodashGet(chatReport, 'participants', []).length >= 2;
     return (
         <>
             <ReportActionItemIOUQuote
