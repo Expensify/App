@@ -14,7 +14,7 @@ Onyx.connect({
  * @returns {Boolean}
  */
 function canUseAllBetas() {
-    return true || _.contains(betas, CONST.BETAS.ALL);
+    return _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
@@ -28,7 +28,7 @@ function canUseChronos() {
  * @returns {Boolean}
  */
 function canUseIOU() {
-    return true || _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas();
+    return _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas();
 }
 
 export default {
