@@ -46,23 +46,25 @@ class ReportTransaction extends Component {
             <View styles={[styles.mb5]}>
                 <ReportActionItemSingle
                     action={this.props.action}
-                    wrapperStyles={[styles.reportTransaction]}
+                    wrapperStyles={[styles.reportTransactionWrapper]}
                 >
                     <Text style={[styles.chatItemMessage]}>
                         {this.props.action.message[0].text}
                     </Text>
                 </ReportActionItemSingle>
                 {this.props.canReject && (
-                    <Pressable
-                        style={[
-                            styles.buttonSmall,
-                            styles.chatItemComposeSecondaryRowOffset,
-                            styles.mb3,
-                        ]}
-                        onPress={() => this.rejectTransaction()}
-                    >
-                        <Text style={[styles.buttonSmallText]}>Cancel</Text>
-                    </Pressable>
+                    <View style={[styles.reportTransactionCancel]}>
+                        <Pressable
+                            style={[
+                                styles.buttonSmall,
+                                styles.chatItemComposeSecondaryRowOffset,
+                                styles.mb3,
+                            ]}
+                            onPress={() => this.rejectTransaction()}
+                        >
+                            <Text style={[styles.buttonSmallText]}>Cancel</Text>
+                        </Pressable>
+                    </View>
                 )}
             </View>
         );
