@@ -8,7 +8,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     outputs:
-      isVersionBumpPR: ${{ steps.isVersionBumpPR.outputs.IS_AUTOMERGE_PR }}
+      isAutomatedPullRequest: ${{ steps.isAutomatedPullRequest.outputs.IS_AUTOMERGE_PR }}
 
     steps:
       - name: Get merged pull request
@@ -18,13 +18,13 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if merged pull request was an automatic version bump PR
-        id: isVersionBumpPR
+        id: isAutomatedPullRequest
         run: echo "::set-output name=IS_AUTOMERGE_PR::${{ github.actor == 'OSBotify' }}"
 
   deployStaging:
     runs-on: ubuntu-latest
     needs: validate
-    if: ${{ needs.validate.outputs.isVersionBumpPR == 'true' && github.ref == 'refs/heads/staging' }}
+    if: ${{ needs.validate.outputs.isAutomatedPullRequest == 'true' && github.ref == 'refs/heads/staging' }}
 
     steps:
       - name: Checkout staging branch
@@ -42,7 +42,7 @@ jobs:
   deployProduction:
     runs-on: ubuntu-latest
     needs: validate
-    if: ${{ needs.validate.outputs.isVersionBumpPR == 'true' && github.ref == 'refs/heads/production' }}
+    if: ${{ needs.validate.outputs.isAutomatedPullRequest == 'true' && github.ref == 'refs/heads/production' }}
 
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
