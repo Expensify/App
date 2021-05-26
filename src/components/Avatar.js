@@ -8,10 +8,10 @@ const propTypes = {
     source: PropTypes.string,
 
     /** Extra styles to pass */
-    style: PropTypes.arrayOf(PropTypes.any),
+    styles: PropTypes.arrayOf(PropTypes.object),
 
     /** Extra styles to pass to View wrapper */
-    containerStyle: PropTypes.arrayOf(PropTypes.any),
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Set the size of Avatar */
     size: PropTypes.oneOf(['default', 'small']),
@@ -19,8 +19,8 @@ const propTypes = {
 
 const defaultProps = {
     source: '',
-    style: [],
-    containerStyle: [],
+    styles: [],
+    containerStyles: [],
     size: 'default',
 };
 
@@ -31,12 +31,12 @@ class Avatar extends PureComponent {
         }
 
         return (
-            <View style={[...this.props.containerStyle, styles.avatarWrapper]}>
+            <View style={[...this.props.containerStyles, styles.avatarWrapper]}>
                 <Image
                     source={{uri: this.props.source}}
                     style={[
                         this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
-                        ...this.props.style,
+                        ...this.props.styles,
                     ]}
                 />
             </View>
