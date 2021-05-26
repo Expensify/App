@@ -218,6 +218,7 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         status: reportData.status,
         stateNum: reportData.stateNum,
         hasOutstandingIOU: reportData.stateNum === 1 && reportData.total !== 0,
+        isPaid: reportData.stateNum === 2 && reportData.total !== 0,
     };
 }
 
