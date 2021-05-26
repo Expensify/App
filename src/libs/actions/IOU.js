@@ -124,7 +124,7 @@ function createIOUSplit(params) {
  * @param {String} params.number
  */
 function rejectTransaction({
-    reportID, transactionID, comment,
+    reportID, chatReportID, transactionID, comment,
 }) {
     API.RejectTransaction({
         reportID,
@@ -133,18 +133,15 @@ function rejectTransaction({
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
-                throw new Error(response.message);
+                throw new Error(`${response.code} ${response.message}`);
             }
-
-            /*
-            TODO
 
             fetchChatReportsByIDs([chatReportID]);
 
             // todo
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
-            */
-        });
+        })
+        .catch(error => console.error(`Error rejecting transaction: ${error}`));
 }
 
 /**
