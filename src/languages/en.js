@@ -26,6 +26,8 @@ export default {
         email: 'Email',
         and: 'and',
         details: 'Details',
+        contacts: 'Contacts',
+        recents: 'Recents',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -96,8 +98,6 @@ export default {
         newGroup: 'New Group',
     },
     iou: {
-        contacts: 'CONTACTS',
-        recents: 'RECENTS',
         amount: 'Amount',
         participants: 'Participants',
         confirm: 'Confirm',
@@ -106,10 +106,13 @@ export default {
         pay: 'Pay',
         viewDetails: 'View Details',
         settleElsewhere: 'I\'ll settle up elsewhere',
+        settlePaypalMe: 'Pay with PayPal.me',
+        settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
         owes: ({manager, owner}) => `${manager} owes ${owner}`,
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
         split: ({amount}) => `Split ${amount}`,
+        choosePaymentMethod: 'Choose payment method:',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',

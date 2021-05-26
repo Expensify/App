@@ -114,8 +114,9 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
             participantNames[participant.displayName.toLowerCase()] = true;
         }
     });
+    const fullTitle = personalDetailList.map(({firstName, login}) => firstName || login).join(', ');
     return {
-        text: report ? report.reportName : personalDetail.displayName,
+        text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login),
@@ -384,6 +385,8 @@ function getNewChatOptions(
     return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
         includePersonalDetails: true,
+        includeRecentReports: true,
+        maxRecentReportsToShow: 5,
         excludeConcierge,
     });
 }
