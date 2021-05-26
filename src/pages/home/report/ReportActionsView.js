@@ -248,7 +248,8 @@ class ReportActionsView extends React.Component {
     updateSortedReportActions(reportActions) {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU')
+            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+                || action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
@@ -291,7 +292,7 @@ class ReportActionsView extends React.Component {
     updateMostRecentIOUReportActionNumber(reportActions) {
         this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'IOU')
+            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
             .max(action => action.sequenceNumber)
             .value().sequenceNumber;
     }

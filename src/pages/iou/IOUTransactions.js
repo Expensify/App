@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
@@ -45,7 +46,7 @@ const IOUTransactions = ({
     return (
         <View style={[styles.mt3]}>
             {_.map(reportActions, (reportAction) => {
-                if (reportAction.actionName === 'IOU'
+                if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
                     && reportAction.originalMessage.IOUReportID === iouReportID) {
                     // TODO, remove rejected transactions from the array
                     const rejectable = rejectedTransactions.includes(reportAction.originalMessage.IOUTransactionID);

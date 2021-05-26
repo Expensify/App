@@ -986,7 +986,7 @@ function addAction(reportID, text, file) {
     // Optimistically add the new comment to the store before waiting to save it to the server
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [optimisticReportActionID]: {
-            actionName: 'ADDCOMMENT',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
             person: [
