@@ -112,6 +112,7 @@ class ReportActionCompose extends React.Component {
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
         this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
         this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
+        this.onSelectionChange = this.onSelectionChange.bind(this);
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
 
@@ -126,6 +127,10 @@ class ReportActionCompose extends React.Component {
             emojiPopoverAnchorPosition: {
                 horizontal: 0,
                 vertical: 0,
+            },
+            selection: {
+                start: props.comment.length,
+                end: props.comment.length,
             },
         };
     }
@@ -147,6 +152,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
+    }
+
+    onSelectionChange(e) {
+        this.setState({selection: e.nativeEvent.selection});
     }
 
     /**
@@ -269,8 +278,16 @@ class ReportActionCompose extends React.Component {
      */
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
-        this.textInput.value = this.comment + emoji;
+        const {selection} = this.state;
+        this.textInput.value = this.comment.slice(0, selection.start)
+            + emoji + this.comment.slice(selection.end, this.comment.length);
+        const updatedSelection = {
+            start: selection.start + emoji.length,
+            end: selection.start + emoji.length,
+        };
+        this.setState({selection: updatedSelection});
         this.setIsFocused(true);
+        this.focus();
         this.updateComment(this.textInput.value);
     }
 
@@ -420,6 +437,8 @@ class ReportActionCompose extends React.Component {
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
                                     isDisabled={isComposeDisabled}
+                                    selection={this.state.selection}
+                                    onSelectionChange={this.onSelectionChange}
                                 />
 
                             </>

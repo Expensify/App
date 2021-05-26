@@ -17,6 +17,9 @@ const CONST = {
         PRESSED: 'pressed',
         COMPLETE: 'complete',
     },
+    CURRENCY: {
+        USD: 'USD',
+    },
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
@@ -151,6 +154,22 @@ const CONST = {
         IOS: 'iOS',
         LINUX: 'Linux',
         NATIVE: 'Native',
+    },
+
+    IOU: {
+        // Note: These payment types are used when building IOU reportAction message values in the server and should
+        // not be changed.
+        PAYMENT_TYPE: {
+            ELSEWHERE: 'Elsewhere',
+            PAYPAL_ME: 'PayPal.me',
+            VENMO: 'Venmo',
+        },
+    },
+
+    REGEX: {
+        US_PHONE: /^\+1\d{10}$/,
+        PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
+        NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
     },
 };
 

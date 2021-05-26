@@ -16,6 +16,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import CONST from '../../CONST';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -70,7 +71,7 @@ const defaultProps = {
         participants: [],
     },
     myPersonalDetails: {
-        preferredCurrencyCode: 'USD',
+        preferredCurrencyCode: CONST.CURRENCY.USD,
         preferredCurrencySymbol: '$',
     },
 };
