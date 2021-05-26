@@ -231,9 +231,12 @@ class TextInputFocusable extends React.Component {
                         const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
                         Growl.show(errorDesc, 'error');
 
-                        // We can't paste synthatically as it is blocked from browser due not generated
-                        // directly by user action.
-                        // Thus set the value manually. It won't trigger value chnage effect
+                        /*
+                        * Since we intercepted the user-triggered paste event to check for attachments,
+                        * we need to manually set the value and call the `onChangeText` handler.
+                        * Synthetically-triggered paste events do not affect the document's contents.
+                        * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
+                        */
                         const beforeCursorText = this.textInput.value.substring(0, this.selection.start);
                         const afterCursorText = this.textInput.value.substring(this.selection.end);
                         this.textInput.value = beforeCursorText + pastedText + afterCursorText;
