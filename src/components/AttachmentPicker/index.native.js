@@ -256,15 +256,15 @@ class AttachmentPicker extends Component {
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {
-                             this.menuItemData.map(item => (
-                                 <MenuItem
-                                     key={item.text}
-                                     icon={item.icon}
-                                     title={item.text}
-                                     onPress={() => this.selectItem(item)}
-                                 />
-                             ))
-                         }
+                            this.menuItemData.map(item => (
+                                <MenuItem
+                                    key={item.text}
+                                    icon={item.icon}
+                                    title={item.text}
+                                    onPress={() => this.selectItem(item)}
+                                />
+                            ))
+                        }
                     </View>
                 </Popover>
                 {this.renderChildren()}

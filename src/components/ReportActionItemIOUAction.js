@@ -66,7 +66,6 @@ const ReportActionItemIOUAction = memo(({
 ReportActionItemIOUAction.propTypes = propTypes;
 ReportActionItemIOUAction.defaultProps = defaultProps;
 ReportActionItemIOUAction.displayName = 'ReportActionItemIOUAction';
-ReportActionItemIOUAction.whyDidYouRender = true;
 
 export default withOnyx({
     chatReport: {

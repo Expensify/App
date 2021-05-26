@@ -98,6 +98,7 @@ class ReportActionCompose extends React.Component {
     constructor(props) {
         super(props);
 
+        this.uploadFile = this.uploadFile.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
@@ -107,6 +108,7 @@ class ReportActionCompose extends React.Component {
         this.showEmojiPicker = this.showEmojiPicker.bind(this);
         this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.hideCreateMenu = this.hideCreateMenu.bind(this);
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
@@ -114,6 +116,7 @@ class ReportActionCompose extends React.Component {
         this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
+        this.anchorPosition = {};
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -305,6 +308,20 @@ class ReportActionCompose extends React.Component {
         this.setTextInputShouldClear(true);
     }
 
+    uploadFile(file) {
+        addAction(this.props.reportID, '', file);
+        this.setTextInputShouldClear(false);
+    }
+
+    hideCreateMenu() {
+        this.setMenuVisibility(false);
+    }
+
+    updateAnchorPosition() {
+        this.anchorPosition.bottom = this.props.windowHeight - this.state.emojiPopoverAnchorPosition.vertical;
+        this.anchorPosition.left = this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE;
+    }
+
     render() {
         // eslint-disable-next-line no-unused-vars
         const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
@@ -312,6 +329,8 @@ class ReportActionCompose extends React.Component {
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
+
+        this.updateAnchorPosition();
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -324,10 +343,7 @@ class ReportActionCompose extends React.Component {
                 >
                     <AttachmentModal
                         isUploadingAttachment
-                        onConfirm={(file) => {
-                            addAction(this.props.reportID, '', file);
-                            this.setTextInputShouldClear(false);
-                        }}
+                        onConfirm={this.uploadFile}
                     >
                         {({displayFileInModal}) => (
                             <>
@@ -346,7 +362,7 @@ class ReportActionCompose extends React.Component {
                                             </TouchableOpacity>
                                             <CreateMenu
                                                 isVisible={this.state.isMenuVisible}
-                                                onClose={() => this.setMenuVisibility(false)}
+                                                onClose={this.hideCreateMenu}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
                                                 anchorPosition={styles.createMenuPositionReportActionCompose}
                                                 animationIn="fadeInUp"
@@ -437,10 +453,7 @@ class ReportActionCompose extends React.Component {
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
-                        anchorPosition={{
-                            bottom: this.props.windowHeight - this.state.emojiPopoverAnchorPosition.vertical,
-                            left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
-                        }}
+                        anchorPosition={this.anchorPosition}
                     >
                         <EmojiPickerMenu
                             onEmojiSelected={this.addEmojiToTextBox}

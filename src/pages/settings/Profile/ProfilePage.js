@@ -115,6 +115,15 @@ class ProfilePage extends Component {
             initialSelfSelectedPronouns = pronouns;
         }
 
+        this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
+        this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
+        this.closePhotoMenu = this.closePhotoMenu.bind(this);
+        this.getLogins = this.getLogins.bind(this);
+        this.createMenuItems = this.createMenuItems.bind(this);
+
+        this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
+        this.growlNotification = undefined;
+
         this.state = {
             firstName,
             lastName,
@@ -125,13 +134,6 @@ class ProfilePage extends Component {
             logins: this.getLogins(props.user.loginList),
             isEditPhotoMenuVisible: false,
         };
-
-        this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
-        this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
-        this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
-        this.getLogins = this.getLogins.bind(this);
-        this.createMenuItems = this.createMenuItems.bind(this);
-        this.growlNotification = undefined;
     }
 
     componentDidUpdate(prevProps) {
@@ -246,6 +248,10 @@ class ProfilePage extends Component {
         return menuItems;
     }
 
+    closePhotoMenu() {
+        this.setState({isEditPhotoMenuVisible: false});
+    }
+
     render() {
         // Determines if the pronouns/selected pronouns have changed
         const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns
@@ -292,8 +298,8 @@ class ProfilePage extends Component {
                                 />
                                 <CreateMenu
                                     isVisible={this.state.isEditPhotoMenuVisible}
-                                    onClose={() => this.setState({isEditPhotoMenuVisible: false})}
-                                    onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}
+                                    onClose={this.closePhotoMenu}
+                                    onItemSelected={this.closePhotoMenu}
                                     menuItems={this.createMenuItems(openPicker)}
                                     anchorPosition={styles.createMenuPositionProfile}
                                     animationIn="fadeInRight"

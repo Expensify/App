@@ -36,6 +36,5 @@ const ReportActionItemMessage = ({action, isOffline}) => {
 ReportActionItemMessage.propTypes = propTypes;
 ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
-ReportActionItemMessage.whyDidYouRender = true;
 
 export default ReportActionItemMessage;

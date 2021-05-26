@@ -155,6 +155,12 @@ class Tooltip extends PureComponent {
     }
 
     render() {
+        const shiftHorizontal = _.isFunction(this.props.shiftHorizontal)
+            ? this.props.shiftHorizontal(this.props.index)
+            : this.props.shiftHorizontal;
+        const shiftVertical = _.isFunction(this.props.shiftVertical)
+            ? this.props.shiftVertical(this.props.index)
+            : this.props.shiftVertical;
         return (
             <>
                 {this.state.isRendered && (
@@ -168,8 +174,8 @@ class Tooltip extends PureComponent {
                     tooltipWidth={this.state.tooltipWidth}
                     tooltipHeight={this.state.tooltipHeight}
                     setTooltipRef={el => this.tooltip = el}
-                    shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
-                    shiftVertical={_.result(this.props, 'shiftVertical')}
+                    shiftHorizontal={shiftHorizontal}
+                    shiftVertical={shiftVertical}
                     measureTooltip={this.measureTooltip}
                     text={this.props.text}
                 />

@@ -76,5 +76,5 @@ const ReportActionItemSingle = ({
 
 ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
-ReportActionItemSingle.whyDidYouRender = true;
+
 export default memo(ReportActionItemSingle);

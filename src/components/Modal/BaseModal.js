@@ -15,12 +15,24 @@ class BaseModal extends PureComponent {
         super(props);
 
         this.hideModalAndRemoveEventListeners = this.hideModalAndRemoveEventListeners.bind(this);
+        this.showModalAndAddEventListeners = this.showModalAndAddEventListeners.bind(this);
         this.subscribeToKeyEvents = this.subscribeToKeyEvents.bind(this);
         this.unsubscribeFromKeyEvents = this.unsubscribeFromKeyEvents.bind(this);
+        this.onBackdropPress = this.onBackdropPress.bind(this);
     }
 
     componentWillUnmount() {
         this.hideModalAndRemoveEventListeners();
+    }
+
+    /**
+     * @param {Event} e
+     */
+    onBackdropPress(e) {
+        if (e && e.type === 'keydown' && e.key === 'Enter') {
+            return;
+        }
+        this.props.onClose();
     }
 
     /**
@@ -46,6 +58,12 @@ class BaseModal extends PureComponent {
         KeyboardShortcut.unsubscribe('Enter');
     }
 
+    showModalAndAddEventListeners() {
+        this.subscribeToKeyEvents();
+        setModalVisibility(true);
+        this.props.onModalShow();
+    }
+
     render() {
         const {
             modalStyle,
@@ -67,21 +85,12 @@ class BaseModal extends PureComponent {
         );
         return (
             <ReactNativeModal
-                onBackdropPress={(e) => {
-                    if (e && e.type === 'keydown' && e.key === 'Enter') {
-                        return;
-                    }
-                    this.props.onClose();
-                }}
+                onBackdropPress={this.onBackdropPress}
 
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 onBackButtonPress={this.props.onClose}
-                onModalShow={() => {
-                    this.subscribeToKeyEvents();
-                    setModalVisibility(true);
-                    this.props.onModalShow();
-                }}
+                onModalShow={this.showModalAndAddEventListeners}
                 onModalHide={this.hideModalAndRemoveEventListeners}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}

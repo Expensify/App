@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {Image, Text, View} from 'react-native';
@@ -81,4 +82,7 @@ const MultipleAvatars = ({
 
 MultipleAvatars.defaultProps = defaultProps;
 MultipleAvatars.propTypes = propTypes;
-export default memo(MultipleAvatars);
+export default memo(MultipleAvatars, (prevProps, nextProps) => (
+    _.isEqual(prevProps.avatarImageURLs, nextProps.avatarImageURLs)
+    && _.isEqual(prevProps.secondAvatarStyle, nextProps.secondAvatarStyle)
+));

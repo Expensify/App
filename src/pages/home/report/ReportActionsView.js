@@ -417,7 +417,6 @@ class ReportActionsView extends React.Component {
 
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
-ReportActionsView.whyDidYouRender = true;
 
 export default compose(
     withWindowDimensions,

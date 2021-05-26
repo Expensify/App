@@ -108,13 +108,13 @@ class ReportActionItem extends Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
-            || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
             || this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
             || this.props.network.offline !== nextProps.network.offline
+            || !_.isEqual(this.state.popoverAnchorPosition, nextState.popoverAnchorPosition)
             || !_.isEqual(this.props.session, nextProps.session)
             || !_.isEqual(this.props.action, nextProps.action)
             || !_.isEqual(this.props.personalDetails, nextProps.personalDetails);
@@ -324,7 +324,6 @@ class ReportActionItem extends Component {
 
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
-ReportActionItem.whyDidYouRender = true;
 
 export default withOnyx({
     draftMessage: {

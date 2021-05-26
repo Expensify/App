@@ -143,7 +143,7 @@ class PopoverWithMeasuredContent extends Component {
             this.popoverHeight,
             this.props.windowHeight,
         );
-        const shifedAnchorPosition = {
+        const shiftedAnchorPosition = {
             left: adjustedAnchorPosition.left + horizontalShift,
             top: adjustedAnchorPosition.top + verticalShift,
         };
@@ -152,7 +152,7 @@ class PopoverWithMeasuredContent extends Component {
                 <Popover
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
-                    anchorPosition={shifedAnchorPosition}
+                    anchorPosition={shiftedAnchorPosition}
                 >
                     {this.props.measureContent()}
                 </Popover>

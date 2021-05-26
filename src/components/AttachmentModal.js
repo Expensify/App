@@ -62,13 +62,15 @@ class AttachmentModal extends PureComponent {
     constructor(props) {
         super(props);
 
+        this.close = this.close.bind(this);
+        this.downloadFile = this.downloadFile.bind(this);
+        this.submitAndClose = this.submitAndClose.bind(this);
+
         this.state = {
             isModalOpen: false,
             file: null,
             sourceURL: props.sourceURL,
         };
-
-        this.submitAndClose = this.submitAndClose.bind(this);
     }
 
     /**
@@ -87,6 +89,17 @@ class AttachmentModal extends PureComponent {
         this.setState({isModalOpen: false});
     }
 
+    close() {
+        this.setState({isModalOpen: false});
+    }
+
+    /**
+     * @param {String} sourceURL
+     */
+    downloadFile(sourceURL) {
+        fileDownload(sourceURL);
+    }
+
     render() {
         const sourceURL = addAuthTokenToURL({
             url: this.state.sourceURL,
@@ -102,7 +115,7 @@ class AttachmentModal extends PureComponent {
                 <Modal
                     type={CONST.MODAL.MODAL_TYPE.CENTERED}
                     onSubmit={this.submitAndClose}
-                    onClose={() => this.setState({isModalOpen: false})}
+                    onClose={this.close}
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
                     onModalHide={this.props.onModalHide}
@@ -114,8 +127,8 @@ class AttachmentModal extends PureComponent {
                             : this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton
-                        onDownloadButtonPress={() => fileDownload(sourceURL)}
-                        onCloseButtonPress={() => this.setState({isModalOpen: false})}
+                        onDownloadButtonPress={this.downloadFile}
+                        onCloseButtonPress={this.close}
                     />
                     <View style={attachmentViewStyles}>
                         {this.state.sourceURL && (

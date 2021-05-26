@@ -26,6 +26,8 @@ class VideoChatButtonAndMenu extends Component {
         this.toggleVideoChatMenu = this.toggleVideoChatMenu.bind(this);
         this.measureVideoChatIconPosition = this.measureVideoChatIconPosition.bind(this);
         this.videoChatIconWrapper = null;
+        this.anchorPosition = {};
+
         this.menuItemData = [
             {
                 icon: ZoomIcon,
@@ -79,7 +81,13 @@ class VideoChatButtonAndMenu extends Component {
         }
     }
 
+    updateAnchorPosition() {
+        this.anchorPosition.left = this.state.videoChatIconPosition.x - 150;
+        this.anchorPosition.right = this.state.videoChatIconPosition.y + 40;
+    }
+
     render() {
+        this.updateAnchorPosition();
         return (
             <>
                 <View
@@ -87,9 +95,7 @@ class VideoChatButtonAndMenu extends Component {
                     onLayout={this.measureVideoChatIconPosition}
                 >
                     <Pressable
-                        onPress={() => {
-                            this.toggleVideoChatMenu();
-                        }}
+                        onPress={this.toggleVideoChatMenu}
                         style={[styles.touchableButtonImage, styles.mr0]}
                     >
                         <Icon
@@ -103,10 +109,7 @@ class VideoChatButtonAndMenu extends Component {
                 <Popover
                     onClose={this.toggleVideoChatMenu}
                     isVisible={this.state.isVideoChatMenuActive}
-                    anchorPosition={{
-                        left: this.state.videoChatIconPosition.x - 150,
-                        top: this.state.videoChatIconPosition.y + 40,
-                    }}
+                    anchorPosition={this.anchorPosition}
                     animationIn="fadeInDown"
                     animationOut="fadeOutUp"
                 >

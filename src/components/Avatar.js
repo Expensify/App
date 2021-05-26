@@ -39,7 +39,6 @@ const Avatar = (props) => {
 
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
-Avatar.whyDidYouRender = true;
 
 export default memo(Avatar, (prevProps, nextProps) => (
     prevProps.source === nextProps.source
