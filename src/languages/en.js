@@ -106,6 +106,7 @@ export default {
         pay: 'Pay',
         viewDetails: 'View Details',
         settleElsewhere: 'I\'ll settle up elsewhere',
+        decline: 'Decline',
         request: ({amount}) => `Request ${amount}`,
         owes: ({manager, owner}) => `${manager} owes ${owner}`,
         paid: ({owner, manager}) => `${manager} paid ${owner}`,

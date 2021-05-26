@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Text, View, Pressable} from 'react-native';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
@@ -23,6 +24,8 @@ const propTypes = {
 
     /** Is the authenticated user the creator of this transaction? */
     isTransactionCreator: PropTypes.bool,
+
+    ...withLocalizePropTypes
 };
 
 const defaultProps = {
@@ -67,7 +70,9 @@ class ReportTransaction extends Component {
                             onPress={() => this.rejectTransaction()}
                         >
                             <Text style={[styles.buttonSmallText]}>
-                                {this.props.isTransactionCreator ? 'Cancel' : 'Decline'}
+                                {this.props.isTransactionCreator
+                                    ? this.props.translate('common.cancel')
+                                    : this.props.translate('iou.decline')}
                             </Text>
                         </Pressable>
                     </View>
@@ -80,4 +85,4 @@ class ReportTransaction extends Component {
 ReportTransaction.displayName = 'ReportTransaction';
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
-export default ReportTransaction;
+export default withLocalize(ReportTransaction);
