@@ -37,7 +37,7 @@ class FAB extends PureComponent {
             toValue: animationFinalValue,
             duration: 340,
             easing: Easing.inOut(Easing.ease),
-            useNativeDriver: false,
+            useNativeDriver: true,
         }).start();
     }
 
