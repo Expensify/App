@@ -132,6 +132,7 @@ const styles = {
         paddingRight: 10,
         paddingBottom: 6,
         paddingLeft: 10,
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonSmallText: {
@@ -1168,7 +1169,12 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
-    reportTransaction: {
+    reportTransactionCancel: {
+        justifyContent: 'flex-start',
+        flexDirection: 'row',
+    },
+
+    reportTransactionWrapper: {
         paddingVertical: 8,
         display: 'flex',
         flexDirection: 'row',
