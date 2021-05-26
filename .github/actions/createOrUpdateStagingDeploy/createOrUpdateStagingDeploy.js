@@ -55,13 +55,15 @@ GithubUtils.getStagingDeployCash()
         console.log('Found tag of previous StagingDeployCash:', lastTag);
 
         // Find the list of PRs merged between the last StagingDeployCash and the new version
-        return GitUtils.getPullRequestsMergedBetween(lastTag, newVersion);
+        const mergedPRs = GitUtils.getPullRequestsMergedBetween(lastTag, newVersion);
+
+        // Create new StagingDeployCash
+        return GithubUtils.createNewStagingDeployCash(
+            `Deploy Checklist: Expensify.cash ${moment().format('YYYY-MM-DD')}`,
+            newVersion,
+            _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber),
+        );
     })
-    .then(PRNumbers => GithubUtils.createNewStagingDeployCash(
-        `Deploy Checklist: Expensify.cash ${moment().format('YYYY-MM-DD')}`,
-        newVersion,
-        _.map(PRNumbers, GithubUtils.getPullRequestURLFromNumber),
-    ))
     .then(({data}) => console.log('Successfully created new StagingDeployCash! 🎉', data.html_url))
     .catch((err) => {
         console.error('An error occurred!', err);
