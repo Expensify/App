@@ -1456,12 +1456,12 @@ const styles = {
         justifyContent: 'flex-start',
         position: 'absolute',
         width: '100%',
+        top: 20,
         ...spacing.ph5,
     },
 
     growlNotificationDesktopContainer: {
-        maxWidth: '380px',
-        top: '20px',
+        maxWidth: 380,
         right: 0,
         position: 'fixed',
     },
