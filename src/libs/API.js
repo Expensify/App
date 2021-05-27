@@ -457,6 +457,18 @@ function PayIOU(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @returns {Promise}
+ */
+function PayWithWallet(parameters) {
+
+    const commandName = 'PayWithWallet';
+    requireParameters(['reportID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.emailList
  * @returns {Promise}
  */
@@ -800,6 +812,7 @@ export {
     Graphite_Timer,
     Log,
     PayIOU,
+    PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,
