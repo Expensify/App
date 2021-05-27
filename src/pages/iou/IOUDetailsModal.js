@@ -193,6 +193,8 @@ class IOUDetailsModal extends Component {
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
                             <ReportActionItemIOUPreview
                                 iou={this.props.iouReport}
+                                chatReportID={Number(this.props.route.params.chatReportID)}
+                                iouReportID={Number(this.props.route.params.iouReportID)}
                                 shouldHidePayButton
                             />
                             <IOUTransactions
