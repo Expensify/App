@@ -96,9 +96,9 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         + _.unescape(report.lastMessageText)
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-
+    const fullTitle = personalDetailList.map(({firstName, login}) => firstName || login).join(', ');
     return {
-        text: report ? report.reportName : personalDetail.displayName,
+        text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login),
@@ -338,11 +338,11 @@ function getSearchOptions(
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: true,
+        prioritizePinnedReports: false,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
-        sortByLastMessageTimestamp: true,
+        sortByLastMessageTimestamp: false,
     });
 }
 
@@ -364,6 +364,8 @@ function getNewChatOptions(
     return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
         includePersonalDetails: true,
+        includeRecentReports: true,
+        maxRecentReportsToShow: 5,
         excludeConcierge,
     });
 }
@@ -482,6 +484,24 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     return '';
 }
 
+/**
+ * Returns the currency list for sections display
+ *
+ * @param {Object} currencyOptions
+ * @param {String} searchValue
+ * @param {Object} selectedCurrency
+ * @returns {Array}
+ */
+function getCurrencyListForSections(currencyOptions, searchValue) {
+    const filteredOptions = currencyOptions.filter(currencyOption => (
+        isSearchStringMatch(searchValue, currencyOption.searchText)));
+
+    return {
+        // returns filtered options i.e. options with string match if search text is entered
+        currencyOptions: filteredOptions,
+    };
+}
+
 export {
     getSearchOptions,
     getNewChatOptions,
@@ -489,6 +509,7 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
+    getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
 };

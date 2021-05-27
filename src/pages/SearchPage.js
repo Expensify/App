@@ -90,7 +90,7 @@ class SearchPage extends Component {
      */
     getSections() {
         const sections = [{
-            title: this.props.translate('iou.recents'),
+            title: this.props.translate('common.recents'),
             data: this.state.recentReports.concat(this.state.personalDetails),
             shouldShow: true,
             indexOffset: 0,

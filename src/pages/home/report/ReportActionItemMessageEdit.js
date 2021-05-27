@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Pressable, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -9,6 +9,7 @@ import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Re
 import {scrollToIndex} from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import Button from '../../../components/Button';
 
 const propTypes = {
     /** All the data of the action */
@@ -109,16 +110,17 @@ class ReportActionItemMessageEdit extends React.Component {
                     autoFocus
                 />
                 <View style={[styles.flexRow, styles.mt1]}>
-                    <Pressable style={[styles.button, styles.mr2]} onPress={this.deleteDraft}>
-                        <Text style={styles.buttonText}>
-                            Cancel
-                        </Text>
-                    </Pressable>
-                    <Pressable style={[styles.button, styles.buttonSuccess]} onPress={this.publishDraft}>
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            Save Changes
-                        </Text>
-                    </Pressable>
+                    <Button
+                        style={[styles.mr2]}
+                        onPress={this.deleteDraft}
+                        text="Cancel"
+                    />
+                    <Button
+                        success
+                        style={[styles.mr2]}
+                        onPress={this.publishDraft}
+                        text="Save Changes"
+                    />
                 </View>
             </View>
         );
