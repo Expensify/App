@@ -131,10 +131,8 @@ const run = function () {
             });
         })
         .then(({data}) => {
-            console.log(
-                `Successfully ${shouldCreateNewStagingDeployCash ? 'created new' : 'updated'} StagingDeployCash! 🎉`,
-                data.html_url,
-            );
+            // eslint-disable-next-line max-len
+            console.log(`Successfully ${shouldCreateNewStagingDeployCash ? 'created new' : 'updated'} StagingDeployCash! 🎉 ${data.html_url}`);
             return data;
         })
         .catch((err) => {
