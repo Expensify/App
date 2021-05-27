@@ -277,7 +277,11 @@ jobs:
         with:
           node-version: '14.x'
 
-      - run: echo "Status android = ${{ needs.android.result }}, desktop = ${{ needs.desktop.result }}, iOS = ${{ needs.iOS.result }}, web = ${{ needs.web.result }}"
+      - name: Determine if this was a cherry-pick
+        id: isStagingDeployLocked
+        uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
@@ -295,6 +299,8 @@ jobs:
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
           IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+          # If the StagingDeployCash is still locked, then this was a cherry-pick deploy
+          IS_CHERRY_PICK: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
           DEPLOY_VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.android.result }}
