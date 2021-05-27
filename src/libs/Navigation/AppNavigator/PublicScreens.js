@@ -2,6 +2,7 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
 import SetPasswordPage from '../../../pages/SetPasswordPage';
+import TriggerWelcomePage from '../../../pages/TriggerWelcomePage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import SCREENS from '../../../SCREENS';
 
@@ -30,6 +31,10 @@ export default () => (
             name="SetPassword"
             options={defaultScreenOptions}
             component={SetPasswordPage}
+        />
+        <RootStack.Screen
+            name="TriggerWelcome"
+            component={TriggerWelcomePage}
         />
     </RootStack.Navigator>
 );

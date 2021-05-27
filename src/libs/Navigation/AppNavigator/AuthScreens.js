@@ -36,6 +36,8 @@ import MainDrawerNavigator from './MainDrawerNavigator';
 // Validate login page
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 
+import TriggerWelcomePage from '../../../pages/TriggerWelcomePage';
+
 // Modal Stack Navigators
 import {
     IOUBillStackNavigator,
@@ -195,6 +197,10 @@ class AuthScreens extends React.Component {
                         title: 'Expensify.cash',
                     }}
                     component={ValidateLoginPage}
+                />
+                <RootStack.Screen
+                    name="TriggerWelcome"
+                    component={TriggerWelcomePage}
                 />
 
                 {/* These are the various modal routes */}

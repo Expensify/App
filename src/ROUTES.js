@@ -46,6 +46,7 @@ export default {
     getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
+    TRIGGER_WELCOME: 'trigger/welcome/:location',
 
     /**
      * @param {String} route
