@@ -15,6 +15,7 @@ const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/
 
 const APPLAUSE_BOT = 'applausebot';
 const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
+const DEPLOY_BLOCKER_CASH_LABEL = 'DeployBlockerCash';
 
 class GithubUtils {
     /**
@@ -260,8 +261,6 @@ class GithubUtils {
     /**
      * Generate the issue body for a StagingDeployCash.
      *
-     * @private
-     *
      * @param {String} tag
      * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
      * @param {Array} [verifiedPRList] - The list of PR URLs which have passed QA.
@@ -445,3 +444,5 @@ module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
 module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
+module.exports.DEPLOY_BLOCKER_CASH_LABEL = DEPLOY_BLOCKER_CASH_LABEL;
+module.exports.APPLAUSE_BOT = APPLAUSE_BOT;
