@@ -253,8 +253,8 @@ class ReportActionsView extends React.Component {
                 // Empty ADDCOMMENT actions typically mean they have been deleted and should not be shown
                 const message = _.first(lodashGet(action, 'message', null));
                 const html = lodashGet(message, 'html', '');
-                return action.actionName === 'IOU'
-                    || (action.actionName === 'ADDCOMMENT' && html !== '');
+                return action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+                    || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && html !== '');
             })
             .map((item, index) => ({action: item, index}))
             .value()
@@ -298,7 +298,7 @@ class ReportActionsView extends React.Component {
     updateMostRecentIOUReportActionNumber(reportActions) {
         this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'IOU')
+            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
             .max(action => action.sequenceNumber)
             .value().sequenceNumber;
     }

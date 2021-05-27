@@ -19,6 +19,7 @@ import ReportActionItemIOUAction from '../../../components/ReportActionItemIOUAc
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -197,7 +198,7 @@ class ReportActionItem extends Component {
 
     render() {
         let children;
-        if (this.props.action.actionName === 'IOU') {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
                 <ReportActionItemIOUAction
                     chatReportID={this.props.reportID}
