@@ -69,9 +69,13 @@ class IOUTransactions extends Component {
         const rejectedTransactions = _.filter(actionsForIOUReport, action => ['cancel', 'decline']
             .includes(action.originalMessage.type));
 
-        const rejectedTransactionIDs = _.map(rejectedTransactions, rejectedTransaction => Number(lodashGet(
-            rejectedTransaction, 'originalMessage.IOUTransactionID', 0,
-        )));
+        const rejectedTransactionIDs = _.map(rejectedTransactions, (rejectedTransaction) => {
+            const transactionID = lodashGet(rejectedTransaction, 'originalMessage.IOUTransactionID', 0);
+
+            // API returns transactionID as type String in certain cases (if the transaction was rejected), this
+            // workaround should be removed once this is fixed: https://github.com/Expensify/Expensify/issues/165329
+            return Number(transactionID);
+        });
 
         const rejectableTransactions = _.filter(actionsForIOUReport, (action) => {
             if (action.originalMessage.type !== 'create') {
