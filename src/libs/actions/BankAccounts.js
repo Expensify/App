@@ -1,6 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 
@@ -98,7 +99,7 @@ function addPlaidBankAccount(account, password, plaidLinkToken) {
             ownershipType: '',
             acceptTerms: true,
             country: 'US',
-            currency: 'USD',
+            currency: CONST.CURRENCY.USD,
             fieldsType: 'local',
             plaidAccessToken,
         }),
