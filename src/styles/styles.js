@@ -1377,12 +1377,13 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
+        backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
-        maxWidth: 300,
+        maxWidth: variables.sideBarWidth,
         width: '100%',
     },
 
