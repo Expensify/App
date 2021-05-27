@@ -16,6 +16,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import CONST from '../../CONST';
 
 /**
  * IOU Currency selection for selecting currency
@@ -50,7 +51,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    myPersonalDetails: {preferredCurrencyCode: 'USD', preferredCurrencySymbol: '$'},
+    myPersonalDetails: {preferredCurrencyCode: CONST.CURRENCY.USD, preferredCurrencySymbol: '$'},
     currencyList: {},
 };
 

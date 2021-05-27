@@ -74,7 +74,7 @@ class ReportActionItem extends Component {
             },
         };
 
-        this.popoverAnchor = null;
+        this.popoverAnchor = undefined;
         this.showPopover = this.showPopover.bind(this);
         this.hidePopover = this.hidePopover.bind(this);
         this.measureContent = this.measureContent.bind(this);
@@ -202,7 +202,7 @@ class ReportActionItem extends Component {
                 <ReportActionItemIOUAction
                     chatReportID={this.props.reportID}
                     action={this.props.action}
-                    shouldDisplayPreview={this.props.hasOutstandingIOU && this.props.isMostRecentIOUReportAction}
+                    shouldDisplayPreview={this.props.isMostRecentIOUReportAction}
                 />
             );
         } else {
@@ -219,7 +219,7 @@ class ReportActionItem extends Component {
         }
         return (
             <PressableWithSecondaryInteraction
-                ref={ref => this.popoverAnchor = ref}
+                ref={el => this.popoverAnchor = el}
                 onSecondaryInteraction={this.showPopover}
             >
                 <Hoverable resetsOnClickOutside={false}>
