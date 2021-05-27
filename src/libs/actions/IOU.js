@@ -116,6 +116,26 @@ function createIOUSplit(params) {
 }
 
 /**
+ * Fetch both the chatReport and associated iouReport. Both reports need to be fetched after the user triggers an IOU
+ * action, to ensure that Components are re-rendered with the updated report data.
+ *
+ * @param {Number} chatReportID
+ * @param {Number} iouReportID
+ *
+ * @private
+ */
+ function fetchChatAndIOUReportsAndUpdateChatReport(chatReportID, iouReportID) {
+    fetchChatReportsByIDs([chatReportID]);
+
+    // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
+    // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
+    // components. If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. 
+    // In this case, the iouReport being fetched here must be open, because only an open iouReoport can be paid.
+    // Therefore, we should also sync the chatReport after fetching the iouReport.
+    fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID);
+}
+
+/**
  * Reject an iouReport transaction. Declining and cancelling transactions are done via the same Auth command.
  *
  * @param {Object} params
@@ -135,11 +155,7 @@ function rejectTransaction({
             if (response.jsonCode !== 200) {
                 throw new Error(`${response.code} ${response.message}`);
             }
-
-            fetchChatReportsByIDs([chatReportID]);
-
-            // todo
-            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+            fetchChatAndIOUReportsAndUpdateChatReport(chatReportID, reportID);
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`));
 }
@@ -159,14 +175,7 @@ function payIOUReport({
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
-            fetchChatReportsByIDs([chatReportID]);
-
-            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
-            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
-            // components. If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
-            // iouReport being fetched here must be open, because only an open iouReoport can be paid.
-            // Therefore, we should also sync the chatReport after fetching the iouReport.
-            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+            fetchChatAndIOUReportsAndUpdateChatReport(chatReportID, reportID);
         })
         .catch((error) => {
             console.error(`Error Paying iouReport: ${error}`);
