@@ -71,7 +71,7 @@ const LABELS = {
         name: GithubUtils.DEPLOY_BLOCKER_CASH_LABEL,
         color: '000000',
         default: false,
-        description: 'This issue or pull request should block deployment'
+        description: 'This issue or pull request should block deployment',
     },
 };
 
