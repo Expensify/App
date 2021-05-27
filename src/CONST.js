@@ -152,6 +152,12 @@ const CONST = {
         LINUX: 'Linux',
         NATIVE: 'Native',
     },
+
+    REPORT_ACTION: {
+        ACTION_TYPES: {
+            ADDCOMMENT: 'ADDCOMMENT',
+        },
+    },
 };
 
 export default CONST;

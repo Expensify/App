@@ -1,6 +1,15 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
+
+let sessionEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => sessionEmail = val ? val.email : null,
+});
 
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
@@ -44,10 +53,10 @@ function findLastAccessedReport(reports) {
  * @param {String} sessionEmail
  * @returns {Boolean}
  */
-function canEditReportAction(reportAction, sessionEmail) {
+function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
-        && reportAction.actionName !== 'IOU'
+        && reportAction.actionName === CONST.REPORT_ACTION.ACTION_TYPES.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
 }
 
