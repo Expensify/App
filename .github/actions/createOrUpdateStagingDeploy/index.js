@@ -21,7 +21,7 @@ const run = function () {
     let currentStagingDeployCashIssueNumber = null;
 
     // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
-    Promise.all([
+    return Promise.all([
         GithubUtils.octokit.issues.listForRepo({
             log: console,
             owner: GithubUtils.GITHUB_OWNER,
@@ -73,7 +73,7 @@ const run = function () {
             const currentStagingDeployCashData = GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[0]);
             currentStagingDeployCashIssueNumber = currentStagingDeployCashData.number;
 
-            const newDeployBlockers = _.map(deployBlockerResponse.data, url => ({
+            const newDeployBlockers = _.map(deployBlockerResponse.data, ({url}) => ({
                 url,
                 number: GithubUtils.getIssueOrPullRequestNumberFromURL(url),
                 isResolved: false,
@@ -145,7 +145,7 @@ const run = function () {
                 `Successfully ${shouldCreateNewStagingDeployCash ? 'created new' : 'updated'} StagingDeployCash! 🎉`,
                 data.html_url,
             );
-            process.exit(0);
+            return data;
         })
         .catch((err) => {
             console.error('An unknown error occurred!', err);
@@ -293,6 +293,7 @@ class GithubUtils {
             return {
                 title: issue.title,
                 url: issue.url,
+                number: this.getIssueOrPullRequestNumberFromURL(issue.url),
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),

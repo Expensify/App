@@ -160,6 +160,7 @@ class GithubUtils {
             return {
                 title: issue.title,
                 url: issue.url,
+                number: this.getIssueOrPullRequestNumberFromURL(issue.url),
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
