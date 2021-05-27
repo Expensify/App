@@ -17,6 +17,8 @@ import Navigation from '../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import Button from '../components/Button';
+import KeyboardAvoidingView from '../libs/KeyboardAvoidingView';
+import FixedFooter from '../components/FixedFooter';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -186,52 +188,54 @@ class NewGroupPage extends Component {
         );
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('sidebarScreen.newGroup')}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        canSelectMultipleOptions
-                        sections={sections}
-                        selectedOptions={this.state.selectedOptions}
-                        value={this.state.searchValue}
-                        onSelectRow={this.toggleOption}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                                userToInvite,
-                            } = getNewGroupOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                                [],
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                recentReports,
-                                personalDetails,
-                            });
-                        }}
-                        headerMessage={headerMessage}
-                        disableArrowKeysActions
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                        shouldFocusOnSelectRow
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('sidebarScreen.newGroup')}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
+                    <View style={[styles.flex1, styles.w100]}>
+                        <OptionsSelector
+                            canSelectMultipleOptions
+                            sections={sections}
+                            selectedOptions={this.state.selectedOptions}
+                            value={this.state.searchValue}
+                            onSelectRow={this.toggleOption}
+                            onChangeText={(searchValue = '') => {
+                                const {
+                                    recentReports,
+                                    personalDetails,
+                                    userToInvite,
+                                } = getNewGroupOptions(
+                                    this.props.reports,
+                                    this.props.personalDetails,
+                                    searchValue,
+                                    [],
+                                );
+                                this.setState({
+                                    searchValue,
+                                    userToInvite,
+                                    recentReports,
+                                    personalDetails,
+                                });
+                            }}
+                            headerMessage={headerMessage}
+                            disableArrowKeysActions
+                            hideAdditionalOptionStates
+                            forceTextUnreadStyle
+                            shouldFocusOnSelectRow
+                        />
+                    </View>
                     {this.state.selectedOptions?.length > 0 && (
-                        <View style={[styles.ph5, styles.pb5]}>
+                        <FixedFooter>
                             <Button
                                 success
                                 onPress={this.createGroup}
                                 style={[styles.w100]}
                                 text={this.props.translate('newGroupPage.createGroup')}
                             />
-                        </View>
+                        </FixedFooter>
                     )}
-                </View>
+                </KeyboardAvoidingView>
                 <KeyboardSpacer />
             </ScreenWrapper>
         );

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {TextInput} from 'react-native-gesture-handler';
+import {ScrollView, TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../styles/styles';
@@ -18,6 +18,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
+import FixedFooter from './FixedFooter';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -241,8 +242,8 @@ class IOUConfirmationList extends Component {
             },
         );
         return (
-            <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
-                <View style={[styles.flex1]}>
+            <>
+                <ScrollView style={[styles.flex1, styles.w100]}>
                     <OptionsList
                         listContainerStyles={[{
                             // Give max height to the list container so that it does not extend
@@ -258,12 +259,10 @@ class IOUConfirmationList extends Component {
                         disableFocusOptions
                         selectedOptions={this.getAllOptionsAsSelected()}
                     />
-                    <View>
-                        <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                            {this.props.translate('iOUConfirmationList.whatsItFor')}
-                        </Text>
-                    </View>
-                    <View style={[styles.ph5]}>
+                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                        {this.props.translate('iOUConfirmationList.whatsItFor')}
+                    </Text>
+                    <View style={[styles.ph5, styles.pb5]}>
                         <TextInput
                             style={[styles.textInput]}
                             value={this.props.comment}
@@ -272,17 +271,17 @@ class IOUConfirmationList extends Component {
                             placeholderTextColor={themeColors.placeholderText}
                         />
                     </View>
-                </View>
-                <View style={[styles.ph5, styles.pb3]}>
+                </ScrollView>
+                <FixedFooter>
                     <Button
                         success
-                        style={[styles.mb2]}
+                        style={[styles.w100]}
                         isLoading={this.props.iou.loading}
                         text={buttonText}
                         onPress={() => this.props.onConfirm(this.getSplits())}
                     />
-                </View>
-            </View>
+                </FixedFooter>
+            </>
         );
     }
 }

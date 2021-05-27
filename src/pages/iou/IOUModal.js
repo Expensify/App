@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
+import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -259,7 +260,7 @@ class IOUModal extends Component {
     render() {
         const currentStep = this.steps[this.state.currentStepIndex];
         return (
-            <>
+            <KeyboardAvoidingView>
                 <View style={[styles.headerBar, true && styles.borderBottom]}>
                     <View style={[
                         styles.dFlex,
@@ -323,7 +324,7 @@ class IOUModal extends Component {
                         onUpdateComment={this.updateComment}
                     />
                 )}
-            </>
+            </KeyboardAvoidingView>
         );
     }
 }

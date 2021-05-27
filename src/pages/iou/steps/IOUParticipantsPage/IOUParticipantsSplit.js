@@ -11,6 +11,7 @@ import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import Button from '../../../../components/Button';
+import FixedFooter from '../../../../components/FixedFooter';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -192,50 +193,52 @@ class IOUParticipantsSplit extends Component {
         const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
         return (
-            <View style={[styles.flex1, styles.w100]}>
-                <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
-                    {this.props.translate('common.to')}
-                </Text>
-                <OptionsSelector
-                    canSelectMultipleOptions
-                    sections={sections}
-                    selectedOptions={this.props.participants}
-                    value={this.state.searchValue}
-                    onSelectRow={this.toggleOption}
-                    onChangeText={(searchValue = '') => {
-                        const {
-                            recentReports,
-                            personalDetails,
-                            userToInvite,
-                        } = getNewGroupOptions(
-                            this.props.reports,
-                            this.props.personalDetails,
-                            searchValue,
-                            [],
-                            true,
-                        );
-                        this.setState({
-                            searchValue,
-                            userToInvite,
-                            recentReports,
-                            personalDetails,
-                        });
-                    }}
-                    disableArrowKeysActions
-                    hideAdditionalOptionStates
-                    forceTextUnreadStyle
-                />
+            <>
+                <View style={[styles.flex1, styles.w100]}>
+                    <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
+                        {this.props.translate('common.to')}
+                    </Text>
+                    <OptionsSelector
+                        canSelectMultipleOptions
+                        sections={sections}
+                        selectedOptions={this.props.participants}
+                        value={this.state.searchValue}
+                        onSelectRow={this.toggleOption}
+                        onChangeText={(searchValue = '') => {
+                            const {
+                                recentReports,
+                                personalDetails,
+                                userToInvite,
+                            } = getNewGroupOptions(
+                                this.props.reports,
+                                this.props.personalDetails,
+                                searchValue,
+                                [],
+                                true,
+                            );
+                            this.setState({
+                                searchValue,
+                                userToInvite,
+                                recentReports,
+                                personalDetails,
+                            });
+                        }}
+                        disableArrowKeysActions
+                        hideAdditionalOptionStates
+                        forceTextUnreadStyle
+                    />
+                </View>
                 {this.props.participants?.length > 0 && (
-                    <View style={[styles.ph5, styles.pb5]}>
+                    <FixedFooter>
                         <Button
                             success
                             style={[styles.w100]}
                             onPress={this.finalizeParticipants}
                             text={this.props.translate('common.next')}
                         />
-                    </View>
+                    </FixedFooter>
                 )}
-            </View>
+            </>
         );
     }
 }
