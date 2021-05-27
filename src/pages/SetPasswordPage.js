@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {
     SafeAreaView,
     Text,
-    TextInput,
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -14,9 +13,7 @@ import styles from '../styles/styles';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import ButtonWithLoader from '../components/ButtonWithLoader';
-import themeColors from '../styles/themes/default';
 import SignInPageLayout from './signin/SignInPageLayout';
-import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPassword from './settings/NewPassword';
