@@ -32,17 +32,16 @@ function isReportMessageAttachment(reportMessageText) {
 }
 
 /**
- * Given a collection of reports returns the most recently accessed one
+ * Given a collection of reports returns them sorted by last visited
  *
- * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
- * @returns {Object}
+ * @param {Object} reports
+ * @returns {Array}
  */
-function findLastAccessedReport(reports) {
+function sortReportsByLastVisited(reports) {
     return _.chain(reports)
         .toArray()
         .filter(report => report && report.reportID)
         .sortBy('lastVisitedTimestamp')
-        .last()
         .value();
 }
 
@@ -60,9 +59,20 @@ function canEditReportAction(reportAction) {
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
 }
 
+/**
+ * Given a collection of reports returns the most recently accessed one
+ *
+ * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
+ * @returns {Object}
+ */
+function findLastAccessedReport(reports) {
+    return _.last(sortReportsByLastVisited(reports));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
+    sortReportsByLastVisited,
 };
