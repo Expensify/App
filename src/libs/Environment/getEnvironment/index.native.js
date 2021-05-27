@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
-import betaChecker from '../betaChecker/index';
+import betaChecker from '../betaChecker';
 import CONST from '../../../CONST';
 
 let environment = null;
