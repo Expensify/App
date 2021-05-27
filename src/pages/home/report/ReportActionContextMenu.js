@@ -19,6 +19,7 @@ import {isReportMessageAttachment} from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ConfirmModal from '../../../components/ConfirmModal';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The ID of the report this report action is attached to. */
@@ -164,8 +165,9 @@ class ReportActionContextMenu extends React.Component {
      * @return {Boolean}
      */
     canEdit() {
-        return this.props.reportAction.actorEmail === this.props.session.email
-            && this.props.reportAction.reportActionID;
+        return this.props.reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && this.props.reportAction.actorEmail === this.props.session.email
+        && this.props.reportAction.reportActionID;
     }
 
     confirmDeleteAndHideModal() {
