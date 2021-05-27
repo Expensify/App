@@ -61,10 +61,9 @@ function getSearchText(report, personalDetailList) {
     const searchTerms = [];
 
     _.each(personalDetailList, (personalDetail) => {
-        searchTerms.add(personalDetail.displayName);
-        searchTerms.add(personalDetail.login);
+        searchTerms.push(personalDetail.displayName);
+        searchTerms.push(personalDetail.login);
     });
-
     if (report) {
         searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
