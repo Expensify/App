@@ -1,10 +1,9 @@
-import React from 'react';
+import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
@@ -22,50 +21,98 @@ const propTypes = {
 
     /** Email for the authenticated user */
     userEmail: PropTypes.string.isRequired,
+
+    /** Has the iouReport been paid? */
+    isReportPaid: PropTypes.bool,
 };
 
 const defaultProps = {
     reportActions: {},
+    isReportPaid: false,
 };
 
-const IOUTransactions = ({
-    reportActions,
-    chatReportID,
-    iouReportID,
-    userEmail,
-}) => {
-    const rejectedTransactions = _.map(_.filter(reportActions, (reportAction) => {
-        if (!reportAction.originalMessage || !reportAction.originalMessage.type) {
-            return false;
+class IOUTransactions extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            rejectableTransactionIDs: [],
+        };
+
+        this.updateRejectableTransactions = this.updateRejectableTransactions.bind(this);
+    }
+
+    componentDidMount() {
+        this.updateRejectableTransactions();
+    }
+
+    componentDidUpdate(oldProps) {
+        if (oldProps.reportActions !== this.props.reportActions) {
+            this.updateRejectableTransactions();
+        }
+    }
+
+    /**
+     * Update the rejectableTransactionIDs state array. A transaction must meet multiple requirements in order to be
+     * rejectable. We must exclude transactions not associated with the iouReportID, actions which have already been
+     * rejected, and those which are not of type 'create').
+     */
+    updateRejectableTransactions() {
+        if (this.props.isReportPaid) {
+            this.setState({rejectableTransactionIDs: []});
+            return;
         }
 
-        // actions of type 'create' are potentially rejectable
-        return reportAction.originalMessage.type === 'create';
-    }), createAction => lodashGet(createAction, 'originalMessage.IOUTransactionID', 0));
+        const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
+            && action.originalMessage.type && action.originalMessage.IOUReportID === this.props.iouReportID);
 
-    return (
-        <View style={[styles.mt3]}>
-            {_.map(reportActions, (reportAction) => {
-                if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
-                    && reportAction.originalMessage.IOUReportID === iouReportID) {
-                    // TODO, remove rejected transactions from the array
-                    const rejectable = rejectedTransactions.includes(reportAction.originalMessage.IOUTransactionID);
-                    const isTransactionCreator = userEmail === reportAction.actorEmail;
-                    return (
-                        <ReportTransaction
-                            chatReportID={chatReportID}
-                            iouReportID={iouReportID}
-                            action={reportAction}
-                            key={reportAction.sequenceNumber}
-                            canReject={rejectable}
-                            isTransactionCreator={isTransactionCreator}
-                        />
-                    );
-                }
-            })}
-        </View>
-    );
-};
+        const rejectedTransactions = _.filter(actionsForIOUReport, action => ['cancel', 'decline']
+            .includes(action.originalMessage.type));
+
+        const rejectedTransactionIDs = _.map(rejectedTransactions, rejectedTransaction => Number(lodashGet(
+            rejectedTransaction, 'originalMessage.IOUTransactionID', 0,
+        )));
+
+        const rejectableTransactions = _.filter(actionsForIOUReport, (action) => {
+            if (action.originalMessage.type !== 'create') {
+                return;
+            }
+            return !rejectedTransactionIDs.includes(action.originalMessage.IOUTransactionID);
+        });
+
+        const rejectableTransactionIDs = _.map(rejectableTransactions, transaction => lodashGet(
+            transaction, 'originalMessage.IOUTransactionID', 0,
+        ));
+
+        this.setState({rejectableTransactionIDs});
+    }
+
+    render() {
+        return (
+            <View style={[styles.mt3]}>
+                {_.map(this.props.reportActions, (reportAction) => {
+                    if (reportAction.originalMessage
+                        && reportAction.originalMessage.IOUReportID === this.props.iouReportID) {
+                        const isRejectable = this.state.rejectableTransactionIDs.includes(
+                            reportAction.originalMessage.IOUTransactionID,
+                        );
+                        const isTransactionCreator = this.props.userEmail === reportAction.actorEmail;
+                        return (
+                            <ReportTransaction
+                                chatReportID={this.props.chatReportID}
+                                iouReportID={this.props.iouReportID}
+                                action={reportAction}
+                                key={reportAction.sequenceNumber}
+                                isRejectable={isRejectable}
+                                isTransactionCreator={isTransactionCreator}
+                            />
+                        );
+                    }
+                })}
+            </View>
+        );
+    }
+}
 
 IOUTransactions.defaultProps = defaultProps;
 IOUTransactions.propTypes = propTypes;
