@@ -64,7 +64,7 @@ const DetailsPage = ({personalDetails, route, translate}) => {
                         <View style={styles.pageWrapper}>
                             <Avatar
                                 containerStyles={[styles.avatarLarge, styles.mb3]}
-                                style={[styles.avatarLarge]}
+                                imageStyles={[styles.avatarLarge]}
                                 source={details.avatar}
                             />
                             <Text style={[styles.displayName, styles.mt1, styles.mb6]} numberOfLines={1}>
