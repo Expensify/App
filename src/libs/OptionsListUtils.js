@@ -58,7 +58,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 function getSearchText(report, personalDetailList) {
     // Use a set because it skips adding duplicates,
     // which could potentially significantly speed up our regex search if someone has thousands of chats
-    const searchTerms = new Set();
+    const searchTerms = [];
 
     _.each(personalDetailList, (personalDetail) => {
         searchTerms.add(personalDetail.displayName);
@@ -66,12 +66,12 @@ function getSearchText(report, personalDetailList) {
     });
 
     if (report) {
-        searchTerms.add(report.reportName);
-        _.each(report.reportName.split(',').map(name => name.trim()), name => searchTerms.add(name));
-        _.each(report.participants, participant => searchTerms.add(participant));
+        searchTerms.push(...report.reportName);
+        searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
+        searchTerms.push(...report.participants);
     }
 
-    return Array.from(searchTerms).join(' ');
+    return _.unique(searchTerms).join(' ');
 }
 
 /**
