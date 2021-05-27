@@ -42,6 +42,10 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
+    // Contains a list of all currencies available to the user - user can
+    // select a currency based on the list
+    CURRENCY_LIST: 'currencyList',
+
     // Indicates whether an update is available and ready to beinstalled.
     UPDATE_AVAILABLE: 'updateAvailable',
 
@@ -62,6 +66,12 @@ export default {
 
     // Contains the user preference for the LHN priority mode
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
+
+    // SDK token used to communicate with Plaid API
+    PLAID_LINK_TOKEN: 'plaidLinkToken',
+
+    // List of bank accounts returned by Plaid
+    PLAID_BANK_ACCOUNTS: 'plaidBankAccounts',
 
     // Collection Keys
     COLLECTION: {
