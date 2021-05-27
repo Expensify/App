@@ -1023,7 +1023,7 @@ function addAction(reportID, text, file) {
             timestamp: moment().unix(),
             message: [
                 {
-                    type: 'COMMENT',
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     html: htmlForNewComment,
                     text: textForNewComment,
                 },
@@ -1063,7 +1063,7 @@ function deleteReportComment(reportID, reportAction) {
         ...reportAction,
         message: [
             {
-                type: 'COMMENT',
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 html: '',
                 text: '',
             },
