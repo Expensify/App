@@ -67,11 +67,11 @@ function getSearchText(report, personalDetailList) {
 
     if (report) {
         searchTerms.add(report.reportName);
-        searchTerms.add(...report.reportName.split(',').map(name => name.trim()));
-        searchTerms.add(...report.participants);
+        _.each(report.reportName.split(',').map(name => name.trim()), name => searchTerms.add(name));
+        _.each(report.participants, participant => searchTerms.add(participant));
     }
 
-    return _.unique(Array.from(searchTerms)).join(' ');
+    return Array.from(searchTerms).join(' ');
 }
 
 /**
@@ -100,7 +100,10 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
-    // Using an object instead of an array since we can check if it has a key in constant time
+    // Using an object instead of an array,
+    // since worst-case an array would require iterating through all of its members,
+    // while an object would allow us to directly look up a key.
+    // Looking up a value in an object with n keys can be up to n times faster than in an array with n members.
     const participantNames = {};
     _.each(personalDetailList, (participant) => {
         if (participant.login) {
