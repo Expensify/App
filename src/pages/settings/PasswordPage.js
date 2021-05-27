@@ -16,7 +16,6 @@ import ButtonWithLoader from '../../components/ButtonWithLoader';
 import {changePassword} from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import TestComp from './TestComp';
 
 const propTypes = {
     /* Onyx Props */
@@ -146,7 +145,6 @@ class PasswordPage extends Component {
                             onClick={this.handleChangePassword}
                         />
                     </View>
-                    <TestComp />
                 </View>
             </ScreenWrapper>
 

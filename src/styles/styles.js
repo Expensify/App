@@ -360,14 +360,6 @@ const styles = {
         lineHeight: 18,
     },
 
-    textSuccess: {
-        color: themeColors.textSuccess,
-    },
-
-    textError: {
-        color: themeColors.textError,
-    },
-
     signInPage: {
         backgroundColor: themeColors.sidebar,
         padding: 20,
