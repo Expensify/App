@@ -165,6 +165,9 @@ class ReportActionContextMenu extends React.Component {
      * @return {Boolean}
      */
     canEdit() {
+        // Can only edit if it's a ADDCOMMENT, the author is this user and it's not a optimistic response.
+        // If it's an optimistic response comment it will not have a reportActionID,
+        // and we should wait until it does before we show the actions
         return this.props.reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && this.props.reportAction.actorEmail === this.props.session.email
         && this.props.reportAction.reportActionID;
