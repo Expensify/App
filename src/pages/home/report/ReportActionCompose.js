@@ -75,12 +75,6 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Email of the logged in person */
-        email: PropTypes.string,
-    }),
-
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
@@ -108,7 +102,6 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: {},
-    session: {},
     network: {isOffline: false},
 };
 
@@ -258,7 +251,7 @@ class ReportActionCompose extends React.Component {
 
                 const reportActionKey = _.find(
                     Object.keys(this.props.reportActions).reverse(),
-                    key => canEditReportAction(this.props.reportActions[key], this.props.session.email),
+                    key => canEditReportAction(this.props.reportActions[key]),
                 );
 
                 if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
@@ -541,9 +534,6 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         },
