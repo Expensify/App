@@ -39,7 +39,7 @@ class Avatar extends PureComponent {
             : [this.props.style];
 
         return (
-            <View style={[...this.props.containerStyles, styles.avatarWrapper]}>
+            <View pointerEvents="none" style={this.props.containerStyles}>
                 <Image
                     source={{uri: this.props.source}}
                     style={[

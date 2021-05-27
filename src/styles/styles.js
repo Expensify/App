@@ -1028,10 +1028,6 @@ const styles = {
         borderColor: themeColors.sidebar,
     },
 
-    avatarWrapper: {
-        pointerEvents: 'none',
-    },
-
     focusedAvatar: {
         backgroundColor: themeColors.border,
         borderColor: themeColors.border,
