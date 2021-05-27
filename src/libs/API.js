@@ -461,7 +461,6 @@ function PayIOU(parameters) {
  * @returns {Promise}
  */
 function PayWithWallet(parameters) {
-
     const commandName = 'PayWithWallet';
     requireParameters(['reportID'], parameters, commandName);
     return Network.post(commandName, parameters);
