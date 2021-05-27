@@ -10,7 +10,8 @@ jobs:
     outputs:
       mergedPullRequest: ${{ steps.getMergedPullRequest.outputs.number }}
       isStagingDeployLocked: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
-      isVersionBumpPR: ${{ steps.isVersionBumpPR.outputs.IS_VERSION_BUMP_PR }}
+      isAutomatedPullRequest: ${{ steps.isAutomatedPullRequest.outputs.IS_VERSION_BUMP_PR }}
+      shouldCherryPick: ${{ steps.shouldCherryPick.outputs.SHOULD_CHERRY_PICK }}
 
     steps:
       # Version: 2.3.4
@@ -32,13 +33,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Check if merged pull request was an automatic version bump PR
-        id: isVersionBumpPR
+        id: isAutomatedPullRequest
         run: echo "::set-output name=IS_VERSION_BUMP_PR::${{ github.actor == 'OSBotify' }}"
+
+      - name: Check if merged pull request has `CP Staging` label
+        id: shouldCherryPick
+        run: echo "::set-output name=SHOULD_CHERRY_PICK::${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}"
 
   skipDeploy:
     runs-on: ubuntu-latest
     needs: chooseDeployActions
-    if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.isVersionBumpPR == 'false' }}
+    if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.isAutomatedPullRequest == 'false' }}
 
     steps:
       - name: Comment on deferred PR
@@ -52,7 +57,7 @@ jobs:
   version:
     runs-on: macos-latest
     needs: chooseDeployActions
-    if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' && needs.chooseDeployActions.outputs.isVersionBumpPR == 'false' }}
+    if: ${{ needs.chooseDeployActions.outputs.shouldCherryPick == 'true' || (needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' && needs.chooseDeployActions.outputs.isAutomatedPullRequest == 'false') }}
 
     steps:
       # Version: 2.3.4
@@ -74,12 +79,21 @@ jobs:
           WORKFLOW: createNewVersion.yml
           INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
 
-      - name: Update staging branch
+      - name: Update staging branch from main
+        if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' }}
         uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: updateProtectedBranch.yml
           INPUTS: '{ "TARGET_BRANCH": "staging" }'
+
+      - name: Cherry pick to staging
+        if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.shouldCherryPick == 'true' }}
+        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          WORKFLOW: cherryPick.yml
+          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ needs.chooseDeployActions.outputs.mergedPullRequest }}" }'
 
       - name: Pull main to get the new version
         run: |
