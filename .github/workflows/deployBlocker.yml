@@ -40,7 +40,7 @@ jobs:
           add-labels: 'Hourly, Engineering'
           remove-labels: 'Daily, Weekly, Monthly'
 
-      - name: Post the issue in the \#deployer slack room
+      - name: 'Post the issue in the #deployer slack room'
         if: ${{ success() }}
         uses: 8398a7/action-slack@v3
         with:
