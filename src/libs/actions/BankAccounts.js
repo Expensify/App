@@ -5,7 +5,6 @@ import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import CONST from '../../CONST';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
