@@ -7,6 +7,7 @@ import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import styles, {getSafeAreaPadding} from '../styles/styles';
 import HeaderGap from './HeaderGap';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
+import onScreenTransitionEnd from '../libs/onScreenTransitionEnd';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -61,7 +62,7 @@ class ScreenWrapper extends React.Component {
             this.props.navigation.goBack();
         }, [], true);
 
-        this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', () => {
+        this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
             this.setState({didScreenTransitionEnd: true});
             this.props.onTransitionEnd();
         });
