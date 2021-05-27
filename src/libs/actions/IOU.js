@@ -116,7 +116,7 @@ function createIOUSplit(params) {
 }
 
 /**
- * Fetch both the chatReport and associated iouReport. Both reports need to be fetched after the user triggers an IOU
+ * Fetch both the chatReport and associated iouReport. Both reports should be fetched after the user triggers an IOU
  * action, to ensure that Components are re-rendered with the updated report data.
  *
  * @param {Number} chatReportID
@@ -124,12 +124,12 @@ function createIOUSplit(params) {
  *
  * @private
  */
- function fetchChatAndIOUReportsAndUpdateChatReport(chatReportID, iouReportID) {
+function fetchChatAndIOUReportsAndUpdateChatReport(chatReportID, iouReportID) {
     fetchChatReportsByIDs([chatReportID]);
 
     // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
     // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
-    // components. If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. 
+    // components. If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid.
     // In this case, the iouReport being fetched here must be open, because only an open iouReoport can be paid.
     // Therefore, we should also sync the chatReport after fetching the iouReport.
     fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID);
