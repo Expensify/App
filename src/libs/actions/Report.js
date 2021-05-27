@@ -196,21 +196,11 @@ function getSimplifiedReportObject(report) {
  * @returns {Object}
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
-    const transactions = _.map(reportData.transactionList, transaction => ({
-        transactionID: transaction.transactionID,
-        amount: transaction.amount,
-        currency: transaction.currency,
-        created: transaction.created,
-        comment: transaction.comment,
-    })).reverse(); // `transactionList` data is returned ordered by desc creation date, they are changed to asc order
-    // because we must instead display them in the order that they were created (asc).
-
     return {
         reportID: reportData.reportID,
         ownerEmail: reportData.ownerEmail,
         managerEmail: reportData.managerEmail,
         currency: reportData.currency,
-        transactions,
         chatReportID: Number(chatReportID),
         state: reportData.state,
         cachedTotal: reportData.cachedTotal,
