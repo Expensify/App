@@ -168,12 +168,14 @@ Onyx.connect({
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText, participantNames) {
-    const searchWords = searchValue.split(' ');
+    const searchWords = searchValue
+        .replace(/,/g, ' ')
+        .split(' ')
+        .map(word => word.trim());
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch)
-            || participantNames[word.trim().replace(new RegExp(/,/g), '')];
+        return matchRegex.test(valueToSearch) || participantNames[word];
     });
 }
 
