@@ -36,6 +36,9 @@ const propTypes = {
 
         /** Does the report have an outstanding IOU that needs to be paid? */
         hasOutstandingIOU: PropTypes.bool,
+
+        /** Has the report been paid? */
+        isPaid: PropTypes.bool,
     }),
 
     /** All of the personal details for everyone */
@@ -111,7 +114,7 @@ const ReportActionItemIOUPreview = ({
                     />
                 </View>
             </View>
-            {isCurrentUserManager && !shouldHidePayButton && (
+            {isCurrentUserManager && !shouldHidePayButton && !iou.isPaid && (
                 <TouchableOpacity
                     style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
                     onPress={onPayButtonPressed}
