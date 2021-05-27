@@ -7,12 +7,6 @@ inputs:
     NPM_VERSION:
         description: The new NPM version of the StagingDeployCash issue.
         required: false
-    NEW_PULL_REQUESTS:
-        description: A comma-separated list of pull request URLs to add to the open StagingDeployCash issue.
-        required: false
-    NEW_DEPLOY_BLOCKERS:
-        description: A comma-separated list of deploy blockers to add to the open StagingDeployCash issue.
-        required: false
 runs:
     using: 'node12'
     main: './index.js'
