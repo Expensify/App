@@ -1,0 +1,104 @@
+name: Cherry-pick a pull request
+
+on:
+  workflow_dispatch:
+    inputs:
+      PULL_REQUEST_NUMBER:
+        description: The number of a pull request to CP
+        required: true
+
+jobs:
+  validateActor:
+    runs-on: ubuntu-latest
+    outputs:
+      IS_DEPLOYER: ${{ steps.isUserDeployer.outputs.isTeamMember }}
+    steps:
+      - id: isUserDeployer
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: expensify-cash-deployers
+
+  cherryPick:
+    needs: validateActor
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      # Version: 2.3.4
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get merge commit for pull request
+        id: getMergeCommit
+        uses: Expensify/Expensify.cash/.github/actions/getMergeCommitForPullRequest@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+
+      # Version: 2.3.4
+      - name: Checkout merge commit
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: ${{ steps.getMergeCommit.outputs.MERGE_COMMIT_SHA }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create branch for new pull request
+        run: |
+          git checkout -b cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          git push --set-upstream origin cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+
+      - name: Create Pull Request
+        id: createPullRequest
+        # Version: 2.4.3
+        uses: repo-sync/pull-request@65194d8015be7624d231796ddee1cd52a5023cb3
+        with:
+          source_branch: cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          destination_branch: staging
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          pr_title: '🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
+          pr_body: '🍒 Cherry pick https://github.com/Expensify/Expensify.cash/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
+          pr_label: automerge
+
+      - name: Check if pull request is mergeable
+        id: isPullRequestMergeable
+        uses: Expensify/Expensify.cash/.github/actions/isPullRequestMergeable@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
+
+      - name: Auto-assign PR if it is not mergeable
+        if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+        uses: actions-ecosystem/action-add-labels@a8ae047fee0ca28235f9764e1c478d2136dc15c1
+        with:
+          number: ${{ steps.createPullRequest.outputs.pr_number }}
+          labels: |
+            Engineering
+            Hourly
+
+      - name: If PR is not mergeable, comment with instructions for assignee
+        if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
+        with:
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          number: ${{ steps.createPullRequest.outputs.pr_number }}
+          body: |
+            This pull request has a merge conflict and could not be automatically merged. :disappointed:
+            Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
+
+      # TODO: Once https://github.com/hmarr/auto-approve-action/pull/186 is merged, point back at the non-forked repo
+      - name: Check for an auto approve
+        # Version: 2.0.0
+        uses: roryabraham/auto-approve-action@6bb4a3dcf07664d0131e1c74a4bc6d0d8c849978
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.createPullRequest.outputs.pr_number }}
+
+      - name: Check for an auto merge
+        # Version: 0.12.0
+        uses: pascalgn/automerge-action@39d831e1bb389bd242626bc25d4060064a97181c
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          PULL_REQUEST: ${{ steps.createPullRequest.outputs.pr_number }}

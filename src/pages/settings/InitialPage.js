@@ -109,7 +109,7 @@ const InitialSettingsPage = ({
                 title={translate('initialSettingsPage.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView pointerEvents="box-none" style={[styles.settingsPageBackground]} bounces={false}>
+            <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
                         <View style={[styles.mb3]}>

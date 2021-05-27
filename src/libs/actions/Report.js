@@ -18,7 +18,7 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {isReportMessageAttachment} from '../reportUtils';
+import {isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 
@@ -207,6 +207,8 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         total: reportData.total,
         status: reportData.status,
         stateNum: reportData.stateNum,
+        submitterPayPalMeAddress: reportData.submitterPayPalMeAddress,
+        submitterPhoneNumbers: reportData.submitterPhoneNumbers,
         hasOutstandingIOU: reportData.stateNum === 1 && reportData.total !== 0,
         isPaid: reportData.stateNum === 2 && reportData.total !== 0,
     };
@@ -479,6 +481,13 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+
+    // If this is the most recent message, update the lastMessageText in the report object as well
+    if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            lastMessageText: message.html,
+        });
+    }
 }
 
 /**
@@ -901,9 +910,19 @@ function fetchAllReports(
                 // content and improve chat switching experience by only downloading content we don't have yet.
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
                 // data processing by Onyx.
-                const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
+                const reportIDsWithMissingActions = _.filter(returnedReportIDs, id => (
                     isReportMissingActions(id, reportMaxSequenceNumbers[id])
                 ));
+
+                // Once we have the reports that are missing actions we will find the intersection between the most
+                // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
+                // set to avoid making too many network requests at once.
+                const reportIDsToFetchActions = _.chain(sortReportsByLastVisited(allReports))
+                    .map(report => report.reportID)
+                    .reverse()
+                    .intersection(reportIDsWithMissingActions)
+                    .slice(0, 10)
+                    .value();
 
                 if (_.isEmpty(reportIDsToFetchActions)) {
                     console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');

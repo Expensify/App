@@ -162,6 +162,20 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonDropdown: {
+        marginLeft: 1,
+    },
+
+    noRightBorderRadius: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+    },
+
+    noLeftBorderRadius: {
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+    },
+
     buttonConfirm: {
         margin: 20,
     },
@@ -536,9 +550,20 @@ const styles = {
         bottom: 75,
     },
 
+    createMenuPositionRightSidepane: {
+        right: 18,
+        bottom: 75,
+    },
+
     createMenuContainer: {
         width: variables.sideBarWidth - 40,
         paddingVertical: 12,
+    },
+
+    createMenuHeaderText: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.heading,
     },
 
     createMenuItem: {
@@ -551,8 +576,8 @@ const styles = {
     },
 
     createMenuIcon: {
-        width: 40,
-        height: 40,
+        width: variables.componentSizeNormal,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -562,6 +587,10 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    menuItemTextContainer: {
+        minHeight: variables.componentSizeNormal,
     },
 
     chatLinkRowPressable: {
@@ -1008,7 +1037,7 @@ const styles = {
     avatarInnerText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 24,
+        lineHeight: undefined,
         marginLeft: -3,
         textAlign: 'center',
     },
@@ -1016,7 +1045,7 @@ const styles = {
     avatarInnerTextSmall: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeExtraSmall,
-        lineHeight: 18,
+        lineHeight: undefined,
         marginLeft: -2,
         textAlign: 'center',
     },
@@ -1363,8 +1392,19 @@ const styles = {
         width: '100%',
     },
 
+    iouPreviewBoxLoading: {
+        minHeight: 47,
+        width: '100%',
+    },
+
     iouPreviewBoxAvatar: {
         marginRight: -10,
+        marginBottom: -10,
+    },
+
+    iouPreviewBoxCheckmark: {
+        marginLeft: 4,
+        alignSelf: 'center',
     },
 
     iouDetailsContainer: {
