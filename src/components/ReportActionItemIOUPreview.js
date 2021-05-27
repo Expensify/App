@@ -139,7 +139,7 @@ const ReportActionItemIOUPreview = ({
                                 ? translate('iou.owes', {manager: managerName, owner: ownerName})
                                 : translate('iou.paid', {manager: managerName, owner: ownerName})}
                         </Text>
-                        {(isCurrentUserManager && !shouldHidePayButton && iouReport.isPaid && (
+                        {(isCurrentUserManager && !shouldHidePayButton && !iouReport.isPaid && (
                             <TouchableOpacity
                                 style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
                                 onPress={onPayButtonPressed}
