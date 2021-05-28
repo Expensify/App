@@ -7,6 +7,7 @@ import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import styles, {getSafeAreaPadding} from '../styles/styles';
 import HeaderGap from './HeaderGap';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
+import onScreenTransitionEnd from '../libs/onScreenTransitionEnd';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -24,9 +25,15 @@ const propTypes = {
     /** Whether to include padding top */
     includePaddingTop: PropTypes.bool,
 
-    /** react-navigation object that will allow us to goBack() */
+    // Called when navigated Screen's transition is finished.
+    onTransitionEnd: PropTypes.func,
+
+    // react-navigation navigation object available to screen components
     navigation: PropTypes.shape({
-        /** Returns to the previous navigation state e.g. if this is inside a Modal we will dismiss it */
+        // Method to attach listner to Navigaton state.
+        addListener: PropTypes.func.isRequired,
+
+        // Returns to the previous navigation state e.g. if this is inside a Modal we will dismiss it
         goBack: PropTypes.func,
     }),
 };
@@ -35,24 +42,39 @@ const defaultProps = {
     style: [],
     includePaddingBottom: true,
     includePaddingTop: true,
+    onTransitionEnd: () => {},
     navigation: {
+        addListener: () => {},
         goBack: () => {},
     },
 };
 
 class ScreenWrapper extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            didScreenTransitionEnd: false,
+        };
+    }
+
     componentDidMount() {
-        this.unsubscribe = KeyboardShortcut.subscribe('Escape', () => {
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
             this.props.navigation.goBack();
         }, [], true);
+
+        this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
+            this.setState({didScreenTransitionEnd: true});
+            this.props.onTransitionEnd();
+        });
     }
 
     componentWillUnmount() {
-        if (!this.unsubscribe) {
-            return;
+        if (this.unsubscribeEscapeKey) {
+            this.unsubscribeEscapeKey();
         }
-
-        this.unsubscribe();
+        if (this.unsubscribeTransitionEnd) {
+            this.unsubscribeTransitionEnd();
+        }
     }
 
     render() {
@@ -80,7 +102,10 @@ class ScreenWrapper extends React.Component {
                             <HeaderGap />
                             {// If props.children is a function, call it to provide the insets to the children.
                                 _.isFunction(this.props.children)
-                                    ? this.props.children(insets)
+                                    ? this.props.children({
+                                        insets,
+                                        didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                    })
                                     : this.props.children
                             }
                         </View>
