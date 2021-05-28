@@ -45,12 +45,6 @@ const propTypes = {
 
         /** Outstanding amount of this transaction */
         cachedTotal: PropTypes.string,
-
-        /** Does the report have an outstanding IOU that needs to be paid? */
-        hasOutstandingIOU: PropTypes.bool,
-
-        /** Has the report been paid? */
-        isPaid: PropTypes.bool,
     }),
 
     /** All of the personal details for everyone */
@@ -85,11 +79,6 @@ const ReportActionItemIOUPreview = ({
     onPayButtonPressed,
     translate,
 }) => {
-    // Component should only be displayed if an IOU transaction is outstanding, or if the report has been paid.
-    if (!iouReport.hasOutstandingIOU && !iouReport.isPaid) {
-        return null;
-    }
-
     const sessionEmail = lodashGet(session, 'email', null);
     const managerEmail = iouReport.managerEmail || '';
     const ownerEmail = iouReport.ownerEmail || '';
