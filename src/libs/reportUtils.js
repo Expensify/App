@@ -55,7 +55,7 @@ function sortReportsByLastVisited(reports) {
 function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
-        && reportAction.actionName === CONST.REPORT_ACTION.ACTION_TYPES.ADDCOMMENT
+        && reportAction.actionName === CONST.REPORT.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
 }
 
