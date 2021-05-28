@@ -16,6 +16,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import getEmailKeyboardType from '../../libs/getEmailKeyboardType'
 
 const propTypes = {
     /* Onyx Props */
@@ -84,7 +85,7 @@ class LoginForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect="off"
-                        keyboardType="email-address"
+                        keyboardType={getEmailKeyboardType()}
                         placeholder={this.props.translate('loginForm.phoneOrEmail')}
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
