@@ -194,13 +194,13 @@ class IOUDetailsModal extends Component {
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
-                            {(this.props.iouReport.hasOutstandingIOU || iouReport.isPaid) && (
+                            {(this.props.iouReport.hasOutstandingIOU || this.props.iouReport.isPaid) && (
                                 <ReportActionItemIOUPreview
                                     iou={this.props.iouReport}
                                     chatReportID={Number(this.props.route.params.chatReportID)}
                                     iouReportID={Number(this.props.route.params.iouReportID)}
                                     shouldHidePayButton
-                            />
+                                />
                             )}
                             <IOUTransactions
                                 chatReportID={Number(this.props.route.params.chatReportID)}
