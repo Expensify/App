@@ -22,5 +22,5 @@ export default {
     originalMessage: PropTypes.shape({
         // The ID of the iou transaction
         IOUTransactionID: PropTypes.string,
-    })
+    }),
 };
