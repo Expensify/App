@@ -23,12 +23,12 @@ const propTypes = {
     userEmail: PropTypes.string.isRequired,
 
     /** Has the iouReport been paid? */
-    isReportPaid: PropTypes.bool,
+    isIOUReportPaid: PropTypes.bool,
 };
 
 const defaultProps = {
     reportActions: {},
-    isReportPaid: false,
+    isIOUReportPaid: false,
 };
 
 class IOUTransactions extends Component {
@@ -46,10 +46,8 @@ class IOUTransactions extends Component {
         this.updateRejectableTransactions();
     }
 
-    componentDidUpdate(oldProps) {
-        if (oldProps.reportActions !== this.props.reportActions) {
-            this.updateRejectableTransactions();
-        }
+    componentDidUpdate(prevProps) {
+        this.updateRejectableTransactions();
     }
 
     /**
@@ -58,7 +56,7 @@ class IOUTransactions extends Component {
      * rejected, and those which are not of type 'create').
      */
     updateRejectableTransactions() {
-        if (this.props.isReportPaid) {
+        if (this.props.isIOUReportPaid) {
             this.setState({rejectableTransactionIDs: []});
             return;
         }
