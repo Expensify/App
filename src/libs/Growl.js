@@ -8,7 +8,7 @@ export const growlRef = React.createRef();
  *
  * @param {String} bodyText
  * @param {String} type
- * @param {Number} duration
+ * @param {Number} [duration]
 */
 function show(bodyText, type, duration = CONST.GROWL.DURATION) {
     growlRef.current.show(bodyText, type, duration);
