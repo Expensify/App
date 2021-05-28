@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
+import {Linking} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
-import openURLInNewTab from '../openURLInNewTab';
 
 /**
  * Retrieve the users preferred currency
@@ -173,9 +173,9 @@ function payIOUReport({
             // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
             // selected something other than a manual settlement e.g. Venmo or PayPal.me
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                openURLInNewTab(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
+                Linking.openURL(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
             } else if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-                openURLInNewTab(buildVenmoPaymentURL(amount, submitterPhoneNumber));
+                Linking.openURL(buildVenmoPaymentURL(amount, submitterPhoneNumber));
             }
         })
         .catch((error) => {
