@@ -7,13 +7,17 @@ import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
-import {setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft} from '../../../libs/actions/Report';
+import {
+    setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft, deleteReportComment,
+} from '../../../libs/actions/Report';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import compose from '../../../libs/compose';
 import {isReportMessageAttachment, canEditReportAction} from '../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import ConfirmModal from '../../../components/ConfirmModal';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The ID of the report this report action is attached to. */
@@ -53,8 +57,13 @@ class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
 
+        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
+        this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
+        this.getActionText = this.getActionText.bind(this);
+        this.canEdit = this.canEdit.bind(this);
+
         // A list of all the context actions in this menu.
-        this.CONTEXT_ACTIONS = [
+        this.contextActions = [
             // Copy to clipboard
             {
                 text: this.props.translate('reportActionContextMenu.copyToClipboard'),
@@ -112,18 +121,19 @@ class ReportActionContextMenu extends React.Component {
                     );
                 },
             },
-
             {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
-                shouldShow: false,
-                onPress: () => {},
+                shouldShow: this.canEdit,
+                onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
             },
         ];
 
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
 
-        this.getActionText = this.getActionText.bind(this);
+        this.state = {
+            isDeleteCommentConfirmModalVisible: false,
+        };
     }
 
     /**
@@ -136,10 +146,33 @@ class ReportActionContextMenu extends React.Component {
         return lodashGet(message, 'text', '');
     }
 
+    /**
+     * Can the current user edit this report action?
+     *
+     * @return {Boolean}
+     */
+    canEdit() {
+        // Can only edit if it's a ADDCOMMENT, the author is this user and it's not a optimistic response.
+        // If it's an optimistic response comment it will not have a reportActionID,
+        // and we should wait until it does before we show the actions
+        return this.props.reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && this.props.reportAction.actorEmail === this.props.session.email
+        && this.props.reportAction.reportActionID;
+    }
+
+    confirmDeleteAndHideModal() {
+        deleteReportComment(this.props.reportID, this.props.reportAction);
+        this.setState({isDeleteCommentConfirmModalVisible: false});
+    }
+
+    hideDeleteConfirmModal() {
+        this.setState({isDeleteCommentConfirmModalVisible: false});
+    }
+
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {this.CONTEXT_ACTIONS.map(contextAction => contextAction.shouldShow && (
+                {this.contextActions.map(contextAction => _.result(contextAction, 'shouldShow', false) && (
                     <ReportActionContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
@@ -150,6 +183,15 @@ class ReportActionContextMenu extends React.Component {
                         onPress={() => contextAction.onPress(this.props.reportAction)}
                     />
                 ))}
+                <ConfirmModal
+                    title={this.props.translate('reportActionContextMenu.deleteComment')}
+                    isVisible={this.state.isDeleteCommentConfirmModalVisible}
+                    onConfirm={this.confirmDeleteAndHideModal}
+                    onCancel={this.hideDeleteConfirmModal}
+                    prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
+                    confirmText={this.props.translate('common.delete')}
+                    cancelText={this.props.translate('common.cancel')}
+                />
             </View>
         );
     }

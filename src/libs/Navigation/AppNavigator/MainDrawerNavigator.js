@@ -32,17 +32,13 @@ const defaultProps = {
 
 const Drawer = createDrawerNavigator();
 
-/**
- * We are decorating findLastAccessedReport so that it caches the first result once the reports load.
- * This will ensure the initialParams are only set once for the ReportScreen.
- */
-const getInitialReportScreenParams = _.once((reports) => {
+const getInitialReportScreenParams = (reports) => {
     const last = findLastAccessedReport(reports);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
     return {reportID: String(reportID)};
-});
+};
 
 const MainDrawerNavigator = (props) => {
     // When there are no reports there's no point to render the empty navigator
