@@ -35,58 +35,34 @@ class IOUTransactions extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            rejectableTransactionIDs: [],
-        };
-
-        this.updateRejectableTransactions = this.updateRejectableTransactions.bind(this);
-    }
-
-    componentDidMount() {
-        this.updateRejectableTransactions();
-    }
-
-    componentDidUpdate(prevProps) {
-        this.updateRejectableTransactions();
+        this.getRejectableTransactions = this.getRejectableTransactions.bind(this);
     }
 
     /**
-     * Update the rejectableTransactionIDs state array. A transaction must meet multiple requirements in order to be
-     * rejectable. We must exclude transactions not associated with the iouReportID, actions which have already been
-     * rejected, and those which are not of type 'create').
+     * Builds and returns the rejectableTransactionIDs array. A transaction must meet multiple requirements in order
+     * to be rejectable. We must exclude transactions not associated with the iouReportID, actions which have already
+     * been rejected, and those which are not of type 'create'.
+     *
+     * @returns {Array}
      */
-    updateRejectableTransactions() {
+    getRejectableTransactions() {
         if (this.props.isIOUReportPaid) {
-            this.setState({rejectableTransactionIDs: []});
-            return;
+            return [];
         }
 
         const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
             && action.originalMessage.type && action.originalMessage.IOUReportID === this.props.iouReportID);
 
-        const rejectedTransactions = _.filter(actionsForIOUReport, action => ['cancel', 'decline']
-            .includes(action.originalMessage.type));
+        const rejectedTransactionIDs = _.chain(actionsForIOUReport)
+            .filter(action => ['cancel', 'decline'].includes(action.originalMessage.type))
+            .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
+            .value();
 
-        const rejectedTransactionIDs = _.map(rejectedTransactions, (rejectedTransaction) => {
-            const transactionID = lodashGet(rejectedTransaction, 'originalMessage.IOUTransactionID', 0);
-
-            // API returns transactionID as type String in certain cases (if the transaction was rejected), this
-            // workaround should be removed once this is fixed: https://github.com/Expensify/Expensify/issues/165329
-            return Number(transactionID);
-        });
-
-        const rejectableTransactions = _.filter(actionsForIOUReport, (action) => {
-            if (action.originalMessage.type !== 'create') {
-                return;
-            }
-            return !rejectedTransactionIDs.includes(action.originalMessage.IOUTransactionID);
-        });
-
-        const rejectableTransactionIDs = _.map(rejectableTransactions, transaction => lodashGet(
-            transaction, 'originalMessage.IOUTransactionID', 0,
-        ));
-
-        this.setState({rejectableTransactionIDs});
+        return _.chain(actionsForIOUReport)
+            .filter(action => action.originalMessage.type === 'create')
+            .filter(action => !rejectedTransactionIDs.includes(action.originalMessage.IOUTransactionID))
+            .map(action => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
+            .value();
     }
 
     render() {
@@ -95,7 +71,8 @@ class IOUTransactions extends Component {
                 {_.map(this.props.reportActions, (reportAction) => {
                     if (reportAction.originalMessage
                         && reportAction.originalMessage.IOUReportID === this.props.iouReportID) {
-                        const isRejectable = this.state.rejectableTransactionIDs.includes(
+                        const rejectableTransactions = this.getRejectableTransactions();
+                        const isRejectable = rejectableTransactions.includes(
                             reportAction.originalMessage.IOUTransactionID,
                         );
                         const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
