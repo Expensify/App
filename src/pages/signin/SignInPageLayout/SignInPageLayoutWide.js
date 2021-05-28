@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Image, Text, View,
+    Image, Text, View, Linking,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
@@ -9,7 +9,6 @@ import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
-import openURLInNewTab from '../../../libs/openURLInNewTab';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
@@ -65,7 +64,7 @@ const SignInPageLayoutWide = props => (
                         {' '}
                         <Text
                             style={[styles.link]}
-                            onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
+                            onPress={() => Linking.openURL(CONST.GITHUB_URL)}
                         >
                             {props.translate('signInPage.theCode')}
                         </Text>
@@ -73,7 +72,7 @@ const SignInPageLayoutWide = props => (
                         {' '}
                         <Text
                             style={[styles.link]}
-                            onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
+                            onPress={() => Linking.openURL(CONST.UPWORK_URL)}
                         >
                             {props.translate('signInPage.openJobs')}
                         </Text>

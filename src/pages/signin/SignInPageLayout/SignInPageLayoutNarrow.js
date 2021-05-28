@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     Image,
-    ScrollView, Text, View,
+    ScrollView, Text, View, Linking,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
@@ -10,7 +10,6 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
-import openURLInNewTab from '../../../libs/openURLInNewTab/index.native';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
@@ -67,7 +66,7 @@ const SignInPageLayoutNarrow = props => (
                             {' '}
                             <Text
                                 style={[styles.link]}
-                                onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
+                                onPress={() => Linking.openURL(CONST.GITHUB_URL)}
                             >
                                 {props.translate('signInPage.theCode')}
                             </Text>
@@ -75,7 +74,7 @@ const SignInPageLayoutNarrow = props => (
                             {' '}
                             <Text
                                 style={[styles.link]}
-                                onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
+                                onPress={() => Linking.openURL(CONST.UPWORK_URL)}
                             >
                                 {props.translate('signInPage.openJobs')}
                             </Text>
