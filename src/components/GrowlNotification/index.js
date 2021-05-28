@@ -10,17 +10,18 @@ import Icon from '../Icon';
 import {Checkmark, Exclamation} from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
+import CONST from '../../CONST';
 
 const types = {
-    success: {
+    [CONST.GROWL.SUCCESS]: {
         icon: Checkmark,
         iconColor: colors.green,
     },
-    error: {
+    [CONST.GROWL.ERROR]: {
         icon: Exclamation,
         iconColor: colors.red,
     },
-    warning: {
+    [CONST.GROWL.WARNING]: {
         icon: Exclamation,
         iconColor: colors.yellow,
     },
@@ -49,7 +50,7 @@ class GrowlNotification extends Component {
      * @param {String} type
      * @param {Number} duration - 2000
     */
-    show(bodyText, type, duration = 2000) {
+    show(bodyText, type, duration) {
         this.setState({
             bodyText,
             type,

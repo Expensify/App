@@ -5,6 +5,7 @@ import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -229,7 +230,7 @@ class TextInputFocusable extends React.Component {
                     .then(this.props.onPasteFile)
                     .catch(() => {
                         const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
-                        Growl.show(errorDesc, 'error');
+                        Growl.show(errorDesc, CONST.GROWL.ERROR);
 
                         /*
                         * Since we intercepted the user-triggered paste event to check for attachments,
