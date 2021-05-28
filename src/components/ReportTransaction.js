@@ -23,14 +23,14 @@ const propTypes = {
     isRejectable: PropTypes.bool,
 
     /** Is the authenticated user the creator of this transaction? */
-    isTransactionCreator: PropTypes.bool,
+    isCurrentUserTransactionCreator: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isRejectable: false,
-    isTransactionCreator: false,
+    isCurrentUserTransactionCreator: false,
 };
 
 class ReportTransaction extends Component {
@@ -71,7 +71,7 @@ class ReportTransaction extends Component {
                             onPress={() => this.rejectTransaction()}
                         >
                             <Text style={[styles.buttonSmallText]}>
-                                {this.props.isTransactionCreator
+                                {this.props.isCurrentUserTransactionCreator
                                     ? this.props.translate('common.cancel')
                                     : this.props.translate('iou.decline')}
                             </Text>

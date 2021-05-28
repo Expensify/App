@@ -117,9 +117,10 @@ function createIOUSplit(params) {
  * Reject an iouReport transaction. Declining and cancelling transactions are done via the same Auth command.
  *
  * @param {Object} params
- * @param {Number} params.number
- * @param {Number} params.number
- * @param {String} params.number
+ * @param {Number} params.reportID
+ * @param {Number} params.chatReportID
+ * @param {String} params.transactionID
+ * @param {String} params.comment
  */
 function rejectTransaction({
     reportID, chatReportID, transactionID, comment,

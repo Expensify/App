@@ -100,7 +100,7 @@ class IOUTransactions extends Component {
                         const isRejectable = this.state.rejectableTransactionIDs.includes(
                             reportAction.originalMessage.IOUTransactionID,
                         );
-                        const isTransactionCreator = this.props.userEmail === reportAction.actorEmail;
+                        const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
                         return (
                             <ReportTransaction
                                 chatReportID={this.props.chatReportID}
@@ -108,7 +108,7 @@ class IOUTransactions extends Component {
                                 action={reportAction}
                                 key={reportAction.sequenceNumber}
                                 isRejectable={isRejectable}
-                                isTransactionCreator={isTransactionCreator}
+                                isCurrentUserTransactionCreator={isCurrentUserTransactionCreator}
                             />
                         );
                     }
