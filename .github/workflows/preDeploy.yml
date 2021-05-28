@@ -43,7 +43,7 @@ jobs:
   skipDeploy:
     runs-on: ubuntu-latest
     needs: chooseDeployActions
-    if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.isAutomatedPullRequest == 'false' }}
+    if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.isAutomatedPullRequest == 'false' && needs.chooseDeployActions.shouldCherryPick == 'false' }}
 
     steps:
       - name: Comment on deferred PR
