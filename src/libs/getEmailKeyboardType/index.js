@@ -1,7 +1,7 @@
 
 /**
- * * Return the defualt keyboard type when running on Web/Mobile-Web/Desktop
- * @return {String | null}
+ * * Return the default keyboard type when running on Web/Desktop
+ * @return {String}
  */
 export default () => {
     return 'default'
