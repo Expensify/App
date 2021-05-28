@@ -3,7 +3,6 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
@@ -14,7 +13,6 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import compose from '../../../libs/compose';
 import {isReportMessageAttachment, canEditReportAction} from '../../../libs/reportUtils';
-import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
@@ -41,13 +39,6 @@ const propTypes = {
     /** Function to dismiss the popover containing this menu */
     hidePopover: PropTypes.func.isRequired,
 
-    /* Onyx Props */
-
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Email of the logged in person */
-        email: PropTypes.string,
-    }),
     ...withLocalizePropTypes,
 };
 
@@ -55,7 +46,6 @@ const defaultProps = {
     isMini: false,
     isVisible: false,
     selection: '',
-    session: {},
     draftMessage: '',
 };
 
@@ -170,9 +160,4 @@ ReportActionContextMenu.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
 )(ReportActionContextMenu);
