@@ -1022,7 +1022,6 @@ const styles = {
         width: variables.componentSizeNormal,
         backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
-        pointerEvents: 'none',
     },
 
     avatarSmall: {
@@ -1030,7 +1029,6 @@ const styles = {
         width: variables.avatarSizeSmall,
         backgroundColor: themeColors.icon,
         borderRadius: variables.avatarSizeSmall,
-        pointerEvents: 'none',
     },
 
     avatarInnerText: {
@@ -1377,17 +1375,29 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
+        backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
-        maxWidth: 300,
+        maxWidth: variables.sideBarWidth,
+        width: '100%',
+    },
+
+    iouPreviewBoxLoading: {
+        minHeight: 47,
         width: '100%',
     },
 
     iouPreviewBoxAvatar: {
         marginRight: -10,
+        marginBottom: -10,
+    },
+
+    iouPreviewBoxCheckmark: {
+        marginLeft: 4,
+        alignSelf: 'center',
     },
 
     iouDetailsContainer: {
