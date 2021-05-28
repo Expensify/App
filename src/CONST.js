@@ -42,12 +42,12 @@ const CONST = {
             LIMIT: 50,
             TYPE: {
                 IOU: 'IOU',
+                ADDCOMMENT: 'ADDCOMMENT',
             },
         },
         TYPE: {
             CHAT: 'chat',
             IOU: 'iou',
-            ADDCOMMENT: 'ADDCOMMENT',
         },
     },
     MODAL: {
