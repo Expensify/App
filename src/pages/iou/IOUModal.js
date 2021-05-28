@@ -260,7 +260,7 @@ class IOUModal extends Component {
         const currentStep = this.steps[this.state.currentStepIndex];
         return (
             <>
-                <View style={[styles.headerBar, true && styles.borderBottom]}>
+                <View style={[styles.headerBar]}>
                     <View style={[
                         styles.dFlex,
                         styles.flexRow,
