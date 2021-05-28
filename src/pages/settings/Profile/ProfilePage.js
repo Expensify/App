@@ -210,7 +210,7 @@ class ProfilePage extends Component {
             },
         });
 
-        Growl.show(this.props.translate('profilePage.growlMessageOnSave'), 'success', 3000);
+        Growl.show(this.props.translate('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
     }
 
     /**
