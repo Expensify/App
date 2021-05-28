@@ -94,7 +94,7 @@ jobs:
           body: |
             This pull request has merge conflicts and can not be automatically merged. :disappointed:
             Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
-            **Important:** There may be conflicts that GitHub is not aware of, so please _carefully_ review this pull request before approving.
+            **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving.
 
       # TODO: Once https://github.com/hmarr/auto-approve-action/pull/186 is merged, point back at the non-forked repo
       - name: Check for an auto approve
