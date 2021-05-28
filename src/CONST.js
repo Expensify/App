@@ -49,6 +49,11 @@ const CONST = {
             CHAT: 'chat',
             IOU: 'iou',
         },
+        STATE_NUM: {
+            OPEN: 0,
+            PROCESSING: 1,
+            SUBMITTED: 2,
+        },
     },
     MODAL: {
         MODAL_TYPE: {
