@@ -7,6 +7,7 @@ import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemIOUPreview from './ReportActionItemIOUPreview';
 import Navigation from '../libs/Navigation/Navigation';
+import compose from '../libs/compose';
 import ROUTES from '../ROUTES';
 
 const propTypes = {
@@ -16,7 +17,7 @@ const propTypes = {
     /** The associated chatReport */
     chatReportID: PropTypes.number.isRequired,
 
-    /** Should render the preview Component? */
+    /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     /* Onyx Props */
@@ -25,19 +26,29 @@ const propTypes = {
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
+
+    iouReport: PropTypes.shape({
+        /** Does the iouReport have an outstanding IOU? */
+        hasOutstandingIOU: PropTypes.bool,
+
+        /** Has the iouReport been paid? */
+        isPaid: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
     chatReport: {
         participants: [],
     },
+    iouReport: {},
 };
 
 const ReportActionItemIOUAction = ({
     action,
     chatReportID,
-    isMostRecentIOUReportAction,
     chatReport,
+    iouReport,
+    isMostRecentIOUReportAction,
 }) => {
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
@@ -50,7 +61,7 @@ const ReportActionItemIOUAction = ({
                 shouldShowViewDetailsLink={!hasMultipleParticipants}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {isMostRecentIOUReportAction && (
+            {isMostRecentIOUReportAction && (iouReport.hasOutstandingIOU || iouReport.isPaid) && (
                 <ReportActionItemIOUPreview
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}
@@ -65,8 +76,15 @@ ReportActionItemIOUAction.propTypes = propTypes;
 ReportActionItemIOUAction.defaultProps = defaultProps;
 ReportActionItemIOUAction.displayName = 'ReportActionItemIOUAction';
 
-export default withOnyx({
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-})(ReportActionItemIOUAction);
+export default compose(
+    withOnyx({
+        chatReport: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+        },
+    }),
+    withOnyx({
+        iouReport: {
+            key: ({chatReport}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`,
+        },
+    }),
+)(ReportActionItemIOUAction);

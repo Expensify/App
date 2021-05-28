@@ -56,8 +56,11 @@ const propTypes = {
         /** Owner is the person who is owed money */
         ownerEmail: PropTypes.string,
 
-        /** Does the report have an outstanding IOU that needs to be paid? */
+        /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
+
+        /** Has the iouReport been paid? */
+        isPaid: PropTypes.bool,
     }),
 
     /** Session info for the currently logged in user. */
@@ -191,12 +194,14 @@ class IOUDetailsModal extends Component {
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
-                            <ReportActionItemIOUPreview
-                                iou={this.props.iouReport}
-                                chatReportID={Number(this.props.route.params.chatReportID)}
-                                iouReportID={Number(this.props.route.params.iouReportID)}
-                                shouldHidePayButton
+                            {(this.props.iouReport.hasOutstandingIOU || iouReport.isPaid) && (
+                                <ReportActionItemIOUPreview
+                                    iou={this.props.iouReport}
+                                    chatReportID={Number(this.props.route.params.chatReportID)}
+                                    iouReportID={Number(this.props.route.params.iouReportID)}
+                                    shouldHidePayButton
                             />
+                            )}
                             <IOUTransactions
                                 chatReportID={Number(this.props.route.params.chatReportID)}
                                 iouReportID={Number(this.props.route.params.iouReportID)}
