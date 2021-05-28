@@ -68,7 +68,7 @@ class ReportTransaction extends Component {
                                 styles.chatItemComposeSecondaryRowOffset,
                                 styles.mb3,
                             ]}
-                            onPress={this.rejectTransaction()}
+                            onPress={() => this.rejectTransaction()}
                         >
                             <Text style={[styles.buttonSmallText]}>
                                 {this.props.isCurrentUserTransactionCreator
