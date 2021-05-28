@@ -48,7 +48,7 @@ class GrowlNotification extends Component {
      *
      * @param {String} bodyText
      * @param {String} type
-     * @param {Number} duration - 2000
+     * @param {Number} duration
     */
     show(bodyText, type, duration) {
         this.setState({
