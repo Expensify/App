@@ -49,6 +49,34 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 }
 
 /**
+ * Constructs a Set with all possible names (displayName, firstName, lastName, email) for all participants in a report,
+ * to be used in isSearchStringMatch.
+ *
+ * @param {Array<Object>} personalDetailList
+ * @return {Set<String>}
+ */
+function getParticipantNames(personalDetailList) {
+    // We use a Set because `Set.has(value)` on a Set of with n entries is up to n (or log(n)) times faster than
+    // `_.contains(Array, value)` for an Array with n members.
+    const participantNames = new Set();
+    _.each(personalDetailList, (participant) => {
+        if (participant.login) {
+            participantNames.add(participant.login.toLowerCase());
+        }
+        if (participant.firstName) {
+            participantNames.add(participant.firstName.toLowerCase());
+        }
+        if (participant.lastName) {
+            participantNames.add(participant.lastName.toLowerCase());
+        }
+        if (participant.displayName) {
+            participantNames.add(participant.displayName.toLowerCase());
+        }
+    });
+    return participantNames;
+}
+
+/**
  * Returns a string with all relevant search terms
  *
  * @param {Object} report
@@ -96,26 +124,6 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         + _.unescape(report.lastMessageText)
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-
-    // Using an object instead of an array,
-    // since worst-case an array would require iterating through all of its members,
-    // while an object would allow us to directly look up a key.
-    // Looking up a value in an object with n keys can be up to n times faster than in an array with n members.
-    const participantNames = {};
-    _.each(personalDetailList, (participant) => {
-        if (participant.login) {
-            participantNames[participant.login.toLowerCase()] = true;
-        }
-        if (participant.firstName) {
-            participantNames[participant.firstName.toLowerCase()] = true;
-        }
-        if (participant.lastName) {
-            participantNames[participant.lastName.toLowerCase()] = true;
-        }
-        if (participant.displayName) {
-            participantNames[participant.displayName.toLowerCase()] = true;
-        }
-    });
     const fullTitle = personalDetailList.map(({firstName, login}) => firstName || login).join(', ');
     return {
         text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
@@ -125,7 +133,6 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         icons: report ? report.icons : [personalDetail.avatar],
         tooltipText,
         participantsList: personalDetailList,
-        participantNames,
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
@@ -161,7 +168,7 @@ Onyx.connect({
  *
  * @param {String} searchValue
  * @param {String} searchText
- * @param {Object} participantNames
+ * @param {Set<String>} participantNames
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText, participantNames) {
@@ -172,7 +179,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames) {
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch) || participantNames[word];
+        return matchRegex.test(valueToSearch) || participantNames.has(word);
     });
 }
 
@@ -275,8 +282,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
                 continue;
             }
 
-            // Finally check to see if this options is a match for the provided search string if we have one
-            const {searchText, participantNames} = reportOption;
+            // Finally check to see if this option is a match for the provided search string if we have one
+            const {searchText, participantsList} = reportOption;
+            const participantNames = getParticipantNames(participantsList);
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
                 continue;
             }
@@ -310,7 +318,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ))) {
                 return;
             }
-            const {searchText, participantNames} = personalDetailOption;
+            const {searchText, participantsList} = personalDetailOption;
+            const participantNames = getParticipantNames(participantsList);
             if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
                 return;
             }
@@ -537,4 +546,5 @@ export {
     getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
+    getParticipantNames,
 };
