@@ -6,6 +6,9 @@ on:
       PULL_REQUEST_NUMBER:
         description: The number of a pull request to CP
         required: true
+      NEW_VERSION:
+        description: The new app version
+        required: true
 
 jobs:
   validateActor:
@@ -37,16 +40,24 @@ jobs:
           git checkout -b cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           git push --set-upstream origin cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
-      - name: Get merge commit for pull request
-        id: getMergeCommit
+      - name: Get merge commit for CP pull request
+        id: getCPMergeCommit
         uses: Expensify/Expensify.cash/.github/actions/getMergeCommitForPullRequest@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
+      - name: Get merge commit for version-bump pull request
+        id: getVersionBumpMergeCommit
+        uses: Expensify/Expensify.cash/.github/actions/getMergeCommitForPullRequest@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USER: OSBotify
+          TITLE_REGEX: Update version to ${{ github.event.inputs.NEW_VERSION }}
+
       - name: Cherry-pick the merge commit to new branch
         id: cherryPick
-        run: git cherry-pick ${{ steps.getMergeCommit.outputs.MERGE_COMMIT_SHA }} --mainline 1
+        run: git cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} ${{ steps.getVersionBumpMergeCommit.MERGE_COMMIT_SHA }} --mainline 1
         continue-on-error: true
 
       # If there is a merge conflict, we'll just commit what we have,
