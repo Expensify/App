@@ -4,5 +4,5 @@
  * @return {String}
  */
 export default () => {
-  return 'email-address'
+  return 'email-address';
 };
