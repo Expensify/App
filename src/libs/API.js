@@ -494,7 +494,7 @@ function Push_Authenticate(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.reportID
+ * @param {Number} parameters.reportID
  * @param {String} parameters.transactionID
  * @returns {Promise}
  */
