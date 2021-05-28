@@ -1036,7 +1036,7 @@ const styles = {
     avatarInnerText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 24,
+        lineHeight: undefined,
         marginLeft: -3,
         textAlign: 'center',
     },
@@ -1044,7 +1044,7 @@ const styles = {
     avatarInnerTextSmall: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeExtraSmall,
-        lineHeight: 18,
+        lineHeight: undefined,
         marginLeft: -2,
         textAlign: 'center',
     },
@@ -1377,17 +1377,29 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
+        backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
-        maxWidth: 300,
+        maxWidth: variables.sideBarWidth,
+        width: '100%',
+    },
+
+    iouPreviewBoxLoading: {
+        minHeight: 47,
         width: '100%',
     },
 
     iouPreviewBoxAvatar: {
         marginRight: -10,
+        marginBottom: -10,
+    },
+
+    iouPreviewBoxCheckmark: {
+        marginLeft: 4,
+        alignSelf: 'center',
     },
 
     iouDetailsContainer: {
