@@ -47,6 +47,7 @@ const CONST = {
         TYPE: {
             CHAT: 'chat',
             IOU: 'iou',
+            ADDCOMMENT: 'ADDCOMMENT',
         },
     },
     MODAL: {
@@ -154,12 +155,6 @@ const CONST = {
         IOS: 'iOS',
         LINUX: 'Linux',
         NATIVE: 'Native',
-    },
-
-    REPORT_ACTION: {
-        ACTION_TYPES: {
-            ADDCOMMENT: 'ADDCOMMENT',
-        },
     },
 
     IOU: {
