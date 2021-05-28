@@ -1023,7 +1023,6 @@ const styles = {
         width: variables.componentSizeNormal,
         backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
-        pointerEvents: 'none',
     },
 
     avatarSmall: {
@@ -1031,7 +1030,6 @@ const styles = {
         width: variables.avatarSizeSmall,
         backgroundColor: themeColors.icon,
         borderRadius: variables.avatarSizeSmall,
-        pointerEvents: 'none',
     },
 
     avatarInnerText: {
@@ -1383,12 +1381,13 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
+        backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
-        maxWidth: 300,
+        maxWidth: variables.sideBarWidth,
         width: '100%',
     },
 
