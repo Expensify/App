@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
@@ -145,7 +146,8 @@ class ReportActionContextMenu extends React.Component {
      */
     getActionText() {
         const message = _.last(lodashGet(this.props.reportAction, 'message', null));
-        return lodashGet(message, 'text', '');
+        const parser = new ExpensiMark();
+        return parser.htmlToMarkdown(lodashGet(message, 'html', ''));
     }
 
     render() {
