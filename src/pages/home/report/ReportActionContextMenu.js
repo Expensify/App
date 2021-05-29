@@ -17,7 +17,6 @@ import compose from '../../../libs/compose';
 import {isReportMessageAttachment, canEditReportAction} from '../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ConfirmModal from '../../../components/ConfirmModal';
-import CONST from '../../../CONST';
 
 const propTypes = {
     /** The ID of the report this report action is attached to. */
@@ -60,7 +59,6 @@ class ReportActionContextMenu extends React.Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.getActionText = this.getActionText.bind(this);
-        this.canEdit = this.canEdit.bind(this);
 
         // A list of all the context actions in this menu.
         this.contextActions = [
@@ -111,7 +109,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
-                shouldShow: canEditReportAction(this.props.reportAction),
+                shouldShow: () => canEditReportAction(this.props.reportAction),
                 onPress: () => {
                     this.props.hidePopover();
                     saveReportActionDraft(
@@ -124,7 +122,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
-                shouldShow: this.canEdit,
+                shouldShow: () => canEditReportAction(this.props.reportAction),
                 onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
             },
         ];
@@ -144,20 +142,6 @@ class ReportActionContextMenu extends React.Component {
     getActionText() {
         const message = _.last(lodashGet(this.props.reportAction, 'message', null));
         return lodashGet(message, 'text', '');
-    }
-
-    /**
-     * Can the current user edit this report action?
-     *
-     * @return {Boolean}
-     */
-    canEdit() {
-        // Can only edit if it's a ADDCOMMENT, the author is this user and it's not a optimistic response.
-        // If it's an optimistic response comment it will not have a reportActionID,
-        // and we should wait until it does before we show the actions
-        return this.props.reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && this.props.reportAction.actorEmail === this.props.session.email
-        && this.props.reportAction.reportActionID;
     }
 
     confirmDeleteAndHideModal() {

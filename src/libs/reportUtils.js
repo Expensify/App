@@ -46,7 +46,9 @@ function sortReportsByLastVisited(reports) {
 }
 
 /**
- * Check whether user can edit report action
+ * Can only edit if it's a ADDCOMMENT, the author is this user and it's not a optimistic response.
+ * If it's an optimistic response comment it will not have a reportActionID,
+ * and we should wait until it does before we show the actions
  *
  * @param {Object} reportAction
  * @param {String} sessionEmail
