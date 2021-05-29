@@ -43,13 +43,35 @@ const styles = {
     h3: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
+    },
+
+    h3Bold: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
     },
 
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeLabel,
+    },
+
+    h4Bold: {
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeLabel,
         fontWeight: fontWeightBold,
+    },
+
+    fontFamilyGTA: {
+        fontFamily: fontFamily.GTA,
+    },
+
+    textAlignCenter: {
+        textAlign: 'center',
+    },
+
+    textUnderline: {
+        textDecorationLine: 'underline',
     },
 
     textP: {
@@ -91,6 +113,10 @@ const styles = {
 
     textUppercase: {
         textTransform: 'uppercase',
+    },
+
+    backgroundBlue: {
+        backgroundColor: colors.blue,
     },
 
     colorReversed: {
@@ -380,7 +406,6 @@ const styles = {
 
     signInPage: {
         backgroundColor: themeColors.sidebar,
-        padding: 20,
         minHeight: '100%',
         flex: 1,
     },
@@ -391,12 +416,7 @@ const styles = {
     },
 
     signInPageLogoNative: {
-        alignItems: 'center',
         height: variables.componentSizeLarge,
-        justifyContent: 'center',
-        width: '100%',
-        marginBottom: 20,
-        marginTop: 20,
     },
 
     signinWelcomeScreenshot: {
@@ -404,9 +424,12 @@ const styles = {
         width: 295,
     },
 
-    signinWelcomeScreenshotWide: {
-        height: 592,
-        width: 295,
+    signInWelcomeScreenshotWide: {
+        aspectRatio: 1,
+        width: '80%',
+        height: '80%',
+        maxHeight: 1000,
+        minHeight: 300,
     },
 
     genericView: {
@@ -415,23 +438,41 @@ const styles = {
     },
 
     signInPageInner: {
-        paddingTop: 40,
         marginLeft: 'auto',
         marginRight: 'auto',
-        maxWidth: 800,
+        height: '100%',
         width: '100%',
     },
 
     signInPageInnerNative: {
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        maxWidth: 295,
         width: '100%',
+    },
+
+    signInPageHeroHeading: {
+        fontFamily: fontFamily.GTA,
+        fontWeight: fontWeightBold,
+        fontSize: variables.fontSizeHero,
+        color: colors.white,
+        lineHeight: variables.lineHeightHero,
+    },
+
+    signInPageHeroDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        color: colors.white,
     },
 
     signInPageFormContainer: {
         maxWidth: 295,
         width: '100%',
+    },
+
+    signInPageWideLeftContainer: {
+        maxWidth: 400, minWidth: 350, width: '25%',
+    },
+
+    signInPageWideHeroContent: {
+        maxWidth: 400,
     },
 
     loginTermsText: {

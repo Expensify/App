@@ -68,7 +68,7 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        phrase1: 'With Expensify.cash, chat and payments are the same thing.',
+        phrase1: 'Welcome to Expensify.cash! Enter your phone or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
@@ -206,6 +206,14 @@ export default {
         expensifyIsOpenSource: 'Expensify.cash is open source',
         theCode: 'the code',
         openJobs: 'open jobs',
+        heroHeading: 'Split bills\nand chat with friends.',
+        heroDescription: {
+            phase1: 'Money talks. And now that chat and payments are in one place, it\'s also easy. Your payments get to you as fast as you can get your point across.',
+            phase2: 'Expensify.cash is open source. View',
+            phase3: 'the code',
+            phase4: 'View',
+            phase5: 'open jobs',
+        },
     },
     termsOfUse: {
         phrase1: 'By logging in, you agree to the',

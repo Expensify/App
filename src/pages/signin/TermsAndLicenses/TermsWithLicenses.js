@@ -6,8 +6,9 @@ import openURLInNewTab from '../../../libs/openURLInNewTab';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const TermsWithLicenses = ({translate}) => (
-    <View style={[styles.mt6]}>
-        <Text style={[styles.loginTermsText]}>
+    <View style={[styles.mv3, styles.alignItemsCenter]}>
+        <Text style={[styles.h1, {letterSpacing: -1}, styles.mb3]}>Expensify</Text>
+        <Text style={[styles.loginTermsText, styles.textAlignCenter]}>
             {translate('termsOfUse.phrase1')}
             {' '}
             <Text
