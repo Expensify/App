@@ -36,7 +36,7 @@
     "@babel/preset-flow": "^7.12.13",
     "@formatjs/intl-getcanonicallocales": "^1.5.8",
     "@formatjs/intl-locale": "^2.4.21",
-    "@formatjs/intl-numberformat": "^6.2.5",
+    "@formatjs/intl-numberformat": "^6.2.9",
     "@formatjs/intl-pluralrules": "^4.0.13",
     "@react-native-community/async-storage": "^1.11.0",
     "@react-native-community/cli": "4.13.1",
