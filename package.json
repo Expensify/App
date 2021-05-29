@@ -55,7 +55,7 @@
     "@react-navigation/stack": "5.14.2",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "dotenv": "^8.2.0",
-    "electron-context-menu": "^2.3.0",
+    "electron-context-menu": "^2.5.2",
     "electron-log": "^4.3.5",
     "electron-serve": "^1.0.0",
     "electron-updater": "^4.3.4",
