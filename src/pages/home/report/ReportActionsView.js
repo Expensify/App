@@ -63,6 +63,9 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** All draft messages */
+    draftMessages: PropTypes.objectOf(PropTypes.string),
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
@@ -76,6 +79,7 @@ const defaultProps = {
     },
     reportActions: {},
     session: {},
+    draftMessages: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -353,6 +357,8 @@ class ReportActionsView extends React.Component {
     }) {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
                 && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+        const draftMessage = this.props.draftMessages[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${this.props.reportID}_${item.action.reportActionID}`];
+
         return (
             <ReportActionItem
                 reportID={this.props.reportID}
@@ -363,6 +369,7 @@ class ReportActionsView extends React.Component {
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
                 onLayout={this.recordTimeToMeasureItemLayout}
+                draftMessage={draftMessage}
             />
         );
     }
@@ -425,6 +432,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        draftMessages: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
         },
     }),
 )(ReportActionsView);

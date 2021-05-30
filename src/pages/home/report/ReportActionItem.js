@@ -40,8 +40,6 @@ const propTypes = {
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
-    /* Onyx Props */
-
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
