@@ -9,6 +9,7 @@ import {addAction, togglePinnedState, subscribeToUserEvents} from '../../src/lib
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import PushNotification from '../../src/libs/Notification/PushNotification';
 import {signInWithTestUser, fetchPersonalDetailsForTestUser} from '../utils/TestHelper';
+import CONST from '../../src/CONST';
 
 PushNotification.register = () => {};
 PushNotification.deregister = () => {};

@@ -1015,7 +1015,7 @@ function addAction(reportID, text, file) {
             timestamp: moment().unix(),
             message: [
                 {
-                    type: 'COMMENT',
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     html: htmlForNewComment,
                     text: textForNewComment,
                 },
@@ -1039,6 +1039,48 @@ function addAction(reportID, text, file) {
         persist: !isAttachment,
     })
         .then(({reportAction}) => updateReportWithNewAction(reportID, reportAction));
+}
+
+/**
+ * Deletes a comment from the report, basically sets it as empty string
+ *
+ * @param {Number} reportID
+ * @param {Object} reportAction
+ */
+function deleteReportComment(reportID, reportAction) {
+    // Optimistic Response
+    const reportActionsToMerge = {};
+    const oldMessage = {...reportAction.message};
+    reportActionsToMerge[reportAction.sequenceNumber] = {
+        ...reportAction,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                html: '',
+                text: '',
+            },
+        ],
+    };
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+
+    // Try to delete the comment by calling the API
+    API.Report_EditComment({
+        reportID,
+        reportActionID: reportAction.reportActionID,
+        reportComment: '',
+    })
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Reverse Optimistic Response
+                reportActionsToMerge[reportAction.sequenceNumber] = {
+                    ...reportAction,
+                    message: oldMessage,
+                };
+
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+            }
+        });
 }
 
 /**
@@ -1211,5 +1253,6 @@ export {
     updateCurrentlyViewedReportID,
     editReportComment,
     saveReportActionDraft,
+    deleteReportComment,
     getSimplifiedIOUReport,
 };
