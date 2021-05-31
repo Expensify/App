@@ -178,6 +178,13 @@ const CONST = {
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
     },
+
+    GROWL: {
+        SUCCESS: 'success',
+        ERROR: 'error',
+        WARNING: 'warning',
+        DURATION: 2000,
+    },
 };
 
 export default CONST;
