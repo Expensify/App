@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
@@ -88,7 +89,7 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {
                     const message = _.last(lodashGet(this.props.reportAction, 'message', null));
                     const html = lodashGet(message, 'html', '');
-                    const text = props.selection || lodashGet(message, 'text', '');
+                    const text = Str.htmlDecode(props.selection || lodashGet(message, 'text', ''));
                     const isAttachment = _.has(this.props.reportAction, 'isAttachment')
                         ? this.props.reportAction.isAttachment
                         : isReportMessageAttachment(text);
