@@ -30,7 +30,7 @@ const propTypes = {
 
     // react-navigation navigation object available to screen components
     navigation: PropTypes.shape({
-        // Method to attach listner to Navigaton state.
+        // Method to attach listener to Navigation state.
         addListener: PropTypes.func.isRequired,
 
         // Returns to the previous navigation state e.g. if this is inside a Modal we will dismiss it
