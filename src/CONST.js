@@ -45,6 +45,11 @@ const CONST = {
                 ADDCOMMENT: 'ADDCOMMENT',
             },
         },
+        MESSAGE: {
+            TYPE: {
+                COMMENT: 'COMMENT',
+            },
+        },
         TYPE: {
             CHAT: 'chat',
             IOU: 'iou',
