@@ -1022,7 +1022,6 @@ const styles = {
         width: variables.componentSizeNormal,
         backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
-        pointerEvents: 'none',
     },
 
     avatarSmall: {
@@ -1030,7 +1029,6 @@ const styles = {
         width: variables.avatarSizeSmall,
         backgroundColor: themeColors.icon,
         borderRadius: variables.avatarSizeSmall,
-        pointerEvents: 'none',
     },
 
     avatarInnerText: {
@@ -1468,12 +1466,12 @@ const styles = {
         justifyContent: 'flex-start',
         position: 'absolute',
         width: '100%',
+        top: 20,
         ...spacing.ph5,
     },
 
     growlNotificationDesktopContainer: {
-        maxWidth: '380px',
-        top: '20px',
+        maxWidth: 380,
         right: 0,
         position: 'fixed',
     },

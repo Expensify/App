@@ -13,6 +13,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 
@@ -53,7 +54,6 @@ class NewChatPage extends Component {
         super(props);
 
         this.createNewChat = this.createNewChat.bind(this);
-
         const {
             recentReports,
             personalDetails,
@@ -127,39 +127,46 @@ class NewChatPage extends Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('sidebarScreen.newChat')}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        sections={sections}
-                        value={this.state.searchValue}
-                        onSelectRow={this.createNewChat}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                                userToInvite,
-                            } = getNewChatOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                            );
-                            this.setState({
-                                searchValue,
-                                recentReports,
-                                userToInvite,
-                                personalDetails,
-                            });
-                        }}
-                        headerMessage={headerMessage}
-                        disableArrowKeysActions
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                    />
-                </View>
-                <KeyboardSpacer />
+                {({didScreenTransitionEnd}) => (
+                    <>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('sidebarScreen.newChat')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.createNewChat}
+                                onChangeText={(searchValue = '') => {
+                                    const {
+                                        recentReports,
+                                        personalDetails,
+                                        userToInvite,
+                                    } = getNewChatOptions(
+                                        this.props.reports,
+                                        this.props.personalDetails,
+                                        searchValue,
+                                    );
+                                    this.setState({
+                                        searchValue,
+                                        recentReports,
+                                        userToInvite,
+                                        personalDetails,
+                                    });
+                                }}
+                                headerMessage={headerMessage}
+                                disableArrowKeysActions
+                                hideAdditionalOptionStates
+                                forceTextUnreadStyle
+                            />
+                            )}
+                        </View>
+                        <KeyboardSpacer />
+                    </>
+                )}
             </ScreenWrapper>
         );
     }
