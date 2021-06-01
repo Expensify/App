@@ -55,7 +55,7 @@ jobs:
             :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
 
   version:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     needs: chooseDeployActions
     if: ${{ needs.chooseDeployActions.outputs.shouldCherryPick == 'true' || (needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' && needs.chooseDeployActions.outputs.isAutomatedPullRequest == 'false') }}
 
