@@ -357,6 +357,7 @@ class ReportActionsView extends React.Component {
     }) {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
                 && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+        // eslint-disable-next-line max-len
         const draftMessage = this.props.draftMessages[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${this.props.reportID}_${item.action.reportActionID}`];
 
         return (
