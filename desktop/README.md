@@ -6,6 +6,8 @@ Testing the auto-update process can be a little involved. The most effective way
 ## Setting up Min.IO
 Rather than pushing new builds to the production S3 bucket, the best way to test locally is to use [Min.IO](https://min.io). Min.IO is an S3-compatible service that you can set up and deploy locally. In order to set up a local Min.IO instance to emulate an S3 bucket, follow these steps:
 
+If you've already gone through the setup below, you can just run step 3 and then move on to the next section.
+
 1. Install Min.IO on your local machine via brew
 ```
 brew install minio/stable/minio
@@ -36,7 +38,9 @@ mc policy set public electron-builder/electron-builder
 
 **Note:** while the `electron-updater` docs tell you to create a file named `dev-app-update.yaml`, this will **not** be helpful. Setting that file will, in development, tell the auto-updater where to look for builds. Unfortunately, on Mac the auto-updater will not install the new build unless the app that is currently running is signed.
 
-Once you have Min.IO setup, the next step is to temporarily revert some changes from https://github.com/Expensify/Expensify.cash/commit/b640b3010fd7a40783d1c04faf4489836e98038d, specifically
+## Local Changes to the App
+
+Once you have Min.IO setup and running, the next step is to temporarily revert some changes from https://github.com/Expensify/Expensify.cash/commit/b640b3010fd7a40783d1c04faf4489836e98038d, specifically
 
 1. Update the `desktop-build` command in package.json to add `--publish always` at the end
 2. Update electron.config.js to re-add `afterSign: 'desktop/notarize.js',`
@@ -53,10 +57,11 @@ Once you have Min.IO setup, the next step is to temporarily revert some changes 
 
 ## Setting up credentials for notarizing your build
 
+If you've already created a Certificate Signing Request and an app-specific password for your local desktop testing app, you can continue to the next section.
+
 Before you can upload a build, you need to make sure that you can notarize builds. For this you will need an [Apple Developer](https://developer.apple.com) account. Go to the [Certificates, Identifiers, and Profiles](https://developer.apple.com/account/resources/certificates/list) page and create a new certificate for a `Developer ID Application` (see the bottom option of the screenshot below)
 
-<img src='https://user-images.githubusercontent.com/3981102/120376440-c0e2b080-c2d0-11eb-858a-31dd409efe87.png' width='500'/>)
-
+<img src='https://user-images.githubusercontent.com/3981102/120376440-c0e2b080-c2d0-11eb-858a-31dd409efe87.png' width='500'/>
 
 Follow the instructions to create a Certificate Signing Request, and once the certificate has been created, add it to your keychain with the Keychain Access app.
 
