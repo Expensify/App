@@ -10,6 +10,7 @@ const CONST = {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
         IOU: 'IOU',
+        PAY_WITH_EXPENSIFY: 'payWithExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

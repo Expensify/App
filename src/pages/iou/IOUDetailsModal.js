@@ -21,6 +21,7 @@ import CONST from '../../CONST';
 import CreateMenu from '../../components/CreateMenu';
 import isAppInstalled from '../../libs/isAppInstalled';
 import Button from '../../components/Button';
+import Permissions from '../../libs/Permissions';
 
 const propTypes = {
     /** URL Route params */
@@ -179,7 +180,8 @@ class IOUDetailsModal extends Component {
      * The report currency must be USD.
      */
     addExpensifyPaymentOptionIfAvailable() {
-        if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD) {
+        if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD ||
+            !Permissions.canUsePayWithExpensify()) {
             return;
         }
 
