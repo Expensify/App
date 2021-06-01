@@ -25,7 +25,7 @@ jobs:
           team: expensify-cash-deployers
 
   createNewVersion:
-    needs: validate
+    needs: validateActor
     runs-on: ubuntu-latest
     if: ${{ needs.validateActor.outputs.IS_DEPLOYER && github.event.inputs.NEW_VERSION == '' }}
     outputs:
