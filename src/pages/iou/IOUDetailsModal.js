@@ -180,8 +180,8 @@ class IOUDetailsModal extends Component {
      * The report currency must be USD.
      */
     addExpensifyPaymentOptionIfAvailable() {
-        if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD ||
-            !Permissions.canUsePayWithExpensify()) {
+        if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD
+            || !Permissions.canUsePayWithExpensify()) {
             return;
         }
 
