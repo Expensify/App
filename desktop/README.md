@@ -19,12 +19,17 @@ mkdir -p ~/data/electron-updater
 ```
 minio server ~/data/
 ```
-4. Create a testing bucket with mc (minio client)
+4. Verify that the Min.IO local server is up-and-running by going to localhost:9000 in your browser, and logging in with the `RootUser` and `RootPass`. You should then see an interface like this:
+![electron-updater](https://user-images.githubusercontent.com/3981102/120375994-38641000-c2d0-11eb-8636-b7d59cb82af3.png)
+5. Create a testing bucket with mc (minio client)
 ```
 mc config host add electron-builder http://YOUR_LOCAL_IP:9000 [RootUser_value] [RootPass_value]
 mc mb electron-builder/electron-builder
 ```
-5. Set your testing bucket to be public, which will allow the e.cash dmg access the local latest-mac.yml file we'll be publishing
+6. Verify that the new bucket has been created by navigating to https://localhost:9000/minio/electron-builder in your browser and confriming you see an interface like this:
+![electron-builder](https://user-images.githubusercontent.com/3981102/120376267-8842d700-c2d0-11eb-86cb-f595f27d535d.png)
+
+7. Set your testing bucket to be public, which will allow the e.cash dmg access the local latest-mac.yml file we'll be publishing
 ```
 mc policy set public electron-builder/electron-builder
 ```
@@ -48,7 +53,12 @@ Once you have Min.IO setup, the next step is to revert some changes from https:/
 
 ## Setting up credentials for notarizing your build
 
-Before you can upload a build, you need to make sure that you can notarize builds. For this you will need an [Apple Developer](https://developer.apple.com) account. Go to the [Certificates, Identifiers, and Profiles](https://developer.apple.com/account/resources/certificates/list) page and create a new certificate for a Developer ID Application. Follow the instructions to create a Certificate Signing Request, and once the certificate has been created, add it to your keychain with the Keychain Access app.
+Before you can upload a build, you need to make sure that you can notarize builds. For this you will need an [Apple Developer](https://developer.apple.com) account. Go to the [Certificates, Identifiers, and Profiles](https://developer.apple.com/account/resources/certificates/list) page and create a new certificate for a `Developer ID Application` (see the bottom option of the screenshot below)
+
+<img src='https://user-images.githubusercontent.com/3981102/120376440-c0e2b080-c2d0-11eb-858a-31dd409efe87.png' width='500'/>)
+
+
+Follow the instructions to create a Certificate Signing Request, and once the certificate has been created, add it to your keychain with the Keychain Access app.
 
 You will need to pass your Apple ID (username) and an [app-specific password](https://appleid.apple.com/account/manage) to the environment of the local desktop build. Entering your normal password will not work, so generate an app-specific password before continuing. Make sure you write down the app-specific password since you'll need to pass it to the desktop-build command.
 
