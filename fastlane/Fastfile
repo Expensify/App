@@ -113,8 +113,15 @@ platform :ios do
 
     upload_to_testflight(
         api_key_path: "./ios/ios-fastlane-json-key.json",
-        distribute_external: true,
-        reject_build_waiting_for_review: true,
+        # TODO: Remove skip_waiting_for_build_processing when https://github.com/fastlane/fastlane/issues/18408 is resolved
+        # See: https://github.com/Expensify/Expensify.cash/pull/1984 for more information
+        skip_waiting_for_build_processing: true,
+        # TODO: Set distribute_external back to true when https://github.com/fastlane/fastlane/issues/18408 is resolved
+        # See: https://github.com/Expensify/Expensify.cash/pull/1984 for more information
+        distribute_external: false,
+        # TODO: Set reject_build_waiting_for_review back to true when https://github.com/fastlane/fastlane/issues/18408 is resolved
+        # See: https://github.com/Expensify/Expensify.cash/pull/1984 for more information
+        reject_build_waiting_for_review: false,
         changelog: "Thank you for beta testing Expensify.cash, this version includes bug fixes and improvements.",
         groups: ["Beta"],
         demo_account_required: true,
@@ -128,15 +135,6 @@ platform :ios do
             notes: "Use the account provided. Thank you for the review."
         }
     )
-
-    # TODO: Remove this Exception handling when https://github.com/fastlane/fastlane/issues/18408 is resolved
-    # See: https://github.com/Expensify/Expensify.cash/pull/3166 for more information
-    rescue Exception => e
-      if e.message.include? "Another build is in review"
-        UI.important("Another build is already in external beta review. Skipping external beta review submission")
-      else
-        raise
-      end
 
     upload_symbols_to_crashlytics(
       dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH],

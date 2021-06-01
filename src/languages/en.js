@@ -27,6 +27,7 @@ export default {
         and: 'and',
         details: 'Details',
         privacyPolicy: 'Privacy Policy',
+        delete: 'Delete',
         contacts: 'Contacts',
         recents: 'Recents',
     },
@@ -85,6 +86,7 @@ export default {
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
         deleteComment: 'Delete Comment',
+        deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
         beFirstPersonToComment: 'Be the first person to comment',

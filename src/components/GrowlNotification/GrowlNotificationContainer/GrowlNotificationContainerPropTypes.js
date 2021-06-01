@@ -1,6 +1,6 @@
 import {Animated} from 'react-native';
 import PropTypes from 'prop-types';
-import {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import {windowDimensionsPropTypes} from '../../withWindowDimensions';
 
 const propTypes = {
     /** GrowlNotification content */
