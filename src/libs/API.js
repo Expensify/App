@@ -536,9 +536,9 @@ function Report_TogglePinned(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
- * @param {String} parameters.reportActionID
+ * @param {Number} parameters.reportActionID
  * @param {String} parameters.reportComment
- * @return {Promise}
+ * @returns {Promise}
  */
 function Report_EditComment(parameters) {
     const commandName = 'Report_EditComment';

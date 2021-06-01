@@ -8,6 +8,7 @@ import {addAction, togglePinnedState, subscribeToUserEvents} from '../../src/lib
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import PushNotification from '../../src/libs/Notification/PushNotification';
 import {signInWithTestUser, fetchPersonalDetailsForTestUser} from '../utils/TestHelper';
+import CONST from '../../src/CONST';
 
 PushNotification.register = () => {};
 PushNotification.deregister = () => {};
@@ -42,7 +43,7 @@ describe('actions/Report', () => {
         const REPORT_ID = 1;
         const ACTION_ID = 1;
         const REPORT_ACTION = {
-            actionName: 'ADDCOMMENT',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
             actorEmail: TEST_USER_LOGIN,
             automatic: false,

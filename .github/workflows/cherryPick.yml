@@ -22,7 +22,7 @@ jobs:
 
   cherryPick:
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
     runs-on: ubuntu-latest
     steps:
       # Version: 2.3.4

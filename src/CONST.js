@@ -46,6 +46,12 @@ const CONST = {
             LIMIT: 50,
             TYPE: {
                 IOU: 'IOU',
+                ADDCOMMENT: 'ADDCOMMENT',
+            },
+        },
+        MESSAGE: {
+            TYPE: {
+                COMMENT: 'COMMENT',
             },
         },
         TYPE: {
@@ -209,6 +215,13 @@ const CONST = {
         US_PHONE: /^\+1\d{10}$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
+    },
+
+    GROWL: {
+        SUCCESS: 'success',
+        ERROR: 'error',
+        WARNING: 'warning',
+        DURATION: 2000,
     },
 };
 
