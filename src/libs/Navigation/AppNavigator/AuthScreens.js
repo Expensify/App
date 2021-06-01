@@ -13,7 +13,6 @@ import {
     fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
-import * as BankAccounts from '../../actions/BankAccounts';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
@@ -70,10 +69,12 @@ Onyx.connect({
 
 const RootStack = createCustomModalStackNavigator();
 
-// When modal screen gets focused, update modal visibility in Onyx
+// We want to delay the re-rendering for components(e.g. ReportActionCompose)
+// that depends on modal visibility until Modal is completely closed or its transition has ended
+// When modal screen is focused and animation transition is ended, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
 const modalScreenListeners = {
-    focus: () => {
+    transitionEnd: () => {
         setModalVisibility(true);
     },
     beforeRemove: () => {
@@ -117,9 +118,9 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
-        fetchAllReports(true, true);
+        PersonalDetails.fetchCurrencyPreferences();
+        fetchAllReports(true, true, true);
         fetchCountryCodeByRequestIP();
-        BankAccounts.fetchBankAccountList();
         UnreadIndicatorUpdater.listenForReportChanges();
 
         // Refresh the personal details, timezone and betas every 30 minutes
@@ -161,7 +162,7 @@ class AuthScreens extends React.Component {
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            cardStyleInterpolator: modalCardStyleInterpolator,
+            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, props),
             animationEnabled: true,
             gestureDirection: 'horizontal',
             cardOverlayEnabled: true,

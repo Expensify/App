@@ -15,4 +15,12 @@ export default {
     w50: {
         width: '50%',
     },
+
+    mwn: {
+        maxWidth: 'auto',
+    },
+
+    w1: {
+        width: 4,
+    },
 };

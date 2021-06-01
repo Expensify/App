@@ -31,7 +31,7 @@ const propTypes = {
     option: optionPropTypes.isRequired,
 
     /** Whether this option is currently in focus so we can modify its style */
-    optionIsFocused: PropTypes.bool.isRequired,
+    optionIsFocused: PropTypes.bool,
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
@@ -69,6 +69,7 @@ const defaultProps = {
     mode: 'default',
     onSelectRow: null,
     isDisabled: false,
+    optionIsFocused: false,
 };
 
 const OptionRow = ({
@@ -123,7 +124,6 @@ const OptionRow = ({
             {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
         ),
     );
-    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <Hoverable>
             {hovered => (
@@ -169,7 +169,7 @@ const OptionRow = ({
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
-                                    fullTitle={fullTitle}
+                                    fullTitle={option.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}

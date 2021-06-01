@@ -18,7 +18,7 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {isReportMessageAttachment} from '../reportUtils';
+import {isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 
@@ -154,7 +154,10 @@ function getSimplifiedReportObject(report) {
 
     // We are removing any html tags from the message html since we cannot access the text version of any comments as
     // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
-    const lastMessageText = lodashGet(lastReportAction, ['message', 'html'], '').replace(/(<([^>]+)>)/gi, '');
+    // We convert the line-breaks in html to space ' ' before striping the tags
+    const lastMessageText = lodashGet(lastReportAction, ['message', 'html'], '')
+        .replace(/((<br[^>]*>)+)/gi, ' ')
+        .replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, 'reportNameValuePairs.type') === 'chat'
         ? getChatReportName(report.sharedReportList)
         : report.reportName;
@@ -217,6 +220,8 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         total: reportData.total,
         status: reportData.status,
         stateNum: reportData.stateNum,
+        submitterPayPalMeAddress: reportData.submitterPayPalMeAddress,
+        submitterPhoneNumbers: reportData.submitterPhoneNumbers,
         hasOutstandingIOU: reportData.stateNum === 1 && reportData.total !== 0,
     };
 }
@@ -488,6 +493,13 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     const actionToMerge = {};
     actionToMerge[sequenceNumber] = {message: [message]};
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
+
+    // If this is the most recent message, update the lastMessageText in the report object as well
+    if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            lastMessageText: message.html,
+        });
+    }
 }
 
 /**
@@ -495,8 +507,9 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
  *
  * @param {Number} reportID
  * @param {Object} reportAction
+ * @param {String} notificationPreference On what cadence the user would like to be notified
  */
-function updateReportWithNewAction(reportID, reportAction) {
+function updateReportWithNewAction(reportID, reportAction, notificationPreference) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
     const initialLastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
@@ -560,6 +573,13 @@ function updateReportWithNewAction(reportID, reportAction) {
 
     if (!ActiveClientManager.isClientTheLeader()) {
         console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
+        return;
+    }
+
+    // We don't want to send a local notification if the user preference is daily or mute
+    if (notificationPreference === 'mute' || notificationPreference === 'daily') {
+        // eslint-disable-next-line max-len
+        console.debug(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
 
@@ -636,7 +656,7 @@ function subscribeToUserEvents() {
         Log.info(
             `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
         );
-        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction);
+        updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
@@ -902,9 +922,19 @@ function fetchAllReports(
                 // content and improve chat switching experience by only downloading content we don't have yet.
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
                 // data processing by Onyx.
-                const reportIDsToFetchActions = _.filter(returnedReportIDs, id => (
+                const reportIDsWithMissingActions = _.filter(returnedReportIDs, id => (
                     isReportMissingActions(id, reportMaxSequenceNumbers[id])
                 ));
+
+                // Once we have the reports that are missing actions we will find the intersection between the most
+                // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
+                // set to avoid making too many network requests at once.
+                const reportIDsToFetchActions = _.chain(sortReportsByLastVisited(allReports))
+                    .map(report => report.reportID)
+                    .reverse()
+                    .intersection(reportIDsWithMissingActions)
+                    .slice(0, 10)
+                    .value();
 
                 if (_.isEmpty(reportIDsToFetchActions)) {
                     console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
@@ -946,7 +976,7 @@ function addAction(reportID, text, file) {
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? '[Attachment]'
-        : htmlForNewComment.replace(/<[^>]*>?/gm, '');
+        : htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' ').replace(/<[^>]*>?/gm, '');
 
     // Update the report in Onyx to have the new sequence number
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -977,7 +1007,7 @@ function addAction(reportID, text, file) {
     // Optimistically add the new comment to the store before waiting to save it to the server
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [optimisticReportActionID]: {
-            actionName: 'ADDCOMMENT',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
             person: [
@@ -996,7 +1026,7 @@ function addAction(reportID, text, file) {
             timestamp: moment().unix(),
             message: [
                 {
-                    type: 'COMMENT',
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     html: htmlForNewComment,
                     text: textForNewComment,
                 },
@@ -1020,6 +1050,48 @@ function addAction(reportID, text, file) {
         persist: !isAttachment,
     })
         .then(({reportAction}) => updateReportWithNewAction(reportID, reportAction));
+}
+
+/**
+ * Deletes a comment from the report, basically sets it as empty string
+ *
+ * @param {Number} reportID
+ * @param {Object} reportAction
+ */
+function deleteReportComment(reportID, reportAction) {
+    // Optimistic Response
+    const reportActionsToMerge = {};
+    const oldMessage = {...reportAction.message};
+    reportActionsToMerge[reportAction.sequenceNumber] = {
+        ...reportAction,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                html: '',
+                text: '',
+            },
+        ],
+    };
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+
+    // Try to delete the comment by calling the API
+    API.Report_EditComment({
+        reportID,
+        reportActionID: reportAction.reportActionID,
+        reportComment: '',
+    })
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Reverse Optimistic Response
+                reportActionsToMerge[reportAction.sequenceNumber] = {
+                    ...reportAction,
+                    message: oldMessage,
+                };
+
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+            }
+        });
 }
 
 /**
@@ -1144,7 +1216,7 @@ function editReportComment(reportID, originalReportAction, htmlForNewComment) {
     const actionToMerge = {};
     newReportAction.message[0].isEdited = true;
     newReportAction.message[0].html = htmlForNewComment;
-    newReportAction.message[0].text = Str.stripHTML(htmlForNewComment);
+    newReportAction.message[0].text = Str.stripHTML(htmlForNewComment.replace(/((<br[^>]*>)+)/gi, ' '));
     actionToMerge[sequenceNumber] = newReportAction;
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actionToMerge);
 
@@ -1192,6 +1264,6 @@ export {
     updateCurrentlyViewedReportID,
     editReportComment,
     saveReportActionDraft,
+    deleteReportComment,
     getSimplifiedIOUReport,
-    getSimplifiedReportObject,
 };

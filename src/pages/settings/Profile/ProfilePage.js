@@ -30,6 +30,7 @@ import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
+import Growl from '../../../libs/Growl';
 
 const propTypes = {
     /* Onyx Props */
@@ -208,6 +209,8 @@ class ProfilePage extends Component {
                 selected: selectedTimezone,
             },
         });
+
+        Growl.show(this.props.translate('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
     }
 
     /**
@@ -265,7 +268,7 @@ class ProfilePage extends Component {
                 />
                 <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                     <Avatar
-                        style={[styles.avatarLarge, styles.alignSelfCenter]}
+                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                         source={this.props.myPersonalDetails.avatar}
                     />
                     <AttachmentPicker>

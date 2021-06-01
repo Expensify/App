@@ -8,7 +8,6 @@ export default {
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
-        split: 'Split',
         new: 'NEW',
         search: 'Search',
         next: 'Next',
@@ -27,6 +26,9 @@ export default {
         email: 'Email',
         and: 'and',
         details: 'Details',
+        delete: 'Delete',
+        contacts: 'Contacts',
+        recents: 'Recents',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -51,6 +53,10 @@ export default {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',
         whatsItFor: 'WHAT\'S IT FOR?',
+    },
+    iOUCurrencySelection: {
+        selectCurrency: 'Select a Currency',
+        allCurrencies: 'ALL CURRENCIES',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -79,6 +85,7 @@ export default {
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
         deleteComment: 'Delete Comment',
+        deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
         beFirstPersonToComment: 'Be the first person to comment',
@@ -93,8 +100,6 @@ export default {
         newGroup: 'New Group',
     },
     iou: {
-        contacts: 'CONTACTS',
-        recents: 'RECENTS',
         amount: 'Amount',
         participants: 'Participants',
         confirm: 'Confirm',
@@ -103,9 +108,13 @@ export default {
         pay: 'Pay',
         viewDetails: 'View Details',
         settleElsewhere: 'I\'ll settle up elsewhere',
+        settlePaypalMe: 'Pay with PayPal.me',
+        settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
         owes: ({manager, owner}) => `${manager} owes ${owner}`,
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
+        split: ({amount}) => `Split ${amount}`,
+        choosePaymentMethod: 'Choose payment method:',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
@@ -129,6 +138,7 @@ export default {
         emailAddress: 'Email Address',
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
+        growlMessageOnSave: 'Your profile was successfully saved',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add Phone Number',
@@ -257,5 +267,8 @@ export default {
     messages: {
         noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
+    },
+    session: {
+        offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
 };

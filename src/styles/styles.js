@@ -89,6 +89,10 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    textUppercase: {
+        textTransform: 'uppercase',
+    },
+
     colorReversed: {
         color: themeColors.textReversed,
     },
@@ -155,6 +159,20 @@ const styles = {
     buttonDisable: {
         backgroundColor: themeColors.buttonDisabledBG,
         borderWidth: 0,
+    },
+
+    buttonDropdown: {
+        marginLeft: 1,
+    },
+
+    noRightBorderRadius: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+    },
+
+    noLeftBorderRadius: {
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
     },
 
     buttonConfirm: {
@@ -455,6 +473,19 @@ const styles = {
         width: 12,
         zIndex: 10,
     },
+
+    statusIndicatorLarge: {
+        borderColor: themeColors.componentBG,
+        borderRadius: 8,
+        borderWidth: 2,
+        position: 'absolute',
+        right: 4,
+        bottom: 4,
+        height: 16,
+        width: 16,
+        zIndex: 10,
+    },
+
     statusIndicatorOnline: {
         backgroundColor: themeColors.online,
     },
@@ -518,9 +549,20 @@ const styles = {
         bottom: 75,
     },
 
+    createMenuPositionRightSidepane: {
+        right: 18,
+        bottom: 75,
+    },
+
     createMenuContainer: {
         width: variables.sideBarWidth - 40,
         paddingVertical: 12,
+    },
+
+    createMenuHeaderText: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.heading,
     },
 
     createMenuItem: {
@@ -533,8 +575,8 @@ const styles = {
     },
 
     createMenuIcon: {
-        width: 40,
-        height: 40,
+        width: variables.componentSizeNormal,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -544,6 +586,10 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    menuItemTextContainer: {
+        minHeight: variables.componentSizeNormal,
     },
 
     chatLinkRowPressable: {
@@ -988,7 +1034,7 @@ const styles = {
     avatarInnerText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 24,
+        lineHeight: undefined,
         marginLeft: -3,
         textAlign: 'center',
     },
@@ -996,7 +1042,7 @@ const styles = {
     avatarInnerTextSmall: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeExtraSmall,
-        lineHeight: 18,
+        lineHeight: undefined,
         marginLeft: -2,
         textAlign: 'center',
     },
@@ -1183,18 +1229,6 @@ const styles = {
         height: 80,
     },
 
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        borderRadius: 8,
-        borderWidth: 2,
-        position: 'absolute',
-        right: 4,
-        bottom: 4,
-        height: 16,
-        width: 16,
-        zIndex: 10,
-    },
-
     displayName: {
         fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
@@ -1341,17 +1375,29 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
+        backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
-        maxWidth: 300,
+        maxWidth: variables.sideBarWidth,
+        width: '100%',
+    },
+
+    iouPreviewBoxLoading: {
+        minHeight: 47,
         width: '100%',
     },
 
     iouPreviewBoxAvatar: {
         marginRight: -10,
+        marginBottom: -10,
+    },
+
+    iouPreviewBoxCheckmark: {
+        marginLeft: 4,
+        alignSelf: 'center',
     },
 
     iouDetailsContainer: {
@@ -1409,6 +1455,47 @@ const styles = {
         left: 0,
         opacity: 0,
         transform: 'translateX(-100%)',
+    },
+
+    growlNotificationWrapper: {
+        zIndex: 2,
+    },
+
+    growlNotificationContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        position: 'absolute',
+        width: '100%',
+        top: 20,
+        ...spacing.ph5,
+    },
+
+    growlNotificationDesktopContainer: {
+        maxWidth: 380,
+        right: 0,
+        position: 'fixed',
+    },
+
+    growlNotificationTranslateY: y => ({
+        transform: [{translateY: y}],
+    }),
+
+    growlNotificationBox: {
+        backgroundColor: colors.dark,
+        borderRadius: variables.componentBorderRadiusNormal,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        shadowColor: '#000',
+        ...spacing.p5,
+    },
+
+    growlNotificationText: {
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        width: '90%',
+        lineHeight: variables.fontSizeNormalHeight,
+        color: themeColors.textReversed,
     },
 
     blockquote: {
