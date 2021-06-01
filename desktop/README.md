@@ -36,7 +36,7 @@ mc policy set public electron-builder/electron-builder
 
 **Note:** while the `electron-updater` docs tell you to create a file named `dev-app-update.yaml`, this will **not** be helpful. Setting that file will, in development, tell the auto-updater where to look for builds. Unfortunately, on Mac the auto-updater will not install the new build unless the app that is currently running is signed.
 
-Once you have Min.IO setup, the next step is to revert some changes from https://github.com/Expensify/Expensify.cash/commit/b640b3010fd7a40783d1c04faf4489836e98038d, specifically
+Once you have Min.IO setup, the next step is to temporarily revert some changes from https://github.com/Expensify/Expensify.cash/commit/b640b3010fd7a40783d1c04faf4489836e98038d, specifically
 
 1. Update the `desktop-build` command in package.json to add `--publish always` at the end
 2. Update electron.config.js to re-add `afterSign: 'desktop/notarize.js',`
