@@ -8,7 +8,8 @@ on:
         required: true
       NEW_VERSION:
         description: The new app version
-        required: true
+        required: false
+        default: ''
 
 jobs:
   validateActor:
@@ -23,9 +24,42 @@ jobs:
           username: ${{ github.actor }}
           team: expensify-cash-deployers
 
+  createNewVersion:
+    needs: validate
+    runs-on: ubuntu-latest
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER && github.event.inputs.NEW_VERSION == '' }}
+    outputs:
+      NEW_VERSION: ${{ steps.getNewVersion.outputs.NEW_VERSION }}
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create new BUILD version
+        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          WORKFLOW: createNewVersion.yml
+          INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
+
+      - name: Pull main to get the new version
+        id: getNewVersion
+        run: |
+          git pull origin main
+          echo "New version is $(npm run print-version --silent)"
+          echo "::set-output name=NEW_VERSION::$(npm run print-version --silent)"
+
   cherryPick:
-    needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    needs: [validateActor, createNewVersion]
+    if: ${{ always() && needs.validateActor.outputs.IS_DEPLOYER }}
     runs-on: ubuntu-latest
     steps:
       # Version: 2.3.4
@@ -47,13 +81,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
+      - name: Save correct NEW_VERSION to env
+        run: |
+          if [[ -z ${{ github.event.inputs.NEW_VERSION }} ]]; then
+            echo "NEW_VERSION=${{ needs.createNewVersion.outputs.NEW_VERSION }}
+            echo "New version is ${{ env.NEW_VERSION }}"
+          else
+            echo "NEW_VERSION=${{ github.event.inputs.NEW_VERSION }}" >> $GITHUB_ENV
+            echo "New version is ${{ env.NEW_VERSION }}"
+          fi;
+
       - name: Get merge commit for version-bump pull request
         id: getVersionBumpMergeCommit
         uses: Expensify/Expensify.cash/.github/actions/getMergeCommitForPullRequest@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: OSBotify
-          TITLE_REGEX: Update version to ${{ github.event.inputs.NEW_VERSION }}
+          TITLE_REGEX: Update version to ${{ env.NEW_VERSION }}
 
       - name: Cherry-pick the merge commit to new branch
         id: cherryPick
