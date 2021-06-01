@@ -103,7 +103,6 @@ class IOUDetailsModal extends Component {
         this.isComponentMounted = true;
         fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
         this.addVenmoPaymentOptionIfAvailable();
-        this.addExpensifyPaymentOptionIfAvailable();
     }
 
     componentWillUnmount() {
@@ -196,7 +195,6 @@ class IOUDetailsModal extends Component {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
         const paymentTypeTextOptions = {
-            [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: this.props.translate('iou.settleExpensify'),
             [CONST.IOU.PAYMENT_TYPE.VENMO]: this.props.translate('iou.settleVenmo'),
             [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: this.props.translate('iou.settlePaypalMe'),
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: this.props.translate('iou.settleElsewhere'),

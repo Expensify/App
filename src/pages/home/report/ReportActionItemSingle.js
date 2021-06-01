@@ -51,7 +51,7 @@ const ReportActionItemSingle = ({
     return (
         <View style={wrapperStyles}>
             <Avatar
-                style={[styles.actionAvatar]}
+                imageStyles={[styles.actionAvatar]}
                 source={avatarUrl}
             />
             <View style={[styles.chatItemRight]}>
