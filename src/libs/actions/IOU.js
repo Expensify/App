@@ -153,10 +153,10 @@ function payIOUReport({
     chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
-    const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-        ? API.PayWithWallet({reportID})
-        : API.PayIOU({reportID, paymentMethodType});
-    payIOUPromise
+    API.PayIOU({
+        reportID,
+        paymentMethodType,
+    })
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
@@ -171,7 +171,7 @@ function payIOUReport({
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
 
             // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
-            // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
+            // selected something other than a manual settlement e.g. Venmo or PayPal.me
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
                 openURLInNewTab(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
             } else if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
