@@ -69,11 +69,15 @@ function getIOUReportsForNewTransaction(requestParams) {
  * @param {String} params.comment
  * @param {String} params.currency
  * @param {String} params.debtorEmail
+ * @returns {Object}
  */
 function createIOUTransaction(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
-    API.CreateIOUTransaction(params)
-        .then(data => getIOUReportsForNewTransaction([data]));
+    return API.CreateIOUTransaction(params)
+        .then((data) => {
+            getIOUReportsForNewTransaction([data]);
+            return {chatReportID: data.chatReportID};
+        });
 }
 
 /**
@@ -83,18 +87,23 @@ function createIOUTransaction(params) {
  * @param {String} params.comment
  * @param {String} params.amount
  * @param {String} params.currency
+ * @returns {Object}
  */
 function createIOUSplit(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 
-    API.CreateChatReport({
+    let chatReportID;
+    return API.CreateChatReport({
         emailList: params.splits.map(participant => participant.email).join(','),
     })
-        .then(data => API.CreateIOUSplit({
-            ...params,
-            splits: JSON.stringify(params.splits),
-            reportID: data.reportID,
-        }))
+        .then((data) => {
+            chatReportID = data.reportID;
+            return API.CreateIOUSplit({
+                ...params,
+                splits: JSON.stringify(params.splits),
+                reportID: data.reportID,
+            });
+        })
         .then((data) => {
             // This data needs to go from this:
             // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
@@ -110,6 +119,7 @@ function createIOUSplit(params) {
                 });
             }
             getIOUReportsForNewTransaction(reportParams);
+            return {chatReportID};
         });
 }
 

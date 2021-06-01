@@ -12,6 +12,7 @@ import Icon from '../../components/Icon';
 import {createIOUSplit, createIOUTransaction, getPreferredCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -93,6 +94,7 @@ class IOUModal extends Component {
         super(props);
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
+        this.navigateToReport = this.navigateToReport.bind(this);
         this.currencySelected = this.currencySelected.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
@@ -219,6 +221,17 @@ class IOUModal extends Component {
     }
 
     /**
+     * Navigate away to a specific report
+     *
+     * @param {String} reportID
+     */
+    navigateToReport(reportID) {
+        if (reportID) {
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        }
+    }
+
+    /**
      * Update comment whenever user enters any new text
      *
      * @param {String} comment
@@ -250,7 +263,10 @@ class IOUModal extends Component {
                 amount: this.state.amount * 100,
                 currency: this.state.selectedCurrency.currencyCode,
                 splits,
-            });
+            })
+                .then(({chatReportID}) => {
+                    this.navigateToReport(chatReportID);
+                });
             return;
         }
 
@@ -261,7 +277,10 @@ class IOUModal extends Component {
             amount: this.state.amount * 100,
             currency: this.state.selectedCurrency.currencyCode,
             debtorEmail: this.state.participants[0].login,
-        });
+        })
+            .then(({chatReportID}) => {
+                this.navigateToReport(chatReportID);
+            });
     }
 
     render() {
