@@ -21,12 +21,13 @@ const propTypes = {
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     /* Onyx Props */
-    /** ChatReport associated with iouReport */
+    /** chatReport associated with iouReport */
     chatReport: PropTypes.shape({
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
+    /** iouReport associated with this iouAction */
     iouReport: PropTypes.shape({
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,

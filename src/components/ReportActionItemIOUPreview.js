@@ -45,6 +45,12 @@ const propTypes = {
 
         /** Outstanding amount of this transaction */
         cachedTotal: PropTypes.string,
+
+        /** Does the iouReport have an outstanding IOU? */
+        hasOutstandingIOU: PropTypes.bool,
+
+        /** Has the iouReport been paid? */
+        isPaid: PropTypes.bool,
     }),
 
     /** All of the personal details for everyone */
