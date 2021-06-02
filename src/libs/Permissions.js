@@ -1,35 +1,30 @@
 import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import {isDevelopment} from './Environment/Environment';
 import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-
-let betas;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: val => betas = val || [],
-});
 
 /**
  * @private
+ * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseAllBetas() {
+function canUseAllBetas(betas) {
     return isDevelopment() || _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
+ * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseChronos() {
-    return _.contains(betas, CONST.BETAS.CHRONOS_IN_CASH) || canUseAllBetas();
+function canUseChronos(betas) {
+    return _.contains(betas, CONST.BETAS.CHRONOS_IN_CASH) || canUseAllBetas(betas);
 }
 
 /**
+ * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseIOU() {
-    return _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas();
+function canUseIOU(betas) {
+    return _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas(betas);
 }
 
 export default {
