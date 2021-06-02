@@ -17,7 +17,7 @@ const TermsWithLicenses = ({translate}) => (
         >
             {translate('termsOfUse.phrase2')}
         </ExternalLink>
-        <Text  style={[styles.loginTermsText]}>
+        <Text style={[styles.loginTermsText]}>
             {' '}
             {translate('termsOfUse.phrase3')}
             {' '}
