@@ -168,6 +168,7 @@ const CONST = {
         // not be changed.
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
+            EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
         },
