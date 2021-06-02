@@ -4,7 +4,6 @@ import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import ExternalLink from '../../../components/ExternalLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import openURLInNewTab from '../../../libs/openURLInNewTab';
 
 const TermsOnly = ({translate}) => (
     <View style={[styles.mt6, styles.flexRow, styles.flexWrap]}>
