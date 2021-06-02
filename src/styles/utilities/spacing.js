@@ -163,24 +163,8 @@ export default {
         padding: 20,
     },
 
-    p6: {
-        padding: 24,
-    },
-
-    p7: {
-        padding: 28,
-    },
-
     p8: {
         padding: 32,
-    },
-
-    p9: {
-        padding: 36,
-    },
-
-    p10: {
-        padding: 40,
     },
 
     pv1: {
