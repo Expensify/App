@@ -199,21 +199,11 @@ function getSimplifiedReportObject(report) {
  * @returns {Object}
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
-    const transactions = _.map(reportData.transactionList, transaction => ({
-        transactionID: transaction.transactionID,
-        amount: transaction.amount,
-        currency: transaction.currency,
-        created: transaction.created,
-        comment: transaction.comment,
-    })).reverse(); // `transactionList` data is returned ordered by desc creation date, they are changed to asc order
-    // because we must instead display them in the order that they were created (asc).
-
     return {
         reportID: reportData.reportID,
         ownerEmail: reportData.ownerEmail,
         managerEmail: reportData.managerEmail,
         currency: reportData.currency,
-        transactions,
         chatReportID: Number(chatReportID),
         state: reportData.state,
         cachedTotal: reportData.cachedTotal,
@@ -222,7 +212,7 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         stateNum: reportData.stateNum,
         submitterPayPalMeAddress: reportData.submitterPayPalMeAddress,
         submitterPhoneNumbers: reportData.submitterPhoneNumbers,
-        hasOutstandingIOU: reportData.stateNum === 1 && reportData.total !== 0,
+        hasOutstandingIOU: reportData.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && reportData.total !== 0,
     };
 }
 
@@ -351,8 +341,8 @@ function fetchChatReportsByIDs(chatList) {
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
                 reportIOUData[iouReportKey] = iouReportObject;
                 simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
-                simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === 1
-                    && iouReportObject.total !== 0;
+                simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum
+                    === CONST.REPORT.STATE_NUM.PROCESSING && iouReportObject.total !== 0;
             });
 
             // We use mergeCollection such that it updates the collection in one go.
@@ -459,7 +449,8 @@ function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
         .then((iouReportObject) => {
             // Now sync the chatReport data to ensure it has a reference to the updated iouReportID
             const chatReportObject = {
-                hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
+                hasOutstandingIOU: iouReportObject.stateNum === CONST.REPORT.STATE_NUM.PROCESSING
+                    && iouReportObject.total !== 0,
                 iouReportID: iouReportObject.reportID,
             };
 
