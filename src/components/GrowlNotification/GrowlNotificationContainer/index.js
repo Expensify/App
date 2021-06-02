@@ -18,5 +18,6 @@ const GrowlNotificationContainer = ({children, translateY, isSmallScreenWidth}) 
 );
 
 GrowlNotificationContainer.propTypes = propTypes;
+GrowlNotificationContainer.displayName = 'GrowlNotificationContainer';
 
 export default withWindowDimensions(GrowlNotificationContainer);

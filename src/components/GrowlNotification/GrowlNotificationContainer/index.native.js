@@ -27,5 +27,6 @@ const GrowlNotificationContainer = ({children, translateY}) => (
 );
 
 GrowlNotificationContainer.propTypes = propTypes;
+GrowlNotificationContainer.displayName = 'GrowlNotificationContainer';
 
 export default GrowlNotificationContainer;
