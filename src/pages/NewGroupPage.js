@@ -14,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import Button from '../components/Button';
@@ -58,7 +59,6 @@ class NewGroupPage extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
         this.createGroup = this.createGroup.bind(this);
-
         const {
             recentReports,
             personalDetails,
@@ -188,55 +188,62 @@ class NewGroupPage extends Component {
         );
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('sidebarScreen.newGroup')}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
-                    />
-                    <View style={[styles.flex1, styles.w100]}>
-                        <OptionsSelector
-                            canSelectMultipleOptions
-                            sections={sections}
-                            selectedOptions={this.state.selectedOptions}
-                            value={this.state.searchValue}
-                            onSelectRow={this.toggleOption}
-                            onChangeText={(searchValue = '') => {
-                                const {
-                                    recentReports,
-                                    personalDetails,
-                                    userToInvite,
-                                } = getNewGroupOptions(
-                                    this.props.reports,
-                                    this.props.personalDetails,
-                                    searchValue,
-                                    [],
-                                );
-                                this.setState({
-                                    searchValue,
-                                    userToInvite,
-                                    recentReports,
-                                    personalDetails,
-                                });
-                            }}
-                            headerMessage={headerMessage}
-                            disableArrowKeysActions
-                            hideAdditionalOptionStates
-                            forceTextUnreadStyle
-                            shouldFocusOnSelectRow
+                {({didScreenTransitionEnd}) => (
+                    <KeyboardAvoidingView>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('sidebarScreen.newGroup')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
-                    </View>
-                    {this.state.selectedOptions?.length > 0 && (
-                        <FixedFooter>
-                            <Button
-                                success
-                                onPress={this.createGroup}
-                                style={[styles.w100]}
-                                text={this.props.translate('newGroupPage.createGroup')}
-                            />
-                        </FixedFooter>
-                    )}
-                </KeyboardAvoidingView>
-                <KeyboardSpacer />
+                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                                <>
+                                    <OptionsSelector
+                                        canSelectMultipleOptions
+                                        sections={sections}
+                                        selectedOptions={this.state.selectedOptions}
+                                        value={this.state.searchValue}
+                                        onSelectRow={this.toggleOption}
+                                        onChangeText={(searchValue = '') => {
+                                            const {
+                                                recentReports,
+                                                personalDetails,
+                                                userToInvite,
+                                            } = getNewGroupOptions(
+                                                this.props.reports,
+                                                this.props.personalDetails,
+                                                searchValue,
+                                                [],
+                                            );
+                                            this.setState({
+                                                searchValue,
+                                                userToInvite,
+                                                recentReports,
+                                                personalDetails,
+                                            });
+                                        }}
+                                        headerMessage={headerMessage}
+                                        disableArrowKeysActions
+                                        hideAdditionalOptionStates
+                                        forceTextUnreadStyle
+                                        shouldFocusOnSelectRow
+                                    />
+                                    {this.state.selectedOptions?.length > 0 && (
+                                    <FixedFooter>
+                                        <Button
+                                            success
+                                            onPress={this.createGroup}
+                                            style={[styles.w100]}
+                                            text={this.props.translate('newGroupPage.createGroup')}
+                                        />
+                                    </FixedFooter>
+                                    )}
+                                </>
+                            )}
+                        </View>
+                        <KeyboardSpacer />
+                    </KeyboardAvoidingView>
+                )}
             </ScreenWrapper>
         );
     }

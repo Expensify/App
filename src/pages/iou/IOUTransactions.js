@@ -7,6 +7,7 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Actions from the ChatReport */
@@ -30,7 +31,7 @@ const IOUTransactions = ({
 }) => (
     <View style={[styles.mt3]}>
         {_.map(reportActions, (reportAction) => {
-            if (reportAction.actionName === 'IOU'
+            if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
                 && reportAction.originalMessage.IOUReportID === iouReportID) {
                 return (
                     <ReportTransaction
