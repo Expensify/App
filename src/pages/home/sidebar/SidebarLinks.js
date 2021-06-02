@@ -150,6 +150,8 @@ class SidebarLinks extends React.Component {
                         <Icon src={MagnifyingGlass} />
                     </TouchableOpacity>
                     <TouchableOpacity
+                        accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
+                        accessibilityRole="button"
                         onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator
@@ -188,6 +190,7 @@ SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
 export default compose(
+    withLocalize,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
