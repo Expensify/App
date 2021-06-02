@@ -133,8 +133,9 @@ class AdditionalDetailsStep extends React.Component {
                                     label={field.label}
                                     onChangeText={val => this.setState({[field.fieldName]: val})}
                                     value={this.state[field.fieldName]}
-                                    hasError={errorFields.includes(field.fieldName)}
-                                    errorText={`${field.label} ${this.requiredText}`}
+                                    errorText={errorFields.includes(field.fieldName)
+                                        ? `${field.label} ${this.requiredText}`
+                                        : ''}
                                 />
                             ))}
                         </ScrollView>
