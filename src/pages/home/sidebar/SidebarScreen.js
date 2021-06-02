@@ -80,7 +80,7 @@ class SidebarScreen extends Component {
                 includePaddingBottom={false}
                 style={[styles.sidebar]}
             >
-                {insets => (
+                {({insets}) => (
                     <>
                         <View style={[styles.flex1]}>
                             <SidebarLinks
