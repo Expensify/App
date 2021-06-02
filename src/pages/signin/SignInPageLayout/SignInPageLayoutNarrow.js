@@ -60,25 +60,32 @@ const SignInPageLayoutNarrow = props => (
                         )}
 
                     {props.shouldShowWelcomeText && <WelcomeText />}
-                    <View>
-                        <Text style={[styles.textLabel, styles.mt6]}>
+                    <View style={[styles.flexRow, styles.flexWrap, styles.mt6]}>
+                        <Text style={[styles.textLabel]}>
                             {`${props.translate('signInPage.expensifyIsOpenSource')}. ${
                                 props.translate('common.view')}`}
                             {' '}
-                            <ExternalLink
-                                style={[styles.link]}
-                                href={CONST.GITHUB_URL}
-                            >
-                                {props.translate('signInPage.theCode')}
-                            </ExternalLink>
-                            {`. ${props.translate('common.view')}`}
+                        </Text>
+                        <ExternalLink
+                            style={[styles.textLabel, styles.link]}
+                            href={CONST.GITHUB_URL}
+                        >
+                            {props.translate('signInPage.theCode')}
+                        </ExternalLink>
+                        <Text style={[styles.textLabel]}>
+                            .
+                        </Text>
+                        <Text style={[styles.textLabel]}>
+                            {`${props.translate('common.view')}`}
                             {' '}
-                            <ExternalLink
-                                style={[styles.link]}
-                                href={CONST.UPWORK_URL}
-                            >
-                                {props.translate('signInPage.openJobs')}
-                            </ExternalLink>
+                        </Text>
+                        <ExternalLink
+                            style={[styles.textLabel, styles.link]}
+                            href={CONST.UPWORK_URL}
+                        >
+                            {props.translate('signInPage.openJobs')}
+                        </ExternalLink>
+                        <Text style={[styles.textLabel]}>
                             .
                         </Text>
                     </View>
