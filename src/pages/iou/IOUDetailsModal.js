@@ -58,9 +58,6 @@ const propTypes = {
 
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
-
-        /** Has the iouReport been paid? */
-        isPaid: PropTypes.bool,
     }),
 
     /** Session info for the currently logged in user. */
@@ -194,7 +191,7 @@ class IOUDetailsModal extends Component {
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
-                            {(this.props.iouReport.hasOutstandingIOU || this.props.iouReport.isPaid) && (
+                            {(this.props.iouReport.hasOutstandingIOU) && (
                                 <ReportActionItemIOUPreview
                                     iou={this.props.iouReport}
                                     chatReportID={Number(this.props.route.params.chatReportID)}
@@ -206,7 +203,6 @@ class IOUDetailsModal extends Component {
                                 chatReportID={Number(this.props.route.params.chatReportID)}
                                 iouReportID={Number(this.props.route.params.iouReportID)}
                                 hasOutstandingIOU={this.props.iouReport.hasOutstandingIOU}
-                                isIOUReportPaid={this.props.iouReport.isPaid}
                                 userEmail={sessionEmail}
                             />
                         </ScrollView>

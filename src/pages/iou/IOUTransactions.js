@@ -24,15 +24,15 @@ const propTypes = {
     /** Email for the authenticated user */
     userEmail: PropTypes.string.isRequired,
 
-    /** Has the iouReport been paid? */
-    isIOUReportPaid: PropTypes.bool,
+    /** Does the associaed have an outstanding IOU? */
+    hasOutstandingIOU: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reportActions: {},
-    isIOUReportPaid: false,
+    hasOutstandingIOU: false,
 };
 
 class IOUTransactions extends Component {
@@ -50,7 +50,7 @@ class IOUTransactions extends Component {
      * @returns {Array}
      */
     getRejectableTransactions() {
-        if (this.props.isIOUReportPaid) {
+        if (!this.props.hasOutstandingIOU) {
             return [];
         }
 
