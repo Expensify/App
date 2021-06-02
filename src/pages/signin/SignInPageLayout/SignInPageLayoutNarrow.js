@@ -10,7 +10,7 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
-import openURLInNewTab from '../../../libs/openURLInNewTab/index.native';
+import ExternalLink from '../../../components/ExternalLink';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
@@ -65,20 +65,20 @@ const SignInPageLayoutNarrow = props => (
                             {`${props.translate('signInPage.expensifyIsOpenSource')}. ${
                                 props.translate('common.view')}`}
                             {' '}
-                            <Text
+                            <ExternalLink
                                 style={[styles.link]}
-                                onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
+                                href={CONST.GITHUB_URL}
                             >
                                 {props.translate('signInPage.theCode')}
-                            </Text>
+                            </ExternalLink>
                             {`. ${props.translate('common.view')}`}
                             {' '}
-                            <Text
+                            <ExternalLink
                                 style={[styles.link]}
-                                onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
+                                href={CONST.UPWORK_URL}
                             >
                                 {props.translate('signInPage.openJobs')}
-                            </Text>
+                            </ExternalLink>
                             .
                         </Text>
                     </View>
