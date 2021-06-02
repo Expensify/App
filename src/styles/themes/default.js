@@ -12,7 +12,7 @@ export default {
     sidebarHover: colors.blue,
     border: colors.gray2,
     borderFocus: colors.yellow,
-    icon: colors.gray3,
+    icon: colors.blue,
     iconSuccessFill: colors.green,
     textSupporting: colors.gray4,
     text: colors.dark,
