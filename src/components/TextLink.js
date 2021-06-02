@@ -12,7 +12,7 @@ const propTypes = {
     /** Text content child */
     children: PropTypes.string.isRequired,
 
-    /** Additional style props (optional) */
+    /** Additional style props */
     style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
 };
 
@@ -24,7 +24,7 @@ const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
     return (
         <Pressable
-            style={[...additionalStyles]}
+            style={additionalStyles}
             onPress={() => {
                 openURLInNewTab(props.href);
             }}
@@ -40,4 +40,5 @@ const TextLink = (props) => {
 
 TextLink.defaultProps = defaultProps;
 TextLink.propTypes = propTypes;
+TextLink.displayName = 'TextLink';
 export default TextLink;

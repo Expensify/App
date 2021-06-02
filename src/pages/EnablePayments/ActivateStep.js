@@ -37,4 +37,5 @@ const ActivateStep = props => (
 
 ActivateStep.propTypes = propTypes;
 ActivateStep.defaultProps = defaultProps;
+ActivateStep.displayName = 'ActivateStep';
 export default withLocalize(ActivateStep);
