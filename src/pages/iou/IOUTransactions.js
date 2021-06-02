@@ -60,12 +60,14 @@ class IOUTransactions extends Component {
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
             .filter(action => _.contains(['cancel', 'decline'], action.originalMessage.type))
             .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
+            .compact()
             .value();
 
         return _.chain(actionsForIOUReport)
             .filter(action => action.originalMessage.type === 'create')
             .filter(action => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
             .map(action => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
+            .compact()
             .value();
     }
 
