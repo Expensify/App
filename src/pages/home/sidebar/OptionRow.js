@@ -8,6 +8,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
+import Str from 'expensify-common/lib/str';
 import styles, {getBackgroundAndBorderStyle, getBackgroundColorStyle} from '../../../styles/styles';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
@@ -18,6 +19,7 @@ import Hoverable from '../../../components/Hoverable';
 import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -59,6 +61,8 @@ const propTypes = {
 
     /** Whether to disable the interactivity of this row */
     disableRowInteractivity: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -89,7 +93,11 @@ const OptionRow = ({
     showTitleTooltip,
     isDisabled,
     mode,
+<<<<<<< HEAD
     disableRowInteractivity,
+=======
+    toLocalPhone,
+>>>>>>> 4d3eff3da347fa1c6def3d19c6e986349c03c4e2
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -126,7 +134,12 @@ const OptionRow = ({
     const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, firstName, login}) => (
-            {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
+            {
+                displayName: toLocalPhone(
+                    (isMultipleParticipant ? firstName : displayName) || Str.removeSMSDomain(login),
+                ),
+                tooltip: login,
+            }
         ),
     );
     return (
@@ -234,7 +247,7 @@ OptionRow.defaultProps = defaultProps;
 OptionRow.displayName = 'OptionRow';
 
 // It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default memo(OptionRow, (prevProps, nextProps) => {
+export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     if (prevProps.optionIsFocused !== nextProps.optionIsFocused) {
         return false;
     }
@@ -276,4 +289,4 @@ export default memo(OptionRow, (prevProps, nextProps) => {
     }
 
     return true;
-});
+}));

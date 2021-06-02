@@ -23,6 +23,7 @@ const Picker = ({
         value={value}
         Icon={icon}
         disabled={disabled}
+        fixAndroidTouchableBug
     />
 );
 
