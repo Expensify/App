@@ -9,7 +9,7 @@ export default {
     appBG: colors.white,
     heading: colors.dark,
     sidebar: colors.gray1,
-    sidebarHover: colors.white,
+    sidebarHover: colors.blue,
     border: colors.gray2,
     borderFocus: colors.yellow,
     icon: colors.gray3,
