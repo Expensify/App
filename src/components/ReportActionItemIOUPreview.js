@@ -48,9 +48,6 @@ const propTypes = {
 
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
-
-        /** Has the iouReport been paid? */
-        isPaid: PropTypes.bool,
     }),
 
     /** All of the personal details for everyone */
@@ -134,7 +131,7 @@ const ReportActionItemIOUPreview = ({
                                 ? translate('iou.owes', {manager: managerName, owner: ownerName})
                                 : translate('iou.paid', {manager: managerName, owner: ownerName})}
                         </Text>
-                        {(isCurrentUserManager && !shouldHidePayButton && !iouReport.isPaid && (
+                        {(isCurrentUserManager && !shouldHidePayButton && (
                             <TouchableOpacity
                                 style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
                                 onPress={onPayButtonPressed}

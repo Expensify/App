@@ -210,7 +210,6 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         submitterPayPalMeAddress: reportData.submitterPayPalMeAddress,
         submitterPhoneNumbers: reportData.submitterPhoneNumbers,
         hasOutstandingIOU: reportData.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && reportData.total !== 0,
-        isPaid: reportData.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && reportData.total !== 0,
     };
 }
 

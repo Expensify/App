@@ -31,9 +31,6 @@ const propTypes = {
     iouReport: PropTypes.shape({
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
-
-        /** Has the iouReport been paid? */
-        isPaid: PropTypes.bool,
     }),
 };
 
@@ -62,7 +59,7 @@ const ReportActionItemIOUAction = ({
                 shouldShowViewDetailsLink={!hasMultipleParticipants}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {isMostRecentIOUReportAction && (iouReport.hasOutstandingIOU || iouReport.isPaid) && (
+            {isMostRecentIOUReportAction && (iouReport.hasOutstandingIOU) && (
                 <ReportActionItemIOUPreview
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}
