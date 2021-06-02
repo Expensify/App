@@ -20,7 +20,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ChangeExpensifyLoginLink = ({credentials, translate}) => (
+const ChangeExpensifyLoginLink = ({credentials, translate, toLocalPhone}) => (
     <View style={[styles.mb4]}>
         <TouchableOpacity
             style={[styles.link]}
@@ -30,7 +30,9 @@ const ChangeExpensifyLoginLink = ({credentials, translate}) => (
             <Text style={[styles.link]}>
                 {translate('common.not')}
                 &nbsp;
-                {Str.removeSMSDomain(credentials.login)}
+                {Str.isSMSLogin(credentials.login)
+                    ? toLocalPhone(Str.removeSMSDomain(credentials.login))
+                    : Str.removeSMSDomain(credentials.login)}
                 ?
             </Text>
         </TouchableOpacity>
