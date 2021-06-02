@@ -1196,11 +1196,6 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
-    reportTransactionCancel: {
-        justifyContent: 'flex-start',
-        flexDirection: 'row',
-    },
-
     reportTransactionWrapper: {
         paddingVertical: 8,
         display: 'flex',

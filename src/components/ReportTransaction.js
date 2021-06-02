@@ -57,7 +57,7 @@ class ReportTransaction extends Component {
                     </Text>
                 </ReportActionItemSingle>
                 {this.props.canBeRejected && (
-                    <View style={[styles.reportTransactionCancel]}>
+                    <View style={[styles.flexRow, styles.justifyContentStart]}>
                         <Pressable
                             style={[
                                 styles.buttonSmall,

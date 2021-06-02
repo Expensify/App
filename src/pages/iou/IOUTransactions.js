@@ -79,8 +79,7 @@ class IOUTransactions extends Component {
                         && reportAction.originalMessage.IOUReportID === this.props.iouReportID) {
                         const rejectableTransactions = this.getRejectableTransactions();
                         const canBeRejected = _.contains(rejectableTransactions,
-                            reportAction.originalMessage.IOUTransactionID,
-                        );
+                            reportAction.originalMessage.IOUTransactionID);
                         const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
                         return (
                             <ReportTransaction
