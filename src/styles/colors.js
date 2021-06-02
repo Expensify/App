@@ -6,7 +6,7 @@ export default {
     gray4: '#7D8B8F',
     dark: '#0b1b34',
     black: '#000000',
-    blue: '#0185ff',
+    blue: '#a83298',
     green: '#03d47c',
     greenHover: '#03c775',
     red: '#fc3826',
