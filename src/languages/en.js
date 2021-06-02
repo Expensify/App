@@ -108,6 +108,7 @@ export default {
         pay: 'Pay',
         viewDetails: 'View Details',
         settleElsewhere: 'I\'ll settle up elsewhere',
+        decline: 'Decline',
         settlePaypalMe: 'Pay with PayPal.me',
         settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
