@@ -5,11 +5,6 @@ import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
 
 class Onfido extends React.Component {
-    constructor(props) {
-        super(props);
-        this.onfidoOut = undefined;
-    }
-
     componentDidMount() {
         this.onfidoOut = OnfidoSDK.init({
             token: this.props.sdkToken,
@@ -43,13 +38,9 @@ class Onfido extends React.Component {
             smsNumberCountryCode: CONST.ONFIDO.SMS_NUMBER_COUNTRY_CODE.US,
             showCountrySelection: false,
             onComplete: this.props.onSuccess,
-            onError: () => {
-
-            },
+            onError: () => {},
             onUserExit: this.props.onUserExit,
-            onModalRequestClose: () => {
-
-            },
+            onModalRequestClose: () => {},
         });
     }
 
