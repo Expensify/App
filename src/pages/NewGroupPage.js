@@ -9,7 +9,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
-import KeyboardSpacer from '../components/KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -198,50 +197,51 @@ class NewGroupPage extends Component {
                             <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
                             {didScreenTransitionEnd && (
                                 <>
-                                    <OptionsSelector
-                                        canSelectMultipleOptions
-                                        sections={sections}
-                                        selectedOptions={this.state.selectedOptions}
-                                        value={this.state.searchValue}
-                                        onSelectRow={this.toggleOption}
-                                        onChangeText={(searchValue = '') => {
-                                            const {
-                                                recentReports,
-                                                personalDetails,
-                                                userToInvite,
-                                            } = getNewGroupOptions(
-                                                this.props.reports,
-                                                this.props.personalDetails,
-                                                searchValue,
-                                                [],
-                                            );
-                                            this.setState({
-                                                searchValue,
-                                                userToInvite,
-                                                recentReports,
-                                                personalDetails,
-                                            });
-                                        }}
-                                        headerMessage={headerMessage}
-                                        disableArrowKeysActions
-                                        hideAdditionalOptionStates
-                                        forceTextUnreadStyle
-                                        shouldFocusOnSelectRow
-                                    />
-                                    {this.state.selectedOptions?.length > 0 && (
-                                    <FixedFooter>
-                                        <Button
-                                            success
-                                            onPress={this.createGroup}
-                                            style={[styles.w100]}
-                                            text={this.props.translate('newGroupPage.createGroup')}
+                                    <View style={[styles.flex1, styles.w100]}>
+                                        <OptionsSelector
+                                            canSelectMultipleOptions
+                                            sections={sections}
+                                            selectedOptions={this.state.selectedOptions}
+                                            value={this.state.searchValue}
+                                            onSelectRow={this.toggleOption}
+                                            onChangeText={(searchValue = '') => {
+                                                const {
+                                                    recentReports,
+                                                    personalDetails,
+                                                    userToInvite,
+                                                } = getNewGroupOptions(
+                                                    this.props.reports,
+                                                    this.props.personalDetails,
+                                                    searchValue,
+                                                    [],
+                                                );
+                                                this.setState({
+                                                    searchValue,
+                                                    userToInvite,
+                                                    recentReports,
+                                                    personalDetails,
+                                                });
+                                            }}
+                                            headerMessage={headerMessage}
+                                            disableArrowKeysActions
+                                            hideAdditionalOptionStates
+                                            forceTextUnreadStyle
+                                            shouldFocusOnSelectRow
                                         />
-                                    </FixedFooter>
+                                    </View>
+                                    {this.state.selectedOptions?.length > 0 && (
+                                        <FixedFooter>
+                                            <Button
+                                                success
+                                                onPress={this.createGroup}
+                                                style={[styles.w100]}
+                                                text={this.props.translate('newGroupPage.createGroup')}
+                                            />
+                                        </FixedFooter>
                                     )}
                                 </>
                             )}
                         </View>
-                        <KeyboardSpacer />
                     </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>
