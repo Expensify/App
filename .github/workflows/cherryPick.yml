@@ -99,9 +99,12 @@ jobs:
           USER: OSBotify
           TITLE_REGEX: Update version to ${{ env.NEW_VERSION }}
 
-      - name: Cherry-pick the merge commit to new branch
+      - name: Cherry-pick the merge commits to new branch
         id: cherryPick
-        run: git cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} ${{ steps.getVersionBumpMergeCommit.MERGE_COMMIT_SHA }} --mainline 1
+        run: |
+          git switch main
+          git checkout -
+          git cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }} --mainline 1
         continue-on-error: true
 
       # If there is a merge conflict, we'll just commit what we have,
