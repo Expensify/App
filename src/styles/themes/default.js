@@ -29,7 +29,7 @@ export default {
     sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
     modalBackdrop: colors.gray3,
     modalBackground: colors.gray2,
-    badgeDangerBG: colors.red,
+    badgeDangerBG: colors.blue,
     badgeDefaultBG: colors.gray2,
     badgeSuccessBG: colors.green,
     buttonDisabledBG: colors.gray2,
