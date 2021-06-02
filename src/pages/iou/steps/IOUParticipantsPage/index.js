@@ -78,5 +78,5 @@ IOUParticipantsPage.propTypes = propTypes;
 IOUParticipantsPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    appStaiouteIOU: {key: ONYXKEYS.IOU},
+    iou: {key: ONYXKEYS.IOU},
 })(IOUParticipantsPage);

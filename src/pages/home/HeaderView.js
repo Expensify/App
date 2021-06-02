@@ -4,6 +4,7 @@ import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
@@ -20,6 +21,7 @@ import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -46,6 +48,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     ...windowDimensionsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -58,7 +61,12 @@ const HeaderView = (props) => {
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
         ({displayName, firstName, login}) => (
-            {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
+            {
+                displayName: props.toLocalPhone(
+                    (isMultipleParticipant ? firstName : displayName) || Str.removeSMSDomain(login),
+                ),
+                tooltip: login,
+            }
         ),
     );
     const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
@@ -129,6 +137,7 @@ HeaderView.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withLocalize,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
