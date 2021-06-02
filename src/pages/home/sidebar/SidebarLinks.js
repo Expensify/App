@@ -142,6 +142,8 @@ class SidebarLinks extends React.Component {
                         shouldShowEnvironmentBadge
                     />
                     <TouchableOpacity
+                        accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
+                        accessibilityRole="button"
                         style={[styles.flexRow, styles.ph5]}
                         onPress={this.showSearchPage}
                     >
