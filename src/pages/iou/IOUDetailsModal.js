@@ -176,8 +176,8 @@ class IOUDetailsModal extends Component {
     }
 
     /**
-     * Checks to see if we can use Expensify.
-     * The report currency must be USD.
+     * Checks to see if we can use Expensify Wallet to pay for this IOU report.
+     * The IOU report currency must be USD.
      */
     addExpensifyPaymentOptionIfAvailable() {
         if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD
