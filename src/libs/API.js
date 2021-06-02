@@ -5,7 +5,7 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
-import getPlatform from './getPlatform';
+import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 
 let isAuthenticating;
 let credentials;
@@ -707,10 +707,11 @@ function CreateIOUSplit(parameters) {
  * @returns {Promise}
  */
 function Wallet_GetOnfidoSDKToken() {
-    const platform = getPlatform();
     return Network.post('Wallet_GetOnfidoSDKToken', {
         // We need to pass this so we can request a token with the correct referrer
-        isViaExpensifyCashNative: platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID,
+        // This value comes from a cross-platform module which returns true for native
+        // platforms and false for non-native platforms.
+        isViaExpensifyCashNative,
     }, CONST.NETWORK.METHOD.POST, true);
 }
 
