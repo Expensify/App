@@ -22,7 +22,7 @@ export default {
     textReversed: colors.white,
     textMutedReversed: colors.gray3,
     buttonDefaultBG: colors.gray2,
-    buttonSuccessBG: colors.green,
+    buttonSuccessBG: '#f00',
     buttonSuccessHoveredBG: colors.greenHover,
     online: colors.green,
     offline: colors.gray3,
