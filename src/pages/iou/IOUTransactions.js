@@ -58,13 +58,13 @@ class IOUTransactions extends Component {
             && action.originalMessage.type && action.originalMessage.IOUReportID === this.props.iouReportID);
 
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
-            .filter(action => ['cancel', 'decline'].includes(action.originalMessage.type))
+            .filter(action => _.contains(['cancel', 'decline'], action.originalMessage.type))
             .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
             .value();
 
         return _.chain(actionsForIOUReport)
             .filter(action => action.originalMessage.type === 'create')
-            .filter(action => !rejectedTransactionIDs.includes(action.originalMessage.IOUTransactionID))
+            .filter(action => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
             .map(action => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
             .value();
     }
@@ -76,7 +76,7 @@ class IOUTransactions extends Component {
                     if (reportAction.originalMessage
                         && reportAction.originalMessage.IOUReportID === this.props.iouReportID) {
                         const rejectableTransactions = this.getRejectableTransactions();
-                        const canBeRejected = rejectableTransactions.includes(
+                        const canBeRejected = _.contains(rejectableTransactions,
                             reportAction.originalMessage.IOUTransactionID,
                         );
                         const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
