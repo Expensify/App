@@ -59,7 +59,10 @@ if (pullRequestNumber) {
         .then(({data}) => outputMergeCommitHash(data))
         .catch(handleUnknownError);
 } else {
-    GithubUtils.octokit.pulls.list(DEFAULT_PAYLOAD)
+    GithubUtils.octokit.pulls.list({
+        ...DEFAULT_PAYLOAD,
+        state: 'all',
+    })
         .then(({data}) => {
             const matchingPR = _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title));
             outputMergeCommitHash(matchingPR);
