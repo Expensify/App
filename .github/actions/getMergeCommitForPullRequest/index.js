@@ -19,8 +19,8 @@ const DEFAULT_PAYLOAD = {
 };
 
 const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
-const user = ActionUtils.getJSONInput('USER', {required: false}, null);
-const titleRegex = ActionUtils.getJSONInput('TITLE_REGEX', {required: false}, null);
+const user = core.getInput('USER', {required: false});
+const titleRegex = core.getInput('TITLE_REGEX', {required: false});
 
 if (pullRequestNumber) {
     console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
