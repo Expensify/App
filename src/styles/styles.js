@@ -468,7 +468,9 @@ const styles = {
     },
 
     signInPageWideLeftContainer: {
-        maxWidth: 400, minWidth: 350, width: '25%',
+        maxWidth: 400,
+        minWidth: 350,
+        width: '25%',
     },
 
     signInPageWideHeroContent: {
