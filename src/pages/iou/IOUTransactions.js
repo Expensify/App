@@ -4,6 +4,8 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import compose from '../../libs/compose';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
@@ -24,6 +26,8 @@ const propTypes = {
 
     /** Has the iouReport been paid? */
     isIOUReportPaid: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -83,7 +87,9 @@ class IOUTransactions extends Component {
                                 action={reportAction}
                                 key={reportAction.sequenceNumber}
                                 canBeRejected={canBeRejected}
-                                isCurrentUserTransactionCreator={isCurrentUserTransactionCreator}
+                                rejectButtonLabelText={isCurrentUserTransactionCreator
+                                    ? this.props.translate('common.cancel')
+                                    : this.props.translate('iou.decline')}
                             />
                         );
                     }
@@ -95,9 +101,12 @@ class IOUTransactions extends Component {
 
 IOUTransactions.defaultProps = defaultProps;
 IOUTransactions.propTypes = propTypes;
-export default withOnyx({
-    reportActions: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-        canEvict: false,
-    },
-})(IOUTransactions);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reportActions: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            canEvict: false,
+        },
+    }),
+)(IOUTransactions);
