@@ -20,7 +20,7 @@ const DEFAULT_PAYLOAD = {
 
 const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
 const user = core.getInput('USER', {required: false});
-const titleRegex = core.getInput('TITLE_REGEX', {required: false});
+let titleRegex = core.getInput('TITLE_REGEX', {required: false});
 
 if (pullRequestNumber) {
     console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
@@ -31,6 +31,7 @@ if (user) {
 }
 
 if (titleRegex) {
+    titleRegex = new RegExp(titleRegex);
     console.log(`Looking for pull request w/ title matching: ${titleRegex.toString()}`);
 }
 
