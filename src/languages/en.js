@@ -275,6 +275,7 @@ export default {
         termsOfService: 'Terms of Service',
         tryAgain: 'Try Again',
         verifyIdentity: 'Verify Identity',
+        genericError: 'There was an error while processing this step. Please try again.',
     },
     additionalDetailsStep: {
         headerTitle: 'Additional Details',
