@@ -73,6 +73,7 @@ class TermsStep extends React.Component {
                 <View style={[styles.mh5, styles.flex1]}>
                     <ScrollView>
                         <Text>
+                            {/* @TODO build out the terms page */}
                             {/* eslint-disable-next-line max-len */}
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                         </Text>
@@ -89,8 +90,7 @@ class TermsStep extends React.Component {
                             <Text>
                                 {`${this.props.translate('termsStep.haveReadAndAgree')} `}
 
-                                {/* @TODO add external links */}
-                                <TextLink href="">
+                                <TextLink href="https://use.expensify.com/fees">
                                     {`${this.props.translate('termsStep.electronicDisclosures')}.`}
                                 </TextLink>
                             </Text>
@@ -115,8 +115,7 @@ class TermsStep extends React.Component {
 
                             <Text>{`${this.props.translate('common.and')} `}</Text>
 
-                            {/* @TODO link to wallet agreement */}
-                            <TextLink href="">
+                            <TextLink href="https://use.expensify.com/personalpaymentsterms">
                                 {`${this.props.translate('termsStep.walletAgreement')}.`}
                             </TextLink>
                         </TouchableOpacity>
