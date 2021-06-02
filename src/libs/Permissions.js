@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import {isDevelopment} from './Environment/Environment';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -14,7 +15,7 @@ Onyx.connect({
  * @returns {Boolean}
  */
 function canUseAllBetas() {
-    return _.contains(betas, CONST.BETAS.ALL);
+    return isDevelopment() || _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
