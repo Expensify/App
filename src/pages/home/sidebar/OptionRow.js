@@ -93,11 +93,8 @@ const OptionRow = ({
     showTitleTooltip,
     isDisabled,
     mode,
-<<<<<<< HEAD
     disableRowInteractivity,
-=======
     toLocalPhone,
->>>>>>> 4d3eff3da347fa1c6def3d19c6e986349c03c4e2
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
