@@ -103,7 +103,9 @@ class LoginField extends Component {
                 ) : (
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                         <Text style={[styles.textP]} numberOfLines={1}>
-                            {this.props.login.partnerUserID}
+                            {this.props.type === CONST.LOGIN_TYPE.PHONE
+                                ? this.props.toLocalPhone(this.props.login.partnerUserID)
+                                : this.props.login.partnerUserID}
                         </Text>
                         {!this.props.login.validatedDate && (
                             <Button
