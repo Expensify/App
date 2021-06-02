@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Text, View, Pressable} from 'react-native';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
@@ -22,15 +21,12 @@ const propTypes = {
     /** Can this transaction be rejected? */
     canBeRejected: PropTypes.bool,
 
-    /** Is the authenticated user the creator of this transaction? */
-    isCurrentUserTransactionCreator: PropTypes.bool,
-
-    ...withLocalizePropTypes,
+    /** Text label for the reject transaction button */
+    rejectButtonLabelText: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
     canBeRejected: false,
-    isCurrentUserTransactionCreator: false,
 };
 
 class ReportTransaction extends Component {
@@ -70,11 +66,7 @@ class ReportTransaction extends Component {
                             ]}
                             onPress={() => this.rejectTransaction()}
                         >
-                            <Text style={[styles.buttonSmallText]}>
-                                {this.props.isCurrentUserTransactionCreator
-                                    ? this.props.translate('common.cancel')
-                                    : this.props.translate('iou.decline')}
-                            </Text>
+                            <Text style={[styles.buttonSmallText]}>{this.props.rejectButtonLabelText}</Text>
                         </Pressable>
                     </View>
                 )}
@@ -86,4 +78,4 @@ class ReportTransaction extends Component {
 ReportTransaction.displayName = 'ReportTransaction';
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
-export default withLocalize(ReportTransaction);
+export default ReportTransaction;
