@@ -3,3 +3,9 @@
     border-style: none !important;
     width: 100% !important;
 }
+@media only screen and (max-width: 600px) {
+    .onfido-sdk-ui-Modal-inner {
+        /* This keeps the bottom of the Onfido window from being cut off on mobile web */
+        height: 92% !important;
+    }
+}
