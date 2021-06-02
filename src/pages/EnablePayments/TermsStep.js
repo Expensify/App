@@ -109,8 +109,7 @@ class TermsStep extends React.Component {
                                 {`${this.props.translate('termsStep.agreeToThe')} `}
                             </Text>
 
-                            {/* @TODO link to privacy policy */}
-                            <TextLink href="">
+                            <TextLink href="https://use.expensify.com/privacy">
                                 {`${this.props.translate('common.privacyPolicy')} `}
                             </TextLink>
 
