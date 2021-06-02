@@ -2,11 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Num from 'expensify-common/lib/Num';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import compose from '../libs/compose';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** IOU Report data object */
@@ -28,6 +29,8 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -56,7 +59,10 @@ const IOUBadge = (props) => {
                 numberOfLines={1}
                 onPress={launchIOUDetailsModal}
             >
-                {`$${Num.number_format(props.iouReport.total / 100, 2)}`}
+                {props.numberFormat(
+                    props.iouReport.total / 100,
+                    {style: 'currency', currency: props.iouReport.currency},
+                )}
             </Text>
         </View>
     );
@@ -65,11 +71,14 @@ const IOUBadge = (props) => {
 IOUBadge.displayName = 'IOUBadge';
 IOUBadge.propTypes = propTypes;
 IOUBadge.defaultProps = defaultProps;
-export default withOnyx({
-    iouReport: {
-        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(IOUBadge);
+export default compose(
+    withLocalize,
+    withOnyx({
+        iouReport: {
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(IOUBadge);
