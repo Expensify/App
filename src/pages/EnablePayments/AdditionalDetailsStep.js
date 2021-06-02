@@ -21,15 +21,15 @@ import TextLink from '../../components/TextLink';
 const propTypes = {
     ...withLocalizePropTypes,
 
-    // Stores additional information about the additional details step e.g. loading state and errors with fields
+    /** Stores additional information about the additional details step e.g. loading state and errors with fields */
     walletAdditionalDetails: PropTypes.shape({
-        // Are we waiting for a response?
+        /** Are we waiting for a response? */
         loading: PropTypes.bool,
 
-        // Which field needs attention?
+        /** Which field needs attention? */
         errorFields: PropTypes.arrayOf(PropTypes.string),
 
-        // Any additional error message to show
+        /** Any additional error message to show */
         additionalErrorMessage: PropTypes.string,
     }),
 };
@@ -124,9 +124,7 @@ class AdditionalDetailsStep extends React.Component {
                                 {this.props.translate('additionalDetailsStep.helpLink')}
                             </TextLink>
                         </View>
-                        <ScrollView
-                            contentContainerStyle={styles.p5}
-                        >
+                        <ScrollView contentContainerStyle={styles.p5}>
                             {_.map(this.fields, field => (
                                 <TextInputWithLabel
                                     key={field.label}

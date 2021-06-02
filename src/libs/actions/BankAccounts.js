@@ -264,12 +264,7 @@ function fetchUserWallet() {
                 return;
             }
 
-            /**
-             * @type UserWallet
-             */
-            const userWallet = response.userWallet;
-
-            Onyx.merge(ONYXKEYS.USER_WALLET, userWallet);
+            Onyx.merge(ONYXKEYS.USER_WALLET, response.userWallet);
         });
 }
 

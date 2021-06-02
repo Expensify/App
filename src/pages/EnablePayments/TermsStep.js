@@ -19,7 +19,9 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
+    /** Comes from Onyx. Information about the terms for the wallet */
     walletTerms: PropTypes.shape({
+        /** Whether or not the information is currently loading */
         loading: PropTypes.bool,
     }),
     ...withLocalizePropTypes,

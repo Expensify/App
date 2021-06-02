@@ -5,10 +5,10 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 
 const propTypes = {
-    // Label text
+    /** Label text */
     label: PropTypes.string.isRequired,
 
-    // Text to show if there is an error
+    /** Text to show if there is an error */
     errorText: PropTypes.string,
 };
 
