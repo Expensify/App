@@ -3,7 +3,9 @@ import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -108,6 +110,11 @@ class TextInputFocusable extends React.Component {
                 end: initialValue.length,
             },
         };
+        this.selection = {
+            start: initialValue.length,
+            end: initialValue.length,
+        };
+        this.saveSelection = this.saveSelection.bind(this);
     }
 
     componentDidMount() {
@@ -177,6 +184,17 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
+     * Keeps track of user cursor position on the Composer
+     *
+     * @param {{nativeEvent: {selection: any}}} event
+     * @memberof TextInputFocusable
+     */
+    saveSelection(event) {
+        this.selection = event.nativeEvent.selection;
+        this.props.onSelectionChange(event);
+    }
+
+    /**
      * Check the paste event for an attachment, parse the data and
      * call onPasteFile from props with the selected file
      *
@@ -185,6 +203,7 @@ class TextInputFocusable extends React.Component {
     checkForAttachment(event) {
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
+        const TEXT_PLAIN = 'text/plain';
         if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
             event.preventDefault();
@@ -192,6 +211,7 @@ class TextInputFocusable extends React.Component {
         } else if (types.includes(TEXT_HTML)) {
             const domparser = new DOMParser();
             const embededImages = domparser.parseFromString(event.clipboardData.getData(TEXT_HTML), TEXT_HTML).images;
+            const pastedText = event.clipboardData.getData(TEXT_PLAIN);
             if (embededImages.length > 0) {
                 event.preventDefault();
                 fetch(embededImages[0].src)
@@ -208,9 +228,23 @@ class TextInputFocusable extends React.Component {
                         return new File([x], `pasted_image.${extension}`, {});
                     })
                     .then(this.props.onPasteFile)
-                    .catch((error) => {
+                    .catch(() => {
                         const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
-                        alert(`${errorDesc}. \n${error.message}`);
+                        Growl.show(errorDesc, CONST.GROWL.ERROR);
+
+                        /*
+                        * Since we intercepted the user-triggered paste event to check for attachments,
+                        * we need to manually set the value and call the `onChangeText` handler.
+                        * Synthetically-triggered paste events do not affect the document's contents.
+                        * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
+                        */
+                        const beforeCursorText = this.textInput.value.substring(0, this.selection.start);
+                        const afterCursorText = this.textInput.value.substring(this.selection.end);
+                        this.textInput.value = beforeCursorText + pastedText + afterCursorText;
+                        this.updateNumberOfLines();
+                        this.props.onChangeText(this.textInput.value);
+                        const newCursorPosition = beforeCursorText.length + pastedText.length;
+                        this.setState({selection: {start: newCursorPosition, end: newCursorPosition}});
                     });
             }
         }
@@ -247,12 +281,12 @@ class TextInputFocusable extends React.Component {
                 onChange={() => {
                     this.updateNumberOfLines();
                 }}
+                onSelectionChange={this.saveSelection}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
                 disabled={this.props.isDisabled}
-                onSelectionChange={this.props.onSelectionChange}
             />
         );
     }
