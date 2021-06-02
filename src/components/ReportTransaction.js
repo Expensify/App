@@ -20,7 +20,7 @@ const propTypes = {
     action: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     /** Can this transaction be rejected? */
-    isRejectable: PropTypes.bool,
+    canBeRejected: PropTypes.bool,
 
     /** Is the authenticated user the creator of this transaction? */
     isCurrentUserTransactionCreator: PropTypes.bool,
@@ -29,7 +29,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isRejectable: false,
+    canBeRejected: false,
     isCurrentUserTransactionCreator: false,
 };
 
@@ -60,7 +60,7 @@ class ReportTransaction extends Component {
                         {this.props.action.message[0].text}
                     </Text>
                 </ReportActionItemSingle>
-                {this.props.isRejectable && (
+                {this.props.canBeRejected && (
                     <View style={[styles.reportTransactionCancel]}>
                         <Pressable
                             style={[

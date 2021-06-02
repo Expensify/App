@@ -72,7 +72,7 @@ class IOUTransactions extends Component {
                     if (reportAction.originalMessage
                         && reportAction.originalMessage.IOUReportID === this.props.iouReportID) {
                         const rejectableTransactions = this.getRejectableTransactions();
-                        const isRejectable = rejectableTransactions.includes(
+                        const canBeRejected = rejectableTransactions.includes(
                             reportAction.originalMessage.IOUTransactionID,
                         );
                         const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
@@ -82,7 +82,7 @@ class IOUTransactions extends Component {
                                 iouReportID={this.props.iouReportID}
                                 action={reportAction}
                                 key={reportAction.sequenceNumber}
-                                isRejectable={isRejectable}
+                                canBeRejected={canBeRejected}
                                 isCurrentUserTransactionCreator={isCurrentUserTransactionCreator}
                             />
                         );
