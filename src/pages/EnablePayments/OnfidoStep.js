@@ -46,6 +46,9 @@ const defaultProps = {
 };
 
 class OnfidoStep extends React.Component {
+    /**
+     * @returns {boolean|*}
+     */
     canShowOnfido() {
         return this.props.walletOnfidoData.hasAcceptedPrivacyPolicy
             && !this.props.walletOnfidoData.loading
@@ -94,7 +97,7 @@ class OnfidoStep extends React.Component {
                                             >
                                                 {this.props.translate('common.privacyPolicy')}
                                             </TextLink>
-                                            {' and '}
+                                            {` ${this.props.translate('common.and')} `}
                                             <TextLink
                                                 href="https://onfido.com/terms-of-service/"
                                             >

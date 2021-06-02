@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import React from 'react';
 import {
     View, ScrollView, Text, TouchableOpacity,
@@ -51,10 +50,20 @@ class TermsStep extends React.Component {
     }
 
     togglePrivacyPolicy() {
-        this.setState(prevState => ({hasAcceptedPrivacyPolicyAndWalletAgreement: !prevState.hasAcceptedPrivacyPolicyAndWalletAgreement}));
+        this.setState(prevState => ({
+            hasAcceptedPrivacyPolicyAndWalletAgreement: !prevState.hasAcceptedPrivacyPolicyAndWalletAgreement,
+        }));
     }
 
     render() {
+        const toggleStyles = [
+            styles.ml2,
+            styles.pr2,
+            styles.w100,
+            styles.flexRow,
+            styles.flexWrap,
+            styles.alignItemsCenter,
+        ];
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -64,6 +73,7 @@ class TermsStep extends React.Component {
                 <View style={[styles.mh5, styles.flex1]}>
                     <ScrollView>
                         <Text>
+                            {/* eslint-disable-next-line max-len */}
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                         </Text>
                     </ScrollView>
@@ -74,20 +84,15 @@ class TermsStep extends React.Component {
                         />
                         <TouchableOpacity
                             onPress={this.toggleDisclosure}
-                            style={[
-                                styles.ml2,
-                                styles.pr2,
-                                styles.w100,
-                                styles.flexRow,
-                                styles.flexWrap,
-                                styles.alignItemsCenter,
-                            ]}
+                            style={toggleStyles}
                         >
                             <Text>
                                 {`${this.props.translate('termsStep.haveReadAndAgree')} `}
 
                                 {/* @TODO add external links */}
-                                <TextLink href="">{`${this.props.translate('termsStep.electronicDisclosures')}.`}</TextLink>
+                                <TextLink href="">
+                                    {`${this.props.translate('termsStep.electronicDisclosures')}.`}
+                                </TextLink>
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -98,14 +103,7 @@ class TermsStep extends React.Component {
                         />
                         <TouchableOpacity
                             onPress={this.togglePrivacyPolicy}
-                            style={[
-                                styles.ml2,
-                                styles.pr2,
-                                styles.w100,
-                                styles.flexRow,
-                                styles.flexWrap,
-                                styles.alignItemsCenter,
-                            ]}
+                            style={toggleStyles}
                         >
                             <Text>
                                 {`${this.props.translate('termsStep.agreeToThe')} `}
@@ -134,14 +132,16 @@ class TermsStep extends React.Component {
                             text={this.props.translate('termsStep.enablePayments')}
                             isLoading={this.props.walletTerms.loading}
                             onPress={() => {
-                                if (!this.state.hasAcceptedDisclosure || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
+                                if (!this.state.hasAcceptedDisclosure
+                                    || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
                                     this.setState({error: true});
                                     return;
                                 }
 
                                 this.setState({error: false});
                                 activateWallet(CONST.WALLET.STEP.TERMS, {
-                                    hasAcceptedTerms: this.state.hasAcceptedDisclosure && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
+                                    hasAcceptedTerms: this.state.hasAcceptedDisclosure
+                                        && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
                                 });
                             }}
                         />

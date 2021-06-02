@@ -116,10 +116,9 @@ class AdditionalDetailsStep extends React.Component {
                     <View style={[styles.flex1]}>
                         <View style={[styles.ph5]}>
                             <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
-                            {/* @TODO Open link to help doc */}
                             <TextLink
                                 style={styles.mb3}
-                                href=""
+                                href="https://use.expensify.com/usa-patriot-act"
                             >
                                 {this.props.translate('additionalDetailsStep.helpLink')}
                             </TextLink>

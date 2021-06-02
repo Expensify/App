@@ -1,8 +1,15 @@
 import './index.css';
 import React from 'react';
 import * as OnfidoSDK from 'onfido-sdk-ui';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
+import Growl from '../../libs/Growl';
+
+const propTypes = {
+    ...withLocalizePropTypes,
+    ...onfidoPropTypes,
+};
 
 class Onfido extends React.Component {
     componentDidMount() {
@@ -38,7 +45,10 @@ class Onfido extends React.Component {
             smsNumberCountryCode: CONST.ONFIDO.SMS_NUMBER_COUNTRY_CODE.US,
             showCountrySelection: false,
             onComplete: this.props.onSuccess,
-            onError: () => {},
+            onError: () => {
+                this.props.onUserExit();
+                Growl.show(this.props.translate('onfidoStep.genericError'), CONST.GROWL.ERROR);
+            },
             onUserExit: this.props.onUserExit,
             onModalRequestClose: () => {},
         });
@@ -57,5 +67,5 @@ class Onfido extends React.Component {
     }
 }
 
-Onfido.propTypes = onfidoPropTypes;
-export default Onfido;
+Onfido.propTypes = propTypes;
+export default withLocalize(Onfido);

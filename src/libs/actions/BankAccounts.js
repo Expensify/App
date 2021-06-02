@@ -133,7 +133,8 @@ function fetchOnfidoToken() {
                 loading: false,
                 hasAcceptedPrivacyPolicy: true,
             });
-        });
+        })
+        .catch(() => Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: false, error: CONST.WALLET.ERROR.UNEXPECTED}));
 }
 
 /**
@@ -171,7 +172,7 @@ function activateWallet(currentStep, parameters) {
     let onfidoData;
     let hasAcceptedTerms;
 
-    if (!currentStep || !_.contains(CONST.WALLET.STEP, currentStep)) {
+    if (!_.contains(CONST.WALLET.STEP, currentStep)) {
         throw new Error('Invalid currentStep passed to activateWallet()');
     }
 
