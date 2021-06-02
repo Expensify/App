@@ -86,7 +86,7 @@ function processQueue() {
  * @param {LocalNotification} notification
  * @throws {Error}
  */
-export default function queueNotification(notification) {
+function queueNotification(notification) {
     if (!(notification instanceof LocalNotification)) {
         throw new Error('Attempting to queue invalid LocalNotification');
     }
@@ -99,3 +99,7 @@ export default function queueNotification(notification) {
         processQueue();
     }
 }
+
+export default {
+    queueNotification,
+};
