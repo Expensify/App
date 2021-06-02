@@ -8,15 +8,11 @@ const propTypes = {
     // Label text
     label: PropTypes.string.isRequired,
 
-    // Whether this field has an error
-    hasError: PropTypes.bool,
-
     // Text to show if there is an error
     errorText: PropTypes.string,
 };
 
 const defaultProps = {
-    hasError: false,
     errorText: '',
 };
 
@@ -26,9 +22,9 @@ const TextInputWithLabel = props => (
         <TextInput
             style={[styles.textInput, styles.mb1]}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {..._.omit(props, ['label'])}
+            {..._.omit(props, ['label', 'errorText'])}
         />
-        {props.errorText && props.hasError && (
+        {props.errorText !== '' && (
             <Text style={[styles.formError]}>{props.errorText}</Text>
         )}
     </>
@@ -36,4 +32,5 @@ const TextInputWithLabel = props => (
 
 TextInputWithLabel.propTypes = propTypes;
 TextInputWithLabel.defaultProps = defaultProps;
+TextInputWithLabel.displayName = 'TextInputWithLabel';
 export default TextInputWithLabel;
