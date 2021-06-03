@@ -289,7 +289,7 @@ class IOUModal extends Component {
             <ScreenWrapper onTransitionEnd={this.getReady}>
                 {({didScreenTransitionEnd}) => (
                     <>
-                        <View style={[styles.headerBar, true && styles.borderBottom]}>
+                        <View style={[styles.headerBar]}>
                             <View style={[
                                 styles.dFlex,
                                 styles.flexRow,
