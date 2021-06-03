@@ -21,6 +21,7 @@ import Log from '../Log';
 import {isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
+import Growl from '../Growl';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1040,7 +1041,17 @@ function addAction(reportID, text, file) {
         // the same way report actions can.
         persist: !isAttachment,
     })
-        .then(({reportAction}) => updateReportWithNewAction(reportID, reportAction));
+        .then((response) => {
+            if (response.jsonCode === 408) {
+                Growl.show('Upload Failed. File is not supported.', CONST.GROWL.ERROR);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [optimisticReportActionID]: null,
+                });
+                console.error(response.message);
+                return;
+            }
+            updateReportWithNewAction(reportID, response.reportAction);
+        });
 }
 
 /**
