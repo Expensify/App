@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
@@ -44,22 +43,22 @@ const defaultProps = {
 const ReportActionItemIOUAction = ({
     action,
     chatReportID,
-    chatReport,
     iouReport,
     isMostRecentIOUReportAction,
 }) => {
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
     };
-    const hasMultipleParticipants = lodashGet(chatReport, 'participants', []).length >= 2;
     return (
         <>
             <ReportActionItemIOUQuote
                 action={action}
-                shouldShowViewDetailsLink={!hasMultipleParticipants}
+                shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {isMostRecentIOUReportAction && (iouReport.hasOutstandingIOU) && (
+            {isMostRecentIOUReportAction
+            && iouReport.hasOutstandingIOU
+            && Boolean(action.originalMessage.IOUReportID) && (
                 <ReportActionItemIOUPreview
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}
