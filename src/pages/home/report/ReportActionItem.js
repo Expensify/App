@@ -3,6 +3,7 @@ import React, {Component} from 'react';
 import {Dimensions, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
@@ -19,7 +20,6 @@ import ReportActionItemIOUAction from '../../../components/ReportActionItemIOUAc
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
-import CONST from '../../../CONST';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -203,7 +203,7 @@ class ReportActionItem extends Component {
                 <ReportActionItemIOUAction
                     chatReportID={this.props.reportID}
                     action={this.props.action}
-                    shouldDisplayPreview={this.props.isMostRecentIOUReportAction}
+                    isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                 />
             );
         } else {

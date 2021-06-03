@@ -124,6 +124,39 @@ function createIOUSplit(params) {
 }
 
 /**
+ * Reject an iouReport transaction. Declining and cancelling transactions are done via the same Auth command.
+ *
+ * @param {Object} params
+ * @param {Number} params.reportID
+ * @param {Number} params.chatReportID
+ * @param {String} params.transactionID
+ * @param {String} params.comment
+ */
+function rejectTransaction({
+    reportID, chatReportID, transactionID, comment,
+}) {
+    API.RejectTransaction({
+        reportID,
+        transactionID,
+        comment,
+    })
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(`${response.code} ${response.message}`);
+            }
+            fetchChatReportsByIDs([chatReportID]);
+
+            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
+            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
+            // components. If we didn't sync the reportIDs, the transaction would still be shown to users as rejectable
+            // The iouReport being fetched here must be open, because only an open iouReoport can be paid. Therefore,
+            // we should also sync the chatReport after fetching the iouReport.
+            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+        })
+        .catch(error => console.error(`Error rejecting transaction: ${error}`));
+}
+
+/**
  * @private
  *
  * @param {Number} amount
@@ -199,5 +232,6 @@ export {
     getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
+    rejectTransaction,
     payIOUReport,
 };
