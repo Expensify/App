@@ -6,7 +6,7 @@ import ROUTES from '../../ROUTES';
 import * as API from '../API';
 import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
 import openURLInNewTab from '../openURLInNewTab';
-import Navigation from '../../libs/Navigation/Navigation';
+import Navigation from '../Navigation/Navigation';
 
 /**
  * Retrieve the users preferred currency
