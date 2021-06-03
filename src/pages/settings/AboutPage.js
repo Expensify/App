@@ -119,6 +119,7 @@ const AboutPage = ({translate, session}) => {
                     ))}
                 </View>
                 <View style={[styles.sidebarFooter]}>
+                    <Text>Dummy change!</Text>
                     <Text
                         style={[styles.chatItemMessageHeaderTimestamp]}
                         numberOfLines={1}
