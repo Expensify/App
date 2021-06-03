@@ -2,9 +2,11 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
+import ROUTES from '../../ROUTES';
 import * as API from '../API';
 import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
 import openURLInNewTab from '../openURLInNewTab';
+import Navigation from '../Navigation/Navigation';
 
 /**
  * Retrieve the users preferred currency
@@ -73,7 +75,10 @@ function getIOUReportsForNewTransaction(requestParams) {
 function createIOUTransaction(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
     API.CreateIOUTransaction(params)
-        .then(data => getIOUReportsForNewTransaction([data]));
+        .then((data) => {
+            getIOUReportsForNewTransaction([data]);
+            Navigation.navigate(ROUTES.getReportRoute(data.chatReportID));
+        });
 }
 
 /**
@@ -87,14 +92,18 @@ function createIOUTransaction(params) {
 function createIOUSplit(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 
+    let chatReportID;
     API.CreateChatReport({
         emailList: params.splits.map(participant => participant.email).join(','),
     })
-        .then(data => API.CreateIOUSplit({
-            ...params,
-            splits: JSON.stringify(params.splits),
-            reportID: data.reportID,
-        }))
+        .then((data) => {
+            chatReportID = data.reportID;
+            return API.CreateIOUSplit({
+                ...params,
+                splits: JSON.stringify(params.splits),
+                reportID: data.reportID,
+            });
+        })
         .then((data) => {
             // This data needs to go from this:
             // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
@@ -110,6 +119,7 @@ function createIOUSplit(params) {
                 });
             }
             getIOUReportsForNewTransaction(reportParams);
+            Navigation.navigate(ROUTES.getReportRoute(chatReportID));
         });
 }
 
