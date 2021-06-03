@@ -8,32 +8,76 @@ module.exports =
 /***/ 265:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const ActionUtils = __nccwpck_require__(970);
 const GithubUtils = __nccwpck_require__(7999);
 
-const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: true});
-console.log(`Getting merge_commit_sha for PR #${pullRequestNumber}`);
-GithubUtils.octokit.pulls.get({
+const DEFAULT_PAYLOAD = {
     owner: GithubUtils.GITHUB_OWNER,
     repo: GithubUtils.EXPENSIFY_CASH_REPO,
-    pull_number: pullRequestNumber,
-})
-    .then(({data}) => {
-        const mergeCommitHash = data.merge_commit_sha;
-        if (mergeCommitHash) {
-            console.log(`PR #${pullRequestNumber} has merge_commit_sha ${mergeCommitHash}`);
-            core.setOutput('MERGE_COMMIT_SHA', mergeCommitHash);
-        } else {
-            const err = new Error(`Could not find merge_commit_sha for pull request ${pullRequestNumber}`);
-            console.error(err);
-            core.setFailed(err);
-        }
-    })
-    .catch((err) => {
-        console.log(`An unknown error occurred with the GitHub API: ${err}`);
+};
+
+const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
+const user = core.getInput('USER', {required: false});
+let titleRegex = core.getInput('TITLE_REGEX', {required: false});
+
+if (pullRequestNumber) {
+    console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
+}
+
+if (user) {
+    console.log(`Looking for pull request w/ user: ${user}`);
+}
+
+if (titleRegex) {
+    titleRegex = new RegExp(titleRegex);
+    console.log(`Looking for pull request w/ title matching: ${titleRegex.toString()}`);
+}
+
+/**
+ * Process a pull request and outputs it's merge commit hash.
+ *
+ * @param {Object} PR
+ */
+function outputMergeCommitHash(PR) {
+    if (!_.isEmpty(PR)) {
+        console.log(`Found matching pull request: ${PR.html_url}`);
+        core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
+    } else {
+        const err = new Error('Could not find matching pull request');
+        console.error(err);
         core.setFailed(err);
-    });
+    }
+}
+
+/**
+ * Handle an unknown API error.
+ *
+ * @param {Error} err
+ */
+function handleUnknownError(err) {
+    console.log(`An unknown error occurred with the GitHub API: ${err}`);
+    core.setFailed(err);
+}
+
+if (pullRequestNumber) {
+    GithubUtils.octokit.pulls.get({
+        ...DEFAULT_PAYLOAD,
+        pull_number: pullRequestNumber,
+    })
+        .then(({data}) => outputMergeCommitHash(data))
+        .catch(handleUnknownError);
+} else {
+    GithubUtils.octokit.pulls.list({
+        ...DEFAULT_PAYLOAD,
+        state: 'all',
+    })
+        .then(({data}) => {
+            const matchingPR = _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title));
+            outputMergeCommitHash(matchingPR);
+        });
+}
 
 
 /***/ }),

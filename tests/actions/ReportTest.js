@@ -4,11 +4,11 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import CONFIG from '../../src/CONFIG';
+import CONST from '../../src/CONST';
 import {addAction, togglePinnedState, subscribeToUserEvents} from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import PushNotification from '../../src/libs/Notification/PushNotification';
 import {signInWithTestUser, fetchPersonalDetailsForTestUser} from '../utils/TestHelper';
-import CONST from '../../src/CONST';
 
 PushNotification.register = () => {};
 PushNotification.deregister = () => {};
