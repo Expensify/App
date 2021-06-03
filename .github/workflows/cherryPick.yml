@@ -102,8 +102,7 @@ jobs:
       - name: Cherry-pick the merge commits to new branch
         id: cherryPick
         run: |
-          git switch main
-          git checkout -
+          git fetch
           git cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }} --mainline 1
         continue-on-error: true
 
