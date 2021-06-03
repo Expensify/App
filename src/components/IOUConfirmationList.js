@@ -252,6 +252,7 @@ class IOUConfirmationList extends Component {
                         }]}
                         sections={this.getSections()}
                         disableArrowKeysActions
+                        disableRowInteractivity
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
