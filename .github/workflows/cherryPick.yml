@@ -108,7 +108,7 @@ jobs:
       - name: Cherry-pick the merge commit of target PR to new branch
         id: cherryPick
         run: |
-          if [[ "$(./.github/scripts/cherryPick.sh ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }})" ]]; then
+          if ./.github/scripts/cherryPick.sh ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
             echo "CP was a success, PR can be automerged 🎉"
             echo "::set-output name=SHOULD_AUTOMERGE::true"
           else
