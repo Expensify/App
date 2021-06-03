@@ -71,6 +71,7 @@ jobs:
 
       - name: Create branch for new pull request
         run: |
+          git config user.name ${{ github.actor }}
           git checkout -b cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           git push --set-upstream origin cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
