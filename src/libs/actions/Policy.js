@@ -3,6 +3,14 @@ import Onyx from 'react-native-onyx';
 import {GetPolicySummaryList} from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 
+/**
+ * Takes a full policy summary that is returned from the policySummaryList and simplifies it so we are only storing
+ * the pieces of data that we need to in Onyx
+ *
+ * @param {Object} fullPolicy
+ * @param {String} fullPolicy.name
+ * @returns {Object}
+ */
 function getSimplifiedPolicyObject(fullPolicy) {
     return {
         name: fullPolicy.name,
