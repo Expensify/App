@@ -2,9 +2,11 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
+import ROUTES from '../../ROUTES';
 import * as API from '../API';
 import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
 import openURLInNewTab from '../openURLInNewTab';
+import Navigation from '../../libs/Navigation/Navigation';
 
 /**
  * Retrieve the users preferred currency
@@ -69,14 +71,13 @@ function getIOUReportsForNewTransaction(requestParams) {
  * @param {String} params.comment
  * @param {String} params.currency
  * @param {String} params.debtorEmail
- * @returns {Object}
  */
 function createIOUTransaction(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
-    return API.CreateIOUTransaction(params)
+    API.CreateIOUTransaction(params)
         .then((data) => {
             getIOUReportsForNewTransaction([data]);
-            return {chatReportID: data.chatReportID};
+            Navigation.navigate(ROUTES.getReportRoute(data.chatReportID));
         });
 }
 
@@ -87,13 +88,12 @@ function createIOUTransaction(params) {
  * @param {String} params.comment
  * @param {String} params.amount
  * @param {String} params.currency
- * @returns {Object}
  */
 function createIOUSplit(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 
     let chatReportID;
-    return API.CreateChatReport({
+    API.CreateChatReport({
         emailList: params.splits.map(participant => participant.email).join(','),
     })
         .then((data) => {
@@ -119,7 +119,7 @@ function createIOUSplit(params) {
                 });
             }
             getIOUReportsForNewTransaction(reportParams);
-            return {chatReportID};
+            Navigation.navigate(ROUTES.getReportRoute(chatReportID));
         });
 }
 
