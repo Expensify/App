@@ -98,6 +98,10 @@ export default {
     sidebarScreen: {
         newChat: 'New Chat',
         newGroup: 'New Group',
+        headerChat: 'Chats',
+        buttonSearch: 'Search',
+        buttonMySettings: 'My Settings',
+        fabNewChat: 'New Chat(Floating Action)',
     },
     iou: {
         amount: 'Amount',
