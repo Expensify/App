@@ -166,6 +166,7 @@ class AuthScreens extends React.Component {
             animationEnabled: true,
             gestureDirection: 'horizontal',
             cardOverlayEnabled: true,
+            presentation: 'transparentModal',
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
@@ -180,7 +181,6 @@ class AuthScreens extends React.Component {
                 // a header will briefly open and close the keyboard and crash Android.
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 keyboardHandlingEnabled={false}
-                detachInactiveScreens={false}
             >
                 {/* The MainDrawerNavigator contains the SidebarScreen and ReportScreen */}
                 <RootStack.Screen
