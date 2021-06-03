@@ -4,7 +4,7 @@
 
 echo "Attempting to cherry-pick $1"
 
-if [[ "$(git cherry-pick -x --mainline 1 "$1")" ]]; then
+if git cherry-pick -x --mainline 1 "$1"; then
   echo "No conflicts!"
   exit 0
 else
