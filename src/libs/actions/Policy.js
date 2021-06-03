@@ -14,9 +14,9 @@ function getPolicySummaries() {
         .then((data) => {
             if (data.jsonCode === 200) {
                 const policyDataToStore = _.reduce(data.policySummaryList, (memo, policy) => ({
-                        ...memo,
-                        [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
-                    }), {});
+                    ...memo,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+                }), {});
                 Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
             }
         });
