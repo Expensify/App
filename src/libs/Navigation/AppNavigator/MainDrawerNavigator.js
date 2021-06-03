@@ -53,7 +53,8 @@ const MainDrawerNavigator = (props) => {
         <Drawer.Navigator
             openByDefault={props.isSmallScreenWidth}
             sceneContainerStyle={styles.navigationSceneContainer}
-            drawerContent={(props) => <SidebarScreen {...props} />}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            drawerContent={() => <SidebarScreen />}
             screenOptions={{
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
@@ -63,7 +64,6 @@ const MainDrawerNavigator = (props) => {
                     props.isSmallScreenWidth,
                 ),
                 swipeEdgeWidth: 500,
-                swipeEnabled: true,
             }}
         >
             <Drawer.Screen
