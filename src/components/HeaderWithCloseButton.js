@@ -7,6 +7,8 @@ import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
 import {Close, Download, BackArrow} from './Icon/Expensicons';
+import compose from '../libs/compose';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Title of the Header */
@@ -29,6 +31,8 @@ const propTypes = {
 
     /** Whether we should show a download button */
     shouldShowDownloadButton: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -76,6 +80,8 @@ const HeaderWithCloseButton = props => (
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}
                     style={[styles.touchableButtonImage]}
+                    accessibilityRole="button"
+                    accessibilityLabel={props.translate('common.close')}
                 >
                     <Icon src={Close} />
                 </TouchableOpacity>
@@ -88,4 +94,4 @@ HeaderWithCloseButton.propTypes = propTypes;
 HeaderWithCloseButton.defaultProps = defaultProps;
 HeaderWithCloseButton.displayName = 'HeaderWithCloseButton';
 
-export default HeaderWithCloseButton;
+export default compose(withLocalize)(HeaderWithCloseButton);
