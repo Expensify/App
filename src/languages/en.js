@@ -111,6 +111,7 @@ export default {
         requestMoney: 'Request Money',
         pay: 'Pay',
         viewDetails: 'View Details',
+        settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         decline: 'Decline',
         settlePaypalMe: 'Pay with PayPal.me',
