@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text, View} from 'react-native';
+import {Text, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
+import styles, {getBadgeColorStyle} from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import compose from '../libs/compose';
@@ -47,12 +47,12 @@ const IOUBadge = (props) => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(props.iouReport.chatReportID, props.iouReport.reportID));
     };
     return (
-        <View
-            style={[
+        <Pressable
+            style={({pressed}) => ([
                 styles.badge,
                 styles.ml2,
-                props.session.email === props.iouReport.ownerEmail ? styles.badgeSuccess : styles.badgeDanger,
-            ]}
+                getBadgeColorStyle(props.session.email === props.iouReport.ownerEmail, pressed),
+            ])}
         >
             <Text
                 style={styles.badgeText}
@@ -64,7 +64,7 @@ const IOUBadge = (props) => {
                     {style: 'currency', currency: props.iouReport.currency},
                 )}
             </Text>
-        </View>
+        </Pressable>
     );
 };
 
