@@ -2,7 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {TextInput, View} from 'react-native';
 import Text from '../../components/Text';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withLocalize, {
+    withLocalizePropTypes,
+} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -21,25 +23,36 @@ class NewPassword extends React.Component {
 
         this.state = {
             confirmNewPassword: '',
-            focusIsOnConfirmNewPassword: false,
             passwordHintError: false,
+            confirmPasswordError: false,
         };
     }
 
     componentDidUpdate(prevProps, prevState) {
         if (
             this.props.password !== prevProps.password
-            // eslint-disable-next-line max-len
-            || this.state.confirmNewPassword !== prevState.confirmNewPassword) { this.props.passwordIsValid(this.formIsValid()); }
+      // eslint-disable-next-line max-len
+      || this.state.confirmNewPassword !== prevState.confirmNewPassword
+        ) {
+            this.props.passwordIsValid(this.formIsValid());
+        }
     }
 
-
-    onBlur() {
+    onBlurNewPassword() {
         if (this.state.passwordHintError) {
             return;
         }
         if (this.props.password && !this.meetsPasswordRules()) {
             this.setState({passwordHintError: true});
+        }
+    }
+
+    onBlurConfirmPassword() {
+        if (this.state.confirmPasswordError) {
+            return;
+        }
+        if (this.state.confirmNewPassword && !this.passwordsMatch()) {
+            this.setState({confirmPasswordError: true});
         }
     }
 
@@ -56,13 +69,25 @@ class NewPassword extends React.Component {
     }
 
     showPasswordMatchError() {
-        return !this.passwordsMatch() && !this.state.focusIsOnConfirmNewPassword && this.state.confirmNewPassword;
+        return (
+            !this.passwordsMatch()
+      && this.state.confirmPasswordError
+      && this.state.confirmNewPassword
+        );
     }
 
     render() {
-        const passwordHintStyle = this.state.passwordHintError
-            ? styles.formError
-            : undefined;
+        let passwordHintStyle;
+        if (
+            this.state.passwordHintError
+      && this.props.password
+      && !this.meetsPasswordRules()
+        ) {
+            passwordHintStyle = styles.formError;
+        }
+        if (this.meetsPasswordRules()) {
+            passwordHintStyle = styles.formSuccess;
+        }
 
         return (
             <>
@@ -72,15 +97,15 @@ class NewPassword extends React.Component {
                     </Text>
                     <TextInput
 
-                        // secureTextEntry
+            // secureTextEntry
                         autoCompleteType="password"
 
-                        // textContentType="password"
+            // textContentType="password"
                         style={styles.textInput}
                         value={this.state.password}
                         onChangeText={password => this.props.setPassword(password)}
                         onFocus={() => this.setState({focusIsOnNewPassword: true})}
-                        onBlur={() => this.onBlur()}
+                        onBlur={() => this.onBlurNewPassword()}
                     />
                     <Text style={[styles.formHint, styles.mt1, passwordHintStyle]}>
                         {this.props.translate('setPasswordPage.newPasswordPrompt')}
@@ -92,16 +117,15 @@ class NewPassword extends React.Component {
                     </Text>
                     <TextInput
 
-                        // secureTextEntry
+            // secureTextEntry
                         autoCompleteType="password"
 
-                        // textContentType="password"
+            // textContentType="password"
                         style={styles.textInput}
                         value={this.state.confirmNewPassword}
                         onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
                         onSubmitEditing={() => this.props.onSubmitEditing()}
-                        onFocus={() => this.setState({focusIsOnConfirmNewPassword: true})}
-                        onBlur={() => this.setState({focusIsOnConfirmNewPassword: false})}
+                        onBlur={() => this.onBlurConfirmPassword()}
                     />
                     {this.showPasswordMatchError() && (
                     <Text style={[styles.formError, styles.mt1]}>
@@ -116,6 +140,4 @@ class NewPassword extends React.Component {
 
 NewPassword.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-)(NewPassword);
+export default compose(withLocalize)(NewPassword);
