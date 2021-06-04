@@ -29,6 +29,7 @@ export default {
         delete: 'Delete',
         contacts: 'Contacts',
         recents: 'Recents',
+        close: 'Close',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
