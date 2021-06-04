@@ -1,8 +1,9 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Image, Text, View} from 'react-native';
+import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
+import Text from './Text';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -45,7 +46,7 @@ const MultipleAvatars = ({
     }
 
     return (
-        <View style={avatarContainerStyles}>
+        <View pointerEvents="none" style={avatarContainerStyles}>
             <View
                 style={singleAvatarStyles}
             >
@@ -63,7 +64,7 @@ const MultipleAvatars = ({
                         />
                     ) : (
                         <View
-                            style={singleAvatarStyles}
+                            style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                         >
                             <Text style={size === 'small'
                                 ? styles.avatarInnerTextSmall

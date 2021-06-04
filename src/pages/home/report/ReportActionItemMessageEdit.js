@@ -96,19 +96,21 @@ class ReportActionItemMessageEdit extends React.Component {
     render() {
         return (
             <View style={styles.chatItemMessage}>
-                <TextInputFocusable
-                    multiline
-                    onChangeText={this.updateDraft} // Debounced saveDraftComment
-                    onKeyPress={this.triggerSaveOrCancel}
-                    defaultValue={this.props.draftMessage}
-                    maxLines={16} // This is the same that slack has
-                    style={[styles.textInput, styles.flex0]}
-                    onFocus={() => {
-                        scrollToIndex({animated: true, index: this.props.index}, true);
-                        toggleReportActionComposeView(false);
-                    }}
-                    autoFocus
-                />
+                <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
+                    <TextInputFocusable
+                        multiline
+                        onChangeText={this.updateDraft} // Debounced saveDraftComment
+                        onKeyPress={this.triggerSaveOrCancel}
+                        defaultValue={this.props.draftMessage}
+                        maxLines={16} // This is the same that slack has
+                        style={[styles.textInputCompose, styles.flex4]}
+                        onFocus={() => {
+                            scrollToIndex({animated: true, index: this.props.index}, true);
+                            toggleReportActionComposeView(false);
+                        }}
+                        autoFocus
+                    />
+                </View>
                 <View style={[styles.flexRow, styles.mt1]}>
                     <Button
                         style={[styles.mr2]}
