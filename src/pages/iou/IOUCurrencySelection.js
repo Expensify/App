@@ -180,7 +180,7 @@ class IOUCurrencySelection extends Component {
                                     style={[styles.textInput]}
                                     value={this.state.searchValue}
                                     onChangeText={this.changeSearchValue}
-                                    placeholder="Search"
+                                    placeholder={this.props.translate('common.search')}
                                     placeholderTextColor={themeColors.placeholderText}
                                 />
                             </View>
