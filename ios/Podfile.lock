@@ -150,6 +150,10 @@ PODS:
     - nanopb/encode (= 1.30906.0)
   - nanopb/decode (1.30906.0)
   - nanopb/encode (1.30906.0)
+  - Onfido (20.1.0)
+  - onfido-react-native-sdk (1.3.3):
+    - Onfido (= 20.1.0)
+    - React
   - OpenSSL-Universal (1.1.180)
   - Permission-LocationAccuracy (3.0.1):
     - RNPermissions
@@ -473,6 +477,7 @@ DEPENDENCIES:
   - FlipperKit/SKIOSNetworkPlugin (= 0.75.1)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - Permission-LocationAccuracy (from `../node_modules/react-native-permissions/ios/LocationAccuracy`)
   - Permission-LocationAlways (from `../node_modules/react-native-permissions/ios/LocationAlways`)
   - Permission-LocationWhenInUse (from `../node_modules/react-native-permissions/ios/LocationWhenInUse`)
@@ -549,6 +554,7 @@ SPEC REPOS:
     - GoogleUtilities
     - libevent
     - nanopb
+    - Onfido
     - OpenSSL-Universal
     - Plaid
     - PromisesObjC
@@ -565,6 +571,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/Folly.podspec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  onfido-react-native-sdk:
+    :path: "../node_modules/@onfido/react-native-sdk"
   Permission-LocationAccuracy:
     :path: "../node_modules/react-native-permissions/ios/LocationAccuracy"
   Permission-LocationAlways:
@@ -691,6 +699,8 @@ SPEC CHECKSUMS:
   GoogleUtilities: 7f2f5a07f888cdb145101d6042bc4422f57e70b3
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   nanopb: 59317e09cf1f1a0af72f12af412d54edf52603fc
+  Onfido: 116a268e4cb8b767c15285e8071c2e8304673cdf
+  onfido-react-native-sdk: b8f1b7cbe1adab6479d735275772390161630dcd
   OpenSSL-Universal: 1aa4f6a6ee7256b83db99ec1ccdaa80d10f9af9b
   Permission-LocationAccuracy: e8adff9ede1b23b43b7054a4500113d515fc87a8
   Permission-LocationAlways: 7f7f373d086af7a81b2f4f20d65d29266ca2043b
