@@ -16,6 +16,9 @@ const propTypes = {
 
         /** The owner of the IOUReport */
         ownerEmail: PropTypes.string,
+
+        /** The currency of the IOUReport */
+        currency: PropTypes.string,
     }),
 
     /** Session of currently logged in user */
