@@ -15,7 +15,7 @@ const propTypes = {
         /** The report ID of the IOU */
         reportID: PropTypes.number,
 
-        /** The report ID of the chat associated with theIOU */
+        /** The report ID of the chat associated with the IOU */
         chatReportID: PropTypes.number,
 
         /** The total amount in cents */
