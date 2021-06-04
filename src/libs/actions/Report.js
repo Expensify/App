@@ -22,6 +22,7 @@ import {isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtil
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 import Growl from '../Growl';
+import {translate} from '../translate';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -54,6 +55,16 @@ Onyx.connect({
     callback: (val) => {
         if (val && val.reportID) {
             allReports[val.reportID] = val;
+        }
+    },
+});
+
+let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: (preferredLocale) => {
+        if (preferredLocale) {
+            translateLocal = (phrase, variables) => translate(preferredLocale, phrase, variables);
         }
     },
 });
@@ -1043,7 +1054,7 @@ function addAction(reportID, text, file) {
     })
         .then((response) => {
             if (response.jsonCode === 408) {
-                Growl.show('Upload Failed. File is not supported.', CONST.GROWL.ERROR);
+                Growl.show(translateLocal('reportActionCompose.fileUploadFailed'), CONST.GROWL.ERROR);
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [optimisticReportActionID]: null,
                 });
