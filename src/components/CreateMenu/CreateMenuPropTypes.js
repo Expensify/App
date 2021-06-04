@@ -14,7 +14,7 @@ const propTypes = {
     menuItems: PropTypes.arrayOf(
         PropTypes.shape({
             /** An icon element displayed on the left side */
-            icon: PropTypes.elementType.isRequired,
+            icon: PropTypes.elementType,
 
             /** Text label */
             text: PropTypes.string.isRequired,
@@ -43,11 +43,15 @@ const propTypes = {
         PropTypes.string,
         PropTypes.object,
     ]),
+
+    /** Optional non-interactive text to display as a header for any create menu */
+    headerText: PropTypes.string,
 };
 
 const defaultProps = {
     animationIn: 'fadeIn',
     animationOut: 'fadeOut',
+    headerText: undefined,
 };
 
 export {propTypes, defaultProps};

@@ -2,6 +2,8 @@ import React from 'react';
 import {
     View,
     Text,
+    TouchableOpacity,
+    InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -10,34 +12,41 @@ import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import TextInputAutoWidth from '../../../components/TextInputAutoWidth';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
-    /** Callback to inform parent modal of success */
+    // Whether or not this IOU has multiple participants
+    hasMultipleParticipants: PropTypes.bool.isRequired,
+
+    /* The ID of the report this screen should display */
+    reportID: PropTypes.string.isRequired,
+
+    // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
     /** Currency selection will be implemented later */
     // eslint-disable-next-line react/no-unused-prop-types
     currencySelected: PropTypes.func.isRequired,
 
-    /** User's currency preference */
-    selectedCurrency: PropTypes.string.isRequired,
+    // User's currency preference
+    selectedCurrency: PropTypes.shape({
+        // Currency code for the selected currency
+        currencyCode: PropTypes.string,
+
+        // Currency symbol for the selected currency
+        currencySymbol: PropTypes.string,
+    }).isRequired,
 
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
-
-    /** react-navigation object */
-    navigation: PropTypes.shape({
-
-        /** Allows us to add a listener for the navigation transition end */
-        addListener: PropTypes.func,
-    }).isRequired,
 
     /* Onyx Props */
 
@@ -68,7 +77,7 @@ class IOUAmountPage extends React.Component {
     componentDidMount() {
         // Component is not initialized yet due to navigation transitions
         // Wait until interactions are complete before trying to focus or attach listener
-        this.props.navigation.addListener('transitionEnd', () => {
+        InteractionManager.runAfterInteractions(() => {
             // Setup and attach keypress handler for navigating to the next screen
             this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
                 if (this.state.amount !== '') {
@@ -134,9 +143,14 @@ class IOUAmountPage extends React.Component {
                     styles.justifyContentCenter,
                 ]}
                 >
-                    <Text style={styles.iouAmountText}>
-                        {this.props.selectedCurrency}
-                    </Text>
+                    <TouchableOpacity onPress={() => Navigation.navigate(this.props.hasMultipleParticipants
+                        ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
+                        : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
+                    >
+                        <Text style={styles.iouAmountText}>
+                            {this.props.selectedCurrency.currencySymbol}
+                        </Text>
+                    </TouchableOpacity>
                     {this.props.isSmallScreenWidth
                         ? (
                             <Text
@@ -154,6 +168,7 @@ class IOUAmountPage extends React.Component {
                                 }}
                                 ref={el => this.textInput = el}
                                 value={this.state.amount}
+                                placeholder="0"
                             />
                         )}
                 </View>

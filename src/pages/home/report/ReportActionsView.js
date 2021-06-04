@@ -248,7 +248,14 @@ class ReportActionsView extends React.Component {
     updateSortedReportActions(reportActions) {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU')
+            .filter((action) => {
+                // Only show non-empty ADDCOMMENT actions or IOU actions
+                // Empty ADDCOMMENT actions typically mean they have been deleted and should not be shown
+                const message = _.first(lodashGet(action, 'message', null));
+                const html = lodashGet(message, 'html', '');
+                return action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+                    || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && html !== '');
+            })
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
@@ -291,7 +298,7 @@ class ReportActionsView extends React.Component {
     updateMostRecentIOUReportActionNumber(reportActions) {
         this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'IOU')
+            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
             .max(action => action.sequenceNumber)
             .value().sequenceNumber;
     }
@@ -391,7 +398,11 @@ class ReportActionsView extends React.Component {
                 renderItem={this.renderItem}
                 CellRendererComponent={this.renderCell}
                 contentContainerStyle={[styles.chatContentScrollView]}
-                keyExtractor={item => `${item.action.clientID}` || `${item.action.sequenceNumber}`}
+
+                // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
+                // shouldn't happen, but might be possible in some rare cases.
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                keyExtractor={item => `${item.action.sequenceNumber}${item.action.clientID}`}
                 initialRowHeight={32}
                 onEndReached={this.loadMoreChats}
                 onEndReachedThreshold={0.75}

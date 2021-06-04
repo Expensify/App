@@ -10,12 +10,16 @@ const CONST = {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
         IOU: 'IOU',
+        PAY_WITH_EXPENSIFY: 'payWithExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
         HOVERED: 'hovered',
         PRESSED: 'pressed',
         COMPLETE: 'complete',
+    },
+    CURRENCY: {
+        USD: 'USD',
     },
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
@@ -39,11 +43,22 @@ const CONST = {
             LIMIT: 50,
             TYPE: {
                 IOU: 'IOU',
+                ADDCOMMENT: 'ADDCOMMENT',
+            },
+        },
+        MESSAGE: {
+            TYPE: {
+                COMMENT: 'COMMENT',
             },
         },
         TYPE: {
             CHAT: 'chat',
             IOU: 'iou',
+        },
+        STATE_NUM: {
+            OPEN: 0,
+            PROCESSING: 1,
+            SUBMITTED: 2,
         },
     },
     MODAL: {
@@ -151,6 +166,30 @@ const CONST = {
         IOS: 'iOS',
         LINUX: 'Linux',
         NATIVE: 'Native',
+    },
+
+    IOU: {
+        // Note: These payment types are used when building IOU reportAction message values in the server and should
+        // not be changed.
+        PAYMENT_TYPE: {
+            ELSEWHERE: 'Elsewhere',
+            EXPENSIFY: 'Expensify',
+            PAYPAL_ME: 'PayPal.me',
+            VENMO: 'Venmo',
+        },
+    },
+
+    REGEX: {
+        US_PHONE: /^\+1\d{10}$/,
+        PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
+        NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
+    },
+
+    GROWL: {
+        SUCCESS: 'success',
+        ERROR: 'error',
+        WARNING: 'warning',
+        DURATION: 2000,
     },
 };
 

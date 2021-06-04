@@ -7,8 +7,13 @@ If you would like to become an Expensify.cash contributor, the first step is to 
 #### Test Accounts
 You can create as many accounts as needed in order to test your changes directly from [expensify.cash](https://expensify.cash/). An initial account can be created when logging in for the first time, and additional accounts can be invited by entering a valid email or phone in the "Find or start a chat" input then tapping the avatar.
 
+**Note**: When testing chat functionality in Expensify Cash please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you. 
+
 ## Code of Conduct
 This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
+
+## Restrictions
+At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran, Cuba, or Syria.
 
 ## Asking Questions
 If you have any general questions, please ask in the #expensify-open-source Slack channel. To request an invite to the channel, just email contributors@expensify.com with the subject `Slack Channel Invite` and we'll send you an invite! The Expensify team will not be able to respond to direct messages in Slack.

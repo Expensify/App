@@ -3,10 +3,12 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
+import compose from '../../libs/compose';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
-import iouTransactionPropTypes from './iouTransactionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
 
 const propTypes = {
@@ -19,59 +21,79 @@ const propTypes = {
     /** ReportID for the associated IOU report */
     iouReportID: PropTypes.number.isRequired,
 
-    /** Transactions for this IOU report */
-    transactions: PropTypes.arrayOf(PropTypes.shape(iouTransactionPropTypes)),
+    /** Email for the authenticated user */
+    userEmail: PropTypes.string.isRequired,
+
+    /** Does the associaed have an outstanding IOU? */
+    hasOutstandingIOU: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reportActions: {},
-    transactions: [],
+    hasOutstandingIOU: false,
 };
 
 class IOUTransactions extends Component {
     constructor(props) {
         super(props);
 
-        this.getActionForTransaction = this.getActionForTransaction.bind(this);
+        this.getRejectableTransactions = this.getRejectableTransactions.bind(this);
     }
 
     /**
-     * Given a transaction from an IOU Report, returns the chatReport action with a matching transactionID. Unless
-     * something has gone wrong with our storing logic, there should always exist an action for each transaction.
+     * Builds and returns the rejectableTransactionIDs array. A transaction must meet multiple requirements in order
+     * to be rejectable. We must exclude transactions not associated with the iouReportID, actions which have already
+     * been rejected, and those which are not of type 'create'.
      *
-     * @param {Object} transaction
-     * @returns {Object} action
+     * @returns {Array}
      */
-    getActionForTransaction(transaction) {
-        const matchedAction = _.find(this.props.reportActions, (action) => {
-            // iouReport.transaction.transactionID is returned as a String, but the originalMessage value is Number
-            if (action && action.originalMessage && action.originalMessage.IOUTransactionID
-                && action.originalMessage.IOUTransactionID.toString() === transaction.transactionID) {
-                return action;
-            }
-            return false;
-        });
-        if (!matchedAction) {
-            throw new Error(`Unable to locate a matching report action for transaction ${transaction.transactionID}!`);
+    getRejectableTransactions() {
+        if (!this.props.hasOutstandingIOU) {
+            return [];
         }
 
-        return matchedAction;
+        const actionsForIOUReport = _.filter(this.props.reportActions, action => action.originalMessage
+            && action.originalMessage.type && action.originalMessage.IOUReportID === this.props.iouReportID);
+
+        const rejectedTransactionIDs = _.chain(actionsForIOUReport)
+            .filter(action => _.contains(['cancel', 'decline'], action.originalMessage.type))
+            .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
+            .compact()
+            .value();
+
+        return _.chain(actionsForIOUReport)
+            .filter(action => action.originalMessage.type === 'create')
+            .filter(action => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
+            .map(action => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
+            .compact()
+            .value();
     }
 
     render() {
         return (
             <View style={[styles.mt3]}>
-                {/* For each IOU transaction, get the matching report action */}
-                {_.map(this.props.transactions, (transaction) => {
-                    const action = this.getActionForTransaction(transaction);
-                    return (
-                        <ReportTransaction
-                            chatReportID={this.props.chatReportID}
-                            iouReportID={this.props.iouReportID}
-                            action={action}
-                            key={action.originalMessage.IOUTransactionID}
-                        />
-                    );
+                {_.map(this.props.reportActions, (reportAction) => {
+                    if (reportAction.originalMessage
+                        && reportAction.originalMessage.IOUReportID === this.props.iouReportID) {
+                        const rejectableTransactions = this.getRejectableTransactions();
+                        const canBeRejected = _.contains(rejectableTransactions,
+                            reportAction.originalMessage.IOUTransactionID);
+                        const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
+                        return (
+                            <ReportTransaction
+                                chatReportID={this.props.chatReportID}
+                                iouReportID={this.props.iouReportID}
+                                action={reportAction}
+                                key={reportAction.sequenceNumber}
+                                canBeRejected={canBeRejected}
+                                rejectButtonLabelText={isCurrentUserTransactionCreator
+                                    ? this.props.translate('common.cancel')
+                                    : this.props.translate('iou.decline')}
+                            />
+                        );
+                    }
                 })}
             </View>
         );
@@ -80,9 +102,12 @@ class IOUTransactions extends Component {
 
 IOUTransactions.defaultProps = defaultProps;
 IOUTransactions.propTypes = propTypes;
-export default withOnyx({
-    reportActions: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-        canEvict: false,
-    },
-})(IOUTransactions);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reportActions: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+            canEvict: false,
+        },
+    }),
+)(IOUTransactions);
