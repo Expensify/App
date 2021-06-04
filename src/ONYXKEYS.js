@@ -81,6 +81,7 @@ export default {
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
+        POLICY: 'policy_',
     },
 
     // Indicates which locale should be used
