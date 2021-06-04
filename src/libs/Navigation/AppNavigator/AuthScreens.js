@@ -48,6 +48,7 @@ import {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
+    EnablePaymentsStackNavigator,
     AddBankAccountModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
@@ -251,6 +252,12 @@ class AuthScreens extends React.Component {
                     name="IOU_Bill"
                     options={modalScreenOptions}
                     component={IOUBillStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="EnablePayments"
+                    options={modalScreenOptions}
+                    component={EnablePaymentsStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

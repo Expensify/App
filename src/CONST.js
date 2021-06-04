@@ -18,6 +18,10 @@ const CONST = {
         PRESSED: 'pressed',
         COMPLETE: 'complete',
     },
+    PLATFORM: {
+        IOS: 'ios',
+        ANDROID: 'android',
+    },
     CURRENCY: {
         USD: 'USD',
     },
@@ -152,10 +156,45 @@ const CONST = {
         RECONNECT: 1000,
     },
 
+    WALLET: {
+        ERROR: {
+            IDENTITY_NOT_FOUND: 'Identity not found',
+            INVALID_SSN: 'Invalid SSN',
+            UNEXPECTED: 'Unexpected error',
+            MISSING_FIELD: 'Missing required additional details fields',
+            UNABLE_TO_VERIFY: 'Unable to verify identity',
+        },
+        STEP: {
+            ONFIDO: 'OnfidoStep',
+            ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            TERMS: 'TermsStep',
+            ACTIVATE: 'ActivateStep',
+        },
+        STATUS: {
+            GOLD: 'GOLD',
+            SILVER: 'SILVER',
+        },
+    },
+
     PLAID: {
         EVENT: {
             ERROR: 'ERROR',
             EXIT: 'EXIT',
+        },
+    },
+
+    ONFIDO: {
+        CONTAINER_ID: 'onfido-mount',
+        TYPE: {
+            DOCUMENT: 'document',
+            FACE: 'face',
+        },
+        VARIANT: {
+            VIDEO: 'video',
+        },
+        SMS_NUMBER_COUNTRY_CODE: 'US',
+        ERROR: {
+            USER_CANCELLED: 'User canceled flow',
         },
     },
 
