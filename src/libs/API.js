@@ -409,6 +409,17 @@ function GetIOUReport(parameters) {
 /**
  * @returns {Promise}
  */
+function GetPolicySummaryList() {
+    const commandName = 'Get';
+    const parameters = {
+        returnValueList: 'policySummaryList',
+    };
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
 function GetRequestCountryCode() {
     const commandName = 'GetRequestCountryCode';
     return Network.post(commandName);
@@ -453,6 +464,17 @@ function Graphite_Timer(parameters) {
 function PayIOU(parameters) {
     const commandName = 'PayIOU';
     requireParameters(['reportID', 'paymentMethodType'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @returns {Promise}
+ */
+function PayWithWallet(parameters) {
+    const commandName = 'PayWithWallet';
+    requireParameters(['reportID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -835,10 +857,12 @@ export {
     Get,
     GetAccountStatus,
     GetIOUReport,
+    GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
     Log,
     PayIOU,
+    PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,

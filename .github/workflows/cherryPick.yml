@@ -71,6 +71,7 @@ jobs:
 
       - name: Create branch for new pull request
         run: |
+          git config user.name ${{ github.actor }}
           git checkout -b cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           git push --set-upstream origin cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
@@ -99,9 +100,11 @@ jobs:
           USER: OSBotify
           TITLE_REGEX: Update version to ${{ env.NEW_VERSION }}
 
-      - name: Cherry-pick the merge commit to new branch
+      - name: Cherry-pick the merge commits to new branch
         id: cherryPick
-        run: git cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} ${{ steps.getVersionBumpMergeCommit.MERGE_COMMIT_SHA }} --mainline 1
+        run: |
+          git fetch
+          git cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }} --mainline 1
         continue-on-error: true
 
       # If there is a merge conflict, we'll just commit what we have,

@@ -30,6 +30,7 @@ export default {
         delete: 'Delete',
         contacts: 'Contacts',
         recents: 'Recents',
+        close: 'Close',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -99,6 +100,10 @@ export default {
     sidebarScreen: {
         newChat: 'New Chat',
         newGroup: 'New Group',
+        headerChat: 'Chats',
+        buttonSearch: 'Search',
+        buttonMySettings: 'My Settings',
+        fabNewChat: 'New Chat(Floating Action)',
     },
     iou: {
         amount: 'Amount',
@@ -108,6 +113,7 @@ export default {
         requestMoney: 'Request Money',
         pay: 'Pay',
         viewDetails: 'View Details',
+        settleExpensify: 'Pay with Expensify',
         settleElsewhere: 'I\'ll settle up elsewhere',
         decline: 'Decline',
         settlePaypalMe: 'Pay with PayPal.me',
