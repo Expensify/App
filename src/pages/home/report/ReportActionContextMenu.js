@@ -60,6 +60,7 @@ class ReportActionContextMenu extends React.Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.getActionText = this.getActionText.bind(this);
+        this.hidePopover = this.hidePopover.bind(this);
 
         // A list of all the context actions in this menu.
         this.contextActions = [
@@ -86,6 +87,7 @@ class ReportActionContextMenu extends React.Component {
                     } else {
                         Clipboard.setString(html);
                     }
+                    this.hidePopover(true);
                 },
             },
 
@@ -104,6 +106,7 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {
                     updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
                     setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
+                    this.hidePopover(true);
                 },
             },
 
@@ -112,7 +115,7 @@ class ReportActionContextMenu extends React.Component {
                 icon: Pencil,
                 shouldShow: () => canEditReportAction(this.props.reportAction),
                 onPress: () => {
-                    this.props.hidePopover();
+                    this.hidePopover();
                     saveReportActionDraft(
                         this.props.reportID,
                         this.props.reportAction.reportActionID,
@@ -124,7 +127,9 @@ class ReportActionContextMenu extends React.Component {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
                 shouldShow: () => canEditReportAction(this.props.reportAction),
-                onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
+                onPress: () => {
+                    this.setState({isDeleteCommentConfirmModalVisible: true});
+                },
             },
         ];
 
@@ -152,6 +157,20 @@ class ReportActionContextMenu extends React.Component {
 
     hideDeleteConfirmModal() {
         this.setState({isDeleteCommentConfirmModalVisible: false});
+    }
+
+    /**
+     * Hide the Menu
+     *
+     * @param {Boolean} delay whether the meanu should close after a delay
+     * @memberof ReportActionContextMenu
+     */
+    hidePopover(delay) {
+        if (!delay) {
+            this.props.hidePopover();
+            return;
+        }
+        setTimeout(this.props.hidePopover, 800);
     }
 
     render() {
