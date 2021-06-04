@@ -130,7 +130,6 @@ const mainWindow = (() => {
                 width: 1200,
                 height: 900,
                 webPreferences: {
-                    enableRemoteModule: true,
                     nodeIntegration: true,
                 },
                 titleBarStyle: 'hidden',
