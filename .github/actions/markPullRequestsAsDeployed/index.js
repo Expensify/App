@@ -9,7 +9,7 @@ module.exports =
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(2186);
-const {GitHub} = __nccwpck_require__(3030);
+const {context} = __nccwpck_require__(5438);
 const ActionUtils = __nccwpck_require__(970);
 const GithubUtils = __nccwpck_require__(7999);
 
@@ -56,11 +56,11 @@ message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 /**
  * Comment Single PR
  *
- * @param {Object} pr
+ * @param {Number} pr
  * @returns {Promise<void>}
  */
 function commentPR(pr) {
-    return GithubUtils.createComment(GitHub.context.repo.repo, pr, message)
+    return GithubUtils.createComment(context.repo.repo, pr, message)
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
         })
@@ -1008,6 +1008,49 @@ class Context {
 }
 exports.Context = Context;
 //# sourceMappingURL=context.js.map
+
+/***/ }),
+
+/***/ 5438:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getOctokit = exports.context = void 0;
+const Context = __importStar(__nccwpck_require__(4087));
+const utils_1 = __nccwpck_require__(3030);
+exports.context = new Context.Context();
+/**
+ * Returns a hydrated octokit ready to use for GitHub Actions
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+function getOctokit(token, options) {
+    return new utils_1.GitHub(utils_1.getOctokitOptions(token, options));
+}
+exports.getOctokit = getOctokit;
+//# sourceMappingURL=github.js.map
 
 /***/ }),
 

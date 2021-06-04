@@ -56,8 +56,11 @@ const propTypes = {
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(['compact', 'default']),
 
-    // Whether this option should be disabled
+    /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
+
+    /** Whether to disable the interactivity of this row */
+    disableRowInteractivity: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -74,6 +77,7 @@ const defaultProps = {
     onSelectRow: null,
     isDisabled: false,
     optionIsFocused: false,
+    disableRowInteractivity: false,
 };
 
 const OptionRow = ({
@@ -89,6 +93,7 @@ const OptionRow = ({
     showTitleTooltip,
     isDisabled,
     mode,
+    disableRowInteractivity,
     toLocalPhone,
 }) => {
     const textStyle = optionIsFocused
@@ -139,6 +144,7 @@ const OptionRow = ({
             {hovered => (
                 <TouchableOpacity
                     onPress={() => onSelectRow(option)}
+                    disabled={disableRowInteractivity}
                     activeOpacity={0.8}
                     style={[
                         styles.flexRow,
