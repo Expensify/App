@@ -6,6 +6,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import CONST from '../CONST';
 
 const propTypes = {
     /** IOU Report data object */
@@ -15,6 +16,9 @@ const propTypes = {
 
         /** The owner of the IOUReport */
         ownerEmail: PropTypes.string,
+
+        /** The currency of the IOUReport */
+        currency: PropTypes.string,
     }),
 
     /** Session of currently logged in user */
@@ -29,6 +33,7 @@ const defaultProps = {
     iouReport: {
         total: 0,
         ownerEmail: null,
+        currency: CONST.CURRENCY.USD,
     },
 };
 
