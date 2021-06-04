@@ -108,11 +108,15 @@ jobs:
       - name: Cherry-pick the merge commit of target PR to new branch
         id: cherryPick
         run: |
-          if ./.github/scripts/cherryPick.sh ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
-            echo "CP was a success, PR can be automerged 🎉"
+          echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
+          if git cherry-pick -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
+            echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
             echo "::set-output name=SHOULD_AUTOMERGE::true"
           else
-            echo "There were merge conflicts, PR can't be automerged 😞"
+            echo "😞 PR can't be automerged, there are merge conflicts in the following files:"
+            git --no-pager diff --name-only --diff-filter=U
+            git add .
+            GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
             echo "::set-output name=SHOULD_AUTOMERGE::false"
           fi
 
