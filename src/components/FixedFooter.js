@@ -9,7 +9,6 @@ const propTypes = {
 
     /** Styles to be assigned to Container */
     style: PropTypes.arrayOf(PropTypes.object),
-
 };
 
 const defaultProps = {
