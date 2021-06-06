@@ -2,7 +2,7 @@ import React from 'react';
 import {Text, View} from 'react-native';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
-import ExternalLink from '../../../components/ExternalLink';
+import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const TermsOnly = ({translate}) => (
@@ -11,23 +11,17 @@ const TermsOnly = ({translate}) => (
             {translate('termsOfUse.phrase1')}
             {' '}
         </Text>
-        <ExternalLink
-            style={[styles.loginTermsText, styles.link]}
-            href={CONST.TERMS_URL}
-        >
+        <TextLink style={[styles.loginTermsText]} href={CONST.TERMS_URL}>
             {translate('termsOfUse.phrase2')}
-        </ExternalLink>
+        </TextLink>
         <Text style={[styles.loginTermsText]}>
             {' '}
             {translate('termsOfUse.phrase3')}
             {' '}
         </Text>
-        <ExternalLink
-            style={[styles.loginTermsText, styles.link]}
-            href={CONST.PRIVACY_URL}
-        >
+        <TextLink style={[styles.loginTermsText]} href={CONST.PRIVACY_URL}>
             {translate('termsOfUse.phrase4')}
-        </ExternalLink>
+        </TextLink>
         <Text style={[styles.loginTermsText]}>.</Text>
     </View>
 );
