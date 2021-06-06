@@ -6,16 +6,27 @@ import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /** The children to show inside the layout */
     children: PropTypes.node.isRequired,
 
+    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const SignInPageLayoutNarrow = props => (
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.flexGrow1, styles.p8]}>
+    <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[
+            styles.flexGrow1,
+            styles.p8,
+            styles.signInPageNarrowContentContainer,
+            styles.alignSelfCenter,
+        ]}
+    >
         <View style={[styles.flexGrow1]}>
             <View
                 style={[
@@ -23,7 +34,7 @@ const SignInPageLayoutNarrow = props => (
                     styles.flex1,
                     styles.dFlex,
                     styles.flexColumn,
-                    styles.mt30Percentage,
+                    props.windowHeight > props.windowWidth ? styles.mt40Percentage : null,
                 ]}
             >
                 <View style={[styles.signInPageLogoNative, styles.mb2]}>
@@ -45,4 +56,7 @@ const SignInPageLayoutNarrow = props => (
 SignInPageLayoutNarrow.propTypes = propTypes;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
-export default withLocalize(SignInPageLayoutNarrow);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(SignInPageLayoutNarrow);
