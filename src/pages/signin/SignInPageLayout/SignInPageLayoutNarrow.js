@@ -10,7 +10,7 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
-import ExternalLink from '../../../components/ExternalLink';
+import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
@@ -66,12 +66,9 @@ const SignInPageLayoutNarrow = props => (
                                 props.translate('common.view')}`}
                             {' '}
                         </Text>
-                        <ExternalLink
-                            style={[styles.textLabel, styles.link]}
-                            href={CONST.GITHUB_URL}
-                        >
+                        <TextLink style={[styles.textLabel]} href={CONST.GITHUB_URL}>
                             {props.translate('signInPage.theCode')}
-                        </ExternalLink>
+                        </TextLink>
                         <Text style={[styles.textLabel]}>
                             .
                         </Text>
@@ -79,12 +76,9 @@ const SignInPageLayoutNarrow = props => (
                             {`${props.translate('common.view')}`}
                             {' '}
                         </Text>
-                        <ExternalLink
-                            style={[styles.textLabel, styles.link]}
-                            href={CONST.UPWORK_URL}
-                        >
+                        <TextLink style={[styles.textLabel]} href={CONST.UPWORK_URL}>
                             {props.translate('signInPage.openJobs')}
-                        </ExternalLink>
+                        </TextLink>
                         <Text style={[styles.textLabel]}>
                             .
                         </Text>
