@@ -157,6 +157,7 @@ class SearchPage extends Component {
             }
             API.IsValidPhoneNumber({phoneNumber: modifiedSearchValue}).then(
                 (resp) => {
+                    if (!this.state.searchValue) { return; }
                     if (resp.isValid) {
                         const {
                             recentReports,
@@ -175,7 +176,7 @@ class SearchPage extends Component {
                         });
                     } else {
                         this.setState({
-                            recentReports: this.preserveRecentReports,
+                            recentReports: [],
                             userToInvite: null,
                             headerMessage,
                         });
@@ -188,13 +189,15 @@ class SearchPage extends Component {
                 this.props.personalDetails,
                 searchValue,
             );
-            this.setState(prevState => ({
+
+            // debugger;
+            this.setState({
                 userToInvite,
                 recentReports,
                 personalDetails,
-                headerMessage: prevState.recentReports.length + prevState.personalDetails.length
-            !== 0 ? this.props.translate('messages.noEmailOrPhone') : '',
-            }));
+                headerMessage: recentReports.length + personalDetails.length
+            === 0 && !userToInvite ? this.props.translate('messages.noEmailOrPhone') : '',
+            });
         }
     }
 
@@ -218,13 +221,11 @@ class SearchPage extends Component {
                             // Clears the header message on clearing the input
                             if (!searchValue) {
                                 this.validateInput.cancel();
-                                setTimeout(() => {
-                                    this.setState({
-                                        headerMessage: '',
-                                        userToInvite: null,
-                                        recentReports: this.preserveRecentReports,
-                                    });
-                                }, 0);
+                                this.setState({
+                                    headerMessage: '',
+                                    userToInvite: null,
+                                    recentReports: this.preserveRecentReports,
+                                });
                             } else {
                                 this.validateInput(searchValue);
                             }

@@ -63,9 +63,6 @@ const propTypes = {
     /** Optional header message */
     headerMessage: PropTypes.string,
 
-    /** Sets min height of header message container */
-    headerMessageMinHeight: PropTypes.oneOf([PropTypes.number, PropTypes.string]),
-
     /** Passed via forwardRef so we can access the SectionList ref */
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
@@ -95,7 +92,6 @@ const defaultProps = {
     forceTextUnreadStyle: false,
     onSelectRow: () => {},
     headerMessage: '',
-    headerMessageMinHeight: 0,
     innerRef: null,
     showTitleTooltip: false,
     optionMode: undefined,
@@ -207,7 +203,7 @@ class OptionsList extends Component {
     render() {
         return (
             <View style={this.props.listContainerStyles}>
-                <View style={[{minHeight: this.props.headerMessageMinHeight}]}>
+                <View>
                     {this.props.headerMessage ? (
                         <View style={[styles.ph5]}>
                             <Text style={[styles.textLabel, styles.colorMuted]}>

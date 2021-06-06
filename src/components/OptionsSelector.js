@@ -222,7 +222,6 @@ class OptionsSelector extends Component {
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
                     headerMessage={this.props.headerMessage}
-                    headerMessageMinHeight={40}
                     disableFocusOptions={this.props.disableArrowKeysActions}
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                     forceTextUnreadStyle={this.props.forceTextUnreadStyle}
