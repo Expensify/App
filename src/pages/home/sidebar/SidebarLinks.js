@@ -20,6 +20,8 @@ import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import CONST from '../../../CONST';
 import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -74,6 +76,8 @@ const propTypes = {
 
     // Whether we are syncing app data
     isSyncingData: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -132,16 +136,22 @@ class SidebarLinks extends React.Component {
                 >
                     <Header
                         textSize="large"
-                        title="Chats"
+                        title={this.props.translate('sidebarScreen.headerChat')}
+                        accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
+                        accessibilityRole="text"
                         shouldShowEnvironmentBadge
                     />
                     <TouchableOpacity
+                        accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
+                        accessibilityRole="button"
                         style={[styles.flexRow, styles.ph5]}
                         onPress={this.showSearchPage}
                     >
                         <Icon src={MagnifyingGlass} />
                     </TouchableOpacity>
                     <TouchableOpacity
+                        accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
+                        accessibilityRole="button"
                         onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator
@@ -180,6 +190,7 @@ SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
 export default compose(
+    withLocalize,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

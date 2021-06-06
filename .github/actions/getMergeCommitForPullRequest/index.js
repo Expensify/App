@@ -19,8 +19,8 @@ const DEFAULT_PAYLOAD = {
 };
 
 const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
-const user = ActionUtils.getJSONInput('USER', {required: false}, null);
-const titleRegex = ActionUtils.getJSONInput('TITLE_REGEX', {required: false}, null);
+const user = core.getInput('USER', {required: false});
+let titleRegex = core.getInput('TITLE_REGEX', {required: false});
 
 if (pullRequestNumber) {
     console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
@@ -31,6 +31,7 @@ if (user) {
 }
 
 if (titleRegex) {
+    titleRegex = new RegExp(titleRegex);
     console.log(`Looking for pull request w/ title matching: ${titleRegex.toString()}`);
 }
 
@@ -68,7 +69,10 @@ if (pullRequestNumber) {
         .then(({data}) => outputMergeCommitHash(data))
         .catch(handleUnknownError);
 } else {
-    GithubUtils.octokit.pulls.list(DEFAULT_PAYLOAD)
+    GithubUtils.octokit.pulls.list({
+        ...DEFAULT_PAYLOAD,
+        state: 'all',
+    })
         .then(({data}) => {
             const matchingPR = _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title));
             outputMergeCommitHash(matchingPR);
