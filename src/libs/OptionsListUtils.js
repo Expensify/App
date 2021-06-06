@@ -170,10 +170,10 @@ Onyx.connect({
  *
  * @param {String} searchValue
  * @param {String} searchText
- * @param {Set<String>} participantNames
+ * @param {Set<String>} [participantNames]
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText, participantNames) {
+function isSearchStringMatch(searchValue, searchText, participantNames = new Set()) {
     const searchWords = searchValue
         .replace(/,/g, ' ')
         .split(' ')

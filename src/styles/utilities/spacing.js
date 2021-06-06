@@ -25,6 +25,10 @@ export default {
         marginHorizontal: 4,
     },
 
+    mh5: {
+        marginHorizontal: 20,
+    },
+
     mv1: {
         marginVertical: 4,
     },
@@ -43,6 +47,7 @@ export default {
     mv5: {
         marginVertical: 20,
     },
+
     mr0: {
         marginRight: 0,
     },
