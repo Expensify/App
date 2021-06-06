@@ -71,6 +71,7 @@ jobs:
 
       - name: Create branch for new pull request
         run: |
+          git config user.name ${{ github.actor }}
           git checkout -b cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           git push --set-upstream origin cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
@@ -99,18 +100,25 @@ jobs:
           USER: OSBotify
           TITLE_REGEX: Update version to ${{ env.NEW_VERSION }}
 
-      - name: Cherry-pick the merge commit to new branch
-        id: cherryPick
-        run: git cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} ${{ steps.getVersionBumpMergeCommit.MERGE_COMMIT_SHA }} --mainline 1
-        continue-on-error: true
-
-      # If there is a merge conflict, we'll just commit what we have,
-      # and the PR will be auto-assigned for someone to manually resolve the conflicts.
-      - name: If there is a merge conflict...
-        if: ${{ steps.cherryPick.outcome == 'failure' }}
+      - name: Cherry-pick the version-bump to new branch
         run: |
-          git add -A
-          git cherry-pick --continue
+          git fetch
+          git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }}
+
+      - name: Cherry-pick the merge commit of target PR to new branch
+        id: cherryPick
+        run: |
+          echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
+          if git cherry-pick -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
+            echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
+            echo "::set-output name=SHOULD_AUTOMERGE::true"
+          else
+            echo "😞 PR can't be automerged, there are merge conflicts in the following files:"
+            git --no-pager diff --name-only --diff-filter=U
+            git add .
+            GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
+            echo "::set-output name=SHOULD_AUTOMERGE::false"
+          fi
 
       - name: Create Pull Request
         id: createPullRequest
@@ -132,7 +140,7 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
 
       - name: Auto-assign PR if there are merge conflicts
-        if: ${{ steps.cherryPick.outcome == 'failure' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'false' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
         uses: actions-ecosystem/action-add-labels@a8ae047fee0ca28235f9764e1c478d2136dc15c1
         with:
           number: ${{ steps.createPullRequest.outputs.pr_number }}
@@ -141,7 +149,7 @@ jobs:
             Hourly
 
       - name: If PR has merge conflicts, comment with instructions for assignee
-        if: ${{ steps.cherryPick.outcome == 'failure' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'false' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
         with:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -154,7 +162,7 @@ jobs:
       # TODO: Once https://github.com/hmarr/auto-approve-action/pull/186 is merged, point back at the non-forked repo
       - name: Check for an auto approve
         # Important: only auto-approve if there was no merge conflict!
-        if: ${{ steps.cherryPick.outcome == 'success' && steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'true' }}
+        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'true' && steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'true' }}
         # Version: 2.0.0
         uses: roryabraham/auto-approve-action@6bb4a3dcf07664d0131e1c74a4bc6d0d8c849978
         with:
@@ -163,7 +171,7 @@ jobs:
 
       - name: Check for an auto merge
         # Important: only auto-merge if there was no merge conflict!
-        if: ${{ steps.cherryPick.outcome == 'success' && steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'true' }}
+        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'true' && steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'true' }}
         # Version: 0.12.0
         uses: pascalgn/automerge-action@39d831e1bb389bd242626bc25d4060064a97181c
         env:

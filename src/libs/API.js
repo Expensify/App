@@ -5,6 +5,7 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
+import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 
 let isAuthenticating;
 let credentials;
@@ -408,6 +409,17 @@ function GetIOUReport(parameters) {
 /**
  * @returns {Promise}
  */
+function GetPolicySummaryList() {
+    const commandName = 'Get';
+    const parameters = {
+        returnValueList: 'policySummaryList',
+    };
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
 function GetRequestCountryCode() {
     const commandName = 'GetRequestCountryCode';
     return Network.post(commandName);
@@ -452,6 +464,17 @@ function Graphite_Timer(parameters) {
 function PayIOU(parameters) {
     const commandName = 'PayIOU';
     requireParameters(['reportID', 'paymentMethodType'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @returns {Promise}
+ */
+function PayWithWallet(parameters) {
+    const commandName = 'PayWithWallet';
+    requireParameters(['reportID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -717,8 +740,34 @@ function CreateIOUSplit(parameters) {
 /**
  * @returns {Promise}
  */
+function Wallet_GetOnfidoSDKToken() {
+    return Network.post('Wallet_GetOnfidoSDKToken', {
+        // We need to pass this so we can request a token with the correct referrer
+        // This value comes from a cross-platform module which returns true for native
+        // platforms and false for non-native platforms.
+        isViaExpensifyCashNative,
+    }, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @returns {Promise}
+ */
 function Plaid_GetLinkToken() {
     return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.currentStep
+ * @param {String} [parameters.onfidoData] - JSON string
+ * @param {String} [parameters.personalDetails] - JSON string
+ * @param {Boolean} [parameters.hasAcceptedTerms]
+ * @returns {Promise}
+ */
+function Wallet_Activate(parameters) {
+    const commandName = 'Wallet_Activate';
+    requireParameters(['currentStep'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
@@ -808,10 +857,12 @@ export {
     Get,
     GetAccountStatus,
     GetIOUReport,
+    GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
     Log,
     PayIOU,
+    PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,
@@ -836,6 +887,8 @@ export {
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
+    Wallet_Activate,
+    Wallet_GetOnfidoSDKToken,
     GetPreferredCurrency,
     GetCurrencyList,
 };
