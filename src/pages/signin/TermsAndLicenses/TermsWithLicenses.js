@@ -4,10 +4,13 @@ import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import openURLInNewTab from '../../../libs/openURLInNewTab';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import LogoWordmark from '../../../../assets/images/expensify-wordmark.svg';
 
 const TermsWithLicenses = ({translate}) => (
-    <View style={[styles.mv3, styles.alignItemsCenter]}>
-        <Text style={[styles.h1, {letterSpacing: -1}, styles.mb3]}>Expensify</Text>
+    <View style={[styles.mt3, styles.alignItemsCenter]}>
+        <View style={[styles.mb1]}>
+            <LogoWordmark height={30} width={80} />
+        </View>
         <Text style={[styles.loginTermsText, styles.textAlignCenter]}>
             {translate('termsOfUse.phrase1')}
             {' '}

@@ -467,10 +467,12 @@ const styles = {
         width: '100%',
     },
 
+    signInPageNarrowContentContainer: {
+        width: 400,
+    },
+
     signInPageWideLeftContainer: {
-        maxWidth: 400,
-        minWidth: 350,
-        width: '25%',
+        width: 375,
     },
 
     signInPageWideHeroContent: {

@@ -20,8 +20,8 @@ const propTypes = {
 const SignInPageLayoutWide = props => (
     <View style={[styles.signInPageInner]}>
         <View style={[styles.flex1, styles.flexRow, styles.dFlex, styles.flexGrow1]}>
-            <View style={[styles.signInPageWideLeftContainer, styles.dFlex, styles.flexColumn]}>
-                <View style={[styles.flex1, styles.dFlex, styles.flexColumn, styles.mt30Percentage, styles.ph8]}>
+            <View style={[styles.signInPageWideLeftContainer, styles.dFlex, styles.flexColumn, styles.ph6]}>
+                <View style={[styles.flex1, styles.dFlex, styles.flexColumn, styles.mt40Percentage]}>
                     <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
                         <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
                     </View>
@@ -32,7 +32,9 @@ const SignInPageLayoutWide = props => (
                         {props.children}
                     </View>
                 </View>
-                <TermsAndLicenses />
+                <View style={[styles.mv5]}>
+                    <TermsAndLicenses />
+                </View>
             </View>
             <View style={[
                 styles.flexGrow1,
