@@ -8,6 +8,7 @@ import ReportActionItemIOUPreview from './ReportActionItemIOUPreview';
 import Navigation from '../libs/Navigation/Navigation';
 import compose from '../libs/compose';
 import ROUTES from '../ROUTES';
+import CONST from '../CONST';
 
 const propTypes = {
     /** All the data of the action */
@@ -56,9 +57,7 @@ const ReportActionItemIOUAction = ({
                 shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {isMostRecentIOUReportAction
-            && iouReport.hasOutstandingIOU
-            && Boolean(action.originalMessage.IOUReportID) && (
+            {isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID) && (
                 <ReportActionItemIOUPreview
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}
