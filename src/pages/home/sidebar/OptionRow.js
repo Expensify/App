@@ -8,6 +8,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
+import Str from 'expensify-common/lib/str';
 import styles, {getBackgroundAndBorderStyle, getBackgroundColorStyle} from '../../../styles/styles';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
@@ -18,6 +19,7 @@ import Hoverable from '../../../components/Hoverable';
 import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -54,8 +56,13 @@ const propTypes = {
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(['compact', 'default']),
 
-    // Whether this option should be disabled
+    /** Whether this option should be disabled */
     isDisabled: PropTypes.bool,
+
+    /** Whether to disable the interactivity of this row */
+    disableRowInteractivity: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -70,6 +77,7 @@ const defaultProps = {
     onSelectRow: null,
     isDisabled: false,
     optionIsFocused: false,
+    disableRowInteractivity: false,
 };
 
 const OptionRow = ({
@@ -85,6 +93,8 @@ const OptionRow = ({
     showTitleTooltip,
     isDisabled,
     mode,
+    disableRowInteractivity,
+    toLocalPhone,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -120,15 +130,21 @@ const OptionRow = ({
     const isMultipleParticipant = lodashGet(option, 'participantsList.length', 0) > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
-        ({displayName, firstName, login}) => (
-            {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
-        ),
+        ({displayName, firstName, login}) => {
+            const displayNameTrimmed = Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName;
+
+            return {
+                displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
+                tooltip: login,
+            };
+        },
     );
     return (
         <Hoverable>
             {hovered => (
                 <TouchableOpacity
                     onPress={() => onSelectRow(option)}
+                    disabled={disableRowInteractivity}
                     activeOpacity={0.8}
                     style={[
                         styles.flexRow,
@@ -228,7 +244,7 @@ OptionRow.defaultProps = defaultProps;
 OptionRow.displayName = 'OptionRow';
 
 // It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default memo(OptionRow, (prevProps, nextProps) => {
+export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     if (prevProps.optionIsFocused !== nextProps.optionIsFocused) {
         return false;
     }
@@ -270,4 +286,4 @@ export default memo(OptionRow, (prevProps, nextProps) => {
     }
 
     return true;
-});
+}));

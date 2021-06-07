@@ -1,11 +1,12 @@
 const core = require('@actions/core');
-const {GitHub} = require('@actions/github/lib/utils');
+const {context} = require('@actions/github');
 const ActionUtils = require('../../libs/ActionUtils');
 const GithubUtils = require('../../libs/GithubUtils');
 
 
 const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
 const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
+const isCP = ActionUtils.getJSONInput('IS_CHERRY_PICK', {required: false}, false);
 const version = core.getInput('DEPLOY_VERSION', {required: true});
 
 
@@ -36,19 +37,20 @@ const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
     + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
+const deployVerb = isCP ? 'Cherry-picked' : 'Deployed';
 
-let message = `🚀 [Deployed](${workflowURL}) to ${isProd ? 'production' : 'staging'} in version: ${version}🚀`;
+let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'} in version: ${version}🚀`;
 message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
 message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
 /**
  * Comment Single PR
  *
- * @param {Object} pr
+ * @param {Number} pr
  * @returns {Promise<void>}
  */
 function commentPR(pr) {
-    return GithubUtils.createComment(GitHub.context.repo.repo, pr, message)
+    return GithubUtils.createComment(context.repo.repo, pr, message)
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
         })

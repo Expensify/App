@@ -27,7 +27,12 @@ import {
     Receipt,
 } from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
+import {
+    addAction,
+    saveReportComment,
+    saveReportActionDraft,
+    broadcastUserIsTyping,
+} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
@@ -44,6 +49,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import ReportActionPropTypes from './ReportActionPropTypes';
+import {canEditReportAction} from '../../../libs/reportUtils';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -68,6 +75,9 @@ const propTypes = {
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
 
+    /** Array of report actions for this report */
+    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+
     /** Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
 
@@ -91,6 +101,7 @@ const defaultProps = {
     comment: '',
     modal: {},
     report: {},
+    reportActions: {},
     network: {isOffline: false},
 };
 
@@ -101,7 +112,7 @@ class ReportActionCompose extends React.Component {
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
-        this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
+        this.triggerHotkeyActions = this.triggerHotkeyActions.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.showEmojiPicker = this.showEmojiPicker.bind(this);
@@ -112,6 +123,7 @@ class ReportActionCompose extends React.Component {
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
         this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
         this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
+        this.onSelectionChange = this.onSelectionChange.bind(this);
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
 
@@ -126,6 +138,10 @@ class ReportActionCompose extends React.Component {
             emojiPopoverAnchorPosition: {
                 horizontal: 0,
                 vertical: 0,
+            },
+            selection: {
+                start: props.comment.length,
+                end: props.comment.length,
             },
         };
     }
@@ -147,6 +163,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
+    }
+
+    onSelectionChange(e) {
+        this.setState({selection: e.nativeEvent.selection});
     }
 
     /**
@@ -222,15 +242,32 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Listens for the keyboard shortcut and submits
-     * the form when we have enter
+     * Listens for keyboard shortcuts and applies the action
      *
      * @param {Object} e
      */
-    triggerSubmitShortcut(e) {
-        if (e && e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            this.submitForm();
+    triggerHotkeyActions(e) {
+        if (e) {
+            // Submit the form when Enter is pressed
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.submitForm();
+            }
+
+            // Trigger the edit box for last sent message if ArrowUp is pressed
+            if (e.key === 'ArrowUp' && this.state.isCommentEmpty) {
+                e.preventDefault();
+
+                const reportActionKey = _.find(
+                    Object.keys(this.props.reportActions).reverse(),
+                    key => canEditReportAction(this.props.reportActions[key]),
+                );
+
+                if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
+                    const {reportActionID, message} = this.props.reportActions[reportActionKey];
+                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).text);
+                }
+            }
         }
     }
 
@@ -269,8 +306,16 @@ class ReportActionCompose extends React.Component {
      */
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
-        this.textInput.value = this.comment + emoji;
+        const {selection} = this.state;
+        this.textInput.value = this.comment.slice(0, selection.start)
+            + emoji + this.comment.slice(selection.end, this.comment.length);
+        const updatedSelection = {
+            start: selection.start + emoji.length,
+            end: selection.start + emoji.length,
+        };
+        this.setState({selection: updatedSelection});
         this.setIsFocused(true);
+        this.focus();
         this.updateComment(this.textInput.value);
     }
 
@@ -397,7 +442,7 @@ class ReportActionCompose extends React.Component {
                                     placeholder={this.props.translate('reportActionCompose.writeSomething')}
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
-                                    onKeyPress={this.triggerSubmitShortcut}
+                                    onKeyPress={this.triggerHotkeyActions}
                                     onDragEnter={() => this.setState({isDraggingOver: true})}
                                     onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
@@ -420,6 +465,8 @@ class ReportActionCompose extends React.Component {
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
                                     isDisabled={isComposeDisabled}
+                                    selection={this.state.selection}
+                                    onSelectionChange={this.onSelectionChange}
                                 />
 
                             </>
@@ -514,6 +561,10 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        reportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            canEvict: false,
         },
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,

@@ -10,12 +10,20 @@ const CONST = {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
         IOU: 'IOU',
+        PAY_WITH_EXPENSIFY: 'payWithExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
         HOVERED: 'hovered',
         PRESSED: 'pressed',
         COMPLETE: 'complete',
+    },
+    PLATFORM: {
+        IOS: 'ios',
+        ANDROID: 'android',
+    },
+    CURRENCY: {
+        USD: 'USD',
     },
     CONCIERGE_CHAT_NAME: 'Concierge',
     CLOUDFRONT_URL,
@@ -39,11 +47,22 @@ const CONST = {
             LIMIT: 50,
             TYPE: {
                 IOU: 'IOU',
+                ADDCOMMENT: 'ADDCOMMENT',
+            },
+        },
+        MESSAGE: {
+            TYPE: {
+                COMMENT: 'COMMENT',
             },
         },
         TYPE: {
             CHAT: 'chat',
             IOU: 'iou',
+        },
+        STATE_NUM: {
+            OPEN: 0,
+            PROCESSING: 1,
+            SUBMITTED: 2,
         },
     },
     MODAL: {
@@ -137,10 +156,45 @@ const CONST = {
         RECONNECT: 1000,
     },
 
+    WALLET: {
+        ERROR: {
+            IDENTITY_NOT_FOUND: 'Identity not found',
+            INVALID_SSN: 'Invalid SSN',
+            UNEXPECTED: 'Unexpected error',
+            MISSING_FIELD: 'Missing required additional details fields',
+            UNABLE_TO_VERIFY: 'Unable to verify identity',
+        },
+        STEP: {
+            ONFIDO: 'OnfidoStep',
+            ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            TERMS: 'TermsStep',
+            ACTIVATE: 'ActivateStep',
+        },
+        STATUS: {
+            GOLD: 'GOLD',
+            SILVER: 'SILVER',
+        },
+    },
+
     PLAID: {
         EVENT: {
             ERROR: 'ERROR',
             EXIT: 'EXIT',
+        },
+    },
+
+    ONFIDO: {
+        CONTAINER_ID: 'onfido-mount',
+        TYPE: {
+            DOCUMENT: 'document',
+            FACE: 'face',
+        },
+        VARIANT: {
+            VIDEO: 'video',
+        },
+        SMS_NUMBER_COUNTRY_CODE: 'US',
+        ERROR: {
+            USER_CANCELLED: 'User canceled flow',
         },
     },
 
@@ -151,6 +205,30 @@ const CONST = {
         IOS: 'iOS',
         LINUX: 'Linux',
         NATIVE: 'Native',
+    },
+
+    IOU: {
+        // Note: These payment types are used when building IOU reportAction message values in the server and should
+        // not be changed.
+        PAYMENT_TYPE: {
+            ELSEWHERE: 'Elsewhere',
+            EXPENSIFY: 'Expensify',
+            PAYPAL_ME: 'PayPal.me',
+            VENMO: 'Venmo',
+        },
+    },
+
+    REGEX: {
+        US_PHONE: /^\+1\d{10}$/,
+        PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
+        NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
+    },
+
+    GROWL: {
+        SUCCESS: 'success',
+        ERROR: 'error',
+        WARNING: 'warning',
+        DURATION: 2000,
     },
 };
 

@@ -17,7 +17,7 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** Icon to display on the left side of component */
-    icon: PropTypes.elementType.isRequired,
+    icon: PropTypes.elementType,
 
     /** Text to display for the item */
     title: PropTypes.string.isRequired,
@@ -36,6 +36,7 @@ const defaultProps = {
     shouldShowRightIcon: false,
     wrapperStyle: {},
     success: false,
+    icon: undefined,
     iconRight: ArrowRight,
 };
 
@@ -59,10 +60,12 @@ const MenuItem = ({
         {({hovered, pressed}) => (
             <>
                 <View style={styles.flexRow}>
-                    <View style={styles.createMenuIcon}>
-                        <Icon src={icon} fill={getIconFillColor(getButtonState(hovered, pressed, success))} />
-                    </View>
-                    <View style={styles.justifyContentCenter}>
+                    {icon && (
+                        <View style={styles.createMenuIcon}>
+                            <Icon src={icon} fill={getIconFillColor(getButtonState(hovered, pressed, success))} />
+                        </View>
+                    )}
+                    <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
                         <Text style={[styles.createMenuText, styles.ml3]}>
                             {title}
                         </Text>

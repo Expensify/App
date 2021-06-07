@@ -27,6 +27,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
+import {getPolicySummaries} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
@@ -47,6 +48,7 @@ import {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
+    EnablePaymentsStackNavigator,
     AddBankAccountModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
@@ -69,10 +71,12 @@ Onyx.connect({
 
 const RootStack = createCustomModalStackNavigator();
 
-// When modal screen gets focused, update modal visibility in Onyx
+// We want to delay the re-rendering for components(e.g. ReportActionCompose)
+// that depends on modal visibility until Modal is completely closed or its transition has ended
+// When modal screen is focused and animation transition is ended, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
 const modalScreenListeners = {
-    focus: () => {
+    transitionEnd: () => {
         setModalVisibility(true);
     },
     beforeRemove: () => {
@@ -120,6 +124,7 @@ class AuthScreens extends React.Component {
         fetchAllReports(true, true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
+        getPolicySummaries();
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -160,7 +165,7 @@ class AuthScreens extends React.Component {
         const modalScreenOptions = {
             headerShown: false,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            cardStyleInterpolator: modalCardStyleInterpolator,
+            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, props),
             animationEnabled: true,
             gestureDirection: 'horizontal',
             cardOverlayEnabled: true,
@@ -247,6 +252,12 @@ class AuthScreens extends React.Component {
                     name="IOU_Bill"
                     options={modalScreenOptions}
                     component={IOUBillStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="EnablePayments"
+                    options={modalScreenOptions}
+                    component={EnablePaymentsStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
