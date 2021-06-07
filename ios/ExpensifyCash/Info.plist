@@ -30,7 +30,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.0.63.0</string>
+	<string>1.0.63.1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
@@ -64,9 +64,11 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Your camera is used to create chat attachments.</string>
+	<string>Your camera is used to create chat attachments, documents, and facial capture.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your location is used to determine your default currency.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Required for video capture</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Your camera roll is used to store chat attachments.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
