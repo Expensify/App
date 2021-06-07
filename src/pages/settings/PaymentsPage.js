@@ -76,6 +76,8 @@ class PaymentsPage extends React.Component {
                             {this.props.translate('paymentsPage.payPalMe')}
                         </Text>
                         <TextInput
+                            autoCompleteType="off"
+                            autoCorrect={false}
                             style={[styles.textInput]}
                             value={this.state.payPalMeUsername}
                             placeholder={this.props.translate('paymentsPage.yourPayPalUsername')}
