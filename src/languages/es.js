@@ -132,7 +132,7 @@ export default {
         removePhoto: 'Eliminar Foto',
         profile: 'Perfil',
         editPhoto: 'Editar Foto',
-        tellUsAboutYourself: 'Cuéntanos algo sobre tí, nos encantaría llegar a conocerte!',
+        tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
         firstName: 'Nombre',
         john: 'Juan',
         lastName: 'Apellido',
