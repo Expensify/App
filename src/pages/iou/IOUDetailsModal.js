@@ -202,8 +202,6 @@ class IOUDetailsModal extends Component {
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: this.props.translate('iou.settleElsewhere'),
         };
         const selectedPaymentType = paymentTypeTextOptions[this.state.paymentType];
-        const isIOUPaid = this.props.iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED
-            && this.props.iouReport.total !== 0;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -213,14 +211,12 @@ class IOUDetailsModal extends Component {
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
-                            {(this.props.iouReport.hasOutstandingIOU || isIOUPaid) && (
-                                <ReportActionItemIOUPreview
-                                    iou={this.props.iouReport}
-                                    chatReportID={Number(this.props.route.params.chatReportID)}
-                                    iouReportID={Number(this.props.route.params.iouReportID)}
-                                    shouldHidePayButton
-                                />
-                            )}
+                            <ReportActionItemIOUPreview
+                                iou={this.props.iouReport}
+                                chatReportID={Number(this.props.route.params.chatReportID)}
+                                iouReportID={Number(this.props.route.params.iouReportID)}
+                                shouldHidePayButton
+                            />
                             <IOUTransactions
                                 chatReportID={Number(this.props.route.params.chatReportID)}
                                 iouReportID={Number(this.props.route.params.iouReportID)}
