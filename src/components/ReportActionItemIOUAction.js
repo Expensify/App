@@ -47,6 +47,7 @@ const ReportActionItemIOUAction = ({
     iouReport,
     isMostRecentIOUReportAction,
 }) => {
+    const isIOUPaid = iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && iouReport.total !== 0;
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
     };
@@ -62,6 +63,7 @@ const ReportActionItemIOUAction = ({
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}
                     onPayButtonPressed={launchDetailsModal}
+                    shouldHidePayButton={isIOUPaid}
                 />
             )}
         </>
