@@ -130,14 +130,14 @@ const OptionRow = ({
     const isMultipleParticipant = lodashGet(option, 'participantsList.length', 0) > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
-        ({displayName, firstName, login}) => (
-            {
-                displayName: toLocalPhone(
-                    (isMultipleParticipant ? firstName : displayName) || Str.removeSMSDomain(login),
-                ),
+        ({displayName, firstName, login}) => {
+            const displayNameTrimmed = Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName;
+
+            return {
+                displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
                 tooltip: login,
-            }
-        ),
+            };
+        },
     );
     return (
         <Hoverable>
