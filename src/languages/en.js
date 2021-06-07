@@ -199,6 +199,7 @@ export default {
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal Account',
+        growlMessageOnSave: 'Your PayPal username was successfully added',
     },
     preferencesPage: {
         mostRecent: 'Most Recent',
