@@ -5,7 +5,7 @@ export default {
         upload: 'Subir',
         yes: 'Si',
         no: 'No',
-        attachment: 'Adjunto',
+        attachment: 'Archivo Adjunto',
         to: 'A',
         optional: 'Opcional',
         new: 'NUEVO',
@@ -33,7 +33,7 @@ export default {
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
         expensifyDoesntHaveAccessToCamera: 'Expensify.cash no tiene acceso a tu cámara, por favor activa el permiso y vuelve a intentarlo.',
-        attachmentError: 'Error en el adjunto',
+        attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto, por favor inténtalo de nuevo',
         errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor intentalo con otro archivo',
         errorDuringAttachmentSelection: 'Error al seleccionar un archivo adjunto',
@@ -42,7 +42,7 @@ export default {
         chooseDocument: 'Elegir Documento',
     },
     textInputFocusable: {
-        noExtentionFoundForMimeType: 'No se encontró una extension para este tipo',
+        noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
     },
     baseUpdateAppModal: {
@@ -73,8 +73,8 @@ export default {
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
     },
     reportActionCompose: {
-        uploadAttachment: 'Subir Adjunto',
-        addAttachment: 'Agregar Adjunto',
+        uploadAttachment: 'Subir Archivo Adjunto',
+        addAttachment: 'Agregar Archivo Adjunto',
         writeSomething: 'Escribe algo...',
         youAppearToBeOffline: 'Parece que estás desconectado.',
     },
@@ -111,7 +111,7 @@ export default {
         requestMoney: 'Pedir Dinero',
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
-        settleElsewhere: 'Voy a pagar por otro medio',
+        settleElsewhere: 'Voy a pagar de otra forma',
         decline: 'Rechazar',
         settlePaypalMe: 'Pagar con PayPal.me',
         settleVenmo: 'Pagar con Venmo',
@@ -123,9 +123,9 @@ export default {
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
-        numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de validación via SMS.',
+        numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
         useYourPhoneToSettleViaVenmo: 'Usa tu número de teléfono para pagar usando Venmo.',
-        emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de validación via email.',
+        emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via email.',
     },
     profilePage: {
         uploadPhoto: 'Subir Foto',
@@ -135,7 +135,7 @@ export default {
         tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
         firstName: 'Nombre',
         john: 'Juan',
-        lastName: 'Apellido',
+        lastName: 'Apellidos',
         doe: 'Nadie',
         preferredPronouns: 'Pronombres preferidos',
         selectYourPronouns: 'Selecciona tus pronombres',
@@ -200,8 +200,8 @@ export default {
     preferencesPage: {
         mostRecent: 'Más Recientes',
         mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo',
-        focus: '#focus',
-        focusModeDescription: '#focus – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
+        focus: '#concentración',
+        focusModeDescription: '#concentración – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
         notifications: 'Notificaciones',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
         priorityMode: 'Modo Prioridad',
