@@ -13,13 +13,14 @@ jobs:
     steps:
       - name: Get merged pull request
         id: getMergedPullRequest
-        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
+        # TODO: Point back action actions-ecosystem after https://github.com/actions-ecosystem/action-get-merged-pull-request/pull/223 is merged
+        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if merged pull request was an automatic version bump PR
         id: isAutomatedPullRequest
-        run: echo "::set-output name=IS_AUTOMERGE_PR::${{ github.actor == 'OSBotify' }}"
+        run: echo "::set-output name=IS_AUTOMERGE_PR::${{ steps.getMergedPullRequest.outputs.author == 'OSBotify' }}"
 
   deployStaging:
     runs-on: ubuntu-latest
