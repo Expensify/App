@@ -247,6 +247,8 @@ Once the `StagingDeployCash` is locked, we won't run any staging deploys until i
 Once we have confirmed to the best of our ability that there are no deploy-blocking issues and that all our new features are working as expected on staging, we'll close the `StagingDeployCash`. That will automatically trigger a production deployment, open a new `StagingDeployCash` checklist, and deploy to staging any pull requests that were merged while the previous checklist was locked.
 
 ##  Key GitHub workflows
+These are some of the most central [GitHub Workflows](https://github.com/Expensify/Expensify.cash/tree/main/.github/workflows). There is more detailed information in the README [here](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/README.md).
+
 ### preDeploy
 The [preDeploy workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/preDeploy.yml) executes whenever a pull request is merged to `main`, and at a high level does the following:
 
@@ -264,6 +266,12 @@ The [`deploy` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.g
 
 ### platformDeploy
 The [`platformDeploy` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all four platforms (iOS, Android, Web, macOS Desktop). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.
+
+### lockDeploys
+The [`lockDeploys` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/lockDeploys.yml) executes when the `StagingDeployCash` is locked, and it prepares the staging branch for a production release by creating a new `PATCH` version (i.e: `1.0.57-5` -> `1.0.58.0`).
+
+### finishReleaseCycle
+The [`finishReleaseCycle` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging, and creates a new `StagingDeployCash` deploy checklist.
 
 ## Local production builds
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
