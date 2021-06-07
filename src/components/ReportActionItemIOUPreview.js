@@ -18,6 +18,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {fetchIOUReportByID} from '../libs/actions/Report';
 import themeColors from '../styles/themes/default';
 import Icon from './Icon';
+import CONST from '../CONST';
 import {Checkmark} from './Icon/Expensicons';
 
 const propTypes = {
@@ -139,7 +140,9 @@ const ReportActionItemIOUPreview = ({
                                 ? translate('iou.owes', {manager: managerName, owner: ownerName})
                                 : translate('iou.paid', {manager: managerName, owner: ownerName})}
                         </Text>
-                        {(isCurrentUserManager && !shouldHidePayButton && (
+                        {(isCurrentUserManager
+                            && !shouldHidePayButton
+                            && iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
                             <TouchableOpacity
                                 style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
                                 onPress={onPayButtonPressed}

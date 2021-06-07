@@ -63,7 +63,6 @@ const ReportActionItemIOUAction = ({
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}
                     onPayButtonPressed={launchDetailsModal}
-                    shouldHidePayButton={isIOUPaid}
                 />
             )}
         </>
