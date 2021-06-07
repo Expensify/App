@@ -10,9 +10,7 @@ import styles from '../styles/styles';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -207,39 +205,46 @@ class SearchPage extends Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.search')}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        sections={sections}
-                        value={this.state.searchValue}
-                        onSelectRow={this.selectReport}
-                        onChangeText={(searchValue = '') => {
-                            this.setState({searchValue});
+                {({didScreenTransitionEnd}) => (
+                    <>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('common.search')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.selectReport}
+                                onChangeText={(searchValue = '') => {
+                                    this.setState({searchValue});
 
-                            // Clears the header message on clearing the input
-                            if (!searchValue) {
-                                this.validateInput.cancel();
-                                this.setState({
-                                    headerMessage: '',
-                                    userToInvite: null,
-                                    recentReports: this.preserveRecentReports,
-                                });
-                            } else {
-                                this.validateInput(searchValue);
-                            }
-                        }}
-                        headerMessage={
-                           this.state.headerMessage
-}
-                        hideSectionHeaders
-                        hideAdditionalOptionStates
-                        showTitleTooltip
-                    />
-                </View>
-                <KeyboardSpacer />
+                                    // Clears the header message on clearing the input
+                                    if (!searchValue) {
+                                        this.validateInput.cancel();
+                                        this.setState({
+                                            headerMessage: '',
+                                            userToInvite: null,
+                                            recentReports: this.preserveRecentReports,
+                                        });
+                                    } else {
+                                        this.validateInput(searchValue);
+                                    }
+                                }}
+                                headerMessage={
+                                   this.state.headerMessage
+        }
+                                hideSectionHeaders
+                                hideAdditionalOptionStates
+                                showTitleTooltip
+                            />
+                            )}
+                        </View>
+                        <KeyboardSpacer />
+                    </>
+                )}
             </ScreenWrapper>
         );
     }
