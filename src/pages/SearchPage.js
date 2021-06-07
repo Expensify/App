@@ -208,7 +208,7 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
         betas: {
-            key: ONYXKEYS.betas,
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(SearchPage);

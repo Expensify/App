@@ -147,7 +147,7 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         betas: {
-            key: ONYXKEYS.betas,
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(SidebarScreen);
