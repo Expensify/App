@@ -3,7 +3,7 @@
  */
 import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
-import RNImagePicker from 'react-native-image-picker';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
 import basePropTypes from './AttachmentPickerPropTypes';
 import styles from '../../styles/styles';
@@ -25,9 +25,9 @@ const propTypes = {
   * for ImagePicker configuration options
   */
 const imagePickerOptions = {
-    storageOptions: {
-        skipBackup: true,
-    },
+    includeBase64: false,
+    saveToPhotos: false,
+    selectionLimit: 1,
 };
 
 /**
@@ -70,12 +70,12 @@ class AttachmentPicker extends Component {
             {
                 icon: Camera,
                 text: this.props.translate('attachmentPicker.takePhoto'),
-                pickAttachment: () => this.showImagePicker(RNImagePicker.launchCamera),
+                pickAttachment: () => this.showImagePicker(launchCamera),
             },
             {
                 icon: Gallery,
                 text: this.props.translate('attachmentPicker.chooseFromGallery'),
-                pickAttachment: () => this.showImagePicker(RNImagePicker.launchImageLibrary),
+                pickAttachment: () => this.showImagePicker(launchImageLibrary),
             },
             {
                 icon: Paperclip,
@@ -95,7 +95,7 @@ class AttachmentPicker extends Component {
       * @param {ImagePickerResponse|DocumentPickerResponse} attachment
       */
     pickAttachment(attachment) {
-        if (attachment && !attachment.didCancel && !attachment.error) {
+        if (attachment) {
             if (attachment.width === -1 || attachment.height === -1) {
                 this.showImageCorruptionAlert();
                 return;
@@ -135,20 +135,25 @@ class AttachmentPicker extends Component {
     showImagePicker(imagePickerFunc) {
         return new Promise((resolve, reject) => {
             imagePickerFunc(imagePickerOptions, (response) => {
-                if (response.error) {
-                    switch (response.error) {
-                        case 'Camera permissions not granted':
-                        case 'Permissions weren\'t granted':
+                if (response.didCancel) {
+                    // When the user cancelled resolve with no attachment
+                    return resolve();
+                }
+                if (response.errorCode) {
+                    switch (response.errorCode) {
+                        case 'permission':
                             this.showPermissionsAlert();
                             break;
                         default:
-                            this.showGeneralAlert(response.error);
+                            this.showGeneralAlert();
                             break;
                     }
-                    reject(new Error(`Error during attachment selection: ${response.error}`));
+
+                    return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                 }
 
-                resolve(response);
+                // Resolve with the first (and only) selected file
+                return resolve(response.assets[0]);
             });
         });
     }
