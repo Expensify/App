@@ -214,7 +214,6 @@ class OptionsList extends Component {
                             </Text>
                         </View>
                     ) : null}
-
                 </View>
                 <SectionList
                     ref={this.props.innerRef}

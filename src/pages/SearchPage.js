@@ -115,7 +115,6 @@ class SearchPage extends Component {
 
     /**
    * Reset the search value and redirect to the selected report
-   *
    * @param {Object} option
    */
     selectReport(option) {
