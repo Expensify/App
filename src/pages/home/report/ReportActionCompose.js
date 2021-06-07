@@ -156,7 +156,6 @@ class ReportActionCompose extends React.Component {
         // open creates a jarring and broken UX.
         if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
-            this.setIsFocused(true);
             this.focus();
         }
     }
@@ -204,7 +203,12 @@ class ReportActionCompose extends React.Component {
             // There could be other animations running while we trigger manual focus.
             // This prevents focus from making those animations janky.
             InteractionManager.runAfterInteractions(() => {
-                this.textInput.focus();
+                // Keyboard is not opened after Emoji Picker is closed
+                // SetTimeout is used as a workaround
+                // https://github.com/react-native-modal/react-native-modal/issues/114
+                setTimeout(() => {
+                    this.textInput.focus();
+                }, 100);
             });
         }
     }
@@ -307,16 +311,18 @@ class ReportActionCompose extends React.Component {
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
         const {selection} = this.state;
-        this.textInput.value = this.comment.slice(0, selection.start)
+        const newComment = this.comment.slice(0, selection.start)
             + emoji + this.comment.slice(selection.end, this.comment.length);
+        this.textInput.setNativeProps({
+            text: newComment,
+        });
         const updatedSelection = {
             start: selection.start + emoji.length,
             end: selection.start + emoji.length,
         };
         this.setState({selection: updatedSelection});
-        this.setIsFocused(true);
+        this.updateComment(newComment);
         this.focus();
-        this.updateComment(this.textInput.value);
     }
 
     /**
