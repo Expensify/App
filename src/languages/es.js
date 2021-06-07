@@ -224,7 +224,7 @@ export default {
         pleaseFillOutAllFields: 'Por favor completa todos los campos',
         forgot: '¿Te has olvidado?',
         twoFactorCode: 'Autenticación de 2 factores',
-        requiredWhen2FAEnabled: 'Obligatorio cuando A2F esta habilitado',
+        requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
     },
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
