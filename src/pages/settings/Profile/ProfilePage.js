@@ -29,8 +29,8 @@ import CreateMenu from '../../../components/CreateMenu';
 import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import GrowlNotification from '../../../libs/GrowlNotification';
 import Button from '../../../components/Button';
+import Growl from '../../../libs/Growl';
 
 const propTypes = {
     /* Onyx Props */
@@ -131,7 +131,6 @@ class ProfilePage extends Component {
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.getLogins = this.getLogins.bind(this);
         this.createMenuItems = this.createMenuItems.bind(this);
-        this.growlNotification = undefined;
     }
 
     componentDidUpdate(prevProps) {
@@ -211,7 +210,7 @@ class ProfilePage extends Component {
             },
         });
 
-        this.growlNotification.show(this.props.translate('profilePage.growlMessageOnSave'), 'success', 3000);
+        Growl.show(this.props.translate('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
     }
 
     /**
@@ -261,7 +260,6 @@ class ProfilePage extends Component {
 
         return (
             <ScreenWrapper>
-                <GrowlNotification ref={el => this.growlNotification = el} />
                 <HeaderWithCloseButton
                     title={this.props.translate('common.profile')}
                     shouldShowBackButton

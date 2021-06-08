@@ -33,6 +33,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
     },
 
+    linkHovered: {
+        color: themeColors.linkHover,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -132,6 +136,7 @@ const styles = {
         paddingRight: 10,
         paddingBottom: 6,
         paddingLeft: 10,
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonSmallText: {
@@ -264,8 +269,16 @@ const styles = {
         backgroundColor: themeColors.badgeSuccessBG,
     },
 
+    badgeSuccessPressed: {
+        backgroundColor: themeColors.badgeSuccessPressedBG,
+    },
+
     badgeDanger: {
         backgroundColor: themeColors.badgeDangerBG,
+    },
+
+    badgeDangerPressed: {
+        backgroundColor: themeColors.badgeDangerPressedBG,
     },
 
     badgeText: {
@@ -1195,7 +1208,7 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
-    reportTransaction: {
+    reportTransactionWrapper: {
         paddingVertical: 8,
         display: 'flex',
         flexDirection: 'row',
@@ -1466,12 +1479,12 @@ const styles = {
         justifyContent: 'flex-start',
         position: 'absolute',
         width: '100%',
+        top: 20,
         ...spacing.ph5,
     },
 
     growlNotificationDesktopContainer: {
-        maxWidth: '380px',
-        top: '20px',
+        maxWidth: 380,
         right: 0,
         position: 'fixed',
     },
@@ -1716,6 +1729,20 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Generate a style for the background color of the IOU badge
+ *
+ * @param {Boolean} isOwner
+ * @param {Boolean} [isPressed]
+ * @returns {Object}
+ */
+function getBadgeColorStyle(isOwner, isPressed = false) {
+    if (isOwner) {
+        return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
+    }
+    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+}
+
+/**
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
@@ -1838,6 +1865,7 @@ export {
     getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
     getAnimatedFABStyle,

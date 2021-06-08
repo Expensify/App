@@ -270,7 +270,7 @@ class IOUModal extends Component {
             <ScreenWrapper onTransitionEnd={this.getReady}>
                 {({didScreenTransitionEnd}) => (
                     <>
-                        <View style={[styles.headerBar, true && styles.borderBottom]}>
+                        <View style={[styles.headerBar]}>
                             <View style={[
                                 styles.dFlex,
                                 styles.flexRow,
@@ -294,6 +294,8 @@ class IOUModal extends Component {
                                     <TouchableOpacity
                                         onPress={() => Navigation.dismissModal()}
                                         style={[styles.touchableButtonImage]}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={this.props.translate('common.close')}
                                     >
                                         <Icon src={Close} />
                                     </TouchableOpacity>
