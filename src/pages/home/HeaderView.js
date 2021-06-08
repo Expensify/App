@@ -60,14 +60,14 @@ const HeaderView = (props) => {
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
-        ({displayName, firstName, login}) => (
-            {
-                displayName: props.toLocalPhone(
-                    (isMultipleParticipant ? firstName : displayName) || Str.removeSMSDomain(login),
-                ),
+        ({displayName, firstName, login}) => {
+            const displayNameTrimmed = Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName;
+
+            return {
+                displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
                 tooltip: login,
-            }
-        ),
+            };
+        },
     );
     const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
