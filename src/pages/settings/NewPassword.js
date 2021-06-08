@@ -6,7 +6,6 @@ import withLocalize, {
     withLocalizePropTypes,
 } from '../../components/withLocalize';
 import CONST from '../../CONST';
-import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 
 const propTypes = {
@@ -29,11 +28,9 @@ class NewPassword extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (
-            this.props.password !== prevProps.password
-      // eslint-disable-next-line max-len
-      || this.state.confirmNewPassword !== prevState.confirmNewPassword
-        ) {
+        const eitherPasswordChanged = this.props.password
+        !== prevProps.password || this.state.confirmNewPassword !== prevState.confirmNewPassword;
+        if (eitherPasswordChanged) {
             this.props.passwordIsValid(this.formIsValid());
         }
     }
@@ -78,11 +75,7 @@ class NewPassword extends React.Component {
 
     render() {
         let passwordHintStyle;
-        if (
-            this.state.passwordHintError
-      && this.props.password
-      && !this.meetsPasswordRules()
-        ) {
+        if (this.state.passwordHintError && this.props.password && !this.meetsPasswordRules()) {
             passwordHintStyle = styles.formError;
         }
         if (this.meetsPasswordRules()) {
@@ -96,15 +89,12 @@ class NewPassword extends React.Component {
                         {`${this.props.translate('setPasswordPage.enterPassword')}*`}
                     </Text>
                     <TextInput
-
-            // secureTextEntry
+                        secureTextEntry
                         autoCompleteType="password"
-
-            // textContentType="password"
+                        textContentType="password"
                         style={styles.textInput}
                         value={this.state.password}
                         onChangeText={password => this.props.setPassword(password)}
-                        onFocus={() => this.setState({focusIsOnNewPassword: true})}
                         onBlur={() => this.onBlurNewPassword()}
                     />
                     <Text style={[styles.formHint, styles.mt1, passwordHintStyle]}>
@@ -116,11 +106,9 @@ class NewPassword extends React.Component {
                         {`${this.props.translate('setPasswordPage.confirmNewPassword')}*`}
                     </Text>
                     <TextInput
-
-            // secureTextEntry
+                        secureTextEntry
                         autoCompleteType="password"
-
-            // textContentType="password"
+                        textContentType="password"
                         style={styles.textInput}
                         value={this.state.confirmNewPassword}
                         onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
@@ -140,4 +128,4 @@ class NewPassword extends React.Component {
 
 NewPassword.propTypes = propTypes;
 
-export default compose(withLocalize)(NewPassword);
+export default withLocalize(NewPassword);
