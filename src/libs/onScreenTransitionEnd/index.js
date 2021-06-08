@@ -1,5 +1,3 @@
-import Str from 'expensify-common/lib/str';
-
 /**
  * Call the callback after screen transiton has ended
  *
@@ -8,7 +6,7 @@ import Str from 'expensify-common/lib/str';
  * @returns {Function}
  */
 function onScreenTransitionEnd(navigation, callback) {
-    return navigation.addListener('transitionEnd', evt => Str.result(callback, evt));
+    return navigation.addListener('transitionEnd', callback);
 }
 
 export default onScreenTransitionEnd;

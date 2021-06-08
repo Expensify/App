@@ -28,6 +28,10 @@ export default {
         justifyContent: 'center',
     },
 
+    justifyContentStart: {
+        justifyContent: 'flex-start',
+    },
+
     justifyContentEnd: {
         justifyContent: 'flex-end',
     },

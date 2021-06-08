@@ -3,6 +3,7 @@ import React, {Component} from 'react';
 import {Dimensions, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
@@ -197,12 +198,12 @@ class ReportActionItem extends Component {
 
     render() {
         let children;
-        if (this.props.action.actionName === 'IOU') {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
                 <ReportActionItemIOUAction
                     chatReportID={this.props.reportID}
                     action={this.props.action}
-                    shouldDisplayPreview={this.props.isMostRecentIOUReportAction}
+                    isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                 />
             );
         } else {
@@ -222,7 +223,7 @@ class ReportActionItem extends Component {
                 ref={el => this.popoverAnchor = el}
                 onSecondaryInteraction={this.showPopover}
             >
-                <Hoverable>
+                <Hoverable resetsOnClickOutside={false}>
                     {hovered => (
                         <View>
                             {this.props.shouldDisplayNewIndicator && (

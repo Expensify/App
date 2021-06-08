@@ -1,5 +1,5 @@
 const core = require('@actions/core');
-const {GitHub} = require('@actions/github/lib/utils');
+const {context} = require('@actions/github');
 const ActionUtils = require('../../libs/ActionUtils');
 const GithubUtils = require('../../libs/GithubUtils');
 
@@ -46,11 +46,11 @@ message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 /**
  * Comment Single PR
  *
- * @param {Object} pr
+ * @param {Number} pr
  * @returns {Promise<void>}
  */
 function commentPR(pr) {
-    return GithubUtils.createComment(GitHub.context.repo.repo, pr, message)
+    return GithubUtils.createComment(context.repo.repo, pr, message)
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
         })

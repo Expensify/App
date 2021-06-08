@@ -6,21 +6,22 @@ import {
     Directions, FlingGestureHandler, State, TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
 import colors from '../../styles/colors';
-import Icon from '../../components/Icon';
-import {Checkmark, Exclamation} from '../../components/Icon/Expensicons';
+import Icon from '../Icon';
+import {Checkmark, Exclamation} from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
+import CONST from '../../CONST';
 
 const types = {
-    success: {
+    [CONST.GROWL.SUCCESS]: {
         icon: Checkmark,
         iconColor: colors.green,
     },
-    error: {
+    [CONST.GROWL.ERROR]: {
         icon: Exclamation,
         iconColor: colors.red,
     },
-    warning: {
+    [CONST.GROWL.WARNING]: {
         icon: Exclamation,
         iconColor: colors.yellow,
     },
@@ -47,9 +48,9 @@ class GrowlNotification extends Component {
      *
      * @param {String} bodyText
      * @param {String} type
-     * @param {Number} duration - 2000
+     * @param {Number} duration
     */
-    show(bodyText, type, duration = 2000) {
+    show(bodyText, type, duration) {
         this.setState({
             bodyText,
             type,
