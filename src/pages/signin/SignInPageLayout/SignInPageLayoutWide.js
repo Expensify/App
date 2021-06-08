@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Image, Text, View, Linking,
+    Image, Text, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
@@ -9,6 +9,7 @@ import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
+import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
@@ -57,25 +58,23 @@ const SignInPageLayoutWide = props => (
                         <WelcomeText textSize="large" />
                     </View>
                     )}
-                <View>
+                <View style={[styles.flexRow, styles.flexWrap]}>
                     <Text style={[styles.textLabel]}>
                         {`${props.translate('signInPage.expensifyIsOpenSource')}. ${
                             props.translate('common.view')}`}
                         {' '}
-                        <Text
-                            style={[styles.link]}
-                            onPress={() => Linking.openURL(CONST.GITHUB_URL)}
-                        >
-                            {props.translate('signInPage.theCode')}
-                        </Text>
+                    </Text>
+                    <TextLink style={[styles.textLabel]} href={CONST.GITHUB_URL}>
+                        {props.translate('signInPage.theCode')}
+                    </TextLink>
+                    <Text style={[styles.textLabel]}>
                         {`. ${props.translate('common.view')}`}
                         {' '}
-                        <Text
-                            style={[styles.link]}
-                            onPress={() => Linking.openURL(CONST.UPWORK_URL)}
-                        >
-                            {props.translate('signInPage.openJobs')}
-                        </Text>
+                    </Text>
+                    <TextLink style={[styles.textLabel]} href={CONST.UPWORK_URL}>
+                        {props.translate('signInPage.openJobs')}
+                    </TextLink>
+                    <Text style={[styles.textLabel]}>
                         .
                     </Text>
                 </View>
