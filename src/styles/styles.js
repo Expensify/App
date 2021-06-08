@@ -329,6 +329,34 @@ const styles = {
         marginRight: 8,
     },
 
+    expensiTextInputContainer: {
+        flex: 1,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+        paddingTop: 25,
+        paddingBottom: 10,
+        paddingHorizontal: 12,
+        justifyContent: 'center',
+    },
+    expensiTextInputContainerBlueBorder: {
+        borderColor: themeColors.borderFocus,
+    },
+    expensiTextInputLabel: {
+        position: 'absolute',
+        left: 12,
+        fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
+        color: themeColors.text,
+        fontFamily: fontFamily.GTA,
+    },
+    expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
+        transform: [
+            {translateY},
+            {translateX},
+            {scale},
+        ],
+    }),
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,

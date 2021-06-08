@@ -31,6 +31,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import Growl from '../../../libs/Growl';
+import ExpensiTextInput from '../../../libs/TextInput';
 
 const propTypes = {
     /* Onyx Props */
@@ -305,6 +306,22 @@ class ProfilePage extends Component {
                     </Text>
                     <View style={[styles.flexRow, styles.mb6]}>
                         <View style={styles.flex1}>
+                            <ExpensiTextInput
+                                label={this.props.translate('profilePage.firstName')}
+                                value={this.state.firstName}
+                                onChangeText={firstName => this.setState({firstName})}
+                                placeholder={this.props.translate('profilePage.john')}
+                            />
+                        </View>
+                        <View style={[styles.flex1, styles.ml2]}>
+                            <ExpensiTextInput
+                                label={this.props.translate('profilePage.lastName')}
+                                value={this.state.lastName}
+                                onChangeText={lastName => this.setState({lastName})}
+                                placeholder={this.props.translate('profilePage.john')}
+                            />
+                        </View>
+                        {/* <View style={styles.flex1}>
                             <Text style={[styles.mb1, styles.formLabel]}>
                                 {this.props.translate('profilePage.firstName')}
                             </Text>
@@ -327,7 +344,7 @@ class ProfilePage extends Component {
                                 placeholder={this.props.translate('profilePage.doe')}
                                 placeholderTextColor={themeColors.placeholderText}
                             />
-                        </View>
+                        </View> */}
                     </View>
                     <View style={styles.mb6}>
                         <Text style={[styles.mb1, styles.formLabel]}>
