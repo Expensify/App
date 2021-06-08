@@ -1201,6 +1201,11 @@ NetworkConnection.onReconnect(fetchAllReports);
  * @param {String} htmlForNewComment
  */
 function editReportComment(reportID, originalReportAction, htmlForNewComment) {
+    // Skip the Edit if message is not changed
+    if (originalReportAction.message[0].html === htmlForNewComment.trim()) {
+        return;
+    }
+
     // Optimistically update the report action with the new message
     const sequenceNumber = originalReportAction.sequenceNumber;
     const newReportAction = {...originalReportAction};
