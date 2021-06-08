@@ -295,6 +295,8 @@ class IOUModal extends Component {
                                     <TouchableOpacity
                                         onPress={() => Navigation.dismissModal()}
                                         style={[styles.touchableButtonImage]}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={this.props.translate('common.close')}
                                     >
                                         <Icon src={Close} />
                                     </TouchableOpacity>

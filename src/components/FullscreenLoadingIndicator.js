@@ -6,7 +6,11 @@ import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Controls whether the loader is mounted and displayed */
-    visible: PropTypes.bool.isRequired,
+    visible: PropTypes.bool,
+};
+
+const defaultProps = {
+    visible: true,
 };
 
 /**
@@ -21,5 +25,6 @@ const FullScreenLoadingIndicator = ({visible}) => visible && (
 );
 
 FullScreenLoadingIndicator.propTypes = propTypes;
+FullScreenLoadingIndicator.defaultProps = defaultProps;
 
 export default FullScreenLoadingIndicator;

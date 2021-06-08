@@ -46,6 +46,7 @@ export default {
     getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
+    ENABLE_PAYMENTS: 'enable-payments',
 
     /**
      * @param {String} route

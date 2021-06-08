@@ -32,7 +32,23 @@ function canUseIOU() {
     return _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas();
 }
 
+/**
+ * @returns {Boolean}
+ */
+function canUsePayWithExpensify() {
+    return _.contains(betas, CONST.BETAS.PAY_WITH_EXPENSIFY) || canUseAllBetas();
+}
+
+/**
+ * @returns {Boolean}
+ */
+function canUseFreePlan() {
+    return _.contains(betas, CONST.BETAS.FREE_PLAN) || canUseAllBetas();
+}
+
 export default {
     canUseChronos,
     canUseIOU,
+    canUsePayWithExpensify,
+    canUseFreePlan,
 };
