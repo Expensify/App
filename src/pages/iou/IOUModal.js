@@ -306,37 +306,37 @@ class IOUModal extends Component {
                             {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
-                                    <IOUAmountPage
-                                        onStepComplete={(amount) => {
-                                            this.setState({amount});
-                                            this.navigateToNextStep();
-                                        }}
-                                        currencySelected={this.currencySelected}
-                                        reportID={this.props.route.params.reportID}
-                                        selectedCurrency={this.state.selectedCurrency}
-                                        hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                        selectedAmount={this.state.amount}
-                                        navigation={this.props.navigation}
-                                    />
+                                        <IOUAmountPage
+                                            onStepComplete={(amount) => {
+                                                this.setState({amount});
+                                                this.navigateToNextStep();
+                                            }}
+                                            currencySelected={this.currencySelected}
+                                            reportID={this.props.route.params.reportID}
+                                            selectedCurrency={this.state.selectedCurrency}
+                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                            selectedAmount={this.state.amount}
+                                            navigation={this.props.navigation}
+                                        />
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
-                                    <IOUParticipantsPage
-                                        participants={this.state.participants}
-                                        hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                        onAddParticipants={this.addParticipants}
-                                        onStepComplete={this.navigateToNextStep}
-                                    />
+                                        <IOUParticipantsPage
+                                            participants={this.state.participants}
+                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                            onAddParticipants={this.addParticipants}
+                                            onStepComplete={this.navigateToNextStep}
+                                        />
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
-                                    <IOUConfirmPage
-                                        onConfirm={this.createTransaction}
-                                        hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                        participants={this.state.participants}
-                                        iouAmount={this.state.amount}
-                                        comment={this.state.comment}
-                                        selectedCurrency={this.state.selectedCurrency}
-                                        onUpdateComment={this.updateComment}
-                                    />
+                                        <IOUConfirmPage
+                                            onConfirm={this.createTransaction}
+                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                            participants={this.state.participants}
+                                            iouAmount={this.state.amount}
+                                            comment={this.state.comment}
+                                            selectedCurrency={this.state.selectedCurrency}
+                                            onUpdateComment={this.updateComment}
+                                        />
                                     )}
                                 </>
                             )}
