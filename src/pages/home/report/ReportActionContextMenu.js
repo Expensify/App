@@ -132,9 +132,7 @@ class ReportActionContextMenu extends React.Component {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
                 shouldShow: () => canEditReportAction(this.props.reportAction),
-                onPress: () => {
-                    this.setState({isDeleteCommentConfirmModalVisible: true});
-                },
+                onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
             },
         ];
 
@@ -170,10 +168,10 @@ class ReportActionContextMenu extends React.Component {
      * Hides the popover menu with an optional delay
      *
      * @param {Boolean} shouldDelay whether the menu should close after a delay
-     * @param {Boolean} onHideCallback Callback to be callled after Popover Menu is hidden
+     * @param {Function} [onHideCallback=() => {}] Callback to be called after Popover Menu is hidden
      * @memberof ReportActionContextMenu
      */
-    hidePopover(shouldDelay, onHideCallback) {
+    hidePopover(shouldDelay, onHideCallback = () => {}) {
         if (!shouldDelay) {
             this.props.hidePopover(onHideCallback);
             return;

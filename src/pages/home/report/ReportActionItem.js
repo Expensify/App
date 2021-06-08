@@ -61,9 +61,9 @@ class ReportActionItem extends Component {
     constructor(props) {
         super(props);
 
+        this.onPopoverHide = () => {};
         this.state = {
             isPopoverVisible: false,
-            onPopoverHide: () => {},
             cursorPosition: {
                 horizontal: 0,
                 vertical: 0,
@@ -179,7 +179,7 @@ class ReportActionItem extends Component {
     hidePopover(onHideCallback) {
         this.setState({isPopoverVisible: false});
         if (onHideCallback) {
-            this.setState({onPopoverHide: onHideCallback});
+            this.onPopoverHide = onHideCallback;
         }
     }
 
@@ -273,7 +273,7 @@ class ReportActionItem extends Component {
                 <PopoverWithMeasuredContent
                     isVisible={this.state.isPopoverVisible}
                     onClose={this.hidePopover}
-                    onModalHide={this.state.onPopoverHide}
+                    onModalHide={this.onPopoverHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     animationOutTiming={1}
