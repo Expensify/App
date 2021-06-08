@@ -145,8 +145,7 @@ class AttachmentPicker extends Component {
                             this.showGeneralAlert(response.error);
                             break;
                     }
-                    const errorDescription = this.props.translate('attachmentPicker.errorDuringAttachmentSelection');
-                    reject(new Error(`${errorDescription}: ${response.error}`));
+                    reject(new Error(`Error during attachment selection: ${response.error}`));
                 }
 
                 resolve(response);
