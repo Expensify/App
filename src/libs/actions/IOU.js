@@ -1,8 +1,12 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
+import ROUTES from '../../ROUTES';
 import * as API from '../API';
-import {getSimplifiedIOUReport} from './Report';
+import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
+import openURLInNewTab from '../openURLInNewTab';
+import Navigation from '../Navigation/Navigation';
 
 /**
  * Retrieve the users preferred currency
@@ -26,7 +30,7 @@ function getPreferredCurrency() {
 function getIOUReportsForNewTransaction(requestParams) {
     return API.Get({
         returnValueList: 'reportStuff',
-        reportIDList: _.pluck(requestParams, 'reportID'),
+        reportIDList: _.pluck(requestParams, 'reportID').join(','),
         shouldLoadOptionalKeys: true,
         includePinnedReports: true,
     })
@@ -56,7 +60,7 @@ function getIOUReportsForNewTransaction(requestParams) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportsToUpdate);
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportsToUpdate);
         })
-        .catch(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false, error: true}))
+        .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}))
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}));
 }
 
@@ -71,7 +75,10 @@ function getIOUReportsForNewTransaction(requestParams) {
 function createIOUTransaction(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
     API.CreateIOUTransaction(params)
-        .then(data => getIOUReportsForNewTransaction([data]));
+        .then((data) => {
+            getIOUReportsForNewTransaction([data]);
+            Navigation.navigate(ROUTES.getReportRoute(data.chatReportID));
+        });
 }
 
 /**
@@ -85,14 +92,18 @@ function createIOUTransaction(params) {
 function createIOUSplit(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 
+    let chatReportID;
     API.CreateChatReport({
         emailList: params.splits.map(participant => participant.email).join(','),
     })
-        .then(data => API.CreateIOUSplit({
-            ...params,
-            splits: JSON.stringify(params.splits),
-            reportID: data.reportID,
-        }))
+        .then((data) => {
+            chatReportID = data.reportID;
+            return API.CreateIOUSplit({
+                ...params,
+                splits: JSON.stringify(params.splits),
+                reportID: data.reportID,
+            });
+        })
         .then((data) => {
             // This data needs to go from this:
             // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
@@ -108,11 +119,119 @@ function createIOUSplit(params) {
                 });
             }
             getIOUReportsForNewTransaction(reportParams);
+            Navigation.navigate(ROUTES.getReportRoute(chatReportID));
         });
+}
+
+/**
+ * Reject an iouReport transaction. Declining and cancelling transactions are done via the same Auth command.
+ *
+ * @param {Object} params
+ * @param {Number} params.reportID
+ * @param {Number} params.chatReportID
+ * @param {String} params.transactionID
+ * @param {String} params.comment
+ */
+function rejectTransaction({
+    reportID, chatReportID, transactionID, comment,
+}) {
+    API.RejectTransaction({
+        reportID,
+        transactionID,
+        comment,
+    })
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(`${response.code} ${response.message}`);
+            }
+            fetchChatReportsByIDs([chatReportID]);
+
+            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
+            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
+            // components. If we didn't sync the reportIDs, the transaction would still be shown to users as rejectable
+            // The iouReport being fetched here must be open, because only an open iouReoport can be paid. Therefore,
+            // we should also sync the chatReport after fetching the iouReport.
+            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+        })
+        .catch(error => console.error(`Error rejecting transaction: ${error}`));
+}
+
+/**
+ * @private
+ *
+ * @param {Number} amount
+ * @param {String} submitterPhoneNumber
+ * @returns {String}
+ */
+function buildVenmoPaymentURL(amount, submitterPhoneNumber) {
+    const note = 'For%20Expensify.cash%20request';
+    return `venmo://paycharge?txn=pay&recipients=${submitterPhoneNumber}&amount=${(amount / 100)}&note=${note}`;
+}
+
+/**
+ * @private
+ *
+ * @param {Number} amount
+ * @param {String} submitterPayPalMeAddress
+ * @param {String} currency
+ * @returns {String}
+ */
+function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
+    return `https://paypal.me/${submitterPayPalMeAddress}/${(amount / 100)}${currency}`;
+}
+
+/**
+ * Pays an IOU Report and then retrieves the iou and chat reports to trigger updates to the UI.
+ *
+ * @param {Object} params
+ * @param {Number} params.chatReportID
+ * @param {Number} params.reportID
+ * @param {String} params.paymentMethodType - one of CONST.IOU.PAYMENT_TYPE
+ * @param {Number} params.amount
+ * @param {String} params.currency
+ * @param {String} [params.submitterPhoneNumber] - used for Venmo
+ * @param {String} [params.submitterPayPalMeAddress]
+ */
+function payIOUReport({
+    chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress,
+}) {
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
+    const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
+        ? API.PayWithWallet({reportID})
+        : API.PayIOU({reportID, paymentMethodType});
+    payIOUPromise
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error(response.message);
+            }
+            fetchChatReportsByIDs([chatReportID]);
+
+            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
+            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
+            // components. If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
+            // iouReport being fetched here must be open, because only an open iouReoport can be paid.
+            // Therefore, we should also sync the chatReport after fetching the iouReport.
+            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+
+            // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
+            // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
+            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+                openURLInNewTab(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
+            } else if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
+                openURLInNewTab(buildVenmoPaymentURL(amount, submitterPhoneNumber));
+            }
+        })
+        .catch((error) => {
+            console.error(`Error Paying iouReport: ${error}`);
+            Onyx.merge(ONYXKEYS.IOU, {error: true});
+        })
+        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
 }
 
 export {
     getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
+    rejectTransaction,
+    payIOUReport,
 };

@@ -42,6 +42,10 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
+    // Contains a list of all currencies available to the user - user can
+    // select a currency based on the list
+    CURRENCY_LIST: 'currencyList',
+
     // Indicates whether an update is available and ready to beinstalled.
     UPDATE_AVAILABLE: 'updateAvailable',
 
@@ -63,6 +67,12 @@ export default {
     // Contains the user preference for the LHN priority mode
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
+    // SDK token used to communicate with Plaid API
+    PLAID_LINK_TOKEN: 'plaidLinkToken',
+
+    // List of bank accounts returned by Plaid
+    PLAID_BANK_ACCOUNTS: 'plaidBankAccounts',
+
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',
@@ -71,8 +81,21 @@ export default {
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
+        POLICY: 'policy_',
     },
 
     // Indicates which locale should be used
     PREFERRED_LOCALE: 'preferredLocale',
+
+    // User's Expensify Wallet
+    USER_WALLET: 'userWallet',
+
+    // Object containing Onfido SDK Token + applicantID
+    WALLET_ONFIDO: 'walletOnfido',
+
+    // Stores information about additional details form entry
+    WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
+
+    // Object containing Wallet terms step state
+    WALLET_TERMS: 'walletTerms',
 };

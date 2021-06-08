@@ -8,7 +8,6 @@ export default {
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
-        split: 'Split',
         new: 'NEW',
         search: 'Search',
         next: 'Next',
@@ -26,12 +25,19 @@ export default {
         phoneNumber: 'Phone Number',
         email: 'Email',
         and: 'and',
+        details: 'Details',
+        privacyPolicy: 'Privacy Policy',
+        delete: 'Delete',
+        contacts: 'Contacts',
+        recents: 'Recents',
+        close: 'Close',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
         expensifyDoesntHaveAccessToCamera: 'Expensify.cash does not have access to your camera, please enable the permission and try again.',
         attachmentError: 'Attachment Error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
+        errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
         errorDuringAttachmentSelection: 'Error during attachment selection',
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
@@ -49,6 +55,10 @@ export default {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',
         whatsItFor: 'WHAT\'S IT FOR?',
+    },
+    iOUCurrencySelection: {
+        selectCurrency: 'Select a Currency',
+        allCurrencies: 'ALL CURRENCIES',
     },
     optionsSelector: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
@@ -77,6 +87,7 @@ export default {
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
         deleteComment: 'Delete Comment',
+        deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
         beFirstPersonToComment: 'Be the first person to comment',
@@ -89,16 +100,29 @@ export default {
     sidebarScreen: {
         newChat: 'New Chat',
         newGroup: 'New Group',
+        headerChat: 'Chats',
+        buttonSearch: 'Search',
+        buttonMySettings: 'My Settings',
+        fabNewChat: 'New Chat(Floating Action)',
     },
     iou: {
-        contacts: 'CONTACTS',
-        recents: 'RECENTS',
         amount: 'Amount',
         participants: 'Participants',
         confirm: 'Confirm',
         splitBill: 'Split Bill',
         requestMoney: 'Request Money',
+        pay: 'Pay',
+        viewDetails: 'View Details',
+        settleExpensify: 'Pay with Expensify',
+        settleElsewhere: 'I\'ll settle up elsewhere',
+        decline: 'Decline',
+        settlePaypalMe: 'Pay with PayPal.me',
+        settleVenmo: 'Pay with Venmo',
         request: ({amount}) => `Request ${amount}`,
+        owes: ({manager, owner}) => `${manager} owes ${owner}`,
+        paid: ({owner, manager}) => `${manager} paid ${owner}`,
+        split: ({amount}) => `Split ${amount}`,
+        choosePaymentMethod: 'Choose payment method:',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
@@ -122,6 +146,7 @@ export default {
         emailAddress: 'Email Address',
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
+        growlMessageOnSave: 'Your profile was successfully saved',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add Phone Number',
@@ -129,10 +154,28 @@ export default {
         enterPreferredPhoneNumberToSendValidationLink: 'Enter your preferred phone number and password to send a validation link.',
         enterPreferredEmailToSendValidationLink: 'Enter your preferred email address and password to send a validation link.',
         sendValidation: 'Send Validation',
-
     },
     initialSettingsPage: {
         settings: 'Settings',
+        about: 'About',
+        aboutPage: {
+            description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            appDownloadLinks: 'App download links',
+            viewTheCode: 'View the code',
+            viewOpenJobs: 'View open jobs',
+            reportABug: 'Report a bug',
+        },
+        appDownloadLinks: {
+            android: {
+                label: 'Android',
+            },
+            ios: {
+                label: 'iOS',
+            },
+            desktop: {
+                label: 'Desktop',
+            },
+        },
         signOut: 'Sign Out',
         versionLetter: 'v',
         changePassword: 'Change Password',
@@ -156,6 +199,7 @@ export default {
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal Account',
+        growlMessageOnSave: 'Your PayPal username was successfully added',
     },
     preferencesPage: {
         mostRecent: 'Most Recent',
@@ -197,7 +241,6 @@ export default {
         resendLink: 'Resend Link',
     },
     detailsPage: {
-        details: 'Details',
         localTime: 'Local Time',
     },
     newGroupPage: {
@@ -218,6 +261,12 @@ export default {
 
 
     },
+    addBankAccountPage: {
+        enterPassword: 'Enter password',
+        addBankAccount: 'Add a Bank Account',
+        alreadyAdded: 'This account has already been added.',
+        selectAccount: 'Select an account:',
+    },
     attachmentView: {
         unknownFilename: 'Unknown Filename',
     },
@@ -233,5 +282,47 @@ export default {
     messages: {
         noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
+    },
+    onfidoStep: {
+        acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
+        facialScan: 'Onfido’s Facial Scan Policy and Release',
+        termsOfService: 'Terms of Service',
+        tryAgain: 'Try Again',
+        verifyIdentity: 'Verify Identity',
+        genericError: 'There was an error while processing this step. Please try again.',
+    },
+    additionalDetailsStep: {
+        headerTitle: 'Additional Details',
+        helpText: 'We need to confirm the following information before we can process this payment.',
+        helpLink: 'Learn more about why we need this.',
+        legalFirstNameLabel: 'Legal First Name',
+        legalMiddleNameLabel: 'Legal Middle Name',
+        legalLastNameLabel: 'Legal Last Name',
+        addressLabel: 'Address (no P.O. boxes)',
+        cityLabel: 'City',
+        stateLabel: 'State',
+        zipCodeLabel: 'Zip Code',
+        phoneNumberLabel: 'Phone Number',
+        dobLabel: 'Date of Birth',
+        ssnLabel: 'Social Security Number',
+        continueButtonText: 'Save & Continue',
+        isRequiredField: 'is a required field.',
+    },
+    termsStep: {
+        headerTitle: 'Terms and Fees',
+        haveReadAndAgree: 'I have read and agree to receive ',
+        electronicDisclosures: 'electronic disclosures',
+        agreeToThe: 'I agree to the ',
+        walletAgreement: 'Wallet Agreement',
+        enablePayments: 'Enable Payments',
+        termsMustBeAccepted: 'Terms must be accepted',
+    },
+    activateStep: {
+        headerTitle: 'Enable Payments',
+        activated: 'Your Expensify Wallet is ready to use.',
+        checkBackLater: 'We\'re still reviewing your information. Please check back later.',
+    },
+    session: {
+        offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
 };

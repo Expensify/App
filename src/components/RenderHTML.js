@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {useWindowDimensions, TouchableOpacity} from 'react-native';
@@ -14,6 +15,9 @@ import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
 import AttachmentModal from './AttachmentModal';
 import ThumbnailImage from './ThumbnailImage';
+import variables from '../styles/variables';
+import themeColors from '../styles/themes/default';
+import Text from './Text';
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -43,9 +47,13 @@ function computeImagesMaxWidth(contentWidth) {
 
 function AnchorRenderer({tnode, key, style}) {
     const htmlAttribs = tnode.attributes;
+
+    // An auth token is needed to download Expensify chat attachments
+    const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
     return (
         <AnchorForCommentsOnly
             href={htmlAttribs.href}
+            isAuthTokenRequired={isAttachment}
 
             // Unless otherwise specified open all links in
             // a new window. On Desktop this means that we will
@@ -93,6 +101,22 @@ function CodeRenderer({
             defaultRendererProps={defaultRendererProps}
             key={key}
         />
+    );
+}
+
+function EditedRenderer(props) {
+    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
+    return (
+        <Text
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...defaultRendererProps}
+            fontSize={variables.fontSizeSmall}
+            color={themeColors.textSupporting}
+        >
+            {/* Native devices do not support margin between nested text */}
+            <Text style={styles.w1}>{' '}</Text>
+            (edited)
+        </Text>
     );
 }
 
@@ -158,12 +182,14 @@ function ImgRenderer({tnode}) {
 AnchorRenderer.model = defaultHTMLElementModels.a;
 CodeRenderer.model = defaultHTMLElementModels.code;
 ImgRenderer.model = defaultHTMLElementModels.img;
+EditedRenderer.model = defaultHTMLElementModels.span;
 
 // Define the custom render methods
 const renderers = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImgRenderer,
+    edited: EditedRenderer,
 };
 
 const propTypes = {

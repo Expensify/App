@@ -12,7 +12,7 @@ import {
     getIOUConfirmationOptionsFromParticipants,
 } from '../libs/OptionsListUtils';
 import OptionsList from './OptionsList';
-import ButtonWithLoader from './ButtonWithLoader';
+import Button from './Button';
 import ONYXKEYS from '../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
@@ -23,7 +23,16 @@ const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
-    /** Callback to update comment from IOUModal */
+    // User's currency preference
+    selectedCurrency: PropTypes.shape({
+        // Currency code for the selected currency
+        currencyCode: PropTypes.string,
+
+        // Currency symbol for the selected currency
+        currencySymbol: PropTypes.string,
+    }).isRequired,
+
+    // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
 
     /** Comment value from IOUModal */
@@ -38,12 +47,7 @@ const propTypes = {
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
-    /** Selected currency from the user
-    Remove eslint disable after currency symbol is available */
-    // eslint-disable-next-line react/no-unused-prop-types
-    selectedCurrency: PropTypes.string.isRequired,
-
-    /** Selected participants from IOUMOdal with login */
+    // Selected participants from IOUModal with login
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -108,15 +112,17 @@ class IOUConfirmationList extends Component {
         if (this.props.hasMultipleParticipants) {
             const formattedMyPersonalDetails = getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
-
-                // Convert from cent to bigger form
-                // USD is temporary and there must be support for other currencies in the future
-                `$${this.calculateAmount(true) / 100}`,
+                this.props.numberFormat(this.calculateAmount() / 100, {
+                    style: 'currency',
+                    currency: this.props.selectedCurrency.currencyCode,
+                }),
             );
 
-            // Cents is temporary and there must be support for other currencies in the future
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                `$${this.calculateAmount() / 100}`);
+                this.props.numberFormat(this.calculateAmount() / 100, {
+                    style: 'currency',
+                    currency: this.props.selectedCurrency.currencyCode,
+                }));
 
             sections.push({
                 title: this.props.translate('iOUConfirmationList.whoPaid'),
@@ -131,9 +137,11 @@ class IOUConfirmationList extends Component {
                 indexOffset: 0,
             });
         } else {
-        // $ Should be replaced by currency symbol once available
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                `$${this.props.iouAmount}`);
+                this.props.numberFormat(this.props.iouAmount, {
+                    style: 'currency',
+                    currency: this.props.selectedCurrency.currencyCode,
+                }));
 
             sections.push({
                 title: this.props.translate('common.to').toUpperCase(),
@@ -224,6 +232,14 @@ class IOUConfirmationList extends Component {
     }
 
     render() {
+        const buttonText = this.props.translate(
+            this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                amount: this.props.numberFormat(
+                    this.props.iouAmount,
+                    {style: 'currency', currency: this.props.selectedCurrency.currencyCode},
+                ),
+            },
+        );
         return (
             <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>
@@ -236,6 +252,7 @@ class IOUConfirmationList extends Component {
                         }]}
                         sections={this.getSections()}
                         disableArrowKeysActions
+                        disableRowInteractivity
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
@@ -258,12 +275,12 @@ class IOUConfirmationList extends Component {
                     </View>
                 </View>
                 <View style={[styles.ph5, styles.pb3]}>
-                    <ButtonWithLoader
+                    <Button
+                        success
+                        style={[styles.mb2]}
                         isLoading={this.props.iou.loading}
-                        text={this.props.hasMultipleParticipants
-                            ? this.props.translate('common.split')
-                            : this.props.translate('iou.request', {amount: this.props.iouAmount})}
-                        onClick={() => this.props.onConfirm(this.getSplits())}
+                        text={buttonText}
+                        onPress={() => this.props.onConfirm(this.getSplits())}
                     />
                 </View>
             </View>

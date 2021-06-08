@@ -49,6 +49,34 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 }
 
 /**
+ * Constructs a Set with all possible names (displayName, firstName, lastName, email) for all participants in a report,
+ * to be used in isSearchStringMatch.
+ *
+ * @param {Array<Object>} personalDetailList
+ * @return {Set<String>}
+ */
+function getParticipantNames(personalDetailList) {
+    // We use a Set because `Set.has(value)` on a Set of with n entries is up to n (or log(n)) times faster than
+    // `_.contains(Array, value)` for an Array with n members.
+    const participantNames = new Set();
+    _.each(personalDetailList, (participant) => {
+        if (participant.login) {
+            participantNames.add(participant.login.toLowerCase());
+        }
+        if (participant.firstName) {
+            participantNames.add(participant.firstName.toLowerCase());
+        }
+        if (participant.lastName) {
+            participantNames.add(participant.lastName.toLowerCase());
+        }
+        if (participant.displayName) {
+            participantNames.add(participant.displayName.toLowerCase());
+        }
+    });
+    return participantNames;
+}
+
+/**
  * Returns a string with all relevant search terms
  *
  * @param {Object} report
@@ -62,8 +90,8 @@ function getSearchText(report, personalDetailList) {
         searchTerms.push(personalDetail.displayName);
         searchTerms.push(personalDetail.login);
     });
-
     if (report) {
+        searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
         searchTerms.push(...report.participants);
     }
@@ -96,9 +124,11 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         + _.unescape(report.lastMessageText)
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-
+    const fullTitle = personalDetailList
+        .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
+        .join(', ');
     return {
-        text: report ? report.reportName : personalDetail.displayName,
+        text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login),
@@ -140,14 +170,18 @@ Onyx.connect({
  *
  * @param {String} searchValue
  * @param {String} searchText
+ * @param {Set<String>} [participantNames]
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText) {
-    const searchWords = searchValue.split(' ');
+function isSearchStringMatch(searchValue, searchText, participantNames = new Set()) {
+    const searchWords = searchValue
+        .replace(/,/g, ' ')
+        .split(' ')
+        .map(word => word.trim());
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch);
+        return matchRegex.test(valueToSearch) || participantNames.has(word);
     });
 }
 
@@ -250,8 +284,10 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
                 continue;
             }
 
-            // Finally check to see if this options is a match for the provided search string if we have one
-            if (searchValue && !isSearchStringMatch(searchValue, reportOption.searchText)) {
+            // Finally check to see if this option is a match for the provided search string if we have one
+            const {searchText, participantsList} = reportOption;
+            const participantNames = getParticipantNames(participantsList);
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
                 continue;
             }
 
@@ -284,11 +320,11 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ))) {
                 return;
             }
-
-            if (searchValue && !isSearchStringMatch(searchValue, personalDetailOption.searchText)) {
+            const {searchText, participantsList} = personalDetailOption;
+            const participantNames = getParticipantNames(participantsList);
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
                 return;
             }
-
             personalDetailsOptions.push(personalDetailOption);
         });
     }
@@ -338,11 +374,11 @@ function getSearchOptions(
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: true,
+        prioritizePinnedReports: false,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
-        sortByLastMessageTimestamp: true,
+        sortByLastMessageTimestamp: false,
     });
 }
 
@@ -364,6 +400,8 @@ function getNewChatOptions(
     return getOptions(reports, personalDetails, {}, 0, {
         searchValue,
         includePersonalDetails: true,
+        includeRecentReports: true,
+        maxRecentReportsToShow: 5,
         excludeConcierge,
     });
 }
@@ -482,6 +520,24 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     return '';
 }
 
+/**
+ * Returns the currency list for sections display
+ *
+ * @param {Object} currencyOptions
+ * @param {String} searchValue
+ * @param {Object} selectedCurrency
+ * @returns {Array}
+ */
+function getCurrencyListForSections(currencyOptions, searchValue) {
+    const filteredOptions = currencyOptions.filter(currencyOption => (
+        isSearchStringMatch(searchValue, currencyOption.searchText)));
+
+    return {
+        // returns filtered options i.e. options with string match if search text is entered
+        currencyOptions: filteredOptions,
+    };
+}
+
 export {
     getSearchOptions,
     getNewChatOptions,
@@ -489,6 +545,7 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
+    getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
 };

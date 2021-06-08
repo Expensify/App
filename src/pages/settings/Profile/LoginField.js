@@ -11,6 +11,7 @@ import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import {resendValidateCode} from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Button from '../../../components/Button';
 
 const propTypes = {
     /** Label to display on login form */
@@ -102,21 +103,22 @@ class LoginField extends Component {
                 ) : (
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                         <Text style={[styles.textP]} numberOfLines={1}>
-                            {this.props.login.partnerUserID}
+                            {this.props.type === CONST.LOGIN_TYPE.PHONE
+                                ? this.props.toLocalPhone(this.props.login.partnerUserID)
+                                : this.props.login.partnerUserID}
                         </Text>
                         {!this.props.login.validatedDate && (
-                            <Pressable
-                                style={[styles.button, styles.mb2]}
+                            <Button
+                                style={[styles.mb2]}
                                 onPress={this.onResendClicked}
-                            >
-                                {this.state.showCheckmarkIcon ? (
+                                ContentComponent={() => (this.state.showCheckmarkIcon ? (
                                     <Icon fill={colors.black} src={Checkmark} />
                                 ) : (
                                     <Text style={styles.createMenuText}>
                                         {this.props.translate('common.resend')}
                                     </Text>
-                                )}
-                            </Pressable>
+                                ))}
+                            />
                         )}
                     </View>
                 )}

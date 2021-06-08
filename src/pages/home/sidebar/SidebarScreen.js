@@ -80,7 +80,7 @@ class SidebarScreen extends Component {
                 includePaddingBottom={false}
                 style={[styles.sidebar]}
             >
-                {insets => (
+                {({insets}) => (
                     <>
                         <View style={[styles.flex1]}>
                             <SidebarLinks
@@ -90,6 +90,8 @@ class SidebarScreen extends Component {
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                             />
                             <FAB
+                                accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
+                                accessibilityRole="menu"
                                 isActive={this.state.isCreateMenuActive}
                                 onPress={this.toggleCreateMenu}
                             />

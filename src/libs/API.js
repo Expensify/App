@@ -5,6 +5,7 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
+import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 
 let isAuthenticating;
 let credentials;
@@ -171,15 +172,6 @@ Network.registerErrorHandler((queuedRequest, error) => {
     // Reject the queued request with an API offline error so that the original caller can handle it.
     queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
 });
-
-/**
- * Access the current authToken
- *
- * @returns {String}
- */
-function getAuthToken() {
-    return authToken;
-}
 
 /**
  * @param {Object} parameters
@@ -417,6 +409,17 @@ function GetIOUReport(parameters) {
 /**
  * @returns {Promise}
  */
+function GetPolicySummaryList() {
+    const commandName = 'Get';
+    const parameters = {
+        returnValueList: 'policySummaryList',
+    };
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
 function GetRequestCountryCode() {
     const commandName = 'GetRequestCountryCode';
     return Network.post(commandName);
@@ -441,22 +444,6 @@ function Log(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String[]} data
- * @returns {Promise}
- */
-function Mobile_GetConstants(parameters) {
-    const commandName = 'Mobile_GetConstants';
-    requireParameters(['data'], parameters, commandName);
-
-    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
-    const finalParameters = parameters;
-    finalParameters.data = JSON.stringify(parameters.data);
-
-    return Network.post(commandName, finalParameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.name
  * @param {Number} parameters.value
  * @returns {Promise}
@@ -465,6 +452,29 @@ function Graphite_Timer(parameters) {
     const commandName = 'Graphite_Timer';
     requireParameters(['name', 'value'],
         parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.paymentMethodType
+ * @returns {Promise}
+ */
+function PayIOU(parameters) {
+    const commandName = 'PayIOU';
+    requireParameters(['reportID', 'paymentMethodType'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @returns {Promise}
+ */
+function PayWithWallet(parameters) {
+    const commandName = 'PayWithWallet';
+    requireParameters(['reportID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -502,6 +512,18 @@ function Push_Authenticate(parameters) {
     const commandName = 'Push_Authenticate';
     requireParameters(['socket_id', 'channel_name'],
         parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.transactionID
+ * @returns {Promise}
+ */
+function RejectTransaction(parameters) {
+    const commandName = 'RejectTransaction';
+    requireParameters(['reportID', 'transactionID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -548,9 +570,9 @@ function Report_TogglePinned(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
- * @param {String} parameters.reportActionID
+ * @param {Number} parameters.reportActionID
  * @param {String} parameters.reportComment
- * @return {Promise}
+ * @returns {Promise}
  */
 function Report_EditComment(parameters) {
     const commandName = 'Report_EditComment';
@@ -719,7 +741,12 @@ function CreateIOUSplit(parameters) {
  * @returns {Promise}
  */
 function Wallet_GetOnfidoSDKToken() {
-    return Network.post('Wallet_GetOnfidoSDKToken', {}, CONST.NETWORK.METHOD.POST, true);
+    return Network.post('Wallet_GetOnfidoSDKToken', {
+        // We need to pass this so we can request a token with the correct referrer
+        // This value comes from a cross-platform module which returns true for native
+        // platforms and false for non-native platforms.
+        isViaExpensifyCashNative,
+    }, CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
@@ -729,9 +756,100 @@ function Plaid_GetLinkToken() {
     return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.currentStep
+ * @param {String} [parameters.onfidoData] - JSON string
+ * @param {String} [parameters.personalDetails] - JSON string
+ * @param {Boolean} [parameters.hasAcceptedTerms]
+ * @returns {Promise}
+ */
+function Wallet_Activate(parameters) {
+    const commandName = 'Wallet_Activate';
+    requireParameters(['currentStep'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.publicToken
+ * @param {Boolean} parameters.allowDebit
+ * @param {String} parameters.bank
+ * @returns {Promise}
+ */
+function BankAccount_Get(parameters) {
+    const commandName = 'BankAccount_Get';
+    requireParameters(['publicToken', 'allowDebit', 'bank'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.accountNumber
+ * @param {String} parameters.addressName
+ * @param {Boolean} parameters.allowDebit
+ * @param {Boolean} parameters.confirm
+ * @param {Boolean} parameters.isSavings
+ * @param {String} parameters.password
+ * @param {String} parameters.routingNumber
+ * @param {String} parameters.setupType
+ * @param {String} parameters.additionalData additional JSON data
+ * @returns {Promise}
+ */
+function BankAccount_Create(parameters) {
+    const commandName = 'BankAccount_Create';
+    requireParameters([
+        'accountNumber',
+        'addressName',
+        'allowDebit',
+        'confirm',
+        'isSavings',
+        'password',
+        'routingNumber',
+        'setupType',
+        'additionalData',
+    ], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String[]} data
+ * @returns {Promise}
+ */
+function Mobile_GetConstants(parameters) {
+    const commandName = 'Mobile_GetConstants';
+    requireParameters(['data'], parameters, commandName);
+
+    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
+    const finalParameters = parameters;
+    finalParameters.data = JSON.stringify(parameters.data);
+
+    return Network.post(commandName, finalParameters);
+}
+
+/**
+ * @param {object} parameters
+ * @param {number} [parameters.latitude]
+ * @param {number} [parameters.longitude]
+ * @returns {Promise}
+ */
+function GetPreferredCurrency(parameters) {
+    const commandName = 'GetPreferredCurrency';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
+function GetCurrencyList() {
+    return Mobile_GetConstants({data: ['currencyList']});
+}
+
 export {
-    getAuthToken,
     Authenticate,
+    BankAccount_Create,
+    BankAccount_Get,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -739,14 +857,17 @@ export {
     Get,
     GetAccountStatus,
     GetIOUReport,
+    GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
     Log,
-    Mobile_GetConstants,
+    PayIOU,
+    PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,
     Push_Authenticate,
+    RejectTransaction,
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,
@@ -766,5 +887,8 @@ export {
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
+    Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
+    GetPreferredCurrency,
+    GetCurrencyList,
 };

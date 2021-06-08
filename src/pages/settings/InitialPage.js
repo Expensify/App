@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -8,18 +8,20 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import {signOut} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
-import {version} from '../../../package.json';
 import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import {
-    Gear, Lock, Profile, Wallet, SignOut,
+    Gear,
+    Lock,
+    Profile,
+    Wallet,
+    SignOut,
+    Info,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
-import openURLInNewTab from '../../libs/openURLInNewTab';
-import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 
@@ -76,7 +78,11 @@ const menuItems = [
         translationKey: 'common.payments',
         icon: Wallet,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
-
+    },
+    {
+        translationKey: 'initialSettingsPage.about',
+        icon: Info,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
     },
     {
         translationKey: 'initialSettingsPage.signOut',
@@ -103,15 +109,9 @@ const InitialSettingsPage = ({
                 title={translate('initialSettingsPage.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <View
-                pointerEvents="box-none"
-                style={[
-                    styles.settingsPageBackground,
-                ]}
-            >
+            <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
-
                         <View style={[styles.mb3]}>
                             <AvatarWithIndicator
                                 size="large"
@@ -125,9 +125,12 @@ const InitialSettingsPage = ({
                                 : Str.removeSMSDomain(session.email)}
                         </Text>
                         {myPersonalDetails.displayName && (
-                        <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                            {Str.removeSMSDomain(session.email)}
-                        </Text>
+                            <Text
+                                style={[styles.settingsLoginName, styles.mt1]}
+                                numberOfLines={1}
+                            >
+                                {Str.removeSMSDomain(session.email)}
+                            </Text>
                         )}
                     </View>
                     {menuItems.map(item => (
@@ -136,37 +139,11 @@ const InitialSettingsPage = ({
                             title={translate(item.translationKey)}
                             icon={item.icon}
                             onPress={() => item.action()}
-                            shouldShowRightArrow
+                            shouldShowRightIcon
                         />
                     ))}
                 </View>
-                <View style={[styles.sidebarFooter]}>
-                    <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        {translate('initialSettingsPage.versionLetter')}
-                        {version}
-                    </Text>
-                    <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        {translate('initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1')}
-                        {' '}
-                        <Text
-                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => openURLInNewTab(CONST.TERMS_URL)}
-                        >
-                            {translate('initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2')}
-                        </Text>
-                        {' '}
-                        {translate('initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3')}
-                        {' '}
-                        <Text
-                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
-                        >
-                            {translate('initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4')}
-                        </Text>
-                        .
-                    </Text>
-                </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 };

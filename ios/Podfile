@@ -4,8 +4,14 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 platform :ios, '11.0'
 
 target 'ExpensifyCash' do
-  config = use_native_modules!
+  permissions_path = '../node_modules/react-native-permissions/ios'
 
+  pod 'Plaid', '~> 2.1.2'
+  pod 'Permission-LocationAccuracy', :path => "#{permissions_path}/LocationAccuracy"
+  pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
+  pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
+
+  config = use_native_modules!
   use_react_native!(:path => config["reactNativePath"])
 
   target 'ExpensifyCashTests' do

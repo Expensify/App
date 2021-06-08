@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import {isDevelopment} from './Environment/Environment';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
@@ -14,7 +15,7 @@ Onyx.connect({
  * @returns {Boolean}
  */
 function canUseAllBetas() {
-    return _.contains(betas, CONST.BETAS.ALL);
+    return isDevelopment() || _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
@@ -31,7 +32,23 @@ function canUseIOU() {
     return _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas();
 }
 
+/**
+ * @returns {Boolean}
+ */
+function canUsePayWithExpensify() {
+    return _.contains(betas, CONST.BETAS.PAY_WITH_EXPENSIFY) || canUseAllBetas();
+}
+
+/**
+ * @returns {Boolean}
+ */
+function canUseFreePlan() {
+    return _.contains(betas, CONST.BETAS.FREE_PLAN) || canUseAllBetas();
+}
+
 export default {
     canUseChronos,
     canUseIOU,
+    canUsePayWithExpensify,
+    canUseFreePlan,
 };

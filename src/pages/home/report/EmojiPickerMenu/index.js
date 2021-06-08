@@ -3,7 +3,7 @@ import {View, FlatList, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
-import styles from '../../../../styles/styles';
+import styles, {getEmojiPickerStyle} from '../../../../styles/styles';
 import themeColors from '../../../../styles/themes/default';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
@@ -65,12 +65,12 @@ class EmojiPickerMenu extends Component {
         this.setupEventHandlers = this.setupEventHandlers.bind(this);
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
+        this.currentScrollOffset = 0;
 
         this.state = {
             filteredEmojis: this.emojis,
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
-            currentScrollOffset: 0,
             arePointerEventsDisabled: false,
         };
     }
@@ -210,13 +210,13 @@ class EmojiPickerMenu extends Component {
         const offsetAtEmojiTop = offsetAtEmojiBottom - CONST.EMOJI_PICKER_ITEM_HEIGHT;
 
         // Scroll to fit the entire highlighted emoji into the window if we need to
-        let targetOffset = this.state.currentScrollOffset;
-        if (offsetAtEmojiBottom - this.state.currentScrollOffset >= CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT) {
+        let targetOffset = this.currentScrollOffset;
+        if (offsetAtEmojiBottom - this.currentScrollOffset >= CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT) {
             targetOffset = offsetAtEmojiBottom - CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT;
-        } else if (offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT <= this.state.currentScrollOffset) {
+        } else if (offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT <= this.currentScrollOffset) {
             targetOffset = offsetAtEmojiTop - CONST.EMOJI_PICKER_ITEM_HEIGHT;
         }
-        if (targetOffset !== this.state.currentScrollOffset) {
+        if (targetOffset !== this.currentScrollOffset) {
             // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
             if (!this.state.arePointerEventsDisabled) {
                 this.setState({arePointerEventsDisabled: true});
@@ -309,7 +309,7 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             <View
-                style={styles.emojiPickerContainer}
+                style={[styles.emojiPickerContainer, getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 {!this.props.isSmallScreenWidth && (
@@ -322,6 +322,7 @@ class EmojiPickerMenu extends Component {
                             style={styles.textInput}
                             defaultValue=""
                             ref={el => this.searchInput = el}
+                            autoFocus
                         />
                     </View>
                 )}
@@ -334,7 +335,7 @@ class EmojiPickerMenu extends Component {
                     style={styles.emojiPickerList}
                     extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
                     stickyHeaderIndices={this.state.headerIndices}
-                    onScroll={e => this.setState({currentScrollOffset: e.nativeEvent.contentOffset.y})}
+                    onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
                 />
             </View>
         );

@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {View, StatusBar} from 'react-native';
+import {View, StatusBar, AppState} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import BootSplash from './libs/BootSplash';
@@ -15,6 +15,9 @@ import migrateOnyx from './libs/migrateOnyx';
 import styles from './styles/styles';
 import PushNotification from './libs/Notification/PushNotification';
 import UpdateAppModal from './components/UpdateAppModal';
+import Visibility from './libs/Visibility';
+import GrowlNotification from './components/GrowlNotification';
+import {growlRef} from './libs/Growl';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -26,7 +29,7 @@ Onyx.init({
         [ONYXKEYS.SESSION]: {loading: false, shouldShowComposeInput: true},
         [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
         [ONYXKEYS.NETWORK]: {isOffline: false},
-        [ONYXKEYS.IOU]: {loading: false},
+        [ONYXKEYS.IOU]: {loading: false, error: false, creatingIOUTransaction: false},
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
@@ -76,6 +79,7 @@ class Expensify extends PureComponent {
         // Initialize this client as being an active client
         ActiveClientManager.init();
         this.hideSplash = this.hideSplash.bind(this);
+        this.initializeClient = this.initializeClient.bind(true);
         this.state = {
             isOnyxMigrated: false,
         };
@@ -93,6 +97,8 @@ class Expensify extends PureComponent {
 
                 this.setState({isOnyxMigrated: true});
             });
+
+        AppState.addEventListener('change', this.initializeClient);
     }
 
     componentDidUpdate(prevProps) {
@@ -121,8 +127,18 @@ class Expensify extends PureComponent {
         }
     }
 
+    componentWillUnmount() {
+        AppState.removeEventListener('change', this.initializeClient);
+    }
+
     getAuthToken() {
         return lodashGet(this.props, 'session.authToken', null);
+    }
+
+    initializeClient() {
+        if (Visibility.isVisible()) {
+            ActiveClientManager.init();
+        }
     }
 
     hideSplash() {
@@ -142,6 +158,7 @@ class Expensify extends PureComponent {
         }
         return (
             <>
+                <GrowlNotification ref={growlRef} />
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
                 {this.props.updateAvailable ? <UpdateAppModal /> : null}
                 <NavigationRoot authenticated={Boolean(this.getAuthToken())} />

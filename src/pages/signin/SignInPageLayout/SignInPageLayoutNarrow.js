@@ -6,11 +6,11 @@ import {
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
-import ExpensifyCashLogo from '../../../../assets/images/expensify-cash.svg';
+import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
-import openURLInNewTab from '../../../libs/openURLInNewTab/index.native';
+import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
@@ -60,25 +60,26 @@ const SignInPageLayoutNarrow = props => (
                         )}
 
                     {props.shouldShowWelcomeText && <WelcomeText />}
-                    <View>
-                        <Text style={[styles.textLabel, styles.mt6]}>
+                    <View style={[styles.flexRow, styles.flexWrap, styles.mt6]}>
+                        <Text style={[styles.textLabel]}>
                             {`${props.translate('signInPage.expensifyIsOpenSource')}. ${
                                 props.translate('common.view')}`}
                             {' '}
-                            <Text
-                                style={[styles.link]}
-                                onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
-                            >
-                                {props.translate('signInPage.theCode')}
-                            </Text>
-                            {`. ${props.translate('common.view')}`}
+                        </Text>
+                        <TextLink style={[styles.textLabel]} href={CONST.GITHUB_URL}>
+                            {props.translate('signInPage.theCode')}
+                        </TextLink>
+                        <Text style={[styles.textLabel]}>
+                            .
+                        </Text>
+                        <Text style={[styles.textLabel]}>
+                            {`${props.translate('common.view')}`}
                             {' '}
-                            <Text
-                                style={[styles.link]}
-                                onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
-                            >
-                                {props.translate('signInPage.openJobs')}
-                            </Text>
+                        </Text>
+                        <TextLink style={[styles.textLabel]} href={CONST.UPWORK_URL}>
+                            {props.translate('signInPage.openJobs')}
+                        </TextLink>
+                        <Text style={[styles.textLabel]}>
                             .
                         </Text>
                     </View>
