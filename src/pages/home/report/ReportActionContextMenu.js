@@ -162,9 +162,9 @@ class ReportActionContextMenu extends React.Component {
     }
 
     /**
-     * Hide the Menu
+     * Hides the popover menu with an optional delay
      *
-     * @param {Boolean} shouldDelay whether the meanu should close after a delay
+     * @param {Boolean} shouldDelay whether the menu should close after a delay
      * @memberof ReportActionContextMenu
      */
     hidePopover(shouldDelay) {
