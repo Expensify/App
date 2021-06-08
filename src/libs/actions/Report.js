@@ -166,9 +166,9 @@ function getSimplifiedReportObject(report) {
     return {
         reportID: report.reportID,
         reportName,
-        chatType: lodashGet(report, ['reportNameValuePairs.chatType'], ''),
-        ownerEmail:lodashGet(report, ['ownerEmail'], ''),
-        // policyName: lodashGet(report, ['policyName'], ''),
+        chatType: lodashGet(report, ['reportNameValuePairs', 'chatType'], ''),
+        ownerEmail: lodashGet(report, 'ownerEmail', ''),
+        policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
         maxSequenceNumber: report.reportActionList.length,
         participants: getParticipantEmailsFromReport(report),
