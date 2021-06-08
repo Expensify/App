@@ -7,7 +7,8 @@ import themeColors from '../../styles/themes/default';
 /**
  * On native layers we like to have the Text Input not focused so the user can read new chats without they keyboard in
  * the way of the view
- * In Android I need selection prop for TextInput but for IOS selection prop have some issues
+ * In Android I need selection prop for TextInput but for IOS selection prop have some issues 
+ * https://github.com/facebook/react-native/issues/29063
  */
 
 const propTypes = {
