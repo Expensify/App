@@ -233,6 +233,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
+        this.textInput.setNativeProps({text: newComment});
         this.setState({
             isCommentEmpty: newComment.length === 0,
         });
