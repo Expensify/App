@@ -158,7 +158,7 @@ function getSimplifiedReportObject(report) {
     const lastMessageText = lodashGet(lastReportAction, ['message', 'html'], '')
         .replace(/((<br[^>]*>)+)/gi, ' ')
         .replace(/(<([^>]+)>)/gi, '');
-    const reportName = lodashGet(report, 'reportNameValuePairs.type') === 'chat'
+    const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report.sharedReportList)
         : report.reportName;
     const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
@@ -166,6 +166,9 @@ function getSimplifiedReportObject(report) {
     return {
         reportID: report.reportID,
         reportName,
+        chatType: lodashGet(report, ['reportNameValuePairs', 'chatType'], ''),
+        ownerEmail: lodashGet(report, ['ownerEmail'], ''),
+        policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
         maxSequenceNumber: report.reportActionList.length,
         participants: getParticipantEmailsFromReport(report),
