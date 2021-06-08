@@ -9,10 +9,8 @@ import {
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import Navigation from '../libs/Navigation/Navigation';
 import PlaidLink from './PlaidLink';
 import {
-    addPlaidBankAccount,
     clearPlaidBankAccounts,
     fetchPlaidLinkToken,
     getPlaidBankAccounts,
@@ -28,17 +26,20 @@ import Button from './Button';
 const propTypes = {
     ...withLocalizePropTypes,
 
-    // Plaid SDK token to use to initialize the widget
+    /** Plaid SDK token to use to initialize the widget */
     plaidLinkToken: PropTypes.string,
 
-    // Contains list of accounts and loading state while fetching them
+    /** Contains list of accounts and loading state while fetching them */
     plaidBankAccounts: PropTypes.shape({
-        // Whether we are fetching the bank accounts from the API
+        /** Whether we are fetching the bank accounts from the API */
         loading: PropTypes.bool,
 
-        // List of accounts
+        /** List of accounts */
         accounts: PropTypes.arrayOf(PropTypes.object),
     }),
+
+    /** Fired when the user exits the Plaid flow */
+    onExitPlaid: PropTypes.func,
 };
 
 const defaultProps = {
@@ -46,6 +47,7 @@ const defaultProps = {
     plaidBankAccounts: {
         loading: false,
     },
+    onExitPlaid: () => {},
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -99,8 +101,8 @@ class AddPlaidBankAccount extends React.Component {
                             console.debug(`Plaid Error: ${error.message}`);
                         }}
                         onExit={() => {
-                            // If the user prematurely exits the Plaid flow then let's kick them back to the main app
-                            Navigation.dismissModal();
+                            // User prematurely exited the Plaid flow
+                            this.props.onExitPlaid();
                         }}
                     />
                 )}
