@@ -251,9 +251,9 @@ export default {
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu Contraseña',
     },
-    addBankAccountPage: {
+    addPersonalBankAccountPage: {
         enterPassword: 'Escribe una contraseña',
-        addBankAccount: 'Agregar una cuenta bancaria',
+        addPersonalBankAccount: 'Agregar cuenta bancaria',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         selectAccount: 'Selecciona una cuenta:',
     },
