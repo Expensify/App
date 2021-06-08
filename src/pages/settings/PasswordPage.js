@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {TextInput, View} from 'react-native';
+import {View, TextInput} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {isEmpty} from 'underscore';
@@ -38,7 +38,6 @@ const propTypes = {
 const defaultProps = {
     account: {},
 };
-
 class PasswordPage extends Component {
     constructor(props) {
         super(props);
@@ -149,7 +148,6 @@ class PasswordPage extends Component {
                     </View>
                 </View>
             </ScreenWrapper>
-
         );
     }
 }
