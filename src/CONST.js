@@ -6,6 +6,12 @@ const CONST = {
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
     },
+    BANK_ACCOUNT: {
+        ADD_METHOD: {
+            MANUAL: 'manual',
+            PLAID: 'plaid',
+        },
+    },
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
