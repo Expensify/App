@@ -39,7 +39,6 @@ export default {
         attachmentError: 'Attachment Error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
         errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
-        errorDuringAttachmentSelection: 'Error during attachment selection',
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
         chooseDocument: 'Choose Document',

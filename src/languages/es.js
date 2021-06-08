@@ -37,7 +37,6 @@ export default {
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto, por favor inténtalo de nuevo',
         errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor intentalo con otro archivo',
-        errorDuringAttachmentSelection: 'Error al seleccionar un archivo adjunto',
         takePhoto: 'Hacer una Foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir Documento',
