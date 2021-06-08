@@ -109,6 +109,11 @@ export default {
                     AddBankAccount_Root: ROUTES.ADD_BANK_ACCOUNT,
                 },
             },
+            BusinessBankAccount: {
+                screens: {
+                    BusinessBankAccount_New: ROUTES.BANK_ACCOUNT_NEW,
+                },
+            },
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,

@@ -9,6 +9,7 @@ const REPORT = 'r';
 
 export default {
     ADD_BANK_ACCOUNT: 'add-bank-account',
+    BANK_ACCOUNT_NEW: 'bank-account/new',
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',

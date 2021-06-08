@@ -10,7 +10,7 @@ const propTypes = {
     href: PropTypes.string.isRequired,
 
     /** Text content child */
-    children: PropTypes.string.isRequired,
+    children: PropTypes.oneOfType([PropTypes.string, PropTypes.array]).isRequired,
 
     /** Additional style props */
     style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
