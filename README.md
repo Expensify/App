@@ -246,6 +246,10 @@ localize the following types of data when presented to the user (even accessibil
 - Numbers and amounts: see [numberFormat](https://github.com/Expensify/Expensify.cash/tree/965f92fc2a5a2a0d01e6114bf5aa8755b9d9fd1a/src/libs/numberFormat)
 - Phones: see [LocalPhoneNumber](https://github.com/Expensify/Expensify.cash/blob/bdfbafe18ee2d60f766c697744f23fad64b62cad/src/libs/LocalePhoneNumber.js#L51-L52)
 
+In most cases, you will be needing to localize data used in a component, if that's the case, there's a HOC [withLocalize](https://github.com/Expensify/Expensify.cash/blob/37465dbd07da1feab8347835d82ed3d2302cde4c/src/components/withLocalize.js).
+It will abstract most of the logic you need (mostly subscribe to the [PREFERRED_LOCALE](https://github.com/Expensify/Expensify.cash/blob/6cf1a56df670a11bf61aa67eeb64c1f87161dea1/src/ONYXKEYS.js#L88) Onyx key)
+and is the preferred way of localizing things inside components.
+
 Some pointers:
 
 - All translations are stored in language files in [src/languages](https://github.com/Expensify/Expensify.cash/tree/b114bc86ff38e3feca764e75b3f5bf4f60fcd6fe/src/languages).
