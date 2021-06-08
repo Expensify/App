@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -7,6 +8,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
+import Str from 'expensify-common/lib/str';
 import styles, {getBackgroundAndBorderStyle, getBackgroundColorStyle} from '../../../styles/styles';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
@@ -17,6 +19,7 @@ import Hoverable from '../../../components/Hoverable';
 import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -30,7 +33,7 @@ const propTypes = {
     option: optionPropTypes.isRequired,
 
     /** Whether this option is currently in focus so we can modify its style */
-    optionIsFocused: PropTypes.bool.isRequired,
+    optionIsFocused: PropTypes.bool,
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
@@ -52,6 +55,14 @@ const propTypes = {
 
     /** Toggle between compact and default view */
     mode: PropTypes.oneOf(['compact', 'default']),
+
+    /** Whether this option should be disabled */
+    isDisabled: PropTypes.bool,
+
+    /** Whether to disable the interactivity of this row */
+    disableRowInteractivity: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -64,6 +75,9 @@ const defaultProps = {
     showTitleTooltip: false,
     mode: 'default',
     onSelectRow: null,
+    isDisabled: false,
+    optionIsFocused: false,
+    disableRowInteractivity: false,
 };
 
 const OptionRow = ({
@@ -77,7 +91,10 @@ const OptionRow = ({
     isSelected,
     forceTextUnreadStyle,
     showTitleTooltip,
+    isDisabled,
     mode,
+    disableRowInteractivity,
+    toLocalPhone,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -110,19 +127,24 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = option.participantsList.length > 1;
+    const isMultipleParticipant = lodashGet(option, 'participantsList.length', 0) > 1;
     const displayNamesWithTooltips = _.map(
         option.participantsList,
-        ({displayName, firstName, login}) => (
-            {displayName: (isMultipleParticipant ? firstName : displayName) || login, tooltip: login}
-        ),
+        ({displayName, firstName, login}) => {
+            const displayNameTrimmed = Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName;
+
+            return {
+                displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
+                tooltip: login,
+            };
+        },
     );
-    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <Hoverable>
             {hovered => (
                 <TouchableOpacity
                     onPress={() => onSelectRow(option)}
+                    disabled={disableRowInteractivity}
                     activeOpacity={0.8}
                     style={[
                         styles.flexRow,
@@ -133,6 +155,7 @@ const OptionRow = ({
                         getBackgroundColorStyle(backgroundColor),
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
+                        isDisabled && styles.cursorDisabled,
                     ]}
                 >
                     <View style={sidebarInnerRowStyle}>
@@ -162,7 +185,7 @@ const OptionRow = ({
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
-                                    fullTitle={fullTitle}
+                                    fullTitle={option.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
@@ -221,7 +244,7 @@ OptionRow.defaultProps = defaultProps;
 OptionRow.displayName = 'OptionRow';
 
 // It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default memo(OptionRow, (prevProps, nextProps) => {
+export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     if (prevProps.optionIsFocused !== nextProps.optionIsFocused) {
         return false;
     }
@@ -263,4 +286,4 @@ export default memo(OptionRow, (prevProps, nextProps) => {
     }
 
     return true;
-});
+}));

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Pressable, TextInput, View} from 'react-native';
+import {TextInput, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../../CONST';
@@ -14,6 +14,8 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import Button from '../../components/Button';
+import Growl from '../../libs/Growl';
 
 const propTypes = {
     /** Username for PayPal.Me */
@@ -53,6 +55,7 @@ class PaymentsPage extends React.Component {
      */
     setPayPalMeUsername() {
         NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.payPalMeUsername, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
+        Growl.show(this.props.translate('paymentsPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
     }
 
     render() {
@@ -73,25 +76,22 @@ class PaymentsPage extends React.Component {
                             {this.props.translate('paymentsPage.payPalMe')}
                         </Text>
                         <TextInput
+                            autoCompleteType="off"
+                            autoCorrect={false}
                             style={[styles.textInput]}
                             value={this.state.payPalMeUsername}
                             placeholder={this.props.translate('paymentsPage.yourPayPalUsername')}
                             onChangeText={text => this.setState({payPalMeUsername: text})}
+                            editable={!this.props.payPalMeUsername}
                         />
                     </View>
-                    <Pressable
+                    <Button
+                        success
+                        isDisabled={this.props.payPalMeUsername}
                         onPress={this.setPayPalMeUsername}
-                        style={({hovered}) => [
-                            styles.button,
-                            styles.buttonSuccess,
-                            styles.mt3,
-                            hovered && styles.buttonSuccessHovered,
-                        ]}
-                    >
-                        <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                            {this.props.translate('paymentsPage.addPayPalAccount')}
-                        </Text>
-                    </Pressable>
+                        style={[styles.mt3]}
+                        text={this.props.translate('paymentsPage.addPayPalAccount')}
+                    />
                 </View>
             </ScreenWrapper>
         );

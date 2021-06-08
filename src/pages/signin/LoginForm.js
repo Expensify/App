@@ -9,13 +9,14 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import {fetchAccountDetails} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 
 const propTypes = {
     /* Onyx Props */
@@ -83,16 +84,20 @@ class LoginForm extends React.Component {
                         onChangeText={text => this.setState({login: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
+                        autoCorrect={false}
+                        keyboardType={getEmailKeyboardType()}
                         placeholder={this.props.translate('loginForm.phoneOrEmail')}
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
                 <View>
-                    <ButtonWithLoader
+                    <Button
+                        success
+                        style={[styles.mb2]}
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}
-                        onClick={this.validateAndSubmitForm}
+                        onPress={this.validateAndSubmitForm}
                     />
                 </View>
 

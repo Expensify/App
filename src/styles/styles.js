@@ -33,6 +33,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
     },
 
+    linkHovered: {
+        color: themeColors.linkHover,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -89,6 +93,10 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    textUppercase: {
+        textTransform: 'uppercase',
+    },
+
     colorReversed: {
         color: themeColors.textReversed,
     },
@@ -128,6 +136,7 @@ const styles = {
         paddingRight: 10,
         paddingBottom: 6,
         paddingLeft: 10,
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonSmallText: {
@@ -155,6 +164,20 @@ const styles = {
     buttonDisable: {
         backgroundColor: themeColors.buttonDisabledBG,
         borderWidth: 0,
+    },
+
+    buttonDropdown: {
+        marginLeft: 1,
+    },
+
+    noRightBorderRadius: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+    },
+
+    noLeftBorderRadius: {
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
     },
 
     buttonConfirm: {
@@ -246,8 +269,16 @@ const styles = {
         backgroundColor: themeColors.badgeSuccessBG,
     },
 
+    badgeSuccessPressed: {
+        backgroundColor: themeColors.badgeSuccessPressedBG,
+    },
+
     badgeDanger: {
         backgroundColor: themeColors.badgeDangerBG,
+    },
+
+    badgeDangerPressed: {
+        backgroundColor: themeColors.badgeDangerPressedBG,
     },
 
     badgeText: {
@@ -432,10 +463,8 @@ const styles = {
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'column',
-        height: 84,
-        justifyContent: 'flex-start',
-        paddingHorizontal: 20,
+        justifyContent: 'center',
+        paddingVertical: 20,
         width: '100%',
     },
 
@@ -457,6 +486,19 @@ const styles = {
         width: 12,
         zIndex: 10,
     },
+
+    statusIndicatorLarge: {
+        borderColor: themeColors.componentBG,
+        borderRadius: 8,
+        borderWidth: 2,
+        position: 'absolute',
+        right: 4,
+        bottom: 4,
+        height: 16,
+        width: 16,
+        zIndex: 10,
+    },
+
     statusIndicatorOnline: {
         backgroundColor: themeColors.online,
     },
@@ -520,9 +562,20 @@ const styles = {
         bottom: 75,
     },
 
+    createMenuPositionRightSidepane: {
+        right: 18,
+        bottom: 75,
+    },
+
     createMenuContainer: {
         width: variables.sideBarWidth - 40,
         paddingVertical: 12,
+    },
+
+    createMenuHeaderText: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.heading,
     },
 
     createMenuItem: {
@@ -535,8 +588,8 @@ const styles = {
     },
 
     createMenuIcon: {
-        width: 40,
-        height: 40,
+        width: variables.componentSizeNormal,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -546,6 +599,10 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    menuItemTextContainer: {
+        minHeight: variables.componentSizeNormal,
     },
 
     chatLinkRowPressable: {
@@ -766,6 +823,13 @@ const styles = {
         opacity: 0.6,
     },
 
+    chatItemMessageLink: {
+        color: colors.blue,
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        lineHeight: 20,
+    },
+
     chatItemCompose: {
         minHeight: 65,
         marginBottom: 5,
@@ -824,7 +888,6 @@ const styles = {
 
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
-        minWidth: CONST.EMOJI_PICKER_SIZE,
     },
 
     emojiPickerList: {
@@ -984,7 +1047,7 @@ const styles = {
     avatarInnerText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 24,
+        lineHeight: undefined,
         marginLeft: -3,
         textAlign: 'center',
     },
@@ -992,7 +1055,7 @@ const styles = {
     avatarInnerTextSmall: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeExtraSmall,
-        lineHeight: 18,
+        lineHeight: undefined,
         marginLeft: -2,
         textAlign: 'center',
     },
@@ -1145,12 +1208,16 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
+    reportTransactionWrapper: {
+        paddingVertical: 8,
+        display: 'flex',
+        flexDirection: 'row',
+    },
+
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
         flexGrow: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
 
     settingsPageBody: {
@@ -1173,18 +1240,6 @@ const styles = {
     avatarLarge: {
         width: 80,
         height: 80,
-    },
-
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        borderRadius: 8,
-        borderWidth: 2,
-        position: 'absolute',
-        right: 4,
-        bottom: 4,
-        height: 16,
-        width: 16,
-        zIndex: 10,
     },
 
     displayName: {
@@ -1333,17 +1388,35 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
+        backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
-        maxWidth: 300,
+        maxWidth: variables.sideBarWidth,
+        width: '100%',
+    },
+
+    iouPreviewBoxLoading: {
+        minHeight: 47,
         width: '100%',
     },
 
     iouPreviewBoxAvatar: {
         marginRight: -10,
+        marginBottom: -10,
+    },
+
+    iouPreviewBoxCheckmark: {
+        marginLeft: 4,
+        alignSelf: 'center',
+    },
+
+    iouDetailsContainer: {
+        flexGrow: 1,
+        paddingStart: 20,
+        paddingEnd: 20,
     },
 
     noScrollbars: {
@@ -1395,6 +1468,58 @@ const styles = {
         left: 0,
         opacity: 0,
         transform: 'translateX(-100%)',
+    },
+
+    growlNotificationWrapper: {
+        zIndex: 2,
+    },
+
+    growlNotificationContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        position: 'absolute',
+        width: '100%',
+        top: 20,
+        ...spacing.ph5,
+    },
+
+    growlNotificationDesktopContainer: {
+        maxWidth: 380,
+        right: 0,
+        position: 'fixed',
+    },
+
+    growlNotificationTranslateY: y => ({
+        transform: [{translateY: y}],
+    }),
+
+    growlNotificationBox: {
+        backgroundColor: colors.dark,
+        borderRadius: variables.componentBorderRadiusNormal,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        shadowColor: '#000',
+        ...spacing.p5,
+    },
+
+    growlNotificationText: {
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        width: '90%',
+        lineHeight: variables.fontSizeNormalHeight,
+        color: themeColors.textReversed,
+    },
+
+    blockquote: {
+        borderLeftColor: themeColors.border,
+        borderLeftWidth: 4,
+        paddingLeft: 12,
+        marginVertical: 4,
+    },
+
+    cursorDisabled: {
+        cursor: 'not-allowed',
     },
 };
 
@@ -1451,6 +1576,8 @@ const webViewStyles = {
             paddingRight: 8,
             paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
+            marginTop: 0,
+            marginBottom: 0,
         },
 
         code: {
@@ -1602,6 +1729,20 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Generate a style for the background color of the IOU badge
+ *
+ * @param {Boolean} isOwner
+ * @param {Boolean} [isPressed]
+ * @returns {Object}
+ */
+function getBadgeColorStyle(isOwner, isPressed = false) {
+    if (isOwner) {
+        return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
+    }
+    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+}
+
+/**
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
@@ -1699,6 +1840,18 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
     return italicBold || bold || italic || fontFamily.MONOSPACE;
 }
 
+/**
+ * Gives the width for Emoji picker Widget
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {String}
+ */
+function getEmojiPickerStyle(isSmallScreenWidth) {
+    return {
+        width: isSmallScreenWidth ? '100%' : CONST.EMOJI_PICKER_SIZE,
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1712,10 +1865,12 @@ export {
     getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
     getModalPaddingStyles,
     getFontFamilyMonospace,
+    getEmojiPickerStyle,
 };

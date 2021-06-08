@@ -3,6 +3,7 @@ import React, {Component} from 'react';
 import {Dimensions, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
@@ -15,7 +16,7 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
-import ReportActionItemIOUPreview from '../../../components/ReportActionItemIOUPreview';
+import ReportActionItemIOUAction from '../../../components/ReportActionItemIOUAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
@@ -36,9 +37,6 @@ const propTypes = {
     /** Whether there is an outstanding amount in IOU */
     hasOutstandingIOU: PropTypes.bool,
 
-    /** IOU report ID associated with current report */
-    iouReportID: PropTypes.number,
-
     /** Should we display the new indicator on top of the comment? */
     shouldDisplayNewIndicator: PropTypes.bool.isRequired,
 
@@ -56,7 +54,6 @@ const propTypes = {
 
 const defaultProps = {
     draftMessage: '',
-    iouReportID: undefined,
     hasOutstandingIOU: false,
 };
 
@@ -78,7 +75,7 @@ class ReportActionItem extends Component {
             },
         };
 
-        this.popoverAnchor = null;
+        this.popoverAnchor = undefined;
         this.showPopover = this.showPopover.bind(this);
         this.hidePopover = this.hidePopover.bind(this);
         this.measureContent = this.measureContent.bind(this);
@@ -97,7 +94,6 @@ class ReportActionItem extends Component {
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
-            || this.props.iouReportID !== nextProps.iouReportID
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
             || !_.isEqual(this.props.action, nextProps.action);
     }
@@ -202,11 +198,10 @@ class ReportActionItem extends Component {
 
     render() {
         let children;
-        if (this.props.action.actionName === 'IOU') {
+        if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
-                <ReportActionItemIOUPreview
-                    iouReportID={this.props.iouReportID}
-                    hasOutstandingIOU={this.props.hasOutstandingIOU}
+                <ReportActionItemIOUAction
+                    chatReportID={this.props.reportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                 />
@@ -225,10 +220,10 @@ class ReportActionItem extends Component {
         }
         return (
             <PressableWithSecondaryInteraction
-                ref={ref => this.popoverAnchor = ref}
+                ref={el => this.popoverAnchor = el}
                 onSecondaryInteraction={this.showPopover}
             >
-                <Hoverable>
+                <Hoverable resetsOnClickOutside={false}>
                     {hovered => (
                         <View>
                             {this.props.shouldDisplayNewIndicator && (
