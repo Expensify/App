@@ -18,6 +18,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {fetchIOUReportByID} from '../libs/actions/Report';
 import themeColors from '../styles/themes/default';
 import Icon from './Icon';
+import CONST from '../CONST';
 import {Checkmark} from './Icon/Expensicons';
 
 const propTypes = {
@@ -82,6 +83,14 @@ const ReportActionItemIOUPreview = ({
     onPayButtonPressed,
     translate,
 }) => {
+    // Usually the parent determines whether the IOU Preview is displayed. But as the iouReport total cannot be known
+    // until it is stored locally, we need to make this check within the Component after retrieving it. This allows us
+    // to handle the loading UI from within this Component instead of needing to declare it within each parent, which
+    // would duplicate and complicate the logic
+    if (iouReport.total === 0) {
+        return null;
+    }
+
     const sessionEmail = lodashGet(session, 'email', null);
     const managerEmail = iouReport.managerEmail || '';
     const ownerEmail = iouReport.ownerEmail || '';
@@ -131,7 +140,9 @@ const ReportActionItemIOUPreview = ({
                                 ? translate('iou.owes', {manager: managerName, owner: ownerName})
                                 : translate('iou.paid', {manager: managerName, owner: ownerName})}
                         </Text>
-                        {(isCurrentUserManager && !shouldHidePayButton && (
+                        {(isCurrentUserManager
+                            && !shouldHidePayButton
+                            && iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
                             <TouchableOpacity
                                 style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
                                 onPress={onPayButtonPressed}
