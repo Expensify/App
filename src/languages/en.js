@@ -31,6 +31,7 @@ export default {
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
+        settings: 'Settings',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -156,7 +157,6 @@ export default {
         sendValidation: 'Send Validation',
     },
     initialSettingsPage: {
-        settings: 'Settings',
         about: 'About',
         aboutPage: {
             description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',

@@ -29,6 +29,7 @@ export default {
         delete: 'Eliminar',
         contacts: 'Contactos',
         recents: 'Recientes',
+        settings: 'Configuración',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -153,7 +154,6 @@ export default {
         sendValidation: 'Enviar validación',
     },
     initialSettingsPage: {
-        settings: 'Configuración',
         about: 'Acerca de',
         aboutPage: {
             description: 'Expensify.cash está desarrollado por una comunidad de desarrolladores open source de todo el mundo. Ayúdanos a construir la próxima generación de Expensify.',

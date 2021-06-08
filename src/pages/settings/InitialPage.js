@@ -106,7 +106,7 @@ const InitialSettingsPage = ({
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('initialSettingsPage.settings')}
+                title={translate('common.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
