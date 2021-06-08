@@ -26,7 +26,9 @@ const webpack = {
 
 const metro = {
     presets: [require('metro-react-native-babel-preset')],
-    plugins: [],
+    plugins: [
+        'react-native-reanimated/plugin',
+    ],
 };
 
 module.exports = ({caller}) => {
