@@ -170,6 +170,10 @@ class AuthScreens extends React.Component {
             gestureDirection: 'horizontal',
             cardOverlayEnabled: true,
 
+            // This option is required to make previous screen visible underneath the modal screen
+            // https://reactnavigation.org/docs/6.x/stack-navigator#transparent-modals
+            presentation: 'transparentModal',
+
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
