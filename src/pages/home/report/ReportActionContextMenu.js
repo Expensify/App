@@ -112,12 +112,17 @@ class ReportActionContextMenu extends React.Component {
                 icon: Pencil,
                 shouldShow: () => canEditReportAction(this.props.reportAction),
                 onPress: () => {
-                    this.props.hidePopover();
-                    saveReportActionDraft(
+                    const editAction = () => saveReportActionDraft(
                         this.props.reportID,
                         this.props.reportAction.reportActionID,
                         _.isEmpty(this.props.draftMessage) ? this.getActionText() : '',
                     );
+                    this.props.hidePopover(editAction);
+
+                    // When menu is mini, there is no popover. Thus we need to call the editAction manually
+                    if (this.props.isMini) {
+                        editAction();
+                    }
                 },
             },
             {
