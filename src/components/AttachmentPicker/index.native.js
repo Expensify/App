@@ -80,7 +80,7 @@ class AttachmentPicker extends Component {
             {
                 icon: Paperclip,
                 text: this.props.translate('attachmentPicker.chooseDocument'),
-                pickAttachment: this.showDocumentPicker,
+                pickAttachment: () => this.showDocumentPicker(),
             },
         ];
 
