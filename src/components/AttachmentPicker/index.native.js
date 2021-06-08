@@ -3,7 +3,7 @@
  */
 import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
 import basePropTypes from './AttachmentPickerPropTypes';
 import styles from '../../styles/styles';
@@ -13,6 +13,7 @@ import {Camera, Gallery, Paperclip} from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
+import launchCamera from './launchCamera';
 
 const propTypes = {
     ...basePropTypes,
