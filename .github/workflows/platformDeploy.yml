@@ -58,7 +58,7 @@ jobs:
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
         run: bundle exec fastlane android production
         env:
-          VERSION_CODE: ${{ env.VERSION_CODE }}
+          VERSION: ${{ env.VERSION_CODE }}
 
   desktop:
     name: Build and deploy Desktop
