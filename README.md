@@ -15,6 +15,7 @@
 * [Debugging](#debugging)
 * [Structure of the app](#structure-of-the-app)
 * [Philosophy](#Philosophy)
+* [Internationalization](#Internationalization)
 * [Deploying](#deploying)
 
 #### Additional Reading
@@ -233,6 +234,28 @@ This application is built with the following principles.
     1. If the reason you can't write cross platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
     1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
     1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+
+----
+
+# Internationalization
+This application is built with Internationalization (I18n) / Localization (L10n) support, so it's important to always 
+localize the following types of data when presented to the user (even accessibility texts that are not rendered):
+
+- Texts: See [translate method](https://github.com/Expensify/Expensify.cash/blob/655ba416d552d5c88e57977a6e0165fb7eb7ab58/src/libs/translate.js#L15) 
+- Date/time: see [DateUtils](https://github.com/Expensify/Expensify.cash/blob/f579946fbfbdc62acc5bd281dc75cabb803d9af0/src/libs/DateUtils.js)
+- Numbers and amounts: see [numberFormat](https://github.com/Expensify/Expensify.cash/tree/965f92fc2a5a2a0d01e6114bf5aa8755b9d9fd1a/src/libs/numberFormat)
+- Phones: see [LocalPhoneNumber](https://github.com/Expensify/Expensify.cash/blob/bdfbafe18ee2d60f766c697744f23fad64b62cad/src/libs/LocalePhoneNumber.js#L51-L52)
+
+Some pointers:
+
+- All translations are stored in language files in [src/languages](https://github.com/Expensify/Expensify.cash/tree/b114bc86ff38e3feca764e75b3f5bf4f60fcd6fe/src/languages).
+- We try to group translations by their pages/components
+- A common rule of thumb is to move a common word/phrase to be shared when it's in 3 places
+- Always prefer longer and more complex strings in the translation files. For example 
+  if you need to generate the text `User has sent $20.00 to you on Oct 25th at 10:05am`, add just one
+  key to the translation file and use the arrow function version, like so:
+  `nameOfTheKey: ({amount, dateTime}) => "User has sent " + amount + " to you on " + dateTime,`.
+  This is because the order of the phrases might vary from one language to another.
 
 ----
 
