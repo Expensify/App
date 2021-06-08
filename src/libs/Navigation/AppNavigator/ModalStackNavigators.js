@@ -19,6 +19,7 @@ import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
+import EnablePaymentsPage from '../../../pages/EnablePayments';
 import AddBankAccountPage from '../../../pages/AddBankAccountPage';
 
 const defaultSubRouteOptions = {
@@ -141,6 +142,11 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const EnablePaymentsStackNavigator = createModalStackNavigator([{
+    Component: EnablePaymentsPage,
+    name: 'EnablePayments_Root',
+}]);
+
 const AddBankAccountModalStackNavigator = createModalStackNavigator([{
     Component: AddBankAccountPage,
     name: 'AddBankAccount_Root',
@@ -156,5 +162,6 @@ export {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
+    EnablePaymentsStackNavigator,
     AddBankAccountModalStackNavigator,
 };

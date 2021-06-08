@@ -12,6 +12,7 @@
                     "/v/*",
                     "/add-bank-account/*",
                     "/iou/*",
+                    "/enable-payments/*",
                 ]
             }
         ]
