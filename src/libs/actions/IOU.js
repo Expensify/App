@@ -67,7 +67,7 @@ function getIOUReportsForNewTransaction(requestParams) {
 /**
  * Creates IOUSplit Transaction
  * @param {Object} params
- * @param {String} params.amount
+ * @param {Number} params.amount
  * @param {String} params.comment
  * @param {String} params.currency
  * @param {String} params.debtorEmail
@@ -86,7 +86,7 @@ function createIOUTransaction(params) {
  * @param {Object} params
  * @param {Array} params.splits
  * @param {String} params.comment
- * @param {String} params.amount
+ * @param {Number} params.amount
  * @param {String} params.currency
  */
 function createIOUSplit(params) {
