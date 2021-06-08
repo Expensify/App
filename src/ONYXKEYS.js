@@ -86,4 +86,16 @@ export default {
 
     // Indicates which locale should be used
     PREFERRED_LOCALE: 'preferredLocale',
+
+    // User's Expensify Wallet
+    USER_WALLET: 'userWallet',
+
+    // Object containing Onfido SDK Token + applicantID
+    WALLET_ONFIDO: 'walletOnfido',
+
+    // Stores information about additional details form entry
+    WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
+
+    // Object containing Wallet terms step state
+    WALLET_TERMS: 'walletTerms',
 };
