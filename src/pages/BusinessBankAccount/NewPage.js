@@ -15,6 +15,7 @@ import Permissions from '../../libs/Permissions';
 import CONST from '../../CONST';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Checkbox from '../../components/Checkbox';
+import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 
 class BusinessBankAccountNewPage extends React.Component {
     constructor(props) {
@@ -111,9 +112,11 @@ class BusinessBankAccountNewPage extends React.Component {
                         </>
                     )}
                     {this.state.addMethodSelection === CONST.BANK_ACCOUNT.ADD_METHOD.PLAID && (
-                        <View>
-                            <Text>Launch Plaid Flow whoosh</Text>
-                        </View>
+                        <AddPlaidBankAccount
+                            onExitPlaid={() => {
+                                this.setState({addMethodSelection: undefined});
+                            }}
+                        />
                     )}
                     {this.state.addMethodSelection === CONST.BANK_ACCOUNT.ADD_METHOD.MANUAL && (
                         <>
