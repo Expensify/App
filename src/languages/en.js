@@ -255,9 +255,9 @@ export default {
         enterPassword: 'Enter a password',
         setPassword: 'Set Password',
     },
-    addBankAccountPage: {
+    addPersonalBankAccountPage: {
         enterPassword: 'Enter password',
-        addBankAccount: 'Add a Bank Account',
+        addPersonalBankAccount: 'Add Bank Account',
         alreadyAdded: 'This account has already been added.',
         selectAccount: 'Select an account:',
     },
