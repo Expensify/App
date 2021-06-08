@@ -51,7 +51,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
-import getPlatform from '../../../libs/getPlatform/index';
 
 const propTypes = {
     /** A method to call when the form is submitted */
@@ -125,7 +124,6 @@ class ReportActionCompose extends React.Component {
         this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
         this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
-        this.updateSelectionOnAndroid = this.updateSelectionOnAndroid.bind(this);
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
 
@@ -168,10 +166,7 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        const selection = e.nativeEvent.selection;
-        this.setState({selection}, () => {
-            this.updateSelectionOnAndroid(this.comment, selection);
-        });
+        this.setState({selection: e.nativeEvent.selection});
     }
 
     /**
@@ -199,12 +194,6 @@ class ReportActionCompose extends React.Component {
      */
     setMenuVisibility(isMenuVisible) {
         this.setState({isMenuVisible});
-    }
-
-    updateSelectionOnAndroid(text, selection) {
-        if (getPlatform() === 'android') {
-            this.textInput.setNativeProps({text, selection});
-        }
     }
 
     /**
@@ -244,6 +233,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
+        this.textInput.setNativeProps({text: newComment});
         this.setState({
             isCommentEmpty: newComment.length === 0,
         });
@@ -324,9 +314,7 @@ class ReportActionCompose extends React.Component {
             start: selection.start + emoji.length,
             end: selection.start + emoji.length,
         };
-        this.setState({selection: updatedSelection}, () => {
-            this.updateSelectionOnAndroid(this.textInput.value, updatedSelection);
-        });
+        this.setState({selection: updatedSelection});
         this.setIsFocused(true);
         this.focus();
         this.updateComment(this.textInput.value);
