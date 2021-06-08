@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Onfido from '../../components/Onfido';
@@ -9,6 +9,7 @@ import {activateWallet, fetchOnfidoToken} from '../../libs/actions/BankAccounts'
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
+import Text from '../../components/Text';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';

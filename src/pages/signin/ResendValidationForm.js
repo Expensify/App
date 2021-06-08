@@ -1,9 +1,10 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
+import Text from '../../components/Text';
 import Button from '../../components/Button';
 import {reopenAccount, resendValidationLink, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -75,7 +76,7 @@ class ResendValidationForm extends React.Component {
         return (
             <>
                 <View>
-                    <Text style={[styles.textP]}>
+                    <Text>
                         {this.props.translate('resendValidationForm.weSentYouMagicSignInLink')}
                     </Text>
                 </View>

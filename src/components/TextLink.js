@@ -1,9 +1,10 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text, Pressable} from 'react-native';
+import {Pressable} from 'react-native';
 import openURLInNewTab from '../libs/openURLInNewTab';
 import styles from '../styles/styles';
+import Text from './Text';
 
 const propTypes = {
     /** Link to open in new tab */

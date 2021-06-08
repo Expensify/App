@@ -1,11 +1,12 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
 import SectionList from './SectionList';
+import Text from './Text';
 
 const propTypes = {
     /** option Background Color */

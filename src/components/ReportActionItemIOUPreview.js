@@ -3,7 +3,6 @@ import {
     View,
     ActivityIndicator,
     TouchableOpacity,
-    Text,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -15,6 +14,7 @@ import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import MultipleAvatars from './MultipleAvatars';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Text from './Text';
 import {fetchIOUReportByID} from '../libs/actions/Report';
 import themeColors from '../styles/themes/default';
 import Icon from './Icon';

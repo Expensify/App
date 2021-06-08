@@ -1,8 +1,9 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import withEnvironment, {environmentPropTypes} from './withEnvironment';
+import Text from './Text';
 
 const EnvironmentBadge = (props) => {
     // If we are on production, don't show any badge

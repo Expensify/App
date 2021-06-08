@@ -55,7 +55,7 @@ const SignInPageLayoutWide = props => (
                 {props.shouldShowWelcomeText
                     && (
                     <View style={[styles.mt6, styles.mb6]}>
-                        <WelcomeText textSize="large" />
+                        <WelcomeText />
                     </View>
                     )}
                 <View style={[styles.flexRow, styles.flexWrap]}>

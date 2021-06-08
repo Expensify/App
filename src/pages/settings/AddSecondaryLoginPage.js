@@ -113,7 +113,7 @@ class AddSecondaryLoginPage extends Component {
                     />
                     <View style={[styles.p5, styles.flex1, styles.overflowScroll]}>
                         <View style={styles.flexGrow1}>
-                            <Text style={[styles.mb6, styles.textP]}>
+                            <Text style={[styles.mb6]}>
                                 {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                     ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
                                     : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}

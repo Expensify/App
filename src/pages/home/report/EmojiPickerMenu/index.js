@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, FlatList, Text} from 'react-native';
+import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
@@ -12,6 +12,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
+import Text from '../../../../components/Text';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */

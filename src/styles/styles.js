@@ -56,13 +56,6 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
-    textP: {
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        lineHeight: 20,
-    },
-
     textLabel: {
         color: themeColors.text,
         fontSize: variables.fontSizeLabel,
@@ -315,7 +308,6 @@ const styles = {
 
     chatItemComposeSecondaryRowSubText: {
         color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
     },
 
@@ -449,7 +441,6 @@ const styles = {
 
     loginTermsText: {
         color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
     },
@@ -573,7 +564,6 @@ const styles = {
     },
 
     createMenuHeaderText: {
-        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
         color: themeColors.heading,
     },

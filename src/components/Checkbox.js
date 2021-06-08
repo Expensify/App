@@ -1,9 +1,10 @@
 import React from 'react';
-import {View, Pressable, Text} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import {Checkmark} from './Icon/Expensicons';
+import Text from './Text';
 
 const propTypes = {
     /** Whether checkbox is checked */
@@ -33,7 +34,7 @@ const Checkbox = ({
         </Pressable>
         {label && (
             <Pressable onPress={() => onClick(!isChecked)}>
-                <Text style={[styles.ml2, styles.textP]}>
+                <Text style={[styles.ml2]}>
                     {label}
                 </Text>
             </Pressable>

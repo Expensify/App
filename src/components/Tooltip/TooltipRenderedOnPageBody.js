@@ -1,8 +1,9 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Animated, Text, View} from 'react-native';
+import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
 import getTooltipStyles from '../../styles/getTooltipStyles';
+import Text from '../Text';
 
 const propTypes = {
     /** Window width */

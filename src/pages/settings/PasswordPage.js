@@ -76,7 +76,7 @@ class PasswordPage extends Component {
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <View style={styles.flexGrow1}>
-                        <Text style={[styles.mb6, styles.textP]}>
+                        <Text style={[styles.mb6]}>
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
                         </Text>
                         <View style={styles.mb6}>

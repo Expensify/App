@@ -59,7 +59,7 @@ const SignInPageLayoutNarrow = props => (
                         </View>
                         )}
 
-                    {props.shouldShowWelcomeText && <WelcomeText />}
+                    {props.shouldShowWelcomeText && <WelcomeText smallFontSize />}
                     <View style={[styles.flexRow, styles.flexWrap, styles.mt6]}>
                         <Text style={[styles.textLabel]}>
                             {`${props.translate('signInPage.expensifyIsOpenSource')}. ${

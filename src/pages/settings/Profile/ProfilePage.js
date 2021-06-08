@@ -300,7 +300,7 @@ class ProfilePage extends Component {
                             </>
                         )}
                     </AttachmentPicker>
-                    <Text style={[styles.mt6, styles.mb6, styles.textP]}>
+                    <Text style={[styles.mt6, styles.mb6]}>
                         {this.props.translate('profilePage.tellUsAboutYourself')}
                     </Text>
                     <View style={[styles.flexRow, styles.mb6]}>

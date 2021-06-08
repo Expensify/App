@@ -1,8 +1,8 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Text} from 'react-native';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** UTC timestamp for when the action was created */

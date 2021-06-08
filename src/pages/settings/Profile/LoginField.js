@@ -102,7 +102,7 @@ class LoginField extends Component {
                     </Pressable>
                 ) : (
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Text style={[styles.textP]} numberOfLines={1}>
+                        <Text numberOfLines={1}>
                             {this.props.type === CONST.LOGIN_TYPE.PHONE
                                 ? this.props.toLocalPhone(this.props.login.partnerUserID)
                                 : this.props.login.partnerUserID}

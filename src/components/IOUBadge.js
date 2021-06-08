@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text, Pressable} from 'react-native';
+import {Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import styles, {getBadgeColorStyle} from '../styles/styles';
@@ -9,6 +9,7 @@ import ROUTES from '../ROUTES';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import CONST from '../CONST';
+import Text from './Text';
 
 const propTypes = {
     /** IOU Report data object */

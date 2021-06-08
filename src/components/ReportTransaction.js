@@ -1,10 +1,11 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Text, View, Pressable} from 'react-native';
+import {View, Pressable} from 'react-native';
 import styles from '../styles/styles';
 import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
+import Text from './Text';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -9,6 +9,7 @@ import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import Text from '../../components/Text';
 
 const propTypes = {
     /** The credentials of the logged in person */
