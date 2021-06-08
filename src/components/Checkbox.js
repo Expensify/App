@@ -17,7 +17,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    label: '',
+    label: undefined,
 };
 
 const Checkbox = ({

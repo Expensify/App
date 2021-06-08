@@ -3,6 +3,7 @@ import colors from '../colors';
 export default {
     shadow: colors.black,
     link: colors.blue,
+    linkHover: colors.blueHover,
     componentBG: colors.white,
     hoverComponentBG: colors.gray1,
     activeComponentBG: colors.gray2,
@@ -30,8 +31,10 @@ export default {
     modalBackdrop: colors.gray3,
     modalBackground: colors.gray2,
     badgeDangerBG: colors.red,
+    badgeDangerPressedBG: colors.redHover,
     badgeDefaultBG: colors.gray2,
     badgeSuccessBG: colors.green,
+    badgeSuccessPressedBG: colors.greenHover,
     buttonDisabledBG: colors.gray2,
     buttonHoveredBG: colors.gray1,
     buttonPressedBG: colors.gray2,

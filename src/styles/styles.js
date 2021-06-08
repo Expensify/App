@@ -33,6 +33,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
     },
 
+    linkHovered: {
+        color: themeColors.linkHover,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -265,8 +269,16 @@ const styles = {
         backgroundColor: themeColors.badgeSuccessBG,
     },
 
+    badgeSuccessPressed: {
+        backgroundColor: themeColors.badgeSuccessPressedBG,
+    },
+
     badgeDanger: {
         backgroundColor: themeColors.badgeDangerBG,
+    },
+
+    badgeDangerPressed: {
+        backgroundColor: themeColors.badgeDangerPressedBG,
     },
 
     badgeText: {
@@ -1717,6 +1729,20 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Generate a style for the background color of the IOU badge
+ *
+ * @param {Boolean} isOwner
+ * @param {Boolean} [isPressed]
+ * @returns {Object}
+ */
+function getBadgeColorStyle(isOwner, isPressed = false) {
+    if (isOwner) {
+        return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
+    }
+    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+}
+
+/**
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
@@ -1839,6 +1865,7 @@ export {
     getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
     getAnimatedFABStyle,
