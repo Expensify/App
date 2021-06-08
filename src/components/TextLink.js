@@ -23,7 +23,8 @@ const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
     return (
         <Pressable
-            onPress={() => {
+            onPress={(e) => {
+                e.preventDefault();
                 Linking.openURL(props.href);
             }}
             accessibilityRole="link"
