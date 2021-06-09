@@ -7,7 +7,7 @@ import Checkbox from './Checkbox';
 
 const propTypes = {
     /** Component to display for label */
-    LabelComponent: PropTypes.node.isRequired,
+    LabelComponent: PropTypes.func.isRequired,
 
     /** Whether the checkbox is checked */
     isChecked: PropTypes.bool.isRequired,
