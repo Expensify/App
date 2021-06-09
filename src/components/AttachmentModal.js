@@ -107,7 +107,7 @@ class AttachmentModal extends PureComponent {
         return (
             <>
                 <Modal
-                    type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                    type={modalType}
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
