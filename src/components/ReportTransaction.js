@@ -39,6 +39,7 @@ const propTypes = {
 
 const defaultProps = {
     canBeRejected: false,
+    rejectInProgress: [],
 };
 
 class ReportTransaction extends Component {
