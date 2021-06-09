@@ -100,10 +100,11 @@ class AttachmentModal extends PureComponent {
             : [styles.imageModalImageCenterContainer, styles.p5];
 
         // If our attachment is a PDF, make the Modal unswipeable
-        const modalType = (this.state.sourceURL && 
-            (Str.isPDF(this.state.sourceURL) || (this.state.file && Str.isPDF(this.state.file.name || this.props.translate('attachmentView.unknownFilename')))))
+        const modalType = (this.state.sourceURL
+                && (Str.isPDF(this.state.sourceURL) || (this.state.file
+                    && Str.isPDF(this.state.file.name || this.props.translate('attachmentView.unknownFilename')))))
             ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-            : CONST.MODAL.MODAL_TYPE.CENTERED
+            : CONST.MODAL.MODAL_TYPE.CENTERED;
         return (
             <>
                 <Modal
