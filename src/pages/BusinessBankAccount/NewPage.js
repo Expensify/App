@@ -1,12 +1,12 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Text} from 'react-native';
+import {View, Text, Image} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
-import {Bug, Lock} from '../../components/Icon/Expensicons';
+import {Paycheck, Bank, Lock} from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import Button from '../../components/Button';
@@ -21,6 +21,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import bankDetailsImage from '../../../assets/images/bank-details.png';
 
 const propTypes = {
     /** List of betas */
@@ -84,7 +85,7 @@ class BusinessBankAccountNewPage extends React.Component {
                                     {this.props.translate('bankAccount.toGetStarted')}
                                 </Text>
                                 <MenuItem
-                                    icon={Bug}
+                                    icon={Bank}
                                     title={this.props.translate('bankAccount.logIntoYourBank')}
                                     onPress={() => {
                                         this.setState({addMethodSelection: CONST.BANK_ACCOUNT.ADD_METHOD.PLAID});
@@ -92,7 +93,7 @@ class BusinessBankAccountNewPage extends React.Component {
                                     shouldShowRightIcon
                                 />
                                 <MenuItem
-                                    icon={Bug}
+                                    icon={Paycheck}
                                     title={this.props.translate('bankAccount.connectManually')}
                                     onPress={() => {
                                         this.setState({addMethodSelection: CONST.BANK_ACCOUNT.ADD_METHOD.MANUAL});
@@ -134,14 +135,19 @@ class BusinessBankAccountNewPage extends React.Component {
                                 <Text style={[styles.mb5]}>
                                     {this.props.translate('bankAccount.checkHelpLine')}
                                 </Text>
+                                <Image
+                                    resizeMode="contain"
+                                    style={[styles.bankDetailsImage, styles.mb5]}
+                                    source={bankDetailsImage}
+                                />
                                 <TextInputWithLabel
-                                    label={this.props.translate('bankAccount.routingNumber')}
+                                    placeholder={this.props.translate('bankAccount.routingNumber')}
                                     keyboardType="numeric"
                                     value={this.state.routingNumber}
                                     onChangeText={routingNumber => this.setState({routingNumber})}
                                 />
                                 <TextInputWithLabel
-                                    label={this.props.translate('bankAccount.accountNumber')}
+                                    placeholder={this.props.translate('bankAccount.accountNumber')}
                                     keyboardType="numeric"
                                     value={this.state.accountNumber}
                                     onChangeText={accountNumber => this.setState({accountNumber})}
