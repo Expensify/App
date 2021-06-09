@@ -121,11 +121,13 @@ class ReportActionContextMenu extends React.Component {
                         this.props.reportAction.reportActionID,
                         _.isEmpty(this.props.draftMessage) ? this.getActionText() : '',
                     );
-                    this.hidePopover(false, editAction);
 
-                    // When menu is mini, there is no popover. Thus we need to call the editAction manually
                     if (this.props.isMini) {
+                        // No popover to hide, call editAction immediately
                         editAction();
+                    } else {
+                        // Hide popover, then call editAction
+                        this.hidePopover(false, editAction);
                     }
                 },
             },
