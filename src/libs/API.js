@@ -785,6 +785,20 @@ function BankAccount_Get(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String[]} parameters.employees
+ * @param {String} parameters.welcomeNote
+ * @returns {Promise}
+ */
+function Policy_Employees_Merge(parameters) {
+    const commandName = 'Policy_Employees_Merge';
+    requireParameters(['employees', 'welcomeNote'], parameters, commandName);
+
+    // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
+    return Network.post(commandName, {...parameters, returnPersonalDetails: true});
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.accountNumber
  * @param {String} parameters.addressName
  * @param {Boolean} parameters.allowDebit
