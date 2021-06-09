@@ -663,6 +663,17 @@ function User_GetBetas() {
  * @param {String} parameters.email
  * @returns {Promise}
  */
+function User_IsFromPublicDomain(parameters) {
+    const commandName = 'User_IsFromPublicDomain';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
+ * @returns {Promise}
+ */
 function User_ReopenAccount(parameters) {
     const commandName = 'User_ReopenAccount';
     requireParameters(['email'], parameters, commandName);
@@ -880,6 +891,7 @@ export {
     UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_IsFromPublicDomain,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
