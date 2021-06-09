@@ -32,7 +32,7 @@ const CheckboxWithLabel = ({
         <View style={wrapperStyles}>
             <Checkbox
                 isChecked={isChecked}
-                onClick={onPress}
+                onPress={onPress}
             />
             <TouchableOpacity
                 onPress={onPress}
