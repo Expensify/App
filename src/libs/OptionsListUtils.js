@@ -197,6 +197,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
  * @private
  */
 function getOptions(reports, personalDetails, draftComments, activeReportID, {
+    betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     excludeConcierge = false,
@@ -335,7 +336,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && personalDetailsOptions.length === 0
             && _.every(selectedOptions, option => option.login !== searchValue)
             && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
-            && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos())
+            && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
         // current users international code based on their IP address.
@@ -362,14 +363,17 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getSearchOptions(
     reports,
     personalDetails,
     searchValue = '',
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
@@ -389,6 +393,7 @@ function getSearchOptions(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Boolean} excludeConcierge
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getNewChatOptions(
@@ -396,8 +401,10 @@ function getNewChatOptions(
     personalDetails,
     searchValue = '',
     excludeConcierge,
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         includePersonalDetails: true,
         includeRecentReports: true,
@@ -445,6 +452,7 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {String} searchValue
  * @param {Array} selectedOptions
  * @param {Boolean} excludeConcierge
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getNewGroupOptions(
@@ -453,8 +461,10 @@ function getNewGroupOptions(
     searchValue = '',
     selectedOptions = [],
     excludeConcierge,
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         selectedOptions,
         includeRecentReports: true,
