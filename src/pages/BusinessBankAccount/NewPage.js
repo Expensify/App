@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {View, Text, TouchableOpacity} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
@@ -16,6 +18,12 @@ import CONST from '../../CONST';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Checkbox from '../../components/Checkbox';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
+import ONYXKEYS from '../../ONYXKEYS';
+
+const propTypes = {
+    /** List of betas */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+};
 
 class BusinessBankAccountNewPage extends React.Component {
     constructor(props) {
@@ -46,14 +54,12 @@ class BusinessBankAccountNewPage extends React.Component {
     }
 
     addManualAccount() {
-
+        // @TODO call API to add account manually
     }
 
     render() {
-        if (!Permissions.canUseFreePlan()) {
-            // This delay is necessary since the "navigator" object is not yet ready - probably we can move to a
-            // 404 at some point, but not necessary right now.
-            _.delay(Navigation.dismissModal, 0);
+        if (!Permissions.canUseFreePlan(this.props.betas)) {
+            Navigation.dismissModal();
             return null;
         }
 
@@ -180,4 +186,10 @@ class BusinessBankAccountNewPage extends React.Component {
     }
 }
 
-export default BusinessBankAccountNewPage;
+BusinessBankAccountNewPage.propTypes = propTypes;
+
+export default withOnyx({
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+})(BusinessBankAccountNewPage);
