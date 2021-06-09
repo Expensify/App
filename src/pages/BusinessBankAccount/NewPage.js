@@ -142,28 +142,32 @@ class BusinessBankAccountNewPage extends React.Component {
                                 />
                                 <TextInputWithLabel
                                     placeholder={this.props.translate('bankAccount.routingNumber')}
-                                    keyboardType="numeric"
+                                    keyboardType="number-pad"
                                     value={this.state.routingNumber}
                                     onChangeText={routingNumber => this.setState({routingNumber})}
+                                    returnKeyType="go"
                                 />
                                 <TextInputWithLabel
                                     placeholder={this.props.translate('bankAccount.accountNumber')}
-                                    keyboardType="numeric"
+                                    keyboardType="number-pad"
                                     value={this.state.accountNumber}
                                     onChangeText={accountNumber => this.setState({accountNumber})}
+                                    returnKeyType="go"
                                 />
                                 <CheckboxWithLabel
                                     style={[styles.mb4, styles.mt5]}
                                     isChecked={this.state.hasAcceptedTerms}
                                     onPress={this.toggleTerms}
                                     LabelComponent={() => (
-                                        <Text>
-                                            {'I accept the '}
+                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                            <Text>
+                                                {'I accept the '}
+                                            </Text>
                                             <TextLink href="https://use.expensify.com/terms">
                                                 Expensify
                                                 {` ${this.props.translate('common.termsOfService')}`}
                                             </TextLink>
-                                        </Text>
+                                        </View>
                                     )}
                                 />
                             </View>
