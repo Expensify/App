@@ -1,5 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import SidebarLinks from './SidebarLinks';
 import CreateMenu from '../../../components/CreateMenu';
@@ -19,8 +21,12 @@ import {
     Receipt,
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -91,7 +97,7 @@ class SidebarScreen extends Component {
                             />
                             <FAB
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
-                                accessibilityRole="menu"
+                                accessibilityRole="button"
                                 isActive={this.state.isCreateMenuActive}
                                 onPress={this.toggleCreateMenu}
                             />
@@ -109,7 +115,7 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newChat'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
-                                ...(Permissions.canUseIOU() ? [
+                                ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: MoneyCircle,
                                         text: this.props.translate('iou.requestMoney'),
@@ -121,7 +127,7 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
-                                ...(Permissions.canUseIOU() ? [
+                                ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: Receipt,
                                         text: this.props.translate('iou.splitBill'),
@@ -141,4 +147,9 @@ SidebarScreen.propTypes = propTypes;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
 )(SidebarScreen);
