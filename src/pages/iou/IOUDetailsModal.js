@@ -67,6 +67,9 @@ const propTypes = {
         email: PropTypes.string,
     }).isRequired,
 
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -181,7 +184,7 @@ class IOUDetailsModal extends Component {
      */
     addExpensifyPaymentOptionIfAvailable() {
         if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD
-            || !Permissions.canUsePayWithExpensify()) {
+            || !Permissions.canUsePayWithExpensify(this.props.betas)) {
             return;
         }
 
@@ -285,6 +288,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(IOUDetailsModal);
