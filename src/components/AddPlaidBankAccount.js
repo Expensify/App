@@ -142,7 +142,7 @@ class AddPlaidBankAccount extends React.Component {
                                     items={options}
                                     placeholder={_.isUndefined(this.state.selectedIndex) ? {
                                         value: '',
-                                        label: this.props.translate('addPersonalBankAccountPage.selectAccount'),
+                                        label: this.props.translate('bankAccount.chooseAnAccount'),
                                     } : {}}
                                     value={this.state.selectedIndex}
                                     icon={() => <Icon src={DownArrow} />}
