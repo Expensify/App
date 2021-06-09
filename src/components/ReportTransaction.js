@@ -1,7 +1,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Text, View, Pressable} from 'react-native';
+import {
+    Text, View, Pressable, ActivityIndicator,
+} from 'react-native';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
@@ -23,6 +26,9 @@ const propTypes = {
 
     /** Text label for the reject transaction button */
     rejectButtonLabelText: PropTypes.string.isRequired,
+
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    rejectInProgress: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -45,7 +51,15 @@ class ReportTransaction extends Component {
         });
     }
 
+    isRejected(rejectedIDs, transactionID) {
+        if (!rejectedIDs) {
+            return false;
+        }
+        return rejectedIDs.includes(transactionID.toString());
+    }
+
     render() {
+        const rejectedIDs = lodashGet(this.props, 'rejectInProgress', []);
         return (
             <View styles={[styles.mb5]}>
                 <ReportActionItemSingle
@@ -66,7 +80,15 @@ class ReportTransaction extends Component {
                             ]}
                             onPress={this.rejectTransaction}
                         >
-                            <Text style={[styles.buttonSmallText]}>{this.props.rejectButtonLabelText}</Text>
+                            {
+                            this.isRejected(rejectedIDs, this.props.action.originalMessage.IOUTransactionID)
+                                ? <ActivityIndicator color={themeColors.text} />
+                                : (
+                                    <Text style={[styles.buttonSmallText]}>
+                                        {this.props.rejectButtonLabelText}
+                                    </Text>
+                                )
+                            }
                         </Pressable>
                     </View>
                 )}
