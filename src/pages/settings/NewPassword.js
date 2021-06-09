@@ -9,21 +9,28 @@ import CONST from '../../CONST';
 import styles from '../../styles/styles';
 
 const propTypes = {
+    /** String to control the first password box in the form */
     password: PropTypes.string.isRequired,
-    setPassword: PropTypes.func.isRequired,
-    passwordIsValid: PropTypes.func.isRequired,
+
+    /** Function to update the first password box in the form */
+    updatePassword: PropTypes.func.isRequired,
+
+    /** Callback function called with boolean value for if the password form is valid  */
+    updateIsFormValid: PropTypes.func.isRequired,
+
+    /** Callback function for when form is submitted  */
     onSubmitEditing: PropTypes.func.isRequired,
     ...withLocalizePropTypes,
 };
 
-class NewPassword extends React.Component {
+class NewPasswordForm extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
             confirmNewPassword: '',
             passwordHintError: false,
-            confirmPasswordError: false,
+            shouldShowPasswordConfirmError: false,
         };
     }
 
@@ -31,7 +38,7 @@ class NewPassword extends React.Component {
         const eitherPasswordChanged = this.props.password
         !== prevProps.password || this.state.confirmNewPassword !== prevState.confirmNewPassword;
         if (eitherPasswordChanged) {
-            this.props.passwordIsValid(this.formIsValid());
+            this.props.updateIsFormValid(this.isValidForm());
         }
     }
 
@@ -39,46 +46,46 @@ class NewPassword extends React.Component {
         if (this.state.passwordHintError) {
             return;
         }
-        if (this.props.password && !this.meetsPasswordRules()) {
+        if (this.props.password && !this.isValidPassword()) {
             this.setState({passwordHintError: true});
         }
     }
 
     onBlurConfirmPassword() {
-        if (this.state.confirmPasswordError) {
+        if (this.state.shouldShowPasswordConfirmError) {
             return;
         }
-        if (this.state.confirmNewPassword && !this.passwordsMatch()) {
-            this.setState({confirmPasswordError: true});
+        if (this.state.confirmNewPassword && !this.doPasswordsMatch()) {
+            this.setState({shouldShowPasswordConfirmError: true});
         }
     }
 
-    meetsPasswordRules() {
+    isValidPassword() {
         return this.props.password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
     }
 
-    passwordsMatch() {
+    doPasswordsMatch() {
         return this.props.password === this.state.confirmNewPassword;
     }
 
-    formIsValid() {
-        return this.meetsPasswordRules() && this.passwordsMatch();
+    isValidForm() {
+        return this.isValidPassword() && this.doPasswordsMatch();
     }
 
     showPasswordMatchError() {
         return (
-            !this.passwordsMatch()
-      && this.state.confirmPasswordError
-      && this.state.confirmNewPassword
+            !this.doPasswordsMatch()
+            && this.state.shouldShowPasswordConfirmError
+            && this.state.confirmNewPassword
         );
     }
 
     render() {
         let passwordHintStyle;
-        if (this.state.passwordHintError && this.props.password && !this.meetsPasswordRules()) {
+        if (this.state.passwordHintError && this.props.password && !this.isValidPassword()) {
             passwordHintStyle = styles.formError;
         }
-        if (this.meetsPasswordRules()) {
+        if (this.isValidPassword()) {
             passwordHintStyle = styles.formSuccess;
         }
 
@@ -86,7 +93,7 @@ class NewPassword extends React.Component {
             <>
                 <View style={styles.mb6}>
                     <Text style={[styles.mb1, styles.formLabel]}>
-                        {`${this.props.translate('setPasswordPage.enterPassword')}*`}
+                        {`${this.props.translate('setPasswordPage.enterPassword')}`}
                     </Text>
                     <TextInput
                         secureTextEntry
@@ -94,7 +101,7 @@ class NewPassword extends React.Component {
                         textContentType="password"
                         style={styles.textInput}
                         value={this.state.password}
-                        onChangeText={password => this.props.setPassword(password)}
+                        onChangeText={password => this.props.updatePassword(password)}
                         onBlur={() => this.onBlurNewPassword()}
                     />
                     <Text style={[styles.formHint, styles.mt1, passwordHintStyle]}>
@@ -126,6 +133,6 @@ class NewPassword extends React.Component {
     }
 }
 
-NewPassword.propTypes = propTypes;
+NewPasswordForm.propTypes = propTypes;
 
-export default withLocalize(NewPassword);
+export default withLocalize(NewPasswordForm);
