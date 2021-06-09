@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {TextInput, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -8,12 +9,23 @@ import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import Button from '../components/Button';
+import compose from '../libs/compose';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
-    /** PolicyID of the workspace */
-    policyID: PropTypes.string.isRequired,
+    /** The policy passed via the route */
+    policy: PropTypes.shape({
+        /** The policy name */
+        name: PropTypes.string,
+    }),
+};
+
+const defaultProps = {
+    policy: {
+        name: '',
+    },
 };
 
 class WorkspaceInvitePage extends React.Component {
@@ -61,7 +73,7 @@ class WorkspaceInvitePage extends React.Component {
                                 multiline
                                 value={this.state.welcomeMessage}
                                 placeholder={this.props.translate('workspaceInvitePage.welcomeMessage', {
-                                    workspaceName: 'TODO testing',
+                                    workspaceName: this.props.policy.name,
                                 })}
                                 onChangeText={text => this.setState({welcomeMessage: text})}
                             />
@@ -83,5 +95,13 @@ class WorkspaceInvitePage extends React.Component {
 }
 
 WorkspaceInvitePage.propTypes = propTypes;
+WorkspaceInvitePage.defaultProps = defaultProps;
 
-export default withLocalize(WorkspaceInvitePage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        policy: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
+        },
+    }),
+)(WorkspaceInvitePage);
