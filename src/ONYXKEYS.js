@@ -87,6 +87,9 @@ export default {
     // Indicates which locale should be used
     PREFERRED_LOCALE: 'preferredLocale',
 
+    // List of transactions that are in progress of being rejected
+    REJECT_IN_PROGRESS: 'rejectInProgress',
+
     // User's Expensify Wallet
     USER_WALLET: 'userWallet',
 
