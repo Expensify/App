@@ -29,6 +29,7 @@ export default {
         delete: 'Eliminar',
         contacts: 'Contactos',
         recents: 'Recientes',
+        saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
     },
     attachmentPicker: {
@@ -254,7 +255,7 @@ export default {
         enterPassword: 'Escribe una contraseña',
         addPersonalBankAccount: 'Agregar cuenta bancaria',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
-        selectAccount: 'Selecciona una cuenta:',
+        selectAccount: 'Elige una cuenta',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
