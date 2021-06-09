@@ -22,13 +22,17 @@ const TermsWithLicenses = ({translate}) => (
         <TextLink style={[styles.loginTermsText]} href={CONST.PRIVACY_URL}>
             {translate('termsOfUse.phrase4')}
         </TextLink>
-        <Text style={[styles.loginTermsText]}>
-            {translate('termsOfUse.phrase5')}
-        </Text>
-        <TextLink style={[styles.loginTermsText]} href={CONST.LICENSES_URL}>
-            {translate('termsOfUse.phrase6')}
-        </TextLink>
         <Text style={[styles.loginTermsText]}>.</Text>
+        <Text>
+            <Text style={[styles.loginTermsText]}>
+                {translate('termsOfUse.phrase5')}
+                {' '}
+            </Text>
+            <TextLink style={[styles.loginTermsText]} href={CONST.LICENSES_URL}>
+                {translate('termsOfUse.phrase6')}
+            </TextLink>
+            <Text style={[styles.loginTermsText]}>.</Text>
+        </Text>
     </View>
 );
 
