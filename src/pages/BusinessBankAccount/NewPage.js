@@ -22,6 +22,7 @@ class BusinessBankAccountNewPage extends React.Component {
         super(props);
 
         this.toggleTerms = this.toggleTerms.bind(this);
+        this.addManualAccount = this.addManualAccount.bind(this);
 
         this.state = {
             addMethodSelection: undefined,
@@ -42,6 +43,10 @@ class BusinessBankAccountNewPage extends React.Component {
         return this.state.hasAcceptedTerms
             && this.state.accountNumber
             && this.state.routingNumber;
+    }
+
+    addManualAccount() {
+
     }
 
     render() {
@@ -101,7 +106,8 @@ class BusinessBankAccountNewPage extends React.Component {
                                     <TextLink
                                         // eslint-disable-next-line max-len
                                         href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
-                                        style={[styles.dFlex, styles.justifyContentCenter]}>
+                                        style={[styles.dFlex, styles.justifyContentCenter]}
+                                    >
                                         Your data is secure
                                         <View style={[styles.ml1]}>
                                             <Icon src={Lock} fill={colors.blue} />
@@ -160,9 +166,7 @@ class BusinessBankAccountNewPage extends React.Component {
                                 text="Save & Continue"
                                 style={[styles.m5]}
                                 isDisabled={!this.canSubmitManually()}
-                                onPress={() => {
-                                    console.log('lehgo');
-                                }}
+                                onPress={this.addManualAccount}
                             />
                         </>
                     )}
