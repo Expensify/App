@@ -55,6 +55,7 @@ class ReportTransaction extends Component {
             chatReportID: this.props.chatReportID,
             transactionID: this.props.action.originalMessage.IOUTransactionID,
             comment: '',
+            rejectedIDs: this.props.rejectInProgress,
         });
     }
 
