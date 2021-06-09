@@ -16,12 +16,14 @@ import {
     getPlaidBankAccounts,
 } from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
-import OptionRow from '../pages/home/sidebar/OptionRow';
 import styles from '../styles/styles';
 import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
+import Picker from './Picker';
+import Icon from './Icon';
+import {DownArrow} from './Icon/Expensicons';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -40,6 +42,9 @@ const propTypes = {
 
     /** Fired when the user exits the Plaid flow */
     onExitPlaid: PropTypes.func,
+
+    /** Fired when the user selects an account and submits the form */
+    onSubmit: PropTypes.func,
 };
 
 const defaultProps = {
@@ -48,6 +53,7 @@ const defaultProps = {
         loading: false,
     },
     onExitPlaid: () => {},
+    onSubmit: () => {},
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -60,6 +66,7 @@ class AddPlaidBankAccount extends React.Component {
             selectedIndex: undefined,
             password: '',
             isCreatingAccount: false,
+            institution: {},
         };
     }
 
@@ -79,7 +86,7 @@ class AddPlaidBankAccount extends React.Component {
 
     selectAccount() {
         const account = this.getAccounts()[this.state.selectedIndex];
-        this.props.onSelectAccount({
+        this.props.onSubmit({
             account, password: this.state.password, plaidLinkToken: this.props.plaidLinkToken,
         });
         this.setState({isCreatingAccount: true});
@@ -87,15 +94,27 @@ class AddPlaidBankAccount extends React.Component {
 
     render() {
         const accounts = this.getAccounts();
+        const options = _.chain(accounts)
+            .filter(account => !account.alreadyExists)
+            .map((account, index) => ({
+                value: index, label: `${account.addressName} ${account.accountNumber}`,
+            }))
+            .value();
+
         return (
             <>
                 {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
-                    && <ActivityIndicator size="large" />}
+                    && (
+                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <ActivityIndicator size="large" />
+                        </View>
+                    )}
                 {!_.isEmpty(this.props.plaidLinkToken) && (
                     <PlaidLink
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
                             getPlaidBankAccounts(publicToken, metadata.institution.name);
+                            this.setState({institution: metadata.institution});
                         }}
                         onError={(error) => {
                             console.debug(`Plaid Error: ${error.message}`);
@@ -107,43 +126,32 @@ class AddPlaidBankAccount extends React.Component {
                     />
                 )}
                 {accounts.length > 0 && (
-                    <View>
-                        <View style={[styles.m5]}>
-                            <Text>{this.props.translate('addBankAccountPage.selectAccount')}</Text>
-                        </View>
-                        {_.map(accounts, (account, index) => (
-                            <React.Fragment
-                                key={`${account.accountNumber}${account.plaidAccountID}`}
-                            >
-                                <OptionRow
-                                    showSelectedState
-                                    optionIsFocused={false}
-                                    isSelected={index === this.state.selectedIndex}
-                                    option={{
-                                        text: account.addressName,
-                                        alternateText: account.accountNumber,
+                    <>
+                        <View style={[styles.m5, styles.flex1]}>
+                            {!_.isEmpty(this.props.text) && (
+                                <Text style={[styles.mb5]}>{this.props.text}</Text>
+                            )}
+                            {/* @TODO there are a bunch of logos to incorporate here to replace this name
+                            https://d2k5nsl2zxldvw.cloudfront.net/images/plaid/bg_plaidLogos_12@2x.png */}
+                            <Text style={[styles.mb5, styles.h1]}>{this.state.institution.name}</Text>
+                            <View style={[styles.mb5]}>
+                                <Picker
+                                    onChange={(index) => {
+                                        this.setState({selectedIndex: Number(index)});
                                     }}
-                                    isDisabled={account.alreadyExists}
-                                    onSelectRow={() => {
-                                        if (account.alreadyExists) {
-                                            return;
-                                        }
-
-                                        this.setState({selectedIndex: index});
-                                    }}
+                                    items={options}
+                                    placeholder={_.isUndefined(this.state.selectedIndex) ? {
+                                        value: '',
+                                        label: this.props.translate('addPersonalBankAccountPage.selectAccount'),
+                                    } : {}}
+                                    value={this.state.selectedIndex}
+                                    icon={() => <Icon src={DownArrow} />}
                                 />
-                                {account.alreadyExists && (
-                                    <Text style={[styles.ml5]}>
-                                        {this.props.translate('addBankAccountPage.alreadyAdded')}
-                                    </Text>
-                                )}
-                            </React.Fragment>
-                        ))}
-                        <View style={[styles.m5]}>
+                            </View>
                             {!_.isUndefined(this.state.selectedIndex) && (
-                                <>
+                                <View style={[styles.mb5]}>
                                     <Text style={[styles.formLabel]}>
-                                        {this.props.translate('addBankAccountPage.enterPassword')}
+                                        {this.props.translate('addPersonalBankAccountPage.enterPassword')}
                                     </Text>
                                     <TextInput
                                         secureTextEntry
@@ -155,17 +163,19 @@ class AddPlaidBankAccount extends React.Component {
                                         autoFocus={canFocusInputOnScreenFocus()}
                                         onChangeText={text => this.setState({password: text})}
                                     />
-                                </>
+                                </View>
                             )}
+                        </View>
+                        <View style={[styles.m5]}>
                             <Button
                                 success
-                                text={this.props.translate('common.continue')}
+                                text={this.props.translate('common.saveAndContinue')}
                                 isLoading={this.state.isCreatingAccount}
                                 onPress={this.selectAccount}
                                 isDisabled={_.isUndefined(this.state.selectedIndex) || !this.state.password}
                             />
                         </View>
-                    </View>
+                    </>
                 )}
             </>
         );

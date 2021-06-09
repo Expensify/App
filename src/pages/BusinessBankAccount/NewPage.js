@@ -119,6 +119,10 @@ class BusinessBankAccountNewPage extends React.Component {
                     )}
                     {this.state.addMethodSelection === CONST.BANK_ACCOUNT.ADD_METHOD.PLAID && (
                         <AddPlaidBankAccount
+                            text="Give your employees an easier way to pay - and get paid back - for company expenses."
+                            onSubmit={(args) => {
+                                console.debug(args);
+                            }}
                             onExitPlaid={() => {
                                 this.setState({addMethodSelection: undefined});
                             }}

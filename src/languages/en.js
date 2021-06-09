@@ -31,6 +31,7 @@ export default {
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
+        saveAndContinue: 'Save & Continue',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -259,7 +260,7 @@ export default {
         enterPassword: 'Enter password',
         addPersonalBankAccount: 'Add Bank Account',
         alreadyAdded: 'This account has already been added.',
-        selectAccount: 'Select an account:',
+        selectAccount: 'Choose an Account',
     },
     attachmentView: {
         unknownFilename: 'Unknown Filename',
