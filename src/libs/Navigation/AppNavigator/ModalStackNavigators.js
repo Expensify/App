@@ -21,6 +21,7 @@ import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 import EnablePaymentsPage from '../../../pages/EnablePayments';
 import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
+import WorkspaceInvitePage from '../../../pages/WorkspaceInvitePage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -152,6 +153,11 @@ const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator([{
     name: 'AddPersonalBankAccount_Root',
 }]);
 
+const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
+    Component: WorkspaceInvitePage,
+    name: 'WorkspaceInvite_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -164,4 +170,5 @@ export {
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
+    WorkspaceInviteModalStackNavigator,
 };
