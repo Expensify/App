@@ -49,7 +49,8 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
-    AddPersonalBankAccountModalStackNavigator, WorkspaceInviteModalStackNavigator,
+    AddPersonalBankAccountModalStackNavigator,
+    WorkspaceInviteModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
