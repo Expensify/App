@@ -18,6 +18,7 @@ import compose from '../../../libs/compose';
 import {isReportMessageAttachment, canEditReportAction} from '../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ConfirmModal from '../../../components/ConfirmModal';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** The ID of the report this report action is attached to. */
@@ -87,7 +88,7 @@ class ReportActionContextMenu extends React.Component {
                     } else {
                         Clipboard.setString(html);
                     }
-                    this.hidePopover(true);
+                    this.hidePopover(true, ReportActionComposeFocusManager.focus);
                 },
             },
 
@@ -106,7 +107,7 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {
                     updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
                     setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
-                    this.hidePopover(true);
+                    this.hidePopover(true, ReportActionComposeFocusManager.focus);
                 },
             },
 

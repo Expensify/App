@@ -10,6 +10,7 @@ import {scrollToIndex} from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import Button from '../../../components/Button';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** All the data of the action */
@@ -73,6 +74,7 @@ class ReportActionItemMessageEdit extends React.Component {
     deleteDraft() {
         saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+        ReportActionComposeFocusManager.focus();
     }
 
     /**
