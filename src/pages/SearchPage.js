@@ -36,6 +36,9 @@ const personalDetailsPropTypes = PropTypes.shape({
 const propTypes = {
     /* Onyx Props */
 
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
@@ -71,6 +74,7 @@ class SearchPage extends Component {
             props.reports,
             props.personalDetails,
             '',
+            props.betas,
         );
 
         this.preserveRecentReports = recentReports;
@@ -267,6 +271,9 @@ export default compose(
         },
         countryCode: {
             key: ONYXKEYS.COUNTRY_CODE,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(SearchPage);

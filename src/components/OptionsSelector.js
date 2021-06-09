@@ -114,10 +114,6 @@ class OptionsSelector extends Component {
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
-        if (this.props.disableArrowKeysActions) {
-            return;
-        }
-
         // We are mapping over all the options to combine them into a single array and also saving the section index
         // index within that section so we can navigate
         const allOptions = _.reduce(this.props.sections, (options, section, sectionIndex) => (
@@ -127,6 +123,10 @@ class OptionsSelector extends Component {
                 sectionIndex,
             }))]
         ), []);
+
+        if (this.props.disableArrowKeysActions && e.nativeEvent.key.startsWith('Arrow')) {
+            return;
+        }
 
         switch (e.nativeEvent.key) {
             case 'Enter': {
