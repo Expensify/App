@@ -51,6 +51,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** Beta features list */
@@ -150,6 +151,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
+        ReportActionComposeFocusManager.onComposerFocus(this.focus);
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
@@ -165,6 +167,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentWillUnmount() {
+        ReportActionComposeFocusManager.clear();
         Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
@@ -203,7 +206,7 @@ class ReportActionCompose extends React.Component {
      * Focus the composer text input
      */
     focus() {
-        if (this.textInput) {
+        if (this.shouldFocusInputOnScreenFocus && this.props.isFocused && this.textInput) {
             // There could be other animations running while we trigger manual focus.
             // This prevents focus from making those animations janky.
             InteractionManager.runAfterInteractions(() => {

@@ -177,10 +177,10 @@ class ReportActionItem extends Component {
      * @param {Function} onHideCallback Callback to be called after popover is completely hidden
      */
     hidePopover(onHideCallback) {
-        this.setState({isPopoverVisible: false});
         if (onHideCallback) {
             this.onPopoverHide = onHideCallback;
         }
+        this.setState({isPopoverVisible: false});
     }
 
     /**
