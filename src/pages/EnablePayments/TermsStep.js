@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, ScrollView, Text, TouchableOpacity,
+    View, ScrollView, Text,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -8,7 +8,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Checkbox from '../../components/Checkbox';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import {activateWallet} from '../../libs/actions/BankAccounts';
