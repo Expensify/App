@@ -82,6 +82,7 @@ class BaseModal extends PureComponent {
                     setModalVisibility(true);
                     this.props.onModalShow();
                 }}
+                propagateSwipe={this.props.propagateSwipe}
                 onModalHide={this.hideModalAndRemoveEventListeners}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
