@@ -133,7 +133,7 @@ function createIOUSplit(params) {
  * @param {String} params.comment
  */
 function rejectTransaction({
-    reportID, chatReportID, transactionID, comment,
+    reportID, chatReportID, transactionID, comment, rejectedIDs,
 }) {
     Onyx.merge(ONYXKEYS.REJECT_IN_PROGRESS, [transactionID]);
     API.RejectTransaction({
@@ -154,7 +154,11 @@ function rejectTransaction({
             // we should also sync the chatReport after fetching the iouReport.
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
         })
-        .catch(error => console.error(`Error rejecting transaction: ${error}`));
+        .catch(error => console.error(`Error rejecting transaction: ${error}`))
+        .finally(() => {
+            const withoutCurrentID = rejectedIDs.filter(id => id !== transactionID);
+            Onyx.set(ONYXKEYS.REJECT_IN_PROGRESS, withoutCurrentID);
+        });
 }
 
 /**
