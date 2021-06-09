@@ -48,11 +48,9 @@ class BusinessBankAccountNewPage extends React.Component {
 
     canSubmitManually() {
         return this.state.hasAcceptedTerms
-            && this.state.accountNumber
 
             // These are taken from BankCountry.js in Web-Secure
             && /^[A-Za-z0-9]{2,30}$/.test(this.state.accountNumber.trim())
-            && this.state.routingNumber
             && /^[A-Za-z0-9]{8,11}$/.test(this.state.routingNumber.trim());
     }
 
