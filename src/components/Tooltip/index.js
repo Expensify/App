@@ -135,6 +135,7 @@ class Tooltip extends PureComponent {
                         toValue: 1,
                         duration: 140,
                         delay: 500,
+                        useNativeDriver: false,
                     }).start();
                 }
             });
@@ -149,6 +150,7 @@ class Tooltip extends PureComponent {
         Animated.timing(this.animation, {
             toValue: 0,
             duration: 140,
+            useNativeDriver: false,
         }).start();
     }
 
