@@ -31,6 +31,7 @@ export default {
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
+        settings: 'Settings',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -38,7 +39,6 @@ export default {
         attachmentError: 'Attachment Error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
         errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
-        errorDuringAttachmentSelection: 'Error during attachment selection',
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
         chooseDocument: 'Choose Document',
@@ -156,7 +156,6 @@ export default {
         sendValidation: 'Send Validation',
     },
     initialSettingsPage: {
-        settings: 'Settings',
         about: 'About',
         aboutPage: {
             description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
