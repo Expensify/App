@@ -50,7 +50,9 @@ class BusinessBankAccountNewPage extends React.Component {
         // @TODO add better validation
         return this.state.hasAcceptedTerms
             && this.state.accountNumber
-            && this.state.routingNumber;
+            && /^[0-9]+$/.test(this.state.accountNumber)
+            && this.state.routingNumber
+            && /^[0-9]{9}$/.test(this.state.routingNumber);
     }
 
     addManualAccount() {
