@@ -11,7 +11,7 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PlaidLink from './PlaidLink';
 import {
-    clearPlaidBankAccounts,
+    clearPlaidBankAccountsAndToken,
     fetchPlaidLinkToken,
     getPlaidBankAccounts,
 } from '../libs/actions/BankAccounts';
@@ -71,7 +71,7 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidMount() {
-        clearPlaidBankAccounts();
+        clearPlaidBankAccountsAndToken();
         fetchPlaidLinkToken();
     }
 
