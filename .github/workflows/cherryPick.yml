@@ -120,6 +120,9 @@ jobs:
             echo "::set-output name=SHOULD_AUTOMERGE::false"
           fi
 
+      - name: Push changes to CP branch
+        run: git push
+
       - name: Create Pull Request
         id: createPullRequest
         # Version: 2.4.3
