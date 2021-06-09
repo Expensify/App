@@ -318,4 +318,12 @@ export default {
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
+    workspace: {
+        new: {
+            welcome: 'Welcome',
+            chooseAName: 'Choose a name',
+            chooseANameHint: 'Name your Workspace before enabling your Expensify Cards!',
+            getStarted: 'Get started!',
+        },
+    },
 };

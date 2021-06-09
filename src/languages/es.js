@@ -275,4 +275,12 @@ export default {
     session: {
         offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',
     },
+    workspace: {
+        new: {
+            welcome: 'Bienvenido/a',
+            chooseAName: 'Elige un nombre',
+            chooseANameHint: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
+            getStarted: '¡Empezar!',
+        },
+    },
 };
