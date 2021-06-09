@@ -32,6 +32,7 @@ export default {
         recents: 'Recents',
         close: 'Close',
         settings: 'Settings',
+        invite: 'Invite',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -317,5 +318,11 @@ export default {
     },
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
+    },
+    workspaceInvitePage: {
+        invitePeople: 'Invite People',
+        invitePeoplePrompt: 'Invite a colleague to your workspace.',
+        enterEmailOrPhone: 'Email or Phone',
+        welcomeMessage: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
     },
 };
