@@ -33,6 +33,9 @@ const propTypes = {
     /** Text label for the reject transaction button */
     rejectButtonLabelText: PropTypes.string.isRequired,
 
+    /* Onyx Props */
+
+    /** List of transactionIDs in process of rejection */
     /* eslint-disable-next-line react/no-unused-prop-types */
     rejectInProgress: PropTypes.arrayOf(PropTypes.string),
 };
