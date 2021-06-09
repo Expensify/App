@@ -42,20 +42,23 @@ class WorkspaceInvitePage extends React.Component {
                         <Text style={[styles.mb6, styles.textP]}>
                             {this.props.translate('workspaceInvitePage.invitePeoplePrompt')}
                         </Text>
-                        <TextInput
-                            autoCompleteType="off"
-                            autoCorrect={false}
-                            style={[styles.textInput]}
-                            value={this.state.emailOrPhone}
-                            placeholder={this.props.translate('workspaceInvitePage.enterEmailOrPhone')}
-                            onChangeText={text => this.setState({emailOrPhone: text})}
-                        />
                         <View style={styles.mb6}>
                             <TextInput
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 style={[styles.textInput]}
+                                value={this.state.emailOrPhone}
+                                placeholder={this.props.translate('workspaceInvitePage.enterEmailOrPhone')}
+                                onChangeText={text => this.setState({emailOrPhone: text})}
+                            />
+                        </View>
+                        <View style={styles.mb6}>
+                            <TextInput
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                style={[styles.textInput, styles.workspaceInviteWelcome]}
                                 numberOfLines={10}
+                                multiline
                                 value={this.state.welcomeMessage}
                                 placeholder={this.props.translate('workspaceInvitePage.welcomeMessage', {
                                     workspaceName: 'TODO testing',

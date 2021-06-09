@@ -1521,6 +1521,10 @@ const styles = {
     cursorDisabled: {
         cursor: 'not-allowed',
     },
+
+    workspaceInviteWelcome: {
+        minHeight: 200,
+    },
 };
 
 const baseCodeTagStyles = {
