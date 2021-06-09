@@ -48,7 +48,7 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Set version in ENV
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+\d\+' android/app/build.gradle | awk '{ print $2 }')" >> $GITHUB_ENV
+        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> $GITHUB_ENV
 
       - name: Run Fastlane beta
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
