@@ -1,7 +1,4 @@
 import React, {
-    useEffect,
-    useRef,
-    useCallback,
     forwardRef,
 } from 'react';
 import PropTypes from 'prop-types';
@@ -16,57 +13,58 @@ const propTypes = {
     }).isRequired,
 };
 
-// This is copied from https://codesandbox.io/s/react-native-dsyse
+// This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
-const InvertedFlatList = (props) => {
-    const ref = useRef(null);
+class InvertedFlatList extends React.Component {
+    constructor(props) {
+        super(props);
 
-    const invertedWheelEvent = useCallback((e) => {
-        ref.current.getScrollableNode().scrollTop -= e.deltaY;
-        e.preventDefault();
-    }, []);
+        this.invertedWheelEvent = this.invertedWheelEvent.bind(this);
+        this.list = undefined;
+    }
 
-    useEffect(() => {
-        if (!_.isFunction(props.innerRef)) {
+    componentDidMount() {
+        if (!_.isFunction(this.props.innerRef)) {
             // eslint-disable-next-line no-param-reassign
-            props.innerRef.current = ref.current;
+            this.props.innerRef.current = this.list;
         } else {
-            props.innerRef(ref.current);
+            this.props.innerRef(this.list);
         }
-    }, []);
 
-    useEffect(() => {
-        const currentRef = ref.current;
-        if (currentRef != null) {
-            currentRef
+        if (this.list) {
+            this.list
                 .getScrollableNode()
-                .addEventListener('wheel', invertedWheelEvent);
+                .addEventListener('wheel', this.invertedWheelEvent);
 
-            currentRef.setNativeProps({
+            this.list.setNativeProps({
                 style: {
                     transform: 'translate3d(0,0,0) scaleY(-1)',
                 },
             });
         }
+    }
 
-        return () => {
-            if (currentRef != null) {
-                currentRef
-                    .getScrollableNode()
-                    .removeEventListener('wheel', invertedWheelEvent);
-            }
-        };
-    }, [ref, invertedWheelEvent]);
+    componentWillUnmount() {
+        this.list.getScrollableNode()
+            .removeEventListener('wheel', this.invertedWheelEvent);
+    }
 
-    return (
-        <BaseInvertedFlatList
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            ref={ref}
-            shouldMeasureItems
-        />
-    );
-};
+    invertedWheelEvent(e) {
+        this.list.getScrollableNode().scrollTop -= e.deltaY;
+        e.preventDefault();
+    }
+
+    render() {
+        return (
+            <BaseInvertedFlatList
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.props}
+                ref={el => this.list = el}
+                shouldMeasureItems
+            />
+        );
+    }
+}
 
 InvertedFlatList.propTypes = propTypes;
 

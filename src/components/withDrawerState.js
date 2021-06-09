@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {useIsDrawerOpen} from '@react-navigation/drawer';
+import {useDrawerStatus} from '@react-navigation/drawer';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 export const withDrawerPropTypes = {
@@ -9,14 +9,14 @@ export const withDrawerPropTypes = {
 
 export default function withDrawerState(WrappedComponent) {
     const WithDrawerState = (props) => {
-        const isDrawerOpen = useIsDrawerOpen();
+        const drawerStatus = useDrawerStatus();
 
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 ref={props.forwardedRef}
-                isDrawerOpen={isDrawerOpen}
+                isDrawerOpen={drawerStatus === 'open'}
             />
         );
     };

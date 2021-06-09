@@ -1,8 +1,13 @@
 import React from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
-import withWindowDimensions from '../../../components/withWindowDimensions';
-import propTypes from './GrowlNotificationContainerPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
+import GrowlNotificationContainerPropTypes from './GrowlNotificationContainerPropTypes';
+
+const propTypes = {
+    ...GrowlNotificationContainerPropTypes,
+    ...windowDimensionsPropTypes,
+};
 
 const GrowlNotificationContainer = ({children, translateY, isSmallScreenWidth}) => (
     <Animated.View
@@ -18,5 +23,6 @@ const GrowlNotificationContainer = ({children, translateY, isSmallScreenWidth}) 
 );
 
 GrowlNotificationContainer.propTypes = propTypes;
+GrowlNotificationContainer.displayName = 'GrowlNotificationContainer';
 
 export default withWindowDimensions(GrowlNotificationContainer);

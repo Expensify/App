@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../components/Icon/Expensicons';
@@ -15,11 +15,9 @@ import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import compose from '../../../libs/compose';
-import {isReportMessageAttachment} from '../../../libs/reportUtils';
-import ONYXKEYS from '../../../ONYXKEYS';
+import {isReportMessageAttachment, canEditReportAction} from '../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ConfirmModal from '../../../components/ConfirmModal';
-import CONST from '../../../CONST';
 
 const propTypes = {
     /** The ID of the report this report action is attached to. */
@@ -45,13 +43,6 @@ const propTypes = {
     /** Function to dismiss the popover containing this menu */
     hidePopover: PropTypes.func.isRequired,
 
-    /* Onyx Props */
-
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Email of the logged in person */
-        email: PropTypes.string,
-    }),
     ...withLocalizePropTypes,
 };
 
@@ -59,7 +50,6 @@ const defaultProps = {
     isMini: false,
     isVisible: false,
     selection: '',
-    session: {},
     draftMessage: '',
 };
 
@@ -70,7 +60,7 @@ class ReportActionContextMenu extends React.Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.getActionText = this.getActionText.bind(this);
-        this.canEdit = this.canEdit.bind(this);
+        this.hidePopover = this.hidePopover.bind(this);
 
         // A list of all the context actions in this menu.
         this.contextActions = [
@@ -88,7 +78,7 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {
                     const message = _.last(lodashGet(this.props.reportAction, 'message', null));
                     const html = lodashGet(message, 'html', '');
-                    const text = props.selection || lodashGet(message, 'text', '');
+                    const text = Str.htmlDecode(props.selection || lodashGet(message, 'text', ''));
                     const isAttachment = _.has(this.props.reportAction, 'isAttachment')
                         ? this.props.reportAction.isAttachment
                         : isReportMessageAttachment(text);
@@ -97,6 +87,7 @@ class ReportActionContextMenu extends React.Component {
                     } else {
                         Clipboard.setString(html);
                     }
+                    this.hidePopover(true);
                 },
             },
 
@@ -115,18 +106,16 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {
                     updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
                     setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
+                    this.hidePopover(true);
                 },
             },
 
             {
                 text: this.props.translate('reportActionContextMenu.editComment'),
                 icon: Pencil,
-                shouldShow: () => (
-                    this.canEdit()
-                    && !isReportMessageAttachment(this.getActionText())
-                ),
+                shouldShow: () => canEditReportAction(this.props.reportAction),
                 onPress: () => {
-                    this.props.hidePopover();
+                    this.hidePopover();
                     saveReportActionDraft(
                         this.props.reportID,
                         this.props.reportAction.reportActionID,
@@ -137,8 +126,10 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
-                shouldShow: this.canEdit,
-                onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
+                shouldShow: () => canEditReportAction(this.props.reportAction),
+                onPress: () => {
+                    this.setState({isDeleteCommentConfirmModalVisible: true});
+                },
             },
         ];
 
@@ -159,27 +150,29 @@ class ReportActionContextMenu extends React.Component {
         return lodashGet(message, 'text', '');
     }
 
-    /**
-     * Can the current user edit this report action?
-     *
-     * @return {Boolean}
-     */
-    canEdit() {
-        // Can only edit if it's a ADDCOMMENT, the author is this user and it's not a optimistic response.
-        // If it's an optimistic response comment it will not have a reportActionID,
-        // and we should wait until it does before we show the actions
-        return this.props.reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && this.props.reportAction.actorEmail === this.props.session.email
-        && this.props.reportAction.reportActionID;
-    }
-
     confirmDeleteAndHideModal() {
         deleteReportComment(this.props.reportID, this.props.reportAction);
         this.setState({isDeleteCommentConfirmModalVisible: false});
+        this.hidePopover();
     }
 
     hideDeleteConfirmModal() {
         this.setState({isDeleteCommentConfirmModalVisible: false});
+        this.hidePopover();
+    }
+
+    /**
+     * Hides the popover menu with an optional delay
+     *
+     * @param {Boolean} shouldDelay whether the menu should close after a delay
+     * @memberof ReportActionContextMenu
+     */
+    hidePopover(shouldDelay) {
+        if (!shouldDelay) {
+            this.props.hidePopover();
+            return;
+        }
+        setTimeout(this.props.hidePopover, 800);
     }
 
     render() {
@@ -215,9 +208,4 @@ ReportActionContextMenu.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
 )(ReportActionContextMenu);

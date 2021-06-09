@@ -6,7 +6,7 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
-import openURLInNewTab from '../../../libs/openURLInNewTab';
+import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
@@ -53,15 +53,15 @@ const SignInPageLayoutWide = props => (
                             {'\n\n'}
                             {props.translate('signInPage.heroDescription.phase2')}
                             {' '}
-                            <Text style={[styles.textUnderline]} onPress={() => openURLInNewTab(CONST.GITHUB_URL)}>
+                            <TextLink style={[styles.textUnderline]} href={CONST.GITHUB_URL}>
                                 {props.translate('signInPage.heroDescription.phase3')}
-                            </Text>
+                            </TextLink>
                             {'. '}
                             {props.translate('signInPage.heroDescription.phase4')}
                             {' '}
-                            <Text style={[styles.textUnderline]} onPress={() => openURLInNewTab(CONST.UPWORK_URL)}>
+                            <TextLink style={[styles.textUnderline]} href={CONST.UPWORK_URL}>
                                 {props.translate('signInPage.heroDescription.phase5')}
-                            </Text>
+                            </TextLink>
                             .
                         </Text>
                     </View>

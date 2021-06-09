@@ -50,7 +50,7 @@ const defaultProps = {
     },
 };
 
-class AddBankAccountPage extends React.Component {
+class AddPersonalBankAccountPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -88,7 +88,7 @@ class AddBankAccountPage extends React.Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translate('addBankAccountPage.addBankAccount')}
+                    title={this.props.translate('addPersonalBankAccountPage.addPersonalBankAccount')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
@@ -111,7 +111,7 @@ class AddBankAccountPage extends React.Component {
                 {accounts.length > 0 && (
                     <View>
                         <View style={[styles.m5]}>
-                            <Text>{this.props.translate('addBankAccountPage.selectAccount')}</Text>
+                            <Text>{this.props.translate('addPersonalBankAccountPage.selectAccount')}</Text>
                         </View>
                         {_.map(accounts, (account, index) => (
                             <React.Fragment
@@ -136,7 +136,7 @@ class AddBankAccountPage extends React.Component {
                                 />
                                 {account.alreadyExists && (
                                     <Text style={[styles.ml5]}>
-                                        {this.props.translate('addBankAccountPage.alreadyAdded')}
+                                        {this.props.translate('addPersonalBankAccountPage.alreadyAdded')}
                                     </Text>
                                 )}
                             </React.Fragment>
@@ -145,7 +145,7 @@ class AddBankAccountPage extends React.Component {
                             {!_.isUndefined(this.state.selectedIndex) && (
                                 <>
                                     <Text style={[styles.formLabel]}>
-                                        {this.props.translate('addBankAccountPage.enterPassword')}
+                                        {this.props.translate('addPersonalBankAccountPage.enterPassword')}
                                     </Text>
                                     <TextInput
                                         secureTextEntry
@@ -174,8 +174,8 @@ class AddBankAccountPage extends React.Component {
     }
 }
 
-AddBankAccountPage.propTypes = propTypes;
-AddBankAccountPage.defaultProps = defaultProps;
+AddPersonalBankAccountPage.propTypes = propTypes;
+AddPersonalBankAccountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -187,4 +187,4 @@ export default compose(
             key: ONYXKEYS.PLAID_BANK_ACCOUNTS,
         },
     }),
-)(AddBankAccountPage);
+)(AddPersonalBankAccountPage);

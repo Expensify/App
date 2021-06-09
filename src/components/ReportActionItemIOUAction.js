@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
@@ -16,11 +15,11 @@ const propTypes = {
     /** The associated chatReport */
     chatReportID: PropTypes.number.isRequired,
 
-    /** Should render the preview Component? */
-    shouldDisplayPreview: PropTypes.bool.isRequired,
+    /** Is this IOUACTION the most recent? */
+    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     /* Onyx Props */
-    /** ChatReport associated with iouReport */
+    /** chatReport associated with iouReport */
     chatReport: PropTypes.shape({
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
@@ -36,21 +35,19 @@ const defaultProps = {
 const ReportActionItemIOUAction = ({
     action,
     chatReportID,
-    shouldDisplayPreview,
-    chatReport,
+    isMostRecentIOUReportAction,
 }) => {
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
     };
-    const hasMultipleParticipants = lodashGet(chatReport, 'participants', []).length >= 2;
     return (
         <>
             <ReportActionItemIOUQuote
                 action={action}
-                shouldShowViewDetailsLink={!hasMultipleParticipants}
+                shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {shouldDisplayPreview && (
+            {isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID) && (
                 <ReportActionItemIOUPreview
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}

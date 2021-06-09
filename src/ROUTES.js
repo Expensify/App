@@ -8,7 +8,7 @@ import {addTrailingForwardSlash} from './libs/Url';
 const REPORT = 'r';
 
 export default {
-    ADD_BANK_ACCOUNT: 'add-bank-account',
+    ADD_PERSONAL_BANK_ACCOUNT: 'add-personal-bank-account',
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -46,6 +46,7 @@ export default {
     getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
+    ENABLE_PAYMENTS: 'enable-payments',
 
     /**
      * @param {String} route
