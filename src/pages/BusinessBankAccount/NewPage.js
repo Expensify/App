@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -16,9 +16,9 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
 import CONST from '../../CONST';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
-import Checkbox from '../../components/Checkbox';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import ONYXKEYS from '../../ONYXKEYS';
+import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 
 const propTypes = {
     /** List of betas */
@@ -62,17 +62,6 @@ class BusinessBankAccountNewPage extends React.Component {
             Navigation.dismissModal();
             return null;
         }
-
-        // @TODO - these are duplicated from TermsStep for the KYC flow and the checkboxes there should be refactored
-        // into a new component as a follow up.
-        const toggleStyles = [
-            styles.ml2,
-            styles.pr2,
-            styles.w100,
-            styles.flexRow,
-            styles.flexWrap,
-            styles.alignItemsCenter,
-        ];
 
         return (
             <ScreenWrapper>
@@ -153,23 +142,19 @@ class BusinessBankAccountNewPage extends React.Component {
                                     value={this.state.accountNumber}
                                     onChangeText={accountNumber => this.setState({accountNumber})}
                                 />
-                                <View style={[styles.flexRow, styles.mb4, styles.mt5]}>
-                                    <Checkbox
-                                        isChecked={this.state.hasAcceptedTerms}
-                                        onClick={this.toggleTerms}
-                                    />
-                                    <TouchableOpacity
-                                        onPress={this.toggleTerms}
-                                        style={toggleStyles}
-                                    >
+                                <CheckboxWithLabel
+                                    style={[styles.mb4, styles.mt5]}
+                                    isChecked={this.state.hasAcceptedTerms}
+                                    onPress={this.toggleTerms}
+                                    LabelComponent={() => (
                                         <Text>
                                             {'I accept the '}
                                             <TextLink href="https://use.expensify.com/terms">
                                                 Expensify Terms of Service
                                             </TextLink>
                                         </Text>
-                                    </TouchableOpacity>
-                                </View>
+                                    )}
+                                />
                             </View>
                             <Button
                                 success
