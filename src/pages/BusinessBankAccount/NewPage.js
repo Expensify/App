@@ -35,8 +35,8 @@ class BusinessBankAccountNewPage extends React.Component {
         this.state = {
             addMethodSelection: undefined,
             hasAcceptedTerms: false,
-            routingNumber: undefined,
-            accountNumber: undefined,
+            routingNumber: '',
+            accountNumber: '',
         };
     }
 
@@ -47,12 +47,13 @@ class BusinessBankAccountNewPage extends React.Component {
     }
 
     canSubmitManually() {
-        // @TODO add better validation
         return this.state.hasAcceptedTerms
             && this.state.accountNumber
-            && /^[0-9]+$/.test(this.state.accountNumber)
+
+            // These are taken from BankCountry.js in Web-Secure
+            && /^[A-Za-z0-9]{2,30}$/.test(this.state.accountNumber.trim())
             && this.state.routingNumber
-            && /^[0-9]{9}$/.test(this.state.routingNumber);
+            && /^[A-Za-z0-9]{8,11}$/.test(this.state.routingNumber.trim());
     }
 
     addManualAccount() {
