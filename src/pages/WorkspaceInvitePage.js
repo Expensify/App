@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {TextInput, View} from 'react-native';
-import {withLocalizePropTypes} from '../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
@@ -82,4 +82,4 @@ class WorkspaceInvitePage extends React.Component {
 
 WorkspaceInvitePage.propTypes = propTypes;
 
-export default WorkspaceInvitePage;
+export default withLocalize(WorkspaceInvitePage);
