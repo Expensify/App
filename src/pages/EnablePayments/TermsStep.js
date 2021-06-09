@@ -16,6 +16,7 @@ import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
@@ -56,14 +57,6 @@ class TermsStep extends React.Component {
     }
 
     render() {
-        const toggleStyles = [
-            styles.ml2,
-            styles.pr2,
-            styles.w100,
-            styles.flexRow,
-            styles.flexWrap,
-            styles.alignItemsCenter,
-        ];
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -78,15 +71,11 @@ class TermsStep extends React.Component {
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                         </Text>
                     </ScrollView>
-                    <View style={[styles.flexRow, styles.mb4]}>
-                        <Checkbox
-                            isChecked={this.state.hasAcceptedDisclosure}
-                            onClick={this.toggleDisclosure}
-                        />
-                        <TouchableOpacity
-                            onPress={this.toggleDisclosure}
-                            style={toggleStyles}
-                        >
+                    <CheckboxWithLabel
+                        style={styles.mb4}
+                        isChecked={this.state.hasAcceptedDisclosure}
+                        onPress={this.toggleDisclosure}
+                        LabelComponent={() => (
                             <Text>
                                 {`${this.props.translate('termsStep.haveReadAndAgree')} `}
 
@@ -94,32 +83,30 @@ class TermsStep extends React.Component {
                                     {`${this.props.translate('termsStep.electronicDisclosures')}.`}
                                 </TextLink>
                             </Text>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={[styles.flexRow, styles.mb4]}>
-                        <Checkbox
-                            isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
-                            onClick={this.togglePrivacyPolicy}
-                        />
-                        <TouchableOpacity
-                            onPress={this.togglePrivacyPolicy}
-                            style={toggleStyles}
-                        >
-                            <Text>
-                                {`${this.props.translate('termsStep.agreeToThe')} `}
-                            </Text>
+                        )}
+                    />
+                    <CheckboxWithLabel
+                        style={styles.mb4}
+                        isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
+                        onPress={this.togglePrivacyPolicy}
+                        LabelComponent={() => (
+                            <>
+                                <Text>
+                                    {`${this.props.translate('termsStep.agreeToThe')} `}
+                                </Text>
 
-                            <TextLink href="https://use.expensify.com/privacy">
-                                {`${this.props.translate('common.privacyPolicy')} `}
-                            </TextLink>
+                                <TextLink href="https://use.expensify.com/privacy">
+                                    {`${this.props.translate('common.privacyPolicy')} `}
+                                </TextLink>
 
-                            <Text>{`${this.props.translate('common.and')} `}</Text>
+                                <Text>{`${this.props.translate('common.and')} `}</Text>
 
-                            <TextLink href="https://use.expensify.com/personalpaymentsterms">
-                                {`${this.props.translate('termsStep.walletAgreement')}.`}
-                            </TextLink>
-                        </TouchableOpacity>
-                    </View>
+                                <TextLink href="https://use.expensify.com/personalpaymentsterms">
+                                    {`${this.props.translate('termsStep.walletAgreement')}.`}
+                                </TextLink>
+                            </>
+                        )}
+                    />
                     {this.state.error && (
                         <Text style={[styles.formError, styles.mb2]}>
                             {this.props.translate('termsStep.termsMustBeAccepted')}
