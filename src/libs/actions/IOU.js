@@ -135,6 +135,7 @@ function createIOUSplit(params) {
 function rejectTransaction({
     reportID, chatReportID, transactionID, comment,
 }) {
+    Onyx.merge(ONYXKEYS.REJECT_IN_PROGRESS, [transactionID]);
     API.RejectTransaction({
         reportID,
         transactionID,
