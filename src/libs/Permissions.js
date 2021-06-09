@@ -28,16 +28,18 @@ function canUseIOU(betas) {
 }
 
 /**
+ * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUsePayWithExpensify() {
+function canUsePayWithExpensify(betas) {
     return _.contains(betas, CONST.BETAS.PAY_WITH_EXPENSIFY) || canUseAllBetas();
 }
 
 /**
+ * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseFreePlan() {
+function canUseFreePlan(betas) {
     return _.contains(betas, CONST.BETAS.FREE_PLAN) || canUseAllBetas();
 }
 
