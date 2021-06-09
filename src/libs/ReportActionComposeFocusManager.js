@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 let focusCallback = null;
 
 /**
@@ -15,7 +17,7 @@ function onComposerFocus(callback) {
  *
  */
 function focus() {
-    if (focusCallback) {
+    if (_.isFunction(focusCallback)) {
         focusCallback();
     }
 }

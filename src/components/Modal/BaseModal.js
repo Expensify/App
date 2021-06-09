@@ -28,7 +28,7 @@ class BaseModal extends PureComponent {
      */
     hideModalAndRemoveEventListeners() {
         this.unsubscribeFromKeyEvents();
-        if (this.props.setModalVisibility) {
+        if (this.props.shouldSetModalVisibility) {
             setModalVisibility(false);
         }
         this.props.onModalHide();
@@ -81,7 +81,7 @@ class BaseModal extends PureComponent {
                 onBackButtonPress={this.props.onClose}
                 onModalShow={() => {
                     this.subscribeToKeyEvents();
-                    if (this.props.setModalVisibility) {
+                    if (this.props.shouldSetModalVisibility) {
                         setModalVisibility(true);
                     }
                     this.props.onModalShow();
