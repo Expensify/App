@@ -197,6 +197,7 @@ class OptionsSelector extends Component {
                     styles.dFlex,
                     styles.flexRow,
                     styles.alignItemsCenter,
+                    styles.mb3,
                 ]}
                 >
                     <TextInputWithFocusStyles
