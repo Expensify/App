@@ -145,14 +145,12 @@ class BusinessBankAccountNewPage extends React.Component {
                                     keyboardType="number-pad"
                                     value={this.state.routingNumber}
                                     onChangeText={routingNumber => this.setState({routingNumber})}
-                                    returnKeyType="go"
                                 />
                                 <TextInputWithLabel
                                     placeholder={this.props.translate('bankAccount.accountNumber')}
                                     keyboardType="number-pad"
                                     value={this.state.accountNumber}
                                     onChangeText={accountNumber => this.setState({accountNumber})}
-                                    returnKeyType="go"
                                 />
                                 <CheckboxWithLabel
                                     style={[styles.mb4, styles.mt5]}
