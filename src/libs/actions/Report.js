@@ -147,7 +147,9 @@ function getChatReportName(sharedReportList) {
  */
 function getSimplifiedReportObject(report) {
     const reportActionList = lodashGet(report, ['reportActionList'], []);
-    const lastReportAction = !_.isEmpty(reportActionList) ? _.last(reportActionList) : null;
+    const lastReportAction = !_.isEmpty(reportActionList)
+        ? _.find([...reportActionList].reverse(), reportAction => reportAction.message.html !== '')
+        : null;
     const createTimestamp = lastReportAction ? lastReportAction.created : 0;
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
     const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lodashGet(lastReportAction, ['message', 'html'], ''));
@@ -1084,6 +1086,39 @@ function deleteReportComment(reportID, reportAction) {
                 };
 
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+            } else {
+                // Update last message information in the report object
+                Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    callback: _.once((reportActionList) => {
+                        // Find last non-empty message
+                        const lastReportAction = !_.isEmpty(reportActionList)
+                            ? _.find(
+                                Object.values(reportActionList).reverse(),
+                                reportActionItem => _.last(reportActionItem.message).html !== ''
+                                      && reportActionItem.actionName !== 'CREATED',
+                            )
+                            : null;
+
+                        // Populate last message details
+                        const lastMessageDetails = {};
+                        if (lastReportAction) {
+                            lastMessageDetails.lastMessageText = lastReportAction.isAttachment
+                                ? '[Attachment]'
+                                : _.last(lastReportAction.message)
+                                    .html.replace(/((<br[^>]*>)+)/gi, ' ')
+                                    .replace(/(<([^>]+)>)/gi, '');
+                            lastMessageDetails.lastMessageTimestamp = lastReportAction.timestamp;
+                            lastMessageDetails.lastActorEmail = lodashGet(lastReportAction, 'actorEmail', '');
+                        } else {
+                            lastMessageDetails.lastMessageText = '';
+                            lastMessageDetails.lastMessageTimestamp = 0;
+                            lastMessageDetails.lastActorEmail = '';
+                        }
+
+                        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, lastMessageDetails);
+                    }),
+                });
             }
         });
 }
