@@ -47,6 +47,7 @@ export default {
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
     ENABLE_PAYMENTS: 'enable-payments',
+    WORKSPACE_NEW: 'workspace/new',
 
     /**
      * @param {String} route
