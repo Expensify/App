@@ -1,8 +1,13 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import {
     Text, View, Pressable, ActivityIndicator,
 } from 'react-native';
+import {
+    withOnyx,
+} from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import {rejectTransaction} from '../libs/actions/IOU';
