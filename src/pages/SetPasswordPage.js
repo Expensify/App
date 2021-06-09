@@ -16,7 +16,7 @@ import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import NewPassword from './settings/NewPassword';
+import NewPasswordForm from './settings/NewPassword';
 
 const propTypes = {
     /* Onyx Props */
@@ -61,7 +61,7 @@ class SetPasswordPage extends Component {
 
         this.state = {
             password: '',
-            passwordIsValid: false,
+            isFormValid: false,
         };
     }
 
@@ -69,7 +69,7 @@ class SetPasswordPage extends Component {
      * Validate the form and then submit it
      */
     validateAndSubmitForm() {
-        if (!this.state.passwordIsValid) {
+        if (!this.state.isFormValid) {
             return;
         }
         setPassword(
@@ -84,10 +84,10 @@ class SetPasswordPage extends Component {
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout>
                     <View style={[styles.mb4]}>
-                        <NewPassword
+                        <NewPasswordForm
                             password={this.state.password}
-                            setPassword={password => this.setState({password})}
-                            passwordIsValid={isValid => this.setState({passwordIsValid: isValid})}
+                            updatePassword={password => this.setState({password})}
+                            updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
                             onSubmitEditing={this.validateAndSubmitForm}
                         />
                     </View>
