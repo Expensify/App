@@ -104,9 +104,9 @@ export default {
                     IOU_Details_Root: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,
                 },
             },
-            AddBankAccount: {
+            AddPersonalBankAccount: {
                 screens: {
-                    AddBankAccount_Root: ROUTES.ADD_BANK_ACCOUNT,
+                    AddPersonalBankAccount_Root: ROUTES.ADD_PERSONAL_BANK_ACCOUNT,
                 },
             },
             BusinessBankAccount: {
