@@ -661,12 +661,16 @@ function User_GetBetas() {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @param {Boolean} [parameters.requireClearbitResponse]
  * @returns {Promise}
  */
 function User_IsFromPublicDomain(parameters) {
     const commandName = 'User_IsFromPublicDomain';
     requireParameters(['email'], parameters, commandName);
-    return Network.post(commandName, parameters);
+    return Network.post(commandName, {
+        ...{requireClearbitResponse: true},
+        ...parameters,
+    });
 }
 
 /**

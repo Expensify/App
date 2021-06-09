@@ -1,10 +1,8 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-import {
-    Str,
-    PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS,
-} from 'expensify-common/lib/CONST';
+import Str from 'expensify-common/lib/str';
+import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
