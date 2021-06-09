@@ -4,7 +4,7 @@ import CONST from '../../CONST';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
-    /** Should be announce the Modal visibility changes? */
+    /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility: PropTypes.bool,
 
     /** Callback method fired when the user requests to close the modal */
