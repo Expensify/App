@@ -35,21 +35,20 @@ class WorkspaceInvitePage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspaceInvitePage.invitePeople')}
-                    shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <View style={styles.flexGrow1}>
                         <Text style={[styles.mb6, styles.textP]}>
-                            {this.props.translate('workspaceInvitePage.invitePeople')}
+                            {this.props.translate('workspaceInvitePage.invitePeoplePrompt')}
                         </Text>
                         <TextInput
                             autoCompleteType="off"
                             autoCorrect={false}
                             style={[styles.textInput]}
-                            value={this.state.phoneOrEmail}
+                            value={this.state.emailOrPhone}
                             placeholder={this.props.translate('workspaceInvitePage.enterEmailOrPhone')}
-                            onChangeText={text => this.setState({phoneOrEmail: text})}
+                            onChangeText={text => this.setState({emailOrPhone: text})}
                         />
                         <View style={styles.mb6}>
                             <TextInput
