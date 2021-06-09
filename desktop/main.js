@@ -130,7 +130,6 @@ const mainWindow = (() => {
                 width: 1200,
                 height: 900,
                 webPreferences: {
-                    enableRemoteModule: true,
                     nodeIntegration: true,
                 },
                 titleBarStyle: 'hidden',
@@ -229,7 +228,7 @@ const mainWindow = (() => {
             ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
                 // This is how synchronous messages work in Electron
                 // eslint-disable-next-line no-param-reassign
-                event.returnValue = browserWindow.isFocused();
+                event.returnValue = browserWindow && !browserWindow.isDestroyed() && browserWindow.isFocused();
             });
 
             // This allows the renderer process to bring the app

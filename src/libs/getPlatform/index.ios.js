@@ -1,3 +1,5 @@
+import CONST from '../../CONST';
+
 export default function getPlatform() {
-    return 'ios';
+    return CONST.PLATFORM.IOS;
 }

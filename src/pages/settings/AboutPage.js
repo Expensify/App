@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -21,7 +21,6 @@ import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import Logo from '../../../assets/images/expensify-cash.svg';
 import {version} from '../../../package.json';
-import openURLInNewTab from '../../libs/openURLInNewTab';
 import {fetchOrCreateChatReport} from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
 
@@ -51,7 +50,7 @@ const AboutPage = ({translate, session}) => {
             icon: Eye,
             iconRight: NewWindow,
             action: () => {
-                openURLInNewTab(CONST.GITHUB_URL);
+                Linking.openURL(CONST.GITHUB_URL);
             },
         },
         {
@@ -59,7 +58,7 @@ const AboutPage = ({translate, session}) => {
             icon: MoneyBag,
             iconRight: NewWindow,
             action: () => {
-                openURLInNewTab(CONST.UPWORK_URL);
+                Linking.openURL(CONST.UPWORK_URL);
             },
         },
         {
@@ -129,7 +128,7 @@ const AboutPage = ({translate, session}) => {
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => openURLInNewTab(CONST.TERMS_URL)}
+                            onPress={() => Linking.openURL(CONST.TERMS_URL)}
                         >
                             {translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
@@ -142,7 +141,7 @@ const AboutPage = ({translate, session}) => {
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
+                            onPress={() => Linking.openURL(CONST.PRIVACY_URL)}
                         >
                             {translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',

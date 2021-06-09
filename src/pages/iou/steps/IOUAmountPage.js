@@ -3,6 +3,7 @@ import {
     View,
     Text,
     TouchableOpacity,
+    InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -47,13 +48,6 @@ const propTypes = {
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
-    /** react-navigation object */
-    navigation: PropTypes.shape({
-
-        /** Allows us to add a listener for the navigation transition end */
-        addListener: PropTypes.func,
-    }).isRequired,
-
     /* Onyx Props */
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
@@ -83,7 +77,7 @@ class IOUAmountPage extends React.Component {
     componentDidMount() {
         // Component is not initialized yet due to navigation transitions
         // Wait until interactions are complete before trying to focus or attach listener
-        this.props.navigation.addListener('transitionEnd', () => {
+        InteractionManager.runAfterInteractions(() => {
             // Setup and attach keypress handler for navigating to the next screen
             this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
                 if (this.state.amount !== '') {

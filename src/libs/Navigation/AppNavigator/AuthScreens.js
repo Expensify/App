@@ -27,6 +27,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
+import {getPolicySummaries} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
@@ -47,7 +48,8 @@ import {
     NewGroupModalStackNavigator,
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
-    AddBankAccountModalStackNavigator,
+    EnablePaymentsStackNavigator,
+    AddPersonalBankAccountModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -122,6 +124,7 @@ class AuthScreens extends React.Component {
         fetchAllReports(true, true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
+        getPolicySummaries();
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -166,6 +169,10 @@ class AuthScreens extends React.Component {
             animationEnabled: true,
             gestureDirection: 'horizontal',
             cardOverlayEnabled: true,
+
+            // This option is required to make previous screen visible underneath the modal screen
+            // https://reactnavigation.org/docs/6.x/stack-navigator#transparent-modals
+            presentation: 'transparentModal',
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
@@ -252,14 +259,20 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name="EnablePayments"
+                    options={modalScreenOptions}
+                    component={EnablePaymentsStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name="IOU_Details"
                     options={modalScreenOptions}
                     component={IOUDetailsModalStackNavigator}
                 />
                 <RootStack.Screen
-                    name="AddBankAccount"
+                    name="AddPersonalBankAccount"
                     options={modalScreenOptions}
-                    component={AddBankAccountModalStackNavigator}
+                    component={AddPersonalBankAccountModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
