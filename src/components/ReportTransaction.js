@@ -8,6 +8,7 @@ import themeColors from '../styles/themes/default';
 import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
@@ -100,4 +101,10 @@ class ReportTransaction extends Component {
 ReportTransaction.displayName = 'ReportTransaction';
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
-export default ReportTransaction;
+export default compose(
+    withOnyx({
+        rejectInProgress: {
+            key: ONYXKEYS.REJECT_IN_PROGRESS,
+        },
+    }),
+)(ReportTransaction);
