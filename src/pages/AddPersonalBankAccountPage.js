@@ -15,7 +15,7 @@ const propTypes = {
 const AddPersonalBankAccountPage = props => (
     <ScreenWrapper>
         <HeaderWithCloseButton
-            title={props.translate('addPersonalBankAccountPage.addPersonalBankAccount')}
+            title={props.translate('bankAccount.addBankAccount')}
             onCloseButtonPress={Navigation.dismissModal}
         />
         <AddPlaidBankAccount

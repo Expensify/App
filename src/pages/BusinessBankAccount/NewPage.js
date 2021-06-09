@@ -19,10 +19,14 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import ONYXKEYS from '../../ONYXKEYS';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 class BusinessBankAccountNewPage extends React.Component {
@@ -68,7 +72,7 @@ class BusinessBankAccountNewPage extends React.Component {
             <ScreenWrapper>
                 <View style={[styles.flex1, styles.justifyContentBetween]}>
                     <HeaderWithCloseButton
-                        title="Add Bank Account"
+                        title={this.props.translate('bankAccount.addBankAccount')}
                         onCloseButtonPress={Navigation.dismissModal}
                         onBackButtonPress={() => this.setState({addMethodSelection: undefined})}
                         shouldShowBackButton={!_.isUndefined(this.state.addMethodSelection)}
@@ -77,11 +81,11 @@ class BusinessBankAccountNewPage extends React.Component {
                         <>
                             <View style={[styles.flex1]}>
                                 <Text style={[styles.mh5, styles.mb5]}>
-                                    To get started with the Expensify Card, you first need to add a bank account.
+                                    {this.props.translate('bankAccount.toGetStarted')}
                                 </Text>
                                 <MenuItem
                                     icon={Bug}
-                                    title="Log Into Your Bank"
+                                    title={this.props.translate('bankAccount.logIntoYourBank')}
                                     onPress={() => {
                                         this.setState({addMethodSelection: CONST.BANK_ACCOUNT.ADD_METHOD.PLAID});
                                     }}
@@ -89,7 +93,7 @@ class BusinessBankAccountNewPage extends React.Component {
                                 />
                                 <MenuItem
                                     icon={Bug}
-                                    title="Connect Manually"
+                                    title={this.props.translate('bankAccount.connectManually')}
                                     onPress={() => {
                                         this.setState({addMethodSelection: CONST.BANK_ACCOUNT.ADD_METHOD.MANUAL});
                                     }}
@@ -97,14 +101,14 @@ class BusinessBankAccountNewPage extends React.Component {
                                 />
                                 <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
                                     <TextLink href="https://use.expensify.com/privacy">
-                                        Privacy
+                                        {this.props.translate('common.privacy')}
                                     </TextLink>
                                     <TextLink
                                         // eslint-disable-next-line max-len
                                         href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
                                         style={[styles.dFlex, styles.justifyContentCenter]}
                                     >
-                                        Your data is secure
+                                        {this.props.translate('bankAccount.yourDataIsSecure')}
                                         <View style={[styles.ml1]}>
                                             <Icon src={Lock} fill={colors.blue} />
                                         </View>
@@ -115,7 +119,7 @@ class BusinessBankAccountNewPage extends React.Component {
                     )}
                     {this.state.addMethodSelection === CONST.BANK_ACCOUNT.ADD_METHOD.PLAID && (
                         <AddPlaidBankAccount
-                            text="Give your employees an easier way to pay - and get paid back - for company expenses."
+                            text={this.props.translate('bankAccount.plaidBodyCopy')}
                             onSubmit={(args) => {
                                 console.debug(args);
                             }}
@@ -128,17 +132,16 @@ class BusinessBankAccountNewPage extends React.Component {
                         <>
                             <View style={[styles.m5, styles.flex1]}>
                                 <Text style={[styles.mb5]}>
-                                    Your routing number and account number can be found on a check for the account.
+                                    {this.props.translate('bankAccount.checkHelpLine')}
                                 </Text>
                                 <TextInputWithLabel
-                                    label="Routing Number"
-                                    placeholder="9 digits"
+                                    label={this.props.translate('bankAccount.routingNumber')}
                                     keyboardType="numeric"
                                     value={this.state.routingNumber}
                                     onChangeText={routingNumber => this.setState({routingNumber})}
                                 />
                                 <TextInputWithLabel
-                                    label="Account Number"
+                                    label={this.props.translate('bankAccount.accountNumber')}
                                     keyboardType="numeric"
                                     value={this.state.accountNumber}
                                     onChangeText={accountNumber => this.setState({accountNumber})}
@@ -151,7 +154,8 @@ class BusinessBankAccountNewPage extends React.Component {
                                         <Text>
                                             {'I accept the '}
                                             <TextLink href="https://use.expensify.com/terms">
-                                                Expensify Terms of Service
+                                                Expensify
+                                                {` ${this.props.translate('common.termsOfService')}`}
                                             </TextLink>
                                         </Text>
                                     )}
@@ -159,7 +163,7 @@ class BusinessBankAccountNewPage extends React.Component {
                             </View>
                             <Button
                                 success
-                                text="Save & Continue"
+                                text={this.props.translate('common.saveAndContinue')}
                                 style={[styles.m5]}
                                 isDisabled={!this.canSubmitManually()}
                                 onPress={this.addManualAccount}
@@ -174,8 +178,11 @@ class BusinessBankAccountNewPage extends React.Component {
 
 BusinessBankAccountNewPage.propTypes = propTypes;
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(BusinessBankAccountNewPage);
+export default compose(
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+    withLocalize,
+)(BusinessBankAccountNewPage);
