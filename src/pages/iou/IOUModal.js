@@ -9,6 +9,7 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import {createIOUSplit, createIOUTransaction} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -147,7 +148,7 @@ class IOUModal extends Component {
     }
 
     getReady() {
-        // TODO, get currency
+        PersonalDetails.fetchCurrencyPreferences();
     }
 
     /**
