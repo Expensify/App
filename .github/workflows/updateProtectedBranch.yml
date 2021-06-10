@@ -30,16 +30,16 @@ jobs:
           echo "Cannot update main branch without specifying a source branch"
           exit 1
 
-      # If updating staging, the head branch will always be main
-      # If updating production, the head branch will always be staging
+      # If updating staging, the source branch will always be main
+      # If updating production, the source branch will always be staging
       - name: Set source branch
         run: |
           if [[ ${{ github.event.inputs.TARGET_BRANCH }} == 'staging' ]]; then
-            echo "HEAD_BRANCH=main" >> $GITHUB_ENV
+            echo "SOURCE_BRANCH=main" >> $GITHUB_ENV
           elif [[ ${{ github.event.inputs.TARGET_BRANCH }} == 'production' ]]; then
-            echo "HEAD_BRANCH=staging" >> $GITHUB_ENV
+            echo "SOURCE_BRANCH=staging" >> $GITHUB_ENV
           else
-            echo "HEAD_BRANCH=${{ github.event.inputs.SOURCE_BRANCH }}" >> $GITHUB_ENV
+            echo "SOURCE_BRANCH=${{ github.event.inputs.SOURCE_BRANCH }}" >> $GITHUB_ENV
           fi
 
       # Version: 2.3.4
@@ -48,18 +48,27 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Checkout head branch
-        run: git checkout ${{ env.HEAD_BRANCH }}
+      - name: Checkout source branch
+        run: git checkout ${{ env.SOURCE_BRANCH }}
 
       - name: Set New Version
         run: echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+
+      - name: Create temporary branch to resolve conflicts
+        if: ${{ contains(fromJSON('["staging", "production"]'), github.event.inputs.TARGET_BRANCH) }}
+        run: |
+          git checkout ${{ github.event.inputs.TARGET_BRANCH }}
+          git checkout -b update-${{ github.event.inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
+          git merge -Xtheirs ${{ env.SOURCE_BRANCH }}
+          git push --set-upstream origin update-${{ github.event.inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
+          echo "SOURCE_BRANCH=update-${{ github.event.inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}" >> $GITHUB_ENV
 
       - name: Create Pull Request
         id: createPullRequest
         # Version: 2.4.3
         uses: repo-sync/pull-request@65194d8015be7624d231796ddee1cd52a5023cb3
         with:
-          source_branch: ${{ env.HEAD_BRANCH }}
+          source_branch: ${{ env.SOURCE_BRANCH }}
           destination_branch: ${{ github.event.inputs.TARGET_BRANCH }}
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           pr_title: Update version to ${{ env.NEW_VERSION }} on ${{ github.event.inputs.TARGET_BRANCH }}
