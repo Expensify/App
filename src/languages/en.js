@@ -268,6 +268,7 @@ export default {
         toGetStarted: 'To get started with the Expensify Card, you first need to add a bank account.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
+        iAcceptThe: 'I accept the ',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter password',

@@ -53,5 +53,6 @@ const CheckboxWithLabel = ({
 
 CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
+CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
 export default CheckboxWithLabel;

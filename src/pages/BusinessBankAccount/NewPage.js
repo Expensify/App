@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Text, Image} from 'react-native';
+import {View, Image} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -22,6 +22,7 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import exampleCheckImage from '../../../assets/images/example-check-image.png';
+import Text from '../../components/Text';
 
 const propTypes = {
     /** List of betas */
@@ -69,6 +70,7 @@ class BusinessBankAccountNewPage extends React.Component {
 
     render() {
         if (!Permissions.canUseFreePlan(this.props.betas)) {
+            console.debug('Not showing new bank account page because user is not on free plan beta');
             Navigation.dismissModal();
             return null;
         }
@@ -164,7 +166,7 @@ class BusinessBankAccountNewPage extends React.Component {
                                     LabelComponent={() => (
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             <Text>
-                                                {'I accept the '}
+                                                {this.props.translate('bankAccount.iAcceptThe')}
                                             </Text>
                                             <TextLink href="https://use.expensify.com/terms">
                                                 {`Expensify ${this.props.translate('common.termsOfService')}`}

@@ -3,7 +3,6 @@ import React from 'react';
 import {
     ActivityIndicator,
     View,
-    Text,
     TextInput,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -24,6 +23,7 @@ import Button from './Button';
 import Picker from './Picker';
 import Icon from './Icon';
 import {DownArrow} from './Icon/Expensicons';
+import Text from './Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -45,6 +45,9 @@ const propTypes = {
 
     /** Fired when the user selects an account and submits the form */
     onSubmit: PropTypes.func,
+
+    /** Additional text to display */
+    text: PropTypes.string,
 };
 
 const defaultProps = {
@@ -54,6 +57,7 @@ const defaultProps = {
     },
     onExitPlaid: () => {},
     onSubmit: () => {},
+    text: '',
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -119,10 +123,10 @@ class AddPlaidBankAccount extends React.Component {
                         onError={(error) => {
                             console.debug(`Plaid Error: ${error.message}`);
                         }}
-                        onExit={() => {
-                            // User prematurely exited the Plaid flow
-                            this.props.onExitPlaid();
-                        }}
+
+                        // User prematurely exited the Plaid flow
+                        // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                        onExit={this.props.onExitPlaid}
                     />
                 )}
                 {accounts.length > 0 && (
