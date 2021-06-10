@@ -16,7 +16,7 @@ import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import NewPasswordForm from './settings/NewPassword';
+import NewPasswordForm from './settings/NewPasswordForm';
 
 const propTypes = {
     /* Onyx Props */
