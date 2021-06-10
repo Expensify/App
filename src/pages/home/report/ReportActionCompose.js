@@ -206,7 +206,8 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Focus the composer text input
-     * @param {Boolean} shouldelay Impose delay before focusing the composer
+     * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
+     * @memberof ReportActionCompose
      */
     focus(shouldelay = false) {
         // There could be other animations running while we trigger manual focus.
