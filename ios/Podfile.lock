@@ -351,11 +351,11 @@ PODS:
     - react-native-config/App (= 1.4.1)
   - react-native-config/App (1.4.1):
     - React-Core
-  - react-native-document-picker (4.0.0):
+  - react-native-document-picker (5.0.4):
     - React-Core
   - react-native-geolocation-service (5.2.0):
     - React
-  - react-native-image-picker (2.3.4):
+  - react-native-image-picker (4.0.3):
     - React-Core
   - react-native-netinfo (5.9.10):
     - React-Core
@@ -773,9 +773,9 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 124e8f99992490d0d13e0649d950d3e1aae06fe9
   React-jsinspector: 500a59626037be5b3b3d89c5151bc3baa9abf1a9
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
-  react-native-document-picker: b3e78a8f7fef98b5cb069f20fc35797d55e68e28
+  react-native-document-picker: 3690b7d064a1153d4d572ab6a045fdd130cbf14c
   react-native-geolocation-service: 7c9436da6dfdecd9526c62eac62ea2bc3f0cc8ea
-  react-native-image-picker: 32d1ad2c0024ca36161ae0d5c2117e2d6c441f11
+  react-native-image-picker: 4089335b89b625d4e34d53fb249c48a7a791b3ea
   react-native-netinfo: 52cf0ee8342548a485e28f4b09e56b477567244d
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
   react-native-plaid-link-sdk: 1a6593e2d3d790e8113c29178d883eb883f8c032
