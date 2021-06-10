@@ -29,6 +29,7 @@ export default {
         delete: 'Eliminar',
         contacts: 'Contactos',
         recents: 'Recientes',
+        close: 'Cerrar',
         settings: 'Configuración',
     },
     attachmentPicker: {
