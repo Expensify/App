@@ -6,6 +6,38 @@ const CONST = {
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
     },
+    BANK_ACCOUNT: {
+        STEP: {
+            BANK_ACCOUNT: 'BankAccountStep',
+            COMPANY: 'CompanyStep',
+            REQUESTOR: 'RequestorStep',
+            ACH_CONTRACT: 'ACHContractStep',
+            VALIDATION: 'ValidationStep',
+            ENABLE: 'EnableStep',
+        },
+        SUBSTEP: {
+            MANUAL: 'manual',
+        },
+        VERIFICATIONS: {
+            ERROR_MESSAGE: 'verifications.errorMessage',
+            EXTERNAL_API_RESPONSES: 'verifications.externalApiResponses',
+            REQUESTOR_IDENTITY_ID: 'verifications.externalApiResponses.requestorIdentityID',
+            REQUESTOR_IDENTITY_ONFIDO: 'verifications.externalApiResponses.requestorIdentityOnfido',
+            THROTTLED: 'verifications.throttled',
+        },
+        ONFIDO_RESPONSE: {
+            SDK_TOKEN: 'apiResult.sdkToken',
+            PASS: 'pass',
+        },
+        QUESTIONS: {
+            QUESTION: 'apiResult.questions.question',
+            DIFFERENTIATOR_QUESTION: 'apiResult.differentiator-question',
+        },
+        SETUP_TYPE: {
+            MANUAL: 'manual',
+            PLAID: 'plaid',
+        },
+    },
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
