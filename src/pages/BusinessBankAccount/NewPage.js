@@ -104,16 +104,17 @@ class BusinessBankAccountNewPage extends React.Component {
                                     <TextLink href="https://use.expensify.com/privacy">
                                         {this.props.translate('common.privacy')}
                                     </TextLink>
-                                    <TextLink
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
-                                        style={[styles.dFlex, styles.justifyContentCenter]}
-                                    >
-                                        {this.props.translate('bankAccount.yourDataIsSecure')}
+                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                        <TextLink
+                                            // eslint-disable-next-line max-len
+                                            href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
+                                        >
+                                            {this.props.translate('bankAccount.yourDataIsSecure')}
+                                        </TextLink>
                                         <View style={[styles.ml1]}>
                                             <Icon src={Lock} fill={colors.blue} />
                                         </View>
-                                    </TextLink>
+                                    </View>
                                 </View>
                             </View>
                         </>
