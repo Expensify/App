@@ -57,6 +57,7 @@ jobs:
       - name: Create temporary branch to resolve conflicts
         if: ${{ contains(fromJSON('["staging", "production"]'), github.event.inputs.TARGET_BRANCH) }}
         run: |
+          git config user.name ${{ github.actor }}
           git checkout ${{ github.event.inputs.TARGET_BRANCH }}
           git checkout -b update-${{ github.event.inputs.TARGET_BRANCH }}-from-${{ env.SOURCE_BRANCH }}
           git merge -Xtheirs ${{ env.SOURCE_BRANCH }}
