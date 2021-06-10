@@ -11,6 +11,10 @@ const CONST = {
             MANUAL: 'manual',
             PLAID: 'plaid',
         },
+        REGEX: {
+            IBAN: /^[A-Za-z0-9]{2,30}$/,
+            SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
+        },
     },
     BETAS: {
         ALL: 'all',

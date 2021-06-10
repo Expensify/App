@@ -985,7 +985,7 @@ const styles = {
         borderRightWidth: 0,
     },
 
-    bankDetailsImage: {
+    exampleCheckImage: {
         width: '100%',
         height: 80,
         borderColor: themeColors.border,
