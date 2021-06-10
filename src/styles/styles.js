@@ -1521,6 +1521,10 @@ const styles = {
     cursorDisabled: {
         cursor: 'not-allowed',
     },
+
+    rejectIOU: {
+        minWidth: '20%',
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1603,10 +1607,6 @@ const webViewStyles = {
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
-
-    rejectIOU: {
-        minWidth: '20%',
-    }
 };
 
 /**
