@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import {fetchCurrencyPreferences, getCurrencyList} from '../../libs/actions/PersonalDetails';
+import {getCurrencyList} from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import {getCurrencyListForSections} from '../../libs/OptionsListUtils';
 import Text from '../../components/Text';
@@ -31,9 +31,6 @@ const propTypes = {
 
         // Currency Symbol of the Preferred Currency
         preferredCurrencySymbol: PropTypes.string,
-
-        // Whether preferences for the currency are saved
-        isCurrencyPreferencesSaved: PropTypes.bool,
     }),
 
     // The currency list constant object from Onyx
@@ -79,9 +76,6 @@ class IOUCurrencySelection extends Component {
 
     componentDidMount() {
         getCurrencyList();
-        if (!this.props.myPersonalDetails.isCurrencyPreferencesSaved) {
-            fetchCurrencyPreferences();
-        }
     }
 
     /**

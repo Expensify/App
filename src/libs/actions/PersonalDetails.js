@@ -250,10 +250,10 @@ function getCurrencyList() {
 }
 
 /**
- * Fetches the Currency preferences based on location
+ * Fetches the Currency preferences based on location and sets currency code/symbol to local storage
  */
 function fetchCurrencyPreferences() {
-    let coords = {};
+    const coords = {};
     let currency = '';
 
     API.GetPreferredCurrency({...coords})
