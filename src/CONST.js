@@ -73,6 +73,7 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
+            CONTEXT_MENU: 'context_menu',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
