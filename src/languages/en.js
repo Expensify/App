@@ -79,6 +79,7 @@ export default {
         addAttachment: 'Add Attachment',
         writeSomething: 'Write something...',
         youAppearToBeOffline: 'You appear to be offline.',
+        fileUploadFailed: 'Upload Failed. File is not supported.',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
@@ -220,7 +221,7 @@ export default {
         phrase2: 'terms of service',
         phrase3: 'and',
         phrase4: 'privacy policy',
-        phrase5: '. Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
+        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
         phrase6: 'licenses',
     },
     passwordForm: {
