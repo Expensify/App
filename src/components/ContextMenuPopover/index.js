@@ -17,6 +17,7 @@ const ContextMenuPopover = props => (!props.isSmallScreenWidth ? createPortal(
     <Popover
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
+        type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
     />
 ));
 
