@@ -32,7 +32,7 @@ let didLoadPersistedRequests;
 Onyx.connect({
     key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
     callback: (persistedRequests) => {
-        if (didLoadPersistedRequests || !persistedRequests) {
+        if (didLoadPersistedRequests || !persistedRequests || persistedRequests.length === 0) {
             return;
         }
 
