@@ -231,6 +231,8 @@ const CONST = {
         WARNING: 'warning',
         DURATION: 2000,
     },
+
+    DEFAULT_LOCALE: 'en',
 };
 
 export default CONST;
