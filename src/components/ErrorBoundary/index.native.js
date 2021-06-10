@@ -5,7 +5,7 @@ import Log from '../../libs/Log';
 
 BaseErrorBoundary.defaultProps.logError = (errorMessage, error, errorInfo) => {
     // Log the error to the server
-    Log.alert(errorMessage, 10, {error, errorInfo});
+    Log.alert(errorMessage, 10, {error: error.message, errorInfo});
 
     /* On native we also log the error to crashlytics
     * Since the error was handled we need to manually tell crashlytics about it */
