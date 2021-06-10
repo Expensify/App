@@ -1603,6 +1603,10 @@ const webViewStyles = {
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
+
+    rejectIOU: {
+        minWidth: '20%',
+    }
 };
 
 /**
