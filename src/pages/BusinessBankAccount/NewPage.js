@@ -167,8 +167,7 @@ class BusinessBankAccountNewPage extends React.Component {
                                                 {'I accept the '}
                                             </Text>
                                             <TextLink href="https://use.expensify.com/terms">
-                                                Expensify
-                                                {` ${this.props.translate('common.termsOfService')}`}
+                                                {`Expensify ${this.props.translate('common.termsOfService')}`}
                                             </TextLink>
                                         </View>
                                     )}
