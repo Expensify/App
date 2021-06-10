@@ -9,6 +9,11 @@ import React from 'react';
 import renderer from 'react-test-renderer';
 import App from '../../src/App';
 
+jest.mock('@react-native-firebase/crashlytics', () => ({
+    log: jest.fn(),
+    recordError: jest.fn(),
+}));
+
 describe('AppComponent', () => {
     it('renders correctly', () => {
         renderer.create(<App />);
