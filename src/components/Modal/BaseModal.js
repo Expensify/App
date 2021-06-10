@@ -56,6 +56,8 @@ class BaseModal extends PureComponent {
             shouldAddTopSafeAreaPadding,
             shouldAddBottomSafeAreaPadding,
             hideBackdrop,
+            hasBackdrop,
+            coverScreen,
         } = getModalStyles(
             this.props.type,
             {
@@ -89,6 +91,8 @@ class BaseModal extends PureComponent {
                 backdropColor={themeColors.modalBackdrop}
                 backdropOpacity={hideBackdrop ? 0 : 0.5}
                 backdropTransitionOutTiming={0}
+                hasBackdrop={hasBackdrop}
+                coverScreen={coverScreen}
                 style={modalStyle}
                 deviceHeight={this.props.windowHeight}
                 deviceWidth={this.props.windowWidth}
@@ -123,6 +127,7 @@ class BaseModal extends PureComponent {
                                     ...modalContainerStyle,
                                     ...modalPaddingStyles,
                                 }}
+                                ref={this.props.forwardRef}
                             >
                                 {this.props.children}
                             </View>
@@ -137,4 +142,7 @@ class BaseModal extends PureComponent {
 BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
 BaseModal.displayName = 'BaseModal';
-export default BaseModal;
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <BaseModal {...props} forwardRef={ref} />
+));
