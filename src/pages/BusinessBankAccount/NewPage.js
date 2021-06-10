@@ -21,7 +21,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import bankDetailsImage from '../../../assets/images/bank-details.png';
+import exampleCheckImage from '../../../assets/images/example-check-image.png';
 
 const propTypes = {
     /** List of betas */
@@ -38,7 +38,8 @@ class BusinessBankAccountNewPage extends React.Component {
         this.addManualAccount = this.addManualAccount.bind(this);
 
         this.state = {
-            addMethodSelection: undefined,
+            // One of CONST.BANK_ACCOUNT.ADD_METHOD
+            bankAccountAddMethod: undefined,
             hasAcceptedTerms: false,
             routingNumber: '',
             accountNumber: '',
@@ -51,12 +52,15 @@ class BusinessBankAccountNewPage extends React.Component {
         }));
     }
 
+    /**
+     * @returns {Boolean}
+     */
     canSubmitManually() {
         return this.state.hasAcceptedTerms
 
             // These are taken from BankCountry.js in Web-Secure
-            && /^[A-Za-z0-9]{2,30}$/.test(this.state.accountNumber.trim())
-            && /^[A-Za-z0-9]{8,11}$/.test(this.state.routingNumber.trim());
+            && CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())
+            && CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim());
     }
 
     addManualAccount() {
@@ -75,10 +79,10 @@ class BusinessBankAccountNewPage extends React.Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('bankAccount.addBankAccount')}
                         onCloseButtonPress={Navigation.dismissModal}
-                        onBackButtonPress={() => this.setState({addMethodSelection: undefined})}
-                        shouldShowBackButton={!_.isUndefined(this.state.addMethodSelection)}
+                        onBackButtonPress={() => this.setState({bankAccountAddMethod: undefined})}
+                        shouldShowBackButton={!_.isUndefined(this.state.bankAccountAddMethod)}
                     />
-                    {!this.state.addMethodSelection && (
+                    {!this.state.bankAccountAddMethod && (
                         <>
                             <View style={[styles.flex1]}>
                                 <Text style={[styles.mh5, styles.mb5]}>
@@ -88,7 +92,7 @@ class BusinessBankAccountNewPage extends React.Component {
                                     icon={Bank}
                                     title={this.props.translate('bankAccount.logIntoYourBank')}
                                     onPress={() => {
-                                        this.setState({addMethodSelection: CONST.BANK_ACCOUNT.ADD_METHOD.PLAID});
+                                        this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.ADD_METHOD.PLAID});
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -96,7 +100,7 @@ class BusinessBankAccountNewPage extends React.Component {
                                     icon={Paycheck}
                                     title={this.props.translate('bankAccount.connectManually')}
                                     onPress={() => {
-                                        this.setState({addMethodSelection: CONST.BANK_ACCOUNT.ADD_METHOD.MANUAL});
+                                        this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.ADD_METHOD.MANUAL});
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -119,18 +123,18 @@ class BusinessBankAccountNewPage extends React.Component {
                             </View>
                         </>
                     )}
-                    {this.state.addMethodSelection === CONST.BANK_ACCOUNT.ADD_METHOD.PLAID && (
+                    {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.ADD_METHOD.PLAID && (
                         <AddPlaidBankAccount
                             text={this.props.translate('bankAccount.plaidBodyCopy')}
                             onSubmit={(args) => {
                                 console.debug(args);
                             }}
                             onExitPlaid={() => {
-                                this.setState({addMethodSelection: undefined});
+                                this.setState({bankAccountAddMethod: undefined});
                             }}
                         />
                     )}
-                    {this.state.addMethodSelection === CONST.BANK_ACCOUNT.ADD_METHOD.MANUAL && (
+                    {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.ADD_METHOD.MANUAL && (
                         <>
                             <View style={[styles.m5, styles.flex1]}>
                                 <Text style={[styles.mb5]}>
@@ -138,8 +142,8 @@ class BusinessBankAccountNewPage extends React.Component {
                                 </Text>
                                 <Image
                                     resizeMode="contain"
-                                    style={[styles.bankDetailsImage, styles.mb5]}
-                                    source={bankDetailsImage}
+                                    style={[styles.exampleCheckImage, styles.mb5]}
+                                    source={exampleCheckImage}
                                 />
                                 <TextInputWithLabel
                                     placeholder={this.props.translate('bankAccount.routingNumber')}
