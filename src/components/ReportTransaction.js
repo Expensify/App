@@ -4,9 +4,7 @@ import lodashGet from 'lodash/get';
 import {
     Text, View, Pressable, ActivityIndicator,
 } from 'react-native';
-import {
-    withOnyx,
-} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -35,13 +33,12 @@ const propTypes = {
     /* Onyx Props */
 
     /** List of transactionIDs in process of rejection */
-    /* eslint-disable-next-line react/no-unused-prop-types */
+    /* eslint-disable-next-line react/no-unused-prop-types, react/require-default-props */
     rejectInProgress: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     canBeRejected: false,
-    rejectInProgress: [],
 };
 
 class ReportTransaction extends Component {
