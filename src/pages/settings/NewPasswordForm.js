@@ -35,8 +35,8 @@ class NewPasswordForm extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const eitherPasswordChanged = this.props.password
-        !== prevProps.password || this.state.confirmNewPassword !== prevState.confirmNewPassword;
+        const eitherPasswordChanged = this.props.password !== prevProps.password
+        || this.state.confirmNewPassword !== prevState.confirmNewPassword;
         if (eitherPasswordChanged) {
             this.props.updateIsFormValid(this.isValidForm());
         }
