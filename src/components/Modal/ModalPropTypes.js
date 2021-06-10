@@ -4,6 +4,9 @@ import CONST from '../../CONST';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
+    /** Should we close modal on outside click */
+    shouldCloseOnOutsideClick: PropTypes.bool,
+
     /** Callback method fired when the user requests to close the modal */
     onClose: PropTypes.func.isRequired,
 
@@ -49,6 +52,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    shouldCloseOnOutsideClick: false,
     onSubmit: null,
     type: '',
     onModalHide: () => {},
