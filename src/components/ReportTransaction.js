@@ -94,7 +94,12 @@ class ReportTransaction extends Component {
                         >
                             {
                             this.isRejected(rejectedIDs, this.props.action.originalMessage.IOUTransactionID)
-                                ? <ActivityIndicator color={themeColors.text} />
+                                ? (
+                                    <ActivityIndicator
+                                        color={themeColors.text}
+                                        style={[styles.flex1]}
+                                    />
+                                )
                                 : (
                                     <Text style={[styles.buttonSmallText]}>
                                         {this.props.rejectButtonLabelText}
