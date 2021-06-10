@@ -263,6 +263,7 @@ export default {
         toGetStarted: 'Para comenzar con la tarjeta Expensify, primero debe agregar una cuenta bancaria.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque para la cuenta.',
+        iAcceptThe: 'Acepto los ',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe una contraseña',

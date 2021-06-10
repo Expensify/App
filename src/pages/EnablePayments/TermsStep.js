@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, ScrollView, Text,
+    View, ScrollView,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -16,6 +16,7 @@ import TextLink from '../../components/TextLink';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
+import Text from '../../components/Text';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
