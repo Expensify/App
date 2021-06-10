@@ -299,6 +299,8 @@ function getNextWithdrawalAccountSetupStep(stepID) {
             id: CONST.BANK_ACCOUNT.STEP.VALIDATION,
             title: 'Validate',
         },
+
+        // @TODO maybe can be removed depending on how we handle the enable step moving forward
         {
             id: CONST.BANK_ACCOUNT.STEP.ENABLE,
             title: 'Enable',

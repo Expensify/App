@@ -114,6 +114,11 @@ export default {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
                 },
             },
+            ReimbursementAccount: {
+                screens: {
+                    ReimbursementAccount_Root: 'reimbursement-account',
+                },
+            },
         },
     },
 };
