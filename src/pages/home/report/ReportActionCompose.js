@@ -206,20 +206,23 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Focus the composer text input
+     * @param {Boolean} shouldelay Impose delay before focusing the composer
      */
-    focus() {
-        if (this.textInput) {
-            // There could be other animations running while we trigger manual focus.
-            // This prevents focus from making those animations janky.
-            InteractionManager.runAfterInteractions(() => {
-                // Keyboard is not opened after Emoji Picker is closed
-                // SetTimeout is used as a workaround
-                // https://github.com/react-native-modal/react-native-modal/issues/114
-                setTimeout(() => {
+    focus(shouldelay = false) {
+        // There could be other animations running while we trigger manual focus.
+        // This prevents focus from making those animations janky.
+        InteractionManager.runAfterInteractions(() => {
+            if (this.textInput) {
+                if (!shouldelay) {
                     this.textInput.focus();
-                }, 100);
-            });
-        }
+                } else {
+                    // Keyboard is not opened after Emoji Picker is closed
+                    // SetTimeout is used as a workaround
+                    // https://github.com/react-native-modal/react-native-modal/issues/114
+                    setTimeout(() => this.textInput.focus(), 100);
+                }
+            }
+        });
     }
 
     /**
@@ -333,7 +336,7 @@ class ReportActionCompose extends React.Component {
         // Update the selection on the Composer
         this.setState({selection: updatedSelection});
         this.updateComment(newComment);
-        this.focus();
+        this.focus(true);
     }
 
     /**
