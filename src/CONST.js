@@ -19,6 +19,12 @@ const CONST = {
         PRESSED: 'pressed',
         COMPLETE: 'complete',
     },
+    COUNTRY: {
+        US: 'US',
+        MX: 'MX',
+        AU: 'AU',
+        CA: 'CA',
+    },
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
