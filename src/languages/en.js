@@ -79,6 +79,7 @@ export default {
         addAttachment: 'Add Attachment',
         writeSomething: 'Write something...',
         youAppearToBeOffline: 'You appear to be offline.',
+        fileUploadFailed: 'Upload Failed. File is not supported.',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
