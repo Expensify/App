@@ -14,7 +14,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import PlaidLink from '../components/PlaidLink';
 import {
-    addPlaidBankAccount,
+    addPersonalBankAccount,
     clearPlaidBankAccounts,
     fetchPlaidLinkToken,
     getPlaidBankAccounts,
@@ -79,7 +79,7 @@ class AddPersonalBankAccountPage extends React.Component {
 
     addSelectedAccount() {
         const account = this.getAccounts()[this.state.selectedIndex];
-        addPlaidBankAccount(account, this.state.password, this.props.plaidLinkToken);
+        addPersonalBankAccount(account, this.state.password, this.props.plaidLinkToken);
         this.setState({isCreatingAccount: true});
     }
 
