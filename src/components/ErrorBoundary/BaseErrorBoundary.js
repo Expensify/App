@@ -1,15 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import crashlytics from '@react-native-firebase/crashlytics';
-
-import Log from '../libs/Log';
 
 const propTypes = {
-    /* An message posted to the server (along with the error) when this component intercepts an error */
+    /* A message posted to `logError` (along with error data) when this component intercepts an error */
     errorMessage: PropTypes.string.isRequired,
+
+    /* A function to perform the actual logging since different platforms support different tools */
+    logError: PropTypes.func,
 
     /* Actual content wrapped by this error boundary */
     children: PropTypes.node.isRequired,
+};
+
+const defaultProps = {
+    logError: () => {},
 };
 
 /**
@@ -17,7 +21,7 @@ const propTypes = {
  * It can be used to wrap the entire app as well as to wrap specific parts for more granularity
  * @see {@link https://reactjs.org/docs/error-boundaries.html#where-to-place-error-boundaries}
  */
-class ErrorBoundary extends React.Component {
+class BaseErrorBoundary extends React.Component {
     constructor(props) {
         super(props);
         this.state = {hasError: false};
@@ -29,12 +33,7 @@ class ErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        // Log the error to the server
-        Log.info(this.props.errorMessage, true, {error, errorInfo});
-
-        // Since the error was handled we need to manually tell crashlytics about it
-        crashlytics().log(`errorInfo: ${errorInfo}`);
-        crashlytics().recordError(error);
+        this.props.logError(this.props.errorMessage, error, errorInfo);
     }
 
     render() {
@@ -47,6 +46,7 @@ class ErrorBoundary extends React.Component {
     }
 }
 
-ErrorBoundary.propTypes = propTypes;
+BaseErrorBoundary.propTypes = propTypes;
+BaseErrorBoundary.defaultProps = defaultProps;
 
-export default ErrorBoundary;
+export default BaseErrorBoundary;
