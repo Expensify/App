@@ -4,7 +4,7 @@ import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from '..
 import CONST from '../../CONST';
 
 const propTypes = {
-    ...(_.omit(modalPropTypes, 'type', 'popoverAnchorPosition')),
+    ...(_.omit(modalPropTypes, 'popoverAnchorPosition')),
 
     /** The anchor position of the popover */
     anchorPosition: PropTypes.shape({
@@ -13,13 +13,10 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }),
-
-    /** Modal type to override the default Popover type */
-    type: PropTypes.oneOf(_.values(CONST.MODAL.MODAL_TYPE)),
 };
 
 const defaultProps = {
-    ...(_.omit(defaultModalProps, 'type', 'popoverAnchorPosition')),
+    ...(_.omit(defaultModalProps, 'popoverAnchorPosition')),
 
     // Anchor position is optional only because it is not relevant on mobile
     anchorPosition: {},

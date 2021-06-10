@@ -12,7 +12,7 @@ import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopover
 const propTypes = {
     // All popover props except:
     // 1) anchorPosition (which is overridden for this component)
-    ...(_.omit(popoverPropTypes, ['anchorPosition'])),
+    ...(_.omit(popoverPropTypes, ['type', 'anchorPosition'])),
 
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: PropTypes.shape({
@@ -34,7 +34,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...(_.omit(defaultPopoverProps, 'type')),
+    ...(_.omit(defaultPopoverProps, ['type'])),
 
     // Default positioning of the popover
     anchorOrigin: {
