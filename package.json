@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.66-7",
+  "version": "1.0.66-8",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -96,7 +96,7 @@
     "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
     "underscore": "^1.10.2",
-    "urbanairship-react-native": "^10.0.0"
+    "urbanairship-react-native": "^11.0.1"
   },
   "devDependencies": {
     "@actions/core": "^1.2.6",
