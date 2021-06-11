@@ -8,17 +8,29 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import ScreenWrapper from '../components/ScreenWrapper';
-import {fetchFreePlanVerifiedBankAccount} from '../libs/actions/BankAccounts';
-import ONYXKEYS from '../ONYXKEYS';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
+import ONYXKEYS from '../../ONYXKEYS';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+
+// Steps
+import BankAccountStep from './BankAccountStep';
+import CompanyStep from './CompanyStep';
+import RequestorStep from './RequestorStep';
+import ACHContractStep from './ACHContractStep';
+import ValidationStep from './ValidationStep';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
+    /** List of betas */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     reimbursementAccount: PropTypes.shape({
         loading: PropTypes.bool,
         throttledDate: PropTypes.string,
         achData: PropTypes.shape({
             country: PropTypes.string,
+            currentStep: PropTypes.string,
         }),
     }),
 
@@ -45,6 +57,12 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     render() {
+        if (!Permissions.canUseFreePlan(this.props.betas)) {
+            console.debug('Not showing new bank account page because user is not on free plan beta');
+            Navigation.dismissModal();
+            return null;
+        }
+
         if (this.props.reimbursementAccount.loading) {
             return <FullScreenLoadingIndicator visible />;
         }
@@ -75,9 +93,24 @@ class ReimbursementAccountPage extends React.Component {
 
         // Everything we need to display UI-wise is pretty much in the achData at this point. We just need to call the correct actions in the right places when
         // submitting a form or navigating back or forward.
+        const currentStep = achData.currentStep;
         return (
             <ScreenWrapper>
-                <View />
+                {currentStep === 'BankAccountStep' && (
+                    <BankAccountStep />
+                )}
+                {currentStep === 'CompanyStep' && (
+                    <CompanyStep />
+                )}
+                {currentStep === 'RequestorStep' && (
+                    <RequestorStep />
+                )}
+                {currentStep === 'ACHContractStep' && (
+                    <ACHContractStep />
+                )}
+                {currentStep === 'ValidationStep' && (
+                    <ValidationStep />
+                )}
             </ScreenWrapper>
         );
     }
@@ -94,6 +127,9 @@ export default withOnyx({
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
     },
 
     // @TODO we maybe need the user policyID + currency + default country + whether plaid is disabled ??

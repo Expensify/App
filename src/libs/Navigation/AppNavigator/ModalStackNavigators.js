@@ -20,9 +20,8 @@ import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryL
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 import EnablePaymentsPage from '../../../pages/EnablePayments';
-import BusinessBankAccountNewPage from '../../../pages/BusinessBankAccount/NewPage';
 import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
-import ReimbursementAccountPage from '../../../pages/ReimbursementAccountPage';
+import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,

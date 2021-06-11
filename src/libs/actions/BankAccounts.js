@@ -275,8 +275,8 @@ function fetchUserWallet() {
 let previousACHData = {};
 Onyx.connect({
     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    callback: (val = {}) => {
-        previousACHData = val.achData || {};
+    callback: (val) => {
+        previousACHData = lodashGet(val, 'achData', {});
     },
 });
 
@@ -555,9 +555,9 @@ function setupWithdrawalAccount(data) {
                 if (currentStep === 'ACHContractStep') {
                     // Get an up-to-date bank account list so that we can allow the user to validate their newly
                     // generated bank account
-                    return API.get({returnValueList: 'bankAccountList'})
-                        .done((json) => {
-                            const bankAccountJSON = _.findWhere(json.bankAccountList, {
+                    return API.Get({returnValueList: 'bankAccountList'})
+                        .then((bankAccountListResponse) => {
+                            const bankAccountJSON = _.findWhere(bankAccountListResponse.bankAccountList, {
                                 bankAccountID: previousACHData.bankAccountID,
                             });
                             const bankAccount = new BankAccount(bankAccountJSON);
