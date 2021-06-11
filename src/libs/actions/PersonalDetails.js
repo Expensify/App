@@ -5,13 +5,12 @@ import Onyx from 'react-native-onyx';
 import Geolocation from 'react-native-geolocation-service';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
-import md5 from '../md5';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
 import {isDefaultRoom} from '../reportUtils';
-import {getReportIcons} from '../OptionsListUtils';
+import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -24,19 +23,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
 });
-
-/**
- * Helper method to return a default avatar
- *
- * @param {String} [login]
- * @returns {String}
- */
-function getDefaultAvatar(login = '') {
-    // There are 8 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
-}
 
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
