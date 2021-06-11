@@ -1,14 +1,15 @@
 import React from 'react';
-import {Image, Text, View} from 'react-native';
+import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
+import Text from '../../../components/Text';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
-import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import openURLInNewTab from '../../../libs/openURLInNewTab';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -25,7 +26,7 @@ const SignInPageLayoutWide = props => (
                     <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
                         <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
                     </View>
-                    <Text style={[styles.mv5, styles.textLabel, styles.h3, styles.fontFamilyGTA]}>
+                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
                         {props.translate('welcomeText.phrase1')}
                     </Text>
                     <View style={[styles.signInPageFormContainer]}>
@@ -53,15 +54,21 @@ const SignInPageLayoutWide = props => (
                             {'\n\n'}
                             {props.translate('signInPage.heroDescription.phase2')}
                             {' '}
-                            <TextLink style={[styles.textUnderline]} href={CONST.GITHUB_URL}>
+                            <Text
+                                style={[styles.textUnderline, styles.textWhite]}
+                                onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
+                            >
                                 {props.translate('signInPage.heroDescription.phase3')}
-                            </TextLink>
+                            </Text>
                             {'. '}
                             {props.translate('signInPage.heroDescription.phase4')}
                             {' '}
-                            <TextLink style={[styles.textUnderline]} href={CONST.UPWORK_URL}>
+                            <Text
+                                style={[styles.textUnderline, styles.textWhite]}
+                                onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
+                            >
                                 {props.translate('signInPage.heroDescription.phase5')}
-                            </TextLink>
+                            </Text>
                             .
                         </Text>
                     </View>

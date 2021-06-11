@@ -112,10 +112,6 @@ export default {
         marginTop: 24,
     },
 
-    mt25Percentage: {
-        marginTop: '25%',
-    },
-
     mt40Percentage: {
         marginTop: '40%',
     },
@@ -214,22 +210,6 @@ export default {
 
     ph6: {
         paddingHorizontal: 24,
-    },
-
-    ph7: {
-        paddingHorizontal: 28,
-    },
-
-    ph8: {
-        paddingHorizontal: 32,
-    },
-
-    ph9: {
-        paddingHorizontal: 36,
-    },
-
-    ph10: {
-        paddingHorizontal: 40,
     },
 
     pr1: {
