@@ -18,7 +18,7 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
+import {isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 import Growl from '../Growl';
@@ -140,8 +140,7 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * @return {String}
  */
 function getChatReportName(report, chatType) {
-    const defaultRooms = _.values(CONST.REPORT.CHAT_TYPE.DEFAULT_ROOMS);
-    if (_.contains(defaultRooms, chatType)) {
+    if (isDefaultRoom(chatType)) {
         return `#${report.reportName}`;
     }
 

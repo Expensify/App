@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {getReportParticipantsTitle} from './reportUtils';
+import {getReportParticipantsTitle, isDefaultRoom} from './reportUtils';
 import {translate} from './translate';
 import Permissions from './Permissions';
 
@@ -20,6 +20,17 @@ import Permissions from './Permissions';
 let currentUserLogin;
 let countryCodeByIP;
 let preferredLocale;
+
+let policies = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (policy) => {
+        if (policy && policy.policyID) {
+            policies[policy.policyID] = policy;
+        }
+    },
+});
+
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
@@ -548,6 +559,27 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
     };
 }
 
+/**
+ * Returns the appropriate icons for the given chat report using personalDetails if applicable
+ *
+ * @param {Object} report
+ * @param {Object} personalDetails
+ * @returns {String}
+ */
+function getReportIcons(report, personalDetails) {
+    if (isDefaultRoom(report.chatType)) {
+        // Placeholder icon for the meantime
+        return `${CONST.CLOUDFRONT_URL}/images/avatars/default_avatar_external.png`;
+    }
+    return _.map(report.participants, dmParticipant => ({
+        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
+            || getDefaultAvatar(dmParticipant),
+    }))
+        .sort((first, second) => first.firstName - second.firstName)
+        .map(item => item.avatar);
+}
+
 export {
     getSearchOptions,
     getNewChatOptions,
@@ -558,4 +590,5 @@ export {
     getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
+    getReportIcons,
 };

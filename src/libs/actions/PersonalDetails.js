@@ -10,6 +10,8 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
+import { isDefaultRoom } from '../reportUtils';
+import { getReportIcons } from '../OptionsListUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -174,27 +176,20 @@ function getFromReportParticipants(reports) {
             // report and based on the participants we'll link up their avatars to report icons. This will
             // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
-            const defaultRooms = _.values(CONST.REPORT.CHAT_TYPE.DEFAULT_ROOMS);
             _.each(reports, (report) => {
-                if (_.contains(defaultRooms, report.chatType)) {
-                    reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: [getDefaultAvatar()]};
-                } else if (report.participants.length > 0 ) {
-                    const avatars = _.map(report.participants, dmParticipant => ({
-                        firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
-                        avatar: lodashGet(details, [dmParticipant, 'avatarThumbnail'], '')
-                            || getDefaultAvatar(dmParticipant),
-                    }))
-                        .sort((first, second) => first.firstName - second.firstName)
-                        .map(item => item.avatar);
-                    const reportName = _.chain(report.participants)
-                        .filter(participant => participant !== currentUserEmail)
-                        .map(participant => lodashGet(
-                            formattedPersonalDetails,
-                            [participant, 'displayName'],
-                            participant,
-                        ))
-                        .value()
-                        .join(', ');
+                if (report.participants.length > 0 || isDefaultRoom(report.chatType)) {
+                    const avatars = getReportIcons(report, details);
+                    const reportName = isDefaultRoom(report.chatType)
+                        ? report.reportName
+                        : _.chain(report.participants)
+                            .filter(participant => participant !== currentUserEmail)
+                            .map(participant => lodashGet(
+                                formattedPersonalDetails,
+                                [participant, 'displayName'],
+                                participant,
+                            ))
+                            .value()
+                            .join(', ');
 
                     reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
                 }
