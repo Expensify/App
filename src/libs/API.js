@@ -409,6 +409,17 @@ function GetIOUReport(parameters) {
 /**
  * @returns {Promise}
  */
+function GetPolicyList() {
+    const commandName = 'Get';
+    const parameters = {
+        returnValueList: 'policyList',
+    };
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
 function GetPolicySummaryList() {
     const commandName = 'Get';
     const parameters = {
@@ -872,6 +883,7 @@ export {
     Get,
     GetAccountStatus,
     GetIOUReport,
+    GetPolicyList,
     GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
