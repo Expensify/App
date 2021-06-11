@@ -51,7 +51,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
-import ReportActionComposerFocusManager from '../../../libs/ReportActionComposerFocusManager';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
@@ -211,7 +210,7 @@ class ReportActionCompose extends React.Component {
      * @memberof ReportActionCompose
      */
     setTextInputRef(el) {
-        ReportActionComposerFocusManager.composerRef.current = el;
+        ReportActionComposeFocusManager.composerRef.current = el;
         this.textInput = el;
     }
 
