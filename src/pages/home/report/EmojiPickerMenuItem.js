@@ -17,6 +17,8 @@ const propTypes = {
 
     /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool.isRequired,
+
+    size: PropTypes.number.isRequired,
 };
 
 const EmojiPickerMenuItem = props => (
@@ -26,17 +28,25 @@ const EmojiPickerMenuItem = props => (
             pressed,
         }) => ([
             styles.emojiItem,
+            styles.pv1,
             getButtonBackgroundColorStyle(getButtonState(false, pressed)),
             props.isHighlighted ? styles.emojiItemHighlighted : {},
+            {
+                fontSize: props.size,
+            },
         ])}
     >
         <Hoverable onHoverIn={props.onHover}>
-            <Text style={styles.emojiText}>{props.emoji}</Text>
+            <Text style={[styles.emojiText, {
+                fontSize: props.size,
+            }]}
+            >
+                {props.emoji}
+            </Text>
         </Hoverable>
     </Pressable>
 
 );
-
 EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 

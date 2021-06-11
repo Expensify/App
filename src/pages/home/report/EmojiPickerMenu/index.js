@@ -12,6 +12,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
+import dynamicEmojiSize from './dynamicEmojiSize';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -72,6 +73,7 @@ class EmojiPickerMenu extends Component {
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
             arePointerEventsDisabled: false,
+            emojiSize: dynamicEmojiSize(this.props.windowWidth),
         };
     }
 
@@ -84,6 +86,18 @@ class EmojiPickerMenu extends Component {
             this.props.forwardedRef(this.searchInput);
         }
         this.setupEventHandlers();
+    }
+
+
+    componentDidUpdate(prevProps) {
+        if (
+            this.props.windowWidth !== prevProps.windowWidth
+        ) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({
+                emojiSize: dynamicEmojiSize(this.props.windowWidth),
+            });
+        }
     }
 
     componentWillUnmount() {
@@ -302,6 +316,7 @@ class EmojiPickerMenu extends Component {
                 onHover={() => this.setState({highlightedIndex: index})}
                 emoji={code}
                 isHighlighted={index === this.state.highlightedIndex}
+                size={this.state.emojiSize}
             />
         );
     }
@@ -333,7 +348,7 @@ class EmojiPickerMenu extends Component {
                     keyExtractor={item => `emoji_picker_${item.code}`}
                     numColumns={this.numColumns}
                     style={styles.emojiPickerList}
-                    extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
+                    extraData={this.state}
                     stickyHeaderIndices={this.state.headerIndices}
                     onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
                 />

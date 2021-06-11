@@ -1,14 +1,19 @@
 import React, {Component} from 'react';
 import {View, FlatList, Text} from 'react-native';
 import PropTypes from 'prop-types';
+import compose from '../../../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import CONST from '../../../../CONST';
 import styles from '../../../../styles/styles';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
+import dynamicEmojiSize from './dynamicEmojiSize';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: PropTypes.func.isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
 class EmojiPickerMenu extends Component {
@@ -29,7 +34,23 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.renderItem = this.renderItem.bind(this);
+
+        this.state = {
+            emojiSize: dynamicEmojiSize(this.props.windowWidth),
+        };
     }
+
+    componentDidUpdate(prevProps) {
+        if (
+            this.props.windowWidth !== prevProps.windowWidth
+        ) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({
+                emojiSize: dynamicEmojiSize(this.props.windowWidth),
+            });
+        }
+    }
+
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -56,6 +77,7 @@ class EmojiPickerMenu extends Component {
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
                 emoji={item.code}
+                size={this.state.emojiSize}
             />
         );
     }
@@ -69,6 +91,7 @@ class EmojiPickerMenu extends Component {
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
                     numColumns={this.numColumns}
                     style={styles.emojiPickerList}
+                    extraData={this.state}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
             </View>
@@ -78,4 +101,4 @@ class EmojiPickerMenu extends Component {
 
 EmojiPickerMenu.propTypes = propTypes;
 
-export default EmojiPickerMenu;
+export default compose(withWindowDimensions)(EmojiPickerMenu);
