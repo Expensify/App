@@ -1,10 +1,11 @@
 import React, {Component} from 'react';
-import {View, Pressable, Dimensions} from 'react-native';
+import {
+    View, Pressable, Dimensions, Linking,
+} from 'react-native';
 import Icon from './Icon';
 import {Phone} from './Icon/Expensicons';
 import Popover from './Popover';
 import MenuItem from './MenuItem';
-import openURLInNewTab from '../libs/openURLInNewTab';
 import ZoomIcon from '../../assets/images/zoom-icon.svg';
 import GoogleMeetIcon from '../../assets/images/google-meet.svg';
 import CONST from '../CONST';
@@ -30,12 +31,12 @@ class VideoChatButtonAndMenu extends Component {
             {
                 icon: ZoomIcon,
                 text: props.translate('videoChatButtonAndMenu.zoom'),
-                onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
+                onPress: () => Linking.openURL(CONST.NEW_ZOOM_MEETING_URL),
             },
             {
                 icon: GoogleMeetIcon,
                 text: props.translate('videoChatButtonAndMenu.googleMeet'),
-                onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
+                onPress: () => Linking.openURL(CONST.NEW_GOOGLE_MEET_MEETING_URL),
             },
         ].map(item => ({
             ...item,
