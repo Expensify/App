@@ -64,10 +64,11 @@ function getPlaidBankAccounts(publicToken, bank) {
 /**
  * We clear these out of storage once we are done with them so the user must re-enter Plaid credentials upon returning.
  */
-function clearPlaidBankAccounts() {
+function clearPlaidBankAccountsAndToken() {
     plaidBankAccounts = [];
     bankName = '';
     Onyx.set(ONYXKEYS.PLAID_BANK_ACCOUNTS, {});
+    Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, null);
 }
 
 /**
@@ -600,7 +601,7 @@ export {
     fetchPlaidLinkToken,
     addPersonalBankAccount,
     getPlaidBankAccounts,
-    clearPlaidBankAccounts,
+    clearPlaidBankAccountsAndToken,
     fetchOnfidoToken,
     activateWallet,
     fetchUserWallet,

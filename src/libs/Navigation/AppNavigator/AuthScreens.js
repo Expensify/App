@@ -13,7 +13,6 @@ import {
     fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
-import * as BankAccounts from '../../actions/BankAccounts';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
@@ -50,6 +49,7 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
+    BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
 } from './ModalStackNavigators';
@@ -123,7 +123,7 @@ class AuthScreens extends React.Component {
         User.getUserDetails();
         User.getBetas();
         PersonalDetails.fetchCurrencyPreferences();
-        fetchAllReports(true, true, true);
+        fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         getPolicySummaries();
@@ -281,6 +281,12 @@ class AuthScreens extends React.Component {
                     name="ReimbursementAccount"
                     options={modalScreenOptions}
                     component={ReimbursementAccountModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="BusinessBankAccount"
+                    options={modalScreenOptions}
+                    component={BusinessBankAccountModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

@@ -1,15 +1,15 @@
 PODS:
-  - Airship (14.2.0):
-    - Airship/Automation (= 14.2.0)
-    - Airship/Core (= 14.2.0)
-    - Airship/ExtendedActions (= 14.2.0)
-    - Airship/MessageCenter (= 14.2.0)
-  - Airship/Automation (14.2.0):
+  - Airship (14.3.0):
+    - Airship/Automation (= 14.3.0)
+    - Airship/Core (= 14.3.0)
+    - Airship/ExtendedActions (= 14.3.0)
+    - Airship/MessageCenter (= 14.3.0)
+  - Airship/Automation (14.3.0):
     - Airship/Core
-  - Airship/Core (14.2.0)
-  - Airship/ExtendedActions (14.2.0):
+  - Airship/Core (14.3.0)
+  - Airship/ExtendedActions (14.3.0):
     - Airship/Core
-  - Airship/MessageCenter (14.2.0):
+  - Airship/MessageCenter (14.3.0):
     - Airship/Core
   - boost-for-react-native (1.63.0)
   - CocoaAsyncSocket (7.6.5)
@@ -351,10 +351,8 @@ PODS:
     - react-native-config/App (= 1.4.1)
   - react-native-config/App (1.4.1):
     - React-Core
-  - react-native-document-picker (4.0.0):
+  - react-native-document-picker (5.1.0):
     - React-Core
-  - react-native-geolocation-service (5.2.0):
-    - React
   - react-native-image-picker (2.3.4):
     - React-Core
   - react-native-netinfo (5.9.10):
@@ -494,8 +492,8 @@ PODS:
     - React-Core
   - RNSVG (12.1.0):
     - React
-  - urbanairship-react-native (10.0.0):
-    - Airship (= 14.2.0)
+  - urbanairship-react-native (11.0.1):
+    - Airship (= 14.3.0)
     - React-Core
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -545,7 +543,6 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - react-native-config (from `../node_modules/react-native-config`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
-  - react-native-geolocation-service (from `../node_modules/react-native-geolocation-service`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -654,8 +651,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
-  react-native-geolocation-service:
-    :path: "../node_modules/react-native-geolocation-service"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
   react-native-netinfo:
@@ -728,12 +723,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: 02ad73780f9eed21870e36b0aaab327acda6a102
+  Airship: 7609d263d3a207f112d6db066af5852b80af6819
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
-  DoubleConversion: cde416483dac037923206447da6e1454df403714
+  DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
-  FBReactNativeSpec: 884d4cc2b011759361797a4035c47e10099393b5
+  FBReactNativeSpec: 7c304782592aaf95fe9fc6add0746906d6562739
   Firebase: c23a36d9e4cdf7877dfcba8dd0c58add66358999
   FirebaseAnalytics: 3bb096873ee0d7fa4b6c70f5e9166b6da413cc7f
   FirebaseCore: d3a978a3cfa3240bf7e4ba7d137fdf5b22b628ec
@@ -747,7 +742,7 @@ SPEC CHECKSUMS:
   Flipper-PeerTalk: 116d8f857dc6ef55c7a5a75ea3ceaafe878aadc9
   Flipper-RSocket: 127954abe8b162fcaf68d2134d34dc2bd7076154
   FlipperKit: 8a20b5c5fcf9436cac58551dc049867247f64b00
-  glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
+  glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
   GoogleAppMeasurement: a6a3a066369828db64eda428cb2856dc1cdc7c4e
   GoogleDataTransport: f56af7caa4ed338dc8e138a5d7c5973e66440833
   GoogleUtilities: 7f2f5a07f888cdb145101d6042bc4422f57e70b3
@@ -773,8 +768,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 124e8f99992490d0d13e0649d950d3e1aae06fe9
   React-jsinspector: 500a59626037be5b3b3d89c5151bc3baa9abf1a9
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
-  react-native-document-picker: b3e78a8f7fef98b5cb069f20fc35797d55e68e28
-  react-native-geolocation-service: 7c9436da6dfdecd9526c62eac62ea2bc3f0cc8ea
+  react-native-document-picker: 0e3602a4064da040321bafad6848d8b0edcb1d55
   react-native-image-picker: 32d1ad2c0024ca36161ae0d5c2117e2d6c441f11
   react-native-netinfo: 52cf0ee8342548a485e28f4b09e56b477567244d
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
@@ -808,7 +802,7 @@ SPEC CHECKSUMS:
   RNReanimated: b8c8004b43446e3c2709fe64b2b41072f87428ad
   RNScreens: e8e8dd0588b5da0ab57dcca76ab9b2d8987757e0
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
-  urbanairship-react-native: dfb6dc22b2f41ccaadd636b73d51b448cd1b2bbc
+  urbanairship-react-native: d415a12e67ba93bf3ce914df9a310b66a88a5cc3
   Yoga: a7de31c64fe738607e7a3803e3f591a4b1df7393
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
