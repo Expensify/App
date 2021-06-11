@@ -13,7 +13,7 @@ const propTypes = {
     /** The items to display in the list of selections */
     items: PropTypes.arrayOf(PropTypes.shape({
         /** The value of the item that is being selected */
-        value: PropTypes.string.isRequired,
+        value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 
         /** The text to display for the item */
         label: PropTypes.string.isRequired,
