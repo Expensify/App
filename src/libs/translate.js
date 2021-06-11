@@ -3,6 +3,7 @@ import Str from 'expensify-common/lib/str';
 import Log from './Log';
 import Config from '../CONFIG';
 import translations from '../languages/translations';
+import CONST from '../CONST';
 
 /**
  * Return translated string for given locale and phrase
@@ -12,7 +13,8 @@ import translations from '../languages/translations';
  * @param {Object} [variables]
  * @returns {String}
  */
-function translate(locale = 'en', phrase, variables = {}) {
+// eslint-disable-next-line no-undef
+function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
     const localeLanguage = locale.substring(0, 2);
     const fullLocale = lodashGet(translations, locale, {});
     const language = lodashGet(translations, localeLanguage, {});
