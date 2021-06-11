@@ -22,6 +22,7 @@ const CONST = {
         IOU: 'IOU',
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
+        DEFAULT_ROOMS: 'defaultRooms',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
