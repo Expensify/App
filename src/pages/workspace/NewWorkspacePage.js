@@ -12,6 +12,7 @@ import AttachmentPicker from '../../components/AttachmentPicker';
 import Icon from '../../components/Icon';
 import {DownArrow, Upload} from '../../components/Icon/Expensicons';
 import CreateMenu from '../../components/CreateMenu';
+import Switch from '../../components/Switch';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -24,6 +25,7 @@ class NewWorkspacePage extends React.Component {
         this.state = {
             isEditPhotoMenuVisible: false,
             name: '',
+            requestCall: false,
         };
 
         this.createMenuItems = this.createMenuItems.bind(this);
@@ -105,7 +107,28 @@ class NewWorkspacePage extends React.Component {
                             value={this.state.name}
                             onChangeText={name => this.setState({name})}
                         />
-                        <Text style={[styles.mt6, styles.textP]}>{translate('workspace.new.chooseANameHint')}</Text>
+                        <Text style={[styles.mt6, styles.textP]}>{translate('workspace.new.helpText')}</Text>
+                        <View
+                            style={[
+                                styles.mt3,
+                                styles.flexRow,
+                                styles.mb6,
+                                styles.justifyContentBetween,
+                                styles.alignItemsCenter,
+                            ]}
+                        >
+                            <View style={styles.flex4}>
+                                <Text style={styles.textMicro}>
+                                    {translate('workspace.new.requestCall')}
+                                </Text>
+                            </View>
+                            <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                <Switch
+                                    isOn={this.state.requestCall}
+                                    onToggle={requestCall => this.setState({requestCall})}
+                                />
+                            </View>
+                        </View>
                     </View>
 
                     <Button success style={[styles.w100]} text={this.props.translate('workspace.new.getStarted')} />

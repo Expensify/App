@@ -336,10 +336,11 @@ export default {
         new: {
             welcome: 'Welcome',
             chooseAName: 'Choose a name',
-            chooseANameHint: 'Name your Workspace before enabling your Expensify Cards!',
+            helpText: 'Need help getting setup? Request a call below and we’ll have someone reach out to you.',
             getStarted: 'Get started!',
             editPhoto: 'Edit Photo',
             uploadPhoto: 'Upload Photo',
+            requestCall: 'Request a call',
         },
     },
 };

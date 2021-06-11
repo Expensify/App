@@ -292,10 +292,11 @@ export default {
         new: {
             welcome: 'Bienvenido/a',
             chooseAName: 'Elige un nombre',
-            chooseANameHint: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
+            helpText: '¿Necesitas ayuda con la configuración? Pídenos una llamada y una persona de nuestro equipo te ayudará.',
             getStarted: '¡Empezar!',
             uploadPhoto: 'Subir Foto',
             editPhoto: 'Editar Foto',
+            requestCall: 'Concertar una llamada',
         },
     },
 };
