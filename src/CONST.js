@@ -72,7 +72,11 @@ const CONST = {
             IOU: 'iou',
         },
         CHAT_TYPE: {
-            DEFAULT_ROOM: 'defaultRoom',
+            DEFAULT_ROOMS: {
+                POLICY_ANNOUNCE: 'policyAnnounce',
+                POLICY_ADMINS: 'policyAdmins',
+                DOMAIN_ALL: 'domainAll',
+            },
         },
         STATE_NUM: {
             OPEN: 0,

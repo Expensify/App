@@ -136,10 +136,12 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * Returns the title for a default room or generates one based on the participants
  *
  * @param {Object} report
+ * @param {String} chatType
  * @return {String}
  */
-function getChatReportName(report) {
-    if (report.chatType === CONST.REPORT.CHAT_TYPE.DEFAULT_ROOM) {
+function getChatReportName(report, chatType) {
+    const defaultRooms = _.values(CONST.REPORT.CHAT_TYPE.DEFAULT_ROOMS);
+    if (_.contains(defaultRooms, chatType)) {
         return `#${report.reportName}`;
     }
 
@@ -168,6 +170,7 @@ function getSimplifiedReportObject(report) {
     const createTimestamp = lastReportAction ? lastReportAction.created : 0;
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
     const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lodashGet(lastReportAction, ['message', 'html'], ''));
+    const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
     // We are removing any html tags from the message html since we cannot access the text version of any comments as
     // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
@@ -176,14 +179,14 @@ function getSimplifiedReportObject(report) {
         .replace(/((<br[^>]*>)+)/gi, ' ')
         .replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
-        ? getChatReportName(report)
+        ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
 
     return {
         reportID: report.reportID,
         reportName,
-        chatType: lodashGet(report, ['reportNameValuePairs', 'chatType'], ''),
+        chatType,
         ownerEmail: lodashGet(report, ['ownerEmail'], ''),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
