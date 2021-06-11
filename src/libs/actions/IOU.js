@@ -5,12 +5,7 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import * as API from '../API';
-import {
-    getSimplifiedIOUReport,
-    fetchChatReportsByIDs,
-    fetchIOUReportByIDAndUpdateChatReport,
-    syncChatAndIOUReports,
-} from './Report';
+import {getSimplifiedIOUReport, syncChatAndIOUReports} from './Report';
 import Navigation from '../Navigation/Navigation';
 
 /**
