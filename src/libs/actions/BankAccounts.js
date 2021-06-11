@@ -280,7 +280,7 @@ Onyx.connect({
     },
 });
 
-function goToStepID(stepID, achData) {
+function goToWithdrawalStepID(stepID, achData) {
     const newACHData = {...previousACHData};
 
     // If we go back to Requestor Step, reset any validation and previously answered questions from expectID.
@@ -412,7 +412,7 @@ function fetchFreePlanVerifiedBankAccount() {
             }
 
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate});
-            goToStepID(currentStep, achData);
+            goToWithdrawalStepID(currentStep, achData);
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
@@ -461,12 +461,11 @@ function getIndexByStepID(stepID) {
  */
 function getNextStepID() {
     const nextStepIndex = Math.min(
-        getIndexByStepID(this.state.achData.currentStep) + 1,
+        getIndexByStepID(previousACHData.currentStep) + 1,
         WITHDRAWAL_ACCOUNT_STEPS.length - 1,
     );
     return lodashGet(WITHDRAWAL_ACCOUNT_STEPS, [nextStepIndex, 'id'], 'BankAccountStep');
 }
-
 
 /**
  * @private
@@ -495,18 +494,20 @@ function setupWithdrawalAccount(data) {
     let nextStep = previousACHData.currentStep;
 
     API.BankAccount_SetupWithdrawal(previousACHData)
-        .finally((response) => {
+        .then((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
 
             const currentStep = previousACHData.currentStep;
-            let achData = response.achData;
+            let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, 'verifications.errorMessage');
 
             if (response.jsonCode === 200 && !error) {
                 // Save an NVP with the bankAccountID for this account. This is temporary since we are not showing lists
                 // of accounts yet and must have some kind of record of which account is the one the user is trying to
                 // set up for the free plan.
-                setFreePlanVerifiedBankAccountID(achData.bankAccountID);
+                if (achData.bankAccountID) {
+                    setFreePlanVerifiedBankAccountID(achData.bankAccountID);
+                }
 
                 // Show warning if another account already set up this bank account and promote share
                 if (response.existingOwners) {
@@ -529,7 +530,7 @@ function setupWithdrawalAccount(data) {
                         if (sdkToken && !previousACHData.isOnfidoSetupComplete && onfidoRes.status !== 'pass') {
                             // Requestor Step still needs to run Onfido
                             achData.sdkToken = sdkToken;
-                            goToStepID('RequestorStep', achData);
+                            goToWithdrawalStepID('RequestorStep', achData);
                             return;
                         }
                     } else if (requestorResponse) {
@@ -546,7 +547,7 @@ function setupWithdrawalAccount(data) {
                         }
                         if (!_.isEmpty(questions)) {
                             achData.questions = questions;
-                            goToStepID('RequestorStep', achData);
+                            goToWithdrawalStepID('RequestorStep', achData);
                             return;
                         }
                     }
@@ -567,7 +568,7 @@ function setupWithdrawalAccount(data) {
                             achData.bankAccountInReview = needsToPassLatestChecks
                                 || achData.state === BankAccount.STATE.VERIFYING;
 
-                            goToStepID('ValidationStep', achData);
+                            goToWithdrawalStepID('ValidationStep', achData);
                         });
                 }
 
@@ -588,7 +589,7 @@ function setupWithdrawalAccount(data) {
             }
 
             // Go to next step
-            goToStepID(nextStep, achData);
+            goToWithdrawalStepID(nextStep, achData);
 
             if (error) {
                 // @TODO - Show the error for real
@@ -607,4 +608,5 @@ export {
     fetchUserWallet,
     fetchFreePlanVerifiedBankAccount,
     setupWithdrawalAccount,
+    goToWithdrawalStepID,
 };
