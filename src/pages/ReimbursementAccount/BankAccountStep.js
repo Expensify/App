@@ -23,7 +23,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class BusinessBankAccountNewPage extends React.Component {
+class BankAccountStep extends React.Component {
     constructor(props) {
         super(props);
 
@@ -221,6 +221,6 @@ class BusinessBankAccountNewPage extends React.Component {
     }
 }
 
-BusinessBankAccountNewPage.propTypes = propTypes;
+BankAccountStep.propTypes = propTypes;
 
-export default withLocalize(BusinessBankAccountNewPage);
+export default withLocalize(BankAccountStep);
