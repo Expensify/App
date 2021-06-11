@@ -493,6 +493,14 @@ function setupWithdrawalAccount(data) {
 
     let nextStep = previousACHData.currentStep;
 
+    // If we are setting up a Plaid account replace the accountNumber with the unmasked number
+    if (data.plaidAccountID) {
+        const unmaskedAccount = _.find(plaidBankAccounts, bankAccount => (
+            bankAccount.plaidAccountID === data.plaidAccountID
+        ));
+        previousACHData.accountNumber = unmaskedAccount.accountNumber;
+    }
+
     API.BankAccount_SetupWithdrawal(previousACHData)
         .then((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});

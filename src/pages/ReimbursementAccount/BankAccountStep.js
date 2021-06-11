@@ -78,9 +78,35 @@ class BusinessBankAccountNewPage extends React.Component {
 
     /**
      * @param {Object} params
+     * @param {String} params.password
+     * @param {Object} params.account
+     * @param {String} params.account.bankName
+     * @param {Boolean} params.account.isSavings
+     * @param {String} params.account.addressName
+     * @param {String} params.account.ownershipType
+     * @param {String} params.account.accountNumber
+     * @param {String} params.account.routingNumber
+     * @param {String} params.account.plaidAccountID
      */
     addPlaidAccount(params) {
-        console.debug(params);
+        setupWithdrawalAccount({
+            acceptTerms: true,
+            setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+
+            // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
+            country: CONST.COUNTRY.US,
+            currency: CONST.CURRENCY.USD,
+            fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
+            password: params.password,
+            plaidAccessToken: params.plaidLinkToken,
+            accountNumber: params.account.accountNumber,
+            routingNumber: params.account.routingNumber,
+            plaidAccountID: params.account.plaidAccountID,
+            ownershipType: params.account.ownershipType,
+            isSavings: params.account.isSavings,
+            bankName: params.account.bankName,
+            addressName: params.account.addressName,
+        });
     }
 
     render() {
