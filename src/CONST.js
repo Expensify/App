@@ -70,6 +70,9 @@ const CONST = {
             CHAT: 'chat',
             IOU: 'iou',
         },
+        CHAT_TYPE: {
+            DEFAULT_ROOM: 'defaultRoom',
+        },
         STATE_NUM: {
             OPEN: 0,
             PROCESSING: 1,

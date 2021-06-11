@@ -133,12 +133,17 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 }
 
 /**
- * Returns a generated report title based on the participants
+ * Returns the title for a default room or generates one based on the participants
  *
- * @param {Array} sharedReportList
+ * @param {Object} report
  * @return {String}
  */
-function getChatReportName(sharedReportList) {
+function getChatReportName(report) {
+    if (report.chatType === CONST.REPORT.CHAT_TYPE.DEFAULT_ROOM) {
+        return `#${report.reportName}`;
+    }
+
+    const {sharedReportList} = report;
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
@@ -171,7 +176,7 @@ function getSimplifiedReportObject(report) {
         .replace(/((<br[^>]*>)+)/gi, ' ')
         .replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
-        ? getChatReportName(report.sharedReportList)
+        ? getChatReportName(report)
         : report.reportName;
     const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
 
