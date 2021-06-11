@@ -25,6 +25,9 @@ const CONST = {
             REQUESTOR_IDENTITY_ONFIDO: 'verifications.externalApiResponses.requestorIdentityOnfido',
             THROTTLED: 'verifications.throttled',
         },
+        FIELDS_TYPE: {
+            LOCAL: 'local',
+        },
         ONFIDO_RESPONSE: {
             SDK_TOKEN: 'apiResult.sdkToken',
             PASS: 'pass',

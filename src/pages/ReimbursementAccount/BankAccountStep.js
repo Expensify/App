@@ -17,6 +17,7 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from '../../../assets/images/example-check-image.png';
 import Text from '../../components/Text';
+import {setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -28,11 +29,12 @@ class BusinessBankAccountNewPage extends React.Component {
 
         this.toggleTerms = this.toggleTerms.bind(this);
         this.addManualAccount = this.addManualAccount.bind(this);
+        this.addPlaidAccount = this.addPlaidAccount.bind(this);
 
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: undefined,
-            hasAcceptedTerms: false,
+            hasAcceptedTerms: true,
             routingNumber: '',
             accountNumber: '',
         };
@@ -56,7 +58,29 @@ class BusinessBankAccountNewPage extends React.Component {
     }
 
     addManualAccount() {
-        // @TODO call API to add account manually
+        if (!this.state.hasAcceptedTerms) {
+            // @TODO don't let them submit
+            return;
+        }
+
+        setupWithdrawalAccount({
+            acceptTerms: this.state.hasAcceptedTerms,
+            accountNumber: this.state.accountNumber,
+            routingNumber: this.state.routingNumber,
+            setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+
+            // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
+            country: CONST.COUNTRY.US,
+            currency: CONST.CURRENCY.USD,
+            fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
+        });
+    }
+
+    /**
+     * @param {Object} params
+     */
+    addPlaidAccount(params) {
+        console.debug(params);
     }
 
     render() {
@@ -112,9 +136,7 @@ class BusinessBankAccountNewPage extends React.Component {
                 {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
-                        onSubmit={(args) => {
-                            console.debug(args);
-                        }}
+                        onSubmit={this.addPlaidAccount}
                         onExitPlaid={() => {
                             this.setState({bankAccountAddMethod: undefined});
                         }}
