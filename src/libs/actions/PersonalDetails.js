@@ -10,8 +10,8 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
-import { isDefaultRoom } from '../reportUtils';
-import { getReportIcons } from '../OptionsListUtils';
+import {isDefaultRoom} from '../reportUtils';
+import {getReportIcons} from '../OptionsListUtils';
 
 let currentUserEmail = '';
 Onyx.connect({

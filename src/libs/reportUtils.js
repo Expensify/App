@@ -72,8 +72,9 @@ function findLastAccessedReport(reports) {
 }
 
 /**
- * Check if chat type is a default room
+ *
  * @param {String} chatType
+ * @returns {Boolean}
  */
 function isDefaultRoom(chatType) {
     return _.contains([

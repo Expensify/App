@@ -35,7 +35,7 @@ Onyx.connect({
     callback: val => preferredLocale = val || 'en',
 });
 
-let policies = {};
+const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (policy) => {
@@ -119,7 +119,13 @@ function getSearchText(report, personalDetailList) {
         searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
         searchTerms.push(...report.participants);
+
+        // Add policyID as a search term for default rooms
+        if (isDefaultRoom(report.chatType) && policies[report.policyID]) {
+            searchTerms.push(...policies[report.policyID].name);
+        }
     }
+
 
     return _.unique(searchTerms).join(' ');
 }
@@ -567,8 +573,7 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  */
 function getReportIcons(report, personalDetails) {
     if (isDefaultRoom(report.chatType)) {
-        // Placeholder icon for the meantime
-        return `${CONST.CLOUDFRONT_URL}/images/avatars/default_avatar_external.png`;
+        return [`${CONST.CLOUDFRONT_URL}/images/icon-help.svg`];
     }
     return _.map(report.participants, dmParticipant => ({
         firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
