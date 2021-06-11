@@ -8,6 +8,7 @@ import {translate} from '../libs/translate';
 import DateUtils from '../libs/DateUtils';
 import {toLocalPhone, fromLocalPhone} from '../libs/LocalePhoneNumber';
 import numberFormat from '../libs/numberFormat';
+import CONST from '../CONST';
 
 const withLocalizePropTypes = {
     /** Returns translated string for given locale and phrase */
@@ -66,7 +67,7 @@ function withLocalizeHOC(WrappedComponent) {
         ]),
     };
     WithLocalize.defaultProps = {
-        preferredLocale: 'en',
+        preferredLocale: CONST.DEFAULT_LOCALE,
         forwardedRef: undefined,
     };
     return React.forwardRef((props, ref) => (

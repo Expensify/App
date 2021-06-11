@@ -37,6 +37,10 @@ const CONST = {
             MANUAL: 'manual',
             PLAID: 'plaid',
         },
+        REGEX: {
+            IBAN: /^[A-Za-z0-9]{2,30}$/,
+            SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
+        },
     },
     BETAS: {
         ALL: 'all',
@@ -44,6 +48,7 @@ const CONST = {
         IOU: 'IOU',
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
+        DEFAULT_ROOMS: 'defaultRooms',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -271,6 +276,8 @@ const CONST = {
         WARNING: 'warning',
         DURATION: 2000,
     },
+
+    DEFAULT_LOCALE: 'en',
 };
 
 export default CONST;
