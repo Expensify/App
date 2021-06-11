@@ -43,9 +43,18 @@ function canUseFreePlan(betas) {
     return _.contains(betas, CONST.BETAS.FREE_PLAN) || canUseAllBetas();
 }
 
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseDefaultRooms(betas) {
+    return _.contains(betas, CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas();
+}
+
 export default {
     canUseChronos,
     canUseIOU,
     canUsePayWithExpensify,
     canUseFreePlan,
+    canUseDefaultRooms,
 };
