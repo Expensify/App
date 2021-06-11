@@ -73,7 +73,7 @@
     "react-native": "0.64.1",
     "react-native-bootsplash": "^3.2.0",
     "react-native-config": "^1.4.0",
-    "react-native-document-picker": "^4.0.0",
+    "react-native-document-picker": "^5.1.0",
     "react-native-gesture-handler": "1.9.0",
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^2.3.3",
