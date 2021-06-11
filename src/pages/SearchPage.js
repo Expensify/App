@@ -69,13 +69,18 @@ class SearchPage extends Component {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
 
         this.selectReport = this.selectReport.bind(this);
-        this.validateInput = _.debounce(this.validateInput.bind(this), 300);
-        const {recentReports, personalDetails, userToInvite} = getSearchOptions(
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = getSearchOptions(
             props.reports,
             props.personalDetails,
             '',
             props.betas,
         );
+        this.validateInput = _.debounce(this.validateInput.bind(this), 300);
+
 
         this.preserveRecentReports = recentReports;
 
@@ -140,6 +145,12 @@ class SearchPage extends Component {
         }
     }
 
+
+    /**
+     * Validates search input via regexes and validation API (phone numbers only)
+     * @param {String} searchValue
+     * @returns {void}
+     */
     validateInput(searchValue) {
         if (!searchValue) {
             return;
@@ -152,14 +163,16 @@ class SearchPage extends Component {
             searchValue,
         );
 
-        if (/^\d+$/.test(searchValue) || /^[0-9]*$/.test(searchValue)) {
+        if (/^[0-9]+$/.test(searchValue) || /^[0-9]*$/.test(searchValue)) {
             // Appends country code
             if (!searchValue.includes('+')) {
                 modifiedSearchValue = `+${this.props.countryCode}${searchValue}`;
             }
             API.IsValidPhoneNumber({phoneNumber: modifiedSearchValue}).then(
                 (resp) => {
+                    // Early return if the user had cleared the input before the API responsed.
                     if (!this.state.searchValue) { return; }
+
                     if (resp.isValid) {
                         const {
                             recentReports,
@@ -191,8 +204,6 @@ class SearchPage extends Component {
                 this.props.personalDetails,
                 searchValue,
             );
-
-            // debugger;
             this.setState({
                 userToInvite,
                 recentReports,
@@ -236,9 +247,7 @@ class SearchPage extends Component {
                                         this.validateInput(searchValue);
                                     }
                                 }}
-                                headerMessage={
-                                   this.state.headerMessage
-        }
+                                headerMessage={this.state.headerMessage}
                                 hideSectionHeaders
                                 hideAdditionalOptionStates
                                 showTitleTooltip

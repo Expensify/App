@@ -190,16 +190,7 @@ class OptionsSelector extends Component {
     render() {
         return (
             <View style={[styles.flex1]}>
-                <View style={[
-                    styles.ph5,
-                    styles.pt3,
-                    styles.pb1,
-                    styles.dFlex,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.mb3,
-                ]}
-                >
+                <View style={[styles.ph5, styles.pv3]}>
                     <TextInputWithFocusStyles
                         styleFocusIn={[styles.textInputReversedFocus]}
                         ref={el => this.textInput = el}

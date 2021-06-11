@@ -207,13 +207,11 @@ class OptionsList extends Component {
         return (
             <View style={this.props.listContainerStyles}>
                 <View>
-                    {this.props.headerMessage ? (
-                        <View style={[styles.ph5]}>
-                            <Text style={[styles.textLabel, styles.colorMuted]}>
-                                {this.props.headerMessage}
-                            </Text>
-                        </View>
-                    ) : null}
+                    <View style={[styles.ph5]}>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                            {this.props.headerMessage}
+                        </Text>
+                    </View>
                 </View>
                 <SectionList
                     ref={this.props.innerRef}
