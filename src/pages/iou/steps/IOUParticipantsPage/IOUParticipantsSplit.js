@@ -26,6 +26,9 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
@@ -79,6 +82,7 @@ class IOUParticipantsSplit extends Component {
             '',
             props.participants,
             true,
+            props.betas,
         );
 
         this.state = {
@@ -179,6 +183,7 @@ class IOUParticipantsSplit extends Component {
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
                 true,
+                this.props.betas,
             );
             return {
                 recentReports,
@@ -215,6 +220,7 @@ class IOUParticipantsSplit extends Component {
                                 searchValue,
                                 [],
                                 true,
+                                this.props.betas,
                             );
                             this.setState({
                                 searchValue,
@@ -255,6 +261,9 @@ export default compose(
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(IOUParticipantsSplit);

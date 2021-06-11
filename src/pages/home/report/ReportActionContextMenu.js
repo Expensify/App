@@ -18,6 +18,7 @@ import compose from '../../../libs/compose';
 import {isReportMessageAttachment, canEditReportAction} from '../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ConfirmModal from '../../../components/ConfirmModal';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** The ID of the report this report action is attached to. */
@@ -60,6 +61,7 @@ class ReportActionContextMenu extends React.Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.getActionText = this.getActionText.bind(this);
+        this.hidePopover = this.hidePopover.bind(this);
 
         // A list of all the context actions in this menu.
         this.contextActions = [
@@ -86,6 +88,7 @@ class ReportActionContextMenu extends React.Component {
                     } else {
                         Clipboard.setString(html);
                     }
+                    this.hidePopover(true, ReportActionComposeFocusManager.focus);
                 },
             },
 
@@ -104,6 +107,7 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {
                     updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
                     setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
+                    this.hidePopover(true, ReportActionComposeFocusManager.focus);
                 },
             },
 
@@ -112,12 +116,19 @@ class ReportActionContextMenu extends React.Component {
                 icon: Pencil,
                 shouldShow: () => canEditReportAction(this.props.reportAction),
                 onPress: () => {
-                    this.props.hidePopover();
-                    saveReportActionDraft(
+                    const editAction = () => saveReportActionDraft(
                         this.props.reportID,
                         this.props.reportAction.reportActionID,
                         _.isEmpty(this.props.draftMessage) ? this.getActionText() : '',
                     );
+
+                    if (this.props.isMini) {
+                        // No popover to hide, call editAction immediately
+                        editAction();
+                    } else {
+                        // Hide popover, then call editAction
+                        this.hidePopover(false, editAction);
+                    }
                 },
             },
             {
@@ -148,10 +159,27 @@ class ReportActionContextMenu extends React.Component {
     confirmDeleteAndHideModal() {
         deleteReportComment(this.props.reportID, this.props.reportAction);
         this.setState({isDeleteCommentConfirmModalVisible: false});
+        this.hidePopover();
     }
 
     hideDeleteConfirmModal() {
         this.setState({isDeleteCommentConfirmModalVisible: false});
+        this.hidePopover();
+    }
+
+    /**
+     * Hides the popover menu with an optional delay
+     *
+     * @param {Boolean} shouldDelay whether the menu should close after a delay
+     * @param {Function} [onHideCallback=() => {}] Callback to be called after Popover Menu is hidden
+     * @memberof ReportActionContextMenu
+     */
+    hidePopover(shouldDelay, onHideCallback = () => {}) {
+        if (!shouldDelay) {
+            this.props.hidePopover(onHideCallback);
+            return;
+        }
+        setTimeout(() => this.props.hidePopover(onHideCallback), 800);
     }
 
     render() {

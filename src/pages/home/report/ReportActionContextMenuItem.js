@@ -68,7 +68,7 @@ class ReportActionContextMenuItem extends Component {
                 ? (
                     <Tooltip text={text}>
                         <Pressable
-                            accessible
+                            focusable
                             accessibilityLabel={text}
                             onPress={this.triggerPressAndUpdateSuccess}
                             style={

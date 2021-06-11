@@ -9,7 +9,8 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {createIOUSplit, createIOUTransaction, getPreferredCurrency} from '../../libs/actions/IOU';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import {createIOUSplit, createIOUTransaction} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -147,11 +148,9 @@ class IOUModal extends Component {
         }
     }
 
-
     getReady() {
-        getPreferredCurrency();
+        PersonalDetails.fetchCurrencyPreferences();
     }
-
 
     /**
      * Retrieve title for current step, based upon current step and type of IOU
@@ -248,7 +247,7 @@ class IOUModal extends Component {
                 comment: this.state.comment,
 
                 // should send in cents to API
-                amount: this.state.amount * 100,
+                amount: Math.round(this.state.amount * 100),
                 currency: this.state.selectedCurrency.currencyCode,
                 splits,
             });
@@ -259,7 +258,7 @@ class IOUModal extends Component {
             comment: this.state.comment,
 
             // should send in cents to API
-            amount: this.state.amount * 100,
+            amount: Math.round(this.state.amount * 100),
             currency: this.state.selectedCurrency.currencyCode,
             debtorEmail: this.state.participants[0].login,
         });
