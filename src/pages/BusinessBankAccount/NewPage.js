@@ -39,7 +39,7 @@ class BusinessBankAccountNewPage extends React.Component {
         this.addManualAccount = this.addManualAccount.bind(this);
 
         this.state = {
-            // One of CONST.BANK_ACCOUNT.ADD_METHOD
+            // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: undefined,
             hasAcceptedTerms: false,
             routingNumber: '',
@@ -94,7 +94,7 @@ class BusinessBankAccountNewPage extends React.Component {
                                     icon={Bank}
                                     title={this.props.translate('bankAccount.logIntoYourBank')}
                                     onPress={() => {
-                                        this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.ADD_METHOD.PLAID});
+                                        this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -102,7 +102,7 @@ class BusinessBankAccountNewPage extends React.Component {
                                     icon={Paycheck}
                                     title={this.props.translate('bankAccount.connectManually')}
                                     onPress={() => {
-                                        this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.ADD_METHOD.MANUAL});
+                                        this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL});
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -125,7 +125,7 @@ class BusinessBankAccountNewPage extends React.Component {
                             </View>
                         </>
                     )}
-                    {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.ADD_METHOD.PLAID && (
+                    {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                         <AddPlaidBankAccount
                             text={this.props.translate('bankAccount.plaidBodyCopy')}
                             onSubmit={(args) => {
@@ -136,7 +136,7 @@ class BusinessBankAccountNewPage extends React.Component {
                             }}
                         />
                     )}
-                    {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.ADD_METHOD.MANUAL && (
+                    {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                         <>
                             <View style={[styles.m5, styles.flex1]}>
                                 <Text style={[styles.mb5]}>
