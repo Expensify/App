@@ -8,12 +8,14 @@ import ONYXKEYS from '../../ONYXKEYS';
  * the pieces of data that we need to in Onyx
  *
  * @param {Object} fullPolicy
+ * @param {String} fullPolicy.id
  * @param {String} fullPolicy.name
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicy) {
     return {
         name: fullPolicy.name,
+        policyID: fullPolicy.id,
     };
 }
 
