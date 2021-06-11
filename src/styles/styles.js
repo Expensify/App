@@ -985,6 +985,14 @@ const styles = {
         borderRightWidth: 0,
     },
 
+    exampleCheckImage: {
+        width: '100%',
+        height: 80,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+    },
+
     singleAvatar: {
         height: 24,
         width: 24,
@@ -1396,6 +1404,7 @@ const styles = {
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
+        cursor: 'pointer',
     },
 
     iouPreviewBoxLoading: {

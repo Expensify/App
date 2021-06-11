@@ -17,8 +17,7 @@ const BaseAnchorForCommentsOnly = ({
         style={StyleSheet.flatten(style)}
         accessibilityRole="link"
         href={href}
-        rel={rel}
-        target={target}
+        hrefAttrs={{rel, target}}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     >
