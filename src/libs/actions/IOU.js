@@ -205,25 +205,6 @@ function payIOUReport({
                 throw new Error(response.message);
             }
 
-            // Save the updated chat and iou reports sent back in the response
-            // NOTE: since the API doesn't handle syncing chat reports with IOU reports,
-            // we also need to set the iouReportID and hasOutstandingIOU fields of the chatReport in Onyx manually
-            // If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
-            // iouReport being fetched here must be open, because only an open iouReport can be paid.
-            // const {chatReport, iouReport} = response;
-            // const iouReportData = {};
-            // const chatReportData = {};
-            // const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
-            // const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-            // chatReportData[chatReportKey] = getSimplifiedReportObject(chatReport);
-            // chatReportData[chatReportKey].iouReportID = reportID;
-            // chatReportData[chatReportKey].hasOutstandingIOU = iouReportData.stateNum
-            //     === CONST.REPORT.STATE_NUM.PROCESSING && iouReportData.total !== 0;
-            // iouReportData[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReportID);
-            // Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportData);
-            // Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportData);
-
-
             fetchChatReportsByIDs([chatReportID]);
 
             // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
