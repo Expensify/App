@@ -100,6 +100,6 @@ export default {
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
 
-    // Stores information about the free plan bank account being set up
-    FREE_PLAN_BANK_ACCOUNT: 'freePlanBankAccount',
+    // Stores information about the active reimbursement account being set up
+    REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 };

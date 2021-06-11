@@ -273,7 +273,7 @@ function fetchUserWallet() {
 
 let previousACHData = {};
 Onyx.connect({
-    key: ONYXKEYS.FREE_PLAN_BANK_ACCOUNT,
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     callback: (val = {}) => {
         previousACHData = val.achData || {};
     },
@@ -297,14 +297,14 @@ function goToStepID(stepID, achData) {
         newACHData.subStep = 'manual';
     }
 
-    Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
 }
 
 /**
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  */
 function fetchFreePlanVerifiedBankAccount() {
-    Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
     let bankAccountID;
     let bankAccount;
     let kycVerificationsMigration;
@@ -410,11 +410,11 @@ function fetchFreePlanVerifiedBankAccount() {
                 currentStep = 'BankAccountStep';
             }
 
-            Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {throttledDate});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate});
             goToStepID(currentStep, achData);
         })
         .finally(() => {
-            Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
 }
 
@@ -481,7 +481,7 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
  * @param {Object} [data]
  */
 function setupWithdrawalAccount(data) {
-    Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
 
     previousACHData = {...previousACHData, ...data};
     if (data && data.isSavings !== undefined) {
@@ -495,7 +495,7 @@ function setupWithdrawalAccount(data) {
 
     API.BankAccount_SetupWithdrawal(previousACHData)
         .finally((response) => {
-            Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
 
             const currentStep = previousACHData.currentStep;
             let achData = response.achData;
