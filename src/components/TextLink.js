@@ -31,7 +31,7 @@ const TextLink = (props) => {
             href={props.href}
         >
             {({hovered, pressed}) => (
-                <Text style={[additionalStyles, styles.link, (hovered || pressed) ? styles.linkHovered : undefined]}>
+                <Text style={[...additionalStyles, styles.link, (hovered || pressed) ? styles.linkHovered : undefined]}>
                     {props.children}
                 </Text>
             )}
