@@ -204,7 +204,6 @@ function payIOUReport({
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
-
             fetchChatReportsByIDs([chatReportID]);
 
             // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
