@@ -79,16 +79,25 @@ function invite(login, welcomeNote, policyID) {
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
     const dataToStore = {};
     dataToStore[key] = {
-        employeeList: [login]
+        employeeList: [login],
     };
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, dataToStore);
 
-    Policy_Employees_Merge([{email: login}], welcomeNote, policyID)
+    Policy_Employees_Merge({
+        employees: JSON.stringify([{email: login}]),
+        welcomeNote,
+        policyID
+    })
         .then((data) => {
             // Save data.personalDetails
-        })
-        .fail(() => {
-            // Remove data from Onyx
+            if (data.jsonCode === 200) {
+                // TODO: need to match personalDetails to data in PersonalDetails.formatPersonalDetails
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[login]: data.personalDetails[login]});
+                return;
+            }
+
+            // If the operation failed, undo the optimistic addition
+            
         });
 }
 
