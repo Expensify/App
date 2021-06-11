@@ -52,15 +52,23 @@ class WorkspaceInvitePage extends React.Component {
         this.inviteUser = this.inviteUser.bind(this);
     }
 
-    inviteUser() {
-        invite(this.state.emailOrPhone, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
-            this.props.route.params.policyID);
-    }
-
+    /**
+     * Gets the welcome note default text
+     *
+     * @returns {Object}
+     */
     getWelcomeNotePlaceholder() {
         return this.props.translate('workspaceInvitePage.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
+    }
+
+    /**
+     * Handle the invite button click
+     */
+    inviteUser() {
+        invite(this.state.emailOrPhone, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
+            this.props.route.params.policyID);
     }
 
     render() {
