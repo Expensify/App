@@ -172,7 +172,7 @@ function getFromReportParticipants(reports) {
 
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
             // report and based on the participants we'll link up their avatars to report icons. This will
-            // skip over default rooms
+            // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
             const defaultRooms = _.values(CONST.REPORT.CHAT_TYPE.DEFAULT_ROOMS);
             _.each(reports, (report) => {
