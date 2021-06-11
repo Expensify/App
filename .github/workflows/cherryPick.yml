@@ -84,7 +84,7 @@ jobs:
 
       - name: Save correct NEW_VERSION to env
         run: |
-          if [[ -z ${{ github.event.inputs.NEW_VERSION }} ]]; then
+          if [ -z ${{ github.event.inputs.NEW_VERSION }} ]; then
             echo "NEW_VERSION=${{ needs.createNewVersion.outputs.NEW_VERSION }}" >> $GITHUB_ENV
             echo "New version is ${{ env.NEW_VERSION }}"
           else
@@ -119,6 +119,9 @@ jobs:
             GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
             echo "::set-output name=SHOULD_AUTOMERGE::false"
           fi
+
+      - name: Push changes to CP branch
+        run: git push
 
       - name: Create Pull Request
         id: createPullRequest

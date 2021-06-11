@@ -49,6 +49,7 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
+    BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     WorkspaceInviteModalStackNavigator,
 } from './ModalStackNavigators';
@@ -122,7 +123,7 @@ class AuthScreens extends React.Component {
         User.getUserDetails();
         User.getBetas();
         PersonalDetails.fetchCurrencyPreferences();
-        fetchAllReports(true, true, true);
+        fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         getPolicySummaries();
@@ -275,6 +276,12 @@ class AuthScreens extends React.Component {
                     name="AddPersonalBankAccount"
                     options={modalScreenOptions}
                     component={AddPersonalBankAccountModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="BusinessBankAccount"
+                    options={modalScreenOptions}
+                    component={BusinessBankAccountModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
