@@ -785,13 +785,14 @@ function BankAccount_Get(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String[]} parameters.employees
+ * @param {Object[]} parameters.employees
  * @param {String} parameters.welcomeNote
+ * @param {String} parameters.policyID
  * @returns {Promise}
  */
 function Policy_Employees_Merge(parameters) {
     const commandName = 'Policy_Employees_Merge';
-    requireParameters(['employees', 'welcomeNote'], parameters, commandName);
+    requireParameters(['employees', 'welcomeNote', 'policyID'], parameters, commandName);
 
     // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
     return Network.post(commandName, {...parameters, returnPersonalDetails: true});
@@ -880,6 +881,7 @@ export {
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,
+    Policy_Employees_Merge,
     Push_Authenticate,
     RejectTransaction,
     Report_AddComment,
