@@ -176,7 +176,9 @@ function getFromReportParticipants(reports) {
             const reportsToUpdate = {};
             const defaultRooms = _.values(CONST.REPORT.CHAT_TYPE.DEFAULT_ROOMS);
             _.each(reports, (report) => {
-                if (report.participants.length > 0 && !_.contains(defaultRooms, report.chatType)) {
+                if (_.contains(defaultRooms, report.chatType)) {
+                    reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: [getDefaultAvatar()]};
+                } else if (report.participants.length > 0 ) {
                     const avatars = _.map(report.participants, dmParticipant => ({
                         firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
                         avatar: lodashGet(details, [dmParticipant, 'avatarThumbnail'], '')
