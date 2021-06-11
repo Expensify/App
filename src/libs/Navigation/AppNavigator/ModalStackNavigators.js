@@ -159,13 +159,6 @@ const ReimbursementAccountModalStackNavigator = createModalStackNavigator([{
     name: 'ReimbursementAccount_Root',
 }]);
 
-const BusinessBankAccountModalStackNavigator = createModalStackNavigator([
-    {
-        Component: BusinessBankAccountNewPage,
-        name: 'BusinessBankAccount_New',
-    },
-]);
-
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -177,7 +170,6 @@ export {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
-    BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
 };
