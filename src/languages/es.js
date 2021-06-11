@@ -280,6 +280,6 @@ export default {
         invitePeople: 'Invite People',
         invitePeoplePrompt: 'Invite a colleague to your workspace.',
         enterEmailOrPhone: 'Email or Phone',
-        welcomeMessage: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
+        welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
     },
 };

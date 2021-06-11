@@ -11,6 +11,7 @@ import Text from '../components/Text';
 import Button from '../components/Button';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
+import {invite} from '../libs/actions/Policy';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -20,6 +21,15 @@ const propTypes = {
         /** The policy name */
         name: PropTypes.string,
     }),
+
+    /** URL Route params */
+    route: PropTypes.shape({
+        /** Params from the URL path */
+        params: PropTypes.shape({
+            /** policyID passed via route: /workspace/:policyID/invite */
+            policyID: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -34,12 +44,14 @@ class WorkspaceInvitePage extends React.Component {
 
         this.state = {
             emailOrPhone: '',
-            welcomeMessage: '',
+            welcomeNote: '',
         };
+
+        this.inviteUser = this.inviteUser.bind(this);
     }
 
     inviteUser() {
-        console.debug('user invited');
+        invite(this.state.emailOrPhone, this.state.welcomeNote, this.props.route.params.policyID);
     }
 
     render() {
@@ -71,11 +83,11 @@ class WorkspaceInvitePage extends React.Component {
                                 style={[styles.textInput, styles.workspaceInviteWelcome]}
                                 numberOfLines={10}
                                 multiline
-                                value={this.state.welcomeMessage}
-                                placeholder={this.props.translate('workspaceInvitePage.welcomeMessage', {
+                                value={this.state.welcomeNote}
+                                placeholder={this.props.translate('workspaceInvitePage.welcomeNote', {
                                     workspaceName: this.props.policy.name,
                                 })}
-                                onChangeText={text => this.setState({welcomeMessage: text})}
+                                onChangeText={text => this.setState({welcomeNote: text})}
                             />
                         </View>
                     </View>
