@@ -1266,6 +1266,28 @@ function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
 
+/**
+ * Syncs up a chat report and an IOU report in Onyx after an IOU transaction has been made
+ * and they've both been updated in the back-end.
+ * @param {Object} chatReportStuff
+ * @param {Object} iouReportStuff
+ */
+function syncChatAndIOUReports(chatReportStuff, iouReportStuff) {
+    const iouReportData = {};
+    const chatReportData = {};
+    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportStuff.reportID}`;
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportStuff.reportID}`;
+
+    chatReportData[chatReportKey] = getSimplifiedReportObject(chatReportStuff);
+    chatReportData[chatReportKey].iouReportID = iouReportStuff.reportID;
+    chatReportData[chatReportKey].hasOutstandingIOU = iouReportStuff.stateNum
+        === CONST.REPORT.STATE_NUM.PROCESSING && iouReportStuff.total !== 0;
+    iouReportData[iouReportKey] = getSimplifiedIOUReport(iouReportStuff, chatReportStuff.reportID);
+
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportData);
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportData);
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1287,4 +1309,6 @@ export {
     saveReportActionDraft,
     deleteReportComment,
     getSimplifiedIOUReport,
+    getSimplifiedReportObject,
+    syncChatAndIOUReports,
 };
