@@ -281,6 +281,8 @@ export default {
             chooseAName: 'Elige un nombre',
             chooseANameHint: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
             getStarted: '¡Empezar!',
+            uploadPhoto: 'Subir Foto',
+            editPhoto: 'Editar Foto',
         },
     },
 };

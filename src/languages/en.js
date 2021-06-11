@@ -324,6 +324,8 @@ export default {
             chooseAName: 'Choose a name',
             chooseANameHint: 'Name your Workspace before enabling your Expensify Cards!',
             getStarted: 'Get started!',
+            editPhoto: 'Edit Photo',
+            uploadPhoto: 'Upload Photo',
         },
     },
 };
