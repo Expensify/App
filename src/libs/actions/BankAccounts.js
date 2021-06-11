@@ -352,10 +352,6 @@ function fetchFreePlanVerifiedBankAccount() {
             const achData = bankAccount ? bankAccount.toACHData() : {};
             achData.useOnfido = true;
             achData.policyID = '';
-
-            // @TODO I think probably we won't set the token until we actually ask to start the the Plaid flow
-            // but we could also get it here with another API call...
-            achData.plaidLinkToken = '';
             achData.isInSetup = !bankAccount || bankAccount.isInSetup();
             achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
             achData.domainLimit = 0;
@@ -600,7 +596,6 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalStepID(nextStep, achData);
 
             if (error) {
-                // @TODO - Show the error for real
                 console.error(`Error setting up withdrawal account: ${error}`);
             }
         });

@@ -6,7 +6,7 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import {View} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
@@ -21,6 +21,7 @@ import RequestorStep from './RequestorStep';
 import ACHContractStep from './ACHContractStep';
 import ValidationStep from './ValidationStep';
 import Navigation from '../../libs/Navigation/Navigation';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** List of betas */
@@ -69,26 +70,30 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         const {achData} = this.props.reimbursementAccount;
-
-        // In Web-Secure we check the policy to find out the defaultCountry. The policy is passed in here:
-        // https://github.com/Expensify/Web-Expensify/blob/896941794f68d7dce64466d83a3e86a5f8122e45/site/app/policyEditor/policyEditorPage.jsx#L2169-L2171
-        // @TODO figure out whether we need to check the policy or not - not sure if it's necessary for V1 of Free Plan
-        const defaultCountry = achData.country || 'US'; // @TODO - In Web-Expensify this fallback refers to User.getIpCountry()
-        const personalDetails = {firstName: this.props.personalDetails.firstName, lastName: this.props.personalDetails.lastName};
-        const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, '@expensify.sms');
+        const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
 
         if (userHasPhonePrimaryEmail) {
-            // @TODO message explaining that they need to make their primary login an email
-            return null;
+            return (
+                <View>
+                    <Text>To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.</Text>
+                </View>
+            );
         }
 
-        // See if they is throttled
         const throttledDate = lodashGet(this.props, 'reimbursementAccount.throttledDate');
         if (throttledDate) {
             const throttledEnd = moment().add(24, 'hours');
             if (moment() < throttledEnd) {
-                // @TODO message explaining that the user has been throttled
-                return null;
+                return (
+                    <View>
+                        <Text>
+                            For security reasons, we&apos;re taking a break from bank account setup so you can double-check your company information. Please try again
+                            {' '}
+                            {throttledEnd.fromNow()}
+                            . Sorry!
+                        </Text>
+                    </View>
+                );
             }
         }
 
@@ -123,15 +128,10 @@ export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
-    personalDetails: {
-        key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    },
     session: {
         key: ONYXKEYS.SESSION,
     },
     betas: {
         key: ONYXKEYS.BETAS,
     },
-
-    // @TODO we maybe need the user policyID + currency + default country + whether plaid is disabled ??
 })(ReimbursementAccountPage);
