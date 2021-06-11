@@ -32,7 +32,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ReportActionComposerFocusManager from '../../../libs/ReportActionComposerFocusManager';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -109,7 +109,7 @@ class ReportActionsView extends React.Component {
         AppState.addEventListener('change', this.onVisibilityChange);
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
-            if (ReportActionComposerFocusManager.isFocused()) {
+            if (ReportActionComposeFocusManager.isFocused()) {
                 this.scrollToListBottom();
             }
         });
