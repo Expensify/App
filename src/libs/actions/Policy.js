@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import {GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge} from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
+import {formatPersonalDetails} from './PersonalDetails';
 
 const allPolicies = {};
 Onyx.connect({
@@ -102,9 +103,8 @@ function invite(login, welcomeNote, policyID) {
     })
         .then((data) => {
             // Save the personalDetails for the invited user in Onyx
-            if (data.jsonCode === 200) {
-                // TODO: need to match personalDetails to data in PersonalDetails.formatPersonalDetails
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[login]: data.personalDetails[login]});
+            if (data.jsonCode === 200 && data.personalDetails) {
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(data.personalDetails));
                 return;
             }
 
@@ -116,7 +116,6 @@ function invite(login, welcomeNote, policyID) {
 }
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
     getPolicySummaries,
     getPolicyList,
     invite,
