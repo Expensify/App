@@ -49,25 +49,9 @@ const styles = {
         fontSize: variables.fontSizeNormal,
     },
 
-    h3Bold: {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
-    },
-
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeLabel,
-    },
-
-    h4Bold: {
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
-        fontWeight: fontWeightBold,
-    },
-
-    fontFamilyGTA: {
-        fontFamily: fontFamily.GTA,
     },
 
     textAlignCenter: {
@@ -113,6 +97,10 @@ const styles = {
 
     textDecorationNoLine: {
         textDecorationLine: 'none',
+    },
+
+    textWhite: {
+        color: colors.white,
     },
 
     textUppercase: {
