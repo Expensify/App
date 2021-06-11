@@ -1287,5 +1287,4 @@ export {
     saveReportActionDraft,
     deleteReportComment,
     getSimplifiedIOUReport,
-    getSimplifiedReportObject,
 };
