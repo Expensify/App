@@ -171,10 +171,12 @@ function getFromReportParticipants(reports) {
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
 
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
-            // report and based on the participants we'll link up their avatars to report icons.
+            // report and based on the participants we'll link up their avatars to report icons. This will
+            // skip over default rooms
             const reportsToUpdate = {};
+            const defaultRooms = _.values(CONST.REPORT.CHAT_TYPE.DEFAULT_ROOMS);
             _.each(reports, (report) => {
-                if (report.participants.length > 0) {
+                if (report.participants.length > 0 && !_.contains(defaultRooms, report.chatType)) {
                     const avatars = _.map(report.participants, dmParticipant => ({
                         firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
                         avatar: lodashGet(details, [dmParticipant, 'avatarThumbnail'], '')
