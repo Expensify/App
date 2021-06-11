@@ -51,6 +51,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
+import ReportActionComposerFocusManager from '../../../libs/ReportActionComposerFocusManager';
 
 const propTypes = {
     /** Beta features list */
@@ -129,6 +130,7 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
+        this.setTextInputRef = this.setTextInputRef.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -197,6 +199,17 @@ class ReportActionCompose extends React.Component {
      */
     setMenuVisibility(isMenuVisible) {
         this.setState({isMenuVisible});
+    }
+
+    /**
+     * Set the TextInput Ref
+     *
+     * @param {Element} el
+     * @memberof ReportActionCompose
+     */
+    setTextInputRef(el) {
+        ReportActionComposerFocusManager.composerRef.current = el;
+        this.textInput = el;
     }
 
     /**
@@ -446,7 +459,7 @@ class ReportActionCompose extends React.Component {
                                 <TextInputFocusable
                                     autoFocus={this.shouldFocusInputOnScreenFocus}
                                     multiline
-                                    ref={el => this.textInput = el}
+                                    ref={this.setTextInputRef}
                                     textAlignVertical="top"
                                     placeholder={this.props.translate('reportActionCompose.writeSomething')}
                                     placeholderTextColor={themeColors.placeholderText}
