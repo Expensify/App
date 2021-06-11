@@ -6,6 +6,9 @@ const CONST = {
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
     },
+    SMS: {
+        DOMAIN: '@expensify.sms',
+    },
     BANK_ACCOUNT: {
         STEP: {
             BANK_ACCOUNT: 'BankAccountStep',

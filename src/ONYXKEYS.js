@@ -75,7 +75,6 @@ export default {
 
     // Collection Keys
     COLLECTION: {
-        BANK_ACCOUNT: 'bankAccount_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',

@@ -59,7 +59,7 @@ class BusinessBankAccountNewPage extends React.Component {
 
     addManualAccount() {
         if (!this.state.hasAcceptedTerms) {
-            // @TODO don't let them submit
+            console.error('Must accept terms before proceeding');
             return;
         }
 
