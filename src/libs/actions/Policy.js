@@ -8,7 +8,7 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
         if (val && key) {
-            allPolicies[key] = val;
+            allPolicies[key] = {...allPolicies[key], ...val};
         }
     },
 });
@@ -85,45 +85,34 @@ function getPolicyList() {
  * @param {String} policyID
  */
 function invite(login, welcomeNote, policyID) {
-    // Optimistically add the user to the policy
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-    const dataToStore = {};
-    dataToStore[key] = {
-        employeeList: allPolicies[key].employeeList.concat([login]),
-    };
 
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, dataToStore)
-        .then(() => {
-            const policyDataWithoutLogin = {};
-            policyDataWithoutLogin[key] = {
-                employeeList: _.without(allPolicies[key].employeeList, login),
-            };
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataWithoutLogin)
-                .then(() => {
-                   console.debug('done');
-                });
+    // Make a shallow copy to preserve original data, and concat the login
+    const policy = _.clone(allPolicies[key]);
+    policy.employeeList = [...policy.employeeList, login];
+
+    // Optimistically add the user to the policy
+    Onyx.set(key, policy);
+
+    // Make the API call to merge the login into the policy
+    Policy_Employees_Merge({
+        employees: JSON.stringify([{email: login}]),
+        welcomeNote,
+        policyID,
+    })
+        .then((data) => {
+            // Save the personalDetails for the invited user in Onyx
+            if (data.jsonCode === 200) {
+                // TODO: need to match personalDetails to data in PersonalDetails.formatPersonalDetails
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[login]: data.personalDetails[login]});
+                return;
+            }
+
+            // If the operation failed, undo the optimistic addition
+            const policyDataWithoutLogin = _.clone(allPolicies[key]);
+            policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, login);
+            Onyx.set(key, policyDataWithoutLogin);
         });
-
-    // Policy_Employees_Merge({
-    //     employees: JSON.stringify([{email: login}]),
-    //     welcomeNote,
-    //     policyID,
-    // })
-    //     .then((data) => {
-    //         // Save data.personalDetails
-    //         if (data.jsonCode !== 200) {
-    //             // TODO: need to match personalDetails to data in PersonalDetails.formatPersonalDetails
-    //             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[login]: data.personalDetails[login]});
-    //             return;
-    //         }
-    //
-    //         // If the operation failed, undo the optimistic addition
-    //         const policyDataWithoutLogin = {};
-    //         policyDataWithoutLogin[key] = {
-    //             employeeList: _.without(allPolicies[key].employeeList, login),
-    //         };
-    //         Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataWithoutLogin);
-    //     });
 }
 
 export {
