@@ -1,10 +1,12 @@
 import lodashGet from 'lodash/get';
+import lodashHas from 'lodash/has';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import BankAccount from '../models/BankAccount';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -269,6 +271,35 @@ function fetchUserWallet() {
         });
 }
 
+let previousACHData = {};
+Onyx.connect({
+    key: ONYXKEYS.FREE_PLAN_BANK_ACCOUNT,
+    callback: (val = {}) => {
+        previousACHData = val.achData || {};
+    },
+});
+
+function goToStepID(stepID, achData) {
+    const newACHData = {...previousACHData};
+
+    // If we go back to Requestor Step, reset any validation and previously answered questions from expectID.
+    if (!newACHData.useOnfido && stepID === 'RequestorStep') {
+        delete newACHData.questions;
+        delete newACHData.answers;
+        if (lodashHas(achData, 'verifications.externalApiResponses')) {
+            delete newACHData.verifications.externalApiResponses.requestorIdentityID;
+            delete newACHData.verifications.externalApiResponses.requestorIdentityKBA;
+        }
+    }
+
+    // When going from CompanyStep to BankAccountStep, show the manual form instead of Plaid
+    if (newACHData.currentStep === 'CompanyStep' && stepID === 'BankAccountStep') {
+        newACHData.subStep = 'manual';
+    }
+
+    Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
+}
+
 /**
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  */
@@ -276,6 +307,7 @@ function fetchFreePlanVerifiedBankAccount() {
     Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {loading: true});
     let bankAccountID;
     let bankAccount;
+    let kycVerificationsMigration;
     API.Get({
         returnValueList: 'nameValuePairs',
         name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
@@ -287,10 +319,24 @@ function fetchFreePlanVerifiedBankAccount() {
                 return Promise.resolve({});
             }
 
+            return API.Get({
+                returnValueList: 'nameValuePairs',
+                name: 'expensify_migration_2020_04_28_RunKycVerifications',
+            });
+        })
+        .then((response) => {
+            kycVerificationsMigration = lodashGet(
+                response.nameValuePairs,
+                'expensify_migration_2020_04_28_RunKycVerifications',
+                '',
+            );
             return API.Get({returnValueList: 'bankAccountList'});
         })
         .then((response) => {
-            bankAccount = _.find(response.bankAccountList, account => account.bankAccountID === bankAccountID);
+            const bankAccountJSON = _.find(response.bankAccountList, account => (
+                account.bankAccountID === bankAccountID
+            ));
+            bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
             return API.Get({
                 returnValueList: 'nameValuePairs',
                 name: CONST.NVP.ACH_DATA_THROTTLED,
@@ -298,17 +344,256 @@ function fetchFreePlanVerifiedBankAccount() {
         })
         .then((response) => {
             const throttledDate = lodashGet(response.nameValuePairs, CONST.NVP.ACH_DATA_THROTTLED, '');
-            Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {bankAccount, loading: false, throttledDate});
+
+            // Next we'll build the achData and save it to Onyx
+            // If the user already is already setting up a bank account we will want to continue the flow for them
+            let currentStep;
+            const achData = bankAccount ? bankAccount.toACHData() : {};
+            achData.useOnfido = true;
+            achData.policyID = '';
+
+            // @TODO I think probably we won't set the token until we actually ask to start the the Plaid flow
+            // but we could also get it here with another API call...
+            achData.plaidLinkToken = '';
+            achData.isInSetup = !bankAccount || bankAccount.isInSetup();
+            achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
+            achData.domainLimit = 0;
+            achData.isDomainUsingExpensifyCard = false; // @TODO - Not actually sure if we need this
+
+            // @TODO This subStep is used to either show the Plaid "login" view or the "manual" view - but not sure if
+            // we need to implement it yet...
+            // eslint-disable-next-line max-len
+            // See Web-Secure: https://github.com/Expensify/Web-Expensify/blob/896941794f68d7dce64466d83a3e86a5f8122e45/site/app/settings/reimbursement/bankAccountView.jsx#L356-L357
+            achData.subStep = '';
+
+            // If we're not in setup, it means we already have a withdrawal account and we're upgrading it to a business
+            // bank account. So let the user review all steps with all info prefilled and editable, unless a specific
+            // step was passed.
+            if (!achData.isInSetup) {
+                // @TODO Not sure if we need to do this since for NewDot none of the accounts are pre-existing ones
+                currentStep = '';
+            }
+
+            // Temporary fix for Onfido flow. Can be removed by nkuoch after Sept 1 2020.
+            // @TODO not sure if we still need this or what this is about, but seems like maybe yes...
+            if (currentStep === 'ACHContractStep' && achData.useOnfido) {
+                const onfidoRes = lodashGet(achData, 'verifications.externalApiResponses.requestorIdentityOnfido');
+                const sdkToken = lodashGet(onfidoRes, 'apiResult.sdkToken');
+                if (sdkToken && !achData.isOnfidoSetupComplete && onfidoRes.status !== 'pass') {
+                    currentStep = 'RequestorStep';
+                }
+            }
+
+            // Ensure we route the user to the correct step based on the status of their bank account
+            if (bankAccount && !currentStep) {
+                currentStep = bankAccount.isPending()
+                    || bankAccount.isVerifying() ? 'ValidationStep' : 'BankAccountStep';
+
+                // @TODO Again, not sure how much of this logic is needed right now as we shouldn't be handling any
+                // open accounts in E.cash yet that need to pass any more checks or can be upgraded, but leaving in for
+                // possible future compatibility.
+                if (bankAccount.isOpen()) {
+                    if (bankAccount.needsToPassLatestChecks()) {
+                        const hasTriedToUpgrade = bankAccount.getDateSigned()
+                            > (kycVerificationsMigration || '2020-01-13');
+                        currentStep = hasTriedToUpgrade ? 'ValidationStep' : 'CompanyStep';
+                        achData.bankAccountInReview = hasTriedToUpgrade;
+                    } else {
+                        // We're not going to have a EnableStep, but we can show this account as open if accessed
+                        currentStep = 'EnableStep';
+                    }
+                }
+            }
+
+            // If at this point we still don't have a current step, default to the BankAccountStep
+            if (!currentStep) {
+                currentStep = 'BankAccountStep';
+            }
+
+            Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {throttledDate});
+            goToStepID(currentStep, achData);
+        })
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {loading: false});
         });
 }
+
+const WITHDRAWAL_ACCOUNT_STEPS = [
+    {
+        id: 'BankAccountStep',
+        title: 'Bank Account',
+    },
+    {
+        id: 'CompanyStep',
+        title: 'Company Information',
+    },
+    {
+        id: 'RequestorStep',
+        title: 'Requestor Information',
+    },
+    {
+        id: 'ACHContractStep',
+        title: 'Beneficial Owners',
+    },
+    {
+        id: 'ValidationStep',
+        title: 'Validate',
+    },
+    {
+        id: 'EnableStep',
+        title: 'Enable',
+    },
+];
+
+/**
+ * Get step position in the array
+ * @param {String} stepID
+ * @return {Number}
+ */
+function getIndexByStepID(stepID) {
+    return _.findIndex(WITHDRAWAL_ACCOUNT_STEPS, step => step.id === stepID);
+}
+
+/**
+ * Get next step ID
+ * @return {String}
+ */
+function getNextStepID() {
+    const nextStepIndex = Math.min(
+        getIndexByStepID(this.state.achData.currentStep) + 1,
+        WITHDRAWAL_ACCOUNT_STEPS.length - 1,
+    );
+    return lodashGet(WITHDRAWAL_ACCOUNT_STEPS, [nextStepIndex, 'id'], 'BankAccountStep');
+}
+
 
 /**
  * @private
  * @param {Number} bankAccountID
  */
 function setFreePlanVerifiedBankAccountID(bankAccountID) {
-    Onyx.merge('freePlanBankAccount', {bankAccountID, loading: false});
     API.SetNameValuePair({name: 'expensify_freePlanBankAccountID', value: bankAccountID});
+}
+
+/**
+ * Create or update the bank account in db with the updated data.
+ *
+ * @param {Object} [data]
+ */
+function setupWithdrawalAccount(data) {
+    Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {loading: true});
+
+    previousACHData = {...previousACHData, ...data};
+    if (data && data.isSavings !== undefined) {
+        previousACHData.isSavings = Boolean(data.isSavings);
+    }
+    if (!previousACHData.setupType) {
+        previousACHData.setupType = previousACHData.plaidAccountID ? 'plaid' : 'manual';
+    }
+
+    let nextStep = previousACHData.currentStep;
+
+    API.BankAccount_SetupWithdrawal(previousACHData)
+        .finally((response) => {
+            Onyx.merge(ONYXKEYS.FREE_PLAN_BANK_ACCOUNT, {loading: false});
+
+            const currentStep = previousACHData.currentStep;
+            let achData = response.achData;
+            let error = lodashGet(achData, 'verifications.errorMessage');
+
+            if (response.jsonCode === 200 && !error) {
+                // Save an NVP with the bankAccountID for this account. This is temporary since we are not showing lists
+                // of accounts yet and must have some kind of record of which account is the one the user is trying to
+                // set up for the free plan.
+                setFreePlanVerifiedBankAccountID(achData.bankAccountID);
+
+                // Show warning if another account already set up this bank account and promote share
+                if (response.existingOwners) {
+                    // @TODO Show better error in UI about existing owners
+                    console.error('Cannot set up withdrawal account due to existing owners');
+                    return;
+                }
+
+                if (currentStep === 'RequestorStep') {
+                    const requestorResponse = lodashGet(
+                        achData,
+                        'verifications.externalApiResponses.requestorIdentityID',
+                    );
+                    if (previousACHData.useOnfido) {
+                        const onfidoRes = lodashGet(
+                            achData,
+                            'verifications.externalApiResponses.requestorIdentityOnfido',
+                        );
+                        const sdkToken = lodashGet(onfidoRes, 'apiResult.sdkToken');
+                        if (sdkToken && !previousACHData.isOnfidoSetupComplete && onfidoRes.status !== 'pass') {
+                            // Requestor Step still needs to run Onfido
+                            achData.sdkToken = sdkToken;
+                            goToStepID('RequestorStep', achData);
+                            return;
+                        }
+                    } else if (requestorResponse) {
+                        // Don't go to next step if Requestor Step needs to ask some questions
+                        let questions = lodashGet(requestorResponse, 'apiResult.questions.question') || [];
+                        if (_.isEmpty(questions)) {
+                            const differentiatorQuestion = lodashGet(
+                                requestorResponse,
+                                'apiResult.differentiator-question',
+                            );
+                            if (differentiatorQuestion) {
+                                questions = [differentiatorQuestion];
+                            }
+                        }
+                        if (!_.isEmpty(questions)) {
+                            achData.questions = questions;
+                            goToStepID('RequestorStep', achData);
+                            return;
+                        }
+                    }
+                }
+
+                if (currentStep === 'ACHContractStep') {
+                    // Get an up-to-date bank account list so that we can allow the user to validate their newly
+                    // generated bank account
+                    return API.get({returnValueList: 'bankAccountList'})
+                        .done((json) => {
+                            const bankAccountJSON = _.findWhere(json.bankAccountList, {
+                                bankAccountID: previousACHData.bankAccountID,
+                            });
+                            const bankAccount = new BankAccount(bankAccountJSON);
+                            achData = bankAccount.toACHData();
+                            const needsToPassLatestChecks = achData.state === BankAccount.STATE.OPEN
+                                && achData.needsToPassLatestChecks;
+                            achData.bankAccountInReview = needsToPassLatestChecks
+                                || achData.state === BankAccount.STATE.VERIFYING;
+
+                            goToStepID('ValidationStep', achData);
+                        });
+                }
+
+                if ((currentStep === 'ValidationStep' && previousACHData.bankAccountInReview)
+                    || currentStep === 'EnableStep'
+                ) {
+                    // Setup done!
+                } else {
+                    nextStep = getNextStepID();
+                }
+            } else {
+                if (response.jsonCode === 666) {
+                    error = response.message;
+                }
+                if (lodashGet(achData, 'verifications.throttled')) {
+                    achData.disableFields = true;
+                }
+            }
+
+            // Go to next step
+            goToStepID(nextStep, achData);
+
+            if (error) {
+                // @TODO - Show the error for real
+                console.error(`Error setting up withdrawal account: ${error}`);
+            }
+        });
 }
 
 export {
@@ -320,4 +605,5 @@ export {
     activateWallet,
     fetchUserWallet,
     fetchFreePlanVerifiedBankAccount,
+    setupWithdrawalAccount,
 };
