@@ -22,6 +22,8 @@ import ACHContractStep from './ACHContractStep';
 import ValidationStep from './ValidationStep';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** List of betas */
@@ -44,6 +46,8 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -102,19 +106,19 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = achData.currentStep;
         return (
             <ScreenWrapper>
-                {currentStep === 'BankAccountStep' && (
+                {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                     <BankAccountStep />
                 )}
-                {currentStep === 'CompanyStep' && (
+                {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
                     <CompanyStep />
                 )}
-                {currentStep === 'RequestorStep' && (
+                {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
                     <RequestorStep />
                 )}
-                {currentStep === 'ACHContractStep' && (
+                {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
                     <ACHContractStep />
                 )}
-                {currentStep === 'ValidationStep' && (
+                {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
                     <ValidationStep />
                 )}
             </ScreenWrapper>
@@ -124,14 +128,18 @@ class ReimbursementAccountPage extends React.Component {
 
 ReimbursementAccountPage.propTypes = propTypes;
 ReimbursementAccountPage.defaultProps = defaultProps;
-export default withOnyx({
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(ReimbursementAccountPage);
+
+export default compose(
+    withOnyx({
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+    withLocalize,
+)(ReimbursementAccountPage);
