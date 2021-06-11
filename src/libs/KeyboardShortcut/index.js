@@ -51,8 +51,8 @@ function bindHandlerToKeyupEvent(event) {
 }
 
 // Make sure we don't add multiple listeners
-document.removeEventListener('keydown', bindHandlerToKeyupEvent);
-document.addEventListener('keydown', bindHandlerToKeyupEvent);
+document.removeEventListener('keydown', bindHandlerToKeyupEvent, {capture: true});
+document.addEventListener('keydown', bindHandlerToKeyupEvent, {capture: true});
 
 /**
  * Module storing the different keyboard shortcut
