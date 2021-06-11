@@ -12,6 +12,7 @@ import Button from '../components/Button';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import {invite} from '../libs/actions/Policy';
+import TextLink from '../components/TextLink';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -96,6 +97,9 @@ class WorkspaceInvitePage extends React.Component {
                                 onChangeText={text => this.setState({welcomeNote: text})}
                             />
                         </View>
+                        <TextLink href="https://use.expensify.com/privacy">
+                            {`${this.props.translate('common.privacyPolicy')} `}
+                        </TextLink>
                     </View>
                     <View style={styles.flexGrow0}>
                         <Button
