@@ -47,11 +47,19 @@ class WorkspaceInvitePage extends React.Component {
             welcomeNote: '',
         };
 
+        this.getWelcomeNotePlaceholder = this.getWelcomeNotePlaceholder.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
     }
 
     inviteUser() {
-        invite(this.state.emailOrPhone, this.state.welcomeNote, this.props.route.params.policyID);
+        invite(this.state.emailOrPhone, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
+            this.props.route.params.policyID);
+    }
+
+    getWelcomeNotePlaceholder() {
+        return this.props.translate('workspaceInvitePage.welcomeNote', {
+            workspaceName: this.props.policy.name,
+        });
     }
 
     render() {
@@ -84,9 +92,7 @@ class WorkspaceInvitePage extends React.Component {
                                 numberOfLines={10}
                                 multiline
                                 value={this.state.welcomeNote}
-                                placeholder={this.props.translate('workspaceInvitePage.welcomeNote', {
-                                    workspaceName: this.props.policy.name,
-                                })}
+                                placeholder={this.getWelcomeNotePlaceholder()}
                                 onChangeText={text => this.setState({welcomeNote: text})}
                             />
                         </View>
