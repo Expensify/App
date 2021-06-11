@@ -20,6 +20,7 @@ import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryL
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 import EnablePaymentsPage from '../../../pages/EnablePayments';
+import BusinessBankAccountNewPage from '../../../pages/BusinessBankAccount/NewPage';
 import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
 import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
 
@@ -158,6 +159,13 @@ const NewWorkspaceStackNavigator = createModalStackNavigator([{
     name: 'NewWorkspace_Root',
 }]);
 
+const BusinessBankAccountModalStackNavigator = createModalStackNavigator([
+    {
+        Component: BusinessBankAccountNewPage,
+        name: 'BusinessBankAccount_New',
+    },
+]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -169,6 +177,7 @@ export {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
+    BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
 };

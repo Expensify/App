@@ -29,7 +29,9 @@ export default {
         delete: 'Eliminar',
         contacts: 'Contactos',
         recents: 'Recientes',
+        saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
+        termsOfService: 'Términos de servicio',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -216,7 +218,7 @@ export default {
         phrase2: 'términos de servicio',
         phrase3: 'y',
         phrase4: 'política de privacidad',
-        phrase5: '. El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
+        phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },
     passwordForm: {
@@ -250,11 +252,22 @@ export default {
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu Contraseña',
     },
+    bankAccount: {
+        accountNumber: 'Número de cuenta',
+        routingNumber: 'Número de ruta',
+        addBankAccount: 'Agregar cuenta bancaria',
+        chooseAnAccount: 'Elige una cuenta',
+        logIntoYourBank: 'Inicie sesión en su banco',
+        connectManually: 'Conectar manualmente',
+        yourDataIsSecure: 'Tus datos estan seguros',
+        toGetStarted: 'Para comenzar con la tarjeta Expensify, primero debe agregar una cuenta bancaria.',
+        plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
+        checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque para la cuenta.',
+        iAcceptThe: 'Acepto los ',
+    },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe una contraseña',
-        addPersonalBankAccount: 'Agregar cuenta bancaria',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
-        selectAccount: 'Selecciona una cuenta:',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',

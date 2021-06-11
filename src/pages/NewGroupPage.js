@@ -32,6 +32,9 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
@@ -66,6 +69,8 @@ class NewGroupPage extends Component {
             props.personalDetails,
             '',
             [],
+            false,
+            props.betas,
         );
 
         this.state = {
@@ -163,6 +168,8 @@ class NewGroupPage extends Component {
                 this.props.personalDetails,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
+                false,
+                this.props.betas,
             );
 
             return {
@@ -212,6 +219,8 @@ class NewGroupPage extends Component {
                                                 this.props.personalDetails,
                                                 searchValue,
                                                 [],
+                                                false,
+                                                this.props.betas,
                                             );
                                             this.setState({
                                                 searchValue,
@@ -261,6 +270,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(NewGroupPage);

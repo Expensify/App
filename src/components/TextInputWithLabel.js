@@ -6,19 +6,20 @@ import styles from '../styles/styles';
 
 const propTypes = {
     /** Label text */
-    label: PropTypes.string.isRequired,
+    label: PropTypes.string,
 
     /** Text to show if there is an error */
     errorText: PropTypes.string,
 };
 
 const defaultProps = {
+    label: '',
     errorText: '',
 };
 
 const TextInputWithLabel = props => (
     <>
-        <Text style={[styles.formLabel]}>{props.label}</Text>
+        {!_.isEmpty(props.label) && <Text style={[styles.formLabel]}>{props.label}</Text>}
         <TextInput
             style={[styles.textInput, styles.mb1]}
             // eslint-disable-next-line react/jsx-props-no-spreading
