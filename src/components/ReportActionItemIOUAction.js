@@ -52,6 +52,7 @@ const ReportActionItemIOUAction = ({
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}
                     onPayButtonPressed={launchDetailsModal}
+                    onPreviewPressed={launchDetailsModal}
                 />
             )}
         </>
