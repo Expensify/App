@@ -101,7 +101,7 @@ class OnfidoStep extends React.Component {
                                             <TextLink
                                                 href="https://onfido.com/terms-of-service/"
                                             >
-                                                {this.props.translate('onfidoStep.termsOfService')}
+                                                {this.props.translate('common.termsOfService')}
                                             </TextLink>
                                             .
                                         </Text>
