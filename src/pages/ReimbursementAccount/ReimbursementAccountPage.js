@@ -1,6 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable max-len */
-/* eslint-disable react/no-unused-state */
 import moment from 'moment';
 import lodashGet from 'lodash/get';
 import React from 'react';
@@ -24,6 +21,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** List of betas */
@@ -76,12 +74,11 @@ class ReimbursementAccountPage extends React.Component {
             return <FullScreenLoadingIndicator visible />;
         }
 
-        const {achData} = this.props.reimbursementAccount;
         const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
 
         if (userHasPhonePrimaryEmail) {
             return (
-                <View>
+                <View style={[styles.m5]}>
                     <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
                 </View>
             );
@@ -92,18 +89,20 @@ class ReimbursementAccountPage extends React.Component {
             const throttledEnd = moment().add(24, 'hours');
             if (moment() < throttledEnd) {
                 return (
-                    <View>
+                    <View style={[styles.m5]}>
                         <Text>
-                            {this.props.translate('bankAccount.hasBeenThrottledError', {fromNow: throttledEnd.fromNow()})}
+                            {this.props.translate('bankAccount.hasBeenThrottledError', {
+                                fromNow: throttledEnd.fromNow(),
+                            })}
                         </Text>
                     </View>
                 );
             }
         }
 
-        // Everything we need to display UI-wise is pretty much in the achData at this point. We just need to call the correct actions in the right places when
-        // submitting a form or navigating back or forward.
-        const currentStep = achData.currentStep;
+        // We grab the currentStep from the achData to determine which view to display. The SetupWithdrawalAccount flow
+        // allows us to continue the flow from various points depending on where the user left off.
+        const currentStep = this.props.reimbursementAccount.achData.currentStep;
         return (
             <ScreenWrapper>
                 {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
