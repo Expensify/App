@@ -4,6 +4,7 @@ import {
     ActivityIndicator,
     TouchableOpacity,
     Text,
+    TouchableWithoutFeedback,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -20,7 +21,6 @@ import themeColors from '../styles/themes/default';
 import Icon from './Icon';
 import CONST from '../CONST';
 import {Checkmark} from './Icon/Expensicons';
-import {TouchableWithoutFeedback} from 'react-native-web';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
