@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import {GetPolicySummaryList} from '../API';
+import {GetPolicySummaryList, GetPolicyList} from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 
 /**
@@ -17,6 +17,24 @@ function getSimplifiedPolicyObject(fullPolicy) {
     };
 }
 
+/**
+ * Simplifies the policyList response into an object containing an array of emails
+ *
+ * @param {Object} fullPolicy
+ * @returns {Object}
+ */
+function getSimplifiedMemberList(fullPolicy) {
+    const employeeListEmails = _.chain(fullPolicy.employeeList)
+        .pluck('email')
+        .flatten()
+        .unique()
+        .value();
+
+    return {
+        employeeList: employeeListEmails,
+    };
+}
+
 function getPolicySummaries() {
     GetPolicySummaryList()
         .then((data) => {
@@ -30,7 +48,21 @@ function getPolicySummaries() {
         });
 }
 
+function getPolicyList() {
+    GetPolicyList()
+        .then((data) => {
+            if (data.jsonCode === 200) {
+                const policyDataToStore = _.reduce(data.policyList, (memo, policy) => ({
+                    ...memo,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedMemberList(policy),
+                }), {});
+                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
+            }
+        });
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     getPolicySummaries,
+    getPolicyList,
 };

@@ -27,7 +27,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
-import {getPolicySummaries} from '../../actions/Policy';
+import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
@@ -126,6 +126,7 @@ class AuthScreens extends React.Component {
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         getPolicySummaries();
+        getPolicyList();
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
