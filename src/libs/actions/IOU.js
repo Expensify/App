@@ -5,7 +5,12 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import * as API from '../API';
-import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
+import {
+    getSimplifiedIOUReport,
+    fetchChatReportsByIDs,
+    fetchIOUReportByIDAndUpdateChatReport,
+    syncChatAndIOUReports,
+} from './Report';
 import Navigation from '../Navigation/Navigation';
 
 /**
@@ -135,6 +140,7 @@ function createIOUSplit(params) {
 function rejectTransaction({
     reportID, chatReportID, transactionID, comment,
 }) {
+
     API.RejectTransaction({
         reportID,
         transactionID,
@@ -144,14 +150,17 @@ function rejectTransaction({
             if (response.jsonCode !== 200) {
                 throw new Error(`${response.code} ${response.message}`);
             }
-            fetchChatReportsByIDs([chatReportID]);
 
-            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
-            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
-            // components. If we didn't sync the reportIDs, the transaction would still be shown to users as rejectable
-            // The iouReport being fetched here must be open, because only an open iouReoport can be paid. Therefore,
-            // we should also sync the chatReport after fetching the iouReport.
-            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+            console.log(">>>>", response);
+
+            // Save the updated chat and iou reports sent back in the response
+            // NOTE: since the API doesn't handle syncing chat reports with IOU reports,
+            // we also need to set the iouReportID and hasOutstandingIOU fields of the chatReport in Onyx manually
+            // If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
+            // iouReport being fetched here must be open, because only an open iouReport can be paid.
+            const chatReportStuff = response.reports[chatReportID];
+            const iouReportStuff = response.reports[reportID];
+            syncChatAndIOUReports(chatReportStuff, iouReportStuff);
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`));
 }
@@ -204,14 +213,15 @@ function payIOUReport({
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
-            fetchChatReportsByIDs([chatReportID]);
 
-            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
-            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
-            // components. If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
-            // iouReport being fetched here must be open, because only an open iouReoport can be paid.
-            // Therefore, we should also sync the chatReport after fetching the iouReport.
-            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+            // Save the updated chat and iou reports sent back in the response
+            // NOTE: since the API doesn't handle syncing chat reports with IOU reports,
+            // we also need to set the iouReportID and hasOutstandingIOU fields of the chatReport in Onyx manually
+            // If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
+            // iouReport being fetched here must be open, because only an open iouReport can be paid.
+            const chatReportStuff = response.reports[chatReportID];
+            const iouReportStuff = response.reports[reportID];
+            syncChatAndIOUReports(chatReportStuff, iouReportStuff);
 
             // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
             // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
