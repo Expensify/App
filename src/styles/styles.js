@@ -985,6 +985,14 @@ const styles = {
         borderRightWidth: 0,
     },
 
+    exampleCheckImage: {
+        width: '100%',
+        height: 80,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+    },
+
     singleAvatar: {
         height: 24,
         width: 24,
@@ -1396,6 +1404,7 @@ const styles = {
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
+        cursor: 'pointer',
     },
 
     iouPreviewBoxLoading: {
@@ -1632,18 +1641,19 @@ function getSafeAreaMargins(insets) {
  * Return navigation menu styles.
  *
  * @param {Number} windowWidth
+ * @param {Number} windowHeight
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationDrawerStyle(windowWidth, isSmallScreenWidth) {
+function getNavigationDrawerStyle(windowWidth, windowHeight, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             width: windowWidth,
-            height: '100%',
+            height: windowHeight,
             borderColor: themeColors.border,
         }
         : {
-            height: '100%',
+            height: windowHeight,
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
         };

@@ -26,11 +26,15 @@ export default {
         email: 'Email',
         and: 'and',
         details: 'Details',
+        privacy: 'Privacy',
         privacyPolicy: 'Privacy Policy',
         delete: 'Delete',
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
+        saveAndContinue: 'Save & Continue',
+        settings: 'Settings',
+        termsOfService: 'Terms of Service',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -38,7 +42,6 @@ export default {
         attachmentError: 'Attachment Error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
         errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
-        errorDuringAttachmentSelection: 'Error during attachment selection',
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
         chooseDocument: 'Choose Document',
@@ -79,6 +82,7 @@ export default {
         addAttachment: 'Add Attachment',
         writeSomething: 'Write something...',
         youAppearToBeOffline: 'You appear to be offline.',
+        fileUploadFailed: 'Upload Failed. File is not supported.',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
@@ -156,7 +160,6 @@ export default {
         sendValidation: 'Send Validation',
     },
     initialSettingsPage: {
-        settings: 'Settings',
         about: 'About',
         aboutPage: {
             description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
@@ -221,7 +224,7 @@ export default {
         phrase2: 'terms of service',
         phrase3: 'and',
         phrase4: 'privacy policy',
-        phrase5: '. Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
+        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
         phrase6: 'licenses',
     },
     passwordForm: {
@@ -255,11 +258,22 @@ export default {
         enterPassword: 'Enter a password',
         setPassword: 'Set Password',
     },
-    addBankAccountPage: {
+    bankAccount: {
+        accountNumber: 'Account Number',
+        routingNumber: 'Routing Number',
+        addBankAccount: 'Add Bank Account',
+        chooseAnAccount: 'Choose an Account',
+        logIntoYourBank: 'Log Into Your Bank',
+        connectManually: 'Connect Manually',
+        yourDataIsSecure: 'Your data is secure',
+        toGetStarted: 'To get started with the Expensify Card, you first need to add a bank account.',
+        plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
+        checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
+        iAcceptThe: 'I accept the ',
+    },
+    addPersonalBankAccountPage: {
         enterPassword: 'Enter password',
-        addBankAccount: 'Add a Bank Account',
         alreadyAdded: 'This account has already been added.',
-        selectAccount: 'Select an account:',
     },
     attachmentView: {
         unknownFilename: 'Unknown Filename',
@@ -280,7 +294,6 @@ export default {
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
         facialScan: 'Onfido’s Facial Scan Policy and Release',
-        termsOfService: 'Terms of Service',
         tryAgain: 'Try Again',
         verifyIdentity: 'Verify Identity',
         genericError: 'There was an error while processing this step. Please try again.',

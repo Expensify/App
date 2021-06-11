@@ -6,7 +6,6 @@ import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemIOUPreview from './ReportActionItemIOUPreview';
 import Navigation from '../libs/Navigation/Navigation';
-import compose from '../libs/compose';
 import ROUTES from '../ROUTES';
 
 const propTypes = {
@@ -25,25 +24,17 @@ const propTypes = {
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
-
-    /** iouReport associated with this iouAction */
-    iouReport: PropTypes.shape({
-        /** Does the iouReport have an outstanding IOU? */
-        hasOutstandingIOU: PropTypes.bool,
-    }),
 };
 
 const defaultProps = {
     chatReport: {
         participants: [],
     },
-    iouReport: {},
 };
 
 const ReportActionItemIOUAction = ({
     action,
     chatReportID,
-    iouReport,
     isMostRecentIOUReportAction,
 }) => {
     const launchDetailsModal = () => {
@@ -56,13 +47,12 @@ const ReportActionItemIOUAction = ({
                 shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {isMostRecentIOUReportAction
-            && iouReport.hasOutstandingIOU
-            && Boolean(action.originalMessage.IOUReportID) && (
+            {isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID) && (
                 <ReportActionItemIOUPreview
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}
                     onPayButtonPressed={launchDetailsModal}
+                    onPreviewPressed={launchDetailsModal}
                 />
             )}
         </>
@@ -73,15 +63,8 @@ ReportActionItemIOUAction.propTypes = propTypes;
 ReportActionItemIOUAction.defaultProps = defaultProps;
 ReportActionItemIOUAction.displayName = 'ReportActionItemIOUAction';
 
-export default compose(
-    withOnyx({
-        chatReport: {
-            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-        },
-    }),
-    withOnyx({
-        iouReport: {
-            key: ({chatReport}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${chatReport.iouReportID}`,
-        },
-    }),
-)(ReportActionItemIOUAction);
+export default withOnyx({
+    chatReport: {
+        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+    },
+})(ReportActionItemIOUAction);

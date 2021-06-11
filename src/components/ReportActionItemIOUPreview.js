@@ -4,6 +4,7 @@ import {
     ActivityIndicator,
     TouchableOpacity,
     Text,
+    TouchableWithoutFeedback,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -18,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {fetchIOUReportByID} from '../libs/actions/Report';
 import themeColors from '../styles/themes/default';
 import Icon from './Icon';
+import CONST from '../CONST';
 import {Checkmark} from './Icon/Expensicons';
 
 const propTypes = {
@@ -80,8 +82,17 @@ const ReportActionItemIOUPreview = ({
     session,
     shouldHidePayButton,
     onPayButtonPressed,
+    onPreviewPressed,
     translate,
 }) => {
+    // Usually the parent determines whether the IOU Preview is displayed. But as the iouReport total cannot be known
+    // until it is stored locally, we need to make this check within the Component after retrieving it. This allows us
+    // to handle the loading UI from within this Component instead of needing to declare it within each parent, which
+    // would duplicate and complicate the logic
+    if (iouReport.total === 0) {
+        return null;
+    }
+
     const sessionEmail = lodashGet(session, 'email', null);
     const managerEmail = iouReport.managerEmail || '';
     const ownerEmail = iouReport.ownerEmail || '';
@@ -101,54 +112,58 @@ const ReportActionItemIOUPreview = ({
     const ownerAvatar = lodashGet(personalDetails, [ownerEmail, 'avatar'], '');
     const cachedTotal = iouReport.cachedTotal ? iouReport.cachedTotal.replace(/[()]/g, '') : '';
     return (
-        <View style={styles.iouPreviewBox}>
-            {reportIsLoading
-                ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} />
-                : (
-                    <View>
-                        <View style={styles.flexRow}>
-                            <View style={styles.flex1}>
-                                <View style={styles.flexRow}>
-                                    <Text style={styles.h1}>
-                                        {cachedTotal}
-                                    </Text>
-                                    {!iouReport.hasOutstandingIOU && (
-                                        <View style={styles.iouPreviewBoxCheckmark}>
-                                            <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
-                                        </View>
-                                    )}
+        <TouchableWithoutFeedback onPress={onPreviewPressed}>
+            <View style={styles.iouPreviewBox}>
+                {reportIsLoading
+                    ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} />
+                    : (
+                        <View>
+                            <View style={styles.flexRow}>
+                                <View style={styles.flex1}>
+                                    <View style={styles.flexRow}>
+                                        <Text style={styles.h1}>
+                                            {cachedTotal}
+                                        </Text>
+                                        {!iouReport.hasOutstandingIOU && (
+                                            <View style={styles.iouPreviewBoxCheckmark}>
+                                                <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                                            </View>
+                                        )}
+                                    </View>
+                                </View>
+                                <View style={styles.iouPreviewBoxAvatar}>
+                                    <MultipleAvatars
+                                        avatarImageURLs={[managerAvatar, ownerAvatar]}
+                                        secondAvatarStyle={[styles.secondAvatarInline]}
+                                    />
                                 </View>
                             </View>
-                            <View style={styles.iouPreviewBoxAvatar}>
-                                <MultipleAvatars
-                                    avatarImageURLs={[managerAvatar, ownerAvatar]}
-                                    secondAvatarStyle={[styles.secondAvatarInline]}
-                                />
-                            </View>
-                        </View>
-                        <Text>
-                            {iouReport.hasOutstandingIOU
-                                ? translate('iou.owes', {manager: managerName, owner: ownerName})
-                                : translate('iou.paid', {manager: managerName, owner: ownerName})}
-                        </Text>
-                        {(isCurrentUserManager && !shouldHidePayButton && (
-                            <TouchableOpacity
-                                style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
-                                onPress={onPayButtonPressed}
-                            >
-                                <Text
-                                    style={[
-                                        styles.buttonSmallText,
-                                        styles.buttonSuccessText,
-                                    ]}
+                            <Text>
+                                {iouReport.hasOutstandingIOU
+                                    ? translate('iou.owes', {manager: managerName, owner: ownerName})
+                                    : translate('iou.paid', {manager: managerName, owner: ownerName})}
+                            </Text>
+                            {(isCurrentUserManager
+                                && !shouldHidePayButton
+                                && iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                                <TouchableOpacity
+                                    style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
+                                    onPress={onPayButtonPressed}
                                 >
-                                    {translate('iou.pay')}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
-        </View>
+                                    <Text
+                                        style={[
+                                            styles.buttonSmallText,
+                                            styles.buttonSuccessText,
+                                        ]}
+                                    >
+                                        {translate('iou.pay')}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+            </View>
+        </TouchableWithoutFeedback>
     );
 };
 
