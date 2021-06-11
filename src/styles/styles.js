@@ -1521,13 +1521,6 @@ const styles = {
     cursorDisabled: {
         cursor: 'not-allowed',
     },
-
-    newWorkspacePill: {
-        height: 28,
-        width: 80,
-        borderRadius: 4,
-        backgroundColor: colors.gray1,
-    },
 };
 
 const baseCodeTagStyles = {
