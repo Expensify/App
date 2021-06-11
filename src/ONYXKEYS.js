@@ -75,6 +75,7 @@ export default {
 
     // Collection Keys
     COLLECTION: {
+        BANK_ACCOUNT: 'bankAccount_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
@@ -98,4 +99,7 @@ export default {
 
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
+
+    // Stores information about the free plan bank account being set up
+    FREE_PLAN_BANK_ACCOUNT: 'freePlanBankAccount',
 };

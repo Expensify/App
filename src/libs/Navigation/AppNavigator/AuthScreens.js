@@ -13,6 +13,7 @@ import {
     fetchAllReports,
 } from '../../actions/Report';
 import * as PersonalDetails from '../../actions/PersonalDetails';
+import * as BankAccounts from '../../actions/BankAccounts';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
