@@ -24,7 +24,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
  * @returns {Object}
  */
 function getSimplifiedMemberList(fullPolicy) {
-    const employeeListEmails = _.chain(fullPolicy.employeeList)
+    const employeeListEmails = _.chain(fullPolicy.value.employeeList)
         .pluck('email')
         .flatten()
         .unique()
@@ -35,6 +35,9 @@ function getSimplifiedMemberList(fullPolicy) {
     };
 }
 
+/**
+ * Fetches the policySummaryList from the API and saves a simplified version in Onyx
+ */
 function getPolicySummaries() {
     GetPolicySummaryList()
         .then((data) => {
@@ -48,6 +51,9 @@ function getPolicySummaries() {
         });
 }
 
+/**
+ * Fetches the policyList from the API and saves a simplified version in Onyx
+ */
 function getPolicyList() {
     GetPolicyList()
         .then((data) => {
