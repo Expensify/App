@@ -3,6 +3,16 @@ import Onyx from 'react-native-onyx';
 import {GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge} from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 
+const allPolicies = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (val, key) => {
+        if (val && key) {
+            allPolicies[key] = val;
+        }
+    },
+});
+
 /**
  * Takes a full policy summary that is returned from the policySummaryList and simplifies it so we are only storing
  * the pieces of data that we need to in Onyx
@@ -79,26 +89,41 @@ function invite(login, welcomeNote, policyID) {
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
     const dataToStore = {};
     dataToStore[key] = {
-        employeeList: [login],
+        employeeList: allPolicies[key].employeeList.concat([login]),
     };
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, dataToStore);
 
-    Policy_Employees_Merge({
-        employees: JSON.stringify([{email: login}]),
-        welcomeNote,
-        policyID
-    })
-        .then((data) => {
-            // Save data.personalDetails
-            if (data.jsonCode === 200) {
-                // TODO: need to match personalDetails to data in PersonalDetails.formatPersonalDetails
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[login]: data.personalDetails[login]});
-                return;
-            }
-
-            // If the operation failed, undo the optimistic addition
-            
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, dataToStore)
+        .then(() => {
+            const policyDataWithoutLogin = {};
+            policyDataWithoutLogin[key] = {
+                employeeList: _.without(allPolicies[key].employeeList, login),
+            };
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataWithoutLogin)
+                .then(() => {
+                   console.debug('done');
+                });
         });
+
+    // Policy_Employees_Merge({
+    //     employees: JSON.stringify([{email: login}]),
+    //     welcomeNote,
+    //     policyID,
+    // })
+    //     .then((data) => {
+    //         // Save data.personalDetails
+    //         if (data.jsonCode !== 200) {
+    //             // TODO: need to match personalDetails to data in PersonalDetails.formatPersonalDetails
+    //             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[login]: data.personalDetails[login]});
+    //             return;
+    //         }
+    //
+    //         // If the operation failed, undo the optimistic addition
+    //         const policyDataWithoutLogin = {};
+    //         policyDataWithoutLogin[key] = {
+    //             employeeList: _.without(allPolicies[key].employeeList, login),
+    //         };
+    //         Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataWithoutLogin);
+    //     });
 }
 
 export {
