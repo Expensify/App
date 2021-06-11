@@ -29,21 +29,25 @@ const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
+    /** ACH data for the withdrawal account actively being set up */
     reimbursementAccount: PropTypes.shape({
+        /** Whether we are loading the data via the API */
         loading: PropTypes.bool,
+
+        /** A date that indicates the user has been throttled */
         throttledDate: PropTypes.string,
+
+        /** Additional data for the account in setup */
         achData: PropTypes.shape({
-            country: PropTypes.string,
+
+            /** Step of the setup flow that we are on. Determines which view is presented. */
             currentStep: PropTypes.string,
         }),
     }),
 
-    personalDetails: PropTypes.shape({
-        firstName: PropTypes.string,
-        lastName: PropTypes.string,
-    }),
-
+    /** Current session for the user */
     session: PropTypes.shape({
+        /** User login */
         email: PropTypes.string,
     }).isRequired,
 
@@ -54,7 +58,6 @@ const defaultProps = {
     reimbursementAccount: {
         loading: true,
     },
-    personalDetails: {},
 };
 
 class ReimbursementAccountPage extends React.Component {
@@ -79,7 +82,7 @@ class ReimbursementAccountPage extends React.Component {
         if (userHasPhonePrimaryEmail) {
             return (
                 <View>
-                    <Text>To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.</Text>
+                    <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
                 </View>
             );
         }
@@ -91,10 +94,7 @@ class ReimbursementAccountPage extends React.Component {
                 return (
                     <View>
                         <Text>
-                            For security reasons, we&apos;re taking a break from bank account setup so you can double-check your company information. Please try again
-                            {' '}
-                            {throttledEnd.fromNow()}
-                            . Sorry!
+                            {this.props.translate('bankAccount.hasBeenThrottledError', {fromNow: throttledEnd.fromNow()})}
                         </Text>
                     </View>
                 );
