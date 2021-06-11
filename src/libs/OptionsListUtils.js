@@ -18,8 +18,22 @@ import Permissions from './Permissions';
  */
 
 let currentUserLogin;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => currentUserLogin = val && val.email,
+});
+
 let countryCodeByIP;
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY_CODE,
+    callback: val => countryCodeByIP = val || 1,
+});
+
 let preferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: val => preferredLocale = val || 'en',
+});
 
 let policies = {};
 Onyx.connect({
@@ -160,21 +174,6 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         iouReportID: lodashGet(report, 'iouReportID'),
     };
 }
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => currentUserLogin = val && val.email,
-});
-
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY_CODE,
-    callback: val => countryCodeByIP = val || 1,
-});
-
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || 'en',
-});
 
 /**
  * Searches for a match when provided with a value
