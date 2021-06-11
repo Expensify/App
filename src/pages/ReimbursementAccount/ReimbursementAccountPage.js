@@ -12,6 +12,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import Permissions from '../../libs/Permissions';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
