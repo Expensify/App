@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import {GetPolicySummaryList, GetPolicyList} from '../API';
+import {GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge} from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 
 /**
@@ -67,8 +67,34 @@ function getPolicyList() {
         });
 }
 
+/**
+ * Merges the passed in login into the specified policy
+ *
+ * @param {String} login
+ * @param {String} welcomeNote
+ * @param {String} policyID
+ */
+function invite(login, welcomeNote, policyID) {
+    // Optimistically add the user to the policy
+    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+    const dataToStore = {};
+    dataToStore[key] = {
+        employeeList: [login]
+    };
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, dataToStore);
+
+    Policy_Employees_Merge([{email: login}], welcomeNote, policyID)
+        .then((data) => {
+            // Save data.personalDetails
+        })
+        .fail(() => {
+            // Remove data from Onyx
+        });
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     getPolicySummaries,
     getPolicyList,
+    invite,
 };
