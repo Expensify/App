@@ -10,7 +10,6 @@ import {getReportParticipantsTitle, isDefaultRoom} from './reportUtils';
 import {translate} from './translate';
 import Permissions from './Permissions';
 import md5 from './md5';
-import {Armchair} from '../components/Icon/Expensicons';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -586,7 +585,7 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  */
 function getReportIcons(report, personalDetails) {
     if (isDefaultRoom(report.chatType)) {
-        return [Armchair];
+        return ['file:///Users/amal/Downloads/armchair (2).png'];
     }
     return _.map(report.participants, dmParticipant => ({
         firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
