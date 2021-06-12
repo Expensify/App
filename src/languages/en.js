@@ -212,6 +212,7 @@ export default {
         notifications: 'Notifications',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
         priorityMode: 'Priority Mode',
+        language: 'Language',
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',
