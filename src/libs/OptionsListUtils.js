@@ -585,7 +585,8 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  */
 function getReportIcons(report, personalDetails) {
     if (isDefaultRoom(report.chatType)) {
-        return ['file:///Users/amal/Downloads/armchair (2).png'];
+        // Placeholder image for default rooms soon to be updated
+        return [`${CONST.CLOUDFRONT_URL}/images/avatars/default_avatar_external.png`];
     }
     return _.map(report.participants, dmParticipant => ({
         firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
