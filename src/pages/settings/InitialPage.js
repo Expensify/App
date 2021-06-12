@@ -138,7 +138,7 @@ const InitialSettingsPage = ({
                             key={item.translationKey}
                             title={translate(item.translationKey)}
                             icon={item.icon}
-                            onPress={() => item.action()}
+                            onPress={item.action}
                             shouldShowRightIcon
                         />
                     ))}
