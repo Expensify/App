@@ -2,8 +2,10 @@ import {AppRegistry} from 'react-native';
 import checkForUpdates from '../libs/checkForUpdates';
 import Config from '../CONFIG';
 import HttpUtils from '../libs/HttpUtils';
+import DateUtils from '../libs/DateUtils';
 import {version as currentVersion} from '../../package.json';
 import Visibility from '../libs/Visibility';
+
 
 /**
  * Download the latest app version from the server, and if it is different than the current one,
@@ -56,4 +58,7 @@ export default function () {
     if (Config.IS_IN_PRODUCTION) {
         checkForUpdates(webUpdater());
     }
+
+    // Start current date updater
+    DateUtils.startCurrentDateUpdater();
 }
