@@ -132,14 +132,14 @@ function createIOUSplit(params) {
  * @param {Number} params.chatReportID
  * @param {String} params.transactionID
  * @param {String} params.comment
- * @param {Object} params.rejectedIDs
+ * @param {Object} params.iou
  */
 function rejectTransaction({
     reportID, chatReportID, transactionID, comment, iou,
 }) {
-    const rejectedIDs = lodashGet(iou, 'transactionsBeingRejected', []);
+    const transactionsBeingRejected = lodashGet(iou, 'transactionsBeingRejected', []);
     Onyx.merge(ONYXKEYS.IOU, {
-        transactionsBeingRejected: [...rejectedIDs, transactionID],
+        transactionsBeingRejected: [...transactionsBeingRejected, transactionID],
     });
     API.RejectTransaction({
         reportID,
@@ -161,7 +161,7 @@ function rejectTransaction({
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
-            const withoutCurrentID = rejectedIDs.filter(id => id !== transactionID);
+            const withoutCurrentID = transactionsBeingRejected.filter(id => id !== transactionID);
             Onyx.set(ONYXKEYS.IOU, {...iou, transactionsBeingRejected: withoutCurrentID});
         });
 }
