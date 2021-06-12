@@ -57,7 +57,7 @@ const PreferencesPage = ({
         },
     };
 
-    const locales = {
+    const localesToLanguages = {
         default: {
             value: 'en',
             label: 'English',
@@ -118,7 +118,7 @@ const PreferencesPage = ({
                     <View style={[styles.mb2]}>
                         <Picker
                             onChange={locale => Onyx.merge(ONYXKEYS.PREFERRED_LOCALE, locale)}
-                            items={Object.values(locales)}
+                            items={Object.values(localesToLanguages)}
                             value={preferredLocale}
                             icon={() => <Icon src={DownArrow} />}
                         />
