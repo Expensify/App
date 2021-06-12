@@ -34,7 +34,9 @@ const propTypes = {
 
     /** List of transactionIDs in process of rejection */
     /* eslint-disable-next-line react/no-unused-prop-types, react/require-default-props */
-    rejectInProgress: PropTypes.arrayOf(PropTypes.string),
+    iou: PropTypes.shape({
+        transactionsBeingRejected: PropTypes.arrayOf(PropTypes.string),
+    }),
 };
 
 const defaultProps = {
@@ -54,19 +56,20 @@ class ReportTransaction extends Component {
             chatReportID: this.props.chatReportID,
             transactionID: this.props.action.originalMessage.IOUTransactionID,
             comment: '',
-            rejectedIDs: this.props.rejectInProgress,
+            iou: this.props.iou,
         });
     }
 
-    isRejected(rejectedIDs, transactionID) {
-        if (!rejectedIDs) {
+    isRejected() {
+        const IOUTransactionID = lodashGet(this.props.action, 'originalMessage.IOUTransactionID', '');
+        const transactionsBeingRejected = lodashGet(this.props, 'iou.transactionsBeingRejected', []);
+        if (!transactionsBeingRejected || !transactionsBeingRejected.length) {
             return false;
         }
-        return rejectedIDs.includes(transactionID.toString());
+        return transactionsBeingRejected.includes(IOUTransactionID.toString());
     }
 
     render() {
-        const rejectedIDs = lodashGet(this.props, 'rejectInProgress', []);
         return (
             <View styles={[styles.mb5]}>
                 <ReportActionItemSingle
@@ -89,7 +92,7 @@ class ReportTransaction extends Component {
                             onPress={this.rejectTransaction}
                         >
                             {
-                            this.isRejected(rejectedIDs, this.props.action.originalMessage.IOUTransactionID)
+                            this.isRejected()
                                 ? (
                                     <ActivityIndicator
                                         color={themeColors.text}
@@ -114,7 +117,7 @@ ReportTransaction.displayName = 'ReportTransaction';
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
 export default withOnyx({
-    rejectInProgress: {
-        key: ONYXKEYS.REJECT_IN_PROGRESS,
+    iou: {
+        key: ONYXKEYS.IOU,
     },
 })(ReportTransaction);
