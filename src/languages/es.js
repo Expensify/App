@@ -207,6 +207,9 @@ export default {
         notifications: 'Notificaciones',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
         priorityMode: 'Modo Prioridad',
+
+        // TODO
+        language: '????',
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',
