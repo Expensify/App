@@ -14,14 +14,14 @@ const propTypes = {
 };
 
 const defaultProps = {
-    companyName: 'Unknown',
+    companyName: 'Company Name',
 };
 
 class BeneficialOwnersStep extends React.Component {
     constructor(props) {
         super(props);
 
-        this.removeBeneficialOwner = this.removeBeneficialOwner.bind(this);
+        this.addBeneficialOwner = this.addBeneficialOwner.bind(this);
         this.submit = this.submit.bind(this);
 
         this.state = {
@@ -29,12 +29,16 @@ class BeneficialOwnersStep extends React.Component {
             hasOtherBeneficialOwners: false,
             acceptTermsAndConditions: false,
             certifyTrueInformation: false,
-            beneficialOwners: [],
+            beneficialOwners: [{}],
         };
     }
 
-    removeBeneficialOwner() {
+    removeBeneficialOwner(beneficialOwner) {
+        this.setState(prevState => ({beneficialOwners: _.without(prevState.beneficialOwners, beneficialOwner)}));
+    }
 
+    addBeneficialOwner() {
+        this.setState(prevState => ({beneficialOwners: prevState.beneficialOwners.push({})}));
     }
 
     /**
@@ -89,12 +93,16 @@ class BeneficialOwnersStep extends React.Component {
                     />
                     {this.state.hasOtherBeneficialOwners && (
                         <View style={[styles.mb2]}>
-                            <View style={[styles.p5, styles.border, styles.mb2]}>
-                                <Text style={[styles.textStrong]}>Additional Beneficial Owner</Text>
-                                <TextLink onPress={this.removeBeneficialOwner}>Remove this beneficial owner</TextLink>
-                            </View>
+                            {_.map(this.state.beneficialOwners, (owner, index) => (
+                                <View key={index} style={[styles.p5, styles.border, styles.mb2]}>
+                                    <Text style={[styles.textStrong]}>Additional Beneficial Owner</Text>
+                                    <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
+                                        Remove this beneficial owner
+                                    </TextLink>
+                                </View>
+                            ))}
                             {this.canAddMoreBeneficialOwners() && (
-                                <TextLink onPress={this.removeBeneficialOwner}>
+                                <TextLink onPress={this.addBeneficialOwner}>
                                     {'Add another individual who owns more than 25% of '}
                                     <Text style={[styles.textStrong, styles.link]}>{this.props.companyName}</Text>
                                 </TextLink>
