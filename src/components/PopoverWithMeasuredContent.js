@@ -34,7 +34,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...(_.omit(defaultPopoverProps)),
+    ...defaultPopoverProps,
 
     // Default positioning of the popover
     anchorOrigin: {
