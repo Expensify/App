@@ -33,7 +33,7 @@ function clear() {
 }
 
 /**
- * Tells about the current focus state of the report action composer.
+ * Exposes the current focus state of the report action composer.
  *
  */
 function isFocused() {
