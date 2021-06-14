@@ -13,6 +13,7 @@ const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: PropTypes.func.isRequired,
 
+    /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 };
 
@@ -41,16 +42,17 @@ class EmojiPickerMenu extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (
-            this.props.windowWidth !== prevProps.windowWidth
-        ) {
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({
-                emojiSize: dynamicEmojiSize(this.props.windowWidth),
-            });
-        }
+        if (this.props.windowWidth !== prevProps.windowWidth) { this.setDynamicEmojiSize(); }
     }
 
+    /**
+     * Sets emoji size dynamically based on the window width
+     */
+    setDynamicEmojiSize() {
+        this.setState({
+            emojiSize: dynamicEmojiSize(this.props.windowWidth),
+        });
+    }
 
     /**
      * Given an emoji item object, render a component based on its type.

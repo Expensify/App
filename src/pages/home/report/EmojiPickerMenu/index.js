@@ -88,20 +88,21 @@ class EmojiPickerMenu extends Component {
         this.setupEventHandlers();
     }
 
-
     componentDidUpdate(prevProps) {
-        if (
-            this.props.windowWidth !== prevProps.windowWidth
-        ) {
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({
-                emojiSize: dynamicEmojiSize(this.props.windowWidth),
-            });
-        }
+        if (this.props.windowWidth !== prevProps.windowWidth) { this.setDynamicEmojiSize(); }
     }
 
     componentWillUnmount() {
         this.cleanupEventHandlers();
+    }
+
+    /**
+     * Sets emoji size dynamically based on the window width
+     */
+    setDynamicEmojiSize() {
+        this.setState({
+            emojiSize: dynamicEmojiSize(this.props.windowWidth),
+        });
     }
 
     /**
