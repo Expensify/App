@@ -288,6 +288,12 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    border: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+    },
+
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,

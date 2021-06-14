@@ -52,6 +52,7 @@ import {
     BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
+    BeneficialOwnersModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -287,6 +288,12 @@ class AuthScreens extends React.Component {
                     name="BusinessBankAccount"
                     options={modalScreenOptions}
                     component={BusinessBankAccountModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="BeneficialOwners"
+                    options={modalScreenOptions}
+                    component={BeneficialOwnersModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
