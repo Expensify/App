@@ -1,3 +1,4 @@
+import React from 'react';
 import Onyx from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -11,14 +12,17 @@ const propTypes = {
     }).isRequired,
 };
 
-const PublicWorkspaceNewView = (props) => {
-    Onyx.merge(ONYXKEYS.SESSION, {redirectToWorkspaceNewAfterSignIn: true});
+class PublicWorkspaceNewView extends React.PureComponent {
+    componentDidMount() {
+        Onyx.merge(ONYXKEYS.SESSION, {redirectToWorkspaceNewAfterSignIn: true});
+        this.props.navigation.replace(SCREENS.HOME);
+    }
 
-    props.navigation.replace(SCREENS.HOME);
-
-    return null;
-};
+    render() {
+        return null;
+    }
+}
 
 PublicWorkspaceNewView.propTypes = propTypes;
-PublicWorkspaceNewView.displayName = 'PublicWorkspaceNewView';
+
 export default PublicWorkspaceNewView;
