@@ -59,6 +59,12 @@ Onyx.connect({
     },
 });
 
+let betas;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: val => betas = val,
+});
+
 let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_LOCALE,
@@ -366,6 +372,10 @@ function fetchChatReportsByIDs(chatList) {
                 simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum
                     === CONST.REPORT.STATE_NUM.PROCESSING && iouReportObject.total !== 0;
             });
+
+            // If a user is not under the default chat rooms beta, filter out any default chat rooms
+            Permissions.canUse
+
 
             // We use mergeCollection such that it updates the collection in one go.
             // Any withOnyx subscribers to this key will also receive the complete updated props just once
