@@ -120,6 +120,11 @@ export default {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
                 },
             },
+            NewWorkspace: {
+                screens: {
+                    NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
+                },
+            },
         },
     },
 };
