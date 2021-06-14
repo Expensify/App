@@ -90,7 +90,9 @@ class EmojiPickerMenu extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.windowWidth !== prevProps.windowWidth) { this.setDynamicEmojiSize(); }
+        if (this.props.windowWidth !== prevProps.windowWidth) {
+            this.setDynamicEmojiSize();
+        }
     }
 
     componentWillUnmount() {
