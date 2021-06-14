@@ -88,10 +88,7 @@ class BankAccountStep extends React.Component {
             acceptTerms: true,
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
 
-            // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
-            country: CONST.COUNTRY.US,
-            currency: CONST.CURRENCY.USD,
-            fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
+            // Params passed via the Plaid callback when an account is selected
             password: params.password,
             plaidAccessToken: params.plaidLinkToken,
             accountNumber: params.account.accountNumber,
@@ -101,6 +98,11 @@ class BankAccountStep extends React.Component {
             isSavings: params.account.isSavings,
             bankName: params.account.bankName,
             addressName: params.account.addressName,
+
+            // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
+            country: CONST.COUNTRY.US,
+            currency: CONST.CURRENCY.USD,
+            fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
         });
     }
 
