@@ -1,9 +1,13 @@
 import React from 'react';
 import {View, Text} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
+import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
+import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
 import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
@@ -13,8 +17,13 @@ import Icon from '../../components/Icon';
 import {DownArrow, Upload} from '../../components/Icon/Expensicons';
 import CreateMenu from '../../components/CreateMenu';
 import Switch from '../../components/Switch';
+import compose from '../../libs/compose';
+
 
 const propTypes = {
+    /** List of betas */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -59,6 +68,12 @@ class NewWorkspacePage extends React.Component {
 
     render() {
         const {translate} = this.props;
+
+        if (!Permissions.canUseFreePlan(this.props.betas)) {
+            console.debug('Not showing new workspace page because user is not on free plan beta');
+            Navigation.dismissModal();
+            return null;
+        }
 
         return (
             <ScreenWrapper>
@@ -139,6 +154,12 @@ class NewWorkspacePage extends React.Component {
 }
 
 NewWorkspacePage.propTypes = propTypes;
-NewWorkspacePage.displayName = 'NewWorkspacePage';
 
-export default withLocalize(NewWorkspacePage);
+export default compose(
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+    withLocalize,
+)(NewWorkspacePage);
