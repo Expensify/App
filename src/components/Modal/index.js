@@ -1,10 +1,9 @@
-import React, {PureComponent} from 'react';
+import React, {Component} from 'react';
 import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
 import {propTypes, defaultProps} from './ModalPropTypes';
 
-
-class Modal extends PureComponent {
+class Modal extends Component {
     constructor(props) {
         super(props);
         this.closeOnOutsideClick = this.closeOnOutsideClick.bind(this);
@@ -24,7 +23,8 @@ class Modal extends PureComponent {
 
     closeOnOutsideClick(event) {
         if (this.props.isVisible
-            && this.baseModalRef && !this.baseModalRef.contains(event.target)
+            && this.baseModalRef
+            && !this.baseModalRef.contains(event.target)
             && this.props.shouldCloseOnOutsideClick) {
             this.props.onClose();
         }
