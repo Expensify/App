@@ -102,7 +102,7 @@ class ReimbursementAccountPage extends React.Component {
 
         // We grab the currentStep from the achData to determine which view to display. The SetupWithdrawalAccount flow
         // allows us to continue the flow from various points depending on where the user left off.
-        const currentStep = this.props.reimbursementAccount.achData.currentStep;
+        const currentStep = CONST.BANK_ACCOUNT.STEP.REQUESTOR; //this.props.reimbursementAccount.achData.currentStep;
         return (
             <ScreenWrapper>
                 {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
