@@ -335,4 +335,15 @@ export default {
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
+    workspace: {
+        new: {
+            welcome: 'Welcome',
+            chooseAName: 'Choose a name',
+            helpText: 'Need help getting setup? Request a call below and we’ll have someone reach out to you.',
+            getStarted: 'Get started!',
+            editPhoto: 'Edit Photo',
+            uploadPhoto: 'Upload Photo',
+            requestCall: 'Request a call',
+        },
+    },
 };
