@@ -66,7 +66,7 @@ class ReportTransaction extends Component {
         if (!transactionsBeingRejected || !transactionsBeingRejected.length) {
             return false;
         }
-        return transactionsBeingRejected.includes(IOUTransactionID.toString());
+        return transactionsBeingRejected.includes(IOUTransactionID);
     }
 
     render() {
