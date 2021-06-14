@@ -469,7 +469,7 @@ const styles = {
     },
 
     signInPageNarrowContentContainer: {
-        width: 400,
+        maxWidth: 400,
     },
 
     signInPageWideLeftContainer: {
