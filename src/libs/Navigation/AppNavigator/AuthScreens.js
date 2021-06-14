@@ -51,6 +51,7 @@ import {
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
+    NewWorkspaceStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -73,11 +74,11 @@ Onyx.connect({
 const RootStack = createCustomModalStackNavigator();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
-// that depends on modal visibility until Modal is completely closed or its transition has ended
-// When modal screen is focused and animation transition is ended, update modal visibility in Onyx
+// that depends on modal visibility until Modal is completely closed and its focused
+// When modal screen is focused, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
 const modalScreenListeners = {
-    transitionEnd: () => {
+    focus: () => {
         setModalVisibility(true);
     },
     beforeRemove: () => {

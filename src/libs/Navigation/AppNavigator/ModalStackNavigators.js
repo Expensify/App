@@ -22,6 +22,7 @@ import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 import EnablePaymentsPage from '../../../pages/EnablePayments';
 import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
+import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -158,6 +159,11 @@ const ReimbursementAccountModalStackNavigator = createModalStackNavigator([{
     name: 'ReimbursementAccount_Root',
 }]);
 
+const NewWorkspaceStackNavigator = createModalStackNavigator([{
+    Component: NewWorkspacePage,
+    name: 'NewWorkspace_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -171,4 +177,5 @@ export {
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
+    NewWorkspaceStackNavigator,
 };
