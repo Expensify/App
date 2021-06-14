@@ -119,8 +119,6 @@ class Expensify extends PureComponent {
         const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
         if (this.getAuthToken() && !previousAuthToken) {
             BootSplash.show({fade: true});
-            // let redirect = lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false);
-            // console.log('should redirect?', redirect);
             if (lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
                 Navigation.navigate(ROUTES.WORKSPACE_NEW);
             }
