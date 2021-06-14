@@ -293,7 +293,7 @@ function goToWithdrawalStepID(stepID, achData) {
         }
     }
 
-    // When going from CompanyStep to BankAccountStep, show the manual form instead of Plaid
+    // When going back to the BankAccountStep from the Company Step
     if (newACHData.currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && stepID === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
         newACHData.subStep = 'manual';
     }

@@ -58,11 +58,6 @@ class BankAccountStep extends React.Component {
     }
 
     addManualAccount() {
-        if (!this.state.hasAcceptedTerms) {
-            console.error('Must accept terms before proceeding');
-            return;
-        }
-
         setupWithdrawalAccount({
             acceptTerms: this.state.hasAcceptedTerms,
             accountNumber: this.state.accountNumber,
