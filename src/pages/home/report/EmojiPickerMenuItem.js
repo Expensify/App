@@ -18,6 +18,7 @@ const propTypes = {
     /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool.isRequired,
 
+    /** Size of the emoji item */
     size: PropTypes.number.isRequired,
 };
 
