@@ -256,6 +256,10 @@ function fetchCurrencyPreferences() {
     const coords = {};
     let currency = '';
 
+    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+        isRetrievingCurrency: true,
+    });
+
     API.GetPreferredCurrency({...coords})
         .then((data) => {
             currency = data.currency;
@@ -269,7 +273,12 @@ function fetchCurrencyPreferences() {
                     preferredCurrencySymbol: currencyList[currency].symbol,
                 });
         })
-        .catch(error => console.debug(`Error fetching currency preference: , ${error}`));
+        .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+                isRetrievingCurrency: false,
+            });
+        });
 }
 
 /**
