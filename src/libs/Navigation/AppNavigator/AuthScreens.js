@@ -283,6 +283,11 @@ class AuthScreens extends React.Component {
                     component={ReimbursementAccountModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
+                <RootStack.Screen
+                    name="NewWorkspace"
+                    options={modalScreenOptions}
+                    component={NewWorkspaceStackNavigator}
+                />
             </RootStack.Navigator>
         );
     }
