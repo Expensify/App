@@ -23,6 +23,7 @@ import EnablePaymentsPage from '../../../pages/EnablePayments';
 import BusinessBankAccountNewPage from '../../../pages/BusinessBankAccount/NewPage';
 import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
 import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
+import BeneficialOwnersStep from '../../../pages/BeneficialOwnersStep';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -166,6 +167,13 @@ const BusinessBankAccountModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const BeneficialOwnersModalStackNavigator = createModalStackNavigator([
+    {
+        Component: BeneficialOwnersStep,
+        name: 'BeneficialOwners_Root',
+    },
+]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -180,4 +188,5 @@ export {
     BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
+    BeneficialOwnersModalStackNavigator,
 };

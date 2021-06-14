@@ -124,6 +124,11 @@ export default {
                     NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
+            BeneficialOwners: {
+                screens: {
+                    BeneficialOwners_Root: 'beneficial',
+                },
+            },
         },
     },
 };
