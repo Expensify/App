@@ -105,7 +105,7 @@ function dismissModal(shouldOpenDrawer = false) {
  * Example:
  * ```jsx
  * if (!Permissions.canUseFreePlan(this.props.betas)) {
- *     return <Navigator.DismissModal />;
+ *     return <Navigation.DismissModal />;
  * }
  * ```
  */
