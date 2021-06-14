@@ -67,8 +67,6 @@ class NewWorkspacePage extends React.Component {
     }
 
     render() {
-        const {translate} = this.props;
-
         if (!Permissions.canUseFreePlan(this.props.betas)) {
             console.debug('Not showing new workspace page because user is not on free plan beta');
             return <Navigation.DismissModal />;
@@ -77,7 +75,7 @@ class NewWorkspacePage extends React.Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={translate('workspace.new.welcome')}
+                    title={this.props.translate('workspace.new.welcome')}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
 
@@ -96,7 +94,7 @@ class NewWorkspacePage extends React.Component {
                                             <Icon src={DownArrow} />
                                             <View style={styles.justifyContentCenter}>
                                                 <Text style={[styles.headerText, styles.ml2]}>
-                                                    {translate('workspace.new.editPhoto')}
+                                                    {this.props.translate('workspace.new.editPhoto')}
                                                 </Text>
                                             </View>
                                         </View>
@@ -117,11 +115,11 @@ class NewWorkspacePage extends React.Component {
 
                     <View style={[styles.mt6, styles.w100, styles.flex1]}>
                         <TextInputWithLabel
-                            label={translate('workspace.new.chooseAName')}
+                            label={this.props.translate('workspace.new.chooseAName')}
                             value={this.state.name}
                             onChangeText={name => this.setState({name})}
                         />
-                        <Text style={[styles.mt6, styles.textP]}>{translate('workspace.new.helpText')}</Text>
+                        <Text style={[styles.mt6, styles.textP]}>{this.props.translate('workspace.new.helpText')}</Text>
                         <View
                             style={[
                                 styles.mt3,
@@ -133,7 +131,7 @@ class NewWorkspacePage extends React.Component {
                         >
                             <View style={styles.flex4}>
                                 <Text style={styles.textMicro}>
-                                    {translate('workspace.new.requestCall')}
+                                    {this.props.translate('workspace.new.requestCall')}
                                 </Text>
                             </View>
                             <View style={[styles.flex1, styles.alignItemsEnd]}>
