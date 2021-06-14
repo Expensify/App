@@ -21,6 +21,7 @@ const propTypes = {
     /** The ref to the search input (may be null on small screen widths) */
     forwardedRef: PropTypes.func,
 
+    /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
