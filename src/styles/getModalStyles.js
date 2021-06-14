@@ -17,8 +17,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
     let hideBackdrop = false;
     let shouldAddBottomSafeAreaPadding = false;
     let shouldAddTopSafeAreaPadding = false;
-    let coverScreen = true;
-    let hasBackdrop = true;
 
     switch (type) {
         case CONST.MODAL.MODAL_TYPE.CONFIRM:
@@ -133,32 +131,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
             animationIn = 'fadeIn';
             animationOut = 'fadeOut';
             break;
-        case CONST.MODAL.MODAL_TYPE.CONTEXT_MENU:
-            modalStyle = {
-                ...modalStyle,
-                ...popoverAnchorPosition,
-                ...{
-                    position: 'absolute',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                },
-            };
-            modalContainerStyle = {
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: themeColors.border,
-                justifyContent: 'center',
-                overflow: 'hidden',
-                boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',
-            };
-
-            hideBackdrop = true;
-            swipeDirection = undefined;
-            animationIn = 'fadeIn';
-            animationOut = 'fadeOut';
-            coverScreen = false;
-            hasBackdrop = false;
-            break;
         case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
             modalStyle = {
                 ...modalStyle,
@@ -212,7 +184,5 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
         hideBackdrop,
         shouldAddBottomSafeAreaPadding,
         shouldAddTopSafeAreaPadding,
-        coverScreen,
-        hasBackdrop,
     };
 };

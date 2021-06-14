@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import ContextMenuPopover from './ContextMenuPopover';
+import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/PopoverPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
@@ -12,7 +12,7 @@ import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopover
 const propTypes = {
     // All popover props except:
     // 1) anchorPosition (which is overridden for this component)
-    ...(_.omit(popoverPropTypes, ['type', 'anchorPosition'])),
+    ...(_.omit(popoverPropTypes, ['anchorPosition'])),
 
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: PropTypes.shape({
@@ -34,7 +34,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...(_.omit(defaultPopoverProps, ['type'])),
+    ...(_.omit(defaultPopoverProps)),
 
     // Default positioning of the popover
     anchorOrigin: {
@@ -149,13 +149,13 @@ class PopoverWithMeasuredContent extends Component {
         };
         return this.state.isContentMeasured
             ? (
-                <ContextMenuPopover
+                <Popover
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
                     anchorPosition={shifedAnchorPosition}
                 >
                     {this.props.measureContent()}
-                </ContextMenuPopover>
+                </Popover>
             ) : (
 
                 /*

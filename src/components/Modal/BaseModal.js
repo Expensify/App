@@ -58,8 +58,6 @@ class BaseModal extends PureComponent {
             shouldAddTopSafeAreaPadding,
             shouldAddBottomSafeAreaPadding,
             hideBackdrop,
-            hasBackdrop,
-            coverScreen,
         } = getModalStyles(
             this.props.type,
             {
@@ -95,8 +93,8 @@ class BaseModal extends PureComponent {
                 backdropColor={themeColors.modalBackdrop}
                 backdropOpacity={hideBackdrop ? 0 : 0.5}
                 backdropTransitionOutTiming={0}
-                hasBackdrop={hasBackdrop}
-                coverScreen={coverScreen}
+                hasBackdrop={this.props.fullscreen}
+                coverScreen={this.props.fullscreen}
                 style={modalStyle}
                 deviceHeight={this.props.windowHeight}
                 deviceWidth={this.props.windowWidth}

@@ -4,6 +4,9 @@ import CONST from '../../CONST';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
+    /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
+    fullscreen: PropTypes.bool,
+
     /** Should we close modal on outside click */
     shouldCloseOnOutsideClick: PropTypes.bool,
 
@@ -55,6 +58,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    fullscreen: true,
     shouldCloseOnOutsideClick: false,
     shouldSetModalVisibility: true,
     onSubmit: null,
