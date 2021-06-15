@@ -69,6 +69,7 @@ class WorkspaceInvitePage extends React.Component {
     inviteUser() {
         invite(this.state.emailOrPhone, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
             this.props.route.params.policyID);
+        Navigation.goBack();
     }
 
     render() {
