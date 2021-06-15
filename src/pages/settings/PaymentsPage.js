@@ -15,6 +15,8 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import Button from '../../components/Button';
+import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
+import FixedFooter from '../../components/FixedFooter';
 import Growl from '../../libs/Growl';
 
 const propTypes = {
@@ -61,38 +63,42 @@ class PaymentsPage extends React.Component {
     render() {
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.payments')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.p5]}>
-                    <View style={[styles.flex1]}>
-                        <Text style={[styles.textP, styles.mb4]}>
-                            {this.props.translate('paymentsPage.enterYourUsernameToGetPaidViaPayPal')}
-                        </Text>
-                        <Text style={[styles.formLabel]} numberOfLines={1}>
-                            {this.props.translate('paymentsPage.payPalMe')}
-                        </Text>
-                        <TextInput
-                            autoCompleteType="off"
-                            autoCorrect={false}
-                            style={[styles.textInput]}
-                            value={this.state.payPalMeUsername}
-                            placeholder={this.props.translate('paymentsPage.yourPayPalUsername')}
-                            onChangeText={text => this.setState({payPalMeUsername: text})}
-                            editable={!this.props.payPalMeUsername}
-                        />
-                    </View>
-                    <Button
-                        success
-                        isDisabled={this.props.payPalMeUsername}
-                        onPress={this.setPayPalMeUsername}
-                        style={[styles.mt3]}
-                        text={this.props.translate('paymentsPage.addPayPalAccount')}
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('common.payments')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                </View>
+                    <View style={[styles.flex1, styles.p5]}>
+                        <View style={[styles.flex1]}>
+                            <Text style={[styles.textP, styles.mb4]}>
+                                {this.props.translate('paymentsPage.enterYourUsernameToGetPaidViaPayPal')}
+                            </Text>
+                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                                {this.props.translate('paymentsPage.payPalMe')}
+                            </Text>
+                            <TextInput
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                style={[styles.textInput]}
+                                value={this.state.payPalMeUsername}
+                                placeholder={this.props.translate('paymentsPage.yourPayPalUsername')}
+                                onChangeText={text => this.setState({payPalMeUsername: text})}
+                                editable={!this.props.payPalMeUsername}
+                            />
+                        </View>
+                    </View>
+                    <FixedFooter>
+                        <Button
+                            success
+                            isDisabled={!this.state.payPalMeUsername}
+                            onPress={this.setPayPalMeUsername}
+                            style={[styles.mt3]}
+                            text={this.props.translate('paymentsPage.addPayPalAccount')}
+                        />
+                    </FixedFooter>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }

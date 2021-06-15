@@ -20,6 +20,7 @@ import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
+import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -268,7 +269,7 @@ class IOUModal extends Component {
         return (
             <ScreenWrapper onTransitionEnd={this.getReady}>
                 {({didScreenTransitionEnd}) => (
-                    <>
+                    <KeyboardAvoidingView>
                         <View style={[styles.headerBar]}>
                             <View style={[
                                 styles.dFlex,
@@ -341,7 +342,7 @@ class IOUModal extends Component {
                                 </>
                             )}
                         </View>
-                    </>
+                    </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>
         );
