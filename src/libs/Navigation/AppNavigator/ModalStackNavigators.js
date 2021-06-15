@@ -22,7 +22,7 @@ import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 import EnablePaymentsPage from '../../../pages/EnablePayments';
 import BusinessBankAccountNewPage from '../../../pages/BusinessBankAccount/NewPage';
 import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
-import WorkspaceInvitePage from '../../../pages/WorkspaceInvitePage';
+import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
 
 const defaultSubRouteOptions = {
