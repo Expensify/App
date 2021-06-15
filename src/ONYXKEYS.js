@@ -101,4 +101,7 @@ export default {
 
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
+
+    // Stores information about the active reimbursement account being set up
+    REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 };
