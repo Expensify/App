@@ -53,10 +53,7 @@ const propTypes = {
         /** Whether or not transaction creation has resulted to error */
         error: PropTypes.bool,
 
-        // is loading
-        loading: PropTypes.bool,
-
-        // Loading
+        /** Flag to show a loading indicator and avoid showing a previously selected currency */
         isRetrievingCurrency: PropTypes.bool,
     }).isRequired,
 
