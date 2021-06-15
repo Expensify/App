@@ -2,17 +2,17 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {TextInput, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import Navigation from '../libs/Navigation/Navigation';
-import styles from '../styles/styles';
-import Text from '../components/Text';
-import Button from '../components/Button';
-import compose from '../libs/compose';
-import ONYXKEYS from '../ONYXKEYS';
-import {invite} from '../libs/actions/Policy';
-import TextLink from '../components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import styles from '../../styles/styles';
+import Text from '../../components/Text';
+import Button from '../../components/Button';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+import {invite} from '../../libs/actions/Policy';
+import TextLink from '../../components/TextLink';
 
 const propTypes = {
     ...withLocalizePropTypes,
