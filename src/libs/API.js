@@ -812,6 +812,12 @@ function BankAccount_Create(parameters) {
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
+function BankAccount_Validate(parameters) {
+    const commandName = 'ValidateBankAccount';
+    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
+}
+
 /**
  * @param {*} parameters
  * @returns {Promise}
@@ -852,13 +858,6 @@ function BankAccount_SetupWithdrawal(parameters) {
         CONST.NETWORK.METHOD.POST,
         true,
     );
-}
-
-function BankAccount_Validate(parameters) {
-    const commandName = 'ValidateBankAccount';
-    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
-
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
 }
 
 /**
