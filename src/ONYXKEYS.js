@@ -87,6 +87,9 @@ export default {
     // Indicates which locale should be used
     PREFERRED_LOCALE: 'preferredLocale',
 
+    /** List of transactionIDs in process of rejection */
+    TRANSACTIONS_BEING_REJECTED: 'transactionsBeingRejected',
+
     // User's Expensify Wallet
     USER_WALLET: 'userWallet',
 

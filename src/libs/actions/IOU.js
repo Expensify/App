@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {Linking} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
@@ -135,11 +134,10 @@ function createIOUSplit(params) {
  * @param {Object} params.iou
  */
 function rejectTransaction({
-    reportID, chatReportID, transactionID, comment, iou,
+    reportID, chatReportID, transactionID, comment,
 }) {
-    const transactionsBeingRejected = lodashGet(iou, 'transactionsBeingRejected', []);
-    Onyx.merge(ONYXKEYS.IOU, {
-        transactionsBeingRejected: [...transactionsBeingRejected, transactionID],
+    Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
+        [transactionID]: true,
     });
     API.RejectTransaction({
         reportID,
@@ -161,8 +159,10 @@ function rejectTransaction({
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
-            const withoutCurrentID = transactionsBeingRejected.filter(id => id !== transactionID);
-            Onyx.set(ONYXKEYS.IOU, {...iou, transactionsBeingRejected: withoutCurrentID});
+            // setting as null deletes the tranactionID
+            Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
+                [transactionID]: null,
+            });
         });
 }
 
