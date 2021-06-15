@@ -1103,6 +1103,7 @@ function deleteReportComment(reportID, reportAction) {
                         // Populate last message details
                         const lastMessageDetails = {};
                         if (lastReportAction) {
+                            // Replace line breaks with spaces and remove all HTML from the message
                             lastMessageDetails.lastMessageText = lastReportAction.isAttachment
                                 ? '[Attachment]'
                                 : _.last(lastReportAction.message)
