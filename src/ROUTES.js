@@ -51,6 +51,8 @@ export default {
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_CARD: 'workspace/card',
     BANK_ACCOUNT_NEW: 'bankAccount/new',
+    WORKSPACE_INVITE: 'workspace/:policyID/invite',
+    getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
 
     /**
      * @param {String} route

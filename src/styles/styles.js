@@ -1581,6 +1581,10 @@ const styles = {
     workspaceCardCTA: {
         width: 250,
     },
+
+    workspaceInviteWelcome: {
+        minHeight: 150,
+    },
 };
 
 const baseCodeTagStyles = {
