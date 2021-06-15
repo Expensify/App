@@ -3,6 +3,8 @@ import {View} from 'react-native';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
+import {validateBankAccount} from '../../libs/actions/BankAccounts';
+
 import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -16,9 +18,17 @@ class ValidationStep extends React.Component {
     constructor(props) {
         super(props);
 
+        this.submit = this.submit.bind(this);
+
         this.state = {
             amount1: 0,
         };
+    }
+
+    submit(params) {
+        console.log(params);
+        // Make a call to bankAccounts
+        validateBankAccount(1234, '1234123');
     }
 
     render() {
