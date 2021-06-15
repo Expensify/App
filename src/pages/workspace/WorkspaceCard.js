@@ -114,7 +114,7 @@ const WorkspaceCard = ({
 
 WorkspaceCard.propTypes = propTypes;
 WorkspaceCard.defaultProps = defaultProps;
-WorkspaceCard.displayName = 'InitialSettingsPage';
+WorkspaceCard.displayName = 'WorkspaceCard';
 
 export default compose(
     withLocalize,

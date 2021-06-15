@@ -235,6 +235,7 @@ class AuthScreens extends React.Component {
                     name="WorkspaceSettings"
                     options={fullscreenModalScreenOptions}
                     component={WorkspaceSettingsDrawerNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name="Settings"
