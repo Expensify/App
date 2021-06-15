@@ -1532,7 +1532,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 200,
+        minHeight: 150,
     },
 };
 
