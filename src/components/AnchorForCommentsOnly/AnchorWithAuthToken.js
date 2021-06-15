@@ -8,13 +8,13 @@ import {
     defaultProps as anchorForCommentsOnlyDefaultProps,
 } from './anchorForCommentsOnlyPropTypes';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
-import addAuthTokenToURL from '../../libs/addAuthTokenToURL';
+import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 
 const propTypes = {
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user authToken */
-        authToken: PropTypes.string,
+        encryptedAuthToken: PropTypes.string,
     }),
 
     ...anchorForCommentsOnlyPropTypes,
@@ -22,15 +22,15 @@ const propTypes = {
 
 const defaultProps = {
     session: {
-        authToken: null,
+        encryptedAuthToken: null,
     },
     ...anchorForCommentsOnlyDefaultProps,
 };
 
 const AnchorWithAuthToken = (props) => {
-    const urlWithAuthToken = addAuthTokenToURL({
+    const urlWithAuthToken = addEncryptedAuthTokenToURL({
         url: props.href,
-        authToken: props.session.authToken,
+        encryptedAuthToken: props.session.encryptedAuthToken,
     });
     const propsToPass = _.omit(props, 'session');
     propsToPass.href = urlWithAuthToken;
