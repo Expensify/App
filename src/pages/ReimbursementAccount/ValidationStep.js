@@ -1,5 +1,25 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, TextInput} from 'react-native';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import styles from '../../styles/styles';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
-const ValidationStep = () => <View />;
-export default ValidationStep;
+const propTypes = {
+    ...withLocalizePropTypes,
+};
+
+class ValidationStep extends React.Component {
+    render() {
+        return (
+            <View style={[styles.flex1, styles.justifyContentBetween]}>
+                <HeaderWithCloseButton
+                    title="Validation Step"
+                    onCloseButtonPress={Navigation.dismissModal}
+                />
+            </View>
+        );
+    }
+}
+
+export default withLocalize(ValidationStep);
