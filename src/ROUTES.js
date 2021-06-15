@@ -9,7 +9,7 @@ const REPORT = 'r';
 
 export default {
     ADD_PERSONAL_BANK_ACCOUNT: 'add-personal-bank-account',
-    ADD_VERIFIED_BANK_ACCOUNT: 'add-verified-bank-account',
+    ADD_VERIFIED_BANK_ACCOUNT: 'add-verified-bank-account/:stepToOpen?',
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
