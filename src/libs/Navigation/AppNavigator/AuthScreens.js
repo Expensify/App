@@ -120,9 +120,10 @@ class AuthScreens extends React.Component {
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
-        User.getBetas();
+        User.getBetas().then(() => {
+            fetchAllReports(true, true, true);
+        });
         PersonalDetails.fetchCurrencyPreferences();
-        fetchAllReports(true, true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         getPolicySummaries();
