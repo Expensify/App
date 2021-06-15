@@ -280,7 +280,13 @@ Onyx.connect({
     },
 });
 
-function goToWithdrawalStepID(stepID, achData) {
+/**
+ * Navigate to a specific step in the VBA flow
+ *
+ * @param {String} stepID
+ * @param {Object} achData
+ */
+function goToWithdrawalAccountSetupStep(stepID, achData) {
     const newACHData = {...previousACHData};
 
     // If we go back to Requestor Step, reset any validation and previously answered questions from expectID.
@@ -347,8 +353,8 @@ function fetchFreePlanVerifiedBankAccount() {
             const throttledDate = lodashGet(response.nameValuePairs, CONST.NVP.ACH_DATA_THROTTLED, '');
 
             // Next we'll build the achData and save it to Onyx
-            // If the user already is already setting up a bank account we will want to continue the flow for them
-            let currentStep;
+            // If the user is already setting up a bank account we will continue the flow for them
+            let currentStep = previousACHData.currentStep;
             const achData = bankAccount ? bankAccount.toACHData() : {};
             achData.useOnfido = true;
             achData.policyID = '';
@@ -374,10 +380,10 @@ function fetchFreePlanVerifiedBankAccount() {
             // Temporary fix for Onfido flow. Can be removed by nkuoch after Sept 1 2020.
             // @TODO not sure if we still need this or what this is about, but seems like maybe yes...
             if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && achData.useOnfido) {
-                const onfidoRes = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO);
-                const sdkToken = lodashGet(onfidoRes, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
+                const onfidoResponse = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO);
+                const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
                 if (sdkToken && !achData.isOnfidoSetupComplete
-                        && onfidoRes.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
+                    && onfidoResponse.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
                 ) {
                     currentStep = CONST.BANK_ACCOUNT.STEP.REQUESTOR;
                 }
@@ -400,7 +406,9 @@ function fetchFreePlanVerifiedBankAccount() {
                             ? CONST.BANK_ACCOUNT.STEP.VALIDATION : CONST.BANK_ACCOUNT.STEP.COMPANY;
                         achData.bankAccountInReview = hasTriedToUpgrade;
                     } else {
-                        // We're not going to have a EnableStep, but we can show this account as open if accessed
+                        // In Expensify.cash we do not show a specific view for the EnableStep since we will enable the
+                        // Expensify card automatically. However, we will still handle that step and show the Validate
+                        // view.
                         currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
                     }
                 }
@@ -412,7 +420,7 @@ function fetchFreePlanVerifiedBankAccount() {
             }
 
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate});
-            goToWithdrawalStepID(currentStep, achData);
+            goToWithdrawalAccountSetupStep(currentStep, achData);
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
@@ -448,6 +456,7 @@ const WITHDRAWAL_ACCOUNT_STEPS = [
 
 /**
  * Get step position in the array
+ * @private
  * @param {String} stepID
  * @return {Number}
  */
@@ -472,7 +481,7 @@ function getNextStepID() {
  * @param {Number} bankAccountID
  */
 function setFreePlanVerifiedBankAccountID(bankAccountID) {
-    API.SetNameValuePair({name: 'expensify_freePlanBankAccountID', value: bankAccountID});
+    API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: bankAccountID});
 }
 
 /**
@@ -484,7 +493,7 @@ function setupWithdrawalAccount(data) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
 
     previousACHData = {...previousACHData, ...data};
-    if (data && data.isSavings !== undefined) {
+    if (data && !_.isUndefined(data.isSavings)) {
         previousACHData.isSavings = Boolean(data.isSavings);
     }
     if (!previousACHData.setupType) {
@@ -532,17 +541,17 @@ function setupWithdrawalAccount(data) {
                         CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ID,
                     );
                     if (previousACHData.useOnfido) {
-                        const onfidoRes = lodashGet(
+                        const onfidoResponse = lodashGet(
                             achData,
                             CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO,
                         );
-                        const sdkToken = lodashGet(onfidoRes, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
+                        const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
                         if (sdkToken && !previousACHData.isOnfidoSetupComplete
-                                && onfidoRes.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
+                                && onfidoResponse.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
                         ) {
                             // Requestor Step still needs to run Onfido
                             achData.sdkToken = sdkToken;
-                            goToWithdrawalStepID(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
+                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
                             return;
                         }
                     } else if (requestorResponse) {
@@ -559,7 +568,7 @@ function setupWithdrawalAccount(data) {
                         }
                         if (!_.isEmpty(questions)) {
                             achData.questions = questions;
-                            goToWithdrawalStepID(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
+                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
                             return;
                         }
                     }
@@ -568,7 +577,7 @@ function setupWithdrawalAccount(data) {
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
                     // Get an up-to-date bank account list so that we can allow the user to validate their newly
                     // generated bank account
-                    return API.Get({returnValueList: 'bankAccountList'})
+                    API.Get({returnValueList: 'bankAccountList'})
                         .then((bankAccountListResponse) => {
                             const bankAccountJSON = _.findWhere(bankAccountListResponse.bankAccountList, {
                                 bankAccountID: previousACHData.bankAccountID,
@@ -580,8 +589,9 @@ function setupWithdrawalAccount(data) {
                             achData.bankAccountInReview = needsToPassLatestChecks
                                 || achData.state === BankAccount.STATE.VERIFYING;
 
-                            goToWithdrawalStepID(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
+                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
                         });
+                    return;
                 }
 
                 if ((currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && previousACHData.bankAccountInReview)
@@ -601,7 +611,7 @@ function setupWithdrawalAccount(data) {
             }
 
             // Go to next step
-            goToWithdrawalStepID(nextStep, achData);
+            goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
                 console.error(`Error setting up withdrawal account: ${error}`);
@@ -619,5 +629,5 @@ export {
     fetchUserWallet,
     fetchFreePlanVerifiedBankAccount,
     setupWithdrawalAccount,
-    goToWithdrawalStepID,
+    goToWithdrawalAccountSetupStep,
 };
