@@ -114,6 +114,7 @@ export default {
         requestMoney: 'Pedir Dinero',
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
+        settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         decline: 'Rechazar',
         settlePaypalMe: 'Pagar con PayPal.me',
