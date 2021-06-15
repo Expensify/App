@@ -23,6 +23,7 @@ import EnablePaymentsPage from '../../../pages/EnablePayments';
 import BusinessBankAccountNewPage from '../../../pages/BusinessBankAccount/NewPage';
 import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
 import WorkspaceInvitePage from '../../../pages/WorkspaceInvitePage';
+import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -154,6 +155,11 @@ const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator([{
     name: 'AddPersonalBankAccount_Root',
 }]);
 
+const NewWorkspaceStackNavigator = createModalStackNavigator([{
+    Component: NewWorkspacePage,
+    name: 'NewWorkspace_Root',
+}]);
+
 const BusinessBankAccountModalStackNavigator = createModalStackNavigator([
     {
         Component: BusinessBankAccountNewPage,
@@ -179,5 +185,6 @@ export {
     EnablePaymentsStackNavigator,
     BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
+    NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
 };

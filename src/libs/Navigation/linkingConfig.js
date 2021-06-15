@@ -124,6 +124,11 @@ export default {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
                 },
             },
+            NewWorkspace: {
+                screens: {
+                    NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
+                },
+            },
         },
     },
 };
