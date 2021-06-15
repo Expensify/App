@@ -8,8 +8,8 @@ import {addTrailingForwardSlash} from './libs/Url';
 const REPORT = 'r';
 
 export default {
-    ADD_PERSONAL_BANK_ACCOUNT: 'add-personal-bank-account',
-    ADD_VERIFIED_BANK_ACCOUNT: 'add-verified-bank-account/:stepToOpen?',
+    BANK_ACCOUNT: 'bank-account/:stepToOpen?',
+    BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
