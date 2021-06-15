@@ -50,6 +50,7 @@ export default {
     ENABLE_PAYMENTS: 'enable-payments',
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_CARD: 'workspace/card',
+    BANK_ACCOUNT_NEW: 'bankAccount/new',
 
     /**
      * @param {String} route
