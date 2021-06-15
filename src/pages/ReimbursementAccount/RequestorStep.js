@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {View, TextInput} from 'react-native';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -7,12 +8,12 @@ import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import Icon from '../../components/Icon';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import Picker from '../../components/Picker';
 import {DownArrow} from '../../components/Icon/Expensicons';
 import BankAccount from '../../libs/models/BankAccount';
+import Button from '../../components/Button';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -27,12 +28,13 @@ class RequestorStep extends React.Component {
         this.state = {
             firstName: '',
             lastName: '',
-            street: '',
-            city: '',
-            state: '',
-            zipCode: '',
+            requestorAddressStreet: '',
+            requestorAddressCity: '',
+            requestorAddressState: '',
+            requestorAddressZipCode: '',
             dob: '',
-            ssn: '',
+            ssnLast4: '',
+            isAuthorized: false,
         };
     }
 
@@ -42,7 +44,19 @@ class RequestorStep extends React.Component {
         }));
     }
 
+
+    /**
+     * Submits the form for the Requestor Step
+     */
+    submit() {
+        if (!this.state.isAuthorized) {
+            console.error('Must be authorized for company spend before proceeding');
+        }
+    }
+
     render() {
+        // Whether or not the form has been completely filled out
+        const unfilledFormValues = _.filter(this.state, value => value === '' || value === false);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -51,105 +65,73 @@ class RequestorStep extends React.Component {
                     onBackButtonPress={() => BankAccount.goToWithdrawalStepID(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <View style={[styles.m5, styles.flex1]}>
-                    <Text style={[styles.loginTermsText]}>
-                        {this.props.translate('bankAccount.financialRegulations')}
-                        <TextLink
-                            href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
-                            style={styles.mb5}
-                        >
-                            {`${this.props.translate('bankAccount.learnMore')}`}
-                        </TextLink>
-                        {' | '}
-                        <TextLink
-                            href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
-                            style={styles.mb5}
-                        >
-                            {`${this.props.translate('bankAccount.isMyDataSafe')}`}
-                        </TextLink>
-                    </Text>
-                    <Text style={[styles.mb5, styles.loginTermsText]}>
-                        {this.props.translate('bankAccount.onFidoConditions')}
-                        <TextLink href="https://onfido.com/facial-scan-policy-and-release/">
-                            {`${this.props.translate('bankAccount.onFidoFacialScan')}`}
-                        </TextLink>
-                        {', '}
-                        <TextLink href="https://onfido.com/privacy/">
-                            {`${this.props.translate('common.privacyPolicy')}`}
-                        </TextLink>
-                        {` ${this.props.translate('common.and')} `}
-                        <TextLink href="https://onfido.com/terms-of-service/">
-                            {`${this.props.translate('common.termsOfService')}`}
-                        </TextLink>
-                    </Text>
-                    <View style={[styles.flexRow, styles.mb6]}>
+                <View style={[styles.flex1, styles.m5]}>
+                    <View style={styles.flexRow}>
                         <View style={styles.flex1}>
-                            <TextInputWithLabel
-                                label={this.props.translate('profilePage.firstName')}
+                            <TextInput
+                                style={[styles.textInput, styles.mb4]}
+                                placeholder={this.props.translate('profilePage.firstName')}
                                 value={this.state.firstName}
                                 onChangeText={firstName => this.setState({firstName})}
                             />
                         </View>
                         <View style={[styles.flex1, styles.ml2]}>
-                            <TextInputWithLabel
-                                label={this.props.translate('profilePage.lastName')}
+                            <TextInput
+                                style={[styles.textInput, styles.mb4]}
+                                placeholder={this.props.translate('profilePage.lastName')}
                                 value={this.state.lastName}
                                 onChangeText={lastName => this.setState({lastName})}
                             />
                         </View>
                     </View>
                     <View style={styles.mb6}>
-                        <TextInputWithLabel
-                            label={this.props.translate('bankAccount.personalAddress')}
-                            placeholder={this.props.translate('bankAccount.street')}
-                            value={this.state.street}
-                            onChangeText={street => this.setState({street})}
-                        />
                         <TextInput
-                            style={[styles.textInput, styles.mb2]}
-                            placeholder={this.props.translate('bankAccount.city')}
-                            value={this.state.city}
-                            onChangeText={city => this.setState({city})}
-                        />
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.mb1]}>
-                                <Picker
-                                    style={styles.textInput}
-                                    onChange={state => this.setState({state})}
-                                    items={CONST.BANK_ACCOUNT.STATES.map(state => ({value: state, label: state}))}
-                                    placeholder={{
-                                        value: '',
-                                        label: this.props.translate('bankAccount.state'),
-                                    }}
-                                    value={this.state.state}
-                                    icon={() => <Icon src={DownArrow} />}
-                                />
-                            </View>
-                            <View style={[styles.flex1, styles.ml2]}>
-                                <TextInput
-                                    style={[styles.textInput, styles.mb2]}
-                                    placeholder={this.props.translate('bankAccount.zipCode')}
-                                    value={this.state.zipCode}
-                                    keyboardType="number-pad"
-                                    onChangeText={zipCode => this.setState({zipCode})}
-                                />
-                            </View>
-                        </View>
-                    </View>
-                    <View style={styles.mb6}>
-                        <TextInputWithLabel
-                            label={this.props.translate('bankAccount.dob')}
-                            placeholder="YYYY-MM-DD"
+                            style={[styles.textInput, styles.mb4]}
+                            placeholder={this.props.translate('bankAccount.dob')}
                             value={this.state.dob}
                             onChangeText={dob => this.setState({dob})}
                         />
-                    </View>
-                    <View style={styles.mb6}>
-                        <TextInputWithLabel
-                            label={this.props.translate('bankAccount.ssn')}
-                            placeholder={this.props.translate('bankAccount.ssnPlaceholder')}
-                            value={this.state.ssn}
-                            onChangeText={ssn => this.setState({ssn})}
+                        <TextInput
+                            style={[styles.textInput, styles.mb4]}
+                            placeholder={this.props.translate('bankAccount.ssnLast4')}
+                            value={this.state.ssnLast4}
+                            onChangeText={ssnLast4 => this.setState({ssnLast4})}
+                        />
+                        <TextInput
+                            style={[styles.textInput, styles.mb4]}
+                            placeholder={this.props.translate('bankAccount.requestorAddressStreet')}
+                            value={this.state.requestorAddressStreet}
+                            onChangeText={requestorAddressStreet => this.setState({requestorAddressStreet})}
+                        />
+                        <View style={styles.flexRow}>
+                            <View style={styles.flex1}>
+                                <TextInput
+                                    style={[styles.textInput, styles.mb4]}
+                                    placeholder={this.props.translate('bankAccount.requestorAddressCity')}
+                                    value={this.state.requestorAddressCity}
+                                    onChangeText={requestorAddressCity => this.setState({requestorAddressCity})}
+                                />
+                            </View>
+                            <View style={[styles.flex1, styles.mb1, styles.ml2]}>
+                                <Picker
+                                    style={styles.textInput}
+                                    onChange={requestorAddressState => this.setState({requestorAddressState})}
+                                    items={CONST.BANK_ACCOUNT.STATES.map(state => ({value: state, label: state}))}
+                                    placeholder={{
+                                        value: '',
+                                        label: this.props.translate('bankAccount.requestorAddressState'),
+                                    }}
+                                    value={this.state.requestorAddressState}
+                                    icon={() => <Icon src={DownArrow} />}
+                                />
+                            </View>
+                        </View>
+                        <TextInput
+                            style={[styles.textInput, styles.mb4]}
+                            placeholder={this.props.translate('bankAccount.requestorAddressZipCode')}
+                            value={this.state.requestorAddressZipCode}
+                            keyboardType="number-pad"
+                            onChangeText={requestorAddressZipCode => this.setState({requestorAddressZipCode})}
                         />
                     </View>
                     <CheckboxWithLabel
@@ -163,7 +145,40 @@ class RequestorStep extends React.Component {
                             </View>
                         )}
                     />
+                    <Text style={[styles.loginTermsText, styles.mt5]}>
+                        {this.props.translate('bankAccount.financialRegulations')}
+                        {/* eslint-disable-next-line max-len */}
+                        <TextLink href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account">
+                            {`${this.props.translate('bankAccount.learnMore')}`}
+                        </TextLink>
+                        {' | '}
+                        {/* eslint-disable-next-line max-len */}
+                        <TextLink href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information">
+                            {`${this.props.translate('bankAccount.isMyDataSafe')}`}
+                        </TextLink>
+                    </Text>
+                    <Text style={[styles.mt3, styles.loginTermsText]}>
+                        {this.props.translate('bankAccount.onFidoConditions')}
+                        <TextLink href="https://onfido.com/facial-scan-policy-and-release/">
+                            {`${this.props.translate('bankAccount.onFidoFacialScan')}`}
+                        </TextLink>
+                        {', '}
+                        <TextLink href="https://onfido.com/privacy/">
+                            {`${this.props.translate('common.privacyPolicy')}`}
+                        </TextLink>
+                        {` ${this.props.translate('common.and')} `}
+                        <TextLink href="https://onfido.com/terms-of-service/">
+                            {`${this.props.translate('common.termsOfService')}`}
+                        </TextLink>
+                    </Text>
                 </View>
+                <Button
+                    success
+                    text={this.props.translate('common.saveAndContinue')}
+                    style={styles.m5}
+                    isDisabled={unfilledFormValues.length > 0}
+                    onPress={this.submit}
+                />
             </View>
         );
     }
