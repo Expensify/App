@@ -124,6 +124,14 @@ export default {
                     NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
+
+            // Fullscreen Modal Screens
+            WorkspaceSettings: {
+                screens: {
+                    WorkspaceCard: ROUTES.WORKSPACE_CARD,
+                    exact: true,
+                },
+            },
         },
     },
 };
