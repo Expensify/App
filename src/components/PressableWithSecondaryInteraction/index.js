@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable} from 'react-native';
 import pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 const defaultProps = {
     forwardedRef: () => {},
@@ -42,7 +43,15 @@ class PressableWithSecondaryInteraction extends Component {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
         return (
             <Pressable
-                onLongPress={e => this.props.onSecondaryInteraction(e)}
+                onLongPress={(e) => {
+                    // Provide haptic feedback
+                    ReactNativeHapticFeedback.trigger('impactLight', {
+                        enableVibrateFallback: true,
+                        ignoreAndroidSystemSettings: false,
+                    });
+
+                    this.props.onSecondaryInteraction(e);
+                }}
                 ref={el => this.pressableRef = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}
