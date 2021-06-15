@@ -84,19 +84,21 @@ class WorkspaceInvitePage extends React.Component {
                             {this.props.translate('workspace.invite.invitePeoplePrompt')}
                         </Text>
                         <View style={styles.mb6}>
+                            <Text style={[styles.textP, styles.mb2]}>
+                                {this.props.translate('workspace.invite.enterEmailOrPhone')}
+                            </Text>
                             <TextInput
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 style={[styles.textInput]}
                                 value={this.state.emailOrPhone}
-                                placeholder={this.props.translate('workspace.invite.enterEmailOrPhone')}
                                 onChangeText={text => this.setState({emailOrPhone: text})}
                             />
                         </View>
-                        <Text style={[styles.textP]}>
-                            {this.props.translate('workspace.invite.personalMessagePrompt')}
-                        </Text>
                         <View style={styles.mb6}>
+                            <Text style={[styles.textP, styles.mb2]}>
+                                {this.props.translate('workspace.invite.personalMessagePrompt')}
+                            </Text>
                             <TextInput
                                 autoCompleteType="off"
                                 autoCorrect={false}
@@ -109,7 +111,7 @@ class WorkspaceInvitePage extends React.Component {
                             />
                         </View>
                         <TextLink href="https://use.expensify.com/privacy">
-                            {`${this.props.translate('common.privacyPolicy')} `}
+                            {`${this.props.translate('common.privacy')} `}
                         </TextLink>
                     </View>
                     <View style={styles.flexGrow0}>
