@@ -49,7 +49,9 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
+    BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
+    NewWorkspaceStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -72,11 +74,11 @@ Onyx.connect({
 const RootStack = createCustomModalStackNavigator();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
-// that depends on modal visibility until Modal is completely closed or its transition has ended
-// When modal screen is focused and animation transition is ended, update modal visibility in Onyx
+// that depends on modal visibility until Modal is completely closed and its focused
+// When modal screen is focused, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
 const modalScreenListeners = {
-    transitionEnd: () => {
+    focus: () => {
         setModalVisibility(true);
     },
     beforeRemove: () => {
@@ -120,8 +122,9 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
+        User.getPublicDomainInfo();
         PersonalDetails.fetchCurrencyPreferences();
-        fetchAllReports(true, true, true);
+        fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         getPolicySummaries();
@@ -273,6 +276,17 @@ class AuthScreens extends React.Component {
                     name="AddPersonalBankAccount"
                     options={modalScreenOptions}
                     component={AddPersonalBankAccountModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="NewWorkspace"
+                    options={modalScreenOptions}
+                    component={NewWorkspaceStackNavigator}
+                />
+                <RootStack.Screen
+                    name="BusinessBankAccount"
+                    options={modalScreenOptions}
+                    component={BusinessBankAccountModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

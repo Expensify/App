@@ -6,12 +6,23 @@ const CONST = {
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
     },
+    BANK_ACCOUNT: {
+        ADD_METHOD: {
+            MANUAL: 'manual',
+            PLAID: 'plaid',
+        },
+        REGEX: {
+            IBAN: /^[A-Za-z0-9]{2,30}$/,
+            SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
+        },
+    },
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
         IOU: 'IOU',
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
+        DEFAULT_ROOMS: 'defaultRooms',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -70,6 +81,7 @@ const CONST = {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
+            CENTERED_UNSWIPEABLE: 'centered_unswipeable',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
