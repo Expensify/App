@@ -303,6 +303,7 @@ export default {
         invite: {
             invitePeople: 'Invite People',
             invitePeoplePrompt: 'Invite a colleague to your workspace.',
+            personalMessagePrompt: 'Add a Personal Message (Optional)',
             enterEmailOrPhone: 'Email or Phone',
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
         },

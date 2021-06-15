@@ -93,6 +93,9 @@ class WorkspaceInvitePage extends React.Component {
                                 onChangeText={text => this.setState({emailOrPhone: text})}
                             />
                         </View>
+                        <Text style={[styles.textP]}>
+                            {this.props.translate('workspace.invite.personalMessagePrompt')}
+                        </Text>
                         <View style={styles.mb6}>
                             <TextInput
                                 autoCompleteType="off"
