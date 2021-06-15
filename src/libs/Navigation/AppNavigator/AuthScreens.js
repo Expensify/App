@@ -183,6 +183,19 @@ class AuthScreens extends React.Component {
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
         };
+        const fullscreenModalScreenOptions = {
+            ...modalScreenOptions,
+            cardStyle: {...styles.fullscreenCard, ...styles.bgTransparent},
+            cardStyleInterpolator: props => fullscreenModalcardStyleInterpolator(
+                this.props.isSmallScreenWidth,
+                props,
+            ),
+            cardOverlayEnabled: false,
+
+            // We don't want the Pressable overlay for fullscreen modal which closes the modal on click
+            isModal: false,
+        };
+
         return (
             <RootStack.Navigator
                 mode="modal"
@@ -218,14 +231,7 @@ class AuthScreens extends React.Component {
                 use a navigator */}
                 <RootStack.Screen
                     name="WorkspaceSettings"
-                    options={{
-                        ...modalScreenOptions,
-                        cardStyle: {...styles.fullscreenCard, ...styles.bgTransparent},
-                        cardStyleInterpolator: props => fullscreenModalcardStyleInterpolator(
-                            this.props.isSmallScreenWidth,
-                            props,
-                        ),
-                    }}
+                    options={fullscreenModalScreenOptions}
                     component={WorkspaceSettingsDrawerNavigator}
                 />
                 <RootStack.Screen
