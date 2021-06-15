@@ -486,12 +486,13 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
 
 /**
  * @param {Number} bankAccountID
- * @param {String} validationAmounts
+ * @param {String} validateCode
  */
-function validateBankAccount(bankAccountID, validationAmounts) {
+function validateBankAccount(bankAccountID, validateCode) {
     console.log('Going to call BankAccount_Validate');
     console.log(bankAccountID);
-    // API.BankAccount_Validate(params);
+    console.log(validateCode);
+    API.BankAccount_Validate({bankAccountID, validateCode});
 }
 
 /**

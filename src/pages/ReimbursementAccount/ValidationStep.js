@@ -28,11 +28,11 @@ class ValidationStep extends React.Component {
     }
 
     submit() {
-        const validationAmounts = [this.state.amount1, this.state.amount2, this.state.amount3].join(',');
-        console.log(validationAmounts);
+        const validateCode = [this.state.amount1, this.state.amount2, this.state.amount3].join(',');
+        console.log(validateCode);
 
         // Make a call to bankAccounts
-        validateBankAccount(1234, validationAmounts);
+        validateBankAccount(1234, validateCode);
     }
 
     render() {
