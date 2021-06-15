@@ -75,6 +75,7 @@
     "react-native-config": "^1.4.0",
     "react-native-document-picker": "^5.1.0",
     "react-native-gesture-handler": "1.9.0",
+    "react-native-haptic-feedback": "^1.11.0",
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^2.3.3",
     "react-native-keyboard-spacer": "^0.4.1",
