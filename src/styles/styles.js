@@ -113,6 +113,10 @@ const styles = {
         color: themeColors.heading,
     },
 
+    bgTransparent: {
+        backgroundColor: 'transparent',
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -1530,6 +1534,15 @@ const styles = {
     cursorDisabled: {
         cursor: 'not-allowed',
     },
+
+    fullscreenCard: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: '100%',
+        height: '100%',
+    },
+
 };
 
 const baseCodeTagStyles = {
@@ -1672,6 +1685,10 @@ function getNavigationModalCardStyle(isSmallScreenWidth) {
         backgroundColor: 'transparent',
         height: '100%',
     };
+}
+
+function getWorkspaceSettingsDrawerType(isSmallScreenWidth) {
+    return isSmallScreenWidth ? 'back' : 'permanent';
 }
 
 /**
@@ -1883,4 +1900,5 @@ export {
     getModalPaddingStyles,
     getFontFamilyMonospace,
     getEmojiPickerStyle,
+    getWorkspaceSettingsDrawerType,
 };
