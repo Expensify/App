@@ -143,6 +143,23 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
+    buttonLarge: {
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeLarge,
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
+    },
+
+    buttonLargeText: {
+        fontSize: variables.fontSizeLarge,
+        lineHeight: 18,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+    },
+
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
@@ -1543,6 +1560,27 @@ const styles = {
         height: '100%',
     },
 
+    workspaceCard: {
+        width: '100%',
+        height: 400,
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+    },
+
+    workspaceCardMainText: {
+        fontSize: variables.fontSizeXXXLarge,
+        fontWeight: 'bold',
+        lineHeight: variables.fontSizeXXXLarge,
+    },
+
+    workspaceCardContent: {
+        zIndex: 1,
+        padding: 50,
+    },
+
+    workspaceCardCTA: {
+        width: 250,
+    },
 };
 
 const baseCodeTagStyles = {
