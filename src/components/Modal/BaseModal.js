@@ -1,14 +1,27 @@
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import styles, {getModalPaddingStyles, getSafeAreaPadding} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import {propTypes, defaultProps} from './ModalPropTypes';
+import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './ModalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
 import {setModalVisibility} from '../../libs/actions/Modal';
+
+const propTypes = {
+    ...modalPropTypes,
+
+    /** The ref to the modal container */
+    forwardedRef: PropTypes.func,
+};
+
+const defaultProps = {
+    ...modalDefaultProps,
+    forwardedRef: () => {},
+};
 
 class BaseModal extends PureComponent {
     constructor(props) {
@@ -129,7 +142,7 @@ class BaseModal extends PureComponent {
                                     ...modalContainerStyle,
                                     ...modalPaddingStyles,
                                 }}
-                                ref={this.props.forwardRef}
+                                ref={this.props.forwardedRef}
                             >
                                 {this.props.children}
                             </View>
@@ -146,5 +159,5 @@ BaseModal.defaultProps = defaultProps;
 BaseModal.displayName = 'BaseModal';
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseModal {...props} forwardRef={ref} />
+    <BaseModal {...props} forwardedRef={ref} />
 ));
