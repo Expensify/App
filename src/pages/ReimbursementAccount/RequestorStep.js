@@ -145,7 +145,7 @@ class RequestorStep extends React.Component {
                             </View>
                         )}
                     />
-                    <Text style={[styles.loginTermsText, styles.mt5]}>
+                    <Text style={[styles.textMicroSupporting, styles.mt5]}>
                         {this.props.translate('bankAccount.financialRegulations')}
                         {/* eslint-disable-next-line max-len */}
                         <TextLink href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account">
@@ -157,7 +157,7 @@ class RequestorStep extends React.Component {
                             {`${this.props.translate('bankAccount.isMyDataSafe')}`}
                         </TextLink>
                     </Text>
-                    <Text style={[styles.mt3, styles.loginTermsText]}>
+                    <Text style={[styles.mt3, styles.textMicroSupporting]}>
                         {this.props.translate('bankAccount.onFidoConditions')}
                         <TextLink href="https://onfido.com/facial-scan-policy-and-release/">
                             {`${this.props.translate('bankAccount.onFidoFacialScan')}`}
