@@ -29,6 +29,7 @@ export default {
         delete: 'Eliminar',
         contacts: 'Contactos',
         recents: 'Recientes',
+        close: 'Cerrar',
         saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de servicio',
@@ -264,6 +265,8 @@ export default {
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque para la cuenta.',
         iAcceptThe: 'Acepto los ',
+        hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrese de que su inicio de sesión principal sea un correo electrónico válido y vuelva a intentarlo. Puede agregar su número de teléfono como inicio de sesión secundario.',
+        hasBeenThrottledError: ({fromNow}) => `Por razones de seguridad, nos tomamos un descanso de la configuración de la cuenta bancaria para que pueda verificar la información de su empresa. Inténtalo de nuevo ${fromNow}. ¡Lo siento!`,
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe una contraseña',
@@ -287,5 +290,16 @@ export default {
     },
     session: {
         offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',
+    },
+    workspace: {
+        new: {
+            welcome: 'Bienvenido/a',
+            chooseAName: 'Elige un nombre',
+            helpText: '¿Necesitas ayuda con la configuración? Pídenos una llamada y una persona de nuestro equipo te ayudará.',
+            getStarted: '¡Empezar!',
+            uploadPhoto: 'Subir Foto',
+            editPhoto: 'Editar Foto',
+            requestCall: 'Concertar una llamada',
+        },
     },
 };

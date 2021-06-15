@@ -65,7 +65,7 @@ const HeaderView = (props) => {
 
             return {
                 displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
-                tooltip: login,
+                tooltip: Str.removeSMSDomain(login),
             };
         },
     );
