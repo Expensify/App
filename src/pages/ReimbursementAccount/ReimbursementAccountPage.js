@@ -82,13 +82,15 @@ class ReimbursementAccountPage extends React.Component {
      */
     getStepToOpenFromRouteParams() {
         switch (lodashGet(this.props.route, ['params', 'stepToOpen'])) {
+            case 'new':
+                return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
                 return CONST.BANK_ACCOUNT.STEP.COMPANY;
             case 'requestor':
                 return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
-            case 'ach-contract':
+            case 'contract':
                 return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
-            case 'validation':
+            case 'validate':
                 return CONST.BANK_ACCOUNT.STEP.VALIDATION;
             default:
                 return '';
