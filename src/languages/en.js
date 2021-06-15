@@ -35,6 +35,7 @@ export default {
         saveAndContinue: 'Save & Continue',
         settings: 'Settings',
         termsOfService: 'Terms of Service',
+        invite: 'Invite',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -346,6 +347,15 @@ export default {
             editPhoto: 'Edit Photo',
             uploadPhoto: 'Upload Photo',
             requestCall: 'Request a call',
+        },
+        invite: {
+            invitePeople: 'Invite People',
+            invitePeoplePrompt: 'Invite a colleague to your workspace.',
+            personalMessagePrompt: 'Add a Personal Message (Optional)',
+            enterEmailOrPhone: 'Email or Phone',
+            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
+            genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
+            welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
         },
     },
 };

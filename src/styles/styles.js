@@ -1530,6 +1530,10 @@ const styles = {
     cursorDisabled: {
         cursor: 'not-allowed',
     },
+
+    workspaceInviteWelcome: {
+        minHeight: 150,
+    },
 };
 
 const baseCodeTagStyles = {
