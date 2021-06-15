@@ -9,7 +9,7 @@ import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import openURLInNewTab from '../../../libs/openURLInNewTab';
+import TextLink from '../../../components/TextLink';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -54,21 +54,20 @@ const SignInPageLayoutWide = props => (
                             {'\n\n'}
                             {props.translate('signInPage.heroDescription.phase2')}
                             {' '}
-                            <Text
-                                style={[styles.textUnderline, styles.textWhite]}
-                                onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
-                            >
-                                {props.translate('signInPage.heroDescription.phase3')}
-                            </Text>
+                            <TextLink href={CONST.GITHUB_URL}>
+                                <Text style={[styles.textUnderline, styles.textWhite]}>
+                                    {props.translate('signInPage.heroDescription.phase3')}
+                                </Text>
+                            </TextLink>
                             {'. '}
                             {props.translate('signInPage.heroDescription.phase4')}
                             {' '}
-                            <Text
-                                style={[styles.textUnderline, styles.textWhite]}
-                                onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
-                            >
-                                {props.translate('signInPage.heroDescription.phase5')}
-                            </Text>
+                            <TextLink href={CONST.UPWORK_URL}>
+                                <Text style={[styles.textUnderline, styles.textWhite]}>
+                                    {props.translate('signInPage.heroDescription.phase5')}
+                                </Text>
+                            </TextLink>
+
                             .
                         </Text>
                     </View>
