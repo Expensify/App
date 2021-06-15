@@ -4,7 +4,7 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {getNavigationModalCardStyle} from '../../../styles/styles';
+import styles, {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -55,6 +55,8 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
+import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
+import fullscreenModalcardStyleInterpolator from './fullscreenModalcardStyleInterpolator';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -214,6 +216,18 @@ class AuthScreens extends React.Component {
                 modal subscreens e.g. `/settings/profile` and this will allow us to navigate while inside the modal. We
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
+                <RootStack.Screen
+                    name="WorkspaceSettings"
+                    options={{
+                        ...modalScreenOptions,
+                        cardStyle: {...styles.fullscreenCard, ...styles.bgTransparent},
+                        cardStyleInterpolator: props => fullscreenModalcardStyleInterpolator(
+                            this.props.isSmallScreenWidth,
+                            props,
+                        ),
+                    }}
+                    component={WorkspaceSettingsDrawerNavigator}
+                />
                 <RootStack.Screen
                     name="Settings"
                     options={modalScreenOptions}
