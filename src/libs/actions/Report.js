@@ -23,6 +23,7 @@ import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 import Growl from '../Growl';
 import {translate} from '../translate';
+import Permissions from '../Permissions';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -374,7 +375,14 @@ function fetchChatReportsByIDs(chatList) {
             });
 
             // If a user is not under the default chat rooms beta, filter out any default chat rooms
-            Permissions.canUse
+            if (!Permissions.canUseDefaultRooms(betas)){
+                _.each(simplifiedReports, (chatReport) => {
+                    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReport.chatReportID}`;
+                    if (isDefaultRoom(chatReport.chatType)) {
+                        delete simplifiedReports[reportKey];
+                    }
+                })
+            }
 
 
             // We use mergeCollection such that it updates the collection in one go.
