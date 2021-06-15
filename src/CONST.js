@@ -6,6 +6,16 @@ const CONST = {
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
     },
+    BANK_ACCOUNT: {
+        ADD_METHOD: {
+            MANUAL: 'manual',
+            PLAID: 'plaid',
+        },
+        REGEX: {
+            IBAN: /^[A-Za-z0-9]{2,30}$/,
+            SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
+        },
+    },
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
@@ -231,6 +241,8 @@ const CONST = {
         WARNING: 'warning',
         DURATION: 2000,
     },
+
+    DEFAULT_LOCALE: 'en',
 };
 
 export default CONST;

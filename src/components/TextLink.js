@@ -1,8 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text, Pressable} from 'react-native';
-import openURLInNewTab from '../libs/openURLInNewTab';
+import {Text, Pressable, Linking} from 'react-native';
 import styles from '../styles/styles';
 
 const propTypes = {
@@ -26,13 +25,13 @@ const TextLink = (props) => {
         <Pressable
             onPress={(e) => {
                 e.preventDefault();
-                openURLInNewTab(props.href);
+                Linking.openURL(props.href);
             }}
             accessibilityRole="link"
             href={props.href}
         >
             {({hovered, pressed}) => (
-                <Text style={[additionalStyles, styles.link, (hovered || pressed) ? styles.linkHovered : undefined]}>
+                <Text style={[...additionalStyles, styles.link, (hovered || pressed) ? styles.linkHovered : undefined]}>
                     {props.children}
                 </Text>
             )}
