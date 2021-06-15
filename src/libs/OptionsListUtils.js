@@ -265,7 +265,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
-        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
+        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead
+            || isDefaultRoom(report.chatType) && !Permissions.canUseDefaultRooms(betas);
         if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
             return;
         }
