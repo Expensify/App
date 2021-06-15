@@ -485,6 +485,16 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
 }
 
 /**
+ * @param {Number} bankAccountID
+ * @param {String} validationAmounts
+ */
+function validateBankAccount(bankAccountID, validationAmounts) {
+    console.log('Going to call BankAccount_Validate');
+    console.log(bankAccountID);
+    // API.BankAccount_Validate(params);
+}
+
+/**
  * Create or update the bank account in db with the updated data.
  *
  * @param {Object} [data]
