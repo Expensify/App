@@ -117,7 +117,7 @@ class WorkspaceInvitePage extends React.Component {
                                 onChangeText={text => this.setState({welcomeNote: text})}
                             />
                             <TextLink href="https://use.expensify.com/privacy">
-                                {`${this.props.translate('common.privacy')} `}
+                                {this.props.translate('common.privacy')}
                             </TextLink>
                         </View>
                     </View>
