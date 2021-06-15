@@ -23,11 +23,9 @@ Onyx.connect({
  */
 function setSuccessfulSignInData(data) {
     PushNotification.register(data.accountID);
-    Onyx.multiSet({
-        [ONYXKEYS.SESSION]: {
-            shouldShowComposeInput: true,
-            ..._.pick(data, 'authToken', 'accountID', 'email'),
-        },
+    Onyx.merge(ONYXKEYS.SESSION, {
+        shouldShowComposeInput: true,
+        ..._.pick(data, 'authToken', 'accountID', 'email'),
     });
 }
 
