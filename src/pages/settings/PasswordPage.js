@@ -16,7 +16,7 @@ import Button from '../../components/Button';
 import {changePassword} from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
