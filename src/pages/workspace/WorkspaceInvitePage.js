@@ -15,6 +15,9 @@ import {invite} from '../../libs/actions/Policy';
 import TextLink from '../../components/TextLink';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import themeColors from '../../styles/themes/default';
+import Growl from '../../libs/Growl';
+import CONST from '../../CONST';
+import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -69,6 +72,11 @@ class WorkspaceInvitePage extends React.Component {
      * Handle the invite button click
      */
     inviteUser() {
+        if (!Str.isValidEmail(this.state.emailOrPhone) && !Str.isValidPhone(this.state.emailOrPhone)) {
+            Growl.show(this.props.translate('workspace.invite.pleaseEnterValidLogin'), CONST.GROWL.ERROR, 5000);
+            return;
+        }
+
         invite(this.state.emailOrPhone, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
             this.props.route.params.policyID);
         Navigation.goBack();

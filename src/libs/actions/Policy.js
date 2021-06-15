@@ -127,7 +127,12 @@ function invite(login, welcomeNote, policyID) {
             Onyx.set(key, policyDataWithoutLogin);
 
             // Show the user feedback that the addition failed
-            Growl.show(translateLocal('workspace.invite.growlMessageOnFailure'), CONST.GROWL.ERROR, 3000);
+            let errorMessage = translateLocal('workspace.invite.genericFailureMessage');
+            if (data.jsonCode === 402) {
+                errorMessage += ' ' + translateLocal('workspace.invite.pleaseEnterValidLogin');
+            }
+
+            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
         });
 }
 
