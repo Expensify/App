@@ -1,6 +1,7 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import Modal from './Modal';
@@ -97,10 +98,17 @@ class AttachmentModal extends PureComponent {
         const attachmentViewStyles = this.props.isSmallScreenWidth
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
+
+        // If our attachment is a PDF, make the Modal unswipeable
+        const modalType = (this.state.sourceURL
+                && (Str.isPDF(this.state.sourceURL) || (this.state.file
+                    && Str.isPDF(this.state.file.name || this.props.translate('attachmentView.unknownFilename')))))
+            ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
+            : CONST.MODAL.MODAL_TYPE.CENTERED;
         return (
             <>
                 <Modal
-                    type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                    type={modalType}
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}

@@ -661,6 +661,21 @@ function User_GetBetas() {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @param {Boolean} [parameters.requireCertainty]
+ * @returns {Promise}
+ */
+function User_IsFromPublicDomain(parameters) {
+    const commandName = 'User_IsFromPublicDomain';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, {
+        ...{requireCertainty: true},
+        ...parameters,
+    });
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function User_ReopenAccount(parameters) {
@@ -821,7 +836,7 @@ function Mobile_GetConstants(parameters) {
     const commandName = 'Mobile_GetConstants';
     requireParameters(['data'], parameters, commandName);
 
-    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
+    // Stringinfy the parameters object as we cannot send an object via FormData
     const finalParameters = parameters;
     finalParameters.data = JSON.stringify(parameters.data);
 
@@ -880,6 +895,7 @@ export {
     UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_IsFromPublicDomain,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,

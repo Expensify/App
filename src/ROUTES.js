@@ -9,6 +9,7 @@ const REPORT = 'r';
 
 export default {
     ADD_PERSONAL_BANK_ACCOUNT: 'add-personal-bank-account',
+    BANK_ACCOUNT_NEW: 'bank-account/new',
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -47,6 +48,7 @@ export default {
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
     ENABLE_PAYMENTS: 'enable-payments',
+    WORKSPACE_NEW: 'workspace/new',
 
     /**
      * @param {String} route

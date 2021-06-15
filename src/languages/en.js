@@ -26,12 +26,15 @@ export default {
         email: 'Email',
         and: 'and',
         details: 'Details',
+        privacy: 'Privacy',
         privacyPolicy: 'Privacy Policy',
         delete: 'Delete',
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
+        saveAndContinue: 'Save & Continue',
         settings: 'Settings',
+        termsOfService: 'Terms of Service',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -253,13 +256,27 @@ export default {
     setPasswordPage: {
         passwordCannotBeBlank: 'Password cannot be blank',
         enterPassword: 'Enter a password',
+        confirmNewPassword: 'Confirm the password',
         setPassword: 'Set Password',
+        passwordsDontMatch: 'Passwords must match',
+        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+    },
+    bankAccount: {
+        accountNumber: 'Account Number',
+        routingNumber: 'Routing Number',
+        addBankAccount: 'Add Bank Account',
+        chooseAnAccount: 'Choose an Account',
+        logIntoYourBank: 'Log Into Your Bank',
+        connectManually: 'Connect Manually',
+        yourDataIsSecure: 'Your data is secure',
+        toGetStarted: 'To get started with the Expensify Card, you first need to add a bank account.',
+        plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
+        checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
+        iAcceptThe: 'I accept the ',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter password',
-        addPersonalBankAccount: 'Add Bank Account',
         alreadyAdded: 'This account has already been added.',
-        selectAccount: 'Select an account:',
     },
     attachmentView: {
         unknownFilename: 'Unknown Filename',
@@ -280,7 +297,6 @@ export default {
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
         facialScan: 'Onfido’s Facial Scan Policy and Release',
-        termsOfService: 'Terms of Service',
         tryAgain: 'Try Again',
         verifyIdentity: 'Verify Identity',
         genericError: 'There was an error while processing this step. Please try again.',
@@ -318,5 +334,16 @@ export default {
     },
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
+    },
+    workspace: {
+        new: {
+            welcome: 'Welcome',
+            chooseAName: 'Choose a name',
+            helpText: 'Need help getting setup? Request a call below and we’ll have someone reach out to you.',
+            getStarted: 'Get started!',
+            editPhoto: 'Edit Photo',
+            uploadPhoto: 'Upload Photo',
+            requestCall: 'Request a call',
+        },
     },
 };
