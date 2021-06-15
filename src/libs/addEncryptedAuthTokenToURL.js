@@ -4,11 +4,11 @@
  * @param {Object} parameters
  * @param {String} parameters.url
  * @param {Boolean} parameters.required
- * @param {String} parameters.authToken
+ * @param {String} parameters.encryptedAuthToken
  * @returns {String}
  */
-export default function ({url, authToken, required = true}) {
+export default function ({url, encryptedAuthToken, required = true}) {
     return required
-        ? `${url}?authToken=${authToken}`
+        ? `${url}?encryptedAuthToken=${encryptedAuthToken}`
         : url;
 }

@@ -9,7 +9,7 @@ import AttachmentView from './AttachmentView';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import ONYXKEYS from '../ONYXKEYS';
-import addAuthTokenToURL from '../libs/addAuthTokenToURL';
+import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
@@ -43,7 +43,7 @@ const propTypes = {
 
     /** Current user session */
     session: PropTypes.shape({
-        authToken: PropTypes.string.isRequired,
+        encryptedAuthToken: PropTypes.string.isRequired,
     }).isRequired,
 
     ...withLocalizePropTypes,
@@ -89,9 +89,9 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const sourceURL = addAuthTokenToURL({
+        const sourceURL = addEncryptedAuthTokenToURL({
             url: this.state.sourceURL,
-            authToken: this.props.session.authToken,
+            encryptedAuthToken: this.props.session.encryptedAuthToken,
             required: this.props.isAuthTokenRequired,
         });
 
