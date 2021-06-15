@@ -63,7 +63,6 @@ class ReportTransaction extends Component {
     isRejected() {
         const IOUTransactionID = lodashGet(this.props.action, 'originalMessage.IOUTransactionID', '');
         const transactionsBeingRejected = lodashGet(this.props, 'transactionsBeingRejected', {});
-        console.log('****', transactionsBeingRejected, IOUTransactionID);
         if (_.isEmpty(transactionsBeingRejected)) {
             return false;
         }
