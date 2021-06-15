@@ -22,13 +22,17 @@ class ValidationStep extends React.Component {
 
         this.state = {
             amount1: 0,
+            amount2: 0,
+            amount3: 0,
         };
     }
 
-    submit(params) {
-        console.log(params);
+    submit() {
+        const validationAmounts = [this.state.amount1, this.state.amount2, this.state.amount3].join(',');
+        console.log(validationAmounts);
+
         // Make a call to bankAccounts
-        validateBankAccount(1234, '1234123');
+        validateBankAccount(1234, validationAmounts);
     }
 
     render() {
@@ -43,6 +47,18 @@ class ValidationStep extends React.Component {
                     keyboardType="number-pad"
                     value={this.state.amount1}
                     onChangeText={amount1 => this.setState({amount1})}
+                />
+                <TextInputWithLabel
+                    placeholder="1.01"
+                    keyboardType="number-pad"
+                    value={this.state.amount2}
+                    onChangeText={amount2 => this.setState({amount2})}
+                />
+                <TextInputWithLabel
+                    placeholder="1.01"
+                    keyboardType="number-pad"
+                    value={this.state.amount3}
+                    onChangeText={amount3 => this.setState({amount3})}
                 />
                 <Button
                     success
