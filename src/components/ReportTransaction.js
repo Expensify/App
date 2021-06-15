@@ -5,6 +5,7 @@ import {
     Text, View, Pressable, ActivityIndicator,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -34,8 +35,8 @@ const propTypes = {
 
     /** List of transactionIDs in process of rejection */
     /* eslint-disable-next-line react/no-unused-prop-types, react/require-default-props */
-    iou: PropTypes.shape({
-        transactionsBeingRejected: PropTypes.arrayOf(PropTypes.string),
+    transactionsBeingRejected: PropTypes.shape({
+        transactionID: PropTypes.bool,
     }),
 };
 
@@ -56,17 +57,17 @@ class ReportTransaction extends Component {
             chatReportID: this.props.chatReportID,
             transactionID: this.props.action.originalMessage.IOUTransactionID,
             comment: '',
-            iou: this.props.iou,
         });
     }
 
     isRejected() {
         const IOUTransactionID = lodashGet(this.props.action, 'originalMessage.IOUTransactionID', '');
-        const transactionsBeingRejected = lodashGet(this.props, 'iou.transactionsBeingRejected', []);
-        if (!transactionsBeingRejected || !transactionsBeingRejected.length) {
+        const transactionsBeingRejected = lodashGet(this.props, 'transactionsBeingRejected', {});
+        console.log('****', transactionsBeingRejected, IOUTransactionID);
+        if (_.isEmpty(transactionsBeingRejected)) {
             return false;
         }
-        return transactionsBeingRejected.includes(IOUTransactionID);
+        return _.has(transactionsBeingRejected, IOUTransactionID);
     }
 
     render() {
@@ -117,7 +118,7 @@ ReportTransaction.displayName = 'ReportTransaction';
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
 export default withOnyx({
-    iou: {
-        key: ONYXKEYS.IOU,
+    transactionsBeingRejected: {
+        key: ONYXKEYS.TRANSACTIONS_BEING_REJECTED,
     },
 })(ReportTransaction);
