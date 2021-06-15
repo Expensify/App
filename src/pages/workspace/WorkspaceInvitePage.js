@@ -13,6 +13,8 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import {invite} from '../../libs/actions/Policy';
 import TextLink from '../../components/TextLink';
+import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -89,10 +91,12 @@ class WorkspaceInvitePage extends React.Component {
                                 {this.props.translate('workspace.invite.enterEmailOrPhone')}
                             </Text>
                             <TextInput
-                                autoCompleteType="off"
+                                autoCompleteType="email"
                                 autoCorrect={false}
+                                autoCapitalize="none"
                                 style={[styles.textInput]}
                                 value={this.state.emailOrPhone}
+                                keyboardType={getEmailKeyboardType()}
                                 onChangeText={text => this.setState({emailOrPhone: text})}
                             />
                         </View>
@@ -105,9 +109,11 @@ class WorkspaceInvitePage extends React.Component {
                                 autoCorrect={false}
                                 style={[styles.textInput, styles.workspaceInviteWelcome]}
                                 numberOfLines={10}
+                                textAlignVertical="top"
                                 multiline
                                 value={this.state.welcomeNote}
                                 placeholder={this.getWelcomeNotePlaceholder()}
+                                placeholderTextColor={themeColors.placeholderText}
                                 onChangeText={text => this.setState({welcomeNote: text})}
                             />
                         </View>
