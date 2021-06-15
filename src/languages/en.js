@@ -257,7 +257,10 @@ export default {
     setPasswordPage: {
         passwordCannotBeBlank: 'Password cannot be blank',
         enterPassword: 'Enter a password',
+        confirmNewPassword: 'Confirm the password',
         setPassword: 'Set Password',
+        passwordsDontMatch: 'Passwords must match',
+        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
     },
     bankAccount: {
         accountNumber: 'Account Number',
@@ -333,10 +336,21 @@ export default {
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
-    workspaceInvitePage: {
-        invitePeople: 'Invite People',
-        invitePeoplePrompt: 'Invite a colleague to your workspace.',
-        enterEmailOrPhone: 'Email or Phone',
-        welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
+    workspace: {
+        new: {
+            welcome: 'Welcome',
+            chooseAName: 'Choose a name',
+            helpText: 'Need help getting setup? Request a call below and we’ll have someone reach out to you.',
+            getStarted: 'Get started!',
+            editPhoto: 'Edit Photo',
+            uploadPhoto: 'Upload Photo',
+            requestCall: 'Request a call',
+        },
+        invite: {
+            invitePeople: 'Invite People',
+            invitePeoplePrompt: 'Invite a colleague to your workspace.',
+            enterEmailOrPhone: 'Email or Phone',
+            welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
+        },
     },
 };

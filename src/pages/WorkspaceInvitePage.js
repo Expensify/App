@@ -58,7 +58,7 @@ class WorkspaceInvitePage extends React.Component {
      * @returns {Object}
      */
     getWelcomeNotePlaceholder() {
-        return this.props.translate('workspaceInvitePage.welcomeNote', {
+        return this.props.translate('workspace.invite.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
     }
@@ -75,13 +75,13 @@ class WorkspaceInvitePage extends React.Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translate('workspaceInvitePage.invitePeople')}
+                    title={this.props.translate('workspace.invite.invitePeople')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <View style={styles.flexGrow1}>
                         <Text style={[styles.mb6, styles.textP]}>
-                            {this.props.translate('workspaceInvitePage.invitePeoplePrompt')}
+                            {this.props.translate('workspace.invite.invitePeoplePrompt')}
                         </Text>
                         <View style={styles.mb6}>
                             <TextInput
@@ -89,7 +89,7 @@ class WorkspaceInvitePage extends React.Component {
                                 autoCorrect={false}
                                 style={[styles.textInput]}
                                 value={this.state.emailOrPhone}
-                                placeholder={this.props.translate('workspaceInvitePage.enterEmailOrPhone')}
+                                placeholder={this.props.translate('workspace.invite.enterEmailOrPhone')}
                                 onChangeText={text => this.setState({emailOrPhone: text})}
                             />
                         </View>
