@@ -3,6 +3,9 @@ import Onyx from 'react-native-onyx';
 import {GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge} from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import {formatPersonalDetails} from './PersonalDetails';
+import Growl from '../Growl';
+import CONST from '../../CONST';
+import {translate} from '../translate';
 
 const allPolicies = {};
 Onyx.connect({
@@ -10,6 +13,16 @@ Onyx.connect({
     callback: (val, key) => {
         if (val && key) {
             allPolicies[key] = {...allPolicies[key], ...val};
+        }
+    },
+});
+
+let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: (preferredLocale) => {
+        if (preferredLocale) {
+            translateLocal = (phrase, variables) => translate(preferredLocale, phrase, variables);
         }
     },
 });
@@ -112,6 +125,9 @@ function invite(login, welcomeNote, policyID) {
             const policyDataWithoutLogin = _.clone(allPolicies[key]);
             policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, login);
             Onyx.set(key, policyDataWithoutLogin);
+
+            // Show the user feedback that the addition failed
+            Growl.show(translateLocal('workspace.invite.growlMessageOnFailure'), CONST.GROWL.ERROR, 3000);
         });
 }
 
