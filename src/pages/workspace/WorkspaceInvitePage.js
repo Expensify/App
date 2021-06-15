@@ -53,7 +53,6 @@ class WorkspaceInvitePage extends React.Component {
             welcomeNote: '',
         };
 
-        //this.getWelcomeNotePlaceholder = this.getWelcomeNotePlaceholder.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
     }
 
