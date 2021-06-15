@@ -8,6 +8,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
+import Growl from '../Growl';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -612,7 +613,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                console.error(`Error setting up withdrawal account: ${error}`);
+                Growl.show(`Error setting up account: ${error}`, CONST.GROWL.ERROR, 5000);
             }
         });
 }
