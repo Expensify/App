@@ -256,7 +256,7 @@ function fetchCurrencyPreferences() {
     const coords = {};
     let currency = '';
 
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+    Onyx.merge(ONYXKEYS.IOU, {
         isRetrievingCurrency: true,
     });
 
@@ -275,7 +275,7 @@ function fetchCurrencyPreferences() {
         })
         .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
         .finally(() => {
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+            Onyx.merge(ONYXKEYS.IOU, {
                 isRetrievingCurrency: false,
             });
         });

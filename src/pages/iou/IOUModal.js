@@ -43,9 +43,6 @@ const propTypes = {
 
         // Currency Symbol of the Preferred Currency
         preferredCurrencySymbol: PropTypes.string,
-
-        // Loading
-        isRetrievingCurrency: PropTypes.bool,
     }),
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
@@ -58,6 +55,9 @@ const propTypes = {
 
         // is loading
         loading: PropTypes.bool,
+
+        // Loading
+        isRetrievingCurrency: PropTypes.bool,
     }).isRequired,
 
     /** Personal details of all the users */
@@ -307,9 +307,9 @@ class IOUModal extends Component {
                         </View>
                         <View style={[styles.pRelative, styles.flex1]}>
                             <FullScreenLoadingIndicator
-                                visible={!didScreenTransitionEnd || this.props.myPersonalDetails.isRetrievingCurrency}
+                                visible={!didScreenTransitionEnd || this.props.iou.isRetrievingCurrency}
                             />
-                            {didScreenTransitionEnd && !this.props.myPersonalDetails.isRetrievingCurrency && (
+                            {didScreenTransitionEnd && !this.props.iou.isRetrievingCurrency && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
                                         <IOUAmountPage
