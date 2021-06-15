@@ -638,4 +638,5 @@ export {
     fetchFreePlanVerifiedBankAccount,
     setupWithdrawalAccount,
     goToWithdrawalAccountSetupStep,
+    validateBankAccount,
 };
