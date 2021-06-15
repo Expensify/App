@@ -1,8 +1,6 @@
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import styles, {getWidthAndHeightStyle} from '../styles/styles';
@@ -14,11 +12,6 @@ const propTypes = {
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
-
-    /** Current user session */
-    session: PropTypes.shape({
-        encryptedAuthToken: PropTypes.string.isRequired,
-    }).isRequired,
 
     /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool.isRequired,
@@ -50,11 +43,9 @@ class ThumbnailImage extends PureComponent {
     }
 
     render() {
-        const url = addEncryptedAuthTokenToURL({
-            url: this.props.previewSourceURL,
-            encryptedAuthToken: this.props.session.encryptedAuthToken,
-            required: this.props.isAuthTokenRequired,
-        });
+        const url = this.props.isAuthTokenRequired
+            ? addEncryptedAuthTokenToURL(this.props.previewSourceURL)
+            : this.props.previewSourceURL;
 
         return (
             <View
@@ -77,8 +68,4 @@ class ThumbnailImage extends PureComponent {
 
 ThumbnailImage.propTypes = propTypes;
 ThumbnailImage.defaultProps = defaultProps;
-export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ThumbnailImage);
+export default ThumbnailImage;

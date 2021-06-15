@@ -1,14 +1,18 @@
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
+
+let encryptedAuthToken = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: session => encryptedAuthToken = session.encryptedAuthToken,
+});
+
 /**
  * Add authToken to this attachment URL if necessary
  *
- * @param {Object} parameters
- * @param {String} parameters.url
- * @param {Boolean} parameters.required
- * @param {String} parameters.encryptedAuthToken
+ * @param {String} url
  * @returns {String}
  */
-export default function ({url, encryptedAuthToken, required = true}) {
-    return required
-        ? `${url}?encryptedAuthToken=${encryptedAuthToken}`
-        : url;
+export default function (url) {
+    return `${url}?encryptedAuthToken=${encryptedAuthToken}`;
 }
