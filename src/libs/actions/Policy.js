@@ -103,7 +103,7 @@ function invite(login, welcomeNote, policyID) {
 
     // Make a shallow copy to preserve original data, and concat the login
     const policy = _.clone(allPolicies[key]);
-    policy.employeeList.push(login);
+    policy.employeeList = [...policy.employeeList, login];
 
     // Optimistically add the user to the policy
     Onyx.set(key, policy);
