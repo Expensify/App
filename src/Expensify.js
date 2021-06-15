@@ -29,7 +29,9 @@ Onyx.init({
         [ONYXKEYS.SESSION]: {loading: false, shouldShowComposeInput: true},
         [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
         [ONYXKEYS.NETWORK]: {isOffline: false},
-        [ONYXKEYS.IOU]: {loading: false, error: false, creatingIOUTransaction: false},
+        [ONYXKEYS.IOU]: {
+            loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
+        },
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
