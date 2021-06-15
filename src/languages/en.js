@@ -35,6 +35,7 @@ export default {
         saveAndContinue: 'Save & Continue',
         settings: 'Settings',
         termsOfService: 'Terms of Service',
+        people: 'People',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -338,6 +339,9 @@ export default {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
     workspace: {
+        common: {
+            card: 'Expensify Card',
+        },
         new: {
             welcome: 'Welcome',
             chooseAName: 'Choose a name',
