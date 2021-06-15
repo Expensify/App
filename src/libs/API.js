@@ -661,6 +661,21 @@ function User_GetBetas() {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @param {Boolean} [parameters.requireCertainty]
+ * @returns {Promise}
+ */
+function User_IsFromPublicDomain(parameters) {
+    const commandName = 'User_IsFromPublicDomain';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, {
+        ...{requireCertainty: true},
+        ...parameters,
+    });
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function User_ReopenAccount(parameters) {
@@ -813,6 +828,48 @@ function BankAccount_Create(parameters) {
 }
 
 /**
+ * @param {*} parameters
+ * @returns {Promise}
+ */
+function BankAccount_SetupWithdrawal(parameters) {
+    const commandName = 'BankAccount_SetupWithdrawal';
+    let allowedParameters = [
+        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount',
+
+        // data from bankAccount step:
+        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
+        'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
+
+        // data from company step:
+        'companyName', 'companyTaxID', 'addressStreet', 'addressCity', 'addressState', 'addressZipCode',
+        'hasNoConnectionToCannabis', 'incorporationType', 'incorporationState', 'incorporationDate', 'industryCode',
+        'website', 'companyPhone', 'ficticiousBusinessName',
+
+        // data from requestor step:
+        'firstName', 'lastName', 'dob', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState',
+        'requestorAddressZipCode', 'isOnfidoSetupComplete', 'onfidoData', 'isControllingOfficer', 'ssnLast4',
+
+        // data from ACHContract step (which became the "Beneficial Owners" step, but the key is still ACHContract as
+        // it's used in several logic:
+        'ownsMoreThan25Percent', 'beneficialOwners', 'acceptTermsAndConditions', 'certifyTrueInformation',
+    ];
+
+    if (!parameters.useOnfido) {
+        allowedParameters = allowedParameters.concat(['passport', 'answers']);
+    }
+
+    // Only keep allowed parameters in the additionalData object
+    const additionalData = _.pick(parameters, allowedParameters);
+
+    requireParameters(['currentStep'], parameters, commandName);
+    return Network.post(
+        commandName, {additionalData: JSON.stringify(additionalData), password: parameters.password},
+        CONST.NETWORK.METHOD.POST,
+        true,
+    );
+}
+
+/**
  * @param {Object} parameters
  * @param {String[]} data
  * @returns {Promise}
@@ -821,7 +878,7 @@ function Mobile_GetConstants(parameters) {
     const commandName = 'Mobile_GetConstants';
     requireParameters(['data'], parameters, commandName);
 
-    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
+    // Stringinfy the parameters object as we cannot send an object via FormData
     const finalParameters = parameters;
     finalParameters.data = JSON.stringify(parameters.data);
 
@@ -850,6 +907,7 @@ export {
     Authenticate,
     BankAccount_Create,
     BankAccount_Get,
+    BankAccount_SetupWithdrawal,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -880,6 +938,7 @@ export {
     UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_IsFromPublicDomain,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,

@@ -109,14 +109,19 @@ export default {
                     AddPersonalBankAccount_Root: ROUTES.ADD_PERSONAL_BANK_ACCOUNT,
                 },
             },
-            BusinessBankAccount: {
-                screens: {
-                    BusinessBankAccount_New: ROUTES.BANK_ACCOUNT_NEW,
-                },
-            },
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
+                },
+            },
+            ReimbursementAccount: {
+                screens: {
+                    ReimbursementAccount_Root: ROUTES.ADD_VERIFIED_BANK_ACCOUNT,
+                },
+            },
+            NewWorkspace: {
+                screens: {
+                    NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
         },
