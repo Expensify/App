@@ -107,7 +107,7 @@ class WorkspaceInvitePage extends React.Component {
                             <TextInput
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                style={[styles.textInput, styles.workspaceInviteWelcome]}
+                                style={[styles.textInput, styles.workspaceInviteWelcome, styles.mb6]}
                                 numberOfLines={10}
                                 textAlignVertical="top"
                                 multiline
@@ -116,10 +116,10 @@ class WorkspaceInvitePage extends React.Component {
                                 placeholderTextColor={themeColors.placeholderText}
                                 onChangeText={text => this.setState({welcomeNote: text})}
                             />
+                            <TextLink href="https://use.expensify.com/privacy">
+                                {`${this.props.translate('common.privacy')} `}
+                            </TextLink>
                         </View>
-                        <TextLink href="https://use.expensify.com/privacy">
-                            {`${this.props.translate('common.privacy')} `}
-                        </TextLink>
                     </View>
                     <View style={styles.flexGrow0}>
                         <Button
