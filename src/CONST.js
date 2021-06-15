@@ -22,6 +22,7 @@ const CONST = {
         IOU: 'IOU',
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
+        DEFAULT_ROOMS: 'defaultRooms',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -80,6 +81,7 @@ const CONST = {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
+            CENTERED_UNSWIPEABLE: 'centered_unswipeable',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',

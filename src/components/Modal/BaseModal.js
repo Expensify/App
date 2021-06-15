@@ -28,7 +28,9 @@ class BaseModal extends PureComponent {
      */
     hideModalAndRemoveEventListeners() {
         this.unsubscribeFromKeyEvents();
-        setModalVisibility(false);
+        if (this.props.shouldSetModalVisibility) {
+            setModalVisibility(false);
+        }
         this.props.onModalHide();
     }
 
@@ -79,9 +81,12 @@ class BaseModal extends PureComponent {
                 onBackButtonPress={this.props.onClose}
                 onModalShow={() => {
                     this.subscribeToKeyEvents();
-                    setModalVisibility(true);
+                    if (this.props.shouldSetModalVisibility) {
+                        setModalVisibility(true);
+                    }
                     this.props.onModalShow();
                 }}
+                propagateSwipe={this.props.propagateSwipe}
                 onModalHide={this.hideModalAndRemoveEventListeners}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
