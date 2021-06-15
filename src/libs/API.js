@@ -854,6 +854,48 @@ function BankAccount_Create(parameters) {
 }
 
 /**
+ * @param {*} parameters
+ * @returns {Promise}
+ */
+function BankAccount_SetupWithdrawal(parameters) {
+    const commandName = 'BankAccount_SetupWithdrawal';
+    let allowedParameters = [
+        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount',
+
+        // data from bankAccount step:
+        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
+        'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
+
+        // data from company step:
+        'companyName', 'companyTaxID', 'addressStreet', 'addressCity', 'addressState', 'addressZipCode',
+        'hasNoConnectionToCannabis', 'incorporationType', 'incorporationState', 'incorporationDate', 'industryCode',
+        'website', 'companyPhone', 'ficticiousBusinessName',
+
+        // data from requestor step:
+        'firstName', 'lastName', 'dob', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState',
+        'requestorAddressZipCode', 'isOnfidoSetupComplete', 'onfidoData', 'isControllingOfficer', 'ssnLast4',
+
+        // data from ACHContract step (which became the "Beneficial Owners" step, but the key is still ACHContract as
+        // it's used in several logic:
+        'ownsMoreThan25Percent', 'beneficialOwners', 'acceptTermsAndConditions', 'certifyTrueInformation',
+    ];
+
+    if (!parameters.useOnfido) {
+        allowedParameters = allowedParameters.concat(['passport', 'answers']);
+    }
+
+    // Only keep allowed parameters in the additionalData object
+    const additionalData = _.pick(parameters, allowedParameters);
+
+    requireParameters(['currentStep'], parameters, commandName);
+    return Network.post(
+        commandName, {additionalData: JSON.stringify(additionalData), password: parameters.password},
+        CONST.NETWORK.METHOD.POST,
+        true,
+    );
+}
+
+/**
  * @param {Object} parameters
  * @param {String[]} data
  * @returns {Promise}
@@ -891,6 +933,7 @@ export {
     Authenticate,
     BankAccount_Create,
     BankAccount_Get,
+    BankAccount_SetupWithdrawal,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
