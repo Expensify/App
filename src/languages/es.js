@@ -289,4 +289,15 @@ export default {
     session: {
         offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',
     },
+    workspace: {
+        new: {
+            welcome: 'Bienvenido/a',
+            chooseAName: 'Elige un nombre',
+            helpText: '¿Necesitas ayuda con la configuración? Pídenos una llamada y una persona de nuestro equipo te ayudará.',
+            getStarted: '¡Empezar!',
+            uploadPhoto: 'Subir Foto',
+            editPhoto: 'Editar Foto',
+            requestCall: 'Concertar una llamada',
+        },
+    },
 };
