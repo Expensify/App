@@ -119,6 +119,11 @@ export default {
                     ReimbursementAccount_Root: ROUTES.ADD_VERIFIED_BANK_ACCOUNT,
                 },
             },
+            WorkspaceInvite: {
+                screens: {
+                    WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
+                },
+            },
             NewWorkspace: {
                 screens: {
                     NewWorkspace_Root: ROUTES.WORKSPACE_NEW,

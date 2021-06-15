@@ -49,6 +49,8 @@ export default {
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
     ENABLE_PAYMENTS: 'enable-payments',
     WORKSPACE_NEW: 'workspace/new',
+    WORKSPACE_INVITE: 'workspace/:policyID/invite',
+    getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
 
     /**
      * @param {String} route
