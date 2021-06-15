@@ -135,7 +135,6 @@ function createIOUSplit(params) {
 function rejectTransaction({
     reportID, chatReportID, transactionID, comment,
 }) {
-
     API.RejectTransaction({
         reportID,
         transactionID,
