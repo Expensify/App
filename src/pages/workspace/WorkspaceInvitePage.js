@@ -53,7 +53,7 @@ class WorkspaceInvitePage extends React.Component {
             welcomeNote: '',
         };
 
-        this.getWelcomeNotePlaceholder = this.getWelcomeNotePlaceholder.bind(this);
+        //this.getWelcomeNotePlaceholder = this.getWelcomeNotePlaceholder.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
     }
 
@@ -87,7 +87,7 @@ class WorkspaceInvitePage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.invite.invitePeople')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <View style={styles.flexGrow1}>
