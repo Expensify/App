@@ -47,7 +47,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
  * @param {Object} fullPolicy
  * @returns {Object}
  */
-function getSimplifiedMemberList(fullPolicy) {
+function getSimplifiedEmployeeListObject(fullPolicy) {
     const employeeListEmails = _.chain(fullPolicy.value.employeeList)
         .pluck('email')
         .flatten()
@@ -84,7 +84,7 @@ function getPolicyList() {
             if (data.jsonCode === 200) {
                 const policyDataToStore = _.reduce(data.policyList, (memo, policy) => ({
                     ...memo,
-                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedMemberList(policy),
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedEmployeeListObject(policy),
                 }), {});
                 Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
             }
@@ -103,7 +103,7 @@ function invite(login, welcomeNote, policyID) {
 
     // Make a shallow copy to preserve original data, and concat the login
     const policy = _.clone(allPolicies[key]);
-    policy.employeeList = [...policy.employeeList, login];
+    policy.employeeList.push(login);
 
     // Optimistically add the user to the policy
     Onyx.set(key, policy);
@@ -116,7 +116,7 @@ function invite(login, welcomeNote, policyID) {
     })
         .then((data) => {
             // Save the personalDetails for the invited user in Onyx
-            if (data.jsonCode === 200 && data.personalDetails) {
+            if (data.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(data.personalDetails));
                 return;
             }
