@@ -7,6 +7,7 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import BankAccount from '../models/BankAccount';
+import promiseAllSettled from '../promiseAllSettled';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -312,45 +313,42 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
  */
 function fetchFreePlanVerifiedBankAccount() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
-    let bankAccountID;
-    let bankAccount;
-    let kycVerificationsMigration;
-    API.Get({
-        returnValueList: 'nameValuePairs',
-        name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
-    })
-        .then((response) => {
-            bankAccountID = lodashGet(response.nameValuePairs, CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, '');
-
-            if (!bankAccountID) {
-                return Promise.resolve({});
-            }
-
-            return API.Get({
-                returnValueList: 'nameValuePairs',
-                name: 'expensify_migration_2020_04_28_RunKycVerifications',
-            });
-        })
-        .then((response) => {
-            kycVerificationsMigration = lodashGet(
-                response.nameValuePairs,
-                'expensify_migration_2020_04_28_RunKycVerifications',
-                '',
+    promiseAllSettled([
+        API.Get({
+            returnValueList: 'nameValuePairs',
+            name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
+        }),
+        API.Get({
+            returnValueList: 'nameValuePairs',
+            name: 'expensify_migration_2020_04_28_RunKycVerifications',
+        }),
+        API.Get({
+            returnValueList: 'nameValuePairs',
+            name: CONST.NVP.ACH_DATA_THROTTLED,
+        }),
+        API.Get({returnValueList: 'bankAccountList'}),
+    ])
+        .then(([
+            freePlanBankAccountIDResponse,
+            kycVerificationsMigrationResponse,
+            achDataThrottledResponse,
+            bankAccountListResponse,
+        ]) => {
+            const bankAccountID = lodashGet(freePlanBankAccountIDResponse, [
+                'value', 'nameValuePairs', CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
+            ], '');
+            const kycVerificationsMigration = lodashGet(kycVerificationsMigrationResponse, [
+                'value', 'nameValuePairs', 'expensify_migration_2020_04_28_RunKycVerifications',
+            ], '');
+            const throttledDate = lodashGet(achDataThrottledResponse, [
+                'value', 'nameValuePairs', CONST.NVP.ACH_DATA_THROTTLED,
+            ], '');
+            const bankAccountJSON = _.find(
+                lodashGet(bankAccountListResponse, ['value', 'bankAccountList'], []), account => (
+                    account.bankAccountID === bankAccountID
+                ),
             );
-            return API.Get({returnValueList: 'bankAccountList'});
-        })
-        .then((response) => {
-            const bankAccountJSON = _.find(response.bankAccountList, account => (
-                account.bankAccountID === bankAccountID
-            ));
-            bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
-            return API.Get({
-                returnValueList: 'nameValuePairs',
-                name: CONST.NVP.ACH_DATA_THROTTLED,
-            });
-        })
-        .then((response) => {
-            const throttledDate = lodashGet(response.nameValuePairs, CONST.NVP.ACH_DATA_THROTTLED, '');
+            const bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
 
             // Next we'll build the achData and save it to Onyx
             // If the user is already setting up a bank account we will continue the flow for them
