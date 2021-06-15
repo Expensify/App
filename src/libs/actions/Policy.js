@@ -129,7 +129,7 @@ function invite(login, welcomeNote, policyID) {
             // Show the user feedback that the addition failed
             let errorMessage = translateLocal('workspace.invite.genericFailureMessage');
             if (data.jsonCode === 402) {
-                errorMessage += ' ' + translateLocal('workspace.invite.pleaseEnterValidLogin');
+                errorMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
 
             Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {TextInput, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -17,7 +18,6 @@ import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import themeColors from '../../styles/themes/default';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
-import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     ...withLocalizePropTypes,
