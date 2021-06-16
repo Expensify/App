@@ -19,6 +19,12 @@ const propTypes = {
     /** Icon to display on the left side of component */
     icon: PropTypes.elementType,
 
+    /** Icon Height */
+    iconWidth: PropTypes.number,
+
+    /** Icon Height */
+    iconHeight: PropTypes.number,
+
     /** Text to display for the item */
     title: PropTypes.string.isRequired,
 
@@ -30,6 +36,9 @@ const propTypes = {
 
     // Overrides the icon for shouldShowRightIcon
     iconRight: PropTypes.elementType,
+
+    /** A description text to show under the title */
+    description: PropTypes.string,
 };
 
 const defaultProps = {
@@ -37,6 +46,9 @@ const defaultProps = {
     wrapperStyle: {},
     success: false,
     icon: undefined,
+    iconWidth: undefined,
+    iconHeight: undefined,
+    description: undefined,
     iconRight: ArrowRight,
 };
 
@@ -48,6 +60,9 @@ const MenuItem = ({
     shouldShowRightIcon,
     wrapperStyle,
     success,
+    iconWidth,
+    iconHeight,
+    description,
 }) => (
     <Pressable
         onPress={onPress}
@@ -61,20 +76,35 @@ const MenuItem = ({
             <>
                 <View style={styles.flexRow}>
                     {icon && (
-                        <View style={styles.createMenuIcon}>
-                            <Icon src={icon} fill={getIconFillColor(getButtonState(hovered, pressed, success))} />
-                        </View>
+                    <View style={styles.createMenuIcon}>
+                        <Icon
+                            src={icon}
+                            width={iconWidth}
+                            height={iconHeight}
+                            fill={getIconFillColor(getButtonState(hovered, pressed, success))}
+                        />
+                    </View>
                     )}
                     <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
                         <Text style={[styles.createMenuText, styles.ml3]}>
                             {title}
                         </Text>
+                        {description && (
+                            <Text style={[styles.createMenuDescription, styles.ml3, styles.mt1]}>
+                                {description}
+                            </Text>
+                        )}
                     </View>
                 </View>
                 {shouldShowRightIcon && (
-                    <View style={styles.createMenuIcon}>
-                        <Icon src={iconRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
-                    </View>
+                <View style={styles.createMenuIcon}>
+                    <Icon
+                        src={iconRight}
+                        width={iconWidth}
+                        height={iconHeight}
+                        fill={getIconFillColor(getButtonState(hovered, pressed))}
+                    />
+                </View>
                 )}
             </>
         )}
