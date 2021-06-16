@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -29,6 +29,9 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+
+    // Indicates which locale the user currently has selected
+    preferredLocale: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -36,7 +39,9 @@ const defaultProps = {
     user: {},
 };
 
-const PreferencesPage = ({priorityMode, user, translate}) => {
+const PreferencesPage = ({
+    priorityMode, user, translate, preferredLocale,
+}) => {
     const priorityModes = {
         default: {
             value: CONST.PRIORITY_MODE.DEFAULT,
@@ -47,6 +52,17 @@ const PreferencesPage = ({priorityMode, user, translate}) => {
             value: CONST.PRIORITY_MODE.GSD,
             label: translate('preferencesPage.focus'),
             description: translate('preferencesPage.focusModeDescription'),
+        },
+    };
+
+    const localesToLanguages = {
+        default: {
+            value: 'en',
+            label: translate('preferencesPage.languages.english'),
+        },
+        es: {
+            value: 'es',
+            label: translate('preferencesPage.languages.spanish'),
         },
     };
 
@@ -88,9 +104,20 @@ const PreferencesPage = ({priorityMode, user, translate}) => {
                             value={priorityMode}
                         />
                     </View>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                    <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
                         {priorityModes[priorityMode].description}
                     </Text>
+                    <Text style={[styles.formLabel]} numberOfLines={1}>
+                        {translate('preferencesPage.language')}
+                    </Text>
+                    <View style={[styles.mb2]}>
+                        <Picker
+                            onChange={locale => Onyx.merge(ONYXKEYS.PREFERRED_LOCALE, locale)}
+                            items={Object.values(localesToLanguages)}
+                            value={preferredLocale}
+                            icon={() => <Icon src={DownArrow} />}
+                        />
+                    </View>
                 </View>
             </View>
         </ScreenWrapper>

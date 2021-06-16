@@ -44,6 +44,7 @@ export default {
         zip: 'Zip Code',
         isRequiredField: 'is a required field',
         whatThis: 'What\'s this?',
+        invite: 'Invite',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -221,6 +222,11 @@ export default {
         notifications: 'Notifications',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
         priorityMode: 'Priority Mode',
+        language: 'Language',
+        languages: {
+            english: 'English',
+            spanish: 'Spanish',
+        },
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',
@@ -358,6 +364,15 @@ export default {
             editPhoto: 'Edit Photo',
             uploadPhoto: 'Upload Photo',
             requestCall: 'Request a call',
+        },
+        invite: {
+            invitePeople: 'Invite People',
+            invitePeoplePrompt: 'Invite a colleague to your workspace.',
+            personalMessagePrompt: 'Add a Personal Message (Optional)',
+            enterEmailOrPhone: 'Email or Phone',
+            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
+            genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
+            welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
         },
     },
 };

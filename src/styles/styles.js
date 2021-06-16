@@ -1535,6 +1535,10 @@ const styles = {
     textItalic: {
         fontFamily: fontFamily.GTA_ITALIC,
     },
+
+    workspaceInviteWelcome: {
+        minHeight: 150,
+    },
 };
 
 const baseCodeTagStyles = {
