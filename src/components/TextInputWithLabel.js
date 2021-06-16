@@ -11,15 +11,19 @@ const propTypes = {
 
     /** Text to show if there is an error */
     errorText: PropTypes.string,
+
+    /** Styles for the outermost container for this component. */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     label: '',
     errorText: '',
+    containerStyles: [],
 };
 
 const TextInputWithLabel = props => (
-    <>
+    <View style={props.containerStyles}>
         {!_.isEmpty(props.label) && <Text style={[styles.formLabel]}>{props.label}</Text>}
         <TextInput
             style={[styles.textInput, styles.mb1]}
@@ -29,7 +33,7 @@ const TextInputWithLabel = props => (
         {props.errorText !== '' && (
             <Text style={[styles.formError]}>{props.errorText}</Text>
         )}
-    </>
+    </View>
 );
 
 TextInputWithLabel.propTypes = propTypes;
