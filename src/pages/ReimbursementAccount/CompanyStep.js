@@ -83,7 +83,9 @@ const CompanyStep = ({translate}) => (
                     LabelComponent={() => (
                         <>
                             <Text>{`${translate('companyStep.confirmCompanyIsNot')} `}</Text>
-                            <TextLink href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses">
+                            <TextLink
+                                href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"
+                            >
                                 {`${translate('companyStep.listOfRestrictedBusinesses')}.`}
                             </TextLink>
                         </>
