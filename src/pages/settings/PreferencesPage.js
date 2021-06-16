@@ -60,11 +60,11 @@ const PreferencesPage = ({
     const localesToLanguages = {
         default: {
             value: 'en',
-            label: 'English',
+            label: translate('preferencesPage.languages.english'),
         },
         es: {
             value: 'es',
-            label: 'Spanish',
+            label: translate('preferencesPage.languages.spanish'),
         },
     };
 
