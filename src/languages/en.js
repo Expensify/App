@@ -37,6 +37,7 @@ export default {
         termsOfService: 'Terms of Service',
         people: 'People',
         invite: 'Invite',
+        here: 'here',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -359,8 +360,11 @@ export default {
         },
         card: {
             tagline: 'The Smartest corporate card in the room.',
-            publicCopy: "In order to use the Expensify Card you must use your company's private domain. Go ahead and add your private email address as a secondary login [here].",
+            publicCopy: "In order to use the Expensify Card you must use your company's private domain. Go ahead and add your private email address as a secondary login",
             privateCopy: 'Just swipe your Expensify card and your expenses are done, its that simple!',
+            getStarted: 'Get Started',
+            manageCards: 'Manage Cards',
+            cardReadyTagline: 'Your Expensify Cards are ready to go!',
         },
         invite: {
             invitePeople: 'Invite People',

@@ -13,10 +13,14 @@ const propTypes = {
 
     /** Additional style props */
     style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
+
+    /** Link hovered style  */
+    hoveredStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
 };
 
 const defaultProps = {
     style: [],
+    hoveredStyle: [],
 };
 
 const TextLink = (props) => {
@@ -31,7 +35,13 @@ const TextLink = (props) => {
             href={props.href}
         >
             {({hovered, pressed}) => (
-                <Text style={[...additionalStyles, styles.link, (hovered || pressed) ? styles.linkHovered : undefined]}>
+                <Text style={[
+                    styles.link,
+                    ...additionalStyles,
+                    (hovered || pressed) ? styles.linkHovered : undefined,
+                    (hovered || pressed) ? props.hoveredStyle : undefined,
+                ]}
+                >
                     {props.children}
                 </Text>
             )}
