@@ -115,6 +115,7 @@ export default {
         requestMoney: 'Pedir Dinero',
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
+        settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
         decline: 'Rechazar',
         settlePaypalMe: 'Pagar con PayPal.me',
@@ -208,6 +209,11 @@ export default {
         notifications: 'Notificaciones',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
         priorityMode: 'Modo Prioridad',
+        language: 'Idioma',
+        languages: {
+            english: 'Inglés',
+            spanish: 'Español',
+        },
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',

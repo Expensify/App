@@ -279,6 +279,7 @@ class ReportActionItem extends Component {
                     animationOutTiming={1}
                     measureContent={this.measureContent}
                     shouldSetModalVisibility={false}
+                    fullscreen={false}
                 >
                     <ReportActionContextMenu
                         isVisible
