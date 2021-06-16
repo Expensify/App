@@ -2,7 +2,7 @@ import React from 'react';
 
 // Screens
 import BaseDrawerNavigator from './baseDrawerNavigator';
-import WorkspaceCard from '../../../pages/workspace/WorkspaceCard';
+import WorkspaceCardPage from '../../../pages/workspace/WorkspaceCardPage';
 import WorkspaceSidebar from '../../../pages/workspace/WorkspaceSidebar';
 
 const WorkspaceSettingsDrawerNavigator = () => (
@@ -11,7 +11,7 @@ const WorkspaceSettingsDrawerNavigator = () => (
         screens={[
             {
                 name: 'WorkspaceCard',
-                component: WorkspaceCard,
+                component: WorkspaceCardPage,
                 initialParams: {},
             },
         ]}

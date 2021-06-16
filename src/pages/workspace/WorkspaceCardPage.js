@@ -40,7 +40,7 @@ const defaultProps = {
     },
 };
 
-const WorkspaceCard = ({
+const WorkspaceCardPage = ({
     user,
     translate,
 }) => {
@@ -145,9 +145,9 @@ const WorkspaceCard = ({
     );
 };
 
-WorkspaceCard.propTypes = propTypes;
-WorkspaceCard.defaultProps = defaultProps;
-WorkspaceCard.displayName = 'WorkspaceCard';
+WorkspaceCardPage.propTypes = propTypes;
+WorkspaceCardPage.defaultProps = defaultProps;
+WorkspaceCardPage.displayName = 'WorkspaceCardPage';
 
 export default compose(
     withLocalize,
@@ -156,4 +156,4 @@ export default compose(
             key: ONYXKEYS.USER,
         },
     }),
-)(WorkspaceCard);
+)(WorkspaceCardPage);
