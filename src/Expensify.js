@@ -152,11 +152,7 @@ class Expensify extends PureComponent {
     }
 
     hideSplash() {
-        BootSplash.hide({fade: true}).then(() => {
-            // To prevent the splash from shifting positions we set status bar translucent after splash is hidden.
-            // on IOS it has no effect.
-            StatusBar.setTranslucent(true);
-        });
+        BootSplash.hide({fade: true});
     }
 
     render() {
