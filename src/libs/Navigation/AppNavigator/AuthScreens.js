@@ -32,7 +32,7 @@ import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
 // Main drawer navigator
-import MainDrawerNavigator from './MainDrawerNavigator';
+import MainDrawerNavigator from './mainDrawerNavigator';
 
 // Validate login page
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
@@ -57,7 +57,6 @@ import {
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
-import fullscreenModalcardStyleInterpolator from './fullscreenModalcardStyleInterpolator';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -169,33 +168,30 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        const modalScreenOptions = {
+        const commonModalScreenOptions = {
             headerShown: false,
-            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, props),
-            animationEnabled: true,
             gestureDirection: 'horizontal',
-            cardOverlayEnabled: true,
+            animationEnabled: true,
 
             // This option is required to make previous screen visible underneath the modal screen
             // https://reactnavigation.org/docs/6.x/stack-navigator#transparent-modals
             presentation: 'transparentModal',
+        };
+        const modalScreenOptions = {
+            ...commonModalScreenOptions,
+            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
+            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
+            cardOverlayEnabled: true,
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
         };
         const fullscreenModalScreenOptions = {
-            ...modalScreenOptions,
+            ...commonModalScreenOptions,
             cardStyle: {...styles.fullscreenCard, ...styles.bgTransparent},
-            cardStyleInterpolator: props => fullscreenModalcardStyleInterpolator(
-                this.props.isSmallScreenWidth,
-                props,
-            ),
+            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
             cardOverlayEnabled: false,
-
-            // We don't want the Pressable overlay for fullscreen modal which closes the modal on click
-            isModal: false,
         };
 
         return (
