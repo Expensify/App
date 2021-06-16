@@ -118,7 +118,9 @@ class ReimbursementAccountPage extends React.Component {
                     <ACHContractStep />
                 )}
                 {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                    <ValidationStep />
+                    <ValidationStep
+                        achData={this.props.reimbursementAccount.achData}
+                    />
                 )}
             </ScreenWrapper>
         );
