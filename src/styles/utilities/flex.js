@@ -60,6 +60,10 @@ export default {
         alignItems: 'flex-end',
     },
 
+    alignItemsBaseline: {
+        alignItems: 'baseline',
+    },
+
     flexWrap: {
         flexWrap: 'wrap',
     },
