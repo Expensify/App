@@ -345,7 +345,6 @@ class ProfilePage extends Component {
                                         label: this.props.translate('profilePage.selectYourPronouns'),
                                     }}
                                     value={this.state.pronouns}
-                                    icon={() => <Icon src={DownArrow} />}
                                 />
                             </View>
                             {this.state.pronouns === this.props.translate('pronouns.selfSelect') && (
@@ -377,7 +376,6 @@ class ProfilePage extends Component {
                                 items={timezones}
                                 useDisabledStyles={this.state.isAutomaticTimezone}
                                 value={this.state.selectedTimezone}
-                                icon={() => <Icon src={DownArrow} />}
                                 disabled={this.state.isAutomaticTimezone}
                             />
                         </View>

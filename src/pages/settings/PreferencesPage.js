@@ -9,10 +9,8 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import Icon from '../../components/Icon';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
-import {DownArrow} from '../../components/Icon/Expensicons';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
@@ -88,7 +86,6 @@ const PreferencesPage = ({priorityMode, user, translate}) => {
                             }
                             items={Object.values(priorityModes)}
                             value={priorityMode}
-                            icon={() => <Icon src={DownArrow} />}
                         />
                     </View>
                     <Text style={[styles.textLabel, styles.colorMuted]}>

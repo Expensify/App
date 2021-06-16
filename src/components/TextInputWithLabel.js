@@ -1,8 +1,9 @@
 import _ from 'underscore';
 import React from 'react';
-import {Text, TextInput} from 'react-native';
+import {View, TextInput} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import Text from './Text';
 
 const propTypes = {
     /** Label text */
