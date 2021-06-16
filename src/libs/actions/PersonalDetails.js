@@ -303,6 +303,7 @@ NetworkConnection.onReconnect(fetchPersonalDetails);
 
 export {
     fetchPersonalDetails,
+    formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,

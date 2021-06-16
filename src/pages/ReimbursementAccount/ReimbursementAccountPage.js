@@ -49,6 +49,15 @@ const propTypes = {
         email: PropTypes.string,
     }).isRequired,
 
+    /** Route object from navigation */
+    route: PropTypes.shape({
+        /** Params that are passed into the route */
+        params: PropTypes.shape({
+            /** A step to navigate to if we need to drop the user into a specific point in the flow */
+            stepToOpen: PropTypes.string,
+        }),
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -56,11 +65,36 @@ const defaultProps = {
     reimbursementAccount: {
         loading: true,
     },
+    route: {
+        params: {
+            stepToOpen: '',
+        },
+    },
 };
 
 class ReimbursementAccountPage extends React.Component {
     componentDidMount() {
         fetchFreePlanVerifiedBankAccount();
+    }
+
+    /**
+     * @returns {String}
+     */
+    getStepToOpenFromRouteParams() {
+        switch (lodashGet(this.props.route, ['params', 'stepToOpen'])) {
+            case 'new':
+                return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+            case 'company':
+                return CONST.BANK_ACCOUNT.STEP.COMPANY;
+            case 'requestor':
+                return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
+            case 'contract':
+                return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
+            case 'validate':
+                return CONST.BANK_ACCOUNT.STEP.VALIDATION;
+            default:
+                return '';
+        }
     }
 
     render() {
@@ -101,8 +135,9 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         // We grab the currentStep from the achData to determine which view to display. The SetupWithdrawalAccount flow
-        // allows us to continue the flow from various points depending on where the user left off.
-        const currentStep = this.props.reimbursementAccount.achData.currentStep;
+        // allows us to continue the flow from various points depending on where the user left off. We can also
+        // specify a specific step to navigate to by using route params.
+        const currentStep = this.getStepToOpenFromRouteParams() || this.props.reimbursementAccount.achData.currentStep;
         return (
             <ScreenWrapper>
                 {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (

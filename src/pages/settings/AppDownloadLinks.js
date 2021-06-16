@@ -49,7 +49,7 @@ const AppDownloadLinksPage = ({translate}) => {
             <ScrollView style={[styles.mt5]} bounces={false}>
                 {menuItems.map(item => (
                     <MenuItem
-                        key={item.title}
+                        key={item.translationKey}
                         title={translate(item.translationKey)}
                         icon={item.icon}
                         iconRight={item.iconRight}
@@ -63,7 +63,7 @@ const AppDownloadLinksPage = ({translate}) => {
 };
 
 AppDownloadLinksPage.propTypes = propTypes;
-AppDownloadLinksPage.displayName = 'PreferencesPage';
+AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
 export default compose(
     withLocalize,
