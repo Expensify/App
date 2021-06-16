@@ -119,7 +119,6 @@ function createIOUSplit(params) {
  * @param {Number} params.chatReportID
  * @param {String} params.transactionID
  * @param {String} params.comment
- * @param {Object} params.iou
  */
 function rejectTransaction({
     reportID, chatReportID, transactionID, comment,
