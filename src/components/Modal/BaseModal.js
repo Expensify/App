@@ -1,14 +1,27 @@
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import styles, {getModalPaddingStyles, getSafeAreaPadding} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import {propTypes, defaultProps} from './ModalPropTypes';
+import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './ModalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
 import {setModalVisibility} from '../../libs/actions/Modal';
+
+const propTypes = {
+    ...modalPropTypes,
+
+    /** The ref to the modal container */
+    forwardedRef: PropTypes.func,
+};
+
+const defaultProps = {
+    ...modalDefaultProps,
+    forwardedRef: () => {},
+};
 
 class BaseModal extends PureComponent {
     constructor(props) {
@@ -28,7 +41,9 @@ class BaseModal extends PureComponent {
      */
     hideModalAndRemoveEventListeners() {
         this.unsubscribeFromKeyEvents();
-        setModalVisibility(false);
+        if (this.props.shouldSetModalVisibility) {
+            setModalVisibility(false);
+        }
         this.props.onModalHide();
     }
 
@@ -79,9 +94,12 @@ class BaseModal extends PureComponent {
                 onBackButtonPress={this.props.onClose}
                 onModalShow={() => {
                     this.subscribeToKeyEvents();
-                    setModalVisibility(true);
+                    if (this.props.shouldSetModalVisibility) {
+                        setModalVisibility(true);
+                    }
                     this.props.onModalShow();
                 }}
+                propagateSwipe={this.props.propagateSwipe}
                 onModalHide={this.hideModalAndRemoveEventListeners}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
@@ -89,6 +107,8 @@ class BaseModal extends PureComponent {
                 backdropColor={themeColors.modalBackdrop}
                 backdropOpacity={hideBackdrop ? 0 : 0.5}
                 backdropTransitionOutTiming={0}
+                hasBackdrop={this.props.fullscreen}
+                coverScreen={this.props.fullscreen}
                 style={modalStyle}
                 deviceHeight={this.props.windowHeight}
                 deviceWidth={this.props.windowWidth}
@@ -123,6 +143,7 @@ class BaseModal extends PureComponent {
                                     ...modalContainerStyle,
                                     ...modalPaddingStyles,
                                 }}
+                                ref={this.props.forwardedRef}
                             >
                                 {this.props.children}
                             </View>
@@ -137,4 +158,7 @@ class BaseModal extends PureComponent {
 BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
 BaseModal.displayName = 'BaseModal';
-export default BaseModal;
+export default React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <BaseModal {...props} forwardedRef={ref} />
+));
