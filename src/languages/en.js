@@ -213,6 +213,10 @@ export default {
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
         priorityMode: 'Priority Mode',
         language: 'Language',
+        languages: {
+            english: 'English',
+            spanish: 'Spanish',
+        },
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',
