@@ -9,18 +9,6 @@ import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpda
 import Navigation from '../Navigation/Navigation';
 
 /**
- * Retrieve the users preferred currency
- */
-function getPreferredCurrency() {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true});
-
-    // fake loading timer, to be replaced with actual network request
-    setTimeout(() => {
-        Onyx.merge(ONYXKEYS.IOU, {loading: false});
-    }, 1600);
-}
-
-/**
  * @param {Object[]} requestParams
  * @param {Number} requestParams.reportID the ID of the IOU report
  * @param {Number} requestParams.chatReportID the ID of the chat report that the IOU report belongs to
@@ -239,7 +227,6 @@ function payIOUReport({
 }
 
 export {
-    getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
     rejectTransaction,

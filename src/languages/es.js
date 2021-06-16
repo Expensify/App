@@ -29,7 +29,11 @@ export default {
         delete: 'Eliminar',
         contacts: 'Contactos',
         recents: 'Recientes',
+        close: 'Cerrar',
+        saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
+        termsOfService: 'Términos de servicio',
+        invite: 'Invitar',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -204,6 +208,7 @@ export default {
         notifications: 'Notificaciones',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
         priorityMode: 'Modo Prioridad',
+        language: 'Idioma',
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',
@@ -216,7 +221,7 @@ export default {
         phrase2: 'términos de servicio',
         phrase3: 'y',
         phrase4: 'política de privacidad',
-        phrase5: '. El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
+        phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
         phrase6: 'licencias',
     },
     passwordForm: {
@@ -250,11 +255,24 @@ export default {
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu Contraseña',
     },
+    bankAccount: {
+        accountNumber: 'Número de cuenta',
+        routingNumber: 'Número de ruta',
+        addBankAccount: 'Agregar cuenta bancaria',
+        chooseAnAccount: 'Elige una cuenta',
+        logIntoYourBank: 'Inicie sesión en su banco',
+        connectManually: 'Conectar manualmente',
+        yourDataIsSecure: 'Tus datos estan seguros',
+        toGetStarted: 'Para comenzar con la tarjeta Expensify, primero debe agregar una cuenta bancaria.',
+        plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
+        checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque para la cuenta.',
+        iAcceptThe: 'Acepto los ',
+        hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrese de que su inicio de sesión principal sea un correo electrónico válido y vuelva a intentarlo. Puede agregar su número de teléfono como inicio de sesión secundario.',
+        hasBeenThrottledError: ({fromNow}) => `Por razones de seguridad, nos tomamos un descanso de la configuración de la cuenta bancaria para que pueda verificar la información de su empresa. Inténtalo de nuevo ${fromNow}. ¡Lo siento!`,
+    },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe una contraseña',
-        addPersonalBankAccount: 'Agregar cuenta bancaria',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
-        selectAccount: 'Selecciona una cuenta:',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
@@ -274,5 +292,25 @@ export default {
     },
     session: {
         offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',
+    },
+    workspace: {
+        new: {
+            welcome: 'Bienvenido/a',
+            chooseAName: 'Elige un nombre',
+            helpText: '¿Necesitas ayuda con la configuración? Pídenos una llamada y una persona de nuestro equipo te ayudará.',
+            getStarted: '¡Empezar!',
+            uploadPhoto: 'Subir Foto',
+            editPhoto: 'Editar Foto',
+            requestCall: 'Concertar una llamada',
+        },
+        invite: {
+            invitePeople: 'Invitar a la gente',
+            invitePeoplePrompt: 'Invita a un colega a tu espacio de trabajo.',
+            personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
+            enterEmailOrPhone: 'Email o teléfono',
+            pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
+            genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
+            welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
+        },
     },
 };
