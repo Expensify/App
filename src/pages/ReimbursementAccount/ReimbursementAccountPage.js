@@ -10,6 +10,12 @@ import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts'
 import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import Permissions from '../../libs/Permissions';
+import Navigation from '../../libs/Navigation/Navigation';
+import CONST from '../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
+import styles from '../../styles/styles';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
@@ -17,11 +23,6 @@ import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
 import ACHContractStep from './ACHContractStep';
 import ValidationStep from './ValidationStep';
-import Navigation from '../../libs/Navigation/Navigation';
-import CONST from '../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
 
 const propTypes = {
     /** List of betas */
@@ -59,9 +60,9 @@ const defaultProps = {
 };
 
 class ReimbursementAccountPage extends React.Component {
-    componentDidMount() {
-        fetchFreePlanVerifiedBankAccount();
-    }
+    // componentDidMount() {
+    //     fetchFreePlanVerifiedBankAccount();
+    // }
 
     render() {
         if (!Permissions.canUseFreePlan(this.props.betas)) {
@@ -105,21 +106,23 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = this.props.reimbursementAccount.achData.currentStep;
         return (
             <ScreenWrapper>
-                {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
-                    <BankAccountStep />
-                )}
-                {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
-                    <CompanyStep />
-                )}
-                {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
-                    <RequestorStep />
-                )}
-                {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
-                    <ACHContractStep />
-                )}
-                {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                    <ValidationStep />
-                )}
+                <KeyboardAvoidingView>
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
+                        <BankAccountStep />
+                    )}
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
+                        <CompanyStep />
+                    )}
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
+                        <RequestorStep />
+                    )}
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
+                        <ACHContractStep />
+                    )}
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
+                        <ValidationStep />
+                    )}
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
