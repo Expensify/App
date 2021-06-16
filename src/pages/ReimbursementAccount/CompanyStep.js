@@ -1,7 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {goToWithdrawalStepID} from '../../libs/actions/BankAccounts';
+import CONST from '../../CONST';
+import {goToWithdrawalAccountSetupStep} from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 
 const CompanyStep = () => (
@@ -9,7 +10,7 @@ const CompanyStep = () => (
         <HeaderWithCloseButton
             title="Company Information"
             shouldShowBackButton
-            onBackButtonPress={() => goToWithdrawalStepID('BankAccountStep')}
+            onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
             onCloseButtonPress={Navigation.dismissModal}
         />
     </View>

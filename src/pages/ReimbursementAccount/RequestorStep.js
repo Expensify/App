@@ -62,7 +62,7 @@ class RequestorStep extends React.Component {
                 <HeaderWithCloseButton
                     title="Requestor Information"
                     shouldShowBackButton
-                    onBackButtonPress={() => BankAccount.goToWithdrawalStepID(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
+                    onBackButtonPress={() => BankAccount.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <View style={[styles.flex1, styles.m5]}>

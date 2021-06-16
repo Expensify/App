@@ -409,6 +409,17 @@ function GetIOUReport(parameters) {
 /**
  * @returns {Promise}
  */
+function GetPolicyList() {
+    const commandName = 'Get';
+    const parameters = {
+        returnValueList: 'policyList',
+    };
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
 function GetPolicySummaryList() {
     const commandName = 'Get';
     const parameters = {
@@ -661,6 +672,21 @@ function User_GetBetas() {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @param {Boolean} [parameters.requireCertainty]
+ * @returns {Promise}
+ */
+function User_IsFromPublicDomain(parameters) {
+    const commandName = 'User_IsFromPublicDomain';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, {
+        ...{requireCertainty: true},
+        ...parameters,
+    });
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function User_ReopenAccount(parameters) {
@@ -785,6 +811,21 @@ function BankAccount_Get(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Object[]} parameters.employees
+ * @param {String} parameters.welcomeNote
+ * @param {String} parameters.policyID
+ * @returns {Promise}
+ */
+function Policy_Employees_Merge(parameters) {
+    const commandName = 'Policy_Employees_Merge';
+    requireParameters(['employees', 'welcomeNote', 'policyID'], parameters, commandName);
+
+    // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
+    return Network.post(commandName, {...parameters, returnPersonalDetails: true});
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.accountNumber
  * @param {String} parameters.addressName
  * @param {Boolean} parameters.allowDebit
@@ -900,6 +941,7 @@ export {
     Get,
     GetAccountStatus,
     GetIOUReport,
+    GetPolicyList,
     GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
@@ -909,6 +951,7 @@ export {
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,
+    Policy_Employees_Merge,
     Push_Authenticate,
     RejectTransaction,
     Report_AddComment,
@@ -923,6 +966,7 @@ export {
     UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_IsFromPublicDomain,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
