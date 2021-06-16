@@ -135,10 +135,10 @@ const InitialSettingsPage = ({
                     </View>
                     {menuItems.map(item => (
                         <MenuItem
-                            key={item.title}
+                            key={item.translationKey}
                             title={translate(item.translationKey)}
                             icon={item.icon}
-                            onPress={() => item.action()}
+                            onPress={item.action}
                             shouldShowRightIcon
                         />
                     ))}

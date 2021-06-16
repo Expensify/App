@@ -106,7 +106,7 @@ export default {
             },
             AddPersonalBankAccount: {
                 screens: {
-                    AddPersonalBankAccount_Root: ROUTES.ADD_PERSONAL_BANK_ACCOUNT,
+                    AddPersonalBankAccount_Root: ROUTES.BANK_ACCOUNT_PERSONAL,
                 },
             },
             EnablePayments: {
@@ -116,7 +116,12 @@ export default {
             },
             ReimbursementAccount: {
                 screens: {
-                    ReimbursementAccount_Root: ROUTES.ADD_VERIFIED_BANK_ACCOUNT,
+                    ReimbursementAccount_Root: ROUTES.BANK_ACCOUNT,
+                },
+            },
+            WorkspaceInvite: {
+                screens: {
+                    WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
                 },
             },
             NewWorkspace: {

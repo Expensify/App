@@ -69,7 +69,7 @@ class BankAccount {
     }
 
     /**
-     * Get all user emails having access to this bank account
+     * Get all user emails that have access to this bank account
      * @return {String[]}
      */
     getSharees() {
