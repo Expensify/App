@@ -1531,6 +1531,10 @@ const styles = {
     cursorDisabled: {
         cursor: 'not-allowed',
     },
+
+    textItalic: {
+        fontFamily: fontFamily.GTA_ITALIC,
+    },
 };
 
 const baseCodeTagStyles = {

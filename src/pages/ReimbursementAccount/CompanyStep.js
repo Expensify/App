@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -11,6 +12,7 @@ import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
+import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
 
 const CompanyStep = () => (
@@ -45,11 +47,34 @@ const CompanyStep = () => (
             <TextInputWithLabel label="Company Website" containerStyles={[styles.mt4]} />
             <TextInputWithLabel label="Tax ID Number" containerStyles={[styles.mt4]} />
             <Text style={[styles.formLabel, styles.mt4]}>Company Type</Text>
-            {/* TODO: incorporation type selector */}
-            {/* TODO: incorporation date selector */}
-            {/* TODO: incorporation state selector */}
-            <TextInputWithLabel label="Industry Classification Code" />
-            <TextInputWithLabel label="Expensify Password" />
+            <Picker
+                items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
+                onChange={() => {}}
+                placeholder={{value: '', label: 'Type'}}
+            />
+            <View style={[styles.flexRow, styles.mt4]}>
+                <View style={[styles.flex2, styles.mr2]}>
+                    <TextInputWithLabel label="Incorporation Date" />
+                </View>
+                <View style={[styles.flex1]}>
+                    <Text style={[styles.formLabel]}>State</Text>
+                    <StatePicker onChange={() => {}} />
+                </View>
+            </View>
+            {/* TODO: incorporation date picker */}
+            <TextInputWithLabel
+                label="Industry Classification Code"
+                linkText="What's this?"
+                linkURL="https://www.naics.com/search/"
+                containerStyles={[styles.mt4]}
+            />
+            <TextInputWithLabel
+                label="Expensify Password"
+                containerStyles={[styles.mt4]}
+                secureTextEntry
+                autoCompleteType="password"
+                textContentType="password"
+            />
             <CheckboxWithLabel
                 isChecked={false}
                 onPress={() => {}}
@@ -61,6 +86,7 @@ const CompanyStep = () => (
                         </TextLink>
                     </>
                 )}
+                style={[styles.mt4]}
             />
         </View>
         <FixedFooter style={[styles.mt5]}>
@@ -69,7 +95,7 @@ const CompanyStep = () => (
                 onPress={() => {
                 }}
                 style={[styles.w100]}
-                text="Do nothing"
+                text="Save & Continue"
             />
         </FixedFooter>
     </ScrollView>
