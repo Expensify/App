@@ -36,6 +36,7 @@ const propTypes = {
     /** List of transactionIDs in process of rejection */
     /* eslint-disable-next-line react/no-unused-prop-types, react/require-default-props */
     transactionsBeingRejected: PropTypes.shape({
+        /** IOUTransactionID that's being rejected */
         transactionID: PropTypes.bool,
     }),
 };
@@ -60,7 +61,11 @@ class ReportTransaction extends Component {
         });
     }
 
-    isRejected() {
+    /**
+     * Checks if current IOUTransactionID is being rejected.
+     * @returns {boolean} Returns `true` if current IOUtransactionID is being rejected, else `false`.
+     */
+    isBeingRejected() {
         const IOUTransactionID = lodashGet(this.props.action, 'originalMessage.IOUTransactionID', '');
         const transactionsBeingRejected = lodashGet(this.props, 'transactionsBeingRejected', {});
         if (_.isEmpty(transactionsBeingRejected)) {
@@ -92,7 +97,7 @@ class ReportTransaction extends Component {
                             onPress={this.rejectTransaction}
                         >
                             {
-                            this.isRejected()
+                            this.isBeingRejected()
                                 ? (
                                     <ActivityIndicator
                                         color={themeColors.text}
