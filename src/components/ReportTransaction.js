@@ -87,7 +87,7 @@ class ReportTransaction extends Component {
                                 styles.buttonSmall,
                                 styles.chatItemComposeSecondaryRowOffset,
                                 styles.mb3,
-                                styles.rejectIOU,
+                                styles.w20,
                             ]}
                             onPress={this.rejectTransaction}
                         >
