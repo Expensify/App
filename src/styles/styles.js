@@ -601,6 +601,11 @@ const styles = {
         color: themeColors.heading,
     },
 
+    createMenuDescription: {
+        fontSize: variables.fontSizeLabel,
+        color: colors.gray4,
+    },
+
     menuItemTextContainer: {
         minHeight: variables.componentSizeNormal,
     },
