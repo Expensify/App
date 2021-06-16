@@ -108,7 +108,7 @@ const AboutPage = ({translate, session}) => {
                     </View>
                     {menuItems.map(item => (
                         <MenuItem
-                            key={item.title}
+                            key={item.translationKey}
                             title={translate(item.translationKey)}
                             icon={item.icon}
                             iconRight={item.iconRight}
@@ -156,7 +156,7 @@ const AboutPage = ({translate, session}) => {
 };
 
 AboutPage.propTypes = propTypes;
-AboutPage.displayName = 'PreferencesPage';
+AboutPage.displayName = 'AboutPage';
 
 export default compose(
     withLocalize,
