@@ -60,9 +60,9 @@ const defaultProps = {
 };
 
 class ReimbursementAccountPage extends React.Component {
-    // componentDidMount() {
-    //     fetchFreePlanVerifiedBankAccount();
-    // }
+    componentDidMount() {
+        fetchFreePlanVerifiedBankAccount();
+    }
 
     render() {
         if (!Permissions.canUseFreePlan(this.props.betas)) {
