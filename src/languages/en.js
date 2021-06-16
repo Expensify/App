@@ -341,6 +341,8 @@ export default {
     },
     workspace: {
         new: {
+            newWorkspace: 'New Workspace',
+            getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
             welcome: 'Welcome',
             chooseAName: 'Choose a name',
             helpText: 'Need help getting setup? Request a call below and we’ll have someone reach out to you.',
