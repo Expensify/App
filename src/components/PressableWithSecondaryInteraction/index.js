@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable} from 'react-native';
-import pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import * as Haptics from 'expo-haptics';
+import pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 
 const defaultProps = {
     forwardedRef: () => {},
