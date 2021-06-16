@@ -10,6 +10,7 @@ const REPORT = 'r';
 export default {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
+    getBankAccountRoute: stepToOpen => `bank-account/${stepToOpen}`,
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -50,7 +51,6 @@ export default {
     ENABLE_PAYMENTS: 'enable-payments',
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_CARD: 'workspace/card',
-    BANK_ACCOUNT_NEW: 'bankAccount/new',
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
 

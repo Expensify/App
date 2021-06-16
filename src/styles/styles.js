@@ -37,6 +37,10 @@ const styles = {
         color: themeColors.linkHover,
     },
 
+    cWhite: {
+        color: themeColors.textReversed,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
