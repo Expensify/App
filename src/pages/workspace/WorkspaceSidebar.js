@@ -11,7 +11,8 @@ import {
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
-import Logo from '../../../assets/images/expensify-cash.svg';
+import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
+import variables from '../../styles/variables';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -47,11 +48,12 @@ const WorkspaceSidebar = ({translate}) => {
             >
                 <View style={[styles.flex1]}>
                     <View style={styles.pageWrapper}>
-                        <View style={[styles.settingsPageBody, styles.mb6]}>
-                            <Logo height={100} />
+                        <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter, styles.pv5]}>
+                            <WorkspaceDefaultAvatar height={100} width={100} />
                             <Text
+                                fontSize={variables.fontSizeXLarge}
                                 style={[
-                                    styles.textLarge,
+                                    styles.textStrong,
                                     styles.alignSelfCenter,
                                     styles.mv2,
                                 ]}
