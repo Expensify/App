@@ -1,5 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
+import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
@@ -9,9 +12,19 @@ import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
+import Text from '../../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    achData: PropTypes.shape({
+        bankAccountID: PropTypes.number.isRequired,
+        state: PropTypes.string,
+    }),
+};
+
+const defaultProps = {
+    achData: {},
 };
 
 class ValidationStep extends React.Component {
@@ -21,44 +34,80 @@ class ValidationStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            amount1: 0,
-            amount2: 0,
-            amount3: 0,
+            amount1: '',
+            amount2: '',
+            amount3: '',
+            error: '',
         };
     }
 
     submit() {
-        const validateCode = [this.state.amount1, this.state.amount2, this.state.amount3].join(',');
+        const amount1 = this.filterInput(this.state.amount1);
+        const amount2 = this.filterInput(this.state.amount2);
+        const amount3 = this.filterInput(this.state.amount3);
+
+        if (!amount1 || !amount2 || !amount3) {
+            this.setState({error: 'Invalid amounts'});
+        }
+
+        const validateCode = [amount1, amount2, amount3].join(',');
 
         // Make a call to bankAccounts
-        validateBankAccount(1234, validateCode);
+        validateBankAccount(this.props.achData.bankAccountID, validateCode);
+    }
+
+    filterInput(amount) {
+        let value = amount.trim();
+        if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
+            return 0;
+        }
+
+        // If the user enters the values in dollars, convert it to the respective cents amount
+        if (_.contains(value, '.')) {
+            value = Str.fromUSDToNumber(value);
+        }
+
+        return value;
     }
 
     render() {
+        const errorMessage = this.state.error;
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title="Validation Step"
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <TextInputWithLabel
-                    placeholder="1.01"
-                    keyboardType="number-pad"
-                    value={this.state.amount1}
-                    onChangeText={amount1 => this.setState({amount1})}
-                />
-                <TextInputWithLabel
-                    placeholder="1.01"
-                    keyboardType="number-pad"
-                    value={this.state.amount2}
-                    onChangeText={amount2 => this.setState({amount2})}
-                />
-                <TextInputWithLabel
-                    placeholder="1.01"
-                    keyboardType="number-pad"
-                    value={this.state.amount3}
-                    onChangeText={amount3 => this.setState({amount3})}
-                />
+                <Text style={[styles.mh5, styles.mb5]}>
+                    A day or two after you add your account to Expensify
+                    we send three (3) transactions to your account. They have a merchant line like
+                    &quot;Expensify, Inc. Validation&quot;.
+                </Text>
+                <View style={[styles.m5, styles.flex1]}>
+                    {errorMessage && (
+                        <Text style={[styles.mh5, styles.mb5]}>
+                            {errorMessage}
+                        </Text>
+                    )}
+                    <TextInputWithLabel
+                        placeholder="1.01"
+                        keyboardType="number-pad"
+                        value={this.state.amount1}
+                        onChangeText={amount1 => this.setState({amount1})}
+                    />
+                    <TextInputWithLabel
+                        placeholder="1.01"
+                        keyboardType="number-pad"
+                        value={this.state.amount2}
+                        onChangeText={amount2 => this.setState({amount2})}
+                    />
+                    <TextInputWithLabel
+                        placeholder="1.01"
+                        keyboardType="number-pad"
+                        value={this.state.amount3}
+                        onChangeText={amount3 => this.setState({amount3})}
+                    />
+                </View>
                 <Button
                     success
                     text={this.props.translate('common.saveAndContinue')}
@@ -71,5 +120,6 @@ class ValidationStep extends React.Component {
 }
 
 ValidationStep.propTypes = propTypes;
+ValidationStep.defaultProps = defaultProps;
 
 export default withLocalize(ValidationStep);
