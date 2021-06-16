@@ -409,6 +409,17 @@ function GetIOUReport(parameters) {
 /**
  * @returns {Promise}
  */
+function GetPolicyList() {
+    const commandName = 'Get';
+    const parameters = {
+        returnValueList: 'policyList',
+    };
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
 function GetPolicySummaryList() {
     const commandName = 'Get';
     const parameters = {
@@ -800,6 +811,21 @@ function BankAccount_Get(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Object[]} parameters.employees
+ * @param {String} parameters.welcomeNote
+ * @param {String} parameters.policyID
+ * @returns {Promise}
+ */
+function Policy_Employees_Merge(parameters) {
+    const commandName = 'Policy_Employees_Merge';
+    requireParameters(['employees', 'welcomeNote', 'policyID'], parameters, commandName);
+
+    // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
+    return Network.post(commandName, {...parameters, returnPersonalDetails: true});
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.accountNumber
  * @param {String} parameters.addressName
  * @param {Boolean} parameters.allowDebit
@@ -825,6 +851,48 @@ function BankAccount_Create(parameters) {
         'additionalData',
     ], parameters, commandName);
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {*} parameters
+ * @returns {Promise}
+ */
+function BankAccount_SetupWithdrawal(parameters) {
+    const commandName = 'BankAccount_SetupWithdrawal';
+    let allowedParameters = [
+        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount',
+
+        // data from bankAccount step:
+        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
+        'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
+
+        // data from company step:
+        'companyName', 'companyTaxID', 'addressStreet', 'addressCity', 'addressState', 'addressZipCode',
+        'hasNoConnectionToCannabis', 'incorporationType', 'incorporationState', 'incorporationDate', 'industryCode',
+        'website', 'companyPhone', 'ficticiousBusinessName',
+
+        // data from requestor step:
+        'firstName', 'lastName', 'dob', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState',
+        'requestorAddressZipCode', 'isOnfidoSetupComplete', 'onfidoData', 'isControllingOfficer', 'ssnLast4',
+
+        // data from ACHContract step (which became the "Beneficial Owners" step, but the key is still ACHContract as
+        // it's used in several logic:
+        'ownsMoreThan25Percent', 'beneficialOwners', 'acceptTermsAndConditions', 'certifyTrueInformation',
+    ];
+
+    if (!parameters.useOnfido) {
+        allowedParameters = allowedParameters.concat(['passport', 'answers']);
+    }
+
+    // Only keep allowed parameters in the additionalData object
+    const additionalData = _.pick(parameters, allowedParameters);
+
+    requireParameters(['currentStep'], parameters, commandName);
+    return Network.post(
+        commandName, {additionalData: JSON.stringify(additionalData), password: parameters.password},
+        CONST.NETWORK.METHOD.POST,
+        true,
+    );
 }
 
 /**
@@ -865,6 +933,7 @@ export {
     Authenticate,
     BankAccount_Create,
     BankAccount_Get,
+    BankAccount_SetupWithdrawal,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -872,6 +941,7 @@ export {
     Get,
     GetAccountStatus,
     GetIOUReport,
+    GetPolicyList,
     GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
@@ -881,6 +951,7 @@ export {
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,
+    Policy_Employees_Merge,
     Push_Authenticate,
     RejectTransaction,
     Report_AddComment,
