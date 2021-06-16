@@ -1531,10 +1531,6 @@ const styles = {
         cursor: 'not-allowed',
     },
 
-    rejectIOU: {
-        minWidth: '20%',
-    },
-
     workspaceInviteWelcome: {
         minHeight: 150,
     },
