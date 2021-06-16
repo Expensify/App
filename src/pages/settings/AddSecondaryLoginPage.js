@@ -14,7 +14,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Button from '../../components/Button';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
-import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';

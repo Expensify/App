@@ -234,6 +234,7 @@ const styles = {
             appearance: 'none',
             height: variables.componentSizeNormal,
             opacity: 1,
+            cursor: 'pointer',
         },
         inputAndroid: {
             fontFamily: fontFamily.GTA,
@@ -1536,6 +1537,11 @@ const styles = {
 
     cursorDisabled: {
         cursor: 'not-allowed',
+    },
+
+    textItalic: {
+        fontFamily: fontFamily.GTA_ITALIC,
+        fontStyle: 'italic',
     },
 
     workspaceInviteWelcome: {
