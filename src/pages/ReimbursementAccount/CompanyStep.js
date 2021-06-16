@@ -14,8 +14,9 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
-const CompanyStep = () => (
+const CompanyStep = ({translate}) => (
     <ScrollView style={[styles.flex1, styles.w100]}>
         <HeaderWithCloseButton
             title="Company Information"
@@ -28,19 +29,19 @@ const CompanyStep = () => (
                 <Text>Provide more information about your company.</Text>
             </View>
             <TextInputWithLabel label="Legal Business Name" containerStyles={[styles.mt4]} />
-            <TextInputWithLabel label="Office Address (PO Boxes not allowed)" containerStyles={[styles.mt4]} />
+            <TextInputWithLabel label={translate('common.companyAddressNoPO')} containerStyles={[styles.mt4]} />
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <TextInputWithLabel label="City" />
+                    <TextInputWithLabel label={translate('common.city')} />
                 </View>
                 <View style={[styles.flex1]}>
-                    <Text style={[styles.formLabel]}>State</Text>
+                    <Text style={[styles.formLabel]}>{translate('common.state')}</Text>
                     <StatePicker onChange={() => {}} />
                 </View>
             </View>
-            <TextInputWithLabel label="Zip" containerStyles={[styles.mt4]} />
+            <TextInputWithLabel label={translate('common.zip')} containerStyles={[styles.mt4]} />
             <TextInputWithLabel
-                label="Phone Number"
+                label={translate('common.phoneNumber')}
                 containerStyles={[styles.mt4]}
                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
             />
@@ -64,12 +65,12 @@ const CompanyStep = () => (
             {/* TODO: incorporation date picker */}
             <TextInputWithLabel
                 label="Industry Classification Code"
-                linkText="What's this?"
+                linkText={translate('common.whatThis')}
                 linkURL="https://www.naics.com/search/"
                 containerStyles={[styles.mt4]}
             />
             <TextInputWithLabel
-                label="Expensify Password"
+                label={`Expensify ${translate('common.password')}`}
                 containerStyles={[styles.mt4]}
                 secureTextEntry
                 autoCompleteType="password"
@@ -95,10 +96,13 @@ const CompanyStep = () => (
                 onPress={() => {
                 }}
                 style={[styles.w100]}
-                text="Save & Continue"
+                text={translate('common.saveAndContinue')}
             />
         </FixedFooter>
     </ScrollView>
 );
 
-export default CompanyStep;
+CompanyStep.propTypes = withLocalizePropTypes;
+CompanyStep.displayName = 'CompanyStep';
+
+export default withLocalize(CompanyStep);
