@@ -334,6 +334,18 @@ export default {
         activated: 'Your Expensify Wallet is ready to use.',
         checkBackLater: 'We\'re still reviewing your information. Please check back later.',
     },
+    companyStep: {
+        headerTitle: 'Company Information',
+        subtitle: 'Provide more information about your company.',
+        legalBusinessName: 'Legal Business Name',
+        companyWebsite: 'Company Website',
+        taxIDNumber: 'Tax ID Number',
+        companyType: 'Company Type',
+        incorporationDate: 'Incorporation Date',
+        industryClassificationCode: 'Industry Classification Code',
+        confirmCompanyIsNot: 'I confirm that this company is not on the',
+        listOfRestrictedBusinesses: 'list of restricted businesses',
+    },
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },

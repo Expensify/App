@@ -19,16 +19,16 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 const CompanyStep = ({translate}) => (
     <ScrollView style={[styles.flex1, styles.w100]}>
         <HeaderWithCloseButton
-            title="Company Information"
+            title={translate('companyStep.headerTitle')}
             shouldShowBackButton
             onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
             onCloseButtonPress={Navigation.dismissModal}
         />
         <View style={[styles.p4]}>
             <View style={[styles.alignItemsCenter]}>
-                <Text>Provide more information about your company.</Text>
+                <Text>{translate('companyStep.subtitle')}</Text>
             </View>
-            <TextInputWithLabel label="Legal Business Name" containerStyles={[styles.mt4]} />
+            <TextInputWithLabel label={translate('companyStep.legalBusinessName')} containerStyles={[styles.mt4]} />
             <TextInputWithLabel label={translate('common.companyAddressNoPO')} containerStyles={[styles.mt4]} />
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
@@ -45,9 +45,9 @@ const CompanyStep = ({translate}) => (
                 containerStyles={[styles.mt4]}
                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
             />
-            <TextInputWithLabel label="Company Website" containerStyles={[styles.mt4]} />
-            <TextInputWithLabel label="Tax ID Number" containerStyles={[styles.mt4]} />
-            <Text style={[styles.formLabel, styles.mt4]}>Company Type</Text>
+            <TextInputWithLabel label={translate('companyStep.companyWebsite')} containerStyles={[styles.mt4]} />
+            <TextInputWithLabel label={translate('companyStep.taxIDNumber')} containerStyles={[styles.mt4]} />
+            <Text style={[styles.formLabel, styles.mt4]}>{translate('companyStep.companyType')}</Text>
             <Picker
                 items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
                 onChange={() => {}}
@@ -55,16 +55,16 @@ const CompanyStep = ({translate}) => (
             />
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <TextInputWithLabel label="Incorporation Date" />
+                    <TextInputWithLabel label={translate('companyStep.incorporationDate')} />
                 </View>
                 <View style={[styles.flex1]}>
-                    <Text style={[styles.formLabel]}>State</Text>
+                    <Text style={[styles.formLabel]}>{translate('common.state')}</Text>
                     <StatePicker onChange={() => {}} />
                 </View>
             </View>
             {/* TODO: incorporation date picker */}
             <TextInputWithLabel
-                label="Industry Classification Code"
+                label={translate('companyStep.industryClassificationCode')}
                 linkText={translate('common.whatThis')}
                 linkURL="https://www.naics.com/search/"
                 containerStyles={[styles.mt4]}
@@ -81,9 +81,9 @@ const CompanyStep = ({translate}) => (
                 onPress={() => {}}
                 LabelComponent={() => (
                     <>
-                        <Text>I confirm that this company is not on the </Text>
+                        <Text>{`${translate('companyStep.confirmCompanyIsNot')} `}</Text>
                         <TextLink href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses">
-                            list of restricted businesses.
+                            {`${translate('companyStep.listOfRestrictedBusinesses')}.`}
                         </TextLink>
                     </>
                 )}
