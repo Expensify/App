@@ -1733,10 +1733,6 @@ function getNavigationModalCardStyle(isSmallScreenWidth) {
     };
 }
 
-function getWorkspaceSettingsDrawerType(isSmallScreenWidth) {
-    return isSmallScreenWidth ? 'back' : 'permanent';
-}
-
 /**
  * @param {Boolean} isZoomed
  * @param {Boolean} isDragging
@@ -1946,5 +1942,4 @@ export {
     getModalPaddingStyles,
     getFontFamilyMonospace,
     getEmojiPickerStyle,
-    getWorkspaceSettingsDrawerType,
 };
