@@ -43,7 +43,7 @@ class PressableWithSecondaryInteraction extends Component {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
         return (
             <Pressable
-                onLongPress={e => {
+                onLongPress={(e) => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(() => {
                         this.props.onSecondaryInteraction(e);
                     });
