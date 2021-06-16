@@ -16,19 +16,19 @@ const propTypes = {
     /** Styles for the outermost container for this component. */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Text to use for a link in the label */
-    linkText: PropTypes.string,
+    /** Text to use for a link shown after the label */
+    helpLinkText: PropTypes.string,
 
-    /** URL to use for a link in the label */
-    linkURL: PropTypes.string,
+    /** URL to use for a link shown after the label */
+    helpLinkURL: PropTypes.string,
 };
 
 const defaultProps = {
     label: '',
     errorText: '',
     containerStyles: [],
-    linkText: '',
-    linkURL: '',
+    helpLinkText: '',
+    helpLinkURL: '',
 };
 
 const TextInputWithLabel = props => (
@@ -36,16 +36,16 @@ const TextInputWithLabel = props => (
         <View
             style={[
                 styles.flexRow,
-                (!_.isEmpty(props.label) && !_.isEmpty(props.linkURL)) ? styles.alignItemsBaseline : undefined,
+                (!_.isEmpty(props.label) && !_.isEmpty(props.helpLinkURL)) ? styles.alignItemsBaseline : undefined,
             ]}
         >
             {!_.isEmpty(props.label) && <Text style={[styles.formLabel]}>{props.label}</Text>}
-            {!_.isEmpty(props.linkURL) && (
+            {!_.isEmpty(props.helpLinkURL) && (
                 <TextLink
-                    href={props.linkURL}
+                    href={props.helpLinkURL}
                     style={!_.isEmpty(props.label) ? [styles.textItalic, styles.textMicro, styles.ml2] : undefined}
                 >
-                    {props.linkText || props.linkURL}
+                    {props.helpLinkText || props.helpLinkURL}
                 </TextLink>
             )}
         </View>

@@ -65,8 +65,8 @@ const CompanyStep = ({translate}) => (
             {/* TODO: incorporation date picker */}
             <TextInputWithLabel
                 label={translate('companyStep.industryClassificationCode')}
-                linkText={translate('common.whatThis')}
-                linkURL="https://www.naics.com/search/"
+                helpLinkText={translate('common.whatThis')}
+                helpLinkURL="https://www.naics.com/search/"
                 containerStyles={[styles.mt4]}
             />
             <TextInputWithLabel
