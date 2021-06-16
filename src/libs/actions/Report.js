@@ -59,12 +59,6 @@ Onyx.connect({
     },
 });
 
-let betas;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: val => betas = val,
-});
-
 let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_LOCALE,

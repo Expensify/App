@@ -265,9 +265,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
-        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead
-            || isDefaultRoom(report.chatType) && !Permissions.canUseDefaultRooms(betas);
+        const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
+            return;
+        }
+        console.log(report.chatType);
+        if (isDefaultRoom(report.chatType) && !Permissions.canUseDefaultRooms(betas)) {
             return;
         }
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
