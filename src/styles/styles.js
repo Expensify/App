@@ -1534,7 +1534,7 @@ const styles = {
     rejectIOU: {
         minWidth: '20%',
     },
-  
+
     workspaceInviteWelcome: {
         minHeight: 150,
     },
