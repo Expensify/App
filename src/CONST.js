@@ -62,6 +62,14 @@ const CONST = {
             'WA', 'WI', 'WV', 'WY',
         ],
     },
+    INCORPORATION_TYPES: {
+        LLC: 'LLC',
+        CORPORATION: 'Corp',
+        PARTNERSHIP: 'Partnership',
+        COOPERATIVE: 'Cooperative',
+        SOLE_PROPRIETORSHIP: 'Sole Proprietorship',
+        OTHER: 'Other',
+    },
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
