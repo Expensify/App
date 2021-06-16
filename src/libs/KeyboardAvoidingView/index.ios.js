@@ -27,4 +27,5 @@ function KeyboardAvoidingView({children}) {
 
 KeyboardAvoidingView.propTypes = propTypes;
 KeyboardAvoidingView.defaultProps = defaultProps;
+KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
 export default KeyboardAvoidingView;
