@@ -311,4 +311,16 @@ export default {
             requestCall: 'Concertar una llamada',
         },
     },
+    companyStep: {
+        headerTitle: 'Información de la Empresa',
+        subtitle: 'Dé más información sobre su empresa.',
+        legalBusinessName: 'Nombre Comercial Legal',
+        companyWebsite: 'Company Website',
+        taxIDNumber: 'Tax ID Number',
+        companyType: 'Página Web de la Empresa',
+        incorporationDate: 'Fecha de Incorporación',
+        industryClassificationCode: 'Código de Clasificación Industrial',
+        confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
+        listOfRestrictedBusinesses: 'lista de negocios restringidos',
+    },
 };
