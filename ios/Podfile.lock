@@ -20,6 +20,8 @@ PODS:
   - EXFileSystem (11.0.2):
     - UMCore
     - UMFileSystemInterface
+  - EXHaptics (10.0.0):
+    - UMCore
   - EXImageLoader (2.1.1):
     - React-Core
     - UMCore
@@ -538,6 +540,7 @@ DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
+  - EXHaptics (from `../node_modules/expo-haptics/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
@@ -667,6 +670,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-constants/ios"
   EXFileSystem:
     :path: "../node_modules/expo-file-system/ios"
+  EXHaptics:
+    :path: "../node_modules/expo-haptics/ios"
   EXImageLoader:
     :path: "../node_modules/expo-image-loader/ios"
   EXPermissions:
@@ -815,6 +820,7 @@ SPEC CHECKSUMS:
   DoubleConversion: cde416483dac037923206447da6e1454df403714
   EXConstants: c00cd53a17a65b2e53ddb3890e4e74d3418e406e
   EXFileSystem: 35769beb727d5341d1276fd222710f9704f7164e
+  EXHaptics: 337c160c148baa6f0e7166249f368965906e346b
   EXImageLoader: 1ad8b491fd0f3200b57b37ecb1801abeb6549926
   EXPermissions: ea8d63dd052737765bd350b2ca7cee9bcfd5e18e
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
