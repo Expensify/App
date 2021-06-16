@@ -21,6 +21,9 @@ export default {
     // What the active route is for our navigator. Global route that determines what views to display.
     CURRENT_URL: 'currentURL',
 
+    // Stores current date
+    CURRENT_DATE: 'currentDate',
+
     // Currently viewed reportID
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
 
