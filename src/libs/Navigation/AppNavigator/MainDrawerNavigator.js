@@ -51,7 +51,7 @@ const MainDrawerNavigator = (props) => {
     // This is usually needed after login/create account and re-launches
     return (
         <Drawer.Navigator
-            openByDefault={props.isSmallScreenWidth}
+            defaultStatus={props.isSmallScreenWidth ? 'open' : 'closed'}
             sceneContainerStyle={styles.navigationSceneContainer}
             drawerContent={() => <SidebarScreen />}
             screenOptions={{

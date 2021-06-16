@@ -227,7 +227,7 @@ class AttachmentPicker extends Component {
                 .then(this.pickAttachment)
                 .catch(console.error)
                 .finally(() => delete this.onModalHide),
-            10,
+            200,
         );
 
         this.close();
