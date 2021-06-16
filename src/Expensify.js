@@ -5,7 +5,6 @@ import {View, AppState} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import BootSplash from './libs/BootSplash';
-import StatusBar from './libs/StatusBar';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
