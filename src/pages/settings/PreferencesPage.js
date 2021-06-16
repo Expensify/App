@@ -115,7 +115,6 @@ const PreferencesPage = ({
                             onChange={locale => Onyx.merge(ONYXKEYS.PREFERRED_LOCALE, locale)}
                             items={Object.values(localesToLanguages)}
                             value={preferredLocale}
-                            icon={() => <Icon src={DownArrow} />}
                         />
                     </View>
                 </View>
