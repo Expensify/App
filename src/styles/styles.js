@@ -1534,6 +1534,7 @@ const styles = {
 
     textItalic: {
         fontFamily: fontFamily.GTA_ITALIC,
+        fontStyle: 'italic',
     },
 
     workspaceInviteWelcome: {
