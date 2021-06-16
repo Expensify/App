@@ -1,5 +1,7 @@
 import _ from 'underscore';
+import React from 'react';
 
+const composerRef = React.createRef();
 let focusCallback = null;
 
 /**
@@ -30,8 +32,20 @@ function clear() {
     focusCallback = null;
 }
 
+/**
+ * Exposes the current focus state of the report action composer.
+ *
+ */
+function isFocused() {
+    if (composerRef.current) {
+        composerRef.current.isFocused();
+    }
+}
+
 export default {
+    composerRef,
     onComposerFocus,
     focus,
     clear,
+    isFocused,
 };

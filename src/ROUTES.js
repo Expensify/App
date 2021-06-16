@@ -9,7 +9,7 @@ const REPORT = 'r';
 
 export default {
     ADD_PERSONAL_BANK_ACCOUNT: 'add-personal-bank-account',
-    BANK_ACCOUNT_NEW: 'bank-account/new',
+    ADD_VERIFIED_BANK_ACCOUNT: 'add-verified-bank-account',
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -48,6 +48,9 @@ export default {
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
     ENABLE_PAYMENTS: 'enable-payments',
+    WORKSPACE_NEW: 'workspace/new',
+    WORKSPACE_INVITE: 'workspace/:policyID/invite',
+    getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
 
     /**
      * @param {String} route

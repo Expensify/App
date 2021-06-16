@@ -9,7 +9,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
-import KeyboardSpacer from '../components/KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -18,6 +17,8 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import Button from '../components/Button';
+import KeyboardAvoidingView from '../libs/KeyboardAvoidingView';
+import FixedFooter from '../components/FixedFooter';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -194,7 +195,7 @@ class NewGroupPage extends Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    <>
+                    <KeyboardAvoidingView>
                         <HeaderWithCloseButton
                             title={this.props.translate('sidebarScreen.newGroup')}
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -203,53 +204,54 @@ class NewGroupPage extends Component {
                             <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
                             {didScreenTransitionEnd && (
                                 <>
-                                    <OptionsSelector
-                                        canSelectMultipleOptions
-                                        sections={sections}
-                                        selectedOptions={this.state.selectedOptions}
-                                        value={this.state.searchValue}
-                                        onSelectRow={this.toggleOption}
-                                        onChangeText={(searchValue = '') => {
-                                            const {
-                                                recentReports,
-                                                personalDetails,
-                                                userToInvite,
-                                            } = getNewGroupOptions(
-                                                this.props.reports,
-                                                this.props.personalDetails,
-                                                searchValue,
-                                                [],
-                                                false,
-                                                this.props.betas,
-                                            );
-                                            this.setState({
-                                                searchValue,
-                                                userToInvite,
-                                                recentReports,
-                                                personalDetails,
-                                            });
-                                        }}
-                                        headerMessage={headerMessage}
-                                        disableArrowKeysActions
-                                        hideAdditionalOptionStates
-                                        forceTextUnreadStyle
-                                        shouldFocusOnSelectRow
-                                    />
-                                    {this.state.selectedOptions?.length > 0 && (
-                                    <View style={[styles.ph5, styles.pb5]}>
-                                        <Button
-                                            success
-                                            onPress={this.createGroup}
-                                            style={[styles.w100]}
-                                            text={this.props.translate('newGroupPage.createGroup')}
+                                    <View style={[styles.flex1, styles.w100]}>
+                                        <OptionsSelector
+                                            canSelectMultipleOptions
+                                            sections={sections}
+                                            selectedOptions={this.state.selectedOptions}
+                                            value={this.state.searchValue}
+                                            onSelectRow={this.toggleOption}
+                                            onChangeText={(searchValue = '') => {
+                                                const {
+                                                    recentReports,
+                                                    personalDetails,
+                                                    userToInvite,
+                                                } = getNewGroupOptions(
+                                                    this.props.reports,
+                                                    this.props.personalDetails,
+                                                    searchValue,
+                                                    [],
+                                                    false,
+                                                    this.props.betas,
+                                                );
+                                                this.setState({
+                                                    searchValue,
+                                                    userToInvite,
+                                                    recentReports,
+                                                    personalDetails,
+                                                });
+                                            }}
+                                            headerMessage={headerMessage}
+                                            disableArrowKeysActions
+                                            hideAdditionalOptionStates
+                                            forceTextUnreadStyle
+                                            shouldFocusOnSelectRow
                                         />
                                     </View>
+                                    {this.state.selectedOptions?.length > 0 && (
+                                        <FixedFooter>
+                                            <Button
+                                                success
+                                                onPress={this.createGroup}
+                                                style={[styles.w100]}
+                                                text={this.props.translate('newGroupPage.createGroup')}
+                                            />
+                                        </FixedFooter>
                                     )}
                                 </>
                             )}
                         </View>
-                        <KeyboardSpacer />
-                    </>
+                    </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>
         );
