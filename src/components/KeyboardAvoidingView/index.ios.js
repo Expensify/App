@@ -3,7 +3,7 @@
  * @param {Node}
  */
 import React from 'react';
-import {KeyboardAvoidingView as RNKeyboardAvoidingView} from 'react-native';
+import {KeyboardAvoidingView as KeyboardAvoidingViewComponent} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 
@@ -16,12 +16,12 @@ const defaultProps = {
 
 function KeyboardAvoidingView({children}) {
     return (
-        <RNKeyboardAvoidingView
+        <KeyboardAvoidingViewComponent
             behavior="padding"
             style={[styles.w100, styles.h100]}
         >
             {children}
-        </RNKeyboardAvoidingView>
+        </KeyboardAvoidingViewComponent>
     );
 }
 
