@@ -147,12 +147,6 @@ class ReportActionCompose extends React.Component {
                 end: props.comment.length,
             },
         };
-
-        // Keep track of selection for manual entry
-        this.selection = {
-            start: props.comment.length,
-            end: props.comment.length,
-        };
     }
 
     componentDidMount() {
@@ -174,7 +168,7 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        this.selection = e.nativeEvent.selection;
+        this.setState({selection: e.nativeEvent.selection});
     }
 
     /**
@@ -324,17 +318,16 @@ class ReportActionCompose extends React.Component {
      */
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
-        const newComment = this.comment.slice(0, this.selection.start)
-            + emoji + this.comment.slice(this.selection.end, this.comment.length);
+        const {selection} = this.state;
+        const newComment = this.comment.slice(0, selection.start)
+            + emoji + this.comment.slice(selection.end, this.comment.length);
         this.textInput.setNativeProps({
             text: newComment,
         });
         const updatedSelection = {
-            start: this.selection.start + emoji.length,
-            end: this.selection.start + emoji.length,
+            start: selection.start + emoji.length,
+            end: selection.start + emoji.length,
         };
-
-        // Update the selection on the Composer
         this.setState({selection: updatedSelection});
         this.updateComment(newComment);
         this.focus(true);
