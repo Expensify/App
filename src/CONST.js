@@ -161,6 +161,7 @@ const CONST = {
         TIMEZONE: 'timeZone',
         FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
+        VALIDATE_BANK_ACCOUNT_ATTEMPTS: 'expensify_validateBankAccountAttempts',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},

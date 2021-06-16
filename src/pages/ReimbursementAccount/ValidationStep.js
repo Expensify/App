@@ -46,16 +46,19 @@ class ValidationStep extends React.Component {
         const amount2 = this.filterInput(this.state.amount2);
         const amount3 = this.filterInput(this.state.amount3);
 
-        if (!amount1 || !amount2 || !amount3) {
+        // If amounts are all non-zeros, submit amounts to API
+        if (amount1, amount2, amount3) {
+            const validateCode = [amount1, amount2, amount3].join(',');
+
+            // Make a call to bankAccounts
+            validateBankAccount(this.props.achData.bankAccountID, validateCode);
+        } else {
+            // If any values are falsey, indicate to user that inputs are invalid
             this.setState({error: 'Invalid amounts'});
         }
-
-        const validateCode = [amount1, amount2, amount3].join(',');
-
-        // Make a call to bankAccounts
-        validateBankAccount(this.props.achData.bankAccountID, validateCode);
     }
 
+    // Filters inputs. Anything that isn't a number is returned as 0. Any dollar amount (e.g. 1.01 will be turned into 101)
     filterInput(amount) {
         let value = amount.trim();
         if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
