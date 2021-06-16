@@ -929,6 +929,13 @@ function GetCurrencyList() {
     return Mobile_GetConstants({data: ['currencyList']});
 }
 
+/**
+ * @returns {Promise}
+ */
+function User_IsUsingExpensifyCard() {
+    return Network.post('User_IsUsingExpensifyCard', {});
+}
+
 export {
     Authenticate,
     BankAccount_Create,
@@ -967,6 +974,7 @@ export {
     User_SignUp,
     User_GetBetas,
     User_IsFromPublicDomain,
+    User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
