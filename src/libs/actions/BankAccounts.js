@@ -518,9 +518,11 @@ function setupWithdrawalAccount(data) {
         newACHData.accountNumber = unmaskedAccount.accountNumber;
     }
 
+    console.log({reimbursementAccountInSetup});
+    console.log({newACHData});
     API.BankAccount_SetupWithdrawal(newACHData)
         .then((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, ...newACHData});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
 
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
@@ -608,7 +610,7 @@ function setupWithdrawalAccount(data) {
                     nextStep = getNextStepID();
                 }
             } else {
-                if (response.jsonCode === 666) {
+                if (response.jsonCode === 666 || response.jsonCode === 404) {
                     error = response.message;
                 }
                 if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {
