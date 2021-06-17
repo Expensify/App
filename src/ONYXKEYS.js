@@ -98,4 +98,8 @@ export default {
 
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
+
+    BANK_ACCOUNT_LIST: 'bankAccountList',
+
+    CARD_LIST: 'cardList',
 };
