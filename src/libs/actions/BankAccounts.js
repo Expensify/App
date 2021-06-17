@@ -310,17 +310,10 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
 }
 
 /**
- * Clear the reimbursement account in setup.
- */
-function clearFreePlanVerifiedBankAccount() {
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
-}
-
-/**
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  */
 function fetchFreePlanVerifiedBankAccount() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
     promiseAllSettled([
         API.Get({
             returnValueList: 'nameValuePairs',
@@ -634,7 +627,6 @@ export {
     activateWallet,
     fetchUserWallet,
     fetchFreePlanVerifiedBankAccount,
-    clearFreePlanVerifiedBankAccount,
     setupWithdrawalAccount,
     goToWithdrawalAccountSetupStep,
 };
