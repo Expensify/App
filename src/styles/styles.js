@@ -470,7 +470,7 @@ const styles = {
     },
 
     signInPageNarrowContentContainer: {
-        maxWidth: 400,
+        maxWidth: 295,
     },
 
     signInPageWideLeftContainer: {
@@ -484,8 +484,7 @@ const styles = {
     loginTermsText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+        fontSize: variables.fontSizeExtraSmall,
     },
 
     termsLink: {

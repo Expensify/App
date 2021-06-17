@@ -22,19 +22,32 @@ const SignInPageLayoutWide = props => (
     <View style={[styles.signInPageInner]}>
         <View style={[styles.flex1, styles.flexRow, styles.dFlex, styles.flexGrow1]}>
             <View style={[styles.signInPageWideLeftContainer, styles.dFlex, styles.flexColumn, styles.ph6]}>
-                <View style={[styles.flex1, styles.dFlex, styles.flexColumn, styles.mt40Percentage]}>
-                    <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
-                        <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
+                <View style={[
+                    styles.flex1,
+                    styles.dFlex,
+                    styles.flexColumn,
+                    styles.mt40Percentage,
+                    styles.signInPageFormContainer,
+                    styles.alignSelfCenter,
+                ]}
+                >
+                    <View style={[styles.flex1]}>
+                        <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
+                            <ExpensifyCashLogo
+                                width={variables.componentSizeLarge}
+                                height={variables.componentSizeLarge}
+                            />
+                        </View>
+                        <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                            {props.translate('welcomeText.phrase1')}
+                        </Text>
+                        <View>
+                            {props.children}
+                        </View>
                     </View>
-                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                        {props.translate('welcomeText.phrase1')}
-                    </Text>
-                    <View style={[styles.signInPageFormContainer]}>
-                        {props.children}
+                    <View style={[styles.mv5]}>
+                        <TermsAndLicenses />
                     </View>
-                </View>
-                <View style={[styles.mv5]}>
-                    <TermsAndLicenses />
                 </View>
             </View>
             <View style={[

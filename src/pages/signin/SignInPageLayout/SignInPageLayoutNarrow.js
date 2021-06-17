@@ -23,7 +23,8 @@ const SignInPageLayoutNarrow = props => (
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
             styles.flexGrow1,
-            styles.p8,
+            styles.pv8,
+            styles.mh5,
             styles.signInPageNarrowContentContainer,
             styles.alignSelfCenter,
         ]}
