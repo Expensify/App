@@ -27,7 +27,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
-import {getPolicySummaries} from '../../actions/Policy';
+import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
@@ -49,10 +49,10 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
-    BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
+    ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
-    BeneficialOwnersModalStackNavigator,
+    WorkspaceInviteModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -129,6 +129,7 @@ class AuthScreens extends React.Component {
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         getPolicySummaries();
+        getPolicyList();
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -283,17 +284,18 @@ class AuthScreens extends React.Component {
                     name="NewWorkspace"
                     options={modalScreenOptions}
                     component={NewWorkspaceStackNavigator}
-                />
-                <RootStack.Screen
-                    name="BusinessBankAccount"
-                    options={modalScreenOptions}
-                    component={BusinessBankAccountModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="BeneficialOwners"
+                    name="ReimbursementAccount"
                     options={modalScreenOptions}
-                    component={BeneficialOwnersModalStackNavigator}
+                    component={ReimbursementAccountModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="WorkspaceInvite"
+                    options={modalScreenOptions}
+                    component={WorkspaceInviteModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
