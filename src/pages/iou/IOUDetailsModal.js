@@ -18,7 +18,7 @@ import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
-import CreateMenu from '../../components/PopoverMenu';
+import PopoverMenu from '../../components/PopoverMenu';
 import isAppInstalled from '../../libs/isAppInstalled';
 import Button from '../../components/Button';
 import Permissions from '../../libs/Permissions';
@@ -249,7 +249,7 @@ class IOUDetailsModal extends Component {
                                     />
                                 )}
                                 {this.state.paymentOptions.length > 1 && (
-                                    <CreateMenu
+                                    <PopoverMenu
                                         isVisible={this.state.isSettlementMenuVisible}
                                         onClose={() => this.setMenuVisibility(false)}
                                         onItemSelected={() => this.setMenuVisibility(false)}
