@@ -489,6 +489,7 @@ const styles = {
 
     termsLink: {
         color: themeColors.link,
+        marginVertical: -2,
     },
 
     textMicroSupporting: {
