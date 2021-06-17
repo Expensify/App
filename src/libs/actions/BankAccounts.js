@@ -313,6 +313,8 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  */
 function fetchFreePlanVerifiedBankAccount() {
+    // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
+    // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
     promiseAllSettled([
         API.Get({
