@@ -274,6 +274,25 @@ function fetchUserWallet() {
         });
 }
 
+function validateBankAccountAttempts(bankAccountID) {
+    const name = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFACE + bankAccountID;
+    API.Get({
+        returnValueList: 'nameValuePairs',
+        name
+    })
+    .then((response) => {
+        if (response.jsonCode !== 200) {
+            return;
+        }
+
+        const validationAttempts = lodashGet(response, [
+                'value', 'nameValuePairs', name,
+            ], 0);
+
+        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {validationAttempts: validationAttempts})
+    })
+}
+
 let previousACHData = {};
 Onyx.connect({
     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

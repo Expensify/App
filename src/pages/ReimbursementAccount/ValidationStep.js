@@ -41,6 +41,10 @@ class ValidationStep extends React.Component {
         };
     }
 
+    componentDidMount() {
+        validateBankAccountAttempts(this.props.achData.bankAccountID);
+    }
+
     submit() {
         const amount1 = this.filterInput(this.state.amount1);
         const amount2 = this.filterInput(this.state.amount2);
