@@ -21,6 +21,9 @@ export default {
     // What the active route is for our navigator. Global route that determines what views to display.
     CURRENT_URL: 'currentURL',
 
+    // Stores current date
+    CURRENT_DATE: 'currentDate',
+
     // Currently viewed reportID
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
 
@@ -87,6 +90,9 @@ export default {
     // Indicates which locale should be used
     PREFERRED_LOCALE: 'preferredLocale',
 
+    // List of transactionIDs in process of rejection
+    TRANSACTIONS_BEING_REJECTED: 'transactionsBeingRejected',
+
     // User's Expensify Wallet
     USER_WALLET: 'userWallet',
 
@@ -102,4 +108,7 @@ export default {
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
     CARD_LIST: 'cardList',
+
+    // Stores information about the active reimbursement account being set up
+    REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 };

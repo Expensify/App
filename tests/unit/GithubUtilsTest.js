@@ -63,6 +63,7 @@ describe('GithubUtils', () => {
             tag: '1.0.1-47',
             title: 'Andrew Test Issue',
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
+            number: 29,
             deployBlockers: [],
         };
         const expectedResponseWithDeployBlockers = {...baseExpectedResponse};
@@ -141,103 +142,6 @@ describe('GithubUtils', () => {
             GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: []});
             return GithubUtils.getStagingDeployCash()
                 .catch(e => expect(e).toEqual(new Error('Unable to find StagingDeployCash issue.')));
-        });
-    });
-
-    describe('updateStagingDeployCash', () => {
-        test('successfully updates issue', () => {
-            const issueBefore = {
-                url: 'https://api.github.com/repos/Expensify/Expensify.cash/issues/29',
-                title: 'Test StagingDeployCash',
-                labels: [
-                    {
-                        id: 2783847782,
-                        node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
-                        url: 'https://api.github.com/repos/Expensify/Expensify.cash/labels/StagingDeployCash',
-                        name: 'StagingDeployCash',
-                        color: '6FC269',
-                        default: false,
-                        description: '',
-                    },
-                ],
-                // eslint-disable-next-line max-len
-                body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n',
-            };
-
-            GithubUtils.octokit.repos.listTags = jest.fn().mockResolvedValue({
-                data: [
-                    {name: '1.0.1-0'},
-                    {name: '1.0.1-47'},
-                    {name: '1.0.1-48'},
-                ],
-            });
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueBefore]});
-            GithubUtils.octokit.issues.update = jest.fn().mockImplementation(arg => Promise.resolve(arg));
-
-            return GithubUtils.updateStagingDeployCash(
-                '1.0.1-48',
-                [
-                    'https://github.com/Expensify/Expensify.cash/pull/24',
-                    'https://github.com/Expensify/Expensify.cash/pull/25',
-                ],
-                [
-                    'https://github.com/Expensify/Expensify.cash/issues/3',
-                    'https://github.com/Expensify/Expensify.cash/pull/4321',
-                ],
-            ).then((result) => {
-                expect(result).toStrictEqual({
-                    owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.EXPENSIFY_CASH_REPO,
-                    issue_number: 29,
-                    // eslint-disable-next-line max-len
-                    body: '**Release Version:** `1.0.1-48`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/24\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/25\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/3\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/4321\r\n\r\ncc @Expensify/applauseleads\r\n',
-                });
-            });
-        });
-
-        test('updates issue with just deploy blockers', () => {
-            const issueBefore = {
-                url: 'https://api.github.com/repos/Expensify/Expensify.cash/issues/29',
-                title: 'Test StagingDeployCash',
-                labels: [
-                    {
-                        id: 2783847782,
-                        node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
-                        url: 'https://api.github.com/repos/Expensify/Expensify.cash/labels/StagingDeployCash',
-                        name: 'StagingDeployCash',
-                        color: '6FC269',
-                        default: false,
-                        description: '',
-                    },
-                ],
-                // eslint-disable-next-line max-len
-                body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n',
-            };
-
-            GithubUtils.octokit.repos.listTags = jest.fn().mockResolvedValue({
-                data: [
-                    {name: '1.0.1-0'},
-                    {name: '1.0.1-47'},
-                    {name: '1.0.1-48'},
-                ],
-            });
-            GithubUtils.octokit.issues.listForRepo = jest.fn().mockResolvedValue({data: [issueBefore]});
-            GithubUtils.octokit.issues.update = jest.fn().mockImplementation(arg => Promise.resolve(arg));
-
-            return GithubUtils.updateStagingDeployCash(
-                undefined,
-                undefined,
-                ['https://github.com/Expensify/Expensify.cash/pull/24',
-                    'https://github.com/Expensify/Expensify.cash/issues/25'],
-            ).then((result) => {
-                expect(result).toStrictEqual({
-                    owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.EXPENSIFY_CASH_REPO,
-                    issue_number: 29,
-                    // eslint-disable-next-line max-len
-                    body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/24\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/25\r\n\r\ncc @Expensify/applauseleads\r\n',
-                });
-            });
         });
     });
 
@@ -321,34 +225,6 @@ describe('GithubUtils', () => {
                 expect(() => GithubUtils.getIssueOrPullRequestNumberFromURL(input))
                     .toThrow(new Error(`Provided URL ${input} is not a valid Github Issue or Pull Request!`));
             });
-        });
-    });
-
-    describe('createNewStagingDeployCash', () => {
-        test('Issue is successfully created', () => {
-            GithubUtils.octokit.repos.listTags = jest.fn().mockResolvedValue({data: [{name: '1.0.2-0'}]});
-            GithubUtils.octokit.issues.create = jest.fn().mockImplementation(arg => Promise.resolve(arg));
-
-            const title = 'Test StagingDeployCash title';
-            const tag = '1.0.2-12';
-            const PRList = [
-                'https://github.com/Expensify/Expensify.cash/pull/2',
-                'https://github.com/Expensify/Expensify.cash/pull/3',
-                'https://github.com/Expensify/Expensify.cash/pull/3',
-                'https://github.com/Expensify/Expensify.cash/pull/1',
-            ];
-            return GithubUtils.createNewStagingDeployCash(title, tag, PRList)
-                .then((newIssue) => {
-                    expect(newIssue).toStrictEqual({
-                        owner: GithubUtils.GITHUB_OWNER,
-                        repo: GithubUtils.EXPENSIFY_CASH_REPO,
-                        labels: ['StagingDeployCash'],
-                        assignees: ['applausebot'],
-                        title,
-                        // eslint-disable-next-line max-len
-                        body: `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/3\r\n\r\ncc @Expensify/applauseleads\r\n`,
-                    });
-                });
         });
     });
 

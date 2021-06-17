@@ -32,7 +32,6 @@ jobs:
         uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NEW_DEPLOY_BLOCKERS: ${{ env.DEPLOY_BLOCKER_URL }}
 
       - name: Give the issue/PR the Hourly, Engineering labels
         uses: andymckay/labeler@978f846c4ca6299fd136f465b42c5e87aca28cac
