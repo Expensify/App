@@ -138,7 +138,6 @@ function getSearchText(report, personalDetailList) {
         }
     }
 
-
     return _.unique(searchTerms).join(' ');
 }
 
