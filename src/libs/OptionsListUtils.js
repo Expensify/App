@@ -38,7 +38,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         if (!personalDetail) {
             personalDetail = {
-                login,
+                login: addSMSDomainIfPhoneNumber(login),
                 displayName: login,
                 avatar: getDefaultAvatar(login),
             };
@@ -142,7 +142,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
         .join(', ');
     return {
-        text: Str.removeSMSDomain(hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName),
+        text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login),
@@ -352,14 +352,11 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
             && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        // Phone number needs SMS domain to be a valid 'login', so add it here if appropriate
-        const login = addSMSDomainIfPhoneNumber(
-            // If the phone number doesn't have an international code then let's prefix it with the
-            // current user's international code based on their IP address.
-            (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
-                ? `+${countryCodeByIP}${searchValue}`
-                : searchValue
-        );
+        // If the phone number doesn't have an international code then let's prefix it with the
+        // current user's international code based on their IP address.
+        const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
+            ? `+${countryCodeByIP}${searchValue}`
+            : searchValue;
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
         userToInvite = createOption(userInvitePersonalDetails, null, draftComments, {
             showChatPreviewLine,
