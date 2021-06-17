@@ -8,6 +8,9 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
+    /** Style for wrapping View */
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     /** Callback fired when a field changes. Passes args as fieldName, val */
     onFieldChange: PropTypes.func.isRequired,
 
@@ -42,6 +45,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    style: {},
     values: {
         firstName: '',
         lastName: '',
@@ -55,13 +59,13 @@ const defaultProps = {
 };
 
 const IdentityForm = ({
-    translate, values, onFieldChange,
+    translate, values, onFieldChange, style,
 }) => {
     const {
         firstName, lastName, street, city, state, zipCode, dob, ssnLast4,
     } = values;
     return (
-        <>
+        <View style={style}>
             <View style={[styles.flexRow]}>
                 <View style={[styles.flex2, styles.mr2]}>
                     <TextInputWithLabel
@@ -118,7 +122,7 @@ const IdentityForm = ({
                 value={zipCode}
                 onChangeText={val => onFieldChange('zipCode', val)}
             />
-        </>
+        </View>
     );
 };
 
