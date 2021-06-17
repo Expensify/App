@@ -315,6 +315,7 @@ class GithubUtils {
         return this.octokit.pulls.list({
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
+            state: 'all',
             per_page: 100,
         })
             .then(({data}) => {
