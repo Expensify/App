@@ -220,11 +220,11 @@ export default {
         openJobs: 'open jobs',
         heroHeading: 'Split bills\nand chat with friends.',
         heroDescription: {
-            phase1: 'Money talks. And now that chat and payments are in one place, it\'s also easy. Your payments get to you as fast as you can get your point across.',
-            phase2: 'Expensify.cash is open source. View',
-            phase3: 'the code',
-            phase4: 'View',
-            phase5: 'open jobs',
+            phrase1: 'Money talks. And now that chat and payments are in one place, it\'s also easy. Your payments get to you as fast as you can get your point across.',
+            phrase2: 'Expensify.cash is open source. View',
+            phrase3: 'the code',
+            phrase4: 'View',
+            phrase5: 'open jobs',
         },
     },
     termsOfUse: {
