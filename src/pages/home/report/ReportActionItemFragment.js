@@ -56,7 +56,7 @@ class ReportActionItemFragment extends React.PureComponent {
                             debug={false}
                         />
                     ) : (
-                        <Text selectable>
+                        <Text >
                             {Str.htmlDecode(fragment.text)}
                             {fragment.isEdited && (
                             <Text
