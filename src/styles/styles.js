@@ -487,6 +487,10 @@ const styles = {
         lineHeight: 16,
     },
 
+    termsLink: {
+        marginVertical: -4,
+    },
+
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,
