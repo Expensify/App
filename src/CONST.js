@@ -48,6 +48,7 @@ const CONST = {
             IBAN: /^[A-Za-z0-9]{2,30}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
+        VERIFICATION_MAX_ATTEMPTS: 7,
     },
     BETAS: {
         ALL: 'all',

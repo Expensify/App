@@ -134,6 +134,9 @@ class ReimbursementAccountPage extends React.Component {
             }
         }
 
+        const failedValidationAttempts = lodashGet(this.props, 'reimbursementAccount.failedValidationAttempts');
+        const maxAttemptsReached = failedValidationAttempts > CONST.BANK_ACCOUNT.VERIFICATION_MAX_ATTEMPTS;
+
         // We grab the currentStep from the achData to determine which view to display. The SetupWithdrawalAccount flow
         // allows us to continue the flow from various points depending on where the user left off. We can also
         // specify a specific step to navigate to by using route params.
@@ -155,6 +158,7 @@ class ReimbursementAccountPage extends React.Component {
                 {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
                     <ValidationStep
                         achData={this.props.reimbursementAccount.achData}
+                        maxAttemptsReached={maxAttemptsReached}
                     />
                 )}
             </ScreenWrapper>

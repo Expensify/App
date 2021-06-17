@@ -274,25 +274,6 @@ function fetchUserWallet() {
         });
 }
 
-function validateBankAccountAttempts(bankAccountID) {
-    const name = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFACE + bankAccountID;
-    API.Get({
-        returnValueList: 'nameValuePairs',
-        name
-    })
-    .then((response) => {
-        if (response.jsonCode !== 200) {
-            return;
-        }
-
-        const validationAttempts = lodashGet(response, [
-                'value', 'nameValuePairs', name,
-            ], 0);
-
-        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {validationAttempts: validationAttempts})
-    })
-}
-
 let previousACHData = {};
 Onyx.connect({
     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
@@ -333,115 +314,129 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
  */
 function fetchFreePlanVerifiedBankAccount() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
-    promiseAllSettled([
-        API.Get({
-            returnValueList: 'nameValuePairs',
-            name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
-        }),
-        API.Get({
-            returnValueList: 'nameValuePairs',
-            name: 'expensify_migration_2020_04_28_RunKycVerifications',
-        }),
-        API.Get({
-            returnValueList: 'nameValuePairs',
-            name: CONST.NVP.ACH_DATA_THROTTLED,
-        }),
-        API.Get({returnValueList: 'bankAccountList'}),
-    ])
-        .then(([
-            freePlanBankAccountIDResponse,
-            kycVerificationsMigrationResponse,
-            achDataThrottledResponse,
-            bankAccountListResponse,
-        ]) => {
-            const bankAccountID = lodashGet(freePlanBankAccountIDResponse, [
-                'value', 'nameValuePairs', CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
+    let bankAccountID;
+    let failedValidationAttemptsName;
+
+    API.Get({
+        returnValueList: 'nameValuePairs',
+        name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
+    })
+        .then((response) => {
+            bankAccountID = lodashGet(response, ['nameValuePairs', CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
             ], '');
-            const kycVerificationsMigration = lodashGet(kycVerificationsMigrationResponse, [
-                'value', 'nameValuePairs', 'expensify_migration_2020_04_28_RunKycVerifications',
-            ], '');
-            const throttledDate = lodashGet(achDataThrottledResponse, [
-                'value', 'nameValuePairs', CONST.NVP.ACH_DATA_THROTTLED,
-            ], '');
-            const bankAccountJSON = _.find(
-                lodashGet(bankAccountListResponse, ['value', 'bankAccountList'], []), account => (
-                    account.bankAccountID === bankAccountID
-                ),
-            );
-            const bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
+            failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFACE + bankAccountID;
 
-            // Next we'll build the achData and save it to Onyx
-            // If the user is already setting up a bank account we will continue the flow for them
-            let currentStep = previousACHData.currentStep;
-            const achData = bankAccount ? bankAccount.toACHData() : {};
-            achData.useOnfido = true;
-            achData.policyID = '';
-            achData.isInSetup = !bankAccount || bankAccount.isInSetup();
-            achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
-            achData.domainLimit = 0;
-            achData.isDomainUsingExpensifyCard = false; // @TODO - Not actually sure if we need this
+            // Now that we have the bank account. Lets grab the rest of the bank info we need
+            promiseAllSettled([
+                API.Get({
+                    returnValueList: 'nameValuePairs',
+                    name: failedValidationAttemptsName,
+                }),
+                API.Get({
+                    returnValueList: 'nameValuePairs',
+                    name: 'expensify_migration_2020_04_28_RunKycVerifications',
+                }),
+                API.Get({
+                    returnValueList: 'nameValuePairs',
+                    name: CONST.NVP.ACH_DATA_THROTTLED,
+                }),
+                API.Get({returnValueList: 'bankAccountList'}),
+            ])
+                .then(([
+                    failedValidationAttemptsResponse,
+                    kycVerificationsMigrationResponse,
+                    achDataThrottledResponse,
+                    bankAccountListResponse,
+                ]) => {
+                    const failedValidationAttempts = lodashGet(failedValidationAttemptsResponse, [
+                        'value', 'nameValuePairs', failedValidationAttemptsResponse,
+                    ], 0);
+                    const kycVerificationsMigration = lodashGet(kycVerificationsMigrationResponse, [
+                        'value', 'nameValuePairs', 'expensify_migration_2020_04_28_RunKycVerifications',
+                    ], '');
+                    const throttledDate = lodashGet(achDataThrottledResponse, [
+                        'value', 'nameValuePairs', CONST.NVP.ACH_DATA_THROTTLED,
+                    ], '');
+                    const bankAccountJSON = _.find(
+                        lodashGet(bankAccountListResponse, ['value', 'bankAccountList'], []), account => (
+                            account.bankAccountID === bankAccountID
+                        ),
+                    );
+                    const bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
 
-            // @TODO This subStep is used to either show the Plaid "login" view or the "manual" view - but not sure if
-            // we need to implement it yet...
-            // eslint-disable-next-line max-len
-            // See Web-Secure: https://github.com/Expensify/Web-Expensify/blob/896941794f68d7dce64466d83a3e86a5f8122e45/site/app/settings/reimbursement/bankAccountView.jsx#L356-L357
-            achData.subStep = '';
+                    // Next we'll build the achData and save it to Onyx
+                    // If the user is already setting up a bank account we will continue the flow for them
+                    let currentStep = previousACHData.currentStep;
+                    const achData = bankAccount ? bankAccount.toACHData() : {};
+                    achData.useOnfido = true;
+                    achData.policyID = '';
+                    achData.isInSetup = !bankAccount || bankAccount.isInSetup();
+                    achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
+                    achData.domainLimit = 0;
+                    achData.isDomainUsingExpensifyCard = false; // @TODO - Not actually sure if we need this
 
-            // If we're not in setup, it means we already have a withdrawal account and we're upgrading it to a business
-            // bank account. So let the user review all steps with all info prefilled and editable, unless a specific
-            // step was passed.
-            if (!achData.isInSetup) {
-                // @TODO Not sure if we need to do this since for NewDot none of the accounts are pre-existing ones
-                currentStep = '';
-            }
+                    // @TODO This subStep is used to either show the Plaid "login" view or the "manual" view - but not sure if
+                    // we need to implement it yet...
+                    // eslint-disable-next-line max-len
+                    // See Web-Secure: https://github.com/Expensify/Web-Expensify/blob/896941794f68d7dce64466d83a3e86a5f8122e45/site/app/settings/reimbursement/bankAccountView.jsx#L356-L357
+                    achData.subStep = '';
 
-            // Temporary fix for Onfido flow. Can be removed by nkuoch after Sept 1 2020.
-            // @TODO not sure if we still need this or what this is about, but seems like maybe yes...
-            if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && achData.useOnfido) {
-                const onfidoResponse = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO);
-                const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
-                if (sdkToken && !achData.isOnfidoSetupComplete
-                    && onfidoResponse.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
-                ) {
-                    currentStep = CONST.BANK_ACCOUNT.STEP.REQUESTOR;
-                }
-            }
-
-            // Ensure we route the user to the correct step based on the status of their bank account
-            if (bankAccount && !currentStep) {
-                currentStep = bankAccount.isPending() || bankAccount.isVerifying()
-                    ? CONST.BANK_ACCOUNT.STEP.VALIDATION
-                    : CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-
-                // @TODO Again, not sure how much of this logic is needed right now as we shouldn't be handling any
-                // open accounts in E.cash yet that need to pass any more checks or can be upgraded, but leaving in for
-                // possible future compatibility.
-                if (bankAccount.isOpen()) {
-                    if (bankAccount.needsToPassLatestChecks()) {
-                        const hasTriedToUpgrade = bankAccount.getDateSigned()
-                            > (kycVerificationsMigration || '2020-01-13');
-                        currentStep = hasTriedToUpgrade
-                            ? CONST.BANK_ACCOUNT.STEP.VALIDATION : CONST.BANK_ACCOUNT.STEP.COMPANY;
-                        achData.bankAccountInReview = hasTriedToUpgrade;
-                    } else {
-                        // In Expensify.cash we do not show a specific view for the EnableStep since we will enable the
-                        // Expensify card automatically. However, we will still handle that step and show the Validate
-                        // view.
-                        currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
+                    // If we're not in setup, it means we already have a withdrawal account and we're upgrading it to a business
+                    // bank account. So let the user review all steps with all info prefilled and editable, unless a specific
+                    // step was passed.
+                    if (!achData.isInSetup) {
+                        // @TODO Not sure if we need to do this since for NewDot none of the accounts are pre-existing ones
+                        currentStep = '';
                     }
-                }
-            }
 
-            // If at this point we still don't have a current step, default to the BankAccountStep
-            if (!currentStep) {
-                currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-            }
+                    // Temporary fix for Onfido flow. Can be removed by nkuoch after Sept 1 2020.
+                    // @TODO not sure if we still need this or what this is about, but seems like maybe yes...
+                    if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && achData.useOnfido) {
+                        const onfidoResponse = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO);
+                        const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
+                        if (sdkToken && !achData.isOnfidoSetupComplete
+                            && onfidoResponse.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
+                        ) {
+                            currentStep = CONST.BANK_ACCOUNT.STEP.REQUESTOR;
+                        }
+                    }
 
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate});
-            goToWithdrawalAccountSetupStep(currentStep, achData);
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                    // Ensure we route the user to the correct step based on the status of their bank account
+                    if (bankAccount && !currentStep) {
+                        currentStep = bankAccount.isPending() || bankAccount.isVerifying()
+                            ? CONST.BANK_ACCOUNT.STEP.VALIDATION
+                            : CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+
+                        // @TODO Again, not sure how much of this logic is needed right now as we shouldn't be handling any
+                        // open accounts in E.cash yet that need to pass any more checks or can be upgraded, but leaving in for
+                        // possible future compatibility.
+                        if (bankAccount.isOpen()) {
+                            if (bankAccount.needsToPassLatestChecks()) {
+                                const hasTriedToUpgrade = bankAccount.getDateSigned()
+                                    > (kycVerificationsMigration || '2020-01-13');
+                                currentStep = hasTriedToUpgrade
+                                    ? CONST.BANK_ACCOUNT.STEP.VALIDATION : CONST.BANK_ACCOUNT.STEP.COMPANY;
+                                achData.bankAccountInReview = hasTriedToUpgrade;
+                            } else {
+                                // In Expensify.cash we do not show a specific view for the EnableStep since we will enable the
+                                // Expensify card automatically. However, we will still handle that step and show the Validate
+                                // view.
+                                currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
+                            }
+                        }
+                    }
+
+                    // If at this point we still don't have a current step, default to the BankAccountStep
+                    if (!currentStep) {
+                        currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+                    }
+
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate, failedValidationAttempts});
+                    goToWithdrawalAccountSetupStep(currentStep, achData);
+                })
+                .finally(() => {
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                });
         });
 }
 
