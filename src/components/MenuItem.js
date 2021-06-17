@@ -7,7 +7,6 @@ import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles
 import Icon from './Icon';
 import {ArrowRight} from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
-import variables from '../styles/variables';
 
 const propTypes = {
     /** Any additional styles to apply */
