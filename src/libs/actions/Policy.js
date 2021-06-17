@@ -1,11 +1,15 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import {GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge} from '../API';
+import {
+    GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge, Policy_Create,
+} from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import {formatPersonalDetails} from './PersonalDetails';
 import Growl from '../Growl';
 import CONST from '../../CONST';
 import {translate} from '../translate';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const allPolicies = {};
 Onyx.connect({
@@ -136,8 +140,35 @@ function invite(login, welcomeNote, policyID) {
         });
 }
 
+/**
+ * Merges the passed in login into the specified policy
+ *
+ * @param {String} name
+ */
+function create(name) {
+    Policy_Create({type: 'free', policyName: name})
+        .then((data) => {
+            if (data.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
+                Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.COLLECTION.POLICY + data.policyID, {
+                policyID: data.policyID,
+                type: data.policy.type,
+                name: data.policy.name,
+            });
+
+            Navigation.navigate(ROUTES.getWorkspaceRoute(data.policyID));
+        });
+}
+
 export {
     getPolicySummaries,
     getPolicyList,
     invite,
+    create,
 };
