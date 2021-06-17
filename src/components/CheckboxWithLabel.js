@@ -26,7 +26,7 @@ const defaultProps = {
 const CheckboxWithLabel = ({
     LabelComponent, isChecked, onPress, style,
 }) => {
-    const defaultStyles = [styles.flexRow];
+    const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(style) ? [...defaultStyles, ...style] : [...defaultStyles, style];
     return (
         <View style={wrapperStyles}>
