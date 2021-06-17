@@ -144,19 +144,19 @@ describe('createOrUpdateStagingDeployCash', () => {
 
         const currentOpenDeployBlockers = [
             {
-                url: 'https://github.com/Expensify/Expensify.cash/pull/6',
+                html_url: 'https://github.com/Expensify/Expensify.cash/pull/6',
                 number: 6,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
             },
             {
-                url: 'https://github.com/Expensify/Expensify.cash/issues/9',
+                html_url: 'https://github.com/Expensify/Expensify.cash/issues/9',
                 number: 9,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
             },
             {
-                url: 'https://github.com/Expensify/Expensify.cash/issues/10',
+                html_url: 'https://github.com/Expensify/Expensify.cash/issues/10',
                 number: 10,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -196,13 +196,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                         data: [
                             ...currentOpenDeployBlockers,
                             {
-                                url: 'https://github.com/Expensify/Expensify.cash/issues/11', // New
+                                html_url: 'https://github.com/Expensify/Expensify.cash/issues/11', // New
                                 number: 11,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                             {
-                                url: 'https://github.com/Expensify/Expensify.cash/issues/12', // New
+                                html_url: 'https://github.com/Expensify/Expensify.cash/issues/12', // New
                                 number: 12,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -246,13 +246,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                         data: [
                             ...currentOpenDeployBlockers,
                             {
-                                url: 'https://github.com/Expensify/Expensify.cash/issues/11', // New
+                                html_url: 'https://github.com/Expensify/Expensify.cash/issues/11', // New
                                 number: 11,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                             {
-                                url: 'https://github.com/Expensify/Expensify.cash/issues/12', // New
+                                html_url: 'https://github.com/Expensify/Expensify.cash/issues/12', // New
                                 number: 12,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
