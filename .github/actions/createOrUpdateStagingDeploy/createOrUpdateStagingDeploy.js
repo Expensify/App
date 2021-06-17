@@ -71,7 +71,7 @@ const run = function () {
                 //  then we should close / remove the DeployBlockerCash label from those
                 return GithubUtils.generateStagingDeployCashBody(
                     newVersion,
-                    _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber)
+                    _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber),
                 );
             }
 
