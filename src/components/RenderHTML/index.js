@@ -17,7 +17,7 @@ import ThumbnailImage from '../ThumbnailImage';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import Text from '../Text';
-import renderHTMLpropTypes from './renderHTMLPropTypes'; 
+import renderHTMLpropTypes from './renderHTMLPropTypes';
 
 const defaultProps = {
     debug: false,
@@ -222,6 +222,5 @@ const RenderHTML = ({html, debug = false}) => {
 RenderHTML.displayName = 'RenderHTML';
 RenderHTML.propTypes = renderHTMLpropTypes;
 RenderHTML.defaultProps = defaultProps;
-};
 
 export default RenderHTML;
