@@ -341,7 +341,7 @@ class GithubUtils {
                 let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n`;
 
                 // PR list
-                if (!_.isEmpty(PRList)) {
+                if (!_.isEmpty(sortedPRList)) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     _.each(sortedPRList, (URL) => {
                         issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';
