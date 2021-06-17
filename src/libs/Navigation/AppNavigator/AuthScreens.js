@@ -27,7 +27,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
-import {getPolicySummaries} from '../../actions/Policy';
+import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 
@@ -49,8 +49,10 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
-    BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
+    ReimbursementAccountModalStackNavigator,
+    NewWorkspaceStackNavigator,
+    WorkspaceInviteModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -73,11 +75,11 @@ Onyx.connect({
 const RootStack = createCustomModalStackNavigator();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
-// that depends on modal visibility until Modal is completely closed or its transition has ended
-// When modal screen is focused and animation transition is ended, update modal visibility in Onyx
+// that depends on modal visibility until Modal is completely closed and its focused
+// When modal screen is focused, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
 const modalScreenListeners = {
-    transitionEnd: () => {
+    focus: () => {
         setModalVisibility(true);
     },
     beforeRemove: () => {
@@ -121,11 +123,13 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
+        User.getPublicDomainInfo();
         PersonalDetails.fetchCurrencyPreferences();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         getPolicySummaries();
+        getPolicyList();
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -277,9 +281,21 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="BusinessBankAccount"
+                    name="NewWorkspace"
                     options={modalScreenOptions}
-                    component={BusinessBankAccountModalStackNavigator}
+                    component={NewWorkspaceStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="ReimbursementAccount"
+                    options={modalScreenOptions}
+                    component={ReimbursementAccountModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="WorkspaceInvite"
+                    options={modalScreenOptions}
+                    component={WorkspaceInviteModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
