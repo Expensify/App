@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
@@ -14,6 +14,8 @@ import Navigation from '../../libs/Navigation/Navigation';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
+import CONST from '../../CONST';
+import ImageView from '../../components/ImageView';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -130,7 +132,15 @@ class ValidationStep extends React.Component {
                 {state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.m5, styles.flex1]}>
                         <Text style={[styles.mh5, styles.mb5]}>
-                            POOP
+                            <ImageView
+                                resizeMode="contain"
+                                style={[styles.mh5, styles.mb5]}
+                                url={`${CONST.CLOUDFRONT_URL}/icons/emptystates/emptystate_reviewing.gif`}
+                            />
+                            <Image
+                                style={[styles.mh5, styles.mb5]}
+                                source={{uri: `${CONST.CLOUDFRONT_URL}/icons/emptystates/emptystate_reviewing.gif`}}
+                            />
                         </Text>
                     </View>
                 )}
