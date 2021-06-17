@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -15,6 +16,7 @@ import TextLink from '../../components/TextLink';
 import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import Growl from '../../libs/Growl';
 
 class CompanyStep extends React.Component {
     constructor(props) {
@@ -23,30 +25,35 @@ class CompanyStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            companyName: '',
-            addressStreet: '',
-            addressCity: '',
-            addressState: '',
-            addressZipCode: '',
-            companyPhone: '',
-            website: '',
-            companyTaxID: '',
-            incorporationType: '',
-            incorporationDate: '',
-            incorporationState: '',
-            industryCode: '',
+            companyName: lodashGet(props, ['achData', 'companyName'], ''),
+            addressStreet: lodashGet(props, ['achData', 'addressStreet'], ''),
+            addressCity: lodashGet(props, ['achData', 'addressCity'], ''),
+            addressState: lodashGet(props, ['achData', 'addressState'], ''),
+            addressZipCode: lodashGet(props, ['achData', 'addressZipCode'], ''),
+            companyPhone: lodashGet(props, ['achData', 'companyPhone'], ''),
+            website: lodashGet(props, ['achData', 'website'], ''),
+            companyTaxID: lodashGet(props, ['achData', 'companyTaxID'], ''),
+            incorporationType: lodashGet(props, ['achData', 'incorporationType'], ''),
+            incorporationDate: lodashGet(props, ['achData', 'incorporationDate'], ''),
+            incorporationState: lodashGet(props, ['achData', 'incorporationState'], ''),
+            industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
+            hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
-            hasNoConnectionToCannabis: false,
         };
     }
 
     validate() {
+        // @TODO check more than just the password
+        if (!this.state.password.trim()) {
+            Growl.show(this.props.translate('common.passwordCannotBeBlank'), CONST.GROWL.ERROR);
+            return false;
+        }
+
         return true;
     }
 
     submit() {
         if (!this.validate()) {
-            // @Todo implement and show any errors
             return;
         }
 
@@ -54,6 +61,8 @@ class CompanyStep extends React.Component {
     }
 
     render() {
+        const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
+        const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
         return (
             <>
                 <HeaderWithCloseButton
@@ -72,6 +81,7 @@ class CompanyStep extends React.Component {
                             containerStyles={[styles.mt4]}
                             onChangeText={companyName => this.setState({companyName})}
                             value={this.state.companyName}
+                            disabled={shouldDisableCompanyName}
                         />
                         <TextInputWithLabel
                             label={this.props.translate('common.companyAddressNoPO')}
@@ -120,6 +130,7 @@ class CompanyStep extends React.Component {
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                             onChangeText={companyTaxID => this.setState({companyTaxID})}
                             value={this.state.companyTaxID}
+                            disabled={shouldDisableCompanyTaxID}
                         />
                         <Text style={[styles.formLabel, styles.mt4]}>
                             {this.props.translate('companyStep.companyType')}

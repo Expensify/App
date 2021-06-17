@@ -363,11 +363,9 @@ function fetchFreePlanVerifiedBankAccount() {
             achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
             achData.domainLimit = 0;
 
-            // @TODO This subStep is used to either show the Plaid "login" view or the "manual" view - but not sure if
-            // we need to implement it yet...
-            // eslint-disable-next-line max-len
-            // See Web-Secure: https://github.com/Expensify/Web-Expensify/blob/896941794f68d7dce64466d83a3e86a5f8122e45/site/app/settings/reimbursement/bankAccountView.jsx#L356-L357
-            achData.subStep = '';
+            // If the bank account has already been created in the db and is not yet open let's show the manual form
+            // with the previously added values
+            achData.subStep = bankAccount && bankAccount.isInSetup() && CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
 
             // If we're not in setup, it means we already have a withdrawal account and we're upgrading it to a business
             // bank account. So let the user review all steps with all info prefilled and editable, unless a specific

@@ -47,6 +47,7 @@ export default {
         isRequiredField: 'is a required field',
         whatThis: 'What\'s this?',
         invite: 'Invite',
+        passwordCannotBeBlank: 'Password cannot be blank',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -269,7 +270,6 @@ export default {
         getMeOutOfHere: 'Get me out of here',
     },
     setPasswordPage: {
-        passwordCannotBeBlank: 'Password cannot be blank',
         enterPassword: 'Enter a password',
         confirmNewPassword: 'Confirm the password',
         setPassword: 'Set Password',
