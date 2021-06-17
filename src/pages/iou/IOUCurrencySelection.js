@@ -17,7 +17,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
-import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 
