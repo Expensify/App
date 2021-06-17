@@ -1094,8 +1094,8 @@ function deleteReportComment(reportID, reportAction) {
                         // Find last non-empty message
                         const lastReportAction = !_.isEmpty(reportActionList)
                             ? _.find(Object.values(reportActionList).reverse(),
-                                reportActionItem => _.last(reportActionItem.message).html !== ''
-                                && reportActionItem.actionName !== 'CREATED')
+                                ({message, actionName}) => _.last(message).html !== ''
+                                && actionName !== 'CREATED')
                             : null;
 
                         // Populate last message details
