@@ -269,10 +269,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
             return;
         }
-        console.log(report.chatType);
-        if (isDefaultRoom(report.chatType) && !Permissions.canUseDefaultRooms(betas)) {
+
+        const chatType = lodashGet(report, ['chatType'], '');
+        if (isDefaultRoom(chatType) && !Permissions.canUseDefaultRooms(betas)) {
             return;
         }
+
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
