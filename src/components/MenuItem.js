@@ -7,6 +7,7 @@ import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles
 import Icon from './Icon';
 import {ArrowRight} from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Any additional styles to apply */
@@ -30,6 +31,9 @@ const propTypes = {
 
     // Overrides the icon for shouldShowRightIcon
     iconRight: PropTypes.elementType,
+
+    /** If true, the icon will appear larger and have a circular grey background with a white fill */
+    emphasizeIcon: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -38,6 +42,7 @@ const defaultProps = {
     success: false,
     icon: undefined,
     iconRight: ArrowRight,
+    emphasizeIcon: false,
 };
 
 const MenuItem = ({
@@ -48,6 +53,7 @@ const MenuItem = ({
     shouldShowRightIcon,
     wrapperStyle,
     success,
+    emphasizeIcon,
 }) => (
     <Pressable
         onPress={onPress}
@@ -61,8 +67,16 @@ const MenuItem = ({
             <>
                 <View style={styles.flexRow}>
                     {icon && (
-                        <View style={styles.createMenuIcon}>
-                            <Icon src={icon} fill={getIconFillColor(getButtonState(hovered, pressed, success))} />
+                        <View
+                            style={[
+                                styles.createMenuIcon,
+                                emphasizeIcon ? styles.createMenuIconEmphasized : undefined,
+                            ]}
+                        >
+                            <Icon
+                                src={icon}
+                                fill={getIconFillColor(getButtonState(hovered, pressed, success), emphasizeIcon)}
+                            />
                         </View>
                     )}
                     <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>

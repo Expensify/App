@@ -12,18 +12,20 @@ import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import {
+    Building,
     Gear,
+    Info,
     Lock,
     Profile,
-    Wallet,
     SignOut,
-    Info,
+    Wallet,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -49,6 +51,21 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** The list of this user's policies */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The ID of the policy */
+        ID: PropTypes.string,
+
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
+
+        /** The user's role in the policy */
+        role: PropTypes.string,
+    })),
+
     ...withLocalizePropTypes,
 };
 
@@ -56,9 +73,10 @@ const defaultProps = {
     myPersonalDetails: {},
     network: {},
     session: {},
+    policies: {},
 };
 
-const menuItems = [
+const defaultMenuItems = [
     {
         translationKey: 'common.profile',
         icon: Profile,
@@ -95,14 +113,34 @@ const InitialSettingsPage = ({
     myPersonalDetails,
     network,
     session,
+    policies,
     translate,
 }) => {
+    console.log('RORY_DEBUG policies prop;', policies);
+
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
     if (_.isEmpty(myPersonalDetails)) {
         return null;
     }
+
+    // Add free policies (workspaces) to the list of menu items
+    const workspaceMenuItems = _.chain(policies)
+        .filter(policy => (
+            !_.isEmpty(policy)
+            && policy.type === CONST.POLICY.TYPE.FREE
+            && policy.role === CONST.POLICY.ROLE.ADMIN
+        ))
+        .map(policy => ({
+            title: policy.name,
+            icon: Building,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceRoute(policy.ID)),
+            emphasizeIcon: true,
+        }))
+        .value();
+    const menuItems = [].concat(workspaceMenuItems, defaultMenuItems);
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -133,15 +171,19 @@ const InitialSettingsPage = ({
                             </Text>
                         )}
                     </View>
-                    {menuItems.map(item => (
-                        <MenuItem
-                            key={item.translationKey}
-                            title={translate(item.translationKey)}
-                            icon={item.icon}
-                            onPress={item.action}
-                            shouldShowRightIcon
-                        />
-                    ))}
+                    {menuItems.map((item) => {
+                        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                        return (
+                            <MenuItem
+                                key={keyTitle}
+                                title={keyTitle}
+                                icon={item.icon}
+                                onPress={item.action}
+                                emphasizeIcon={item.emphasizeIcon}
+                                shouldShowRightIcon
+                            />
+                        );
+                    })}
                 </View>
             </ScrollView>
         </ScreenWrapper>
@@ -163,6 +205,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(InitialSettingsPage);

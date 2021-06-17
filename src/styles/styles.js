@@ -594,6 +594,11 @@ const styles = {
         alignItems: 'center',
     },
 
+    createMenuIconEmphasized: {
+        backgroundColor: themeColors.icon,
+        borderRadius: variables.componentSizeLarge / 2,
+    },
+
     createMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
@@ -1778,9 +1783,10 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  * Generate fill color of an icon based on its state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
+ * @param {Boolean} [reversed]
  * @returns {Object}
  */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, reversed = false) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.HOVERED:
             return themeColors.text;
@@ -1790,7 +1796,7 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
             return themeColors.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
         default:
-            return themeColors.icon;
+            return reversed ? themeColors.iconReversed : themeColors.icon;
     }
 }
 
