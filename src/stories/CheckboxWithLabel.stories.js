@@ -32,7 +32,7 @@ WithLabelComponent.args = {
     LabelComponent: () => (
         <>
             <Text style={[styles.textLarge]}>Test</Text>
-            <Text style={[styles.textMicroBold]}>Test</Text>
+            <Text style={[styles.textMicroBold]}> Test </Text>
             <Text style={[styles.textMicroSupporting]}>Test</Text>
         </>
     ),
