@@ -80,9 +80,9 @@ const run = function () {
             console.log('Parsed the following data from the current StagingDeployCash:', currentStagingDeployCashData);
             currentStagingDeployCashIssueNumber = currentStagingDeployCashData.number;
 
-            const newDeployBlockers = _.map(deployBlockerResponse.data, ({url}) => ({
-                url,
-                number: GithubUtils.getIssueOrPullRequestNumberFromURL(url),
+            const newDeployBlockers = _.map(deployBlockerResponse.data, ({html_url}) => ({
+                url: html_url,
+                number: GithubUtils.getIssueOrPullRequestNumberFromURL(html_url),
                 isResolved: false,
             }));
 
