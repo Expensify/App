@@ -142,8 +142,6 @@ class ReimbursementAccountPage extends React.Component {
         // We grab the currentStep from the achData to determine which view to display. The SetupWithdrawalAccount flow
         // allows us to continue the flow from various points depending on where the user left off. We can also
         // specify a specific step to navigate to by using route params.
-        // this.getStepToOpenFromRouteParams() <- @todo we need be able to determine when to use this value and when to
-        // refer to the achData...
         const currentStep = this.props.reimbursementAccount.achData.currentStep;
         return (
             <ScreenWrapper>
