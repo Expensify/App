@@ -21,6 +21,7 @@ import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 import EnablePaymentsPage from '../../../pages/EnablePayments';
 import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
+import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
 
@@ -164,6 +165,11 @@ const NewWorkspaceStackNavigator = createModalStackNavigator([{
     name: 'NewWorkspace_Root',
 }]);
 
+const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
+    Component: WorkspaceInvitePage,
+    name: 'WorkspaceInvite_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -178,4 +184,5 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
+    WorkspaceInviteModalStackNavigator,
 };
