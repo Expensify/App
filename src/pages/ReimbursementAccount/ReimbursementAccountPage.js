@@ -21,8 +21,8 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
-import ACHContractStep from './ACHContractStep';
 import ValidationStep from './ValidationStep';
+import BeneficialOwnersStep from './BeneficialOwnersStep';
 
 const propTypes = {
     /** List of betas */
@@ -138,7 +138,8 @@ class ReimbursementAccountPage extends React.Component {
         // We grab the currentStep from the achData to determine which view to display. The SetupWithdrawalAccount flow
         // allows us to continue the flow from various points depending on where the user left off. We can also
         // specify a specific step to navigate to by using route params.
-        const currentStep = this.getStepToOpenFromRouteParams() || this.props.reimbursementAccount.achData.currentStep;
+        const achData = this.props.reimbursementAccount.achData;
+        const currentStep = this.getStepToOpenFromRouteParams() || achData.currentStep;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -152,7 +153,7 @@ class ReimbursementAccountPage extends React.Component {
                         <RequestorStep />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
-                        <ACHContractStep />
+                        <BeneficialOwnersStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
                         <ValidationStep />
