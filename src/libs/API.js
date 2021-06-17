@@ -929,6 +929,17 @@ function GetCurrencyList() {
     return Mobile_GetConstants({data: ['currencyList']});
 }
 
+/**
+ * @param {object} parameters
+ * @param {string} [parameters.type]
+ * @param {string} [parameters.policyName]
+ * @returns {Promise}
+ */
+function Policy_Create(parameters) {
+    const commandName = 'Policy_Create';
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     BankAccount_Create,
@@ -978,4 +989,5 @@ export {
     Wallet_GetOnfidoSDKToken,
     GetPreferredCurrency,
     GetCurrencyList,
+    Policy_Create,
 };
