@@ -26,6 +26,19 @@ let preferredLocale;
 const defaultAvatarForUserToInvite = getDefaultAvatar();
 
 /**
+ * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
+ *
+ * @param {String} login
+ * @return {String}
+ */
+function addSMSDomainIfPhoneNumber(login) {
+    if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
+        return login + CONST.SMS.DOMAIN;
+    }
+    return login;
+}
+
+/**
  * Returns the personal details for an array of logins
  *
  * @param {Array} logins
@@ -97,20 +110,6 @@ function getSearchText(report, personalDetailList) {
     }
 
     return _.unique(searchTerms).join(' ');
-}
-
-/**
- * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
- * 
- * @param {String} login
- * @return {String}
- */
-function addSMSDomainIfPhoneNumber(login) {
-    if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
-        return login + CONST.SMS.DOMAIN;
-    } else {
-        return login;
-    }
 }
 
 /**
