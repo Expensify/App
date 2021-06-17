@@ -42,7 +42,16 @@ class RequestorStep extends React.Component {
                     <View style={[styles.p4]}>
                         <IdentityForm
                             onFieldChange={(field, value) => this.setState({[field]: value})}
-                            values={this.state}
+                            values={{
+                                firstName: this.state.firstName,
+                                lastName: this.state.lastName,
+                                street: this.state.street,
+                                city: this.state.city,
+                                state: this.state.state,
+                                zipCode: this.state.zipCode,
+                                dob: this.state.dob,
+                                ssnLast4: this.state.ssnLast4,
+                            }}
                         />
                         <CheckboxWithLabel
                             isChecked={false}
