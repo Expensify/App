@@ -370,11 +370,8 @@ export default {
         new: {
             welcome: 'Welcome',
             chooseAName: 'Choose a name',
-            helpText: 'Need help getting setup? Request a call below and we’ll have someone reach out to you.',
+            helpText: 'Name your Workspace before enabling your Expensify Cards!',
             getStarted: 'Get started!',
-            editPhoto: 'Edit Photo',
-            uploadPhoto: 'Upload Photo',
-            requestCall: 'Request a call',
         },
         invite: {
             invitePeople: 'Invite People',
