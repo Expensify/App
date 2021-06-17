@@ -13,6 +13,7 @@ import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-ava
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
 import compose from '../../libs/compose';
+import {create} from '../../libs/actions/Policy';
 
 
 const propTypes = {
@@ -29,6 +30,13 @@ class NewWorkspacePage extends React.Component {
         this.state = {
             name: '',
         };
+
+        this.submit = this.submit.bind(this);
+    }
+
+    submit() {
+        const name = this.state.name.trim();
+        create(name);
     }
 
     render() {
@@ -56,7 +64,12 @@ class NewWorkspacePage extends React.Component {
                         <Text style={[styles.mt6, styles.textP]}>{this.props.translate('workspace.new.helpText')}</Text>
                     </View>
 
-                    <Button success style={[styles.w100]} text={this.props.translate('workspace.new.getStarted')} />
+                    <Button
+                        success
+                        style={[styles.w100]}
+                        text={this.props.translate('workspace.new.getStarted')}
+                        onPress={this.submit}
+                    />
                 </View>
             </ScreenWrapper>
         );
