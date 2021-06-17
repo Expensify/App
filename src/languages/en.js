@@ -17,6 +17,7 @@ export default {
         password: 'Password',
         profile: 'Profile',
         payments: 'Payments',
+        payPalMe: 'PayPal.me',
         preferences: 'Preferences',
         view: 'View',
         not: 'Not',
@@ -207,7 +208,7 @@ export default {
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
         confirmNewPassword: 'Confirm New Password',
     },
-    paymentsPage: {
+    addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
