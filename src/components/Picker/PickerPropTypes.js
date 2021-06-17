@@ -1,4 +1,7 @@
+import React from 'react';
 import PropTypes from 'prop-types';
+import Icon from '../Icon';
+import {DownArrow} from '../Icon/Expensicons';
 
 const propTypes = {
     /** A callback method that is called when the value changes and it received the selected value as an argument */
@@ -32,13 +35,14 @@ const propTypes = {
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** An icon to display with the picker */
-    icon: PropTypes.func.isRequired,
+    icon: PropTypes.func,
 };
 const defaultProps = {
     useDisabledStyles: false,
     disabled: false,
     placeholder: {},
     value: null,
+    icon: () => <Icon src={DownArrow} />,
 };
 
 export {
