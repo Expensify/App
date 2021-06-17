@@ -17,7 +17,7 @@ const TermsWithLicenses = ({translate}) => (
                     {translate('termsOfUse.phrase1')}
                     {' '}
                 </Text>
-                <TextLink style={[styles.loginTermsText, {marginVertical: -4}]} href={CONST.TERMS_URL}>
+                <TextLink style={[styles.loginTermsText, styles.termsLink]} href={CONST.TERMS_URL}>
                     {translate('termsOfUse.phrase2')}
                 </TextLink>
                 <Text style={[styles.loginTermsText]}>
@@ -25,7 +25,7 @@ const TermsWithLicenses = ({translate}) => (
                     {translate('termsOfUse.phrase3')}
                     {' '}
                 </Text>
-                <TextLink style={[styles.loginTermsText, {marginVertical: -4}]} href={CONST.PRIVACY_URL}>
+                <TextLink style={[styles.loginTermsText, styles.termsLink]} href={CONST.PRIVACY_URL}>
                     {translate('termsOfUse.phrase4')}
                 </TextLink>
                 <Text style={[styles.loginTermsText]}>.</Text>
@@ -37,7 +37,7 @@ const TermsWithLicenses = ({translate}) => (
                     {translate('termsOfUse.phrase5')}
                     {' '}
                 </Text>
-                <TextLink style={[styles.loginTermsText, {marginVertical: -4}]} href={CONST.LICENSES_URL}>
+                <TextLink style={[styles.loginTermsText, styles.termsLink]} href={CONST.LICENSES_URL}>
                     {translate('termsOfUse.phrase6')}
                 </TextLink>
                 <Text style={[styles.loginTermsText]}>.</Text>
