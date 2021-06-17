@@ -1,14 +1,15 @@
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 
 let encryptedAuthToken = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: session => encryptedAuthToken = session.encryptedAuthToken,
+    callback: session => encryptedAuthToken = lodashGet(session, 'encryptedAuthToken', ''),
 });
 
 /**
- * Add authToken to this attachment URL if necessary
+ * Add encryptedAuthToken to this attachment URL if necessary
  *
  * @param {String} url
  * @returns {String}
