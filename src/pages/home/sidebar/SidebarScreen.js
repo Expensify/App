@@ -138,7 +138,7 @@ class SidebarScreen extends Component {
                                 ...(Permissions.canUseFreePlan(this.props.betas) ? [
                                     {
                                         icon: NewWorkspace,
-                                        iconWidth: 44,
+                                        iconWidth: 46,
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),

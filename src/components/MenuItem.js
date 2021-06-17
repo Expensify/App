@@ -98,12 +98,7 @@ const MenuItem = ({
                 </View>
                 {shouldShowRightIcon && (
                 <View style={styles.createMenuIcon}>
-                    <Icon
-                        src={iconRight}
-                        width={iconWidth}
-                        height={iconHeight}
-                        fill={getIconFillColor(getButtonState(hovered, pressed))}
-                    />
+                    <Icon src={iconRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
                 </View>
                 )}
             </>
