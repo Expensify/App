@@ -1,6 +1,7 @@
+import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -12,6 +13,7 @@ import Text from '../../components/Text';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
+import {setLocale} from '../../libs/actions/App';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import Picker from '../../components/Picker';
@@ -28,15 +30,16 @@ const propTypes = {
         expensifyNewsStatus: PropTypes.bool,
     }),
 
-    ...withLocalizePropTypes,
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
 
-    // Indicates which locale the user currently has selected
-    preferredLocale: PropTypes.string.isRequired,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     user: {},
+    preferredLocale: CONST.DEFAULT_LOCALE,
 };
 
 const PreferencesPage = ({
@@ -112,7 +115,11 @@ const PreferencesPage = ({
                     </Text>
                     <View style={[styles.mb2]}>
                         <Picker
-                            onChange={locale => Onyx.merge(ONYXKEYS.PREFERRED_LOCALE, locale)}
+                            onChange={(locale) => {
+                                if (locale !== preferredLocale) {
+                                    setLocale(locale);
+                                }
+                            }}
                             items={Object.values(localesToLanguages)}
                             value={preferredLocale}
                         />
@@ -135,6 +142,9 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.PREFERRED_LOCALE,
         },
     }),
 )(PreferencesPage);
