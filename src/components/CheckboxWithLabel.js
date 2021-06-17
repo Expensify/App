@@ -43,11 +43,11 @@ const CheckboxWithLabel = ({
         <View style={wrapperStyles}>
             <Checkbox
                 isChecked={isChecked}
-                onPress={onPress}
+                onPress={() => onPress(!isChecked)}
                 label={label}
             />
             <TouchableOpacity
-                onPress={onPress}
+                onPress={() => onPress(!isChecked)}
                 style={[
                     styles.ml2,
                     styles.pr2,
@@ -58,11 +58,9 @@ const CheckboxWithLabel = ({
                 ]}
             >
                 {label && (
-                    <Pressable onPress={() => onPress(!isChecked)}>
-                        <Text style={[styles.ml2, styles.textP]}>
-                            {label}
-                        </Text>
-                    </Pressable>
+                    <Text style={[styles.ml2, styles.textP]}>
+                        {label}
+                    </Text>
                 )}
                 {LabelComponent && (<LabelComponent />)}
             </TouchableOpacity>
