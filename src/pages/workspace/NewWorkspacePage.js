@@ -15,7 +15,7 @@ import Button from '../../components/Button';
 import AttachmentPicker from '../../components/AttachmentPicker';
 import Icon from '../../components/Icon';
 import {DownArrow, Upload} from '../../components/Icon/Expensicons';
-import CreateMenu from '../../components/PopoverMenu';
+import PopoverMenu from '../../components/PopoverMenu';
 import Switch from '../../components/Switch';
 import compose from '../../libs/compose';
 
@@ -100,7 +100,7 @@ class NewWorkspacePage extends React.Component {
                                         </View>
                                     )}
                                 />
-                                <CreateMenu
+                                <PopoverMenu
                                     isVisible={this.state.isEditPhotoMenuVisible}
                                     onClose={() => this.setState({isEditPhotoMenuVisible: false})}
                                     onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}

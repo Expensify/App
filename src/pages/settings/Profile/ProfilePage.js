@@ -25,7 +25,7 @@ import themeColors from '../../../styles/themes/default';
 import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import CreateMenu from '../../../components/PopoverMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
@@ -291,7 +291,7 @@ class ProfilePage extends Component {
                                             </View>
                                         )}
                                     />
-                                    <CreateMenu
+                                    <PopoverMenu
                                         isVisible={this.state.isEditPhotoMenuVisible}
                                         onClose={() => this.setState({isEditPhotoMenuVisible: false})}
                                         onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}
