@@ -309,7 +309,7 @@ class ProfilePage extends Component {
                         <View style={[styles.flexRow, styles.mb6]}>
                             <View style={styles.flex1}>
                                 <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.props.translate('profilePage.firstName')}
+                                    {this.props.translate('common.firstName')}
                                 </Text>
                                 <TextInput
                                     style={styles.textInput}
@@ -321,7 +321,7 @@ class ProfilePage extends Component {
                             </View>
                             <View style={[styles.flex1, styles.ml2]}>
                                 <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.props.translate('profilePage.lastName')}
+                                    {this.props.translate('common.lastName')}
                                 </Text>
                                 <TextInput
                                     style={styles.textInput}
