@@ -18,7 +18,7 @@ import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
-import CreateMenu from '../../components/CreateMenu';
+import CreateMenu from '../../components/PopoverMenu';
 import isAppInstalled from '../../libs/isAppInstalled';
 import Button from '../../components/Button';
 import Permissions from '../../libs/Permissions';

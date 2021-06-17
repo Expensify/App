@@ -25,7 +25,7 @@ import themeColors from '../../../styles/themes/default';
 import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import CreateMenu from '../../../components/CreateMenu';
+import CreateMenu from '../../../components/PopoverMenu';
 import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';

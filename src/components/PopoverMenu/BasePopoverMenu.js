@@ -8,7 +8,7 @@ import MenuItem from '../MenuItem';
 import {
     propTypes as createMenuPropTypes,
     defaultProps as defaultCreateMenuPropTypes,
-} from './CreateMenuPropTypes';
+} from './PopoverMenuPropTypes';
 
 const propTypes = {
     /** Callback fired when the menu is completely closed */
@@ -23,7 +23,7 @@ const defaultProps = {
     onMenuHide: () => {},
 };
 
-class BaseCreateMenu extends PureComponent {
+class BasePopoverMenu extends PureComponent {
     render() {
         return (
             <Popover
@@ -61,6 +61,6 @@ class BaseCreateMenu extends PureComponent {
     }
 }
 
-BaseCreateMenu.propTypes = propTypes;
-BaseCreateMenu.defaultProps = defaultProps;
-export default withWindowDimensions(BaseCreateMenu);
+BasePopoverMenu.propTypes = propTypes;
+BasePopoverMenu.defaultProps = defaultProps;
+export default withWindowDimensions(BasePopoverMenu);

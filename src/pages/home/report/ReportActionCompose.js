@@ -36,7 +36,7 @@ import {
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
-import CreateMenu from '../../../components/CreateMenu';
+import CreateMenu from '../../../components/PopoverMenu';
 import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
