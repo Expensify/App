@@ -32,7 +32,7 @@ Onyx.connect({
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || 'en',
+    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 const policies = {};
