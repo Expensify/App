@@ -518,8 +518,6 @@ function setupWithdrawalAccount(data) {
         newACHData.accountNumber = unmaskedAccount.accountNumber;
     }
 
-    console.log({reimbursementAccountInSetup});
-    console.log({newACHData});
     API.BankAccount_SetupWithdrawal(newACHData)
         .then((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
