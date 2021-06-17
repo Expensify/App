@@ -8,6 +8,7 @@ import styles from '../styles/styles';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import TextLink from '../components/TextLink';
 import Button from '../components/Button';
+import IdentityForm from './ReimbursementAccount/IdentityForm';
 
 const propTypes = {
     companyName: PropTypes.string,
@@ -96,6 +97,10 @@ class BeneficialOwnersStep extends React.Component {
                             {_.map(this.state.beneficialOwners, (owner, index) => (
                                 <View key={index} style={[styles.p5, styles.border, styles.mb2]}>
                                     <Text style={[styles.textStrong]}>Additional Beneficial Owner</Text>
+                                    <IdentityForm
+                                        onFieldChange={() => {}}
+                                        values={{}}
+                                    />
                                     <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
                                         Remove this beneficial owner
                                     </TextLink>
