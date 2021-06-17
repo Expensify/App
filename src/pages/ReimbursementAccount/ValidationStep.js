@@ -21,10 +21,13 @@ const propTypes = {
         bankAccountID: PropTypes.number.isRequired,
         state: PropTypes.string,
     }),
+
+    maxAttemptsReached: PropTypes.bool,
 };
 
 const defaultProps = {
     achData: {},
+    maxAttemptsReached: false,
 };
 
 class ValidationStep extends React.Component {
@@ -41,17 +44,13 @@ class ValidationStep extends React.Component {
         };
     }
 
-    componentDidMount() {
-        validateBankAccountAttempts(this.props.achData.bankAccountID);
-    }
-
     submit() {
         const amount1 = this.filterInput(this.state.amount1);
         const amount2 = this.filterInput(this.state.amount2);
         const amount3 = this.filterInput(this.state.amount3);
 
         // If amounts are all non-zeros, submit amounts to API
-        if (amount1, amount2, amount3) {
+        if (amount1 && amount2 && amount3) {
             const validateCode = [amount1, amount2, amount3].join(',');
 
             // Make a call to bankAccounts
@@ -62,7 +61,7 @@ class ValidationStep extends React.Component {
         }
     }
 
-    // Filters inputs. Anything that isn't a number is returned as 0. Any dollar amount (e.g. 1.01 will be turned into 101)
+    // Anything that isn't a number is returned as 0. Any dollar amount (e.g. 1.01 will be turned into 101)
     filterInput(amount) {
         let value = amount.trim();
         if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
@@ -120,6 +119,7 @@ class ValidationStep extends React.Component {
                     text={this.props.translate('common.saveAndContinue')}
                     style={[styles.m5]}
                     onPress={this.submit}
+                    isDisabled={this.props.maxAttemptsReached}
                 />
             </View>
         );
