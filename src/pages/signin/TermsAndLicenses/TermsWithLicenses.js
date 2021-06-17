@@ -8,39 +8,31 @@ import LogoWordmark from '../../../../assets/images/expensify-wordmark.svg';
 
 const TermsWithLicenses = ({translate}) => (
     <View>
-        <View style={[styles.mt1, styles.alignItemsCenter]}>
+        <View style={[styles.mt1, styles.alignItemsCenter, styles.mb3]}>
             <LogoWordmark height={30} width={80} />
         </View>
-        <View>
-            <Text style={[styles.flexColumn, styles.textAlignCenter, styles.alignItemsCenter]}>
-                <Text style={[styles.loginTermsText]}>
-                    {translate('termsOfUse.phrase1')}
-                    {' '}
-                </Text>
+        <View style={[styles.dFlex, styles.flexWrap]}>
+            <Text style={[styles.flexColumn, styles.textAlignCenter, styles.loginTermsText]}>
+
+                {translate('termsOfUse.phrase1')}
+                {' '}
                 <TextLink style={[styles.loginTermsText, styles.termsLink]} href={CONST.TERMS_URL}>
                     {translate('termsOfUse.phrase2')}
                 </TextLink>
-                <Text style={[styles.loginTermsText]}>
-                    {' '}
-                    {translate('termsOfUse.phrase3')}
-                    {' '}
-                </Text>
+                {' '}
+                {translate('termsOfUse.phrase3')}
+                {' '}
                 <TextLink style={[styles.loginTermsText, styles.termsLink]} href={CONST.PRIVACY_URL}>
                     {translate('termsOfUse.phrase4')}
                 </TextLink>
-                <Text style={[styles.loginTermsText]}>.</Text>
-            </Text>
-        </View>
-        <View>
-            <Text style={[styles.flexColumn, styles.textAlignCenter]}>
-                <Text style={[styles.loginTermsText]}>
-                    {translate('termsOfUse.phrase5')}
-                    {' '}
-                </Text>
+                .
+                {' '}
+                {translate('termsOfUse.phrase5')}
+                {' '}
                 <TextLink style={[styles.loginTermsText, styles.termsLink]} href={CONST.LICENSES_URL}>
                     {translate('termsOfUse.phrase6')}
                 </TextLink>
-                <Text style={[styles.loginTermsText]}>.</Text>
+                .
             </Text>
         </View>
     </View>
