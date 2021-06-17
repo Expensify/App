@@ -1,23 +1,27 @@
 /* eslint-disable react/prop-types */
 import _ from 'underscore';
 import React from 'react';
-import PropTypes from 'prop-types';
 import {useWindowDimensions, TouchableOpacity} from 'react-native';
 import HTML, {
     defaultHTMLElementModels,
     TNodeChildrenRenderer,
     splitBoxModelStyle,
 } from 'react-native-render-html';
-import Config from '../CONFIG';
-import styles, {webViewStyles, getFontFamilyMonospace} from '../styles/styles';
-import fontFamily from '../styles/fontFamily';
-import AnchorForCommentsOnly from './AnchorForCommentsOnly';
-import InlineCodeBlock from './InlineCodeBlock';
-import AttachmentModal from './AttachmentModal';
-import ThumbnailImage from './ThumbnailImage';
-import variables from '../styles/variables';
-import themeColors from '../styles/themes/default';
-import Text from './Text';
+import Config from '../../CONFIG';
+import styles, {webViewStyles, getFontFamilyMonospace} from '../../styles/styles';
+import fontFamily from '../../styles/fontFamily';
+import AnchorForCommentsOnly from '../AnchorForCommentsOnly';
+import InlineCodeBlock from '../InlineCodeBlock';
+import AttachmentModal from '../AttachmentModal';
+import ThumbnailImage from '../ThumbnailImage';
+import variables from '../../styles/variables';
+import themeColors from '../../styles/themes/default';
+import Text from '../Text';
+import renderHTMLpropTypes from './renderHTMLPropTypes'; 
+
+const defaultProps = {
+    debug: false,
+};
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -192,20 +196,11 @@ const renderers = {
     edited: EditedRenderer,
 };
 
-const propTypes = {
-    /** HTML string to render */
-    html: PropTypes.string.isRequired,
-
-    /** Optional debug flag */
-    debug: PropTypes.bool,
-};
-
 const RenderHTML = ({html, debug = false}) => {
     const {width} = useWindowDimensions();
     const containerWidth = width * 0.8;
     return (
         <HTML
-            textSelectable
             renderers={renderers}
             baseStyle={webViewStyles.baseFontStyle}
             tagsStyles={webViewStyles.tagStyles}
@@ -224,9 +219,8 @@ const RenderHTML = ({html, debug = false}) => {
 };
 
 RenderHTML.displayName = 'RenderHTML';
-RenderHTML.propTypes = propTypes;
-RenderHTML.defaultProps = {
-    debug: false,
-};
+RenderHTML.propTypes = renderHTMLpropTypes;
+RenderHTML.defaultProps = defaultProps;
+
 
 export default RenderHTML;
