@@ -609,6 +609,12 @@ const styles = {
         color: themeColors.heading,
     },
 
+    createMenuDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+    },
+
     menuItemTextContainer: {
         minHeight: variables.componentSizeNormal,
     },
