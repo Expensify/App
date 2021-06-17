@@ -69,7 +69,10 @@ const run = function () {
                 // We're in the create flow, not update
                 // TODO: if there are open DeployBlockers and we are opening a new checklist,
                 //  then we should close / remove the DeployBlockerCash label from those
-                return GithubUtils.generateStagingDeployCashBody(newVersion, mergedPRs);
+                return GithubUtils.generateStagingDeployCashBody(
+                    newVersion,
+                    _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber)
+                );
             }
 
             // There is an open StagingDeployCash, so we'll be updating it, not creating a new one

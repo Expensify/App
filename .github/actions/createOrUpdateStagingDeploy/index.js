@@ -79,7 +79,10 @@ const run = function () {
                 // We're in the create flow, not update
                 // TODO: if there are open DeployBlockers and we are opening a new checklist,
                 //  then we should close / remove the DeployBlockerCash label from those
-                return GithubUtils.generateStagingDeployCashBody(newVersion, mergedPRs);
+                return GithubUtils.generateStagingDeployCashBody(
+                    newVersion,
+                    _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber)
+                );
             }
 
             // There is an open StagingDeployCash, so we'll be updating it, not creating a new one
@@ -432,7 +435,7 @@ class GithubUtils {
                 let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n`;
 
                 // PR list
-                if (!_.isEmpty(PRList)) {
+                if (!_.isEmpty(sortedPRList)) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     _.each(sortedPRList, (URL) => {
                         issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';
