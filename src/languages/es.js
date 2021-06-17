@@ -313,6 +313,7 @@ export default {
             chooseAName: 'Elige un nombre',
             helpText: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
             getStarted: '¡Empezar!',
+            genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor intentalo de nuevo.',
         },
         invite: {
             invitePeople: 'Invitar a la gente',
