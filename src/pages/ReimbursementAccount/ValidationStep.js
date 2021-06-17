@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
@@ -131,16 +131,19 @@ class ValidationStep extends React.Component {
                 )}
                 {state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.m5, styles.flex1]}>
+                        <ImageView
+                            resizeMode="contain"
+                            style={[
+                                styles.mh5,
+                                styles.mb5,
+                            ]}
+                            url={`${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`}
+                        />
                         <Text style={[styles.mh5, styles.mb5]}>
-                            <ImageView
-                                resizeMode="contain"
-                                style={[styles.mh5, styles.mb5]}
-                                url={`${CONST.CLOUDFRONT_URL}/icons/emptystates/emptystate_reviewing.gif`}
-                            />
-                            <Image
-                                style={[styles.mh5, styles.mb5]}
-                                source={{uri: `${CONST.CLOUDFRONT_URL}/icons/emptystates/emptystate_reviewing.gif`}}
-                            />
+                            One moment...
+                        </Text>
+                        <Text style={[styles.mh5, styles.mb5]}>
+                            We&apos;re taking a look at your information and will have you onto next steps in just a few seconds.
                         </Text>
                     </View>
                 )}
