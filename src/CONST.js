@@ -50,6 +50,14 @@ const CONST = {
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
     },
+    INCORPORATION_TYPES: {
+        LLC: 'LLC',
+        CORPORATION: 'Corp',
+        PARTNERSHIP: 'Partnership',
+        COOPERATIVE: 'Cooperative',
+        SOLE_PROPRIETORSHIP: 'Sole Proprietorship',
+        OTHER: 'Other',
+    },
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',

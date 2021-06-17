@@ -123,6 +123,9 @@ function createIOUSplit(params) {
 function rejectTransaction({
     reportID, chatReportID, transactionID, comment,
 }) {
+    Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
+        [transactionID]: true,
+    });
     API.RejectTransaction({
         reportID,
         transactionID,
@@ -141,7 +144,13 @@ function rejectTransaction({
             // we should also sync the chatReport after fetching the iouReport.
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
         })
-        .catch(error => console.error(`Error rejecting transaction: ${error}`));
+        .catch(error => console.error(`Error rejecting transaction: ${error}`))
+        .finally(() => {
+            // setting as null deletes the tranactionID
+            Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
+                [transactionID]: null,
+            });
+        });
 }
 
 /**
