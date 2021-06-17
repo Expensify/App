@@ -15,7 +15,7 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsAboutPage from '../../../pages/settings/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
-import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
+import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
