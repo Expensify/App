@@ -11,7 +11,9 @@ import Button from '../../components/Button';
 import IdentityForm from './IdentityForm';
 import FixedFooter from '../../components/FixedFooter';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
+import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
+import Navigation from '../../libs/Navigation/Navigation';
+import CONST from '../../CONST';
 
 const propTypes = {
     companyName: PropTypes.string,
@@ -64,6 +66,8 @@ class BeneficialOwnersStep extends React.Component {
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('beneficialOwnersStep.beneficialOwners')}
+                    onCloseButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
                     shouldShowBackButton
                 />
                 <ScrollView style={[styles.flex1, styles.w100, styles.ph5]}>
