@@ -131,7 +131,9 @@ const OptionRow = ({
     const displayNamesWithTooltips = _.map(
         option.participantsList,
         ({displayName, firstName, login}) => {
-            const displayNameTrimmed = Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName;
+            const displayNameTrimmed = Str.removeSMSDomain(
+                Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName
+            );
 
             return {
                 displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
