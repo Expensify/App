@@ -30,7 +30,7 @@ import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
-import KeyboardAvoidingView from '../../../libs/KeyboardAvoidingView';
+import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 
@@ -309,7 +309,7 @@ class ProfilePage extends Component {
                         <View style={[styles.flexRow, styles.mb6]}>
                             <View style={styles.flex1}>
                                 <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.props.translate('profilePage.firstName')}
+                                    {this.props.translate('common.firstName')}
                                 </Text>
                                 <TextInput
                                     style={styles.textInput}
@@ -321,7 +321,7 @@ class ProfilePage extends Component {
                             </View>
                             <View style={[styles.flex1, styles.ml2]}>
                                 <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.props.translate('profilePage.lastName')}
+                                    {this.props.translate('common.lastName')}
                                 </Text>
                                 <TextInput
                                     style={styles.textInput}
@@ -345,7 +345,6 @@ class ProfilePage extends Component {
                                         label: this.props.translate('profilePage.selectYourPronouns'),
                                     }}
                                     value={this.state.pronouns}
-                                    icon={() => <Icon src={DownArrow} />}
                                 />
                             </View>
                             {this.state.pronouns === this.props.translate('pronouns.selfSelect') && (
@@ -377,7 +376,6 @@ class ProfilePage extends Component {
                                 items={timezones}
                                 useDisabledStyles={this.state.isAutomaticTimezone}
                                 value={this.state.selectedTimezone}
-                                icon={() => <Icon src={DownArrow} />}
                                 disabled={this.state.isAutomaticTimezone}
                             />
                         </View>

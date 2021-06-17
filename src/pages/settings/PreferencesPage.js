@@ -9,10 +9,8 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import Icon from '../../components/Icon';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
-import {DownArrow} from '../../components/Icon/Expensicons';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
@@ -60,11 +58,11 @@ const PreferencesPage = ({
     const localesToLanguages = {
         default: {
             value: 'en',
-            label: 'English',
+            label: translate('preferencesPage.languages.english'),
         },
         es: {
             value: 'es',
-            label: 'Spanish',
+            label: translate('preferencesPage.languages.spanish'),
         },
     };
 
@@ -104,7 +102,6 @@ const PreferencesPage = ({
                             }
                             items={Object.values(priorityModes)}
                             value={priorityMode}
-                            icon={() => <Icon src={DownArrow} />}
                         />
                     </View>
                     <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
@@ -118,7 +115,6 @@ const PreferencesPage = ({
                             onChange={locale => Onyx.merge(ONYXKEYS.PREFERRED_LOCALE, locale)}
                             items={Object.values(localesToLanguages)}
                             value={preferredLocale}
-                            icon={() => <Icon src={DownArrow} />}
                         />
                     </View>
                 </View>

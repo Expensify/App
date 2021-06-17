@@ -5,7 +5,6 @@ import {View, AppState} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import BootSplash from './libs/BootSplash';
-import StatusBar from './libs/StatusBar';
 import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
@@ -152,11 +151,7 @@ class Expensify extends PureComponent {
     }
 
     hideSplash() {
-        BootSplash.hide({fade: true}).then(() => {
-            // To prevent the splash from shifting positions we set status bar translucent after splash is hidden.
-            // on IOS it has no effect.
-            StatusBar.setTranslucent(true);
-        });
+        BootSplash.hide({fade: true});
     }
 
     render() {
