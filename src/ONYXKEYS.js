@@ -105,8 +105,10 @@ export default {
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
 
+    // The user's bank accounts
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
+    // The user's credit cards
     CARD_LIST: 'cardList',
 
     // Stores information about the active reimbursement account being set up
