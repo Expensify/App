@@ -13,6 +13,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Text from '../../components/Text';
+import BankAccount from '../../libs/models/BankAccount';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -78,49 +79,61 @@ class ValidationStep extends React.Component {
 
     render() {
         const errorMessage = this.state.error;
+        const state = this.props.achData.state;
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title="Validation Step"
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <Text style={[styles.mh5, styles.mb5]}>
-                    A day or two after you add your account to Expensify
-                    we send three (3) transactions to your account. They have a merchant line like
-                    &quot;Expensify, Inc. Validation&quot;.
-                </Text>
-                <View style={[styles.m5, styles.flex1]}>
-                    {errorMessage && (
+                {state === BankAccount.STATE.PENDING && (
+                    <View style={[styles.m5, styles.flex1]}>
                         <Text style={[styles.mh5, styles.mb5]}>
-                            {errorMessage}
+                            A day or two after you add your account to Expensify
+                            we send three (3) transactions to your account. They have a merchant line like
+                            &quot;Expensify, Inc. Validation&quot;.
                         </Text>
-                    )}
-                    <TextInputWithLabel
-                        placeholder="1.01"
-                        keyboardType="number-pad"
-                        value={this.state.amount1}
-                        onChangeText={amount1 => this.setState({amount1})}
-                    />
-                    <TextInputWithLabel
-                        placeholder="1.01"
-                        keyboardType="number-pad"
-                        value={this.state.amount2}
-                        onChangeText={amount2 => this.setState({amount2})}
-                    />
-                    <TextInputWithLabel
-                        placeholder="1.01"
-                        keyboardType="number-pad"
-                        value={this.state.amount3}
-                        onChangeText={amount3 => this.setState({amount3})}
-                    />
-                </View>
-                <Button
-                    success
-                    text={this.props.translate('common.saveAndContinue')}
-                    style={[styles.m5]}
-                    onPress={this.submit}
-                    isDisabled={this.props.maxAttemptsReached}
-                />
+                        <View style={[styles.m5, styles.flex1]}>
+                            {errorMessage && (
+                                <Text style={[styles.mh5, styles.mb5]}>
+                                    {errorMessage}
+                                </Text>
+                            )}
+                            <TextInputWithLabel
+                                placeholder="1.01"
+                                keyboardType="number-pad"
+                                value={this.state.amount1}
+                                onChangeText={amount1 => this.setState({amount1})}
+                            />
+                            <TextInputWithLabel
+                                placeholder="1.01"
+                                keyboardType="number-pad"
+                                value={this.state.amount2}
+                                onChangeText={amount2 => this.setState({amount2})}
+                            />
+                            <TextInputWithLabel
+                                placeholder="1.01"
+                                keyboardType="number-pad"
+                                value={this.state.amount3}
+                                onChangeText={amount3 => this.setState({amount3})}
+                            />
+                        </View>
+                        <Button
+                            success
+                            text={this.props.translate('common.saveAndContinue')}
+                            style={[styles.m5]}
+                            onPress={this.submit}
+                            isDisabled={this.props.maxAttemptsReached}
+                        />
+                    </View>
+                )}
+                {state === BankAccount.STATE.VERIFYING && (
+                    <View style={[styles.m5, styles.flex1]}>
+                        <Text style={[styles.mh5, styles.mb5]}>
+                            POOP
+                        </Text>
+                    </View>
+                )}
             </View>
         );
     }
