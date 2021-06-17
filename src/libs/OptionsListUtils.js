@@ -100,6 +100,20 @@ function getSearchText(report, personalDetailList) {
 }
 
 /**
+ * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
+ * 
+ * @param {String} login
+ * @return {String}
+ */
+function addSMSDomainIfPhoneNumber(login) {
+    if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
+        return login + CONST.SMS.DOMAIN;
+    } else {
+        return login;
+    }
+}
+
+/**
  * Creates a report list option
  *
  * @param {Array<Object>} personalDetailList
@@ -128,7 +142,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
         .join(', ');
     return {
-        text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
+        text: Str.removeSMSDomain(hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName),
         alternateText: (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login),
@@ -338,11 +352,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
             && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        // If the phone number doesn't have an international code then let's prefix it with the
-        // current users international code based on their IP address.
-        const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
-            ? `+${countryCodeByIP}${searchValue}`
-            : searchValue;
+        // Phone number needs SMS domain to be a valid 'login', so add it here if appropriate
+        const login = addSMSDomainIfPhoneNumber(
+            // If the phone number doesn't have an international code then let's prefix it with the
+            // current user's international code based on their IP address.
+            (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
+                ? `+${countryCodeByIP}${searchValue}`
+                : searchValue
+        );
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
         userToInvite = createOption(userInvitePersonalDetails, null, draftComments, {
             showChatPreviewLine,
