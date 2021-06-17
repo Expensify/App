@@ -610,8 +610,9 @@ const styles = {
     },
 
     createMenuDescription: {
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
-        color: colors.gray4,
+        color: themeColors.textSupporting,
     },
 
     menuItemTextContainer: {
