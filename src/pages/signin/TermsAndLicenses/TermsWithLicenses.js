@@ -11,29 +11,33 @@ const TermsWithLicenses = ({translate}) => (
         <View style={[styles.mt1, styles.alignItemsCenter]}>
             <LogoWordmark height={30} width={80} />
         </View>
-        <View style={[styles.mt2, styles.flexRow, styles.flexWrap, styles.textAlignCenter]}>
-            <Text style={[styles.loginTermsText]}>
-                {translate('termsOfUse.phrase1')}
-                {' '}
+        <View>
+            <Text style={[styles.flexColumn, styles.textAlignCenter, styles.alignItemsCenter]}>
+                <Text style={[styles.loginTermsText]}>
+                    {translate('termsOfUse.phrase1')}
+                    {' '}
+                </Text>
+                <TextLink style={[styles.loginTermsText, {marginVertical: -4}]} href={CONST.TERMS_URL}>
+                    {translate('termsOfUse.phrase2')}
+                </TextLink>
+                <Text style={[styles.loginTermsText]}>
+                    {' '}
+                    {translate('termsOfUse.phrase3')}
+                    {' '}
+                </Text>
+                <TextLink style={[styles.loginTermsText, {marginVertical: -4}]} href={CONST.PRIVACY_URL}>
+                    {translate('termsOfUse.phrase4')}
+                </TextLink>
+                <Text style={[styles.loginTermsText]}>.</Text>
             </Text>
-            <TextLink style={[styles.loginTermsText]} href={CONST.TERMS_URL}>
-                {translate('termsOfUse.phrase2')}
-            </TextLink>
-            <Text style={[styles.loginTermsText]}>
-                {' '}
-                {translate('termsOfUse.phrase3')}
-                {' '}
-            </Text>
-            <TextLink style={[styles.loginTermsText]} href={CONST.PRIVACY_URL}>
-                {translate('termsOfUse.phrase4')}
-            </TextLink>
-            <Text style={[styles.loginTermsText]}>.</Text>
-            <Text>
+        </View>
+        <View>
+            <Text style={[styles.flexColumn, styles.textAlignCenter]}>
                 <Text style={[styles.loginTermsText]}>
                     {translate('termsOfUse.phrase5')}
                     {' '}
                 </Text>
-                <TextLink style={[styles.loginTermsText]} href={CONST.LICENSES_URL}>
+                <TextLink style={[styles.loginTermsText, {marginVertical: -4}]} href={CONST.LICENSES_URL}>
                     {translate('termsOfUse.phrase6')}
                 </TextLink>
                 <Text style={[styles.loginTermsText]}>.</Text>

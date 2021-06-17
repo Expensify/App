@@ -50,21 +50,21 @@ const SignInPageLayoutWide = props => (
                     <View style={[styles.signInPageWideHeroContent, styles.m4]}>
                         <Text style={[styles.signInPageHeroHeading]}>{props.translate('signInPage.heroHeading')}</Text>
                         <Text style={[styles.signInPageHeroDescription, styles.mt5]}>
-                            {props.translate('signInPage.heroDescription.phase1')}
+                            {props.translate('signInPage.heroDescription.phrase1')}
                             {'\n\n'}
-                            {props.translate('signInPage.heroDescription.phase2')}
+                            {props.translate('signInPage.heroDescription.phrase2')}
                             {' '}
                             <TextLink href={CONST.GITHUB_URL}>
                                 <Text style={[styles.textUnderline, styles.textWhite]}>
-                                    {props.translate('signInPage.heroDescription.phase3')}
+                                    {props.translate('signInPage.heroDescription.phrase3')}
                                 </Text>
                             </TextLink>
                             {'. '}
-                            {props.translate('signInPage.heroDescription.phase4')}
+                            {props.translate('signInPage.heroDescription.phrase4')}
                             {' '}
                             <TextLink href={CONST.UPWORK_URL}>
                                 <Text style={[styles.textUnderline, styles.textWhite]}>
-                                    {props.translate('signInPage.heroDescription.phase5')}
+                                    {props.translate('signInPage.heroDescription.phrase5')}
                                 </Text>
                             </TextLink>
 

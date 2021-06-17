@@ -49,7 +49,9 @@ const SignInPageLayoutNarrow = props => (
                 </Text>
                 {props.children}
             </View>
-            <TermsAndLicenses />
+            <View style={[styles.mt3]}>
+                <TermsAndLicenses />
+            </View>
         </View>
     </ScrollView>
 );
