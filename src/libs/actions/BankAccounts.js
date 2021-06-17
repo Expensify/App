@@ -9,8 +9,6 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
