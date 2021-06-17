@@ -9,7 +9,8 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {createIOUSplit, createIOUTransaction, getPreferredCurrency} from '../../libs/actions/IOU';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import {createIOUSplit, createIOUTransaction} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -19,6 +20,7 @@ import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -146,11 +148,9 @@ class IOUModal extends Component {
         }
     }
 
-
     getReady() {
-        getPreferredCurrency();
+        PersonalDetails.fetchCurrencyPreferences();
     }
-
 
     /**
      * Retrieve title for current step, based upon current step and type of IOU
@@ -269,7 +269,7 @@ class IOUModal extends Component {
         return (
             <ScreenWrapper onTransitionEnd={this.getReady}>
                 {({didScreenTransitionEnd}) => (
-                    <>
+                    <KeyboardAvoidingView>
                         <View style={[styles.headerBar]}>
                             <View style={[
                                 styles.dFlex,
@@ -342,7 +342,7 @@ class IOUModal extends Component {
                                 </>
                             )}
                         </View>
-                    </>
+                    </KeyboardAvoidingView>
                 )}
             </ScreenWrapper>
         );
