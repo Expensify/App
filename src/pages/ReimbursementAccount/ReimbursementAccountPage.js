@@ -6,7 +6,7 @@ import Str from 'expensify-common/lib/str';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {fetchFreePlanVerifiedBankAccount, clearFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
+import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import Permissions from '../../libs/Permissions';
@@ -76,10 +76,6 @@ const defaultProps = {
 class ReimbursementAccountPage extends React.Component {
     componentDidMount() {
         fetchFreePlanVerifiedBankAccount();
-    }
-
-    componentWillUnmount() {
-        clearFreePlanVerifiedBankAccount();
     }
 
     /**
