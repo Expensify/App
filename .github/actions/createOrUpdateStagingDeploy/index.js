@@ -79,11 +79,15 @@ const run = function () {
                 // We're in the create flow, not update
                 // TODO: if there are open DeployBlockers and we are opening a new checklist,
                 //  then we should close / remove the DeployBlockerCash label from those
-                return GithubUtils.generateStagingDeployCashBody(newVersion, mergedPRs);
+                return GithubUtils.generateStagingDeployCashBody(
+                    newVersion,
+                    _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber),
+                );
             }
 
             // There is an open StagingDeployCash, so we'll be updating it, not creating a new one
             const currentStagingDeployCashData = GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[0]);
+            console.log('Parsed the following data from the current StagingDeployCash:', currentStagingDeployCashData);
             currentStagingDeployCashIssueNumber = currentStagingDeployCashData.number;
 
             const newDeployBlockers = _.map(deployBlockerResponse.data, ({url}) => ({
@@ -98,9 +102,9 @@ const run = function () {
             // Generate the PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.sortBy(
                 _.unique(
-                    _.union(currentStagingDeployCashData.PRList, _.map(mergedPRs, url => ({
-                        url,
-                        number: GithubUtils.getPullRequestNumberFromURL(url),
+                    _.union(currentStagingDeployCashData.PRList, _.map(mergedPRs, number => ({
+                        number,
+                        url: GithubUtils.getPullRequestURLFromNumber(number),
 
                         // Since this is the second argument to _.union,
                         // it will appear later in the array than any duplicate.
@@ -431,7 +435,7 @@ class GithubUtils {
                 let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n`;
 
                 // PR list
-                if (!_.isEmpty(PRList)) {
+                if (!_.isEmpty(sortedPRList)) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     _.each(sortedPRList, (URL) => {
                         issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';

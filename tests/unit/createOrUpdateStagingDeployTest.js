@@ -87,11 +87,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         state: 'closed',
     };
 
-    const baseNewPullRequests = [
-        'https://github.com/Expensify/Expensify.cash/pull/6',
-        'https://github.com/Expensify/Expensify.cash/pull/7',
-        'https://github.com/Expensify/Expensify.cash/pull/8',
-    ];
+    const baseNewPullRequests = ['6', '7', '8'];
 
     test('creates new issue when there is none open', () => {
         mockGetInput.mockImplementation((arg) => {
@@ -179,10 +175,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             });
 
             // New pull requests to add to open StagingDeployCash
-            const newPullRequests = [
-                'https://github.com/Expensify/Expensify.cash/pull/9',
-                'https://github.com/Expensify/Expensify.cash/pull/10',
-            ];
+            const newPullRequests = ['9', '10'];
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
                 if (fromRef === '1.0.1-0' && toRef === '1.0.2-2') {
                     return [
@@ -229,7 +222,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                     // eslint-disable-next-line max-len
                     html_url: `https://github.com/Expensify/Expensify.cash/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
-                    body: `**Release Version:** \`1.0.2-2\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/7\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/8\r\n- [ ] ${newPullRequests[0]}\r\n- [ ] ${newPullRequests[1]}\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/9\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/10\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/11\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/12\r\n\r\ncc @Expensify/applauseleads\r\n`,
+                    body: `**Release Version:** \`1.0.2-2\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/7\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/8\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/${newPullRequests[0]}\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/${newPullRequests[1]}\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/9\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/10\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/11\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/12\r\n\r\ncc @Expensify/applauseleads\r\n`,
                 });
             });
         });
