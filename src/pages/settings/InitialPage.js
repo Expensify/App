@@ -116,8 +116,6 @@ const InitialSettingsPage = ({
     policies,
     translate,
 }) => {
-    console.log('RORY_DEBUG policies prop;', policies);
-
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.

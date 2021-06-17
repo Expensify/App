@@ -38,7 +38,6 @@ Onyx.connect({
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicy) {
-    console.log('RORY_DEBUG full policy', fullPolicy);
     return {
         ID: fullPolicy.id,
         name: fullPolicy.name,
