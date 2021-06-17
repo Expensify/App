@@ -40,6 +40,15 @@ const run = function () {
             // Look at the state of the most recent StagingDeployCash,
             // if it is open then we'll update the existing one, otherwise, we'll create a new one.
             shouldCreateNewStagingDeployCash = Boolean(stagingDeployResponse.data[0].state !== 'open');
+            if (shouldCreateNewStagingDeployCash) {
+                console.log('Latest StagingDeployCash is closed, creating a new one.', stagingDeployResponse.data[0]);
+            } else {
+                console.log(
+                    'Latest StagingDeployCash is open, updating it instead of creating a new one.',
+                    'Current:', stagingDeployResponse.data[0],
+                    'Previous:', stagingDeployResponse.data[1],
+                );
+            }
 
             // Parse the data from the previous StagingDeployCash
             // (newest if there are none open, otherwise second-newest)
@@ -51,6 +60,10 @@ const run = function () {
 
             // Find the list of PRs merged between the last StagingDeployCash and the new version
             const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newVersion);
+            console.log(
+                'The following PRs have been merged between the previous StagingDeployCash and new version:',
+                mergedPRs,
+            );
 
             if (shouldCreateNewStagingDeployCash) {
                 // We're in the create flow, not update
