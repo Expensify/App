@@ -15,7 +15,7 @@ import Button from '../../components/Button';
 import AttachmentPicker from '../../components/AttachmentPicker';
 import Icon from '../../components/Icon';
 import {DownArrow, Upload} from '../../components/Icon/Expensicons';
-import CreateMenu from '../../components/CreateMenu';
+import CreateMenu from '../../components/PopoverMenu';
 import Switch from '../../components/Switch';
 import compose from '../../libs/compose';
 

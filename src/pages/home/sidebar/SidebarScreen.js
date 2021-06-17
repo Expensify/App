@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import SidebarLinks from './SidebarLinks';
-import CreateMenu from '../../../components/CreateMenu';
+import CreateMenu from '../../../components/PopoverMenu';
 import FAB from '../../../components/FAB';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
