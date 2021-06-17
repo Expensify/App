@@ -363,6 +363,10 @@ export default {
         ssnLast4: 'Last 4 Digits of SSN',
         isAuthorized: 'I am authorized to use my company bank account for business spend',
     },
+    validationStep: {
+        headerTitle: 'Validate',
+        verifyingMessage: '',
+    },
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
