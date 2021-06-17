@@ -9,6 +9,8 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -489,29 +491,35 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
  * @param {Object} [data]
  */
 function setupWithdrawalAccount(data) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    let nextStep;
 
-    previousACHData = {...previousACHData, ...data};
-    if (data && !_.isUndefined(data.isSavings)) {
-        previousACHData.isSavings = Boolean(data.isSavings);
-    }
-    if (!previousACHData.setupType) {
-        previousACHData.setupType = previousACHData.plaidAccountID
-            ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID
-            : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
-    }
+    // @TODO will need to figure out how to refactor all of this logic but for now we must await this merge so that it
+    // doesn't overwrite what we are trying to do next. Unfortunately, the setup withdrawal account flow isn't really
+    // translating to our new Onyx way of doing things and will take some time to unpack and refactor.
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true})
+        .then(() => {
+            previousACHData = {...previousACHData, ...data};
+            if (data && !_.isUndefined(data.isSavings)) {
+                previousACHData.isSavings = Boolean(data.isSavings);
+            }
+            if (!previousACHData.setupType) {
+                previousACHData.setupType = previousACHData.plaidAccountID
+                    ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID
+                    : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+            }
 
-    let nextStep = previousACHData.currentStep;
+            nextStep = previousACHData.currentStep;
 
-    // If we are setting up a Plaid account replace the accountNumber with the unmasked number
-    if (data.plaidAccountID) {
-        const unmaskedAccount = _.find(plaidBankAccounts, bankAccount => (
-            bankAccount.plaidAccountID === data.plaidAccountID
-        ));
-        previousACHData.accountNumber = unmaskedAccount.accountNumber;
-    }
+            // If we are setting up a Plaid account replace the accountNumber with the unmasked number
+            if (data.plaidAccountID) {
+                const unmaskedAccount = _.find(plaidBankAccounts, bankAccount => (
+                    bankAccount.plaidAccountID === data.plaidAccountID
+                ));
+                previousACHData.accountNumber = unmaskedAccount.accountNumber;
+            }
 
-    API.BankAccount_SetupWithdrawal(previousACHData)
+            return API.BankAccount_SetupWithdrawal(previousACHData);
+        })
         .then((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
 

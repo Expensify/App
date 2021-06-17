@@ -41,7 +41,7 @@ class CompanyStep extends React.Component {
     }
 
     validate() {
-
+        return true;
     }
 
     submit() {
@@ -70,20 +70,20 @@ class CompanyStep extends React.Component {
                         <TextInputWithLabel
                             label={this.props.translate('companyStep.legalBusinessName')}
                             containerStyles={[styles.mt4]}
-                            onChange={companyName => this.setState({companyName})}
+                            onChangeText={companyName => this.setState({companyName})}
                             value={this.state.companyName}
                         />
                         <TextInputWithLabel
                             label={this.props.translate('common.companyAddressNoPO')}
                             containerStyles={[styles.mt4]}
-                            onChange={addressStreet => this.setState({addressStreet})}
+                            onChangeText={addressStreet => this.setState({addressStreet})}
                             value={this.state.addressStreet}
                         />
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
                                 <TextInputWithLabel
                                     label={this.props.translate('common.city')}
-                                    onChange={addressCity => this.setState({addressCity})}
+                                    onChangeText={addressCity => this.setState({addressCity})}
                                     value={this.state.addressCity}
                                 />
                             </View>
@@ -98,27 +98,27 @@ class CompanyStep extends React.Component {
                         <TextInputWithLabel
                             label={this.props.translate('common.zip')}
                             containerStyles={[styles.mt4]}
-                            onChange={addressZipCode => this.setState({addressZipCode})}
+                            onChangeText={addressZipCode => this.setState({addressZipCode})}
                             value={this.state.addressZipCode}
                         />
                         <TextInputWithLabel
                             label={this.props.translate('common.phoneNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                            onChange={companyPhone => this.setState({companyPhone})}
+                            onChangeText={companyPhone => this.setState({companyPhone})}
                             value={this.state.companyPhone}
                         />
                         <TextInputWithLabel
                             label={this.props.translate('companyStep.companyWebsite')}
                             containerStyles={[styles.mt4]}
-                            onChange={website => this.setState({website})}
+                            onChangeText={website => this.setState({website})}
                             value={this.state.website}
                         />
                         <TextInputWithLabel
                             label={this.props.translate('companyStep.taxIDNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                            onChange={companyTaxID => this.setState({companyTaxID})}
+                            onChangeText={companyTaxID => this.setState({companyTaxID})}
                             value={this.state.companyTaxID}
                         />
                         <Text style={[styles.formLabel, styles.mt4]}>
@@ -135,7 +135,7 @@ class CompanyStep extends React.Component {
                                 {/* TODO: Replace with date picker */}
                                 <TextInputWithLabel
                                     label={this.props.translate('companyStep.incorporationDate')}
-                                    onChange={incorporationDate => this.setState({incorporationDate})}
+                                    onChangeText={incorporationDate => this.setState({incorporationDate})}
                                     value={this.state.incorporationDate}
                                 />
                             </View>
@@ -153,7 +153,7 @@ class CompanyStep extends React.Component {
                             helpLinkText={this.props.translate('common.whatThis')}
                             helpLinkURL="https://www.naics.com/search/"
                             containerStyles={[styles.mt4]}
-                            onChange={industryCode => this.setState({industryCode})}
+                            onChangeText={industryCode => this.setState({industryCode})}
                             value={this.state.industryCode}
                         />
                         <TextInputWithLabel
@@ -162,7 +162,7 @@ class CompanyStep extends React.Component {
                             secureTextEntry
                             autoCompleteType="password"
                             textContentType="password"
-                            onChange={password => this.setState({password})}
+                            onChangeText={password => this.setState({password})}
                             value={this.state.password}
                         />
                         <CheckboxWithLabel
