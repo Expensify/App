@@ -48,6 +48,7 @@ export default {
         whatThis: 'What\'s this?',
         invite: 'Invite',
         iAcceptThe: 'I accept the ',
+        passwordCannotBeBlank: 'Password cannot be blank',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -270,7 +271,6 @@ export default {
         getMeOutOfHere: 'Get me out of here',
     },
     setPasswordPage: {
-        passwordCannotBeBlank: 'Password cannot be blank',
         enterPassword: 'Enter a password',
         confirmNewPassword: 'Confirm the password',
         setPassword: 'Set Password',
@@ -381,13 +381,13 @@ export default {
     },
     workspace: {
         new: {
+            newWorkspace: 'New Workspace',
+            getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
             welcome: 'Welcome',
             chooseAName: 'Choose a name',
-            helpText: 'Need help getting setup? Request a call below and we’ll have someone reach out to you.',
+            helpText: 'Name your Workspace before enabling your Expensify Cards!',
             getStarted: 'Get started!',
-            editPhoto: 'Edit Photo',
-            uploadPhoto: 'Upload Photo',
-            requestCall: 'Request a call',
+            genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         invite: {
             invitePeople: 'Invite People',
