@@ -9,7 +9,7 @@ Onyx.connect({
 });
 
 /**
- * Add encryptedAuthToken to this attachment URL if necessary
+ * Add encryptedAuthToken to this attachment URL
  *
  * @param {String} url
  * @returns {String}

@@ -143,7 +143,7 @@ function fetchAccountDetails(login) {
  * re-authenticating after an authToken expires.
  *
  * @param {String} authToken
- * @param {String} encryptedAuthToken
+ * @param {String} encryptedAuthToken – Not required for the CreateLogin API call, but passed to setSuccessfulSignInData
  * @param {String} email
  */
 function createTemporaryLogin(authToken, encryptedAuthToken, email) {
