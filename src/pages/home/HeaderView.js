@@ -22,6 +22,7 @@ import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import { isDefaultRoom } from '../../libs/reportUtils';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -69,7 +70,8 @@ const HeaderView = (props) => {
             };
         },
     );
-    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+    const isDefaultChatRoom = isDefaultRoom(props.report.chatType);
+    const fullTitle = isDefaultChatRoom ? props.report.reportName : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -110,6 +112,7 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
+                                    shouldUseFullTitle={isDefaultChatRoom}
                                 />
                             </View>
                         </Pressable>

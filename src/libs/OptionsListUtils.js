@@ -183,7 +183,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
     const policyInfo = policies[lodashGet(report, ['policyID'], '')];
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const text = isDefaultChatRoom
-        ? lodashGet(report, ['reportName'], 'defaultRoom')
+        ? lodashGet(report, ['reportName'], '')
         : hasMultipleParticipants
             ? personalDetailList
                 .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
@@ -212,6 +212,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
+        isDefaultChatRoom,
     };
 }
 
