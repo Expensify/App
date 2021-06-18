@@ -230,7 +230,7 @@ class TextInputFocusable extends React.Component {
                     .then(this.props.onPasteFile)
                     .catch(() => {
                         const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
-                        Growl.show(errorDesc, CONST.GROWL.ERROR);
+                        Growl.error(errorDesc);
 
                         /*
                         * Since we intercepted the user-triggered paste event to check for attachments,

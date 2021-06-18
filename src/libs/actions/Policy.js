@@ -141,7 +141,7 @@ function invite(login, welcomeNote, policyID) {
                 errorMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
 
-            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+            Growl.error(errorMessage, 5000);
         });
 }
 
@@ -156,7 +156,7 @@ function create(name) {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.new.genericFailureMessage');
-                Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+                Growl.error(errorMessage, 5000);
                 return;
             }
 
