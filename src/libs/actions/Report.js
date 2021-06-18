@@ -135,16 +135,16 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 /**
  * Returns the title for a default room or generates one based on the participants
  *
- * @param {Object} report
+ * @param {Object} fullReport
  * @param {String} chatType
  * @return {String}
  */
-function getChatReportName(report, chatType) {
-    if (isDefaultRoom(chatType)) {
-        return `#${report.reportName}`;
+function getChatReportName(fullReport, chatType) {
+    if (isDefaultRoom({chatType})) {
+        return `#${fullReport.reportName}`;
     }
 
-    const {sharedReportList} = report;
+    const {sharedReportList} = rawReport;
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)

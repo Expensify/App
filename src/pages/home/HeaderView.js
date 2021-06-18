@@ -70,7 +70,7 @@ const HeaderView = (props) => {
             };
         },
     );
-    const isDefaultChatRoom = isDefaultRoom(props.report.chatType);
+    const isDefaultChatRoom = isDefaultRoom(props.report);
     const fullTitle = isDefaultChatRoom ? props.report.reportName : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">

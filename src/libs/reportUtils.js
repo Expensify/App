@@ -72,16 +72,17 @@ function findLastAccessedReport(reports) {
 }
 
 /**
- * Whether the provided chatType corresponds to a default room
- * @param {String} chatType
+ * Whether the provided report is a default room
+ * @param {Object} report
+ * @param {String} report.chatType
  * @returns {Boolean}
  */
-function isDefaultRoom(chatType) {
+function isDefaultRoom(report) {
     return _.contains([
         CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-    ], chatType);
+    ], lodashGet(report, ['chatType'], ''));
 }
 
 export {
