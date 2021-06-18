@@ -43,7 +43,7 @@ Onyx.connect({
  */
 function getSimplifiedPolicyObject(fullPolicy) {
     return {
-        ID: fullPolicy.id,
+        id: fullPolicy.id,
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
@@ -152,21 +152,20 @@ function invite(login, welcomeNote, policyID) {
  */
 function create(name) {
     Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
-        .then((data) => {
-            if (data.jsonCode !== 200) {
+        .then((response) => {
+            if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.new.genericFailureMessage');
                 Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
                 return;
             }
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${data.policyID}`, {
-                policyID: data.policyID,
-                type: data.policy.type,
-                name: data.policy.name,
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+                id: response.policyID,
+                type: response.policy.type,
+                name: response.policy.name,
             });
-
-            Navigation.navigate(ROUTES.getWorkspaceRoute(data.policyID));
+            Navigation.navigate(ROUTES.getWorkspaceRoute(response.policyID));
         });
 }
 
