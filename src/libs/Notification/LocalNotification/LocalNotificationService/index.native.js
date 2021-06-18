@@ -25,7 +25,9 @@ let currentlyProcessingNotification = null;
 let onNotification = () => {};
 let channelInitialized = false;
 
-PushNotification.configure({onNotification});
+PushNotification.configure({
+    onNotification: e => onNotification(e),
+});
 
 /**
  * Get the local notification channel (required for Android)

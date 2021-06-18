@@ -616,7 +616,7 @@ function updateReportWithNewAction(reportID, reportAction, notificationPreferenc
     console.debug('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction,
-        onClick: () => {
+        onPress: () => {
             // Navigate to this report onClick
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
