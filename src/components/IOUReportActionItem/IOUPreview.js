@@ -11,16 +11,16 @@ import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import compose from '../libs/compose';
-import styles from '../styles/styles';
-import ONYXKEYS from '../ONYXKEYS';
-import MultipleAvatars from './MultipleAvatars';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import {fetchIOUReportByID} from '../libs/actions/Report';
-import themeColors from '../styles/themes/default';
-import Icon from './Icon';
-import CONST from '../CONST';
-import {Checkmark} from './Icon/Expensicons';
+import compose from '../../libs/compose';
+import styles from '../../styles/styles';
+import ONYXKEYS from '../../ONYXKEYS';
+import MultipleAvatars from '../MultipleAvatars';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import {fetchIOUReportByID} from '../../libs/actions/Report';
+import themeColors from '../../styles/themes/default';
+import Icon from '../Icon';
+import CONST from '../../CONST';
+import {Checkmark} from '../Icon/Expensicons';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
