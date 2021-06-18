@@ -182,13 +182,23 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
     const isDefaultChatRoom = isDefaultRoom(report);
     const policyInfo = policies[lodashGet(report, ['policyID'], '')];
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-    const text = isDefaultChatRoom
-        ? lodashGet(report, ['reportName'], '')
-        : hasMultipleParticipants
+
+    let text;
+    let alternateText;
+    if (isDefaultChatRoom) {
+        text = lodashGet(report, ['reportName'], '');
+        alternateText = lodashGet(policyInfo, ['policyInfo'], 'Unknown Policy');
+    } else {
+        text = hasMultipleParticipants
             ? personalDetailList
                 .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
                 .join(', ')
             : lodashGet(report, ['reportName'], personalDetail.displayName);
+        alternateText = (showChatPreviewLine && lastMessageText)
+            ? lastMessageText
+            : Str.removeSMSDomain(personalDetail.login),
+    }
+    isDefaultChatRoom
     const alternateText = isDefaultChatRoom && policyInfo
         ? policyInfo.name
         : (showChatPreviewLine && lastMessageText)
