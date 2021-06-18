@@ -1,4 +1,5 @@
 import React from 'react';
+import lodashGet from 'lodash/get';
 import {View, ScrollView} from 'react-native';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -8,25 +9,56 @@ import TextLink from '../../components/TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
-import {goToWithdrawalAccountSetupStep} from '../../libs/actions/BankAccounts';
+import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
+import Growl from '../../libs/Growl';
 
 class RequestorStep extends React.Component {
     constructor(props) {
         super(props);
 
+        this.submit = this.submit.bind(this);
+
         this.state = {
-            firstName: '',
-            lastName: '',
-            street: '',
-            city: '',
-            state: '',
-            zipCode: '',
-            dob: '',
-            ssnLast4: '',
+            firstName: lodashGet(props, ['achData', 'firstName'], ''),
+            lastName: lodashGet(props, ['achData', 'lastName'], ''),
+            requestorAddressStreet: lodashGet(props, ['achData', 'requestorAddressStreet'], ''),
+            requestorAddressCity: lodashGet(props, ['achData', 'requestorAddressCity'], ''),
+            requestorAddressState: lodashGet(props, ['achData', 'requestorAddressState'], ''),
+            requestorAddressZipCode: lodashGet(props, ['achData', 'requestorAddressZipCode'], ''),
+            dob: lodashGet(props, ['achData', 'dob'], ''),
+            ssnLast4: lodashGet(props, ['achData', 'ssnLast4'], ''),
+            isControllingOfficer: lodashGet(props, ['achData', 'isControllingOfficer'], false),
         };
+    }
+
+    onFieldChange(field, value) {
+        const renamedFields = {
+            street: 'requestorAddressStreet',
+            city: 'requestorAddressCity',
+            state: 'requestorAddressState',
+            zipCode: 'requestorAddressZipCode',
+        };
+        const fieldName = lodashGet(renamedFields, field, field);
+        this.setState({[fieldName]: value});
+    }
+
+    validate() {
+        if (!this.state.isControllingOfficer) {
+            Growl.show(this.props.translate('requestorStep.isControllingOfficerError'), CONST.GROWL.ERROR);
+            return false;
+        }
+
+        return true;
+    }
+
+    submit() {
+        if (!this.validate()) {
+            return;
+        }
+        setupWithdrawalAccount({...this.state});
     }
 
     render() {
@@ -35,13 +67,13 @@ class RequestorStep extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('requestorStep.headerTitle')}
                     shouldShowBackButton
-                    onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
+                    onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY_STEP)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <ScrollView style={[styles.flex1, styles.w100]}>
                     <View style={[styles.p4]}>
                         <IdentityForm
-                            onFieldChange={(field, value) => this.setState({[field]: value})}
+                            onFieldChange={(field, value) => this.onFieldChange(field, value)}
                             values={{
                                 firstName: this.state.firstName,
                                 lastName: this.state.lastName,
@@ -54,12 +86,14 @@ class RequestorStep extends React.Component {
                             }}
                         />
                         <CheckboxWithLabel
-                            isChecked={false}
-                            onPress={() => {}}
+                            isChecked={this.state.isControllingOfficer}
+                            onPress={() => this.setState(prevState => ({
+                                isControllingOfficer: !prevState.isControllingOfficer,
+                            }))}
                             LabelComponent={() => (
                                 <View style={[styles.flex1, styles.pr1]}>
                                     <Text>
-                                        {this.props.translate('requestorStep.isAuthorized')}
+                                        {this.props.translate('requestorStep.isControllingOfficer')}
                                     </Text>
                                 </View>
                             )}
@@ -111,8 +145,7 @@ class RequestorStep extends React.Component {
                 <FixedFooter style={[styles.mt5]}>
                     <Button
                         success
-                        onPress={() => {
-                        }}
+                        onPress={this.submit}
                         style={[styles.w100]}
                         text={this.props.translate('common.saveAndContinue')}
                     />

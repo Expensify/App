@@ -352,4 +352,15 @@ export default {
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
     },
+    requestorStep: {
+        headerTitle: 'Requestor Information',
+        financialRegulations: 'Financial regulation and bank rules require us to validate the identity of any individual setting up bank accounts on behalf of a company. ',
+        learnMore: 'Learn More',
+        isMyDataSafe: 'Is my data safe?',
+        onFidoConditions: 'By continuing with the request to add this bank account, you confirm that you have read, understand and accept ',
+        onFidoFacialScan: 'Onfido’s Facial Scan Policy and Release',
+        ssnLast4: 'Last 4 Digits of SSN',
+        isControllingOfficer: 'I am authorized to use my company bank account for business spend',
+        isControllingOfficerError: 'You must be a controlling officer with authorization to operate the business bank account.',
+    },
 };

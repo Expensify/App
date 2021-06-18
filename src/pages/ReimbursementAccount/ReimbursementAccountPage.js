@@ -150,7 +150,7 @@ class ReimbursementAccountPage extends React.Component {
                         <CompanyStep achData={achData} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
-                        <RequestorStep />
+                        <RequestorStep achData={achData} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
                         <BeneficialOwnersStep companyName={achData.companyName} />
