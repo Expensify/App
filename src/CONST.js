@@ -10,6 +10,12 @@ const CONST = {
         DOMAIN: '@expensify.sms',
     },
     BANK_ACCOUNT: {
+        PLAID: {
+            ALLOWED_THROTTLED_COUNT: 2,
+            ERROR: {
+                TOO_MANY_ATTEMPTS: 'Too many attempts',
+            },
+        },
         STEP: {
             // In the order they appear in the VBA flow
             BANK_ACCOUNT: 'BankAccountStep',
@@ -170,6 +176,7 @@ const CONST = {
         TIMEZONE: 'timeZone',
         FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
+        BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},

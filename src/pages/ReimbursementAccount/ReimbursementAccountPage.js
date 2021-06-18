@@ -144,7 +144,10 @@ class ReimbursementAccountPage extends React.Component {
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
-                        <BankAccountStep achData={achData} />
+                        <BankAccountStep
+                            achData={achData}
+                            isPlaidDisabled={this.props.reimbursementAccount.isPlaidDisabled}
+                        />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
                         <CompanyStep achData={achData} />
