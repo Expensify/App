@@ -5,7 +5,7 @@
 
 ### Fixed Issues
 <!-- Please replace GH_LINK with the link to the GitHub issue this Pull Request is fixing -->
-GH_LINK
+$ GH_LINK
 
 ### Tests
 <!--- 
