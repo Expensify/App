@@ -44,6 +44,7 @@ import Trashcan from '../../../assets/images/trashcan.svg';
 import Users from '../../../assets/images/users.svg';
 import Upload from '../../../assets/images/upload.svg';
 import Wallet from '../../../assets/images/wallet.svg';
+import NewWorkspace from '../../../assets/images/new-workspace.svg';
 
 export {
     Android,
@@ -92,4 +93,5 @@ export {
     Upload,
     Users,
     Wallet,
+    NewWorkspace,
 };
