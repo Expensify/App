@@ -30,14 +30,14 @@ class CompanyStep extends React.Component {
             companyName: lodashGet(props, ['achData', 'companyName'], ''),
             addressStreet: lodashGet(props, ['achData', 'addressStreet'], ''),
             addressCity: lodashGet(props, ['achData', 'addressCity'], ''),
-            addressState: lodashGet(props, ['achData', 'addressState'], ''),
+            addressState: lodashGet(props, ['achData', 'addressState']) || 'AK',
             addressZipCode: lodashGet(props, ['achData', 'addressZipCode'], ''),
             companyPhone: lodashGet(props, ['achData', 'companyPhone'], ''),
             website: lodashGet(props, ['achData', 'website'], ''),
             companyTaxID: lodashGet(props, ['achData', 'companyTaxID'], ''),
             incorporationType: lodashGet(props, ['achData', 'incorporationType'], ''),
             incorporationDate: lodashGet(props, ['achData', 'incorporationDate'], ''),
-            incorporationState: lodashGet(props, ['achData', 'incorporationState'], ''),
+            incorporationState: lodashGet(props, ['achData', 'incorporationState']) || 'AK',
             industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
@@ -65,7 +65,7 @@ class CompanyStep extends React.Component {
      * @param {String} date
      * @returns {Boolean} true if valid
      */
-    validateDate(date) {
+    isValidDate(date) {
         return moment(date).isValid();
     }
 
@@ -104,7 +104,7 @@ class CompanyStep extends React.Component {
             return false;
         }
 
-        if (this.validateDate(this.state.incorporationDate)) {
+        if (!this.isValidDate(this.state.incorporationDate)) {
             Growl.error('Please enter a valid incorporation date');
             return false;
         }
