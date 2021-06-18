@@ -21,8 +21,8 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
-import ACHContractStep from './ACHContractStep';
 import ValidationStep from './ValidationStep';
+import BeneficialOwnersStep from './BeneficialOwnersStep';
 
 const propTypes = {
     /** List of betas */
@@ -153,7 +153,7 @@ class ReimbursementAccountPage extends React.Component {
                         <RequestorStep />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
-                        <ACHContractStep />
+                        <BeneficialOwnersStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
                         <ValidationStep />
