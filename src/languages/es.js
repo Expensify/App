@@ -33,6 +33,15 @@ export default {
         saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de servicio',
+        dob: 'Fecha de Nacimiento',
+        ssn: 'Número de Seguridad Social',
+        addressNoPO: 'Dirección (sin Apartado Postal)',
+        companyAddressNoPO: 'Dirección de la Empresa (sin Apartado Postal)',
+        city: 'Ciudad',
+        state: 'Estado',
+        zip: 'Código Postal',
+        isRequiredField: 'es un campo obligatorio',
+        whatThis: '¿Qué es esto?',
         invite: 'Invitar',
     },
     attachmentPicker: {
@@ -300,6 +309,8 @@ export default {
     },
     workspace: {
         new: {
+            newWorkspace: 'Nuevo Workspace',
+            getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
             welcome: 'Bienvenido/a',
             chooseAName: 'Elige un nombre',
             helpText: '¿Necesitas ayuda con la configuración? Pídenos una llamada y una persona de nuestro equipo te ayudará.',
@@ -317,5 +328,17 @@ export default {
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
+    },
+    companyStep: {
+        headerTitle: 'Información de la Empresa',
+        subtitle: 'Dé más información sobre su empresa.',
+        legalBusinessName: 'Nombre Comercial Legal',
+        companyWebsite: 'Company Website',
+        taxIDNumber: 'Tax ID Number',
+        companyType: 'Página Web de la Empresa',
+        incorporationDate: 'Fecha de Incorporación',
+        industryClassificationCode: 'Código de Clasificación Industrial',
+        confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
+        listOfRestrictedBusinesses: 'lista de negocios restringidos',
     },
 };
