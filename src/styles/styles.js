@@ -80,6 +80,13 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textMicroSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -459,13 +466,6 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
-    },
-
-    textMicroSupporting: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
     },
 
     // Sidebar Styles
