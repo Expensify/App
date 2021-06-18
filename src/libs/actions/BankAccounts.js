@@ -349,7 +349,7 @@ function fetchFreePlanVerifiedBankAccount() {
                     bankAccountListResponse,
                 ]) => {
                     const failedValidationAttempts = lodashGet(failedValidationAttemptsResponse, [
-                        'value', 'nameValuePairs', failedValidationAttemptsResponse,
+                        'value', 'nameValuePairs', failedValidationAttemptsName,
                     ], 0);
                     const kycVerificationsMigration = lodashGet(kycVerificationsMigrationResponse, [
                         'value', 'nameValuePairs', 'expensify_migration_2020_04_28_RunKycVerifications',
@@ -431,7 +431,9 @@ function fetchFreePlanVerifiedBankAccount() {
                         currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
                     }
 
-                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate, failedValidationAttempts});
+                    // Reset Error key
+                    const error = '';
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate, failedValidationAttempts, error});
                     goToWithdrawalAccountSetupStep(currentStep, achData);
                 })
                 .finally(() => {
@@ -502,7 +504,15 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
  * @param {String} validateCode
  */
 function validateBankAccount(bankAccountID, validateCode) {
-    API.BankAccount_Validate({bankAccountID, validateCode});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+
+    API.BankAccount_Validate({bankAccountID, validateCode})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                console.log(response.message);
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: response.message});
+            }
+        });
 }
 
 /**

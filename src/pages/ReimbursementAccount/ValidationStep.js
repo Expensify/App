@@ -26,11 +26,14 @@ const propTypes = {
     }),
 
     maxAttemptsReached: PropTypes.bool,
+
+    error: PropTypes.string,
 };
 
 const defaultProps = {
     achData: {},
     maxAttemptsReached: false,
+    error: '',
 };
 
 class ValidationStep extends React.Component {
@@ -80,7 +83,11 @@ class ValidationStep extends React.Component {
     }
 
     render() {
-        const errorMessage = this.state.error;
+        let errorMessage = this.state.error ? this.state.error : this.props.error;
+        if (this.props.maxAttemptsReached) {
+            errorMessage = this.props.translate('validationStep.maxAttemptError');
+        }
+
         const state = this.props.achData.state;
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -128,7 +135,7 @@ class ValidationStep extends React.Component {
                         </View>
                         <Button
                             success
-                            text={this.props.translate('common.saveAndContinue')}
+                            text={this.props.translate('validationStep.buttonText')}
                             style={[styles.m5]}
                             onPress={this.submit}
                             isDisabled={this.props.maxAttemptsReached}

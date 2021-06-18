@@ -135,6 +135,7 @@ class ReimbursementAccountPage extends React.Component {
             }
         }
 
+        const error = lodashGet(this.props, 'reimbursementAccount.error');
         const failedValidationAttempts = lodashGet(this.props, 'reimbursementAccount.failedValidationAttempts');
         const maxAttemptsReached = failedValidationAttempts > CONST.BANK_ACCOUNT.VERIFICATION_MAX_ATTEMPTS;
 
@@ -161,6 +162,7 @@ class ReimbursementAccountPage extends React.Component {
                         <ValidationStep
                             achData={this.props.reimbursementAccount.achData}
                             maxAttemptsReached={maxAttemptsReached}
+                            error={error}
                         />
                     )}
                 </KeyboardAvoidingView>
