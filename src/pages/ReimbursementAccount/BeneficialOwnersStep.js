@@ -37,7 +37,7 @@ class BeneficialOwnersStep extends React.Component {
             hasOtherBeneficialOwners: false,
             acceptTermsAndConditions: false,
             certifyTrueInformation: false,
-            beneficialOwners: [{}],
+            beneficialOwners: [],
         };
     }
 
@@ -93,9 +93,17 @@ class BeneficialOwnersStep extends React.Component {
                     <CheckboxWithLabel
                         style={[styles.mb2, styles.mr2]}
                         isChecked={this.state.hasOtherBeneficialOwners}
-                        onPress={() => this.setState(prevState => ({
-                            hasOtherBeneficialOwners: !prevState.hasOtherBeneficialOwners,
-                        }))}
+                        onPress={() => {
+                            this.setState((prevState) => {
+                                const hasOtherBeneficialOwners = !prevState.hasOtherBeneficialOwners;
+                                return {
+                                    hasOtherBeneficialOwners,
+                                    beneficialOwners: hasOtherBeneficialOwners && _.isEmpty(prevState.beneficialOwners)
+                                        ? [{}]
+                                        : prevState.beneficialOwners,
+                                };
+                            });
+                        }}
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
