@@ -34,11 +34,17 @@ const propTypes = {
     /** A boolean flag that gives the icon a green fill if true */
     success: PropTypes.bool,
 
-    // Overrides the icon for shouldShowRightIcon
+    /** Overrides the icon for shouldShowRightIcon */
     iconRight: PropTypes.elementType,
 
     /** A description text to show under the title */
     description: PropTypes.string,
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** The fill color to pass into the icon. */
+    iconFill: PropTypes.string,
 };
 
 const defaultProps = {
@@ -50,6 +56,8 @@ const defaultProps = {
     iconHeight: undefined,
     description: undefined,
     iconRight: ArrowRight,
+    iconStyles: [],
+    iconFill: undefined,
 };
 
 const MenuItem = ({
@@ -63,6 +71,8 @@ const MenuItem = ({
     iconWidth,
     iconHeight,
     description,
+    iconStyles,
+    iconFill,
 }) => (
     <Pressable
         onPress={onPress}
@@ -76,12 +86,17 @@ const MenuItem = ({
             <>
                 <View style={styles.flexRow}>
                     {icon && (
-                    <View style={styles.createMenuIcon}>
+                    <View
+                        style={[
+                            styles.createMenuIcon,
+                            ...iconStyles,
+                        ]}
+                    >
                         <Icon
                             src={icon}
                             width={iconWidth}
                             height={iconHeight}
-                            fill={getIconFillColor(getButtonState(hovered, pressed, success))}
+                            fill={iconFill || getIconFillColor(getButtonState(hovered, pressed, success))}
                         />
                     </View>
                     )}
