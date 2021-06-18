@@ -5,7 +5,6 @@ import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Maximum number of lines in the text input */

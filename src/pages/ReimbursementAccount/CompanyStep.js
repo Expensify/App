@@ -2,6 +2,8 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
+import Str from 'expensify-common/lib/str';
+import moment from 'moment';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
@@ -17,8 +19,6 @@ import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Growl from '../../libs/Growl';
-import Str from 'expensify-common/lib/str';
-import moment from 'moment';
 
 class CompanyStep extends React.Component {
     constructor(props) {
