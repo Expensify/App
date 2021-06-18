@@ -68,7 +68,7 @@ class RequestorStep extends React.Component {
                         <Text style={[styles.textMicroSupporting, styles.mt5]}>
                             {this.props.translate('requestorStep.financialRegulations')}
                             <TextLink
-                                size="micro"
+                                style={styles.textMicro}
                                 // eslint-disable-next-line max-len
                                 href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
                             >
@@ -76,7 +76,7 @@ class RequestorStep extends React.Component {
                             </TextLink>
                             {' | '}
                             <TextLink
-                                size="micro"
+                                style={styles.textMicro}
                                 // eslint-disable-next-line max-len
                                 href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
                             >
@@ -86,21 +86,21 @@ class RequestorStep extends React.Component {
                         <Text style={[styles.mt3, styles.textMicroSupporting]}>
                             {this.props.translate('requestorStep.onFidoConditions')}
                             <TextLink
-                                size="micro"
+                                style={styles.textMicro}
                                 href="https://onfido.com/facial-scan-policy-and-release/"
                             >
                                 {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
                             </TextLink>
                             {', '}
                             <TextLink
-                                size="micro"
+                                style={styles.textMicro}
                                 href="https://onfido.com/privacy/"
                             >
                                 {`${this.props.translate('common.privacyPolicy')}`}
                             </TextLink>
                             {` ${this.props.translate('common.and')} `}
                             <TextLink
-                                size="micro"
+                                style={styles.textMicro}
                                 href="https://onfido.com/terms-of-service/"
                             >
                                 {`${this.props.translate('common.termsOfService')}`}
