@@ -22,7 +22,7 @@ import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import { isDefaultRoom } from '../../libs/reportUtils';
+import {isDefaultRoom} from '../../libs/reportUtils';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -71,7 +71,9 @@ const HeaderView = (props) => {
         },
     );
     const isDefaultChatRoom = isDefaultRoom(props.report);
-    const fullTitle = isDefaultChatRoom ? props.report.reportName : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+    const fullTitle = isDefaultChatRoom
+        ? props.report.reportName
+        : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
