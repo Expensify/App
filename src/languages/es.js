@@ -43,6 +43,8 @@ export default {
         isRequiredField: 'es un campo obligatorio',
         whatThis: '¿Qué es esto?',
         invite: 'Invitar',
+        iAcceptThe: 'Acepto los ',
+        passwordCannotBeBlank: 'La contraseña no puede estar vacía',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -265,7 +267,6 @@ export default {
         getMeOutOfHere: 'Sácame de aquí',
     },
     setPasswordPage: {
-        passwordCannotBeBlank: 'La contraseña no puede estar vacía',
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu Contraseña',
     },
@@ -280,7 +281,6 @@ export default {
         toGetStarted: 'Para comenzar con la tarjeta Expensify, primero debe agregar una cuenta bancaria.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque para la cuenta.',
-        iAcceptThe: 'Acepto los ',
         hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrese de que su inicio de sesión principal sea un correo electrónico válido y vuelva a intentarlo. Puede agregar su número de teléfono como inicio de sesión secundario.',
         hasBeenThrottledError: ({fromNow}) => `Por razones de seguridad, nos tomamos un descanso de la configuración de la cuenta bancaria para que pueda verificar la información de su empresa. Inténtalo de nuevo ${fromNow}. ¡Lo siento!`,
     },
@@ -303,6 +303,19 @@ export default {
     messages: {
         noPhoneNumber: 'Por favor escribe un número de teléfono que incluya el código de país e.g +447814266907',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
+    },
+    beneficialOwnersStep: {
+        beneficialOwners: 'Beneficial Owners',
+        additionalInformation: 'Additional Information',
+        checkAllThatApply: '(check all that apply, otherwise leave blank)',
+        iOwnMoreThan25Percent: 'I own more than 25% of ',
+        someoneOwnsMoreThan25Percent: 'Somebody else owns more than 25% of ',
+        additionalOwner: 'Additional Beneficial Owner',
+        removeOwner: 'Remove this beneficial owner',
+        addAnotherIndividual: 'Add another individual who owns more than 25% of ',
+        agreement: 'Agreement:',
+        termsAndConditions: 'terms and conditions',
+        certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
     },
     session: {
         offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',

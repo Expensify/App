@@ -132,7 +132,7 @@ const OptionRow = ({
 
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users causing
         // performance to degrade.
-        option.participantsList.slice(0, 10),
+        (option.participantsList || []).slice(0, 10),
         ({displayName, firstName, login}) => {
             const displayNameTrimmed = Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName;
 
