@@ -90,6 +90,9 @@ export default {
     // Indicates which locale should be used
     PREFERRED_LOCALE: 'preferredLocale',
 
+    // List of transactionIDs in process of rejection
+    TRANSACTIONS_BEING_REJECTED: 'transactionsBeingRejected',
+
     // User's Expensify Wallet
     USER_WALLET: 'userWallet',
 
@@ -101,6 +104,12 @@ export default {
 
     // Object containing Wallet terms step state
     WALLET_TERMS: 'walletTerms',
+
+    // The user's bank accounts
+    BANK_ACCOUNT_LIST: 'bankAccountList',
+
+    // The user's credit cards
+    CARD_LIST: 'cardList',
 
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
