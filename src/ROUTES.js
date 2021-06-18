@@ -49,6 +49,7 @@ export default {
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
     ENABLE_PAYMENTS: 'enable-payments',
     WORKSPACE_NEW: 'workspace/new',
+    getWorkspaceRoute: policyID => `workspace/${policyID}`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     getWorkspaceRoute: policyID => `workspace/${policyID}`,
