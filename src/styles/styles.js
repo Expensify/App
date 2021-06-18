@@ -70,7 +70,9 @@ const styles = {
     },
 
     textMicro: {
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textMicroBold: {
@@ -81,10 +83,10 @@ const styles = {
     },
 
     textMicroSupporting: {
-        color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
         lineHeight: 14,
+        color: themeColors.textSupporting,
     },
 
     textLarge: {
