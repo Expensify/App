@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
-import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
-import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
-import ReportActionItemIOUPreview from './ReportActionItemIOUPreview';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
+import IOUQuote from './IOUQuote';
+import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
+import IOUPreview from './IOUPreview';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** All the data of the action */
@@ -32,7 +32,7 @@ const defaultProps = {
     },
 };
 
-const ReportActionItemIOUAction = ({
+const IOUAction = ({
     action,
     chatReportID,
     isMostRecentIOUReportAction,
@@ -42,13 +42,13 @@ const ReportActionItemIOUAction = ({
     };
     return (
         <>
-            <ReportActionItemIOUQuote
+            <IOUQuote
                 action={action}
                 shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
             {isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID) && (
-                <ReportActionItemIOUPreview
+                <IOUPreview
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}
                     onPayButtonPressed={launchDetailsModal}
@@ -59,12 +59,12 @@ const ReportActionItemIOUAction = ({
     );
 };
 
-ReportActionItemIOUAction.propTypes = propTypes;
-ReportActionItemIOUAction.defaultProps = defaultProps;
-ReportActionItemIOUAction.displayName = 'ReportActionItemIOUAction';
+IOUAction.propTypes = propTypes;
+IOUAction.defaultProps = defaultProps;
+IOUAction.displayName = 'IOUAction';
 
 export default withOnyx({
     chatReport: {
         key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
     },
-})(ReportActionItemIOUAction);
+})(IOUAction);
