@@ -9,6 +9,7 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
+import Navigation from '../../libs/Navigation/Navigation';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -508,8 +509,10 @@ function validateBankAccount(bankAccountID, validateCode) {
 
     API.BankAccount_Validate({bankAccountID, validateCode})
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                console.log(response.message);
+            if (response.jsonCode === 200) {
+                Growl.show('Bank Account succesfully validated!', CONST.GROWL.SUCCESS, 3000);
+                Navigation.dismissModal();
+            } else {
                 Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: response.message});
             }
         });
