@@ -178,10 +178,15 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
             : '')
         + _.unescape(report.lastMessageText)
         : '';
-    const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-    const fullTitle = personalDetailList
-        .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
-        .join(', ');
+    const policyInfo = policies[report.policyID];
+    const tooltipText = isDefaultRoom(report.chatType) && policyInfo
+        ? policyInfo.name
+        : getReportParticipantsTitle(lodashGet(report, ['participants'], []));
+    const fullTitle = isDefaultRoom(report.chatType)
+        ? report.reportName
+        : personalDetailList
+            .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
+            .join(', ');
     return {
         text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
