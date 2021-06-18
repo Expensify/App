@@ -2,8 +2,7 @@ const childProcess = require('child_process');
 const GitUtils = require('../../.github/libs/GitUtils');
 
 jest.mock('child_process');
-jest.mock('util', () => ({promisify: fn => fn}));
-const {exec} = childProcess;
+const {execSync} = childProcess;
 
 const data = [
     {
@@ -51,9 +50,9 @@ const data = [
 describe('GitUtils', () => {
     describe.each(data)('getPullRequestsMergedBetween', (exampleCase) => {
         test('getPullRequestsMergedBetween', () => {
-            exec.mockResolvedValue({stdout: exampleCase.gitLog, stderr: ''});
-            return GitUtils.getPullRequestsMergedBetween('testRef1', 'testRef2')
-                .then(pullRequestNumbers => expect(pullRequestNumbers).toStrictEqual(exampleCase.result));
+            execSync.mockReturnValueOnce(exampleCase.gitLog);
+            const result = GitUtils.getPullRequestsMergedBetween('testRef1', 'testRef2');
+            expect(result).toStrictEqual(exampleCase.result);
         });
     });
 });

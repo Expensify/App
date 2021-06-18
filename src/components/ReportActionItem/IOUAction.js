@@ -1,13 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '../ONYXKEYS';
-import ReportActionItemIOUQuote from './ReportActionItemIOUQuote';
-import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
-import ReportActionItemIOUPreview from './ReportActionItemIOUPreview';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
+import IOUQuote from './IOUQuote';
+import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
+import IOUPreview from './IOUPreview';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** All the data of the action */
@@ -16,11 +15,11 @@ const propTypes = {
     /** The associated chatReport */
     chatReportID: PropTypes.number.isRequired,
 
-    /** Should render the preview Component? */
-    shouldDisplayPreview: PropTypes.bool.isRequired,
+    /** Is this IOUACTION the most recent? */
+    isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     /* Onyx Props */
-    /** ChatReport associated with iouReport */
+    /** chatReport associated with iouReport */
     chatReport: PropTypes.shape({
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
@@ -33,40 +32,39 @@ const defaultProps = {
     },
 };
 
-const ReportActionItemIOUAction = ({
+const IOUAction = ({
     action,
     chatReportID,
-    shouldDisplayPreview,
-    chatReport,
+    isMostRecentIOUReportAction,
 }) => {
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
     };
-    const hasMultipleParticipants = lodashGet(chatReport, 'participants', []).length >= 2;
     return (
         <>
-            <ReportActionItemIOUQuote
+            <IOUQuote
                 action={action}
-                shouldShowViewDetailsLink={!hasMultipleParticipants}
+                shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {shouldDisplayPreview && (
-                <ReportActionItemIOUPreview
+            {isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID) && (
+                <IOUPreview
                     iouReportID={action.originalMessage.IOUReportID}
                     chatReportID={chatReportID}
                     onPayButtonPressed={launchDetailsModal}
+                    onPreviewPressed={launchDetailsModal}
                 />
             )}
         </>
     );
 };
 
-ReportActionItemIOUAction.propTypes = propTypes;
-ReportActionItemIOUAction.defaultProps = defaultProps;
-ReportActionItemIOUAction.displayName = 'ReportActionItemIOUAction';
+IOUAction.propTypes = propTypes;
+IOUAction.defaultProps = defaultProps;
+IOUAction.displayName = 'IOUAction';
 
 export default withOnyx({
     chatReport: {
         key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
     },
-})(ReportActionItemIOUAction);
+})(IOUAction);

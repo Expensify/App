@@ -32,6 +32,9 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
@@ -62,6 +65,8 @@ class NewChatPage extends Component {
             props.reports,
             props.personalDetails,
             '',
+            false,
+            props.betas,
         );
 
         this.state = {
@@ -149,6 +154,8 @@ class NewChatPage extends Component {
                                         this.props.reports,
                                         this.props.personalDetails,
                                         searchValue,
+                                        false,
+                                        this.props.betas,
                                     );
                                     this.setState({
                                         searchValue,
@@ -186,6 +193,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(NewChatPage);

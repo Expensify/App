@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -34,6 +35,9 @@ const personalDetailsPropTypes = PropTypes.shape({
 const propTypes = {
     /* Onyx Props */
 
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
@@ -61,6 +65,9 @@ class SearchPage extends Component {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
 
         this.selectReport = this.selectReport.bind(this);
+        this.onChangeText = this.onChangeText.bind(this);
+        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 300);
+
         const {
             recentReports,
             personalDetails,
@@ -69,6 +76,7 @@ class SearchPage extends Component {
             props.reports,
             props.personalDetails,
             '',
+            props.betas,
         );
 
         this.state = {
@@ -81,6 +89,10 @@ class SearchPage extends Component {
 
     componentDidMount() {
         Timing.end(CONST.TIMING.SEARCH_RENDER);
+    }
+
+    onChangeText(searchValue = '') {
+        this.setState({searchValue}, this.debouncedUpdateOptions);
     }
 
     /**
@@ -106,6 +118,24 @@ class SearchPage extends Component {
         }
 
         return sections;
+    }
+
+    updateOptions() {
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = getSearchOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.state.searchValue,
+            this.props.betas,
+        );
+        this.setState({
+            userToInvite,
+            recentReports,
+            personalDetails,
+        });
     }
 
     /**
@@ -154,23 +184,7 @@ class SearchPage extends Component {
                                 sections={sections}
                                 value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
-                                onChangeText={(searchValue = '') => {
-                                    const {
-                                        recentReports,
-                                        personalDetails,
-                                        userToInvite,
-                                    } = getSearchOptions(
-                                        this.props.reports,
-                                        this.props.personalDetails,
-                                        searchValue,
-                                    );
-                                    this.setState({
-                                        searchValue,
-                                        userToInvite,
-                                        recentReports,
-                                        personalDetails,
-                                    });
-                                }}
+                                onChangeText={this.onChangeText}
                                 headerMessage={headerMessage}
                                 hideSectionHeaders
                                 hideAdditionalOptionStates
@@ -201,6 +215,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(SearchPage);

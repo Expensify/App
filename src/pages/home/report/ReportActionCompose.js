@@ -51,8 +51,12 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
 
@@ -126,6 +130,7 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
+        this.setTextInputRef = this.setTextInputRef.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -147,6 +152,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
+        ReportActionComposeFocusManager.onComposerFocus(this.focus);
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
@@ -162,6 +168,7 @@ class ReportActionCompose extends React.Component {
     }
 
     componentWillUnmount() {
+        ReportActionComposeFocusManager.clear();
         Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
@@ -197,10 +204,21 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Set the TextInput Ref
+     *
+     * @param {Element} el
+     * @memberof ReportActionCompose
+     */
+    setTextInputRef(el) {
+        ReportActionComposeFocusManager.composerRef.current = el;
+        this.textInput = el;
+    }
+
+    /**
      * Focus the composer text input
      */
     focus() {
-        if (this.textInput) {
+        if (this.shouldFocusInputOnScreenFocus && this.props.isFocused && this.textInput) {
             // There could be other animations running while we trigger manual focus.
             // This prevents focus from making those animations janky.
             InteractionManager.runAfterInteractions(() => {
@@ -233,6 +251,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
+        this.textInput.setNativeProps({text: newComment});
         this.setState({
             isCommentEmpty: newComment.length === 0,
         });
@@ -397,27 +416,32 @@ class ReportActionCompose extends React.Component {
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
-                                                    ...(!hasConciergeParticipant && Permissions.canUseIOU() ? [
-                                                        hasMultipleParticipants
-                                                            ? {
-                                                                icon: Receipt,
-                                                                text: this.props.translate('iou.splitBill'),
-                                                                onSelected: () => {
-                                                                    Navigation.navigate(
-                                                                        ROUTES.getIouSplitRoute(this.props.reportID),
-                                                                    );
+                                                    ...(!hasConciergeParticipant
+                                                        && Permissions.canUseIOU(this.props.betas) ? [
+                                                            hasMultipleParticipants
+                                                                ? {
+                                                                    icon: Receipt,
+                                                                    text: this.props.translate('iou.splitBill'),
+                                                                    onSelected: () => {
+                                                                        Navigation.navigate(
+                                                                            ROUTES.getIouSplitRoute(
+                                                                                this.props.reportID,
+                                                                            ),
+                                                                        );
+                                                                    },
+                                                                }
+                                                                : {
+                                                                    icon: MoneyCircle,
+                                                                    text: this.props.translate('iou.requestMoney'),
+                                                                    onSelected: () => {
+                                                                        Navigation.navigate(
+                                                                            ROUTES.getIouRequestRoute(
+                                                                                this.props.reportID,
+                                                                            ),
+                                                                        );
+                                                                    },
                                                                 },
-                                                            }
-                                                            : {
-                                                                icon: MoneyCircle,
-                                                                text: this.props.translate('iou.requestMoney'),
-                                                                onSelected: () => {
-                                                                    Navigation.navigate(
-                                                                        ROUTES.getIouRequestRoute(this.props.reportID),
-                                                                    );
-                                                                },
-                                                            },
-                                                    ] : []),
+                                                        ] : []),
                                                     {
                                                         icon: Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
@@ -437,7 +461,7 @@ class ReportActionCompose extends React.Component {
                                 <TextInputFocusable
                                     autoFocus={this.shouldFocusInputOnScreenFocus}
                                     multiline
-                                    ref={el => this.textInput = el}
+                                    ref={this.setTextInputRef}
                                     textAlignVertical="top"
                                     placeholder={this.props.translate('reportActionCompose.writeSomething')}
                                     placeholderTextColor={themeColors.placeholderText}
@@ -553,6 +577,9 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         },

@@ -3,6 +3,7 @@ import React, {Component} from 'react';
 import {Dimensions, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
@@ -15,11 +16,10 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
-import ReportActionItemIOUAction from '../../../components/ReportActionItemIOUAction';
+import IOUAction from '../../../components/ReportActionItem/IOUAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
-import CONST from '../../../CONST';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -61,6 +61,7 @@ class ReportActionItem extends Component {
     constructor(props) {
         super(props);
 
+        this.onPopoverHide = () => {};
         this.state = {
             isPopoverVisible: false,
             cursorPosition: {
@@ -173,8 +174,12 @@ class ReportActionItem extends Component {
 
     /**
      * Hide the ReportActionContextMenu modal popover.
+     * @param {Function} onHideCallback Callback to be called after popover is completely hidden
      */
-    hidePopover() {
+    hidePopover(onHideCallback) {
+        if (_.isFunction(onHideCallback)) {
+            this.onPopoverHide = onHideCallback;
+        }
         this.setState({isPopoverVisible: false});
     }
 
@@ -200,10 +205,10 @@ class ReportActionItem extends Component {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
-                <ReportActionItemIOUAction
+                <IOUAction
                     chatReportID={this.props.reportID}
                     action={this.props.action}
-                    shouldDisplayPreview={this.props.isMostRecentIOUReportAction}
+                    isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
                 />
             );
         } else {
@@ -268,10 +273,13 @@ class ReportActionItem extends Component {
                 <PopoverWithMeasuredContent
                     isVisible={this.state.isPopoverVisible}
                     onClose={this.hidePopover}
+                    onModalHide={this.onPopoverHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     animationOutTiming={1}
                     measureContent={this.measureContent}
+                    shouldSetModalVisibility={false}
+                    fullscreen={false}
                 >
                     <ReportActionContextMenu
                         isVisible

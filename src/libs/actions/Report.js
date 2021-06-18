@@ -21,6 +21,8 @@ import Log from '../Log';
 import {isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
+import Growl from '../Growl';
+import {translate} from '../translate';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -53,6 +55,16 @@ Onyx.connect({
     callback: (val) => {
         if (val && val.reportID) {
             allReports[val.reportID] = val;
+        }
+    },
+});
+
+let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: (preferredLocale) => {
+        if (preferredLocale) {
+            translateLocal = (phrase, variables) => translate(preferredLocale, phrase, variables);
         }
     },
 });
@@ -158,7 +170,7 @@ function getSimplifiedReportObject(report) {
     const lastMessageText = lodashGet(lastReportAction, ['message', 'html'], '')
         .replace(/((<br[^>]*>)+)/gi, ' ')
         .replace(/(<([^>]+)>)/gi, '');
-    const reportName = lodashGet(report, 'reportNameValuePairs.type') === 'chat'
+    const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report.sharedReportList)
         : report.reportName;
     const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
@@ -166,6 +178,9 @@ function getSimplifiedReportObject(report) {
     return {
         reportID: report.reportID,
         reportName,
+        chatType: lodashGet(report, ['reportNameValuePairs', 'chatType'], ''),
+        ownerEmail: lodashGet(report, ['ownerEmail'], ''),
+        policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
         maxSequenceNumber: report.reportActionList.length,
         participants: getParticipantEmailsFromReport(report),
@@ -199,21 +214,11 @@ function getSimplifiedReportObject(report) {
  * @returns {Object}
  */
 function getSimplifiedIOUReport(reportData, chatReportID) {
-    const transactions = _.map(reportData.transactionList, transaction => ({
-        transactionID: transaction.transactionID,
-        amount: transaction.amount,
-        currency: transaction.currency,
-        created: transaction.created,
-        comment: transaction.comment,
-    })).reverse(); // `transactionList` data is returned ordered by desc creation date, they are changed to asc order
-    // because we must instead display them in the order that they were created (asc).
-
     return {
         reportID: reportData.reportID,
         ownerEmail: reportData.ownerEmail,
         managerEmail: reportData.managerEmail,
         currency: reportData.currency,
-        transactions,
         chatReportID: Number(chatReportID),
         state: reportData.state,
         cachedTotal: reportData.cachedTotal,
@@ -222,7 +227,7 @@ function getSimplifiedIOUReport(reportData, chatReportID) {
         stateNum: reportData.stateNum,
         submitterPayPalMeAddress: reportData.submitterPayPalMeAddress,
         submitterPhoneNumbers: reportData.submitterPhoneNumbers,
-        hasOutstandingIOU: reportData.stateNum === 1 && reportData.total !== 0,
+        hasOutstandingIOU: reportData.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && reportData.total !== 0,
     };
 }
 
@@ -351,8 +356,8 @@ function fetchChatReportsByIDs(chatList) {
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReportObject.chatReportID}`;
                 reportIOUData[iouReportKey] = iouReportObject;
                 simplifiedReports[reportKey].iouReportID = iouReportObject.reportID;
-                simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum === 1
-                    && iouReportObject.total !== 0;
+                simplifiedReports[reportKey].hasOutstandingIOU = iouReportObject.stateNum
+                    === CONST.REPORT.STATE_NUM.PROCESSING && iouReportObject.total !== 0;
             });
 
             // We use mergeCollection such that it updates the collection in one go.
@@ -459,7 +464,8 @@ function fetchIOUReportByIDAndUpdateChatReport(iouReportID, chatReportID) {
         .then((iouReportObject) => {
             // Now sync the chatReport data to ensure it has a reference to the updated iouReportID
             const chatReportObject = {
-                hasOutstandingIOU: iouReportObject.stateNum === 1 && iouReportObject.total !== 0,
+                hasOutstandingIOU: iouReportObject.stateNum === CONST.REPORT.STATE_NUM.PROCESSING
+                    && iouReportObject.total !== 0,
                 iouReportID: iouReportObject.reportID,
             };
 
@@ -1049,7 +1055,17 @@ function addAction(reportID, text, file) {
         // the same way report actions can.
         persist: !isAttachment,
     })
-        .then(({reportAction}) => updateReportWithNewAction(reportID, reportAction));
+        .then((response) => {
+            if (response.jsonCode === 408) {
+                Growl.show(translateLocal('reportActionCompose.fileUploadFailed'), CONST.GROWL.ERROR);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [optimisticReportActionID]: null,
+                });
+                console.error(response.message);
+                return;
+            }
+            updateReportWithNewAction(reportID, response.reportAction);
+        });
 }
 
 /**
@@ -1210,6 +1226,11 @@ NetworkConnection.onReconnect(fetchAllReports);
  * @param {String} htmlForNewComment
  */
 function editReportComment(reportID, originalReportAction, htmlForNewComment) {
+    // Skip the Edit if message is not changed
+    if (originalReportAction.message[0].html === htmlForNewComment.trim()) {
+        return;
+    }
+
     // Optimistically update the report action with the new message
     const sequenceNumber = originalReportAction.sequenceNumber;
     const newReportAction = {...originalReportAction};
