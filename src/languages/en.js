@@ -365,7 +365,8 @@ export default {
     },
     validationStep: {
         headerTitle: 'Validate',
-        verifyingMessage: '',
+        buttonText: 'Finish Setup',
+        maxAttemptError: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
     },
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
