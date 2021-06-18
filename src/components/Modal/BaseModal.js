@@ -33,18 +33,21 @@ class BaseModal extends PureComponent {
     }
 
     componentWillUnmount() {
-        this.hideModalAndRemoveEventListeners();
+        this.hideModalAndRemoveEventListeners(this.props.isVisible);
     }
 
     /**
      * Hides modal and unsubscribes from key event listeners
+     * @param {boolean} [callhideCallback=true]
      */
-    hideModalAndRemoveEventListeners() {
+    hideModalAndRemoveEventListeners(callhideCallback = true) {
         this.unsubscribeFromKeyEvents();
         if (this.props.shouldSetModalVisibility) {
             setModalVisibility(false);
         }
-        this.props.onModalHide();
+        if (callhideCallback) {
+            this.props.onModalHide();
+        }
     }
 
     /**
