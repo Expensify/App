@@ -6,7 +6,7 @@ module.exports =
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 2730:
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
@@ -14,69 +14,165 @@ const moment = __nccwpck_require__(9623);
 const GithubUtils = __nccwpck_require__(7999);
 const GitUtils = __nccwpck_require__(669);
 
-const newVersion = core.getInput('NPM_VERSION');
+const run = function () {
+    const newVersion = core.getInput('NPM_VERSION');
 
+    let shouldCreateNewStagingDeployCash = false;
+    let currentStagingDeployCashIssueNumber = null;
 
-GithubUtils.getStagingDeployCash()
-    .then(() => GithubUtils.updateStagingDeployCash(
-        newVersion,
-        _.filter(
-            _.map(core.getInput('NEW_PULL_REQUESTS').split(','), PR => PR.trim()),
-            PR => !_.isEmpty(PR),
-        ),
-        _.filter(
-            _.map(core.getInput('NEW_DEPLOY_BLOCKERS').split(','), deployBlocker => deployBlocker.trim()),
-            PR => !_.isEmpty(PR),
-        ),
-    ))
-    .then(({data}) => {
-        console.log('Successfully updated StagingDeployCash! 🎉', data.html_url);
-        process.exit(0);
-    })
-    .catch((err) => {
-        // Unable to find the open StagingDeployCash
-        if (err && err.code === 404) {
-            console.log('No open StagingDeployCash found, creating a new one.');
+    // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
+    return Promise.all([
+        GithubUtils.octokit.issues.listForRepo({
+            log: console,
+            owner: GithubUtils.GITHUB_OWNER,
+            repo: GithubUtils.EXPENSIFY_CASH_REPO,
+            labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
+            state: 'all',
+        }),
+        GithubUtils.octokit.issues.listForRepo({
+            log: console,
+            owner: GithubUtils.GITHUB_OWNER,
+            repo: GithubUtils.EXPENSIFY_CASH_REPO,
+            labels: GithubUtils.DEPLOY_BLOCKER_CASH_LABEL,
+        }),
+    ])
+        .then((results) => {
+            const [stagingDeployResponse, deployBlockerResponse] = results;
+            if (!stagingDeployResponse || !stagingDeployResponse.data || _.isEmpty(stagingDeployResponse.data)) {
+                console.error('Failed fetching StagingDeployCash issues from Github!', stagingDeployResponse);
+                throw new Error('Failed fetching StagingDeployCash issues from Github');
+            }
 
-            // Fetch all the StagingDeployCash issues
-            return GithubUtils.octokit.issues.listForRepo({
-                log: console,
+            if (!deployBlockerResponse || !deployBlockerResponse.data) {
+                console.log('Failed fetching DeployBlockerCash issues from Github, continuing...');
+            }
+
+            // Look at the state of the most recent StagingDeployCash,
+            // if it is open then we'll update the existing one, otherwise, we'll create a new one.
+            shouldCreateNewStagingDeployCash = Boolean(stagingDeployResponse.data[0].state !== 'open');
+            if (shouldCreateNewStagingDeployCash) {
+                console.log('Latest StagingDeployCash is closed, creating a new one.', stagingDeployResponse.data[0]);
+            } else {
+                console.log(
+                    'Latest StagingDeployCash is open, updating it instead of creating a new one.',
+                    'Current:', stagingDeployResponse.data[0],
+                    'Previous:', stagingDeployResponse.data[1],
+                );
+            }
+
+            // Parse the data from the previous StagingDeployCash
+            // (newest if there are none open, otherwise second-newest)
+            const previousStagingDeployCashData = shouldCreateNewStagingDeployCash
+                ? GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[0])
+                : GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[1]);
+
+            console.log('Found tag of previous StagingDeployCash:', previousStagingDeployCashData.tag);
+
+            // Find the list of PRs merged between the last StagingDeployCash and the new version
+            const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newVersion);
+            console.log(
+                'The following PRs have been merged between the previous StagingDeployCash and new version:',
+                mergedPRs,
+            );
+
+            if (shouldCreateNewStagingDeployCash) {
+                // We're in the create flow, not update
+                // TODO: if there are open DeployBlockers and we are opening a new checklist,
+                //  then we should close / remove the DeployBlockerCash label from those
+                return GithubUtils.generateStagingDeployCashBody(
+                    newVersion,
+                    _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber),
+                );
+            }
+
+            // There is an open StagingDeployCash, so we'll be updating it, not creating a new one
+            const currentStagingDeployCashData = GithubUtils.getStagingDeployCashData(stagingDeployResponse.data[0]);
+            console.log('Parsed the following data from the current StagingDeployCash:', currentStagingDeployCashData);
+            currentStagingDeployCashIssueNumber = currentStagingDeployCashData.number;
+
+            const newDeployBlockers = _.map(deployBlockerResponse.data, ({html_url}) => ({
+                url: html_url,
+                number: GithubUtils.getIssueOrPullRequestNumberFromURL(html_url),
+                isResolved: false,
+            }));
+
+            // If we aren't sent a tag, then use the existing tag
+            const tag = newVersion || currentStagingDeployCashData.tag;
+
+            // Generate the PR list, preserving the previous state of `isVerified` for existing PRs
+            const PRList = _.sortBy(
+                _.unique(
+                    _.union(currentStagingDeployCashData.PRList, _.map(mergedPRs, number => ({
+                        number,
+                        url: GithubUtils.getPullRequestURLFromNumber(number),
+
+                        // Since this is the second argument to _.union,
+                        // it will appear later in the array than any duplicate.
+                        // Since it is later in the array, it will be truncated by _.unique,
+                        // and the original value of isVerified will be preserved.
+                        isVerified: false,
+                    }))),
+                    false,
+                    item => item.number,
+                ),
+                'number',
+            );
+
+            // Generate the deploy blocker list, preserving the previous state of `isResolved`
+            const deployBlockers = _.sortBy(
+                _.unique(
+                    _.union(currentStagingDeployCashData.deployBlockers, newDeployBlockers),
+                    false,
+                    item => item.number,
+                ),
+                'number',
+            );
+
+            return GithubUtils.generateStagingDeployCashBody(
+                tag,
+                _.pluck(PRList, 'url'),
+                _.pluck(_.where(PRList, {isVerified: true}), 'url'),
+                _.pluck(deployBlockers, 'url'),
+                _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
+            );
+        })
+        .then((body) => {
+            const defaultPayload = {
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
-                labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
-                state: 'closed',
+                body,
+            };
+
+            if (shouldCreateNewStagingDeployCash) {
+                return GithubUtils.octokit.issues.create({
+                    ...defaultPayload,
+                    title: `Deploy Checklist: Expensify.cash ${moment().format('YYYY-MM-DD')}`,
+                    labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
+                    assignees: [GithubUtils.APPLAUSE_BOT],
+                });
+            }
+
+            return GithubUtils.octokit.issues.update({
+                ...defaultPayload,
+                issue_number: currentStagingDeployCashIssueNumber,
             });
-        }
+        })
+        .then(({data}) => {
+            // eslint-disable-next-line max-len
+            console.log(`Successfully ${shouldCreateNewStagingDeployCash ? 'created new' : 'updated'} StagingDeployCash! 🎉 ${data.html_url}`);
+            return data;
+        })
+        .catch((err) => {
+            console.error('An unknown error occurred!', err);
+            core.setFailed(err);
+        });
+};
 
-        // Unexpected error!
-        console.error('Unexpected error occurred finding the StagingDeployCash!'
-                + ' There may have been more than one open StagingDeployCash found,'
-                + ' or there was some other problem with the Github API request.', err);
-        core.setFailed(err);
-    })
-    .then((githubResponse) => {
-        if (!githubResponse || !githubResponse.data || _.isEmpty(githubResponse.data)) {
-            console.error('Failed fetching data from Github!', githubResponse);
-            throw new Error('Failed fetching data from Github');
-        }
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
 
-        // Parse the tag from the most recent StagingDeployCash
-        const lastTag = GithubUtils.getStagingDeployCashData(githubResponse.data[0]).tag;
-        console.log('Found tag of previous StagingDeployCash:', lastTag);
-
-        // Find the list of PRs merged between the last StagingDeployCash and the new version
-        return GitUtils.getPullRequestsMergedBetween(lastTag, newVersion);
-    })
-    .then(PRNumbers => GithubUtils.createNewStagingDeployCash(
-        `Deploy Checklist: Expensify.cash ${moment().format('YYYY-MM-DD')}`,
-        newVersion,
-        _.map(PRNumbers, GithubUtils.getPullRequestURLFromNumber),
-    ))
-    .then(({data}) => console.log('Successfully created new StagingDeployCash! 🎉', data.html_url))
-    .catch((err) => {
-        console.error('An error occurred!', err);
-        core.setFailed(err);
-    });
+module.exports = run;
 
 
 /***/ }),
@@ -84,22 +180,22 @@ GithubUtils.getStagingDeployCash()
 /***/ 669:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const {promisify} = __nccwpck_require__(1669);
-const exec = promisify(__nccwpck_require__(3129).exec);
+const _ = __nccwpck_require__(4987);
+const {execSync} = __nccwpck_require__(3129);
 
 /**
  * Takes in two git refs and returns a list of PR numbers of all PRs merged between those two refs
  *
  * @param {String} fromRef
  * @param {String} toRef
- * @returns {Promise}
+ * @returns {Array}
  */
 function getPullRequestsMergedBetween(fromRef, toRef) {
-    return exec(`git log --format="%s" ${fromRef}...${toRef}`)
-        .then(({stdout}) => (
-            [...stdout.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)]
-                .map(match => match[1])
-        ));
+    const localGitLogs = execSync(`git log --format="%s" ${fromRef}...${toRef}`).toString();
+    return _.map(
+        [...localGitLogs.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)],
+        match => match[1],
+    );
 }
 
 module.exports = {
@@ -129,6 +225,7 @@ const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/
 
 const APPLAUSE_BOT = 'applausebot';
 const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
+const DEPLOY_BLOCKER_CASH_LABEL = 'DeployBlockerCash';
 
 class GithubUtils {
     /**
@@ -211,6 +308,7 @@ class GithubUtils {
             return {
                 title: issue.title,
                 url: issue.url,
+                number: this.getIssueOrPullRequestNumberFromURL(issue.url),
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
@@ -296,85 +394,7 @@ class GithubUtils {
     }
 
     /**
-     * Creates a new StagingDeployCash issue.
-     *
-     * @param {String} title
-     * @param {String} tag
-     * @param {Array} PRList
-     * @returns {Promise}
-     */
-    static createNewStagingDeployCash(title, tag, PRList) {
-        return this.generateStagingDeployCashBody(tag, PRList)
-            .then(body => this.octokit.issues.create({
-                owner: GITHUB_OWNER,
-                repo: EXPENSIFY_CASH_REPO,
-                labels: [STAGING_DEPLOY_CASH_LABEL],
-                assignees: [APPLAUSE_BOT],
-                title,
-                body,
-            }));
-    }
-
-    /**
-     * Updates the existing open StagingDeployCash issue.
-     *
-     * @param {String} [newTag]
-     * @param {Array} newPRs
-     * @param {Array} newDeployBlockers
-     * @returns {Promise}
-     * @throws {Error} If the StagingDeployCash could not be found or updated.
-     */
-    static updateStagingDeployCash(newTag = '', newPRs, newDeployBlockers) {
-        let issueNumber;
-        return this.getStagingDeployCash()
-            .then(({
-                url,
-                tag: oldTag,
-                PRList: oldPRs,
-                deployBlockers: oldDeployBlockers,
-            }) => {
-                issueNumber = GithubUtils.getIssueNumberFromURL(url);
-
-                // If we aren't sent a tag, then use the existing tag
-                const tag = _.isEmpty(newTag) ? oldTag : newTag;
-
-                const PRList = _.sortBy(
-                    _.union(oldPRs, _.map(newPRs, URL => ({
-                        url: URL,
-                        number: GithubUtils.getPullRequestNumberFromURL(URL),
-                        isVerified: false,
-                    }))),
-                    'number',
-                );
-                const deployBlockers = _.sortBy(
-                    _.union(oldDeployBlockers, _.map(newDeployBlockers, URL => ({
-                        url: URL,
-                        number: GithubUtils.getIssueOrPullRequestNumberFromURL(URL),
-                        isResolved: false,
-                    }))),
-                    'number',
-                );
-
-                return this.generateStagingDeployCashBody(
-                    tag,
-                    _.pluck(PRList, 'url'),
-                    _.pluck(_.where(PRList, {isVerified: true}), 'url'),
-                    _.pluck(deployBlockers, 'url'),
-                    _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
-                );
-            })
-            .then(updatedBody => this.octokit.issues.update({
-                owner: GITHUB_OWNER,
-                repo: EXPENSIFY_CASH_REPO,
-                issue_number: issueNumber,
-                body: updatedBody,
-            }));
-    }
-
-    /**
      * Generate the issue body for a StagingDeployCash.
-     *
-     * @private
      *
      * @param {String} tag
      * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
@@ -393,6 +413,7 @@ class GithubUtils {
         return this.octokit.pulls.list({
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
+            state: 'all',
             per_page: 100,
         })
             .then(({data}) => {
@@ -415,7 +436,7 @@ class GithubUtils {
                 let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n`;
 
                 // PR list
-                if (!_.isEmpty(PRList)) {
+                if (!_.isEmpty(sortedPRList)) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     _.each(sortedPRList, (URL) => {
                         issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';
@@ -559,6 +580,8 @@ module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
 module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
+module.exports.DEPLOY_BLOCKER_CASH_LABEL = DEPLOY_BLOCKER_CASH_LABEL;
+module.exports.APPLAUSE_BOT = APPLAUSE_BOT;
 
 
 /***/ }),

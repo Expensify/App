@@ -299,6 +299,9 @@ const CONST = {
         TYPE: {
             FREE: 'free',
         },
+        ROLE: {
+            ADMIN: 'admin',
+        },
     },
 };
 

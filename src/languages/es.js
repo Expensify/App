@@ -309,6 +309,8 @@ export default {
     },
     workspace: {
         new: {
+            newWorkspace: 'Nuevo Workspace',
+            getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
             welcome: 'Bienvenido/a',
             chooseAName: 'Elige un nombre',
             helpText: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
