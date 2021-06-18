@@ -625,6 +625,22 @@ function setupWithdrawalAccount(data) {
                 if (response.jsonCode === 666 || response.jsonCode === 404) {
                     error = response.message;
                 }
+
+                if (response.message === '402 Missing routingNumber'
+                    || response.message === '402 Maximum Size Exceeded routingNumber'
+                ) {
+                    error = 'Please check Routing Number and try again';
+                    achData.subStep = 'manual';
+                }
+
+                if (response.message === '402 Missing incorporationState in additionalData') {
+                    error = 'Please check Incorporation State and try again';
+                }
+
+                if (response.message === '402 Missing incorporationType in additionalData') {
+                    error = 'Please check Company Type and try again';
+                }
+
                 if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {
                     achData.disableFields = true;
                 }
@@ -634,7 +650,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                Growl.error(`Error setting up account: ${error}`);
+                Growl.error(`Error setting up account: ${error}`, 5000);
             }
         });
 }
