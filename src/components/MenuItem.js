@@ -41,7 +41,7 @@ const propTypes = {
     description: PropTypes.string,
 
     /** Any additional styles to pass to the icon container. */
-    iconStyles: PropTypes.array,
+    iconStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
