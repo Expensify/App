@@ -6,6 +6,9 @@ const CONST = {
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
     },
+    DATE: {
+        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+    },
     SMS: {
         DOMAIN: '@expensify.sms',
     },

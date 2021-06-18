@@ -93,7 +93,7 @@ function getPlaidBankAccounts(publicToken, bank) {
             plaidBankAccounts = _.filter(response.accounts, account => !account.alreadyExists);
 
             if (plaidBankAccounts.length === 0) {
-                Growl.show('Sorry, no bank account is available', CONST.GROWL.ERROR);
+                Growl.error('Sorry, no bank account is available');
             }
 
             Onyx.merge(ONYXKEYS.PLAID_BANK_ACCOUNTS, {
@@ -634,7 +634,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                Growl.show(`Error setting up account: ${error}`, CONST.GROWL.ERROR, 5000);
+                Growl.error(`Error setting up account: ${error}`);
             }
         });
 }

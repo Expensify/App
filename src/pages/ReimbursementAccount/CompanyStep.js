@@ -17,6 +17,8 @@ import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Growl from '../../libs/Growl';
+import Str from 'expensify-common/lib/str';
+import moment from 'moment';
 
 class CompanyStep extends React.Component {
     constructor(props) {
@@ -42,10 +44,78 @@ class CompanyStep extends React.Component {
         };
     }
 
+    /**
+     * Validating that this is a valid address (PO boxes are not allowed)
+     * @param {String} value
+     * @returns {Boolean}
+     */
+    isValidAddress(value) {
+        const isEmpty = !new RegExp('^.+$').test(value);
+        if (isEmpty) {
+            return false;
+        }
+
+        // eslint-disable-next-line max-len
+        const isPoBox = new RegExp('\\b[P|p]?(OST|ost)?\\.?\\s*[O|o|0]?(ffice|FFICE)?\\.?\\s*[B|b][O|o|0]?[X|x]?\\.?\\s+[#]?(\\d+)\\b').test(value);
+        return !isPoBox;
+    }
+
+    /**
+     * Validate date fields
+     * @param {String} date
+     * @returns {Boolean} true if valid
+     */
+    validateDate(date) {
+        return moment(date).isValid();
+    }
+
+    /**
+     * @param {String} code
+     * @returns {Boolean}
+     */
+    validateIndustryCode(code) {
+        return !/^[0-9]{6}$/.test(code);
+    }
+
     validate() {
         // @TODO check more than just the password
         if (!this.state.password.trim()) {
-            Growl.show(this.props.translate('common.passwordCannotBeBlank'), CONST.GROWL.ERROR);
+            Growl.error(this.props.translate('common.passwordCannotBeBlank'));
+            return false;
+        }
+
+        if (!this.isValidAddress(this.state.addressStreet)) {
+            Growl.error('Please enter a valid address street that is not a PO Box');
+            return false;
+        }
+
+        if (!/[0-9]{5}(?:[- ][0-9]{4})?/.test(this.state.addressZipCode)) {
+            Growl.error('Please enter a valid zip code');
+            return false;
+        }
+
+        if (!Str.isValidURL(this.state.website)) {
+            Growl.error('Please enter a valid website');
+            return false;
+        }
+
+        if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
+            Growl.error('Please enter a valid Tax Id Number');
+            return false;
+        }
+
+        if (this.validateDate(this.state.incorporationDate)) {
+            Growl.error('Please enter a valid incorporation date');
+            return false;
+        }
+
+        if (this.validateIndustryCode(this.state.industryCode)) {
+            Growl.error('Please enter a valid industry classification code');
+            return false;
+        }
+
+        if (!this.state.hasNoConnectionToCannabis) {
+            Growl.error('Please confirm company is not on the list of restricted businesses');
             return false;
         }
 
@@ -57,7 +127,8 @@ class CompanyStep extends React.Component {
             return;
         }
 
-        setupWithdrawalAccount({...this.state});
+        const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
+        setupWithdrawalAccount({...this.state, incorporationDate});
     }
 
     render() {
