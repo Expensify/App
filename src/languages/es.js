@@ -43,6 +43,7 @@ export default {
         isRequiredField: 'es un campo obligatorio',
         whatThis: '¿Qué es esto?',
         invite: 'Invitar',
+        passwordCannotBeBlank: 'La contraseña no puede estar vacía',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -265,7 +266,6 @@ export default {
         getMeOutOfHere: 'Sácame de aquí',
     },
     setPasswordPage: {
-        passwordCannotBeBlank: 'La contraseña no puede estar vacía',
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu Contraseña',
     },
