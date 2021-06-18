@@ -294,6 +294,12 @@ const CONST = {
     },
 
     DEFAULT_LOCALE: 'en',
+
+    POLICY: {
+        TYPE: {
+            FREE: 'free',
+        },
+    },
 };
 
 export default CONST;
