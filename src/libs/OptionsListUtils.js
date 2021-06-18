@@ -146,7 +146,7 @@ function getSearchText(report, personalDetailList) {
         searchTerms.push(...report.participants);
 
         // Add policy name as a search term for default rooms
-        if (isDefaultRoom(report.chatType) && policies[report.policyID]) {
+        if (isDefaultRoom(report) && policies[report.policyID]) {
             searchTerms.push(...policies[report.policyID].name);
         }
     }
@@ -179,7 +179,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         + _.unescape(report.lastMessageText)
         : '';
 
-    const isDefaultChatRoom = isDefaultRoom(lodashGet(report, ['chatType'], ''));
+    const isDefaultChatRoom = isDefaultRoom(report);
     const policyInfo = policies[lodashGet(report, ['policyID'], '')];
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
     const text = isDefaultChatRoom
@@ -293,8 +293,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
-        const chatType = lodashGet(report, ['chatType'], '');
-        if (isDefaultRoom(chatType) && !Permissions.canUseDefaultRooms(betas)) {
+        if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
             return;
         }
 
@@ -613,7 +612,7 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  * @returns {String}
  */
 function getReportIcons(report, personalDetails) {
-    if (isDefaultRoom(report.chatType)) {
+    if (isDefaultRoom(report)) {
         // Placeholder image for default rooms soon to be updated
         return [`${CONST.CLOUDFRONT_URL}/images/avatars/default_avatar_external.png`];
     }
