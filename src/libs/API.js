@@ -912,9 +912,9 @@ function Mobile_GetConstants(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {number} [parameters.latitude]
- * @param {number} [parameters.longitude]
+ * @param {Object} parameters
+ * @param {Number} [parameters.latitude]
+ * @param {Number} [parameters.longitude]
  * @returns {Promise}
  */
 function GetPreferredCurrency(parameters) {
@@ -930,9 +930,9 @@ function GetCurrencyList() {
 }
 
 /**
- * @param {object} parameters
- * @param {string} [parameters.type]
- * @param {string} [parameters.policyName]
+ * @param {Object} parameters
+ * @param {String} [parameters.type]
+ * @param {String} [parameters.policyName]
  * @returns {Promise}
  */
 function Policy_Create(parameters) {

@@ -146,17 +146,16 @@ function invite(login, welcomeNote, policyID) {
  * @param {String} name
  */
 function create(name) {
-    Policy_Create({type: 'free', policyName: name})
+    Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((data) => {
             if (data.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.new.genericFailureMessage');
                 Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
-
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.COLLECTION.POLICY + data.policyID, {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${data.policyID}`, {
                 policyID: data.policyID,
                 type: data.policy.type,
                 name: data.policy.name,
