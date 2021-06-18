@@ -14,6 +14,11 @@ jobs:
     if: ${{ github.event.label.name == 'DeployBlockerCash' }}
 
     steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Get URL, title, & number of new deploy blocker (issue)
         if: ${{ github.event_name == 'issues' }}
         run: |

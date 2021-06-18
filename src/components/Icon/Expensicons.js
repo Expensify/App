@@ -4,6 +4,7 @@ import ArrowRight from '../../../assets/images/arrow-right.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
 import Bank from '../../../assets/images/bank.svg';
 import Bug from '../../../assets/images/bug.svg';
+import Building from '../../../assets/images/building.svg';
 import Camera from '../../../assets/images/camera.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
@@ -51,6 +52,7 @@ export {
     ArrowRight,
     BackArrow,
     Bank,
+    Building,
     Bug,
     Camera,
     ChatBubble,
