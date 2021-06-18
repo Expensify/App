@@ -350,7 +350,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(0);
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite.login).toBe('+15005550006');
+        expect(results.userToInvite.login).toBe(`+15005550006${CONST.SMS.DOMAIN}`);
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number with country code added
@@ -361,7 +361,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(0);
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite.login).toBe('+15005550006');
+        expect(results.userToInvite.login).toBe(`+15005550006${CONST.SMS.DOMAIN}`);
 
         // Test Concierge's existence in new group options
         results = OptionsListUtils.getNewGroupOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
