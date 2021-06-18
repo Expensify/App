@@ -595,7 +595,7 @@ const styles = {
     },
 
     createMenuIconEmphasized: {
-        backgroundColor: themeColors.icon,
+        backgroundColor: themeColors.iconSuccessFill,
         borderRadius: variables.componentSizeLarge / 2,
     },
 
@@ -1783,10 +1783,9 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  * Generate fill color of an icon based on its state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @param {Boolean} [reversed]
  * @returns {Object}
  */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, reversed = false) {
+function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
         case CONST.BUTTON_STATES.HOVERED:
             return themeColors.text;
@@ -1796,7 +1795,7 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT, reversed = 
             return themeColors.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
         default:
-            return reversed ? themeColors.iconReversed : themeColors.icon;
+            return themeColors.icon;
     }
 }
 

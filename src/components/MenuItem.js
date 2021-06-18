@@ -28,11 +28,14 @@ const propTypes = {
     /** A boolean flag that gives the icon a green fill if true */
     success: PropTypes.bool,
 
-    // Overrides the icon for shouldShowRightIcon
+    /** Overrides the icon for shouldShowRightIcon */
     iconRight: PropTypes.elementType,
 
-    /** If true, the icon will appear larger and have a circular grey background with a white fill */
-    emphasizeIcon: PropTypes.bool,
+    /** Any additional styles to pass to the icon container. */
+    iconStyles: PropTypes.array,
+
+    /** The fill color to pass into the icon. */
+    iconFill: PropTypes.string,
 };
 
 const defaultProps = {
@@ -41,7 +44,8 @@ const defaultProps = {
     success: false,
     icon: undefined,
     iconRight: ArrowRight,
-    emphasizeIcon: false,
+    iconStyles: [],
+    iconFill: undefined,
 };
 
 const MenuItem = ({
@@ -52,7 +56,8 @@ const MenuItem = ({
     shouldShowRightIcon,
     wrapperStyle,
     success,
-    emphasizeIcon,
+    iconStyles,
+    iconFill,
 }) => (
     <Pressable
         onPress={onPress}
@@ -69,12 +74,12 @@ const MenuItem = ({
                         <View
                             style={[
                                 styles.createMenuIcon,
-                                emphasizeIcon ? styles.createMenuIconEmphasized : undefined,
+                                ...iconStyles,
                             ]}
                         >
                             <Icon
                                 src={icon}
-                                fill={getIconFillColor(getButtonState(hovered, pressed, success), emphasizeIcon)}
+                                fill={iconFill || getIconFillColor(getButtonState(hovered, pressed, success))}
                             />
                         </View>
                     )}

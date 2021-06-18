@@ -5,6 +5,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import {signOut} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -124,7 +125,7 @@ const InitialSettingsPage = ({
     }
 
     // Add free policies (workspaces) to the list of menu items
-    const workspaceMenuItems = _.chain(policies)
+    const menuItems = _.chain(policies)
         .filter(policy => (
             !_.isEmpty(policy)
             && policy.type === CONST.POLICY.TYPE.FREE
@@ -134,10 +135,11 @@ const InitialSettingsPage = ({
             title: policy.name,
             icon: Building,
             action: () => Navigation.navigate(ROUTES.getWorkspaceRoute(policy.ID)),
-            emphasizeIcon: true,
+            iconStyles: [styles.createMenuIconEmphasized],
+            iconFill: themeColors.iconReversed,
         }))
         .value();
-    const menuItems = [].concat(workspaceMenuItems, defaultMenuItems);
+    menuItems.push(...defaultMenuItems);
 
     return (
         <ScreenWrapper>
@@ -177,7 +179,8 @@ const InitialSettingsPage = ({
                                 title={keyTitle}
                                 icon={item.icon}
                                 onPress={item.action}
-                                emphasizeIcon={item.emphasizeIcon}
+                                iconStyles={item.iconStyles}
+                                iconFill={item.iconFill}
                                 shouldShowRightIcon
                             />
                         );
