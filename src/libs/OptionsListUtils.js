@@ -39,8 +39,8 @@ const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (policy) => {
-        if (policy && policy.policyID) {
-            policies[policy.policyID] = policy;
+        if (policy && policy.ID) {
+            policies[policy.ID] = policy;
         }
     },
 });
