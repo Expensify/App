@@ -72,7 +72,7 @@ function findLastAccessedReport(reports) {
 }
 
 /**
- *
+ * Whether the provided chatType corresponds to a default room
  * @param {String} chatType
  * @returns {Boolean}
  */
