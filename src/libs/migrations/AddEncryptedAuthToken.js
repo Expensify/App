@@ -30,7 +30,7 @@ export default function () {
                     return reauthenticate('Onyx_Migration_AddEncryptedAuthToken')
                         .then(() => {
                             console.debug('[Migrate Onyx] Ran migration AddEncryptedAuthToken');
-                            resolve();
+                            return resolve();
                         });
                 }
 
