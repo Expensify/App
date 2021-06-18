@@ -74,7 +74,7 @@ const defaultProps = {
     onPayButtonPressed: null,
 };
 
-const ReportActionItemIOUPreview = ({
+const IOUPreview = ({
     iouReportID,
     chatReportID,
     iouReport,
@@ -167,9 +167,9 @@ const ReportActionItemIOUPreview = ({
     );
 };
 
-ReportActionItemIOUPreview.propTypes = propTypes;
-ReportActionItemIOUPreview.defaultProps = defaultProps;
-ReportActionItemIOUPreview.displayName = 'ReportActionItemIOUPreview';
+IOUPreview.propTypes = propTypes;
+IOUPreview.defaultProps = defaultProps;
+IOUPreview.displayName = 'IOUPreview';
 
 export default compose(
     withLocalize,
@@ -184,4 +184,4 @@ export default compose(
             key: ONYXKEYS.SESSION,
         },
     }),
-)(ReportActionItemIOUPreview);
+)(IOUPreview);
