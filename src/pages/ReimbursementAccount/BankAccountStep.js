@@ -199,7 +199,7 @@ class BankAccountStep extends React.Component {
                                 LabelComponent={() => (
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         <Text>
-                                            {this.props.translate('bankAccount.iAcceptThe')}
+                                            {this.props.translate('common.iAcceptThe')}
                                         </Text>
                                         <TextLink href="https://use.expensify.com/terms">
                                             {`Expensify ${this.props.translate('common.termsOfService')}`}
