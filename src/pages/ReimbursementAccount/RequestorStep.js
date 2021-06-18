@@ -67,27 +67,42 @@ class RequestorStep extends React.Component {
                         />
                         <Text style={[styles.textMicroSupporting, styles.mt5]}>
                             {this.props.translate('requestorStep.financialRegulations')}
-                            {/* eslint-disable-next-line max-len */}
-                            <TextLink href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account">
+                            <TextLink
+                                size="micro"
+                                // eslint-disable-next-line max-len
+                                href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
+                            >
                                 {`${this.props.translate('requestorStep.learnMore')}`}
                             </TextLink>
                             {' | '}
-                            {/* eslint-disable-next-line max-len */}
-                            <TextLink href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information">
+                            <TextLink
+                                size="micro"
+                                // eslint-disable-next-line max-len
+                                href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
+                            >
                                 {`${this.props.translate('requestorStep.isMyDataSafe')}`}
                             </TextLink>
                         </Text>
                         <Text style={[styles.mt3, styles.textMicroSupporting]}>
                             {this.props.translate('requestorStep.onFidoConditions')}
-                            <TextLink href="https://onfido.com/facial-scan-policy-and-release/">
+                            <TextLink
+                                size="micro"
+                                href="https://onfido.com/facial-scan-policy-and-release/"
+                            >
                                 {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
                             </TextLink>
                             {', '}
-                            <TextLink href="https://onfido.com/privacy/">
+                            <TextLink
+                                size="micro"
+                                href="https://onfido.com/privacy/"
+                            >
                                 {`${this.props.translate('common.privacyPolicy')}`}
                             </TextLink>
                             {` ${this.props.translate('common.and')} `}
-                            <TextLink href="https://onfido.com/terms-of-service/">
+                            <TextLink
+                                size="micro"
+                                href="https://onfido.com/terms-of-service/"
+                            >
                                 {`${this.props.translate('common.termsOfService')}`}
                             </TextLink>
                         </Text>

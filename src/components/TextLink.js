@@ -20,12 +20,16 @@ const propTypes = {
 
     /** Overwrites the default link behavior with a custom callback */
     onPress: PropTypes.func,
+
+    /** Size of text */
+    size: PropTypes.string,
 };
 
 const defaultProps = {
     href: '',
     style: [],
     onPress: undefined,
+    size: 'default',
 };
 
 const TextLink = (props) => {
@@ -45,7 +49,14 @@ const TextLink = (props) => {
             href={props.href}
         >
             {({hovered, pressed}) => (
-                <Text style={[styles.link, (hovered || pressed) ? styles.linkHovered : undefined, ...additionalStyles]}>
+                <Text
+                    style={[
+                        props.size === 'micro' ? styles.textMicroSupporting : undefined,
+                        styles.link,
+                        (hovered || pressed) ? styles.linkHovered : undefined,
+                        ...additionalStyles,
+                    ]}
+                >
                     {props.children}
                 </Text>
             )}
