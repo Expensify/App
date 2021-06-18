@@ -1,8 +1,13 @@
+import _ from 'underscore';
 import React from 'react';
-import {propTypes, defaultProps} from './PopoverPropTypes';
+import {propTypes as popoverPropTypes, defaultProps} from './PopoverPropTypes';
 import CONST from '../../CONST';
 import Modal from '../Modal';
-import withWindowDimensions from '../withWindowDimensions';
+import {windowDimensionsPropTypes} from '../withWindowDimensions';
+
+const propTypes = {
+    ...(_.omit(popoverPropTypes, _.keys(windowDimensionsPropTypes))),
+};
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
@@ -24,4 +29,4 @@ Popover.propTypes = propTypes;
 Popover.defaultProps = defaultProps;
 Popover.displayName = 'Popover';
 
-export default withWindowDimensions(Popover);
+export default Popover;
