@@ -178,20 +178,25 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
             : '')
         + _.unescape(report.lastMessageText)
         : '';
-    const policyInfo = policies[report.policyID];
-    const tooltipText = isDefaultRoom(report.chatType) && policyInfo
+
+    const isDefaultChatRoom = isDefaultRoom(lodashGet(report, ['chatType'], ''));
+    const policyInfo = policies[lodashGet(report, ['policyID'], '')];
+    const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
+    const text = isDefaultChatRoom
+        ? lodashGet(report, ['reportName'], 'defaultRoom')
+        : hasMultipleParticipants
+            ? personalDetailList
+                .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
+                .join(', ')
+            : lodashGet(report, ['reportName'], personalDetail.displayName);
+    const alternateText = isDefaultChatRoom && policyInfo
         ? policyInfo.name
-        : getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-    const fullTitle = isDefaultRoom(report.chatType)
-        ? report.reportName
-        : personalDetailList
-            .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
-            .join(', ');
-    return {
-        text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
-        alternateText: (showChatPreviewLine && lastMessageText)
+        : (showChatPreviewLine && lastMessageText)
             ? lastMessageText
-            : Str.removeSMSDomain(personalDetail.login),
+            : Str.removeSMSDomain(personalDetail.login);
+    return {
+        text,
+        alternateText,
         icons: report ? report.icons : [personalDetail.avatar],
         tooltipText,
         participantsList: personalDetailList,
