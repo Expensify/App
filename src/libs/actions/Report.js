@@ -144,7 +144,7 @@ function getChatReportName(fullReport, chatType) {
         return `#${fullReport.reportName}`;
     }
 
-    const {sharedReportList} = rawReport;
+    const {sharedReportList} = fullReport;
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
