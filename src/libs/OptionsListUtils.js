@@ -132,7 +132,7 @@ function getSearchText(report, personalDetailList) {
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
         searchTerms.push(...report.participants);
 
-        // Add policyID as a search term for default rooms
+        // Add policy name as a search term for default rooms
         if (isDefaultRoom(report.chatType) && policies[report.policyID]) {
             searchTerms.push(...policies[report.policyID].name);
         }
