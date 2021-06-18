@@ -1104,9 +1104,7 @@ function deleteReportComment(reportID, reportAction) {
                             // Replace line breaks with spaces and remove all HTML from the message
                             lastMessageDetails.lastMessageText = lastReportAction.isAttachment
                                 ? '[Attachment]'
-                                : _.last(lastReportAction.message)
-                                    .html.replace(/((<br[^>]*>)+)/gi, ' ')
-                                    .replace(/(<([^>]+)>)/gi, '');
+                                : Str.stripHTML(_.last(lastReportAction.message).html.replace(/((<br[^>]*>)+)/gi, ' '));
                             lastMessageDetails.lastMessageTimestamp = lastReportAction.timestamp;
                             lastMessageDetails.lastActorEmail = lodashGet(lastReportAction, 'actorEmail', '');
                         } else {
