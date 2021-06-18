@@ -30,13 +30,12 @@ class BankAccountStep extends React.Component {
         this.toggleTerms = this.toggleTerms.bind(this);
         this.addManualAccount = this.addManualAccount.bind(this);
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
-
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
-            bankAccountAddMethod: undefined,
-            hasAcceptedTerms: true,
-            routingNumber: '',
-            accountNumber: '',
+            bankAccountAddMethod: props.achData.subStep || undefined,
+            hasAcceptedTerms: props.achData.acceptTerms || true,
+            routingNumber: props.achData.routingNumber || '',
+            accountNumber: props.achData.accountNumber || '',
         };
     }
 
@@ -107,6 +106,9 @@ class BankAccountStep extends React.Component {
     }
 
     render() {
+        // Disable bank account fields once they've been added in db so they can't be changed
+        const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+        const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -181,12 +183,14 @@ class BankAccountStep extends React.Component {
                                 keyboardType="number-pad"
                                 value={this.state.routingNumber}
                                 onChangeText={routingNumber => this.setState({routingNumber})}
+                                disabled={shouldDisableInputs}
                             />
                             <TextInputWithLabel
                                 placeholder={this.props.translate('bankAccount.accountNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.accountNumber}
                                 onChangeText={accountNumber => this.setState({accountNumber})}
+                                disabled={shouldDisableInputs}
                             />
                             <CheckboxWithLabel
                                 style={[styles.mb4, styles.mt5]}
