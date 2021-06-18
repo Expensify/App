@@ -34,12 +34,16 @@ Onyx.connect({
  * @param {Object} fullPolicy
  * @param {String} fullPolicy.id
  * @param {String} fullPolicy.name
+ * @param {String} fullPolicy.role
+ * @param {String} fullPolicy.type
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicy) {
     return {
+        ID: fullPolicy.id,
         name: fullPolicy.name,
-        policyID: fullPolicy.id,
+        role: fullPolicy.role,
+        type: fullPolicy.type,
     };
 }
 

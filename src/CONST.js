@@ -299,6 +299,15 @@ const CONST = {
     },
 
     DEFAULT_LOCALE: 'en',
+
+    POLICY: {
+        TYPE: {
+            FREE: 'free',
+        },
+        ROLE: {
+            ADMIN: 'admin',
+        },
+    },
 };
 
 export default CONST;
