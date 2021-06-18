@@ -313,11 +313,9 @@ export default {
             getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
             welcome: 'Bienvenido/a',
             chooseAName: 'Elige un nombre',
-            helpText: '¿Necesitas ayuda con la configuración? Pídenos una llamada y una persona de nuestro equipo te ayudará.',
+            helpText: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
             getStarted: '¡Empezar!',
-            uploadPhoto: 'Subir Foto',
-            editPhoto: 'Editar Foto',
-            requestCall: 'Concertar una llamada',
+            genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
         },
         invite: {
             invitePeople: 'Invitar a la gente',
