@@ -24,7 +24,7 @@ const defaultProps = {
     onViewDetailsPressed: () => {},
 };
 
-const ReportActionItemIOUQuote = ({
+const IOUQuote = ({
     action,
     shouldShowViewDetailsLink,
     onViewDetailsPressed,
@@ -51,8 +51,8 @@ const ReportActionItemIOUQuote = ({
     </View>
 );
 
-ReportActionItemIOUQuote.propTypes = propTypes;
-ReportActionItemIOUQuote.defaultProps = defaultProps;
-ReportActionItemIOUQuote.displayName = 'ReportActionItemIOUQuote';
+IOUQuote.propTypes = propTypes;
+IOUQuote.defaultProps = defaultProps;
+IOUQuote.displayName = 'IOUQuote';
 
-export default withLocalize(ReportActionItemIOUQuote);
+export default withLocalize(IOUQuote);
