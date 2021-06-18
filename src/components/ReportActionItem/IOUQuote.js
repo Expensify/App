@@ -2,9 +2,9 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import styles from '../../styles/styles';
+import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** All the data of the action */
@@ -24,7 +24,7 @@ const defaultProps = {
     onViewDetailsPressed: () => {},
 };
 
-const ReportActionItemIOUQuote = ({
+const IOUQuote = ({
     action,
     shouldShowViewDetailsLink,
     onViewDetailsPressed,
@@ -51,8 +51,8 @@ const ReportActionItemIOUQuote = ({
     </View>
 );
 
-ReportActionItemIOUQuote.propTypes = propTypes;
-ReportActionItemIOUQuote.defaultProps = defaultProps;
-ReportActionItemIOUQuote.displayName = 'ReportActionItemIOUQuote';
+IOUQuote.propTypes = propTypes;
+IOUQuote.defaultProps = defaultProps;
+IOUQuote.displayName = 'IOUQuote';
 
-export default withLocalize(ReportActionItemIOUQuote);
+export default withLocalize(IOUQuote);
