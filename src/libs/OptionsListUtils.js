@@ -196,7 +196,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
             : lodashGet(report, ['reportName'], personalDetail.displayName);
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
-            : Str.removeSMSDomain(personalDetail.login),
+            : Str.removeSMSDomain(personalDetail.login);
     }
     isDefaultChatRoom
     const alternateText = isDefaultChatRoom && policyInfo
