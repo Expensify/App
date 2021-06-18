@@ -70,7 +70,9 @@ const styles = {
     },
 
     textMicro: {
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textMicroBold: {
@@ -78,6 +80,13 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
+    },
+
+    textMicroSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textLarge: {
@@ -234,6 +243,7 @@ const styles = {
             appearance: 'none',
             height: variables.componentSizeNormal,
             opacity: 1,
+            cursor: 'pointer',
         },
         inputAndroid: {
             fontFamily: fontFamily.GTA,
@@ -286,6 +296,12 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    border: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
     },
 
     headerText: {
@@ -594,11 +610,22 @@ const styles = {
         alignItems: 'center',
     },
 
+    createMenuIconEmphasized: {
+        backgroundColor: themeColors.iconSuccessFill,
+        borderRadius: variables.componentSizeLarge / 2,
+    },
+
     createMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    createMenuDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
     },
 
     menuItemTextContainer: {
@@ -1529,6 +1556,11 @@ const styles = {
 
     cursorDisabled: {
         cursor: 'not-allowed',
+    },
+
+    textItalic: {
+        fontFamily: fontFamily.GTA_ITALIC,
+        fontStyle: 'italic',
     },
 
     workspaceInviteWelcome: {
