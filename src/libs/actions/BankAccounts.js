@@ -626,19 +626,19 @@ function setupWithdrawalAccount(data) {
                     error = response.message;
                 }
 
-                if (response.message === '402 Missing routingNumber'
-                    || response.message === '402 Maximum Size Exceeded routingNumber'
-                ) {
-                    error = 'Please check Routing Number and try again';
-                    achData.subStep = 'manual';
-                }
-
-                if (response.message === '402 Missing incorporationState in additionalData') {
-                    error = 'Please check Incorporation State and try again';
-                }
-
-                if (response.message === '402 Missing incorporationType in additionalData') {
-                    error = 'Please check Company Type and try again';
+                if (response.jsonCode === 402) {
+                    if (response.message === '402 Missing routingNumber'
+                        || response.message === '402 Maximum Size Exceeded routingNumber'
+                    ) {
+                        error = 'Please check Routing Number and try again';
+                        achData.subStep = 'manual';
+                    } else if (response.message === '402 Missing incorporationState in additionalData') {
+                        error = 'Please check Incorporation State and try again';
+                    } else if (response.message === '402 Missing incorporationType in additionalData') {
+                        error = 'Please check Company Type and try again';
+                    } else {
+                        console.error(response.message);
+                    }
                 }
 
                 if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {
