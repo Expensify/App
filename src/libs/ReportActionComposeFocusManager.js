@@ -37,9 +37,7 @@ function clear() {
  * @return {Boolean} isFocused
  */
 function isFocused() {
-    if (composerRef.current) {
-        return composerRef.current.isFocused();
-    }
+    return composerRef.current && composerRef.current.isFocused();
 }
 
 export default {
