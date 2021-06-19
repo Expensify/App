@@ -46,22 +46,21 @@ class CompanyStep extends React.Component {
 
     /**
      * Validating that this is a valid address (PO boxes are not allowed)
+     *
      * @param {String} value
      * @returns {Boolean}
      */
     isValidAddress(value) {
-        const isEmpty = !CONST.REGEX.ANY_VALUE.test(value);
-        if (isEmpty) {
+        if (!CONST.REGEX.ANY_VALUE.test(value)) {
             return false;
         }
 
-        // eslint-disable-next-line max-len
-        const isPoBox = CONST.REGEX.PO_BOX.test(value);
-        return !isPoBox;
+        return !CONST.REGEX.PO_BOX.test(value);
     }
 
     /**
      * Validate date fields
+     *
      * @param {String} date
      * @returns {Boolean} true if valid
      */
