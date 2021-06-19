@@ -220,11 +220,13 @@ class ReportActionsView extends React.Component {
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
+     *
+     * @returns {Promise}
      */
     loadMoreChats() {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (this.state.isLoadingMoreChats) {
-            return;
+            return this.fetchPromise;
         }
 
         const minSequenceNumber = _.chain(this.props.reportActions)
@@ -233,16 +235,21 @@ class ReportActionsView extends React.Component {
             .value();
 
         if (minSequenceNumber === 0) {
-            return;
+            return Promise.resolve();
         }
 
-        this.setState({isLoadingMoreChats: true}, () => {
-            // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-            // case just get everything starting from 0.
-            const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-            fetchActions(this.props.reportID, offset)
-                .then(() => this.setState({isLoadingMoreChats: false}));
-        });
+        this.setState({isLoadingMoreChats: true});
+
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
+        // case just get everything starting from 0.
+        const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
+        this.fetchPromise = fetchActions(this.props.reportID, offset)
+            .finally(() => {
+                this.setState({isLoadingMoreChats: false});
+                this.fetchPromise = null;
+            });
+
+        return this.fetchPromise;
     }
 
     /**
