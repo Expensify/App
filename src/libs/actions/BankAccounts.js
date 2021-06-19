@@ -9,6 +9,7 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
+import {translateLocal} from '../translate';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -93,7 +94,7 @@ function getPlaidBankAccounts(publicToken, bank) {
             plaidBankAccounts = _.filter(response.accounts, account => !account.alreadyExists);
 
             if (plaidBankAccounts.length === 0) {
-                Growl.error('Sorry, no bank account is available');
+                Growl.error(translateLocal('bankAccount.error.noBankAccountAvailable'));
             }
 
             Onyx.merge(ONYXKEYS.PLAID_BANK_ACCOUNTS, {

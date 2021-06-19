@@ -85,37 +85,37 @@ class CompanyStep extends React.Component {
         }
 
         if (!this.isValidAddress(this.state.addressStreet)) {
-            Growl.error('Please enter a valid address street that is not a PO Box');
+            Growl.error(this.props.translate('bankAccount.error.addressStreet'));
             return false;
         }
 
         if (!/[0-9]{5}(?:[- ][0-9]{4})?/.test(this.state.addressZipCode)) {
-            Growl.error('Please enter a valid zip code');
+            Growl.error(this.props.translate('bankAccount.error.zipCode'));
             return false;
         }
 
         if (!Str.isValidURL(this.state.website)) {
-            Growl.error('Please enter a valid website');
+            Growl.error(this.props.translate('bankAccount.error.website'));
             return false;
         }
 
         if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
-            Growl.error('Please enter a valid Tax Id Number');
+            Growl.error(this.props.translate('bankAccount.error.taxID'));
             return false;
         }
 
         if (!this.isValidDate(this.state.incorporationDate)) {
-            Growl.error('Please enter a valid incorporation date');
+            Growl.error(this.props.translate('bankAccount.error.incorporationDate'));
             return false;
         }
 
         if (this.validateIndustryCode(this.state.industryCode)) {
-            Growl.error('Please enter a valid industry classification code');
+            Growl.error(this.props.translate('bankAccount.error.industryCode'));
             return false;
         }
 
         if (!this.state.hasNoConnectionToCannabis) {
-            Growl.error('Please confirm company is not on the list of restricted businesses');
+            Growl.error(this.props.translate('bankAccount.error.restrictedBusiness'));
             return false;
         }
 
