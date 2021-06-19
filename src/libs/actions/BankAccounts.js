@@ -631,12 +631,12 @@ function setupWithdrawalAccount(data) {
                     if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_ROUTING_NUMBER
                         || response.message === CONST.BANK_ACCOUNT.ERROR.MAX_ROUTING_NUMBER
                     ) {
-                        error = 'Please check Routing Number and try again';
-                        achData.subStep = 'manual';
+                        error = translateLocal('bankAccount.error.routingNumber');
+                        achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
                     } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
-                        error = 'Please check Incorporation State and try again';
+                        error = translateLocal('bankAccount.error.incorporationState');
                     } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_TYPE) {
-                        error = 'Please check Company Type and try again';
+                        error = translateLocal('bankAccount.error.companyType');
                     } else {
                         console.error(response.message);
                     }
