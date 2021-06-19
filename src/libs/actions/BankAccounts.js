@@ -351,8 +351,6 @@ function fetchFreePlanVerifiedBankAccount() {
                 achDataThrottledResponse,
                 bankAccountListResponse,
             ]) => {
-                console.log(failedValidationAttemptsResponse);
-                console.log(bankAccountListResponse);
                 const failedValidationAttempts = lodashGet(failedValidationAttemptsResponse, [
                     'value', 'nameValuePairs', failedValidationAttemptsName,
                 ], 0);
