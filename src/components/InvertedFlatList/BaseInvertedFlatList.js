@@ -19,7 +19,8 @@ const propTypes = {
     /** Passed via forwardRef so we can access the FlatList ref */
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(FlatList)}),
+        // eslint-disable-next-line react/forbid-prop-types
+        PropTypes.shape({current: PropTypes.object}),
     ]).isRequired,
 
     /** Should we measure these items and call getItemLayout? */
