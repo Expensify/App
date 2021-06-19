@@ -187,7 +187,7 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
     let alternateText;
     if (isDefaultChatRoom) {
         text = lodashGet(report, ['reportName'], '');
-        alternateText = lodashGet(policyInfo, ['policyInfo'], 'Unknown Policy');
+        alternateText = lodashGet(policyInfo, ['name'], 'Unknown Policy');
     } else {
         text = hasMultipleParticipants
             ? personalDetailList
@@ -198,12 +198,6 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
     }
-    isDefaultChatRoom
-    const alternateText = isDefaultChatRoom && policyInfo
-        ? policyInfo.name
-        : (showChatPreviewLine && lastMessageText)
-            ? lastMessageText
-            : Str.removeSMSDomain(personalDetail.login);
     return {
         text,
         alternateText,
