@@ -50,13 +50,13 @@ class CompanyStep extends React.Component {
      * @returns {Boolean}
      */
     isValidAddress(value) {
-        const isEmpty = !new RegExp('^.+$').test(value);
+        const isEmpty = !CONST.REGEX.ANY_VALUE.test(value);
         if (isEmpty) {
             return false;
         }
 
         // eslint-disable-next-line max-len
-        const isPoBox = new RegExp('\\b[P|p]?(OST|ost)?\\.?\\s*[O|o|0]?(ffice|FFICE)?\\.?\\s*[B|b][O|o|0]?[X|x]?\\.?\\s+[#]?(\\d+)\\b').test(value);
+        const isPoBox = CONST.REGEX.PO_BOX.test(value);
         return !isPoBox;
     }
 
@@ -74,7 +74,7 @@ class CompanyStep extends React.Component {
      * @returns {Boolean}
      */
     validateIndustryCode(code) {
-        return !/^[0-9]{6}$/.test(code);
+        return !CONST.REGEX.INDUSTRY_CODE.test(code);
     }
 
     validate() {
@@ -89,7 +89,7 @@ class CompanyStep extends React.Component {
             return false;
         }
 
-        if (!/[0-9]{5}(?:[- ][0-9]{4})?/.test(this.state.addressZipCode)) {
+        if (!CONST.REGEX.ZIP_CODE.test(this.state.addressZipCode)) {
             Growl.error(this.props.translate('bankAccount.error.zipCode'));
             return false;
         }

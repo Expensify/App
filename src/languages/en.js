@@ -297,8 +297,11 @@ export default {
             zipCode: 'Please enter a valid zip code',
             addressStreet: 'Please enter a valid address street that is not a PO Box',
             incorporationDate: 'Please enter a valid incorporation date',
+            incorporationState: 'Please check Incorporation State and try again',
             industryCode: 'Please enter a valid industry classification code',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
+            routingNumber: 'Please check Routing Number and try again',
+            companyType: 'Please check Company Type and try again',
         },
     },
     addPersonalBankAccountPage: {
