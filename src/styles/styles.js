@@ -70,7 +70,9 @@ const styles = {
     },
 
     textMicro: {
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textMicroBold: {
@@ -78,6 +80,13 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
+    },
+
+    textMicroSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textLarge: {
@@ -289,6 +298,12 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    border: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+    },
+
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -455,13 +470,6 @@ const styles = {
         lineHeight: 16,
     },
 
-    textMicroSupporting: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-    },
-
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,
@@ -602,11 +610,22 @@ const styles = {
         alignItems: 'center',
     },
 
+    createMenuIconEmphasized: {
+        backgroundColor: themeColors.iconSuccessFill,
+        borderRadius: variables.componentSizeLarge / 2,
+    },
+
     createMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    createMenuDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
     },
 
     menuItemTextContainer: {
