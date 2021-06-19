@@ -4,40 +4,49 @@ import CONST from '../../CONST';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
-    // Callback method fired when the user requests to close the modal
+    /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
+    fullscreen: PropTypes.bool,
+
+    /** Should we close modal on outside click */
+    shouldCloseOnOutsideClick: PropTypes.bool,
+
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
+
+    /** Callback method fired when the user requests to close the modal */
     onClose: PropTypes.func.isRequired,
 
-    // State that determines whether to display the modal or not
+    /** State that determines whether to display the modal or not */
     isVisible: PropTypes.bool.isRequired,
 
-    // Modal contents
+    /** Modal contents */
     children: PropTypes.node.isRequired,
 
-    // Callback method fired when the user requests to submit the modal content.
+    /** Callback method fired when the user requests to submit the modal content. */
     onSubmit: PropTypes.func,
 
-    // Callback method fired when the modal is hidden
+    /** Callback method fired when the modal is hidden */
     onModalHide: PropTypes.func,
 
-    // Callback method fired when the modal is shown
+    /** Callback method fired when the modal is shown */
     onModalShow: PropTypes.func,
 
-    // Style of modal to display
+    /** Style of modal to display */
     type: PropTypes.oneOf(_.values(CONST.MODAL.MODAL_TYPE)),
 
-    // A react-native-animatable animation definition for the modal display animation.
+    /** A react-native-animatable animation definition for the modal display animation. */
     animationIn: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.object,
     ]),
 
-    // A react-native-animatable animation definition for the modal hide animation.
+    /** A react-native-animatable animation definition for the modal hide animation. */
     animationOut: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.object,
     ]),
 
-    // The anchor position of a popover modal. Has no effect on other modal types.
+    /** The anchor position of a popover modal. Has no effect on other modal types. */
     popoverAnchorPosition: PropTypes.shape({
         top: PropTypes.number,
         right: PropTypes.number,
@@ -49,6 +58,9 @@ const propTypes = {
 };
 
 const defaultProps = {
+    fullscreen: true,
+    shouldCloseOnOutsideClick: false,
+    shouldSetModalVisibility: true,
     onSubmit: null,
     type: '',
     onModalHide: () => {},

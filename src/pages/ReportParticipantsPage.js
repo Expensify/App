@@ -14,31 +14,36 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import OptionsList from '../components/OptionsList';
 import ROUTES from '../ROUTES';
 import personalDetailsPropType from './personalDetailsPropType';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
-    // The personal details of the person who is logged in
+
+    /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
 
-    // The active report
+    /** The active report */
     report: PropTypes.shape({
-        // The list of icons
+        /** The list of icons */
         icons: PropTypes.arrayOf(PropTypes.string),
 
-        // The report name
+        /** The report name */
         reportName: PropTypes.string,
 
-        // Array of participants
+        /** Array of participants */
         participants: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
-    // Route params
+    /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
-            // Report ID passed via route r/:reportID/participants
+            /** Report ID passed via route r/:reportID/participants */
             reportID: PropTypes.string,
         }),
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 /**
@@ -68,13 +73,18 @@ const getAllParticipants = (report, personalDetails) => {
     });
 };
 
-const ReportParticipantsPage = ({personalDetails, report, route}) => {
+const ReportParticipantsPage = ({
+    personalDetails,
+    report,
+    route,
+    translate,
+}) => {
     const participants = getAllParticipants(report, personalDetails);
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title="Details"
+                title={translate('common.details')}
                 onCloseButtonPress={Navigation.dismissModal}
             />
             <View
@@ -110,11 +120,14 @@ const ReportParticipantsPage = ({personalDetails, report, route}) => {
 ReportParticipantsPage.propTypes = propTypes;
 ReportParticipantsPage.displayName = 'ParticipantsPage';
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-    },
-})(ReportParticipantsPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+    }),
+)(ReportParticipantsPage);

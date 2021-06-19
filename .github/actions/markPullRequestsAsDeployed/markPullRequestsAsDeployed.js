@@ -1,15 +1,14 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
+const {context} = require('@actions/github');
+const ActionUtils = require('../../libs/ActionUtils');
 const GithubUtils = require('../../libs/GithubUtils');
 
-const prList = JSON.parse(core.getInput('PR_LIST', {required: true}));
-const isProd = JSON.parse(
-    core.getInput('IS_PRODUCTION_DEPLOY', {required: true}),
-);
+
+const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
+const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
+const isCP = ActionUtils.getJSONInput('IS_CHERRY_PICK', {required: false}, false);
 const version = core.getInput('DEPLOY_VERSION', {required: true});
-const token = core.getInput('GITHUB_TOKEN', {required: true});
-const octokit = github.getOctokit(token);
-const githubUtils = new GithubUtils(octokit);
+
 
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
@@ -38,16 +37,20 @@ const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
     + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
+const deployVerb = isCP ? 'Cherry-picked' : 'Deployed';
 
-let message = `🚀 [Deployed](${workflowURL}) to ${isProd ? 'production' : 'staging'} in version: ${version}🚀`;
+let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'} in version: ${version}🚀`;
 message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
 message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
 /**
- * Create comment on each pull request
+ * Comment Single PR
+ *
+ * @param {Number} pr
+ * @returns {Promise<void>}
  */
-prList.forEach((pr) => {
-    githubUtils.createComment(github.context.repo.repo, pr, message, octokit)
+function commentPR(pr) {
+    return GithubUtils.createComment(context.repo.repo, pr, message)
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
         })
@@ -55,4 +58,9 @@ prList.forEach((pr) => {
             console.log(`Unable to write comment on #${pr} 😞`);
             core.setFailed(err.message);
         });
-});
+}
+
+/**
+ * Create comment on each pull request
+ */
+prList.reduce((promise, pr) => promise.then(() => commentPR(pr)), Promise.resolve());

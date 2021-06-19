@@ -8,6 +8,7 @@ import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import {getReportParticipantsTitle} from './reportUtils';
+import {translate} from './translate';
 import Permissions from './Permissions';
 
 /**
@@ -18,10 +19,24 @@ import Permissions from './Permissions';
 
 let currentUserLogin;
 let countryCodeByIP;
+let preferredLocale;
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
 const defaultAvatarForUserToInvite = getDefaultAvatar();
+
+/**
+ * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
+ *
+ * @param {String} login
+ * @return {String}
+ */
+function addSMSDomainIfPhoneNumber(login) {
+    if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
+        return login + CONST.SMS.DOMAIN;
+    }
+    return login;
+}
 
 /**
  * Returns the personal details for an array of logins
@@ -36,7 +51,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         if (!personalDetail) {
             personalDetail = {
-                login,
+                login: addSMSDomainIfPhoneNumber(login),
                 displayName: login,
                 avatar: getDefaultAvatar(login),
             };
@@ -44,6 +59,34 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         return personalDetail;
     });
+}
+
+/**
+ * Constructs a Set with all possible names (displayName, firstName, lastName, email) for all participants in a report,
+ * to be used in isSearchStringMatch.
+ *
+ * @param {Array<Object>} personalDetailList
+ * @return {Set<String>}
+ */
+function getParticipantNames(personalDetailList) {
+    // We use a Set because `Set.has(value)` on a Set of with n entries is up to n (or log(n)) times faster than
+    // `_.contains(Array, value)` for an Array with n members.
+    const participantNames = new Set();
+    _.each(personalDetailList, (participant) => {
+        if (participant.login) {
+            participantNames.add(participant.login.toLowerCase());
+        }
+        if (participant.firstName) {
+            participantNames.add(participant.firstName.toLowerCase());
+        }
+        if (participant.lastName) {
+            participantNames.add(participant.lastName.toLowerCase());
+        }
+        if (participant.displayName) {
+            participantNames.add(participant.displayName.toLowerCase());
+        }
+    });
+    return participantNames;
 }
 
 /**
@@ -60,8 +103,8 @@ function getSearchText(report, personalDetailList) {
         searchTerms.push(personalDetail.displayName);
         searchTerms.push(personalDetail.login);
     });
-
     if (report) {
+        searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
         searchTerms.push(...report.participants);
     }
@@ -75,15 +118,13 @@ function getSearchText(report, personalDetailList) {
  * @param {Array<Object>} personalDetailList
  * @param {Object} [report]
  * @param {Object} draftComments
- * @param {Number} activeReportID
  * @param {Boolean} showChatPreviewLine
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
+function createOption(personalDetailList, report, draftComments, {showChatPreviewLine = false}) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
-        && (report.reportID !== activeReportID)
         && draftComments
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
@@ -96,9 +137,11 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         + _.unescape(report.lastMessageText)
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-
+    const fullTitle = personalDetailList
+        .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
+        .join(', ');
     return {
-        text: report ? report.reportName : personalDetail.displayName,
+        text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login),
@@ -130,19 +173,28 @@ Onyx.connect({
     callback: val => countryCodeByIP = val || 1,
 });
 
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
+});
+
 /**
  * Searches for a match when provided with a value
  *
  * @param {String} searchValue
  * @param {String} searchText
+ * @param {Set<String>} [participantNames]
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText) {
-    const searchWords = searchValue.split(' ');
+function isSearchStringMatch(searchValue, searchText, participantNames = new Set()) {
+    const searchWords = searchValue
+        .replace(/,/g, ' ')
+        .split(' ')
+        .map(word => word.trim());
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch);
+        return matchRegex.test(valueToSearch) || participantNames.has(word);
     });
 }
 
@@ -158,8 +210,10 @@ function isSearchStringMatch(searchValue, searchText) {
  * @private
  */
 function getOptions(reports, personalDetails, draftComments, activeReportID, {
+    betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
+    excludeConcierge = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
@@ -207,19 +261,24 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
-        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, activeReportID, {
+        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, {
             showChatPreviewLine,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, activeReportID, {
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, {
             showChatPreviewLine,
         })
     ));
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+
+    if (excludeConcierge) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.CONCIERGE});
+    }
+
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -239,8 +298,10 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
                 continue;
             }
 
-            // Finally check to see if this options is a match for the provided search string if we have one
-            if (searchValue && !isSearchStringMatch(searchValue, reportOption.searchText)) {
+            // Finally check to see if this option is a match for the provided search string if we have one
+            const {searchText, participantsList} = reportOption;
+            const participantNames = getParticipantNames(participantsList);
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
                 continue;
             }
 
@@ -273,11 +334,11 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ))) {
                 return;
             }
-
-            if (searchValue && !isSearchStringMatch(searchValue, personalDetailOption.searchText)) {
+            const {searchText, participantsList} = personalDetailOption;
+            const participantNames = getParticipantNames(participantsList);
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
                 return;
             }
-
             personalDetailsOptions.push(personalDetailOption);
         });
     }
@@ -288,15 +349,15 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && personalDetailsOptions.length === 0
             && _.every(selectedOptions, option => option.login !== searchValue)
             && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
-            && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos())
+            && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
-        // current users international code based on their IP address.
+        // current user's international code based on their IP address.
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
-        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID, {
+        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
@@ -315,23 +376,26 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getSearchOptions(
     reports,
     personalDetails,
     searchValue = '',
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: true,
+        prioritizePinnedReports: false,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
-        sortByLastMessageTimestamp: true,
+        sortByLastMessageTimestamp: false,
     });
 }
 
@@ -341,16 +405,24 @@ function getSearchOptions(
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
+ * @param {Boolean} excludeConcierge
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getNewChatOptions(
     reports,
     personalDetails,
     searchValue = '',
+    excludeConcierge,
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         includePersonalDetails: true,
+        includeRecentReports: true,
+        maxRecentReportsToShow: 5,
+        excludeConcierge,
     });
 }
 
@@ -392,6 +464,8 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
+ * @param {Boolean} excludeConcierge
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getNewGroupOptions(
@@ -399,14 +473,18 @@ function getNewGroupOptions(
     personalDetails,
     searchValue = '',
     selectedOptions = [],
+    excludeConcierge,
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         selectedOptions,
         includeRecentReports: true,
         includePersonalDetails: true,
         includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
+        excludeConcierge,
     });
 }
 
@@ -451,18 +529,36 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  */
 function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
+        return translate(preferredLocale, 'messages.maxParticipantsReached');
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return CONST.MESSAGES.NO_PHONE_NUMBER;
+            return translate(preferredLocale, 'messages.noPhoneNumber');
         }
 
         return searchValue;
     }
 
     return '';
+}
+
+/**
+ * Returns the currency list for sections display
+ *
+ * @param {Object} currencyOptions
+ * @param {String} searchValue
+ * @param {Object} selectedCurrency
+ * @returns {Array}
+ */
+function getCurrencyListForSections(currencyOptions, searchValue) {
+    const filteredOptions = currencyOptions.filter(currencyOption => (
+        isSearchStringMatch(searchValue, currencyOption.searchText)));
+
+    return {
+        // returns filtered options i.e. options with string match if search text is entered
+        currencyOptions: filteredOptions,
+    };
 }
 
 export {
@@ -472,6 +568,7 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
+    getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
 };

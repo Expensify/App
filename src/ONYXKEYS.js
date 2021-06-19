@@ -21,6 +21,9 @@ export default {
     // What the active route is for our navigator. Global route that determines what views to display.
     CURRENT_URL: 'currentURL',
 
+    // Stores current date
+    CURRENT_DATE: 'currentDate',
+
     // Currently viewed reportID
     CURRENTLY_VIEWED_REPORTID: 'currentlyViewedReportID',
 
@@ -41,6 +44,10 @@ export default {
 
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
+
+    // Contains a list of all currencies available to the user - user can
+    // select a currency based on the list
+    CURRENCY_LIST: 'currencyList',
 
     // Indicates whether an update is available and ready to beinstalled.
     UPDATE_AVAILABLE: 'updateAvailable',
@@ -63,12 +70,47 @@ export default {
     // Contains the user preference for the LHN priority mode
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
+    // SDK token used to communicate with Plaid API
+    PLAID_LINK_TOKEN: 'plaidLinkToken',
+
+    // List of bank accounts returned by Plaid
+    PLAID_BANK_ACCOUNTS: 'plaidBankAccounts',
+
     // Collection Keys
     COLLECTION: {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+        REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
+        POLICY: 'policy_',
     },
+
+    // Indicates which locale should be used
+    PREFERRED_LOCALE: 'preferredLocale',
+
+    // List of transactionIDs in process of rejection
+    TRANSACTIONS_BEING_REJECTED: 'transactionsBeingRejected',
+
+    // User's Expensify Wallet
+    USER_WALLET: 'userWallet',
+
+    // Object containing Onfido SDK Token + applicantID
+    WALLET_ONFIDO: 'walletOnfido',
+
+    // Stores information about additional details form entry
+    WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
+
+    // Object containing Wallet terms step state
+    WALLET_TERMS: 'walletTerms',
+
+    // The user's bank accounts
+    BANK_ACCOUNT_LIST: 'bankAccountList',
+
+    // The user's credit cards
+    CARD_LIST: 'cardList',
+
+    // Stores information about the active reimbursement account being set up
+    REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 };

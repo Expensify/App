@@ -11,12 +11,13 @@ module.exports =
 const _ = __nccwpck_require__(4987);
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
+const ActionUtils = __nccwpck_require__(970);
 const GitUtils = __nccwpck_require__(669);
 
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const inputTag = core.getInput('TAG', {required: true});
 
-const isProductionDeploy = JSON.parse(core.getInput('IS_PRODUCTION_DEPLOY', {required: false}));
+const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
 const itemToFetch = isProductionDeploy ? 'release' : 'tag';
 
 /**
@@ -64,9 +65,7 @@ getTagsOrReleases(isProductionDeploy)
         console.log(`Given ${itemToFetch}: ${inputTag}`);
         console.log(`Prior ${itemToFetch}: ${priorTag}`);
 
-        return GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
-    })
-    .then((pullRequestList) => {
+        const pullRequestList = GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
         console.log(`Found the pull request list: ${pullRequestList}`);
         return core.setOutput('PR_LIST', pullRequestList);
     })
@@ -75,25 +74,54 @@ getTagsOrReleases(isProductionDeploy)
 
 /***/ }),
 
+/***/ 970:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param {String} name - The name of the input.
+ * @param {Object} options - Options to pass to core.getInput
+ * @param {*} [defaultValue] - A default value to provide for the input.
+ *                             Not required if the {required: true} option is given in the second arg to this function.
+ * @returns {any}
+ */
+function getJSONInput(name, options, defaultValue = undefined) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+
+module.exports = {
+    getJSONInput,
+};
+
+
+/***/ }),
+
 /***/ 669:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const {promisify} = __nccwpck_require__(1669);
-const exec = promisify(__nccwpck_require__(3129).exec);
+const _ = __nccwpck_require__(4987);
+const {execSync} = __nccwpck_require__(3129);
 
 /**
  * Takes in two git refs and returns a list of PR numbers of all PRs merged between those two refs
  *
  * @param {String} fromRef
  * @param {String} toRef
- * @returns {Promise}
+ * @returns {Array}
  */
 function getPullRequestsMergedBetween(fromRef, toRef) {
-    return exec(`git log --format="%s" ${fromRef}...${toRef}`)
-        .then(({stdout}) => (
-            [...stdout.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)]
-                .map(match => match[1])
-        ));
+    const localGitLogs = execSync(`git log --format="%s" ${fromRef}...${toRef}`).toString();
+    return _.map(
+        [...localGitLogs.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)],
+        match => match[1],
+    );
 }
 
 module.exports = {

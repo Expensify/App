@@ -69,7 +69,10 @@ class Hoverable extends Component {
      * @param {Object} event - A click event
      */
     resetHoverStateOnOutsideClick(event) {
-        if (this.wrapperView && !this.wrapperView.contains(event.target)) {
+        if (!this.state.isHovered) {
+            return;
+        }
+        if (this.wrapperView && !this.wrapperView.contains(event.target) && this.props.resetsOnClickOutside) {
             this.setIsHovered(false);
         }
     }

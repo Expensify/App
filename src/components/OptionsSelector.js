@@ -7,66 +7,69 @@ import OptionsList from './OptionsList';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import optionPropTypes from './optionPropTypes';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
-    // Callback to fire when a row is tapped
+    /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
 
-    // Sections for the section list
+    /** Sections for the section list */
     sections: PropTypes.arrayOf(PropTypes.shape({
-        // Title of the section
+        /** Title of the section */
         title: PropTypes.string,
 
-        // The initial index of this section given the total number of options in each section's data array
+        /** The initial index of this section given the total number of options in each section's data array */
         indexOffset: PropTypes.number,
 
-        // Array of options
+        /** Array of options */
         data: PropTypes.arrayOf(optionPropTypes),
 
-        // Whether this section should show or not
+        /** Whether this section should show or not */
         shouldShow: PropTypes.bool,
     })).isRequired,
 
-    // Value in the search input field
+    /** Value in the search input field */
     value: PropTypes.string.isRequired,
 
-    // Callback fired when text changes
+    /** Callback fired when text changes */
     onChangeText: PropTypes.func.isRequired,
 
-    // Optional placeholder text for the selector
+    /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
 
-    // Options that have already been selected
+    /** Options that have already been selected */
     selectedOptions: PropTypes.arrayOf(optionPropTypes),
 
-    // Optional header message
+    /** Optional header message */
     headerMessage: PropTypes.string,
 
-    // Whether we can select multiple options
+    /** Whether we can select multiple options */
     canSelectMultipleOptions: PropTypes.bool,
 
-    // Whether any section headers should be visible
+    /** Whether any section headers should be visible */
     hideSectionHeaders: PropTypes.bool,
 
-    // Whether to allow arrow key actions on the list
+    /** Whether to allow arrow key actions on the list */
     disableArrowKeysActions: PropTypes.bool,
 
-    // A flag to indicate whether to show additional optional states, such as pin and draft icons
+    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
     hideAdditionalOptionStates: PropTypes.bool,
 
-    // Force the text style to be the unread style on all rows
+    /** Force the text style to be the unread style on all rows */
     forceTextUnreadStyle: PropTypes.bool,
 
-    // Whether to show the title tooltip
+    /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    // Whether to focus the textinput after an option is selected
+    /** Whether to focus the textinput after an option is selected */
     shouldFocusOnSelectRow: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     onSelectRow: () => {},
-    placeholderText: 'Name, email, or phone number',
+    placeholderText: '',
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
@@ -111,10 +114,6 @@ class OptionsSelector extends Component {
      * @param {SyntheticEvent} e
      */
     handleKeyPress(e) {
-        if (this.props.disableArrowKeysActions) {
-            return;
-        }
-
         // We are mapping over all the options to combine them into a single array and also saving the section index
         // index within that section so we can navigate
         const allOptions = _.reduce(this.props.sections, (options, section, sectionIndex) => (
@@ -124,6 +123,10 @@ class OptionsSelector extends Component {
                 sectionIndex,
             }))]
         ), []);
+
+        if (this.props.disableArrowKeysActions && e.nativeEvent.key.startsWith('Arrow')) {
+            return;
+        }
 
         switch (e.nativeEvent.key) {
             case 'Enter': {
@@ -195,7 +198,8 @@ class OptionsSelector extends Component {
                         value={this.props.value}
                         onChangeText={this.props.onChangeText}
                         onKeyPress={this.handleKeyPress}
-                        placeholder={this.props.placeholderText}
+                        placeholder={this.props.placeholderText
+                            || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                         placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
@@ -221,4 +225,4 @@ class OptionsSelector extends Component {
 
 OptionsSelector.defaultProps = defaultProps;
 OptionsSelector.propTypes = propTypes;
-export default OptionsSelector;
+export default withLocalize(OptionsSelector);

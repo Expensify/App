@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, TextInput} from 'react-native';
+import {View, TextInput, ScrollView} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {isEmpty} from 'underscore';
@@ -12,22 +12,29 @@ import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import {changePassword} from '../../libs/actions/User';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /* Onyx Props */
-    // Holds information about the users account that is logging in
+
+    /** Holds information about the users account that is logging in */
     account: PropTypes.shape({
-        // An error message to display to the user
+        /** An error message to display to the user */
         error: PropTypes.string,
 
-        // Success message to display when necessary
+        /** Success message to display when necessary */
         success: PropTypes.string,
 
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -63,20 +70,21 @@ class PasswordPage extends Component {
     render() {
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title="Change Password"
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
-                    <View style={styles.flexGrow1}>
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('passwordPage.changePassword')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    />
+                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <Text style={[styles.mb6, styles.textP]}>
-                            Changing your password will update your password for both your Expensify.com
-                            and Expensify.cash accounts.
+                            {this.props.translate('passwordPage.changingYourPasswordPrompt')}
                         </Text>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>Current Password*</Text>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {`${this.props.translate('passwordPage.currentPassword')}*`}
+                            </Text>
                             <TextInput
                                 secureTextEntry
                                 autoCompleteType="password"
@@ -87,7 +95,9 @@ class PasswordPage extends Component {
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>New Password*</Text>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {`${this.props.translate('passwordPage.newPassword')}*`}
+                            </Text>
                             <TextInput
                                 secureTextEntry
                                 autoCompleteType="password"
@@ -100,13 +110,14 @@ class PasswordPage extends Component {
                             />
                             {this.state.isPasswordRequirementsVisible && (
                                 <Text style={[styles.formHint, styles.mt1]}>
-                                    New password must be different than your old password, have at least 8 characters,
-                                    1 capital letter, 1 lowercase letter, 1 number.
+                                    {this.props.translate('passwordPage.newPasswordPrompt')}
                                 </Text>
                             )}
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>Confirm New Password*</Text>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {`${this.props.translate('passwordPage.confirmNewPassword')}*`}
+                            </Text>
                             <TextInput
                                 secureTextEntry
                                 autoCompleteType="password"
@@ -122,20 +133,22 @@ class PasswordPage extends Component {
                                 {this.props.account.error}
                             </Text>
                         )}
-                    </View>
-                    <View style={styles.flexGrow0}>
-                        <ButtonWithLoader
+                    </ScrollView>
+                    <FixedFooter style={[styles.flexGrow0]}>
+                        <Button
+                            success
+                            style={[styles.mb2]}
                             isDisabled={!this.state.currentPassword || !this.state.newPassword
                                 || !this.state.confirmNewPassword
                                 || (this.state.newPassword !== this.state.confirmNewPassword)
                                 || (this.state.currentPassword === this.state.newPassword)
                                 || !this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING)}
                             isLoading={this.props.account.loading}
-                            text="Save"
-                            onClick={this.handleChangePassword}
+                            text={this.props.translate('common.save')}
+                            onPress={this.handleChangePassword}
                         />
-                    </View>
-                </View>
+                    </FixedFooter>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
@@ -145,8 +158,11 @@ PasswordPage.displayName = 'PasswordPage';
 PasswordPage.propTypes = propTypes;
 PasswordPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    account: {
-        key: ONYXKEYS.ACCOUNT,
-    },
-})(PasswordPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        account: {
+            key: ONYXKEYS.ACCOUNT,
+        },
+    }),
+)(PasswordPage);
