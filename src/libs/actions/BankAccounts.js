@@ -650,7 +650,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                Growl.error(`Error setting up account: ${error}`, 5000);
+                Growl.error(error, 5000);
             }
         });
 }
