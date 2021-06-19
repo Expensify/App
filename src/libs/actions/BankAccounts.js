@@ -627,14 +627,14 @@ function setupWithdrawalAccount(data) {
                 }
 
                 if (response.jsonCode === 402) {
-                    if (response.message === '402 Missing routingNumber'
-                        || response.message === '402 Maximum Size Exceeded routingNumber'
+                    if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_ROUTING_NUMBER
+                        || response.message === CONST.BANK_ACCOUNT.ERROR.MAX_ROUTING_NUMBER
                     ) {
                         error = 'Please check Routing Number and try again';
                         achData.subStep = 'manual';
-                    } else if (response.message === '402 Missing incorporationState in additionalData') {
+                    } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
                         error = 'Please check Incorporation State and try again';
-                    } else if (response.message === '402 Missing incorporationType in additionalData') {
+                    } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_TYPE) {
                         error = 'Please check Company Type and try again';
                     } else {
                         console.error(response.message);
