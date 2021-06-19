@@ -19,6 +19,7 @@ import {
     Users,
     MoneyCircle,
     Receipt,
+    NewWorkspace,
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -132,6 +133,16 @@ class SidebarScreen extends Component {
                                         icon: Receipt,
                                         text: this.props.translate('iou.splitBill'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                    },
+                                ] : []),
+                                ...(Permissions.canUseFreePlan(this.props.betas) ? [
+                                    {
+                                        icon: NewWorkspace,
+                                        iconWidth: 46,
+                                        iconHeight: 40,
+                                        text: this.props.translate('workspace.new.newWorkspace'),
+                                        description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
+                                        onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW),
                                     },
                                 ] : []),
                             ]}
