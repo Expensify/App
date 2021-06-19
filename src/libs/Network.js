@@ -26,19 +26,32 @@ let onError = () => {};
 let isOffline;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: val => isOffline = val && val.isOffline,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        // Client becomes online, process the queue.
+        if (isOffline && !val.isOffline) {
+            // Fake merge which trigger the NETWORK_REQUEST_QUEUE Onyx's subscription callback
+            Onyx.merge(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
+        }
+        isOffline = val.isOffline;
+    },
 });
 
 let didLoadPersistedRequests;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
-    callback: (persistedRequests) => {
-        ActiveClientManager.isReady().then(() => {
-            // NETWORK_REQUEST_QUEUE is shared across tabs thus when user refreshs the tabs, this queue will be
-            // processed but in that case it should only be processed by leader other wise requests will be repeated
+
+ActiveClientManager.isReady().then(() => {
+    Onyx.connect({
+        key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
+        callback: (persistedRequests) => {
+            // NETWORK_REQUEST_QUEUE is shared across clients, thus every client will have similiar copy of
+            // NETWORK_REQUEST_QUEUE. It is very important to only process the queue from leader client
+            // otherwise requests will be duplicated.
             // We only process the persisted requests when
-            // a) Client is leader,
-            // b) When user comes back online, this callback will be called,
+            // a) Client is leader.
+            // b) User is online.
             // c) requests are not already loaded,
             // d) When there is at least one request
             if (!ActiveClientManager.isClientTheLeader()
@@ -49,7 +62,7 @@ Onyx.connect({
             }
 
             // Queue processing expects handlers but due to we are loading the requests from Storage
-            // we have to add new ones.
+            // we just noop them to ignore the errors.
             _.each(persistedRequests, (request) => {
                 request.resolve = () => {};
                 request.reject = () => {};
@@ -60,8 +73,8 @@ Onyx.connect({
             networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
             Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
             didLoadPersistedRequests = true;
-        });
-    },
+        },
+    });
 });
 
 // Subscribe to the user's session so we can include their email in every request and include it in the server logs
@@ -137,7 +150,9 @@ function processNetworkRequestQueue() {
                 return true;
             }
         });
-        Onyx.merge(ONYXKEYS.NETWORK_REQUEST_QUEUE, retryableRequests);
+        if (retryableRequests.length) {
+            Onyx.merge(ONYXKEYS.NETWORK_REQUEST_QUEUE, retryableRequests);
+        }
         return;
     }
 
@@ -186,7 +201,9 @@ function processNetworkRequestQueue() {
             .catch(error => onError(queuedRequest, error));
     });
 
-    // We should clear the NETWORK_REQUEST_QUEUE when we have loaded the perssited requests & Client is leader
+    // We should clear the NETWORK_REQUEST_QUEUE when we have loaded the persisted requests & they are processed.
+    // As multiple client will be sharing the same Queue and NETWORK_REQUEST_QUEUE is synchronized among clients,
+    // we only ask Leader client to clear the queue
     if (ActiveClientManager.isClientTheLeader() && didLoadPersistedRequests) {
         Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
     }

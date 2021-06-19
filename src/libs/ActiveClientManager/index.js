@@ -8,12 +8,15 @@ const maxClients = 20;
 
 let activeClients;
 
-// Whether the clientID is set
+// Whether the current clientID is set
 let didInitialize = false;
 
-// Internal callback to be fired to mark ActiveClientManager as ready
-// Due to Client's Id will be set asynchronously, we want to call this callback on completion.
-let onReadyCallback = null;
+let resolveReadyPromise = null;
+
+// Keeps track of the ActiveClientManager's readiness.
+const readyPromise = new Promise((res) => {
+    resolveReadyPromise = res;
+});
 
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
@@ -21,10 +24,11 @@ Onyx.connect({
         activeClients = !val ? [] : val;
         if (activeClients.length >= maxClients) {
             activeClients.shift();
-            Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
-        }
-        if (didInitialize) {
-            onReadyCallback();
+            Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients).then(() => {
+                if (didInitialize) {
+                    resolveReadyPromise();
+                }
+            });
         }
     },
 });
@@ -43,12 +47,7 @@ function init() {
  * @returns {Promise<void>}
  */
 function isReady() {
-    if (didInitialize) {
-        return Promise.resolve();
-    }
-    return new Promise((res) => {
-        onReadyCallback = res;
-    });
+    return readyPromise;
 }
 
 /**
