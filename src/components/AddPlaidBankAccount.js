@@ -137,6 +137,8 @@ class AddPlaidBankAccount extends React.Component {
                             )}
                             {/* @TODO there are a bunch of logos to incorporate here to replace this name
                             https://d2k5nsl2zxldvw.cloudfront.net/images/plaid/bg_plaidLogos_12@2x.png */}
+                            <Image>
+                            </Image>
                             <Text style={[styles.mb5, styles.h1]}>{this.state.institution.name}</Text>
                             <View style={[styles.mb5]}>
                                 <Picker
