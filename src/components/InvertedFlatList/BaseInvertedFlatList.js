@@ -152,10 +152,6 @@ class BaseInvertedFlatList extends Component {
                 // Web requires that items be measured or else crazy things happen when scrolling.
                 getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
                 bounces={false}
-
-                // We keep this property very low so that chat switching remains fast
-                maxToRenderPerBatch={1}
-                windowSize={15}
                 removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
             />
         );
