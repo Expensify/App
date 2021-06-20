@@ -20,7 +20,10 @@ import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryL
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
 import EnablePaymentsPage from '../../../pages/EnablePayments';
-import AddBankAccountPage from '../../../pages/AddBankAccountPage';
+import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
+import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
+import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
+import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -147,9 +150,24 @@ const EnablePaymentsStackNavigator = createModalStackNavigator([{
     name: 'EnablePayments_Root',
 }]);
 
-const AddBankAccountModalStackNavigator = createModalStackNavigator([{
-    Component: AddBankAccountPage,
-    name: 'AddBankAccount_Root',
+const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator([{
+    Component: AddPersonalBankAccountPage,
+    name: 'AddPersonalBankAccount_Root',
+}]);
+
+const ReimbursementAccountModalStackNavigator = createModalStackNavigator([{
+    Component: ReimbursementAccountPage,
+    name: 'ReimbursementAccount_Root',
+}]);
+
+const NewWorkspaceStackNavigator = createModalStackNavigator([{
+    Component: NewWorkspacePage,
+    name: 'NewWorkspace_Root',
+}]);
+
+const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
+    Component: WorkspaceInvitePage,
+    name: 'WorkspaceInvite_Root',
 }]);
 
 export {
@@ -163,5 +181,8 @@ export {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
-    AddBankAccountModalStackNavigator,
+    AddPersonalBankAccountModalStackNavigator,
+    ReimbursementAccountModalStackNavigator,
+    NewWorkspaceStackNavigator,
+    WorkspaceInviteModalStackNavigator,
 };

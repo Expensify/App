@@ -1,24 +1,12 @@
 import Onyx from 'react-native-onyx';
+import {Linking} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import * as API from '../API';
 import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
-import openURLInNewTab from '../openURLInNewTab';
 import Navigation from '../Navigation/Navigation';
-
-/**
- * Retrieve the users preferred currency
- */
-function getPreferredCurrency() {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true});
-
-    // fake loading timer, to be replaced with actual network request
-    setTimeout(() => {
-        Onyx.merge(ONYXKEYS.IOU, {loading: false});
-    }, 1600);
-}
 
 /**
  * @param {Object[]} requestParams
@@ -67,7 +55,7 @@ function getIOUReportsForNewTransaction(requestParams) {
 /**
  * Creates IOUSplit Transaction
  * @param {Object} params
- * @param {String} params.amount
+ * @param {Number} params.amount
  * @param {String} params.comment
  * @param {String} params.currency
  * @param {String} params.debtorEmail
@@ -86,7 +74,7 @@ function createIOUTransaction(params) {
  * @param {Object} params
  * @param {Array} params.splits
  * @param {String} params.comment
- * @param {String} params.amount
+ * @param {Number} params.amount
  * @param {String} params.currency
  */
 function createIOUSplit(params) {
@@ -135,6 +123,9 @@ function createIOUSplit(params) {
 function rejectTransaction({
     reportID, chatReportID, transactionID, comment,
 }) {
+    Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
+        [transactionID]: true,
+    });
     API.RejectTransaction({
         reportID,
         transactionID,
@@ -153,7 +144,13 @@ function rejectTransaction({
             // we should also sync the chatReport after fetching the iouReport.
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
         })
-        .catch(error => console.error(`Error rejecting transaction: ${error}`));
+        .catch(error => console.error(`Error rejecting transaction: ${error}`))
+        .finally(() => {
+            // setting as null deletes the tranactionID
+            Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
+                [transactionID]: null,
+            });
+        });
 }
 
 /**
@@ -216,9 +213,9 @@ function payIOUReport({
             // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
             // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                openURLInNewTab(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
+                Linking.openURL(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
             } else if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-                openURLInNewTab(buildVenmoPaymentURL(amount, submitterPhoneNumber));
+                Linking.openURL(buildVenmoPaymentURL(amount, submitterPhoneNumber));
             }
         })
         .catch((error) => {
@@ -229,7 +226,6 @@ function payIOUReport({
 }
 
 export {
-    getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
     rejectTransaction,

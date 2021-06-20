@@ -1,4 +1,4 @@
-import openURLInNewTab from '../openURLInNewTab';
+import {Linking} from 'react-native';
 import getAttachmentName from './getAttachmentName';
 
 /**
@@ -36,6 +36,6 @@ export default function fileDownload(url) {
             link.parentNode.removeChild(link);
         }).catch(() => {
             // file could not be downloaded, open sourceURL in new tab
-            openURLInNewTab(url);
+            Linking.openURL(url);
         });
 }
