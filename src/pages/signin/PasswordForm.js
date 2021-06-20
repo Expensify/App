@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Text, TextInput, TouchableOpacity, View,
+    Text, TouchableOpacity, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -13,6 +13,7 @@ import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import ExpensiTextInput from '../../libs/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */
@@ -71,9 +72,8 @@ class PasswordForm extends React.Component {
         return (
             <>
                 <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>{this.props.translate('common.password')}</Text>
-                    <TextInput
-                        style={[styles.textInput]}
+                    <ExpensiTextInput
+                        label={this.props.translate('common.password')}
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
@@ -94,9 +94,8 @@ class PasswordForm extends React.Component {
                 </TouchableOpacity>
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mb4]}>
-                        <Text style={[styles.formLabel]}>{this.props.translate('passwordForm.twoFactorCode')}</Text>
-                        <TextInput
-                            style={[styles.textInput]}
+                        <ExpensiTextInput
+                            label={this.props.translate('passwordForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}

@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-    Text,
-    TextInput,
-    View,
-} from 'react-native';
+import {Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -17,6 +13,7 @@ import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
+import ExpensiTextInput from '../../libs/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */
@@ -75,9 +72,8 @@ class LoginForm extends React.Component {
         return (
             <>
                 <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>{this.props.translate('loginForm.enterYourPhoneOrEmail')}</Text>
-                    <TextInput
-                        style={[styles.textInput]}
+                    <ExpensiTextInput
+                        label={this.props.translate('loginForm.enterYourPhoneOrEmail')}
                         value={this.state.login}
                         autoCompleteType="email"
                         textContentType="username"
