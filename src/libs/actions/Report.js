@@ -1088,9 +1088,12 @@ function deleteReportComment(reportID, reportAction) {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
             } else {
                 // Update last message information in the report object
-                Onyx.connect({
+                const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    callback: _.once((reportActionList) => {
+                    callback: (reportActionList) => {
+                        // To make sure the callback is only called once
+                        Onyx.disconnect(connectionID);
+
                         // Find last non-empty message
                         const lastReportAction = !_.isEmpty(reportActionList)
                             ? _.find(Object.values(reportActionList).reverse(),
@@ -1114,7 +1117,7 @@ function deleteReportComment(reportID, reportAction) {
                         }
 
                         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, lastMessageDetails);
-                    }),
+                    },
                 });
             }
         });
