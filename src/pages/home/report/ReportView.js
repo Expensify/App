@@ -30,7 +30,7 @@ const defaultProps = {
 
 const ReportView = ({reportID, session}) => (
     <View key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
-        <ReportActionsView reportID={reportID} />
+        <ReportActionsView reportID={reportID} anchorSequenceNumber={1} />
 
         {session.shouldShowComposeInput && (
             <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>

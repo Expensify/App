@@ -29,9 +29,10 @@ import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
-import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
+import {flatListRef, scrollToBottom, scrollToIndex} from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
+import deferredPromise from '../../../libs/deferredPromise';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -122,7 +123,7 @@ class ReportActionsView extends React.Component {
 
         setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
 
-        this.loadMoreChats(this.props.anchorSequenceNumber);
+        this.loadFromAnchor(this.props.anchorSequenceNumber);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -211,6 +212,33 @@ class ReportActionsView extends React.Component {
         if (Visibility.isVisible()) {
             updateLastReadActionID(this.props.reportID);
         }
+    }
+
+    /**
+     * Load the chat relative to the starting point passed here
+     * @param {number} anchor - an action sequence number
+     */
+    loadFromAnchor(anchor) {
+        this.loadMoreChats(anchor - 1)
+            .then(() => {
+                /** When an anchor is passed we need to position it in view. Since the list is inverted
+                 * we're scrolled to the bottom, but when we start from the past we need to be on the top */
+                if (anchor !== defaultProps.anchorSequenceNumber) {
+                    const index = this.state.reportActions.length - 1;
+
+                    /* ATM we have to wait for the items to render in order to scroll to it
+                    * There should be a better way to position on the anchor when we start in the past
+                    * E.g. stay at the top when new items are rendered */
+                    this.itemsRenderedTask = deferredPromise();
+                    this.itemsRenderedTask.promise.then(() => {
+                        scrollToIndex({
+                            index,
+                            animated: false,
+                            viewPosition: 1,
+                        });
+                    });
+                }
+            });
     }
 
     loadOlderMessages() {
@@ -334,6 +362,9 @@ class ReportActionsView extends React.Component {
         // We are offsetting the time measurement here so that we can subtract our debounce time from the initial time
         // and get the actual time it took to load the report
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD, CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME);
+        if (this.itemsRenderedTask) {
+            this.itemsRenderedTask.resolve();
+        }
     }
 
     /**

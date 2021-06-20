@@ -103,7 +103,7 @@ const CONST = {
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
         ACTIONS: {
-            LIMIT: 50,
+            LIMIT: 25,
             TYPE: {
                 IOU: 'IOU',
                 ADDCOMMENT: 'ADDCOMMENT',

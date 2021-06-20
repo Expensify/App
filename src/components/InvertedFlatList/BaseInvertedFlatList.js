@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {FlatList} from 'react-native-bidirectional-infinite-scroll';
 import {lastItem} from '../../libs/CollectionUtils';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Same as FlatList can be any array of anything */
@@ -152,6 +153,8 @@ class BaseInvertedFlatList extends Component {
                 // Web requires that items be measured or else crazy things happen when scrolling.
                 getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
                 bounces={false}
+                maxToRenderPerBatch={CONST.REPORT.ACTIONS.LIMIT}
+                windowSize={CONST.REPORT.ACTIONS.LIMIT / 2}
                 removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
             />
         );
