@@ -48,6 +48,13 @@ export default {
         whatThis: 'What\'s this?',
         invite: 'Invite',
         passwordCannotBeBlank: 'Password cannot be blank',
+<<<<<<< HEAD
+=======
+        people: 'People',
+        here: 'here',
+        remove: 'Remove',
+        admin: "Admin",
+>>>>>>> ef0267630 (Update languages)
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
