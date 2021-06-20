@@ -152,7 +152,7 @@ PODS:
     - RNPermissions
   - Permission-LocationWhenInUse (3.0.1):
     - RNPermissions
-  - Plaid (2.1.2)
+  - Plaid (2.1.3)
   - PromisesObjC (1.2.12)
   - RCT-Folly (2020.01.13.00):
     - boost-for-react-native
@@ -728,7 +728,7 @@ SPEC CHECKSUMS:
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
-  FBReactNativeSpec: 7c304782592aaf95fe9fc6add0746906d6562739
+  FBReactNativeSpec: c783a75db87c963c60afcd461fc38358805fe5ba
   Firebase: c23a36d9e4cdf7877dfcba8dd0c58add66358999
   FirebaseAnalytics: 3bb096873ee0d7fa4b6c70f5e9166b6da413cc7f
   FirebaseCore: d3a978a3cfa3240bf7e4ba7d137fdf5b22b628ec
@@ -754,7 +754,7 @@ SPEC CHECKSUMS:
   Permission-LocationAccuracy: e8adff9ede1b23b43b7054a4500113d515fc87a8
   Permission-LocationAlways: 7f7f373d086af7a81b2f4f20d65d29266ca2043b
   Permission-LocationWhenInUse: 3ae82a9feb5da4e94e386dba17c7dd3531af9feb
-  Plaid: c02276ccc630a726a9ed790bf923d29839ff4017
+  Plaid: f55c6acdc249245c6778a4045757eb4e839cca61
   PromisesObjC: 3113f7f76903778cf4a0586bd1ab89329a0b7b97
   RCT-Folly: ec7a233ccc97cc556cf7237f0db1ff65b986f27c
   RCTRequired: ec2ebc96b7bfba3ca5c32740f5a0c6a014a274d2

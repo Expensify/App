@@ -351,20 +351,29 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
         paddingTop: 25,
-        paddingBottom: 10,
         paddingHorizontal: 12,
+        paddingVertical: 8,
         justifyContent: 'center',
+        height: 52,
+        backgroundColor: '#fff',
     },
-    expensiTextInputContainerBlueBorder: {
+    expensiTextInputContainerWithoutLabel: {
+        paddingTop: 0,
+        paddingBottom: 0,
+    },
+    expensiTextInputContainerOnFocus: {
         borderColor: themeColors.borderFocus,
+    },
+    expensiTextInputContainerOnError: {
+        borderColor: themeColors.badgeDangerBG,
     },
     expensiTextInputLabel: {
         position: 'absolute',
         left: 12,
-        fontSize: variables.fontSizeLabel,
-        fontWeight: fontWeightBold,
-        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
+        width: '100%',
     },
     expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
         transform: [
