@@ -8,8 +8,8 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -10;
-const ACTIVE_LABEL_TRANSLATE_X = -9;
-const ACTIVE_LABEL_SCALE = 0.8661;
+const ACTIVE_LABEL_TRANSLATE_X = -10;
+const ACTIVE_LABEL_SCALE = 0.8668;
 
 const INACTIVE_LABEL_TRANSLATE_Y = 0;
 const INACTIVE_LABEL_TRANSLATE_X = 0;
@@ -25,10 +25,11 @@ const propTypes = {
     /** Input value placeholder */
     placeholder: PropTypes.string,
 
-    /** Callback that is called when the text input's text changes.
-     * Changed text is passed as an argument to the callback handler.
-     */
-    onChangeText: PropTypes.func.isRequired,
+    /** Callback that is called when the text input is focused. */
+    onFocusExtra: PropTypes.func,
+
+    /** Callback that is called when the text input is blurred. */
+    onBlurExtra: PropTypes.func,
 
     /** Input with error  */
     error: PropTypes.bool,
@@ -38,6 +39,8 @@ const defaultProps = {
     label: '',
     placeholder: '',
     error: false,
+    onFocusExtra: null,
+    onBlurExtra: null,
 };
 
 class ExpensiTextInput extends Component {
@@ -77,6 +80,7 @@ class ExpensiTextInput extends Component {
     }
 
     onFocus = () => {
+        if (this.props.onFocusExtra) { this.props.onFocusExtra(); }
         this.setState({isFocused: true});
         if (this.props.value.length === 0) {
             this.animateLabel(ACTIVE_LABEL_TRANSLATE_Y, ACTIVE_LABEL_TRANSLATE_X, ACTIVE_LABEL_SCALE);
@@ -84,6 +88,7 @@ class ExpensiTextInput extends Component {
     }
 
     onBlur = () => {
+        if (this.props.onBlurExtra) { this.props.onBlurExtra(); }
         this.setState({isFocused: false});
         if (this.props.value.length === 0) {
             this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
@@ -92,7 +97,7 @@ class ExpensiTextInput extends Component {
 
     render() {
         const {
-            label, value, placeholder, onChangeText, error,
+            label, value, placeholder, error, ...inputProps
         } = this.props;
         const {
             isFocused, labelTranslateY, labelTranslateX, labelScale,
@@ -126,11 +131,12 @@ class ExpensiTextInput extends Component {
                     <TextInput
                         ref={ref => this.input = ref}
                         value={value}
-                        onChangeText={onChangeText}
                         onFocus={this.onFocus}
                         onBlur={this.onBlur}
                         placeholder={isFocused || !label ? placeholder : null}
                         placeholderTextColor={themeColors.placeholderText}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...inputProps}
                     />
                 </View>
             </TouchableWithoutFeedback>

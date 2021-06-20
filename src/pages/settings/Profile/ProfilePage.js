@@ -28,7 +28,7 @@ import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
-import ExpensiTextInput from '../../../libs/TextInput';
+import ExpensiTextInput from '../../../libs/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */
