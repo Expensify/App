@@ -1,11 +1,7 @@
 import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {
-    View,
-    TextInput,
-    ScrollView,
-} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment-timezone';
 import _ from 'underscore';
@@ -21,7 +17,6 @@ import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import Icon from '../../../components/Icon';
 import Checkbox from '../../../components/Checkbox';
-import themeColors from '../../../styles/themes/default';
 import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
@@ -309,58 +304,23 @@ class ProfilePage extends Component {
                         </Text>
                         <View style={[styles.flexRow, styles.mb6]}>
                             <View style={styles.flex1}>
-                                <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.props.translate('common.firstName')}
-                                </Text>
-                                <TextInput
-                                    style={styles.textInput}
+                                <ExpensiTextInput
+                                    label={this.props.translate('common.firstName')}
                                     value={this.state.firstName}
                                     onChangeText={firstName => this.setState({firstName})}
                                     placeholder={this.props.translate('profilePage.john')}
-                                    placeholderTextColor={themeColors.placeholderText}
                                 />
                             </View>
                             <View style={[styles.flex1, styles.ml2]}>
-                                <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.props.translate('common.lastName')}
-                                </Text>
-                                <TextInput
-                                    style={styles.textInput}
+                                <ExpensiTextInput
+                                    label={this.props.translate('common.lastName')}
                                     value={this.state.lastName}
                                     onChangeText={lastName => this.setState({lastName})}
                                     placeholder={this.props.translate('profilePage.doe')}
-                                    placeholderTextColor={themeColors.placeholderText}
                                 />
-<<<<<<< HEAD
-                            </>
-                        )}
-                    </AttachmentPicker>
-                    <Text style={[styles.mt6, styles.mb6, styles.textP]}>
-                        {this.props.translate('profilePage.tellUsAboutYourself')}
-                    </Text>
-                    <View style={[styles.flexRow, styles.mb6]}>
-                        <View style={styles.flex1}>
-                            <ExpensiTextInput
-                                label={this.props.translate('profilePage.firstName')}
-                                value={this.state.firstName}
-                                onChangeText={firstName => this.setState({firstName})}
-                                placeholder={this.props.translate('profilePage.john')}
-                            />
-                        </View>
-                        <View style={[styles.flex1, styles.ml2]}>
-                            <ExpensiTextInput
-                                label={this.props.translate('profilePage.lastName')}
-                                value={this.state.lastName}
-                                onChangeText={lastName => this.setState({lastName})}
-                                placeholder={this.props.translate('profilePage.john')}
-                            />
-                        </View>
-                        {/* <View style={styles.flex1}>
-=======
                             </View>
                         </View>
                         <View style={styles.mb6}>
->>>>>>> 408b7e00cf33c16600af0b67b819c764fcb5388a
                             <Text style={[styles.mb1, styles.formLabel]}>
                                 {this.props.translate('profilePage.preferredPronouns')}
                             </Text>
@@ -376,13 +336,11 @@ class ProfilePage extends Component {
                                 />
                             </View>
                             {this.state.pronouns === this.props.translate('pronouns.selfSelect') && (
-                            <TextInput
-                                style={styles.textInput}
-                                value={this.state.selfSelectedPronouns}
-                                onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
-                                placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                                placeholderTextColor={themeColors.placeholderText}
-                            />
+                                <ExpensiTextInput
+                                    value={this.state.selfSelectedPronouns}
+                                    onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
+                                    placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                />
                             )}
                         </View>
                         <LoginField
@@ -399,23 +357,6 @@ class ProfilePage extends Component {
                             <Text style={[styles.mb1, styles.formLabel]}>
                                 {this.props.translate('profilePage.timezone')}
                             </Text>
-<<<<<<< HEAD
-                            <TextInput
-                                style={styles.textInput}
-                                value={this.state.lastName}
-                                onChangeText={lastName => this.setState({lastName})}
-                                placeholder={this.props.translate('profilePage.doe')}
-                                placeholderTextColor={themeColors.placeholderText}
-                            />
-                        </View> */}
-                    </View>
-                    <View style={styles.mb6}>
-                        <Text style={[styles.mb1, styles.formLabel]}>
-                            {this.props.translate('profilePage.preferredPronouns')}
-                        </Text>
-                        <View style={styles.mb1}>
-=======
->>>>>>> 408b7e00cf33c16600af0b67b819c764fcb5388a
                             <Picker
                                 onChange={selectedTimezone => this.setState({selectedTimezone})}
                                 items={timezones}

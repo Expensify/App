@@ -1,26 +1,50 @@
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 
 import {
-    Animated, Text, TextInput, View,
+    Animated, TextInput, TouchableWithoutFeedback, View,
 } from 'react-native';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 
-const ACTIVE_LABEL_TRANSLATE_Y = -12;
-const ACTIVE_LABEL_TRANSLATE_X = -5;
-const ACTIVE_LABEL_SCALE = 0.85;
+const ACTIVE_LABEL_TRANSLATE_Y = -10;
+const ACTIVE_LABEL_TRANSLATE_X = -9;
+const ACTIVE_LABEL_SCALE = 0.8661;
 
 const INACTIVE_LABEL_TRANSLATE_Y = 0;
 const INACTIVE_LABEL_TRANSLATE_X = 0;
 const INACTIVE_LABEL_SCALE = 1;
+
+const propTypes = {
+    /** Input label */
+    label: PropTypes.string,
+
+    /** Input value */
+    value: PropTypes.string.isRequired,
+
+    /** Input value placeholder */
+    placeholder: PropTypes.string,
+
+    /** Callback that is called when the text input's text changes.
+     * Changed text is passed as an argument to the callback handler.
+     */
+    onChangeText: PropTypes.func.isRequired,
+
+    /** Input with error  */
+    error: PropTypes.bool,
+};
+
+const defaultProps = {
+    label: '',
+    placeholder: '',
+    error: false,
+};
 
 class ExpensiTextInput extends Component {
     constructor(props) {
         super(props);
 
         const hasValue = props.value.length > 0;
-
-        console.log(hasValue);
 
         this.state = {
             isFocused: false,
@@ -54,7 +78,6 @@ class ExpensiTextInput extends Component {
 
     onFocus = () => {
         this.setState({isFocused: true});
-
         if (this.props.value.length === 0) {
             this.animateLabel(ACTIVE_LABEL_TRANSLATE_Y, ACTIVE_LABEL_TRANSLATE_X, ACTIVE_LABEL_SCALE);
         }
@@ -69,38 +92,53 @@ class ExpensiTextInput extends Component {
 
     render() {
         const {
-            label, value, placeholder, onChangeText,
+            label, value, placeholder, onChangeText, error,
         } = this.props;
         const {
             isFocused, labelTranslateY, labelTranslateX, labelScale,
         } = this.state;
+
+        const hasLabel = !!label.length;
         return (
-            <View style={[
-                styles.expensiTextInputContainer,
-                isFocused && styles.expensiTextInputContainerBlueBorder,
-            ]}
-            >
-                <Animated.Text
+            <TouchableWithoutFeedback onPress={() => this.input.focus()}>
+                <View
                     style={[
-                        styles.expensiTextInputLabel,
-                        styles.expensiTextInputLabelTransformation(labelTranslateY, labelTranslateX, labelScale),
+                        styles.expensiTextInputContainer,
+                        !hasLabel && styles.expensiTextInputContainerWithoutLabel,
+                        isFocused && styles.expensiTextInputContainerOnFocus,
+                        error && styles.expensiTextInputContainerOnError,
                     ]}
-                    onPress={() => this.input.focus()}
                 >
-                    {label}
-                </Animated.Text>
-                <TextInput
-                    ref={ref => this.input = ref}
-                    value={value}
-                    onChangeText={onChangeText}
-                    onFocus={this.onFocus}
-                    onBlur={this.onBlur}
-                    placeholder={isFocused ? placeholder : null}
-                    placeholderTextColor={themeColors.placeholderText}
-                />
-            </View>
+                    {hasLabel > 0 && (
+                        <Animated.Text
+                            style={[
+                                styles.expensiTextInputLabel,
+                                styles.expensiTextInputLabelTransformation(
+                                    labelTranslateY,
+                                    labelTranslateX,
+                                    labelScale,
+                                ),
+                            ]}
+                        >
+                            {label}
+                        </Animated.Text>
+                    )}
+                    <TextInput
+                        ref={ref => this.input = ref}
+                        value={value}
+                        onChangeText={onChangeText}
+                        onFocus={this.onFocus}
+                        onBlur={this.onBlur}
+                        placeholder={isFocused || !label ? placeholder : null}
+                        placeholderTextColor={themeColors.placeholderText}
+                    />
+                </View>
+            </TouchableWithoutFeedback>
         );
     }
 }
+
+ExpensiTextInput.propTypes = propTypes;
+ExpensiTextInput.defaultProps = defaultProps;
 
 export default ExpensiTextInput;
