@@ -104,14 +104,29 @@ export default {
                     IOU_Details_Root: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,
                 },
             },
-            AddBankAccount: {
+            AddPersonalBankAccount: {
                 screens: {
-                    AddBankAccount_Root: ROUTES.ADD_BANK_ACCOUNT,
+                    AddPersonalBankAccount_Root: ROUTES.BANK_ACCOUNT_PERSONAL,
                 },
             },
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
+                },
+            },
+            ReimbursementAccount: {
+                screens: {
+                    ReimbursementAccount_Root: ROUTES.BANK_ACCOUNT,
+                },
+            },
+            WorkspaceInvite: {
+                screens: {
+                    WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
+                },
+            },
+            NewWorkspace: {
+                screens: {
+                    NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
         },

@@ -1,10 +1,10 @@
 import React, {Component} from 'react';
-import {Pressable, SectionList, View} from 'react-native';
+import {SectionList, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import {fetchCurrencyPreferences, getCurrencyList} from '../../libs/actions/PersonalDetails';
+import {getCurrencyList} from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import {getCurrencyListForSections} from '../../libs/OptionsListUtils';
 import Text from '../../components/Text';
@@ -17,6 +17,9 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import Button from '../../components/Button';
+import FixedFooter from '../../components/FixedFooter';
 
 /**
  * IOU Currency selection for selecting currency
@@ -31,9 +34,6 @@ const propTypes = {
 
         // Currency Symbol of the Preferred Currency
         preferredCurrencySymbol: PropTypes.string,
-
-        // Whether preferences for the currency are saved
-        isCurrencyPreferencesSaved: PropTypes.bool,
     }),
 
     // The currency list constant object from Onyx
@@ -79,9 +79,6 @@ class IOUCurrencySelection extends Component {
 
     componentDidMount() {
         getCurrencyList();
-        if (!this.props.myPersonalDetails.isCurrencyPreferencesSaved) {
-            fetchCurrencyPreferences(true);
-        }
     }
 
     /**
@@ -163,69 +160,65 @@ class IOUCurrencySelection extends Component {
     render() {
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                    onCloseButtonPress={() => Navigation.goBack()}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <View style={[styles.flex1]}>
-                        <View style={[styles.ph5, styles.pv3]}>
-                            <TextInputWithFocusStyles
-                                styleFocusIn={[styles.textInputReversedFocus]}
-                                ref={el => this.textInput = el}
-                                style={[styles.textInput]}
-                                value={this.state.searchValue}
-                                onChangeText={this.changeSearchValue}
-                                placeholder="Search"
-                                placeholderTextColor={themeColors.placeholderText}
-                            />
-                        </View>
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('iOUCurrencySelection.selectCurrency')}
+                        onCloseButtonPress={() => Navigation.goBack()}
+                    />
+                    <View style={[styles.flex1, styles.w100]}>
                         <View style={[styles.flex1]}>
-                            <SectionList
-                                bounces={false}
-                                indicatorStyle="white"
-                                keyboardShouldPersistTaps="always"
-                                showsVerticalScrollIndicator={false}
-                                sections={this.getSections()}
-                                keyExtractor={option => option.currencyCode}
-                                stickySectionHeadersEnabled={false}
-                                renderItem={({item, key}) => (
-                                    <OptionRow
-                                        key={key}
-                                        mode="compact"
-                                        option={item}
-                                        onSelectRow={() => this.toggleOption(item.currencyCode)}
-                                        isSelected={item.currencyCode === this.state.selectedCurrency.currencyCode}
-                                        showSelectedState
-                                        hideAdditionalOptionStates
-                                    />
-                                )}
-                                renderSectionHeader={({section: {title}}) => (
-                                    <View>
-                                        <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                                            {title}
-                                        </Text>
-                                    </View>
-                                )}
-                            />
+                            <View style={[styles.ph5, styles.pv3]}>
+                                <TextInputWithFocusStyles
+                                    styleFocusIn={[styles.textInputReversedFocus]}
+                                    ref={el => this.textInput = el}
+                                    style={[styles.textInput]}
+                                    value={this.state.searchValue}
+                                    onChangeText={this.changeSearchValue}
+                                    placeholder={this.props.translate('common.search')}
+                                    placeholderTextColor={themeColors.placeholderText}
+                                />
+                            </View>
+                            <View style={[styles.flex1]}>
+                                <SectionList
+                                    bounces={false}
+                                    indicatorStyle="white"
+                                    keyboardShouldPersistTaps="always"
+                                    showsVerticalScrollIndicator={false}
+                                    sections={this.getSections()}
+                                    keyExtractor={option => option.currencyCode}
+                                    stickySectionHeadersEnabled={false}
+                                    renderItem={({item, key}) => (
+                                        <OptionRow
+                                            key={key}
+                                            mode="compact"
+                                            option={item}
+                                            onSelectRow={() => this.toggleOption(item.currencyCode)}
+                                            isSelected={item.currencyCode === this.state.selectedCurrency.currencyCode}
+                                            showSelectedState
+                                            hideAdditionalOptionStates
+                                        />
+                                    )}
+                                    renderSectionHeader={({section: {title}}) => (
+                                        <View>
+                                            <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                                                {title}
+                                            </Text>
+                                        </View>
+                                    )}
+                                />
+                            </View>
                         </View>
                     </View>
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Pressable
+                    <FixedFooter>
+                        <Button
+                            success
+                            isDisabled={!this.state.selectedCurrency?.currencyCode}
+                            style={[styles.w100]}
+                            text={this.props.translate('iou.confirm')}
                             onPress={this.confirmCurrencySelection}
-                            style={({hovered}) => [
-                                styles.button,
-                                styles.buttonSuccess,
-                                styles.w100,
-                                hovered && styles.buttonSuccessHovered,
-                            ]}
-                        >
-                            <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                Confirm
-                            </Text>
-                        </Pressable>
-                    </View>
-                </View>
+                        />
+                    </FixedFooter>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }

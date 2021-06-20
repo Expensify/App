@@ -70,7 +70,9 @@ const styles = {
     },
 
     textMicro: {
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textMicroBold: {
@@ -78,6 +80,13 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
+    },
+
+    textMicroSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textLarge: {
@@ -234,6 +243,7 @@ const styles = {
             appearance: 'none',
             height: variables.componentSizeNormal,
             opacity: 1,
+            cursor: 'pointer',
         },
         inputAndroid: {
             fontFamily: fontFamily.GTA,
@@ -286,6 +296,12 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    border: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
     },
 
     headerText: {
@@ -622,11 +638,22 @@ const styles = {
         alignItems: 'center',
     },
 
+    createMenuIconEmphasized: {
+        backgroundColor: themeColors.iconSuccessFill,
+        borderRadius: variables.componentSizeLarge / 2,
+    },
+
     createMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    createMenuDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
     },
 
     menuItemTextContainer: {
@@ -1011,6 +1038,14 @@ const styles = {
     sidebarHidden: {
         width: 0,
         borderRightWidth: 0,
+    },
+
+    exampleCheckImage: {
+        width: '100%',
+        height: 80,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
     },
 
     singleAvatar: {
@@ -1424,6 +1459,7 @@ const styles = {
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
+        cursor: 'pointer',
     },
 
     iouPreviewBoxLoading: {
@@ -1549,6 +1585,15 @@ const styles = {
     cursorDisabled: {
         cursor: 'not-allowed',
     },
+
+    textItalic: {
+        fontFamily: fontFamily.GTA_ITALIC,
+        fontStyle: 'italic',
+    },
+
+    workspaceInviteWelcome: {
+        minHeight: 150,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1660,18 +1705,19 @@ function getSafeAreaMargins(insets) {
  * Return navigation menu styles.
  *
  * @param {Number} windowWidth
+ * @param {Number} windowHeight
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationDrawerStyle(windowWidth, isSmallScreenWidth) {
+function getNavigationDrawerStyle(windowWidth, windowHeight, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             width: windowWidth,
-            height: '100%',
+            height: windowHeight,
             borderColor: themeColors.border,
         }
         : {
-            height: '100%',
+            height: windowHeight,
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
         };

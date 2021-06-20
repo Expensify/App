@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
-import Geolocation from 'react-native-geolocation-service';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import md5 from '../md5';
@@ -251,25 +250,15 @@ function getCurrencyList() {
 }
 
 /**
- * Fetches the Currency preferences based on location
- * @param {bool} withLocation
+ * Fetches the Currency preferences based on location and sets currency code/symbol to local storage
  */
-function fetchCurrencyPreferences(withLocation) {
-    let coords = {};
+function fetchCurrencyPreferences() {
+    const coords = {};
     let currency = '';
 
-    if (withLocation) {
-        Geolocation.getCurrentPosition((position) => {
-            coords = {
-                longitude: position.coords.longitude,
-                latitude: position.coords.latitude,
-            };
-        });
-        Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
-            {
-                isCurrencyPreferencesSaved: true,
-            });
-    }
+    Onyx.merge(ONYXKEYS.IOU, {
+        isRetrievingCurrency: true,
+    });
 
     API.GetPreferredCurrency({...coords})
         .then((data) => {
@@ -284,7 +273,12 @@ function fetchCurrencyPreferences(withLocation) {
                     preferredCurrencySymbol: currencyList[currency].symbol,
                 });
         })
-        .catch(error => console.debug(`Error fetching currency preference: , ${error}`));
+        .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.IOU, {
+                isRetrievingCurrency: false,
+            });
+        });
 }
 
 /**
@@ -318,6 +312,7 @@ NetworkConnection.onReconnect(fetchPersonalDetails);
 
 export {
     fetchPersonalDetails,
+    formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,

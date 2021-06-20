@@ -13,7 +13,7 @@ import ButtonWithDropdown from '../../components/ButtonWithDropdown';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {payIOUReport} from '../../libs/actions/IOU';
 import {fetchIOUReportByID} from '../../libs/actions/Report';
-import ReportActionItemIOUPreview from '../../components/ReportActionItemIOUPreview';
+import IOUPreview from '../../components/ReportActionItem/IOUPreview';
 import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -66,6 +66,9 @@ const propTypes = {
         /** Currently logged in user email */
         email: PropTypes.string,
     }).isRequired,
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -181,7 +184,7 @@ class IOUDetailsModal extends Component {
      */
     addExpensifyPaymentOptionIfAvailable() {
         if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD
-            || !Permissions.canUsePayWithExpensify()) {
+            || !Permissions.canUsePayWithExpensify(this.props.betas)) {
             return;
         }
 
@@ -211,14 +214,12 @@ class IOUDetailsModal extends Component {
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
                         <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
-                            {(this.props.iouReport.hasOutstandingIOU) && (
-                                <ReportActionItemIOUPreview
-                                    iou={this.props.iouReport}
-                                    chatReportID={Number(this.props.route.params.chatReportID)}
-                                    iouReportID={Number(this.props.route.params.iouReportID)}
-                                    shouldHidePayButton
-                                />
-                            )}
+                            <IOUPreview
+                                iou={this.props.iouReport}
+                                chatReportID={Number(this.props.route.params.chatReportID)}
+                                iouReportID={Number(this.props.route.params.iouReportID)}
+                                shouldHidePayButton
+                            />
                             <IOUTransactions
                                 chatReportID={Number(this.props.route.params.chatReportID)}
                                 iouReportID={Number(this.props.route.params.iouReportID)}
@@ -287,6 +288,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(IOUDetailsModal);
