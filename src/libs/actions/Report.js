@@ -858,7 +858,7 @@ function fetchActions(reportID, offset) {
             offset,
             reportActionsOffset,
         });
-        return;
+        return Promise.reject(new Error('Offset provided is not a number'));
     }
 
     return API.Report_GetHistory({
@@ -879,6 +879,8 @@ function fetchActions(reportID, offset) {
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
+
+            return {indexedData, maxSequenceNumber, history: data.history};
         });
 }
 

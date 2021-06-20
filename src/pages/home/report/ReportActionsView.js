@@ -3,11 +3,11 @@ import {
     View,
     Keyboard,
     AppState,
-    ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashUnionBy from 'lodash/unionBy';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import {
@@ -20,7 +20,6 @@ import {
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
-import ReportActionPropTypes from './ReportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
@@ -37,6 +36,9 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 const propTypes = {
     /** The ID of the report actions will be created for */
     reportID: PropTypes.number.isRequired,
+
+    /** Load chat history up and down relative to this action item */
+    anchorSequenceNumber: PropTypes.number,
 
     /* Onyx Props */
 
@@ -55,9 +57,6 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
-    /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
-
     /** The session of the logged in person */
     session: PropTypes.shape({
         /** Email of the logged in person */
@@ -75,8 +74,10 @@ const defaultProps = {
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
     },
-    reportActions: {},
     session: {},
+
+    // By default load the most recent chat messages
+    anchorSequenceNumber: -1,
 };
 
 class ReportActionsView extends React.Component {
@@ -87,8 +88,8 @@ class ReportActionsView extends React.Component {
         this.renderCell = this.renderCell.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
-        this.loadMoreChats = this.loadMoreChats.bind(this);
-        this.sortedReportActions = [];
+        this.loadOlderMessages = this.loadOlderMessages.bind(this);
+        this.loadRecentMessages = this.loadRecentMessages.bind(this);
 
         // We are debouncing this call with a specific delay so that when all items in the list layout we can measure
         // the total time it took to complete.
@@ -98,11 +99,8 @@ class ReportActionsView extends React.Component {
         );
 
         this.state = {
-            isLoadingMoreChats: false,
+            reportActions: [],
         };
-
-        this.updateSortedReportActions(props.reportActions);
-        this.updateMostRecentIOUReportActionNumber(props.reportActions);
     }
 
     componentDidMount() {
@@ -124,13 +122,12 @@ class ReportActionsView extends React.Component {
 
         setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
 
-        fetchActions(this.props.reportID);
+        this.loadMoreChats(this.props.anchorSequenceNumber);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
-            this.updateSortedReportActions(nextProps.reportActions);
-            this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
+        if (!_.isEqual(nextState.reportActions, this.state.reportActions)) {
+            this.updateMostRecentIOUReportActionNumber(nextState.reportActions);
             return true;
         }
 
@@ -138,10 +135,6 @@ class ReportActionsView extends React.Component {
         // update the component.
         if (nextProps.report.newMarkerSequenceNumber > 0
             && nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
-            return true;
-        }
-
-        if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
             return true;
         }
 
@@ -160,19 +153,22 @@ class ReportActionsView extends React.Component {
         return false;
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         // The last sequenceNumber of the same report has changed.
-        const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
-        const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
+        const previousLastSequenceNumber = lodashGet(lastItem(prevState.reportActions), 'sequenceNumber');
+        const currentLastSequenceNumber = lodashGet(lastItem(this.state.reportActions), 'sequenceNumber');
 
         // Record the max action when window is visible except when Drawer is open on small screen
         const shouldRecordMaxAction = Visibility.isVisible()
             && (!this.props.isSmallScreenWidth || !this.props.isDrawerOpen);
 
+        // Todo: this should run only when we have scrolled to the most recent message
+        // E.g. when we start from a past message we don't want scrolling to recent messages to trigger this
+        // Maybe trigger this from the composer - `ReportScrollManager.scrollToBottom`
         if (previousLastSequenceNumber !== currentLastSequenceNumber) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise
             // leave the user positioned where they are now in the list.
-            const lastAction = lastItem(this.props.reportActions);
+            const lastAction = lastItem(this.state.reportActions);
             if (lastAction && (lastAction.actorEmail === this.props.session.email)) {
                 this.scrollToListBottom();
             }
@@ -217,35 +213,38 @@ class ReportActionsView extends React.Component {
         }
     }
 
+    loadOlderMessages() {
+        const minSequenceNumber = _.last(this.state.reportActions)?.sequenceNumber;
+
+        // Skip fetching more. We have loaded up to the first message
+        if (minSequenceNumber === 1) {
+            return Promise.resolve();
+        }
+
+        const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
+        return this.loadMoreChats(offset);
+    }
+
+    loadRecentMessages() {
+        const maxSequenceNumber = _.first(this.state.reportActions)?.sequenceNumber;
+        return this.loadMoreChats(maxSequenceNumber);
+    }
+
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      *
+     * @param {number} offset
      * @returns {Promise}
      */
-    loadMoreChats() {
-        // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.state.isLoadingMoreChats) {
+    loadMoreChats(offset) {
+        if (this.fetchPromise) {
             return this.fetchPromise;
         }
 
-        const minSequenceNumber = _.chain(this.props.reportActions)
-            .pluck('sequenceNumber')
-            .min()
-            .value();
-
-        if (minSequenceNumber === 0) {
-            return Promise.resolve();
-        }
-
-        this.setState({isLoadingMoreChats: true});
-
-        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-        // case just get everything starting from 0.
-        const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
         this.fetchPromise = fetchActions(this.props.reportID, offset)
+            .then(({history}) => this.updateReportActions(history))
             .finally(() => {
-                this.setState({isLoadingMoreChats: false});
                 this.fetchPromise = null;
             });
 
@@ -255,22 +254,26 @@ class ReportActionsView extends React.Component {
     /**
      * Updates and sorts the report actions by sequence number
      *
-     * @param {Array<{sequenceNumber, actionName}>} reportActions
+     * @param {Array<{sequenceNumber, actionName}>} actions
      */
-    updateSortedReportActions(reportActions) {
-        this.sortedReportActions = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter((action) => {
-                // Only show non-empty ADDCOMMENT actions or IOU actions
-                // Empty ADDCOMMENT actions typically mean they have been deleted and should not be shown
-                const message = _.first(lodashGet(action, 'message', null));
-                const html = lodashGet(message, 'html', '');
-                return action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+    updateReportActions(actions) {
+        this.setState((prevState) => {
+            const union = lodashUnionBy(actions, prevState.reportActions, action => action.sequenceNumber);
+            const reportActions = _.chain(union)
+                .sortBy('sequenceNumber')
+                .filter((action) => {
+                    // Only show non-empty ADDCOMMENT actions or IOU actions
+                    // Empty ADDCOMMENT actions typically mean they have been deleted and should not be shown
+                    const message = _.first(lodashGet(action, 'message', null));
+                    const html = lodashGet(message, 'html', '');
+                    return action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
                     || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && html !== '');
-            })
-            .map((item, index) => ({action: item, index}))
-            .value()
-            .reverse();
+                })
+                .value()
+                .reverse();
+
+            return {reportActions};
+        });
     }
 
     /**
@@ -285,8 +288,8 @@ class ReportActionsView extends React.Component {
      * @return {Boolean}
      */
     isConsecutiveActionMadeByPreviousActor(actionIndex) {
-        const previousAction = this.sortedReportActions[actionIndex + 1];
-        const currentAction = this.sortedReportActions[actionIndex];
+        const previousAction = this.state.reportActions[actionIndex + 1];
+        const currentAction = this.state.reportActions[actionIndex];
 
         // It's OK for there to be no previous action, and in that case, false will be returned
         // so that the comment isn't grouped
@@ -295,11 +298,11 @@ class ReportActionsView extends React.Component {
         }
 
         // Comments are only grouped if they happen within 5 minutes of each other
-        if (currentAction.action.timestamp - previousAction.action.timestamp > 300) {
+        if (currentAction.timestamp - previousAction.timestamp > 300) {
             return false;
         }
 
-        return currentAction.action.actorEmail === previousAction.action.actorEmail;
+        return currentAction.actorEmail === previousAction.actorEmail;
     }
 
     /**
@@ -309,8 +312,6 @@ class ReportActionsView extends React.Component {
      */
     updateMostRecentIOUReportActionNumber(reportActions) {
         this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
-            .sortBy('sequenceNumber')
-            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
             .max(action => action.sequenceNumber)
             .value().sequenceNumber;
     }
@@ -348,7 +349,7 @@ class ReportActionsView extends React.Component {
     renderCell({item, style, ...props}) {
         const cellStyle = [
             style,
-            {zIndex: item.action.sequenceNumber},
+            {zIndex: item.sequenceNumber},
         ];
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <View style={cellStyle} {...props} />;
@@ -371,14 +372,15 @@ class ReportActionsView extends React.Component {
         index,
     }) {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
-                && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+            && item.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+
         return (
             <ReportActionItem
                 reportID={this.props.reportID}
-                action={item.action}
+                action={item}
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
-                isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
+                isMostRecentIOUReportAction={item.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
                 onLayout={this.recordTimeToMeasureItemLayout}
@@ -388,12 +390,12 @@ class ReportActionsView extends React.Component {
 
     render() {
         // Comments have not loaded at all yet do nothing
-        if (!_.size(this.props.reportActions)) {
+        if (!_.size(this.state.reportActions)) {
             return null;
         }
 
         // If we only have the created action then no one has left a comment
-        if (_.size(this.props.reportActions) === 1) {
+        if (_.size(this.state.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
                     <Text style={[styles.textP]}>
@@ -406,7 +408,7 @@ class ReportActionsView extends React.Component {
         return (
             <InvertedFlatList
                 ref={flatListRef}
-                data={this.sortedReportActions}
+                data={this.state.reportActions}
                 renderItem={this.renderItem}
                 CellRendererComponent={this.renderCell}
                 contentContainerStyle={[styles.chatContentScrollView]}
@@ -414,14 +416,12 @@ class ReportActionsView extends React.Component {
                 // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
                 // shouldn't happen, but might be possible in some rare cases.
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                keyExtractor={item => `${item.action.sequenceNumber}${item.action.clientID}`}
+                keyExtractor={action => `${action.sequenceNumber}${action.clientID}`}
                 initialRowHeight={32}
-                onEndReached={this.loadMoreChats}
-                onEndReachedThreshold={0.75}
-                ListFooterComponent={this.state.isLoadingMoreChats
-                    ? <ActivityIndicator size="small" color={themeColors.spinner} />
-                    : null}
+                onEndReached={this.loadOlderMessages}
+                onStartReached={this.loadRecentMessages}
                 keyboardShouldPersistTaps="handled"
+                activityIndicatorColor={themeColors.spinner}
             />
         );
     }
@@ -437,10 +437,6 @@ export default compose(
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-        reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            canEvict: false,
         },
         session: {
             key: ONYXKEYS.SESSION,
