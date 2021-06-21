@@ -1269,6 +1269,7 @@ function saveReportActionDraft(reportID, reportActionID, draftMessage) {
 /**
  * Syncs up a chat report and an IOU report in Onyx after an IOU transaction has been made
  * and they've both been updated in the back-end.
+ 
  * @param {Object} chatReportStuff
  * @param {Object} iouReportStuff
  */
