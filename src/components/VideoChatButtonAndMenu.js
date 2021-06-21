@@ -26,7 +26,7 @@ const propTypes = {
 
 const defaultProps = {
     isConcierge: false,
-}
+};
 
 class VideoChatButtonAndMenu extends Component {
     constructor(props) {
@@ -140,7 +140,7 @@ class VideoChatButtonAndMenu extends Component {
 }
 
 VideoChatButtonAndMenu.propTypes = propTypes;
-VideoChatButtonAndMenu.propTypes = defaultProps;
+VideoChatButtonAndMenu.defaultProps = defaultProps;
 VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
 export default compose(
     withWindowDimensions,
