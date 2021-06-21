@@ -112,7 +112,7 @@ class ValidationStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {state === BankAccount.STATE.PENDING && (
-                    <View style={[styles.m5, styles.flex1]}>
+                    <View style={[styles.flex1, styles.mt2]}>
                         <View style={[styles.mb2]}>
                             <Text style={[styles.mh5, styles.mb1]}>
                                 {this.props.translate('validationStep.description')}
