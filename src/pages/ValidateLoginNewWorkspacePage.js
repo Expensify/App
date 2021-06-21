@@ -7,6 +7,8 @@ import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import {StackActions} from '@react-navigation/compat';
+import lodashGet from 'lodash/get';
+import {getAuthTokenFromECom} from '../libs/actions/User';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,7 +41,12 @@ class ValidateLoginNewWorkspacePage extends Component {
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
             Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            return;
         }
+
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+        getAuthTokenFromECom(accountID, validateCode);
     }
 
     render() {

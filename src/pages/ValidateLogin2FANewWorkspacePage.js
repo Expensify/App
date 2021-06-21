@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import validateLinkPropTypes from './validateLinkPropTypes';
-import {validateLogin} from '../libs/actions/User';
+import {getAuthTokenFromECom, validateLogin} from '../libs/actions/User';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../components/ExpensifyCashLogo';
 import variables from '../styles/variables';
@@ -71,6 +71,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
 
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+        getAuthTokenFromECom(accountID, validateCode);
 
         this.setState({
             formError: null,

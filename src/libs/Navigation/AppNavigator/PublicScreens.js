@@ -30,11 +30,6 @@ export default () => (
             component={ValidateLoginPage}
         />
         <RootStack.Screen
-            name="ValidateLoginNewWorkspace"
-            options={defaultScreenOptions}
-            component={ValidateLoginPage}
-        />
-        <RootStack.Screen
             name="SetPassword"
             options={defaultScreenOptions}
             component={SetPasswordPage}
