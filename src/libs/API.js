@@ -940,6 +940,21 @@ function Policy_Create(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.taskID
+ * @param {String} parameters.policyID
+ * @param {String} parameters.firstName
+ * @param {String} parameters.lastName
+ * @param {String} parameters.phoneNumber
+ * @returns {Promise}
+ */
+function Inbox_CallUser(parameters) {
+    const commandName = 'Inbox_CallUser';
+    requireParameters(['taskID', 'policyID', 'firstName', 'lastName', 'phoneNumber'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     BankAccount_Create,
@@ -956,6 +971,7 @@ export {
     GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
+    Inbox_CallUser,
     Log,
     PayIOU,
     PayWithWallet,
