@@ -45,6 +45,9 @@ const propTypes = {
 
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
+
+    /** Whether item is focused or active */
+    focused: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -58,6 +61,7 @@ const defaultProps = {
     iconRight: ArrowRight,
     iconStyles: [],
     iconFill: undefined,
+    focused: false,
 };
 
 const MenuItem = ({
@@ -73,6 +77,7 @@ const MenuItem = ({
     description,
     iconStyles,
     iconFill,
+    focused,
 }) => (
     <Pressable
         onPress={onPress}
@@ -96,7 +101,7 @@ const MenuItem = ({
                             src={icon}
                             width={iconWidth}
                             height={iconHeight}
-                            fill={iconFill || getIconFillColor(getButtonState(hovered, pressed, success))}
+                            fill={iconFill || getIconFillColor(getButtonState(focused || hovered, pressed, success))}
                         />
                     </View>
                     )}
@@ -113,7 +118,7 @@ const MenuItem = ({
                 </View>
                 {shouldShowRightIcon && (
                 <View style={styles.createMenuIcon}>
-                    <Icon src={iconRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
+                    <Icon src={iconRight} fill={getIconFillColor(getButtonState(focused || hovered, pressed))} />
                 </View>
                 )}
             </>

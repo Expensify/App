@@ -32,6 +32,7 @@ export default {
     mv1: {
         marginVertical: 4,
     },
+
     mv2: {
         marginVertical: 8,
     },

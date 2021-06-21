@@ -98,6 +98,11 @@ function dismissModal(shouldOpenDrawer = false) {
     openDrawer();
 }
 
+function isActive(routePath) {
+    const path = navigationRef.current ? navigationRef.current.getCurrentRoute().path.substring(1) : '';
+    return path === routePath;
+}
+
 /**
  * Alternative to the `Navigation.dismissModal()` function that we can use inside
  * the render function of other components to avoid breaking React rules about side-effects.
@@ -129,6 +134,7 @@ DismissModal.defaultProps = {
 export default {
     navigate,
     dismissModal,
+    isActive,
     goBack,
     DismissModal,
 };

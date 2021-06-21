@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, ScrollView, Text as RNText, Linking,
+    View, ScrollView, Text as RNText, Linking, StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -10,6 +10,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import Text from '../../components/Text';
 import Button from '../../components/Button';
@@ -19,7 +20,8 @@ import ROUTES from '../../ROUTES';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
-import HeroCardImage from '../../../assets/images/hero-card-cascade.svg';
+import HeroCardWebImage from '../../../assets/images/cascading-cards-web.svg';
+import HeroCardMobileImage from '../../../assets/images/cascading-cards-mobile.svg';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,6 +36,7 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -46,6 +49,7 @@ const defaultProps = {
 const WorkspaceCardPage = ({
     user,
     translate,
+    isSmallScreenWidth,
 }) => {
     const publicLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.ADD_SECONDARY_LOGIN_URL;
     const manageCardLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.MANAGE_CARDS_URL;
@@ -72,17 +76,37 @@ const WorkspaceCardPage = ({
             />
             <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.pageWrapper}>
-                    <View style={[styles.mb3, styles.workspaceCard, styles.flexRow]}>
-                        <HeroCardImage
-                            style={styles.fullscreenCard}
-                        />
-                        <View style={[styles.fullscreenCard, styles.workspaceCardContent]}>
+                    <View style={[
+                        styles.mb3,
+                        styles.flexRow,
+                        styles.workspaceCard,
+                        isSmallScreenWidth && styles.workspaceCardMobile,
+                    ]}
+                    >
+                        {isSmallScreenWidth
+                            ? (
+                                <HeroCardMobileImage
+                                    style={StyleSheet.flatten([styles.fullscreenCard, styles.fullscreenCardMobile])}
+                                />
+                            )
+                            : (
+                                <HeroCardWebImage
+                                    style={StyleSheet.flatten([styles.fullscreenCard, styles.fullscreenCardWeb])}
+                                />
+                            )}
+
+                        <View style={[
+                            styles.fullscreenCard,
+                            styles.workspaceCardContent,
+                            isSmallScreenWidth && styles.p5,
+                        ]}
+                        >
                             <View
                                 style={[
-                                    styles.w50,
                                     styles.flexGrow1,
                                     styles.justifyContentEnd,
                                     styles.alignItemsStart,
+                                    !isSmallScreenWidth && styles.w50,
                                 ]}
                             >
                                 <Text
@@ -124,9 +148,10 @@ const WorkspaceCardPage = ({
                                             style={[
                                                 styles.alignSelfStart,
                                                 styles.workspaceCardCTA,
+                                                isSmallScreenWidth && styles.wAuto,
                                             ]}
                                             textStyles={[
-                                                styles.p5,
+                                                !isSmallScreenWidth && styles.p5,
                                             ]}
                                             onPress={onPress}
                                             success
@@ -153,6 +178,7 @@ WorkspaceCardPage.displayName = 'WorkspaceCardPage';
 
 export default compose(
     withLocalize,
+    withWindowDimensions,
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
