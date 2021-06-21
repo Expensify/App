@@ -161,6 +161,20 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonDanger: {
+        backgroundColor: themeColors.buttonDangerBG,
+        borderWidth: 0,
+    },
+
+    buttonDangerDisabled: {
+        opacity: 0.5,
+    },
+
+    buttonDangerHovered: {
+        backgroundColor: themeColors.buttonDangerPressedBG,
+        borderWidth: 0,
+    },
+
     buttonDisable: {
         backgroundColor: themeColors.buttonDisabledBG,
         borderWidth: 0,
@@ -190,6 +204,10 @@ const styles = {
     },
 
     buttonSuccessText: {
+        color: themeColors.textReversed,
+    },
+
+    buttonDangerText: {
         color: themeColors.textReversed,
     },
 

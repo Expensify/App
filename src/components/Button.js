@@ -33,6 +33,9 @@ const propTypes = {
     /** Whether we should use the success theme color */
     success: PropTypes.bool,
 
+    /** Whether we should use the danger theme color */
+    danger: PropTypes.bool,
+
     /** Optional content component to replace all inner contents of button */
     ContentComponent: PropTypes.func,
 
@@ -51,6 +54,7 @@ const defaultProps = {
     style: [],
     textStyles: [],
     success: false,
+    danger: false,
     ContentComponent: undefined,
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
@@ -74,6 +78,7 @@ const Button = (props) => {
                     style={[
                         styles.buttonText,
                         props.success && styles.buttonSuccessText,
+                        (props.danger && !props.isDisabled) && styles.buttonDangerText,
                         ...props.textStyles,
                     ]}
                 >
@@ -96,8 +101,10 @@ const Button = (props) => {
                     style={[
                         styles.button,
                         props.success ? styles.buttonSuccess : undefined,
+                        props.danger ? styles.buttonDanger : undefined,
                         props.isDisabled ? styles.buttonDisable : undefined,
                         (props.success && hovered) ? styles.buttonSuccessHovered : undefined,
+                        (props.danger && hovered) ? styles.buttonDangerHovered : undefined,
                         props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                         props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ]}
