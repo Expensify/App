@@ -1,11 +1,11 @@
 import {Component} from 'react';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import validateLinkPropTypes from './validateLinkPropTypes';
-import {validateLogin} from '../libs/actions/User';
-import compose from '../libs/compose';
 import {withOnyx} from 'react-native-onyx';
+import validateLinkPropTypes from './validateLinkPropTypes';
+import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -28,11 +28,10 @@ const defaultProps = {
 };
 class ValidateLoginNewWorkspacePage extends Component {
     componentDidMount() {
-        console.log('1');
-        // const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        // const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        //
-        // validateLogin(accountID, validateCode);
+        // If the user has an active session already, they need to be redirected straight to the new workspace page
+        if (this.props.session.authToken) {
+            Navigation.navigate(ROUTES.WORKSPACE_NEW);
+        }
     }
 
     render() {

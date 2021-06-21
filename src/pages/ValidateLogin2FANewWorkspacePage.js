@@ -14,6 +14,8 @@ import CONST from '../CONST';
 import Button from '../components/Button';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -40,8 +42,6 @@ class ValidateLogin2FANewWorkspacePage extends Component {
     constructor(props) {
         super(props);
 
-        this.requiresTwoFactorAuth = lodashGet(this.props.route.params, '2fa') === 'true';
-
         this.state = {
             twoFactorAuthCode: '',
             formError: false,
@@ -50,15 +50,10 @@ class ValidateLogin2FANewWorkspacePage extends Component {
     }
 
     componentDidMount() {
-        console.log('2');
-        // const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        // const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        //
-        // // If there is no need to get a 2fa code, then validate the login right away, otherwise there will be a UI
-        // // displayed for the user to enter their 2fa code.
-        // if (!this.requiresTwoFactorAuth) {
-        //     validateLogin(accountID, validateCode);
-        // }
+        // If the user has an active session already, they need to be redirected straight to the new workspace page
+        if (this.props.session.authToken) {
+            Navigation.navigate(ROUTES.WORKSPACE_NEW);
+        }
     }
 
     validateAndSubmitForm() {
@@ -67,14 +62,17 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             return;
         }
 
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+
         this.setState({
             formError: null,
         });
     }
 
     render() {
-        // Don't render anything here since we will redirect the user once we've attempted to validate their login
-        if (!this.requiresTwoFactorAuth) {
+        // If the user is already logged in, don't need to display anything because they will get redirected
+        if (this.props.session.authToken) {
             return null;
         }
 
