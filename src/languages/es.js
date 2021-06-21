@@ -360,6 +360,6 @@ export default {
         expensifyMerchantName: '"Expensify, Inc. Validation"',
         desriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación.',
         example: 'Ejemplo: 1.51',
-        verifyingDescription: 'Estamos revisando su información y lo llevaremos a los siguientes pasos en solo unos segundos.'
+        verifyingDescription: 'Estamos revisando su información y lo llevaremos a los siguientes pasos en solo unos segundos.',
     },
 };

@@ -658,15 +658,15 @@ function setupWithdrawalAccount(data) {
 }
 
 export {
-    fetchPlaidLinkToken,
-    addPersonalBankAccount,
-    getPlaidBankAccounts,
-    clearPlaidBankAccountsAndToken,
-    fetchOnfidoToken,
     activateWallet,
-    fetchUserWallet,
+    addPersonalBankAccount,
+    clearPlaidBankAccountsAndToken,
     fetchFreePlanVerifiedBankAccount,
-    setupWithdrawalAccount,
+    fetchOnfidoToken,
+    fetchPlaidLinkToken,
+    fetchUserWallet,
+    getPlaidBankAccounts,
     goToWithdrawalAccountSetupStep,
+    setupWithdrawalAccount,
     validateBankAccount,
 };

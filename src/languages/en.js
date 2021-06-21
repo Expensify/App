@@ -371,7 +371,7 @@ export default {
         expensifyMerchantName: '"Expensify, Inc. Validation"',
         desriptionCTA: 'Please enter each transaction amount in the fields below.',
         example: 'Example: 1.51',
-        verifyingDescription: 'We\'re taking a look at your information and will have you onto next steps in just a few seconds.'
+        verifyingDescription: 'We\'re taking a look at your information and will have you onto next steps in just a few seconds.',
     },
     beneficialOwnersStep: {
         beneficialOwners: 'Beneficial Owners',
