@@ -53,7 +53,8 @@ import {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
-    WorkspaceInviteModalStackNavigator, RequestCallModalStackNavigator,
+    WorkspaceInviteModalStackNavigator,
+    RequestCallModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
