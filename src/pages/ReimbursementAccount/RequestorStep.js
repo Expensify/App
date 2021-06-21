@@ -12,10 +12,14 @@ import {goToWithdrawalAccountSetupStep} from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
+import {isValidIdentity} from '../../libs/ValidationUtils';
+import Growl from '../../libs/Growl';
 
 class RequestorStep extends React.Component {
     constructor(props) {
         super(props);
+
+        this.submit = this.submit.bind(this);
 
         this.state = {
             firstName: '',
@@ -26,7 +30,29 @@ class RequestorStep extends React.Component {
             zipCode: '',
             dob: '',
             ssnLast4: '',
+            isControllingOfficer: false,
         };
+    }
+
+    validate() {
+        if (!this.state.isControllingOfficer) {
+            Growl.error('Please verify that you are authorized to use this bank account for business spend');
+            return false;
+        }
+
+        if (!isValidIdentity({...this.state})) {
+            return false;
+        }
+
+        return true;
+    }
+
+    submit() {
+        if (!this.validate()) {
+            return;
+        }
+
+        console.log('magic');
     }
 
     render() {
@@ -54,8 +80,10 @@ class RequestorStep extends React.Component {
                             }}
                         />
                         <CheckboxWithLabel
-                            isChecked={false}
-                            onPress={() => {}}
+                            isChecked={this.state.isControllingOfficer}
+                            onPress={() => {
+                                this.setState(prevState => ({isControllingOfficer: !prevState.isControllingOfficer}));
+                            }}
                             LabelComponent={() => (
                                 <View style={[styles.flex1, styles.pr1]}>
                                     <Text>
@@ -111,8 +139,7 @@ class RequestorStep extends React.Component {
                 <FixedFooter style={[styles.mt5]}>
                     <Button
                         success
-                        onPress={() => {
-                        }}
+                        onPress={this.submit}
                         style={[styles.w100]}
                         text={this.props.translate('common.saveAndContinue')}
                     />
