@@ -129,6 +129,11 @@ export default {
                     NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
+            RequestCall: {
+                screens: {
+                    RequestCall_Root: ROUTES.REQUEST_CALL,
+                },
+            },
         },
     },
 };
