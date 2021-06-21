@@ -6,7 +6,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import {updateCurrentlyViewedReportID} from '../../libs/actions/Report';
 
 const propTypes = {
@@ -21,16 +20,7 @@ const propTypes = {
 };
 
 class ReportScreen extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            isLoading: true,
-        };
-    }
-
     componentDidMount() {
-        this.prepareTransition();
         this.storeCurrentlyViewedReport();
     }
 
@@ -38,7 +28,6 @@ class ReportScreen extends React.Component {
         const reportChanged = this.props.route.params.reportID !== prevProps.route.params.reportID;
 
         if (reportChanged) {
-            this.prepareTransition();
             this.storeCurrentlyViewedReport();
         }
     }
@@ -58,25 +47,6 @@ class ReportScreen extends React.Component {
     }
 
     /**
-     * When reports change there's a brief time content is not ready to be displayed
-     *
-     * @returns {Boolean}
-     */
-    shouldShowLoader() {
-        return this.state.isLoading || !this.getReportID();
-    }
-
-    /**
-     * Configures a small loading transition of fixed time and proceeds with rendering available data
-     */
-    prepareTransition() {
-        this.setState({isLoading: true});
-
-        clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 300);
-    }
-
-    /**
      * Persists the currently viewed report id
      */
     storeCurrentlyViewedReport() {
@@ -91,8 +61,6 @@ class ReportScreen extends React.Component {
                     reportID={this.getReportID()}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                 />
-
-                <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
 
                 <ReportView reportID={this.getReportID()} />
             </ScreenWrapper>

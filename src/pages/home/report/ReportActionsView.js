@@ -33,6 +33,7 @@ import {flatListRef, scrollToBottom, scrollToIndex} from '../../../libs/ReportSc
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import deferredPromise from '../../../libs/deferredPromise';
+import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -203,6 +204,10 @@ class ReportActionsView extends React.Component {
         AppState.removeEventListener('change', this.onVisibilityChange);
 
         unsubscribeFromReportChannel(this.props.reportID);
+
+        if (this.waitItemsLayoutTask) {
+            this.waitItemsLayoutTask.reject(new Error('Component is unmounting'));
+        }
     }
 
     /**
@@ -219,6 +224,7 @@ class ReportActionsView extends React.Component {
      * @param {number} anchor - an action sequence number
      */
     loadFromAnchor(anchor) {
+        this.waitItemsLayoutTask = deferredPromise();
         this.loadMoreChats(anchor - 1)
             .then(() => {
                 /** When an anchor is passed we need to position it in view. Since the list is inverted
@@ -229,12 +235,11 @@ class ReportActionsView extends React.Component {
                     /* ATM we have to wait for the items to render in order to scroll to it
                     * There should be a better way to position on the anchor when we start in the past
                     * E.g. stay at the top when new items are rendered */
-                    this.itemsRenderedTask = deferredPromise();
-                    this.itemsRenderedTask.promise.then(() => {
+                    this.waitItemsLayoutTask.promise.then(() => {
                         scrollToIndex({
                             index,
                             animated: false,
-                            viewPosition: 1,
+                            viewPosition: 0.5,
                         });
                     });
                 }
@@ -362,8 +367,10 @@ class ReportActionsView extends React.Component {
         // We are offsetting the time measurement here so that we can subtract our debounce time from the initial time
         // and get the actual time it took to load the report
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD, CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME);
-        if (this.itemsRenderedTask) {
-            this.itemsRenderedTask.resolve();
+        if (this.waitItemsLayoutTask) {
+            this.waitItemsLayoutTask.resolve();
+            this.waitItemsLayoutTask = null;
+            this.forceUpdate();
         }
     }
 
@@ -420,11 +427,6 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        // Comments have not loaded at all yet do nothing
-        if (!_.size(this.state.reportActions)) {
-            return null;
-        }
-
         // If we only have the created action then no one has left a comment
         if (_.size(this.state.reportActions) === 1) {
             return (
@@ -437,23 +439,26 @@ class ReportActionsView extends React.Component {
         }
 
         return (
-            <InvertedFlatList
-                ref={flatListRef}
-                data={this.state.reportActions}
-                renderItem={this.renderItem}
-                CellRendererComponent={this.renderCell}
-                contentContainerStyle={[styles.chatContentScrollView]}
+            <>
+                <FullScreenLoadingIndicator visible={this.waitItemsLayoutTask || !_.size(this.state.reportActions)} />
+                <InvertedFlatList
+                    ref={flatListRef}
+                    data={this.state.reportActions}
+                    renderItem={this.renderItem}
+                    CellRendererComponent={this.renderCell}
+                    contentContainerStyle={[styles.chatContentScrollView]}
 
                 // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
                 // shouldn't happen, but might be possible in some rare cases.
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                keyExtractor={action => `${action.sequenceNumber}${action.clientID}`}
-                initialRowHeight={32}
-                onEndReached={this.loadOlderMessages}
-                onStartReached={this.loadRecentMessages}
-                keyboardShouldPersistTaps="handled"
-                activityIndicatorColor={themeColors.spinner}
-            />
+                    keyExtractor={action => `${action.sequenceNumber}${action.clientID}`}
+                    initialRowHeight={32}
+                    onEndReached={this.loadOlderMessages}
+                    onStartReached={this.loadRecentMessages}
+                    keyboardShouldPersistTaps="handled"
+                    activityIndicatorColor={themeColors.spinner}
+                />
+            </>
         );
     }
 }
