@@ -14,6 +14,9 @@ const propTypes = {
     /** The ID of the report the selected report */
     reportID: PropTypes.number.isRequired,
 
+    /** Optionally provide a sequence number of a past message to start relative to it */
+    anchorSequenceNumber: PropTypes.number,
+
     /* Onyx Keys */
 
     /** Whether or not to show the Compose Input */
@@ -26,11 +29,12 @@ const defaultProps = {
     session: {
         shouldShowComposeInput: true,
     },
+    anchorSequenceNumber: -1,
 };
 
-const ReportView = ({reportID, session}) => (
+const ReportView = ({reportID, anchorSequenceNumber, session}) => (
     <View key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
-        <ReportActionsView reportID={reportID} anchorSequenceNumber={1} />
+        <ReportActionsView reportID={reportID} anchorSequenceNumber={anchorSequenceNumber} />
 
         {session.shouldShowComposeInput && (
             <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>

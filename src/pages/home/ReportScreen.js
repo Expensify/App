@@ -15,6 +15,9 @@ const propTypes = {
         params: PropTypes.shape({
             /** The ID of the report this screen should display */
             reportID: PropTypes.string,
+
+            /** An ID of a past message to render the chat starting from that point */
+            sequenceNumber: PropTypes.string,
         }).isRequired,
     }).isRequired,
 };
@@ -47,6 +50,16 @@ class ReportScreen extends React.Component {
     }
 
     /**
+     * Get an initial anchor point for the chat report actions
+     *
+     * @returns {number}
+     */
+    getAnchorSequenceNumber() {
+        const params = this.props.route.params;
+        return Number.parseInt(params.sequenceNumber, 10) || -1;
+    }
+
+    /**
      * Persists the currently viewed report id
      */
     storeCurrentlyViewedReport() {
@@ -62,7 +75,10 @@ class ReportScreen extends React.Component {
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                 />
 
-                <ReportView reportID={this.getReportID()} />
+                <ReportView
+                    reportID={this.getReportID()}
+                    anchorSequenceNumber={this.getAnchorSequenceNumber()}
+                />
             </ScreenWrapper>
         );
     }

@@ -23,7 +23,7 @@ export default {
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,
-    REPORT_WITH_ID: 'r/:reportID',
+    REPORT_WITH_ID: 'r/:reportID/:sequenceNumber?',
     getReportRoute: reportID => `r/${reportID}`,
     IOU_BILL_CURRENCY: 'iou/split/:reportID/currency',
     IOU_REQUEST_CURRENCY: 'iou/request/:reportID/currency',
