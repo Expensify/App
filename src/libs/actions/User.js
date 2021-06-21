@@ -180,6 +180,12 @@ function validateLogin(accountID, validateCode) {
     });
 }
 
+/**
+ * Checks if the expiresAt date of a user's ban is before right now
+ *
+ * @param {String} expiresAt
+ * @returns {boolean}
+ */
 function isBlockedFromConcierge(expiresAt) {
     const now = moment()
         .format('YYYY-MM-DD');
