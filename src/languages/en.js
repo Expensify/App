@@ -49,6 +49,7 @@ export default {
         invite: 'Invite',
         iAcceptThe: 'I accept the ',
         passwordCannotBeBlank: 'Password cannot be blank',
+        send: 'Send',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -92,7 +93,7 @@ export default {
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
     reportActionCompose: {
-        uploadAttachment: 'Upload Attachment',
+        sendAttachment: 'Send Attachment',
         addAttachment: 'Add Attachment',
         writeSomething: 'Write something...',
         youAppearToBeOffline: 'You appear to be offline.',
