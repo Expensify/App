@@ -179,8 +179,11 @@ class ReimbursementAccountPage extends React.Component {
             }
         }
 
-        // We grab the currentStep from the achData to determine which view to display. The SetupWithdrawalAccount flow
-        // allows us to continue the flow from various points depending on where the user left off.
+        // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
+        // user left off. This view will refer to the achData as the single source of truth to determine which route to
+        // display. We can also specify a specific route to navigate to via route params when the component first
+        // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
+        // next step.
         const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         return (
