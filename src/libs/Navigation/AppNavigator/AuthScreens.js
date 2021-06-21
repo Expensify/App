@@ -227,7 +227,7 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name="ValidateLoginNewWorkspace"
+                    name={SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE}
                     options={defaultScreenOptions}
                     component={ValidateLoginPage}
                 />
