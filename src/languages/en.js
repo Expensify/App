@@ -95,6 +95,7 @@ export default {
         uploadAttachment: 'Upload Attachment',
         addAttachment: 'Add Attachment',
         writeSomething: 'Write something...',
+        blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
     },
