@@ -19,6 +19,7 @@ import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Growl from '../../libs/Growl';
+import {isValidAddress, isValidDate, isValidIndustryCode} from '../../libs/ValidationUtils';
 
 class CompanyStep extends React.Component {
     constructor(props) {
@@ -44,38 +45,6 @@ class CompanyStep extends React.Component {
         };
     }
 
-    /**
-     * Validating that this is a valid address (PO boxes are not allowed)
-     *
-     * @param {String} value
-     * @returns {Boolean}
-     */
-    isValidAddress(value) {
-        if (!CONST.REGEX.ANY_VALUE.test(value)) {
-            return false;
-        }
-
-        return !CONST.REGEX.PO_BOX.test(value);
-    }
-
-    /**
-     * Validate date fields
-     *
-     * @param {String} date
-     * @returns {Boolean} true if valid
-     */
-    isValidDate(date) {
-        return moment(date).isValid();
-    }
-
-    /**
-     * @param {String} code
-     * @returns {Boolean}
-     */
-    validateIndustryCode(code) {
-        return !CONST.REGEX.INDUSTRY_CODE.test(code);
-    }
-
     validate() {
         // @TODO check more than just the password
         if (!this.state.password.trim()) {
@@ -83,7 +52,7 @@ class CompanyStep extends React.Component {
             return false;
         }
 
-        if (!this.isValidAddress(this.state.addressStreet)) {
+        if (!isValidAddress(this.state.addressStreet)) {
             Growl.error(this.props.translate('bankAccount.error.addressStreet'));
             return false;
         }
@@ -103,12 +72,12 @@ class CompanyStep extends React.Component {
             return false;
         }
 
-        if (!this.isValidDate(this.state.incorporationDate)) {
+        if (!isValidDate(this.state.incorporationDate)) {
             Growl.error(this.props.translate('bankAccount.error.incorporationDate'));
             return false;
         }
 
-        if (this.validateIndustryCode(this.state.industryCode)) {
+        if (!isValidIndustryCode(this.state.industryCode)) {
             Growl.error(this.props.translate('bankAccount.error.industryCode'));
             return false;
         }
