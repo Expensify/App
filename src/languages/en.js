@@ -302,6 +302,7 @@ export default {
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
             routingNumber: 'Please check Routing Number and try again',
             companyType: 'Please check Company Type and try again',
+            tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
         },
     },
     addPersonalBankAccountPage: {
