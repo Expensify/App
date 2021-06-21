@@ -16,21 +16,28 @@ const defaultProps = {
     },
 };
 class ValidateLoginPage extends Component {
+    constructor(props) {
+        super(props);
+
+        this.needsTwoFactorAuthenticationCode = lodashGet(this.props.route.params, '2fa') === 'true';
+    }
+
     componentDidMount() {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        const needsTwoFactorAuthenticationCode = lodashGet(this.props.route.params, '2fa') === 'true';
 
         // If there is no need to get a 2fa code, then validate the login right away, otherwise there will be a UI
         // displayed for the user to enter their 2fa code.
-        if (!needsTwoFactorAuthenticationCode) {
+        if (!this.needsTwoFactorAuthenticationCode) {
             validateLogin(accountID, validateCode);
         }
     }
 
     render() {
         // Don't render anything here since we will redirect the user once we've attempted to validate their login
-        return null;
+        if (!this.needsTwoFactorAuthenticationCode) {
+            return null;
+        }
     }
 }
 
