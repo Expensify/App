@@ -356,7 +356,7 @@ export default {
         requestACall: 'Llámame por teléfono',
         description: 'Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías te pueden ayudar.',
         instructions: 'Escribe tu nombre y número de teléfono y te llamaremos.',
-        availabilityText: '*Nuestros guías están disponibles de domingo desde las 17.00 CT a viernes hasta las 17.00 CT. Si solicitas una llamada fuera de este horario, te llamaremos de lunes a viernes de 9.00 a 17.00 en tu hora local. El orden de llamada corresponde con el orden en el que las llamadas son recibidas.',
+        availabilityText: '*Nuestros guías están disponibles de domingo desde las 17.00 CT a viernes hasta las 17.00 CT. Si solicitas una llamada fuera de este horario, te llamaremos de lunes a viernes de 9.00 a 17.00 en tu hora local. El orden de llamada corresponde con el orden de solicitud.',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada perdida.',
         growlMessageInvalidPhone: 'El teléfono no es valido. Intenta nuevamente agregando el código de país. Eg: +15005550006',
