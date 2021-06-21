@@ -26,6 +26,19 @@ let preferredLocale;
 const defaultAvatarForUserToInvite = getDefaultAvatar();
 
 /**
+ * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
+ *
+ * @param {String} login
+ * @return {String}
+ */
+function addSMSDomainIfPhoneNumber(login) {
+    if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
+        return login + CONST.SMS.DOMAIN;
+    }
+    return login;
+}
+
+/**
  * Returns the personal details for an array of logins
  *
  * @param {Array} logins
@@ -38,7 +51,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         if (!personalDetail) {
             personalDetail = {
-                login,
+                login: addSMSDomainIfPhoneNumber(login),
                 displayName: login,
                 avatar: getDefaultAvatar(login),
             };
@@ -46,6 +59,34 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         return personalDetail;
     });
+}
+
+/**
+ * Constructs a Set with all possible names (displayName, firstName, lastName, email) for all participants in a report,
+ * to be used in isSearchStringMatch.
+ *
+ * @param {Array<Object>} personalDetailList
+ * @return {Set<String>}
+ */
+function getParticipantNames(personalDetailList) {
+    // We use a Set because `Set.has(value)` on a Set of with n entries is up to n (or log(n)) times faster than
+    // `_.contains(Array, value)` for an Array with n members.
+    const participantNames = new Set();
+    _.each(personalDetailList, (participant) => {
+        if (participant.login) {
+            participantNames.add(participant.login.toLowerCase());
+        }
+        if (participant.firstName) {
+            participantNames.add(participant.firstName.toLowerCase());
+        }
+        if (participant.lastName) {
+            participantNames.add(participant.lastName.toLowerCase());
+        }
+        if (participant.displayName) {
+            participantNames.add(participant.displayName.toLowerCase());
+        }
+    });
+    return participantNames;
 }
 
 /**
@@ -62,8 +103,8 @@ function getSearchText(report, personalDetailList) {
         searchTerms.push(personalDetail.displayName);
         searchTerms.push(personalDetail.login);
     });
-
     if (report) {
+        searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
         searchTerms.push(...report.participants);
     }
@@ -96,7 +137,9 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         + _.unescape(report.lastMessageText)
         : '';
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-    const fullTitle = personalDetailList.map(({firstName, login}) => firstName || login).join(', ');
+    const fullTitle = personalDetailList
+        .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
+        .join(', ');
     return {
         text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
         alternateText: (showChatPreviewLine && lastMessageText)
@@ -132,7 +175,7 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || 'en',
+    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 /**
@@ -140,14 +183,18 @@ Onyx.connect({
  *
  * @param {String} searchValue
  * @param {String} searchText
+ * @param {Set<String>} [participantNames]
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText) {
-    const searchWords = searchValue.split(' ');
+function isSearchStringMatch(searchValue, searchText, participantNames = new Set()) {
+    const searchWords = searchValue
+        .replace(/,/g, ' ')
+        .split(' ')
+        .map(word => word.trim());
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch);
+        return matchRegex.test(valueToSearch) || participantNames.has(word);
     });
 }
 
@@ -163,6 +210,7 @@ function isSearchStringMatch(searchValue, searchText) {
  * @private
  */
 function getOptions(reports, personalDetails, draftComments, activeReportID, {
+    betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     excludeConcierge = false,
@@ -250,8 +298,10 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
                 continue;
             }
 
-            // Finally check to see if this options is a match for the provided search string if we have one
-            if (searchValue && !isSearchStringMatch(searchValue, reportOption.searchText)) {
+            // Finally check to see if this option is a match for the provided search string if we have one
+            const {searchText, participantsList} = reportOption;
+            const participantNames = getParticipantNames(participantsList);
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
                 continue;
             }
 
@@ -284,11 +334,11 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ))) {
                 return;
             }
-
-            if (searchValue && !isSearchStringMatch(searchValue, personalDetailOption.searchText)) {
+            const {searchText, participantsList} = personalDetailOption;
+            const participantNames = getParticipantNames(participantsList);
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
                 return;
             }
-
             personalDetailsOptions.push(personalDetailOption);
         });
     }
@@ -299,10 +349,10 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && personalDetailsOptions.length === 0
             && _.every(selectedOptions, option => option.login !== searchValue)
             && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
-            && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos())
+            && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
-        // current users international code based on their IP address.
+        // current user's international code based on their IP address.
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
@@ -326,14 +376,17 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getSearchOptions(
     reports,
     personalDetails,
     searchValue = '',
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
@@ -353,6 +406,7 @@ function getSearchOptions(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Boolean} excludeConcierge
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getNewChatOptions(
@@ -360,8 +414,10 @@ function getNewChatOptions(
     personalDetails,
     searchValue = '',
     excludeConcierge,
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         includePersonalDetails: true,
         includeRecentReports: true,
@@ -409,6 +465,7 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {String} searchValue
  * @param {Array} selectedOptions
  * @param {Boolean} excludeConcierge
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getNewGroupOptions(
@@ -417,8 +474,10 @@ function getNewGroupOptions(
     searchValue = '',
     selectedOptions = [],
     excludeConcierge,
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         selectedOptions,
         includeRecentReports: true,

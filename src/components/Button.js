@@ -10,7 +10,7 @@ import OpacityView from './OpacityView';
 
 const propTypes = {
     /** The text for the button label */
-    text: PropTypes.string.isRequired,
+    text: PropTypes.string,
 
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading: PropTypes.bool,
@@ -44,6 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    text: '',
     isLoading: false,
     isDisabled: false,
     onPress: () => {},

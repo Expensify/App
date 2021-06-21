@@ -59,6 +59,8 @@ class FAB extends PureComponent {
 
         return (
             <AnimatedPressable
+                accessibilityLabel={this.props.accessibilityLabel}
+                accessibilityRole={this.props.accessibilityRole}
                 onPress={this.props.onPress}
                 style={[
                     styles.floatingActionButton,

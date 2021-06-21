@@ -12,7 +12,7 @@
                     "/v/*",
                     "/add-bank-account/*",
                     "/iou/*",
-                    "/trigger/*"
+                    "/enable-payments/*",
                 ]
             }
         ]
