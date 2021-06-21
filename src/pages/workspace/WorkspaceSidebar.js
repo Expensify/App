@@ -7,18 +7,25 @@ import Text from '../../components/Text';
 import {
     Wallet,
     Users,
+    Pencil,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
 import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
 import variables from '../../styles/variables';
+import themedefault from '../../styles/themes/default';
+import Icon from '../../components/Icon';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import compose from '../../libs/compose';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
-const WorkspaceSidebar = ({translate}) => {
+const WorkspaceSidebar = ({translate, isSmallWidthScreen}) => {
     const menuItems = [
         {
             translationKey: 'workspace.common.card',
@@ -26,13 +33,13 @@ const WorkspaceSidebar = ({translate}) => {
             action: () => {
                 Navigation.navigate(ROUTES.WORKSPACE_CARD);
             },
+            isActive: Navigation.isActive(ROUTES.WORKSPACE_CARD),
         },
         {
             translationKey: 'common.people',
             icon: Users,
-            action: () => {
-                Navigation.navigate(ROUTES.WORKSPACE_CARD);
-            },
+            action: () => {},
+            isActive: false,
         },
     ];
 
@@ -47,15 +54,35 @@ const WorkspaceSidebar = ({translate}) => {
                 ]}
             >
                 <View style={[styles.flex1]}>
+                    {isSmallWidthScreen
+                        && (
+                            <HeaderWithCloseButton
+                                title={translate('workspace.common.workspace')}
+                                shouldShowBackButton
+                            />
+                        )}
                     <View style={styles.pageWrapper}>
-                        <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter, styles.pv5]}>
-                            <WorkspaceDefaultAvatar height={100} width={100} />
+                        <View style={[styles.settingsPageBody, styles.alignItemsCenter, styles.pv5]}>
+                            <View style={[styles.pRelative, styles.workspaceSidebarAvatar]}>
+                                <WorkspaceDefaultAvatar height={100} width={100} fill={themedefault.icon} />
+                                <View style={[
+                                    styles.workspaceSidebarAvatarPencil,
+                                    styles.alignItemsCenter,
+                                    styles.justifyContentCenter,
+                                ]}
+                                >
+                                    <Icon
+                                        src={Pencil}
+                                        fill={themedefault.textReversed}
+                                    />
+                                </View>
+                            </View>
                             <Text
                                 fontSize={variables.fontSizeXLarge}
                                 style={[
                                     styles.textStrong,
                                     styles.alignSelfCenter,
-                                    styles.mv2,
+                                    styles.mv4,
                                 ]}
                             >
                                 Borton Enterprises
@@ -64,11 +91,13 @@ const WorkspaceSidebar = ({translate}) => {
                     </View>
                     {menuItems.map(item => (
                         <MenuItem
-                            key={item.title}
+                            key={item.translationKey}
                             title={translate(item.translationKey)}
                             icon={item.icon}
                             iconRight={item.iconRight}
                             onPress={() => item.action()}
+                            wrapperStyle={!isSmallWidthScreen && item.isActive ? styles.activeComponentBG : undefined}
+                            focused={item.isActive}
                             shouldShowRightIcon
                         />
                     ))}
@@ -81,4 +110,7 @@ const WorkspaceSidebar = ({translate}) => {
 WorkspaceSidebar.propTypes = propTypes;
 WorkspaceSidebar.displayName = 'WorkspaceSidebar';
 
-export default withLocalize(WorkspaceSidebar);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(WorkspaceSidebar);

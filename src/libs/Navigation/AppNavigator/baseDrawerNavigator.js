@@ -32,6 +32,7 @@ const BaseDrawerNavigator = props => (
     >
         {_.map(props.screens, screen => (
             <Drawer.Screen
+                key={screen.name}
                 name={screen.name}
                 component={screen.component}
                 initialParams={screen.initialParams}

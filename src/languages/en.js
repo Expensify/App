@@ -384,6 +384,7 @@ export default {
     workspace: {
         common: {
             card: 'Expensify Card',
+            workspace: 'Workspace',
         },
         new: {
             newWorkspace: 'New Workspace',

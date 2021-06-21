@@ -236,6 +236,10 @@ const styles = {
         backgroundColor: themeColors.hoverComponentBG,
     },
 
+    activeComponentBG: {
+        backgroundColor: themeColors.activeComponentBG,
+    },
+
     touchableButtonImage: {
         alignItems: 'center',
         height: variables.componentSizeNormal,
@@ -1596,12 +1600,47 @@ const styles = {
         height: '100%',
     },
 
+    fullscreenCardWeb: {
+        left: 'auto',
+        right: '-24%',
+        top: '-18%',
+        height: '120%',
+    },
+
+    fullscreenCardMobile: {
+        left: '-20%',
+        top: '-30%',
+        width: '150%',
+    },
+
+    workspaceSidebarAvatar: {
+        width: 100,
+        height: 100,
+    },
+
+    workspaceSidebarAvatarPencil: {
+        width: 40,
+        height: 40,
+        position: 'absolute',
+        right: -1,
+        bottom: -1,
+        backgroundColor: themeColors.icon,
+        color: themeColors.textReversed,
+        borderRadius: '100%',
+        borderWidth: 3,
+        borderColor: themeColors.textReversed,
+    },
+
     workspaceCard: {
         width: '100%',
         height: 400,
         borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
         backgroundColor: themeColors.heroCard,
+    },
+
+    workspaceCardMobile: {
+        height: 475,
     },
 
     workspaceCardMainText: {
