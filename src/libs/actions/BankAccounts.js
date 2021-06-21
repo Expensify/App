@@ -274,11 +274,11 @@ function fetchUserWallet() {
         });
 }
 
-let previousACHData = {};
+let reimbursementAccountInSetup = {};
 Onyx.connect({
     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     callback: (val) => {
-        previousACHData = lodashGet(val, 'achData', {});
+        reimbursementAccountInSetup = lodashGet(val, 'achData', {});
     },
 });
 
@@ -289,7 +289,7 @@ Onyx.connect({
  * @param {Object} achData
  */
 function goToWithdrawalAccountSetupStep(stepID, achData) {
-    const newACHData = {...previousACHData};
+    const newACHData = {...reimbursementAccountInSetup};
 
     // If we go back to Requestor Step, reset any validation and previously answered questions from expectID.
     if (!newACHData.useOnfido && stepID === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
@@ -313,7 +313,9 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  */
 function fetchFreePlanVerifiedBankAccount() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
+    // and determine which step to navigate to.
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
     promiseAllSettled([
         API.Get({
             returnValueList: 'nameValuePairs',
@@ -353,20 +355,17 @@ function fetchFreePlanVerifiedBankAccount() {
 
             // Next we'll build the achData and save it to Onyx
             // If the user is already setting up a bank account we will continue the flow for them
-            let currentStep = previousACHData.currentStep;
+            let currentStep = reimbursementAccountInSetup.currentStep;
             const achData = bankAccount ? bankAccount.toACHData() : {};
             achData.useOnfido = true;
             achData.policyID = '';
             achData.isInSetup = !bankAccount || bankAccount.isInSetup();
             achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
             achData.domainLimit = 0;
-            achData.isDomainUsingExpensifyCard = false; // @TODO - Not actually sure if we need this
 
-            // @TODO This subStep is used to either show the Plaid "login" view or the "manual" view - but not sure if
-            // we need to implement it yet...
-            // eslint-disable-next-line max-len
-            // See Web-Secure: https://github.com/Expensify/Web-Expensify/blob/896941794f68d7dce64466d83a3e86a5f8122e45/site/app/settings/reimbursement/bankAccountView.jsx#L356-L357
-            achData.subStep = '';
+            // If the bank account has already been created in the db and is not yet open let's show the manual form
+            // with the previously added values
+            achData.subStep = bankAccount && bankAccount.isInSetup() && CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
 
             // If we're not in setup, it means we already have a withdrawal account and we're upgrading it to a business
             // bank account. So let the user review all steps with all info prefilled and editable, unless a specific
@@ -469,7 +468,7 @@ function getIndexByStepID(stepID) {
  */
 function getNextStepID() {
     const nextStepIndex = Math.min(
-        getIndexByStepID(previousACHData.currentStep) + 1,
+        getIndexByStepID(reimbursementAccountInSetup.currentStep) + 1,
         WITHDRAWAL_ACCOUNT_STEPS.length - 1,
     );
     return lodashGet(WITHDRAWAL_ACCOUNT_STEPS, [nextStepIndex, 'id'], CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
@@ -489,33 +488,34 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
  * @param {Object} [data]
  */
 function setupWithdrawalAccount(data) {
+    let nextStep;
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
 
-    previousACHData = {...previousACHData, ...data};
+    const newACHData = {...reimbursementAccountInSetup, ...data};
     if (data && !_.isUndefined(data.isSavings)) {
-        previousACHData.isSavings = Boolean(data.isSavings);
+        newACHData.isSavings = Boolean(data.isSavings);
     }
-    if (!previousACHData.setupType) {
-        previousACHData.setupType = previousACHData.plaidAccountID
+    if (!newACHData.setupType) {
+        newACHData.setupType = newACHData.plaidAccountID
             ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID
             : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
-    let nextStep = previousACHData.currentStep;
+    nextStep = newACHData.currentStep;
 
     // If we are setting up a Plaid account replace the accountNumber with the unmasked number
     if (data.plaidAccountID) {
         const unmaskedAccount = _.find(plaidBankAccounts, bankAccount => (
             bankAccount.plaidAccountID === data.plaidAccountID
         ));
-        previousACHData.accountNumber = unmaskedAccount.accountNumber;
+        newACHData.accountNumber = unmaskedAccount.accountNumber;
     }
 
-    API.BankAccount_SetupWithdrawal(previousACHData)
+    API.BankAccount_SetupWithdrawal(newACHData)
         .then((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
 
-            const currentStep = previousACHData.currentStep;
+            const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
 
@@ -539,13 +539,13 @@ function setupWithdrawalAccount(data) {
                         achData,
                         CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ID,
                     );
-                    if (previousACHData.useOnfido) {
+                    if (newACHData.useOnfido) {
                         const onfidoResponse = lodashGet(
                             achData,
                             CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO,
                         );
                         const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
-                        if (sdkToken && !previousACHData.isOnfidoSetupComplete
+                        if (sdkToken && !newACHData.isOnfidoSetupComplete
                                 && onfidoResponse.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
                         ) {
                             // Requestor Step still needs to run Onfido
@@ -579,7 +579,7 @@ function setupWithdrawalAccount(data) {
                     API.Get({returnValueList: 'bankAccountList'})
                         .then((bankAccountListResponse) => {
                             const bankAccountJSON = _.findWhere(bankAccountListResponse.bankAccountList, {
-                                bankAccountID: previousACHData.bankAccountID,
+                                bankAccountID: newACHData.bankAccountID,
                             });
                             const bankAccount = new BankAccount(bankAccountJSON);
                             achData = bankAccount.toACHData();
@@ -593,7 +593,7 @@ function setupWithdrawalAccount(data) {
                     return;
                 }
 
-                if ((currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && previousACHData.bankAccountInReview)
+                if ((currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && newACHData.bankAccountInReview)
                     || currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE
                 ) {
                     // Setup done!
@@ -601,7 +601,7 @@ function setupWithdrawalAccount(data) {
                     nextStep = getNextStepID();
                 }
             } else {
-                if (response.jsonCode === 666) {
+                if (response.jsonCode === 666 || response.jsonCode === 404) {
                     error = response.message;
                 }
                 if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {

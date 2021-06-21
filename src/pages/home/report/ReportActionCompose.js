@@ -152,7 +152,11 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
-        ReportActionComposeFocusManager.onComposerFocus(this.focus);
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (this.shouldFocusInputOnScreenFocus && this.props.isFocused) {
+                this.focus(false);
+            }
+        });
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
@@ -162,7 +166,6 @@ class ReportActionCompose extends React.Component {
         // open creates a jarring and broken UX.
         if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
-            this.setIsFocused(true);
             this.focus();
         }
     }
@@ -216,15 +219,25 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Focus the composer text input
+     * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
+     * @memberof ReportActionCompose
      */
-    focus() {
-        if (this.shouldFocusInputOnScreenFocus && this.props.isFocused && this.textInput) {
-            // There could be other animations running while we trigger manual focus.
-            // This prevents focus from making those animations janky.
-            InteractionManager.runAfterInteractions(() => {
-                this.textInput.focus();
-            });
-        }
+    focus(shouldelay = false) {
+        // There could be other animations running while we trigger manual focus.
+        // This prevents focus from making those animations janky.
+        InteractionManager.runAfterInteractions(() => {
+            if (this.textInput) {
+                if (!shouldelay) {
+                    this.textInput.focus();
+                } else {
+                    // Keyboard is not opened after Emoji Picker is closed
+                    // SetTimeout is used as a workaround
+                    // https://github.com/react-native-modal/react-native-modal/issues/114
+                    // We carefully choose a delay. 50ms is found enough for keyboard to open.
+                    setTimeout(() => this.textInput.focus(), 50);
+                }
+            }
+        });
     }
 
     /**
@@ -326,16 +339,17 @@ class ReportActionCompose extends React.Component {
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
         const {selection} = this.state;
-        this.textInput.value = this.comment.slice(0, selection.start)
+        const newComment = this.comment.slice(0, selection.start)
             + emoji + this.comment.slice(selection.end, this.comment.length);
+        this.textInput.setNativeProps({
+            text: newComment,
+        });
         const updatedSelection = {
             start: selection.start + emoji.length,
             end: selection.start + emoji.length,
         };
         this.setState({selection: updatedSelection});
-        this.setIsFocused(true);
-        this.focus();
-        this.updateComment(this.textInput.value);
+        this.updateComment(newComment);
     }
 
     /**
@@ -505,6 +519,7 @@ class ReportActionCompose extends React.Component {
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
                         onModalShow={this.focusEmojiSearchInput}
+                        onModalHide={() => this.focus(true)}
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
