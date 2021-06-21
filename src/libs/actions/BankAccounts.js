@@ -442,7 +442,7 @@ function fetchFreePlanVerifiedBankAccount() {
                 .finally(() => {
                     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                 });
-    });
+        });
 }
 
 const WITHDRAWAL_ACCOUNT_STEPS = [
