@@ -145,7 +145,7 @@ function rejectTransaction({
                 throw new Error(`${response.code} ${response.message}`);
             }
 
-            // Save the updated chat and iou reports sent back in the response
+            // Save the updated chat and IOU reports sent back in the response
             // NOTE: since the API doesn't handle syncing chat reports with IOU reports,
             // we also need to set the iouReportID and hasOutstandingIOU fields of the chatReport in Onyx manually
             // If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
