@@ -151,6 +151,9 @@ class ReportActionsView extends React.Component {
         if (this.props.report.hasOutstandingIOU !== nextProps.report.hasOutstandingIOU) {
             return true;
         }
+        if (this.props.anchorSequenceNumber !== nextProps.anchorSequenceNumber) {
+            return true;
+        }
 
         return false;
     }
@@ -190,6 +193,10 @@ class ReportActionsView extends React.Component {
         )) {
             updateLastReadActionID(this.props.reportID);
         }
+
+        if (this.props.anchorSequenceNumber !== prevProps.anchorSequenceNumber) {
+            this.loadFromAnchor(this.props.anchorSequenceNumber);
+        }
     }
 
     componentWillUnmount() {
@@ -224,6 +231,7 @@ class ReportActionsView extends React.Component {
      * @param {number} anchor - an action sequence number
      */
     loadFromAnchor(anchor) {
+        this.setState({reportActions: []});
         this.waitItemsLayoutTask = deferredPromise();
         this.loadMoreChats(anchor - 1)
             .then(() => {
