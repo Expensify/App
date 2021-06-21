@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, ScrollView, Image, Text as RNText, Linking,
+    View, ScrollView, Text as RNText, Linking,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -19,15 +19,18 @@ import ROUTES from '../../ROUTES';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
+import HeroCardImage from '../../../assets/images/hero-card-cascade.svg';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The details about the user that is signed in */
     user: PropTypes.shape({
-        /** Whether or not the user is subscribed to news updates */
+        /** Whether or not the user has public domain */
         isFromPublicDomain: PropTypes.bool,
-        isCardEnabled: PropTypes.bool,
+
+        /** Whether the user is using Expensify Card */
+        isUsingExpensifyCard: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -36,7 +39,7 @@ const propTypes = {
 const defaultProps = {
     user: {
         isFromPublicDomain: false,
-        isCardEnabled: false,
+        isUsingExpensifyCard: false,
     },
 };
 
@@ -54,7 +57,7 @@ const WorkspaceCardPage = ({
     const onPress = () => {
         if (user.isFromPublicDomain) {
             Navigation.navigate(ROUTES.BANK_ACCOUNT_NEW);
-        } else if (user.isCardEnabled) {
+        } else if (user.isUsingExpensifyCard) {
             Linking.openURL(manageCardLink);
         } else {
             Navigation.navigate(ROUTES.getBankAccountRoute('new'));
@@ -70,9 +73,8 @@ const WorkspaceCardPage = ({
             <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.pageWrapper}>
                     <View style={[styles.mb3, styles.workspaceCard, styles.flexRow]}>
-                        <Image
+                        <HeroCardImage
                             style={styles.fullscreenCard}
-                            source="https://d2k5nsl2zxldvw.cloudfront.net/images/homepage/expensify-card/card-cascade--blue.svg"
                         />
                         <View style={[styles.fullscreenCard, styles.workspaceCardContent]}>
                             <View
@@ -90,7 +92,7 @@ const WorkspaceCardPage = ({
                                     ]}
                                     color={themeDefault.textReversed}
                                 >
-                                    {user.isCardEnabled
+                                    {user.isUsingExpensifyCard
                                         ? translate('workspace.card.cardReadyTagline')
                                         : translate('workspace.card.tagline')}
                                 </Text>
@@ -130,7 +132,7 @@ const WorkspaceCardPage = ({
                                             success
                                             large
                                             text={
-                                                user.isCardEnabled
+                                                user.isUsingExpensifyCard
                                                     ? translate('workspace.card.manageCards')
                                                     : translate('workspace.card.getStarted')
                                             }
