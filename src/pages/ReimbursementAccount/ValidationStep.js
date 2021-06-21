@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
@@ -15,7 +15,6 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
 import CONST from '../../CONST';
-import ImageView from '../../components/ImageView';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -105,6 +104,7 @@ class ValidationStep extends React.Component {
         }
 
         const state = this.props.achData.state;
+        const verifyingUrl = `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`;
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -168,14 +168,11 @@ class ValidationStep extends React.Component {
                     </View>
                 )}
                 {state === BankAccount.STATE.VERIFYING && (
-                    <View style={[styles.m5, styles.flex1]}>
-                        <ImageView
-                            resizeMode="contain"
-                            style={[
-                                styles.mh5,
-                                styles.mb5,
-                            ]}
-                            url={`${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`}
+                    <View style={[styles.flex1]}>
+                        <Image
+                            source={{uri: verifyingUrl}}
+                            style={[styles.workspaceInviteWelcome]}
+                            resizeMode="center"
                         />
                         <Text style={[styles.mh5, styles.mb5]}>
                             {this.props.translate('validationStep.verifyingDescription')}
