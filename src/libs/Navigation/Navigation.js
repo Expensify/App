@@ -27,6 +27,7 @@ function openDrawer() {
 
 /**
  * @private
+ * @param {Boolean} shouldOpenDrawer
  */
 function goBack(shouldOpenDrawer = true) {
     if (!navigationRef.current.canGoBack()) {
