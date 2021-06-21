@@ -164,7 +164,9 @@ function getSearchText(report, personalDetailList) {
  * @param {Boolean} forcePolicyNamePreview
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, {showChatPreviewLine = false, forcePolicyNamePreview = false}) {
+function createOption(personalDetailList, report, draftComments, {
+    showChatPreviewLine = false, forcePolicyNamePreview = false,
+}) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
