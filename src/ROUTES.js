@@ -51,6 +51,7 @@ export default {
     ENABLE_PAYMENTS: 'enable-payments',
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE_CARD: 'workspace/card',
+    getWorkspaceRoute: policyID => `workspace/${policyID}`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
 

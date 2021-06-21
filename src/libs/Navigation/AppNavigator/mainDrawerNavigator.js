@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 
@@ -36,8 +35,10 @@ const getInitialReportScreenParams = (reports) => {
 
 
 const MainDrawerNavigator = (props) => {
-    // When there are no reports there's no point to render the empty navigator
-    if (_.size(props.reports) === 0) {
+    const initialParams = getInitialReportScreenParams(props.reports);
+
+    // Wait until reports are fetched and there is a reportID in initialParams
+    if (!initialParams.reportID) {
         return <FullScreenLoadingIndicator visible />;
     }
 
@@ -51,7 +52,7 @@ const MainDrawerNavigator = (props) => {
                 {
                     name: SCREENS.REPORT,
                     component: ReportScreen,
-                    initialParams: getInitialReportScreenParams(props.reports),
+                    initialParams,
                 },
             ]}
         />
