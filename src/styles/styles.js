@@ -1558,6 +1558,16 @@ const styles = {
     workspaceInviteWelcome: {
         minHeight: 150,
     },
+
+    textFull: {
+        width: '100%',
+    },
+
+    buttonRow: {
+        display: 'flex',
+        justifyContent: 'center',
+        flexDirection: 'row',
+    },
 };
 
 const baseCodeTagStyles = {
