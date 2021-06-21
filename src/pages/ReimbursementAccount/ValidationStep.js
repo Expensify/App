@@ -117,17 +117,17 @@ class ValidationStep extends React.Component {
                             <Text style={[styles.mh5, styles.mb1]}>
                                 {this.props.translate('validationStep.description')}
                             </Text>
-                            <Text style={[styles.mh5, styles.mb5, styles.textStrong]}>
+                            <Text style={[styles.mh5, styles.mb6, styles.textStrong, styles.alignSelfCenter]}>
                                 {this.props.translate('validationStep.expensifyMerchantName')}
                             </Text>
 
-                            <Text style={[styles.mh5, styles.mb5, styles.textStrong]}>
-                                Please enter each transaction amount in the fields below.
+                            <Text style={[styles.mh5, styles.mb2]}>
+                                {this.props.translate('validationStep.desriptionCTA')}
                             </Text>
                         </View>
                         <View style={[styles.alignSelfCenter]}>
-                            <Text style={[styles.mh5, styles.mb5, styles.textStrong, styles.badge]}>
-                                Example: 1.51
+                            <Text style={[styles.mh5, styles.mb2, styles.textStrong, styles.badge]}>
+                                {this.props.translate('validationStep.example')}
                             </Text>
                         </View>
                         <View style={[styles.m5, styles.flex1]}>
@@ -137,18 +137,21 @@ class ValidationStep extends React.Component {
                                 </Text>
                             )}
                             <TextInputWithLabel
+                                containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="number-pad"
                                 value={this.state.amount1}
                                 onChangeText={amount1 => this.setState({amount1})}
                             />
                             <TextInputWithLabel
+                                containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="number-pad"
                                 value={this.state.amount2}
                                 onChangeText={amount2 => this.setState({amount2})}
                             />
                             <TextInputWithLabel
+                                containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="number-pad"
                                 value={this.state.amount3}
@@ -175,7 +178,7 @@ class ValidationStep extends React.Component {
                             url={`${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`}
                         />
                         <Text style={[styles.mh5, styles.mb5]}>
-                            We&apos;re taking a look at your information and will have you onto next steps in just a few seconds.
+                            {this.props.translate('validationStep.verifyingDescription')}
                         </Text>
                     </View>
                 )}
