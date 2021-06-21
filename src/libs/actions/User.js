@@ -187,6 +187,10 @@ function validateLogin(accountID, validateCode) {
  * @returns {boolean}
  */
 function isBlockedFromConcierge(expiresAt) {
+    if (!expiresAt) {
+        return false;
+    }
+
     const now = moment()
         .format('YYYY-MM-DD');
     const expires = moment(expiresAt)
