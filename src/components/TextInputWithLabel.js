@@ -21,6 +21,9 @@ const propTypes = {
 
     /** URL to use for a link shown after the label */
     helpLinkURL: PropTypes.string,
+
+    /** Whether to disable the field and style */
+    disabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -29,6 +32,7 @@ const defaultProps = {
     containerStyles: [],
     helpLinkText: '',
     helpLinkURL: '',
+    disabled: false,
 };
 
 const TextInputWithLabel = props => (
@@ -50,7 +54,7 @@ const TextInputWithLabel = props => (
             )}
         </View>
         <TextInput
-            style={[styles.textInput, styles.mb1]}
+            style={[styles.textInput, styles.mb1, props.disabled ? styles.disabledTextInput : undefined]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {..._.omit(props, ['label', 'errorText'])}
         />
