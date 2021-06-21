@@ -1281,7 +1281,7 @@ function syncChatAndIOUReports(chatReportStuff, iouReportStuff) {
     chatReportData[chatReportKey] = getSimplifiedReportObject(chatReportStuff);
     chatReportData[chatReportKey].iouReportID = iouReportStuff.reportID;
     chatReportData[chatReportKey].hasOutstandingIOU = iouReportStuff.stateNum
-        === CONST.REPORT.STATE_NUM.PROCESSING && iouReportStuff.total !== 0;
+        === (CONST.REPORT.STATE_NUM.PROCESSING && iouReportStuff.total !== 0);
     iouReportData[iouReportKey] = getSimplifiedIOUReport(iouReportStuff, chatReportStuff.reportID);
 
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportData);
