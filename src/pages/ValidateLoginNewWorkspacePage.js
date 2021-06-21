@@ -1,13 +1,12 @@
 import {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import {StackActions} from '@react-navigation/compat';
-import lodashGet from 'lodash/get';
 import {getAuthTokenFromECom} from '../libs/actions/User';
 
 const propTypes = {

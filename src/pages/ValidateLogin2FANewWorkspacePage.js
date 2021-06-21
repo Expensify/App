@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import validateLinkPropTypes from './validateLinkPropTypes';
-import {getAuthTokenFromECom, validateLogin} from '../libs/actions/User';
+import {getAuthTokenFromECom} from '../libs/actions/User';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../components/ExpensifyCashLogo';
 import variables from '../styles/variables';
@@ -41,6 +41,8 @@ const defaultProps = {
 class ValidateLogin2FANewWorkspacePage extends Component {
     constructor(props) {
         super(props);
+
+        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
             twoFactorAuthCode: '',
