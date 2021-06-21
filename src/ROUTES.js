@@ -47,6 +47,7 @@ export default {
     getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
+    VALIDATE_LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE: 'v/:accountID/:validateCode/new-workspace',
     ENABLE_PAYMENTS: 'enable-payments',
     WORKSPACE_NEW: 'workspace/new',
     getWorkspaceRoute: policyID => `workspace/${policyID}`,

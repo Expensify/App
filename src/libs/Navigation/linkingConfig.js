@@ -25,6 +25,7 @@ export default {
             // Public Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
+            ValidateLoginNewWorkspace: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE,
 
             // Modal Screens
             Settings: {

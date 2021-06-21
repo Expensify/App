@@ -88,6 +88,14 @@ const modalScreenListeners = {
     },
 };
 
+const defaultScreenOptions = {
+    cardStyle: {
+        overflow: 'visible',
+    },
+    headerShown: false,
+    animationTypeForReplace: 'pop',
+};
+
 const propTypes = {
     /** Information about the network */
     network: PropTypes.shape({
@@ -216,6 +224,11 @@ class AuthScreens extends React.Component {
                         headerShown: false,
                         title: 'Expensify.cash',
                     }}
+                    component={ValidateLoginPage}
+                />
+                <RootStack.Screen
+                    name="ValidateLoginNewWorkspace"
+                    options={defaultScreenOptions}
                     component={ValidateLoginPage}
                 />
 
