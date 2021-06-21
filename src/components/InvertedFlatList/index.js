@@ -1,9 +1,8 @@
-import React, {forwardRef} from 'react';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
-const InvertedFlatList = forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseInvertedFlatList shouldMeasureItems {...props} ref={ref} />
-));
+BaseInvertedFlatList.displayName = 'InvertedFlatList';
+BaseInvertedFlatList.defaultProp = {
+    shouldMeasureItems: true,
+};
 
-export default InvertedFlatList;
+export default BaseInvertedFlatList;
