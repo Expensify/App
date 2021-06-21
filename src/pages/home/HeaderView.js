@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View, Pressable, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -45,6 +45,11 @@ const propTypes = {
         isPinned: PropTypes.bool,
     }),
 
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }).isRequired,
+
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
@@ -58,6 +63,7 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
+    const policyID = lodashGet(props.report, 'policyID', '');
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
@@ -74,6 +80,9 @@ const HeaderView = (props) => {
     const fullTitle = isDefaultChatRoom
         ? props.report.reportName
         : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+
+    const subTitle = isDefaultChatRoom
+        && lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'name'], 'Unknown Policy');
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -107,7 +116,7 @@ const HeaderView = (props) => {
                                 avatarImageURLs={props.report.icons}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                             />
-                            <View style={[styles.flex1, styles.flexRow]}>
+                            <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
                                     fullTitle={fullTitle}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
@@ -116,6 +125,14 @@ const HeaderView = (props) => {
                                     textStyles={[styles.headerText]}
                                     shouldUseFullTitle={isDefaultChatRoom}
                                 />
+                                {subTitle && (
+                                    <Text
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mt1]}
+                                        numberOfLines={1}
+                                    >
+                                        {subTitle}
+                                    </Text>
+                                )}
                             </View>
                         </Pressable>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
@@ -149,6 +166,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(HeaderView);
