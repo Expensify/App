@@ -7,6 +7,15 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
+    <!-- To provide linking to services in other apps, media browser clients
+    that target Android 11+ need to add the following in their manifest -->
+    <queries>
+      <intent>
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="venmo"/>
+      </intent>
+    </queries>
+
     <application
       android:name=".MainApplication"
       android:label="@string/app_name"
