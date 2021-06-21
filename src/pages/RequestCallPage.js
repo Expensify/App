@@ -10,4 +10,5 @@ class RequestCallPage extends React.Component {
     }
 }
 
+RequestCallPage.displayName = 'RequestCallPage';
 export default RequestCallPage;
