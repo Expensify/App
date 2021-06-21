@@ -25,7 +25,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const WorkspaceSidebar = ({translate, isSmallWidthScreen}) => {
+const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
     const menuItems = [
         {
             translationKey: 'workspace.common.card',
@@ -54,7 +54,7 @@ const WorkspaceSidebar = ({translate, isSmallWidthScreen}) => {
                 ]}
             >
                 <View style={[styles.flex1]}>
-                    {isSmallWidthScreen
+                    {isSmallScreenWidth
                         && (
                             <HeaderWithCloseButton
                                 title={translate('workspace.common.workspace')}
@@ -96,7 +96,7 @@ const WorkspaceSidebar = ({translate, isSmallWidthScreen}) => {
                             icon={item.icon}
                             iconRight={item.iconRight}
                             onPress={() => item.action()}
-                            wrapperStyle={!isSmallWidthScreen && item.isActive ? styles.activeComponentBG : undefined}
+                            wrapperStyle={!isSmallScreenWidth && item.isActive ? styles.activeComponentBG : undefined}
                             focused={item.isActive}
                             shouldShowRightIcon
                         />
