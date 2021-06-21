@@ -52,6 +52,7 @@ export default {
     getWorkspaceRoute: policyID => `workspace/${policyID}`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
+    REQUEST_CALL: 'request-call',
 
     /**
      * @param {String} route
