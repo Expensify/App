@@ -3,12 +3,12 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import moment from 'moment';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -67,7 +67,6 @@ function getUserDetails() {
         nvpNames: `${CONST.NVP.BLOCKED_FROM_CONCIERGE}, ${CONST.NVP.PAYPAL_ME_ADDRESS}`,
     })
         .then((response) => {
-
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
