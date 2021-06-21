@@ -438,14 +438,17 @@ class ReportActionsView extends React.Component {
             );
         }
 
+        const isLoading = Boolean(this.waitItemsLayoutTask || !_.size(this.state.reportActions));
+
         return (
             <>
-                <FullScreenLoadingIndicator visible={this.waitItemsLayoutTask || !_.size(this.state.reportActions)} />
+                <FullScreenLoadingIndicator visible={isLoading} />
                 <InvertedFlatList
                     ref={flatListRef}
                     data={this.state.reportActions}
                     renderItem={this.renderItem}
                     CellRendererComponent={this.renderCell}
+                    ListEmptyComponent={() => null}
                     contentContainerStyle={[styles.chatContentScrollView]}
 
                 // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
