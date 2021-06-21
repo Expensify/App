@@ -26,6 +26,19 @@ let preferredLocale;
 const defaultAvatarForUserToInvite = getDefaultAvatar();
 
 /**
+ * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
+ *
+ * @param {String} login
+ * @return {String}
+ */
+function addSMSDomainIfPhoneNumber(login) {
+    if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
+        return login + CONST.SMS.DOMAIN;
+    }
+    return login;
+}
+
+/**
  * Returns the personal details for an array of logins
  *
  * @param {Array} logins
@@ -38,7 +51,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         if (!personalDetail) {
             personalDetail = {
-                login,
+                login: addSMSDomainIfPhoneNumber(login),
                 displayName: login,
                 avatar: getDefaultAvatar(login),
             };
@@ -162,7 +175,7 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || 'en',
+    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 /**
@@ -339,7 +352,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
-        // current users international code based on their IP address.
+        // current user's international code based on their IP address.
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
