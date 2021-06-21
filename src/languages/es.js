@@ -45,6 +45,7 @@ export default {
         invite: 'Invitar',
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
+        dateFormat: 'AAAA-MM-DD',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
