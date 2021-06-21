@@ -10,17 +10,20 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import TermsAndLicenses from '../TermsAndLicenses';
 import WelcomeText from '../../../components/WelcomeText';
-import openURLInNewTab from '../../../libs/openURLInNewTab/index.native';
+import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
 
-    // The children to show inside the layout
+    /** The children to show inside the layout */
     children: PropTypes.node.isRequired,
 
-    // Whether we should show the welcome elements
+    /** Whether we should show the welcome elements */
     shouldShowWelcomeText: PropTypes.bool,
     shouldShowWelcomeScreenshot: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -38,7 +41,7 @@ const SignInPageLayoutNarrow = props => (
 
                 <View style={[styles.mb6, styles.alignItemsCenter]}>
                     <Text style={[styles.h1]}>
-                        Expensify.cash
+                        {props.translate('signInPage.expensifyDotCash')}
                     </Text>
                 </View>
 
@@ -57,24 +60,26 @@ const SignInPageLayoutNarrow = props => (
                         )}
 
                     {props.shouldShowWelcomeText && <WelcomeText />}
-                    <View>
-                        <Text style={[styles.textLabel, styles.mt6]}>
-                            Expensify.cash is open source. View
+                    <View style={[styles.flexRow, styles.flexWrap, styles.mt6]}>
+                        <Text style={[styles.textLabel]}>
+                            {`${props.translate('signInPage.expensifyIsOpenSource')}. ${
+                                props.translate('common.view')}`}
                             {' '}
-                            <Text
-                                style={[styles.link]}
-                                onPress={() => openURLInNewTab(CONST.GITHUB_URL)}
-                            >
-                                the code
-                            </Text>
-                            . View
+                        </Text>
+                        <TextLink style={[styles.textLabel]} href={CONST.GITHUB_URL}>
+                            {props.translate('signInPage.theCode')}
+                        </TextLink>
+                        <Text style={[styles.textLabel]}>
+                            .
+                        </Text>
+                        <Text style={[styles.textLabel]}>
+                            {`${props.translate('common.view')}`}
                             {' '}
-                            <Text
-                                style={[styles.link]}
-                                onPress={() => openURLInNewTab(CONST.UPWORK_URL)}
-                            >
-                                open jobs
-                            </Text>
+                        </Text>
+                        <TextLink style={[styles.textLabel]} href={CONST.UPWORK_URL}>
+                            {props.translate('signInPage.openJobs')}
+                        </TextLink>
+                        <Text style={[styles.textLabel]}>
                             .
                         </Text>
                     </View>
@@ -90,4 +95,4 @@ SignInPageLayoutNarrow.defaultProps = defaultProps;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
 
-export default SignInPageLayoutNarrow;
+export default withLocalize(SignInPageLayoutNarrow);

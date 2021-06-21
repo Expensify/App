@@ -8,21 +8,30 @@ import {translate} from '../libs/translate';
 import DateUtils from '../libs/DateUtils';
 import {toLocalPhone, fromLocalPhone} from '../libs/LocalePhoneNumber';
 import numberFormat from '../libs/numberFormat';
+import CONST from '../CONST';
 
 const withLocalizePropTypes = {
-    // Translations functions using current User's preferred locale
-    translations: PropTypes.shape({
-        translate: PropTypes.func.isRequired,
-        numberFormat: PropTypes.func.isRequired,
-        timestampToRelative: PropTypes.func.isRequired,
-        timestampToDateTime: PropTypes.func.isRequired,
-        toLocalPhone: PropTypes.func.isRequired,
-        fromLocalPhone: PropTypes.func.isRequired,
-    }),
+    /** Returns translated string for given locale and phrase */
+    translate: PropTypes.func.isRequired,
+
+    /** Formats number formatted according to locale and options */
+    numberFormat: PropTypes.func.isRequired,
+
+    /** Converts a timestamp into a localized string representation that's relative to current moment in time */
+    timestampToRelative: PropTypes.func.isRequired,
+
+    /** Formats a timestamp to local date and time string */
+    timestampToDateTime: PropTypes.func.isRequired,
+
+    /** Returns a locally converted phone number without the country code */
+    toLocalPhone: PropTypes.func.isRequired,
+
+    /** Returns an internationally converted phone number with the country code */
+    fromLocalPhone: PropTypes.func.isRequired,
 };
 
 function withLocalizeHOC(WrappedComponent) {
-    const withLocalize = (props) => {
+    const WithLocalize = (props) => {
         const translations = {
             translate: (phrase, variables) => translate(props.preferredLocale, phrase, variables),
             numberFormat: (number, options) => numberFormat(props.preferredLocale, number, options),
@@ -39,15 +48,32 @@ function withLocalizeHOC(WrappedComponent) {
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                translations={translations}
+                ref={props.forwardedRef}
+                translate={translations.translate}
+                numberFormat={translations.numberFormat}
+                timestampToRelative={translations.timestampToRelative}
+                timestampToDateTime={translations.timestampToDateTime}
+                toLocalPhone={translations.toLocalPhone}
+                fromLocalPhone={translations.fromLocalPhone}
             />
         );
     };
-    withLocalize.displayName = `withLocalize(${getComponentDisplayName(WrappedComponent)})`;
-    withLocalize.defaultProps = {
-        preferredLocale: 'en',
+    WithLocalize.displayName = `WithLocalize(${getComponentDisplayName(WrappedComponent)})`;
+    WithLocalize.propTypes = {
+        preferredLocale: PropTypes.string,
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
     };
-    return withLocalize;
+    WithLocalize.defaultProps = {
+        preferredLocale: CONST.DEFAULT_LOCALE,
+        forwardedRef: undefined,
+    };
+    return React.forwardRef((props, ref) => (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <WithLocalize {...props} forwardedRef={ref} />
+    ));
 }
 export default compose(
     withOnyx({

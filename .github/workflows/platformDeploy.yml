@@ -48,7 +48,7 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Set version in ENV
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+\d\+' android/app/build.gradle | awk '{ print $2 }')" >> $GITHUB_ENV
+        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> $GITHUB_ENV
 
       - name: Run Fastlane beta
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
@@ -211,13 +211,16 @@ jobs:
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
         run: npm run build
 
-      - name: Deploy production to S3
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-        run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://expensify-cash/
-
       - name: Build web for staging
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
         run: npm run build-staging
+
+      - name: Build docs
+        run: npm run storybook-build
+
+      - name: Deploy production to S3
+        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://expensify-cash/
 
       - name: Deploy staging to S3
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
@@ -274,7 +277,11 @@ jobs:
         with:
           node-version: '14.x'
 
-      - run: echo "Status android = ${{ needs.android.result }}, desktop = ${{ needs.desktop.result }}, iOS = ${{ needs.iOS.result }}, web = ${{ needs.web.result }}"
+      - name: Determine if this was a cherry-pick
+        id: isStagingDeployLocked
+        uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
@@ -292,6 +299,8 @@ jobs:
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
           IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+          # If the StagingDeployCash is still locked, then this was a cherry-pick deploy
+          IS_CHERRY_PICK: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
           DEPLOY_VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.android.result }}

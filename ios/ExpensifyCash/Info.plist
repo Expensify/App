@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.37</string>
+	<string>1.0.73</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -30,7 +30,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.0.37.1</string>
+	<string>1.0.73.0</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
@@ -64,9 +64,11 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Your camera is used to create chat attachments.</string>
+	<string>Your camera is used to create chat attachments, documents, and facial capture.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Your location is used to determine your default currency.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Required for video capture</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Your camera roll is used to store chat attachments.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -82,6 +84,9 @@
 		<string>GTAmericaExp-BdIt.otf</string>
 		<string>GTAmericaExp-MdIt.otf</string>
 		<string>GTAmericaExp-RgIt.otf</string>
+		<string>GTAmericaExpMono-Bd.otf</string>
+		<string>GTAmericaExpMono-BdIt.otf</string>
+		<string>GTAmericaExpMono-RgIt.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

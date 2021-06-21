@@ -12,6 +12,7 @@ const Picker = ({
     placeholder,
     value,
     icon,
+    disabled,
 }) => (
     <RNPickerSelect
         onValueChange={onChange}
@@ -21,6 +22,8 @@ const Picker = ({
         placeholder={placeholder}
         value={value}
         Icon={icon}
+        disabled={disabled}
+        fixAndroidTouchableBug
     />
 );
 

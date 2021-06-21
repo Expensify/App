@@ -8,11 +8,22 @@ import styles, {getIconFillColor, getButtonBackgroundColorStyle} from '../../../
 import getButtonState from '../../../libs/getButtonState';
 
 const propTypes = {
+    /** Icon Component */
     icon: PropTypes.elementType.isRequired,
+
+    /** Text to display */
     text: PropTypes.string.isRequired,
+
+    /** Icon to show when interaction was successful */
     successIcon: PropTypes.elementType,
+
+    /** Text to show when interaction was successful */
     successText: PropTypes.string,
+
+    /** Whether to show the mini menu */
     isMini: PropTypes.bool,
+
+    /** Callback to fire when the item is pressed */
     onPress: PropTypes.func.isRequired,
 };
 
@@ -57,6 +68,8 @@ class ReportActionContextMenuItem extends Component {
                 ? (
                     <Tooltip text={text}>
                         <Pressable
+                            focusable
+                            accessibilityLabel={text}
                             onPress={this.triggerPressAndUpdateSuccess}
                             style={
                                 ({hovered, pressed}) => [
@@ -85,7 +98,6 @@ class ReportActionContextMenuItem extends Component {
         );
     }
 }
-
 
 ReportActionContextMenuItem.propTypes = propTypes;
 ReportActionContextMenuItem.defaultProps = defaultProps;

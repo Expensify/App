@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {useIsDrawerOpen} from '@react-navigation/drawer';
+import {useDrawerStatus} from '@react-navigation/drawer';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 export const withDrawerPropTypes = {
@@ -8,18 +8,31 @@ export const withDrawerPropTypes = {
 };
 
 export default function withDrawerState(WrappedComponent) {
-    const HOC_Wrapper = (props) => {
-        const isDrawerOpen = useIsDrawerOpen();
+    const WithDrawerState = (props) => {
+        const drawerStatus = useDrawerStatus();
 
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                isDrawerOpen={isDrawerOpen}
+                ref={props.forwardedRef}
+                isDrawerOpen={drawerStatus === 'open'}
             />
         );
     };
 
-    HOC_Wrapper.displayName = `withDrawerState(${getComponentDisplayName(WrappedComponent)})`;
-    return HOC_Wrapper;
+    WithDrawerState.displayName = `withDrawerState(${getComponentDisplayName(WrappedComponent)})`;
+    WithDrawerState.propTypes = {
+        forwardedRef: PropTypes.oneOfType([
+            PropTypes.func,
+            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
+        ]),
+    };
+    WithDrawerState.defaultProps = {
+        forwardedRef: undefined,
+    };
+    return React.forwardRef((props, ref) => (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <WithDrawerState {...props} forwardedRef={ref} />
+    ));
 }

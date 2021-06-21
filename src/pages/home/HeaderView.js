@@ -4,6 +4,7 @@ import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
@@ -20,31 +21,34 @@ import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
-    // Toggles the navigationMenu open and closed
+    /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: PropTypes.func.isRequired,
 
     /* Onyx Props */
-    // The report currently being looked at
+
+    /** The report currently being looked at */
     report: PropTypes.shape({
-        // Name of the report
+        /** Name of the report */
         reportName: PropTypes.string,
 
-        // List of primarylogins of participants of the report
+        /** List of primarylogins of participants of the report */
         participants: PropTypes.arrayOf(PropTypes.string),
 
-        // ID of the report
+        /** ID of the report */
         reportID: PropTypes.number,
 
-        // Value indicating if the report is pinned or not
+        /** Value indicating if the report is pinned or not */
         isPinned: PropTypes.bool,
     }),
 
-    // Personal details of all the users
+    /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     ...windowDimensionsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -53,12 +57,19 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
-    const reportTitle = lodashGet(props.report, 'reportName', '');
+    const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
-        ({displayName, login}) => ({displayName, tooltip: login}),
-    );
+        ({displayName, firstName, login}) => {
+            const displayNameTrimmed = Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName;
 
+            return {
+                displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
+                tooltip: Str.removeSMSDomain(login),
+            };
+        },
+    );
+    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -94,7 +105,7 @@ const HeaderView = (props) => {
                             />
                             <View style={[styles.flex1, styles.flexRow]}>
                                 <DisplayNames
-                                    fullTitle={reportTitle}
+                                    fullTitle={fullTitle}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
@@ -126,6 +137,7 @@ HeaderView.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
+    withLocalize,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,

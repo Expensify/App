@@ -2,48 +2,63 @@ import React from 'react';
 import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Growl from '../../libs/Growl';
+import themeColors from '../../styles/themes/default';
+import CONST from '../../CONST';
 
 const propTypes = {
-    // Maximum number of lines in the text input
+    /** Maximum number of lines in the text input */
     maxLines: PropTypes.number,
 
-    // The default value of the comment box
+    /** The default value of the comment box */
     defaultValue: PropTypes.string,
 
-    // The value of the comment box
+    /** The value of the comment box */
     value: PropTypes.string,
 
-    // Callback method to handle pasting a file
+    /** Callback method to handle pasting a file */
     onPasteFile: PropTypes.func,
 
-    // A ref to forward to the text input
-    forwardedRef: PropTypes.func.isRequired,
+    /** A ref to forward to the text input */
+    forwardedRef: PropTypes.func,
 
-    // General styles to apply to the text input
+    /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    // If the input should clear, it actually gets intercepted instead of .clear()
+    /** If the input should clear, it actually gets intercepted instead of .clear() */
     shouldClear: PropTypes.bool,
 
-    // When the input has cleared whoever owns this input should know about it
+    /** When the input has cleared whoever owns this input should know about it */
     onClear: PropTypes.func,
 
-    // Callback to fire when a file has been dragged into the text input
+    /** Callback to fire when a file has been dragged into the text input */
     onDragEnter: PropTypes.func,
 
-    // Callback to fire when the user is no longer dragging over the text input
+    /** Callback to fire when the user is no longer dragging over the text input */
     onDragLeave: PropTypes.func,
 
-    // Callback to fire when a file is dropped on the text input
+    /** Callback to fire when a file is dropped on the text input */
     onDrop: PropTypes.func,
 
-    // Whether or not this TextInput is disabled.
+    /** Whether or not this TextInput is disabled. */
     isDisabled: PropTypes.bool,
 
-    /* Set focus to this component the first time it renders. Override this in case you need to set focus on one
-    * field out of many, or when you want to disable autoFocus */
+    /** Set focus to this component the first time it renders.
+    Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
+
+    /** Update selection position on change */
+    onSelectionChange: PropTypes.func,
+
+    /** Selection Object */
+    selection: PropTypes.shape({
+        start: PropTypes.number,
+        end: PropTypes.number,
+    }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -59,6 +74,12 @@ const defaultProps = {
     onDrop: () => {},
     isDisabled: false,
     autoFocus: false,
+    forwardedRef: null,
+    onSelectionChange: () => { },
+    selection: {
+        start: 0,
+        end: 0,
+    },
 };
 
 const IMAGE_EXTENSIONS = {
@@ -89,6 +110,11 @@ class TextInputFocusable extends React.Component {
                 end: initialValue.length,
             },
         };
+        this.selection = {
+            start: initialValue.length,
+            end: initialValue.length,
+        };
+        this.saveSelection = this.saveSelection.bind(this);
     }
 
     componentDidMount() {
@@ -124,6 +150,11 @@ class TextInputFocusable extends React.Component {
         if (prevProps.defaultValue !== this.props.defaultValue) {
             this.updateNumberOfLines();
         }
+
+        if (prevProps.selection !== this.props.selection) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({selection: this.props.selection});
+        }
     }
 
     componentWillUnmount() {
@@ -153,6 +184,17 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
+     * Keeps track of user cursor position on the Composer
+     *
+     * @param {{nativeEvent: {selection: any}}} event
+     * @memberof TextInputFocusable
+     */
+    saveSelection(event) {
+        this.selection = event.nativeEvent.selection;
+        this.props.onSelectionChange(event);
+    }
+
+    /**
      * Check the paste event for an attachment, parse the data and
      * call onPasteFile from props with the selected file
      *
@@ -161,6 +203,7 @@ class TextInputFocusable extends React.Component {
     checkForAttachment(event) {
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
+        const TEXT_PLAIN = 'text/plain';
         if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
             event.preventDefault();
@@ -168,6 +211,7 @@ class TextInputFocusable extends React.Component {
         } else if (types.includes(TEXT_HTML)) {
             const domparser = new DOMParser();
             const embededImages = domparser.parseFromString(event.clipboardData.getData(TEXT_HTML), TEXT_HTML).images;
+            const pastedText = event.clipboardData.getData(TEXT_PLAIN);
             if (embededImages.length > 0) {
                 event.preventDefault();
                 fetch(embededImages[0].src)
@@ -178,15 +222,29 @@ class TextInputFocusable extends React.Component {
                     .then((x) => {
                         const extension = IMAGE_EXTENSIONS[x.type];
                         if (!extension) {
-                            throw new Error('No extension found for mime type');
+                            throw new Error(this.props.translate('textInputFocusable.noExtentionFoundForMimeType'));
                         }
 
                         return new File([x], `pasted_image.${extension}`, {});
                     })
                     .then(this.props.onPasteFile)
-                    .catch((error) => {
-                        console.debug(error);
-                        alert(`There was a problem getting the image you pasted. \n${error.message}`);
+                    .catch(() => {
+                        const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
+                        Growl.show(errorDesc, CONST.GROWL.ERROR);
+
+                        /*
+                        * Since we intercepted the user-triggered paste event to check for attachments,
+                        * we need to manually set the value and call the `onChangeText` handler.
+                        * Synthetically-triggered paste events do not affect the document's contents.
+                        * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
+                        */
+                        const beforeCursorText = this.textInput.value.substring(0, this.selection.start);
+                        const afterCursorText = this.textInput.value.substring(this.selection.end);
+                        this.textInput.value = beforeCursorText + pastedText + afterCursorText;
+                        this.updateNumberOfLines();
+                        this.props.onChangeText(this.textInput.value);
+                        const newCursorPosition = beforeCursorText.length + pastedText.length;
+                        this.setState({selection: {start: newCursorPosition, end: newCursorPosition}});
                     });
             }
         }
@@ -217,11 +275,13 @@ class TextInputFocusable extends React.Component {
         const propsWithoutStyles = _.omit(this.props, 'style');
         return (
             <TextInput
+                placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
                 selection={this.state.selection}
                 onChange={() => {
                     this.updateNumberOfLines();
                 }}
+                onSelectionChange={this.saveSelection}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
@@ -235,7 +295,7 @@ class TextInputFocusable extends React.Component {
 TextInputFocusable.propTypes = propTypes;
 TextInputFocusable.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+export default withLocalize(React.forwardRef((props, ref) => (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
     <TextInputFocusable {...props} forwardedRef={ref} />
-));
+)));

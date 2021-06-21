@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -7,6 +8,7 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
+import Str from 'expensify-common/lib/str';
 import styles, {getBackgroundAndBorderStyle, getBackgroundColorStyle} from '../../../styles/styles';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
@@ -17,41 +19,50 @@ import Hoverable from '../../../components/Hoverable';
 import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
-    // Background Color of the Option Row
+    /** Background Color of the Option Row */
     backgroundColor: PropTypes.string,
 
-    // Style for hovered state
+    /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
 
-    // Option to allow the user to choose from can be type 'report' or 'user'
+    /** Option to allow the user to choose from can be type 'report' or 'user' */
     option: optionPropTypes.isRequired,
 
-    // Whether this option is currently in focus so we can modify its style
-    optionIsFocused: PropTypes.bool.isRequired,
+    /** Whether this option is currently in focus so we can modify its style */
+    optionIsFocused: PropTypes.bool,
 
-    // A function that is called when an option is selected. Selected option is passed as a param
+    /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow: PropTypes.func,
 
-    // A flag to indicate whether to show additional optional states, such as pin and draft icons
+    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
     hideAdditionalOptionStates: PropTypes.bool,
 
-    // Whether we should show the selected state
+    /** Whether we should show the selected state */
     showSelectedState: PropTypes.bool,
 
-    // Whether this item is selected
+    /** Whether this item is selected */
     isSelected: PropTypes.bool,
 
-    // Force the text style to be the unread style
+    /** Force the text style to be the unread style */
     forceTextUnreadStyle: PropTypes.bool,
 
-    // Whether to show the title tooltip
+    /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    // Toggle between compact and default view
+    /** Toggle between compact and default view */
     mode: PropTypes.oneOf(['compact', 'default']),
+
+    /** Whether this option should be disabled */
+    isDisabled: PropTypes.bool,
+
+    /** Whether to disable the interactivity of this row */
+    disableRowInteractivity: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -64,6 +75,9 @@ const defaultProps = {
     showTitleTooltip: false,
     mode: 'default',
     onSelectRow: null,
+    isDisabled: false,
+    optionIsFocused: false,
+    disableRowInteractivity: false,
 };
 
 const OptionRow = ({
@@ -77,7 +91,10 @@ const OptionRow = ({
     isSelected,
     forceTextUnreadStyle,
     showTitleTooltip,
+    isDisabled,
     mode,
+    disableRowInteractivity,
+    toLocalPhone,
 }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
@@ -110,16 +127,27 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const isMultipleParticipant = lodashGet(option, 'participantsList.length', 0) > 1;
     const displayNamesWithTooltips = _.map(
-        option.participantsList,
-        ({displayName, login}) => ({displayName, tooltip: login}),
-    );
 
+        // We only create tooltips for the first 10 users or so since some reports have hundreds of users causing
+        // performance to degrade.
+        (option.participantsList || []).slice(0, 10),
+        ({displayName, firstName, login}) => {
+            const displayNameTrimmed = Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName;
+
+            return {
+                displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
+                tooltip: Str.removeSMSDomain(login),
+            };
+        },
+    );
     return (
         <Hoverable>
             {hovered => (
                 <TouchableOpacity
                     onPress={() => onSelectRow(option)}
+                    disabled={disableRowInteractivity}
                     activeOpacity={0.8}
                     style={[
                         styles.flexRow,
@@ -130,6 +158,7 @@ const OptionRow = ({
                         getBackgroundColorStyle(backgroundColor),
                         optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !optionIsFocused ? hoverStyle : null,
+                        isDisabled && styles.cursorDisabled,
                     ]}
                 >
                     <View style={sidebarInnerRowStyle}>
@@ -194,7 +223,7 @@ const OptionRow = ({
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             {option.hasDraftComment && (
                                 <View style={styles.ml2}>
-                                    <Icon src={Pencil} height="16" width="16" />
+                                    <Icon src={Pencil} height={16} width={16} />
                                 </View>
                             )}
                             {option.hasOutstandingIOU && (
@@ -202,7 +231,7 @@ const OptionRow = ({
                             )}
                             {option.isPinned && (
                                 <View style={styles.ml2}>
-                                    <Icon src={Pin} height="16" width="16" />
+                                    <Icon src={Pin} height={16} width={16} />
                                 </View>
                             )}
                         </View>
@@ -218,7 +247,7 @@ OptionRow.defaultProps = defaultProps;
 OptionRow.displayName = 'OptionRow';
 
 // It it very important to use React.memo here so SectionList items will not unnecessarily re-render
-export default memo(OptionRow, (prevProps, nextProps) => {
+export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     if (prevProps.optionIsFocused !== nextProps.optionIsFocused) {
         return false;
     }
@@ -260,4 +289,4 @@ export default memo(OptionRow, (prevProps, nextProps) => {
     }
 
     return true;
-});
+}));

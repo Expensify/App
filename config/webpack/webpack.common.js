@@ -13,6 +13,7 @@ const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new 
 
 const includeModules = [
     'react-native-animatable',
+    'react-native-reanimated',
     'react-native-picker-select',
     'react-native-web',
     '@react-native-picker',
@@ -35,6 +36,7 @@ const webpackConfig = {
         new HtmlWebpackPlugin({
             template: 'web/index.html',
             filename: 'index.html',
+            usePolyfillIO: platform === 'web',
         }),
 
         // Copies favicons into the dist/ folder to use for unread status
@@ -120,6 +122,10 @@ const webpackConfig = {
                         loader: '@svgr/webpack',
                     },
                 ],
+            },
+            {
+                test: /\.css$/i,
+                use: ['style-loader', 'css-loader'],
             },
         ],
     },
