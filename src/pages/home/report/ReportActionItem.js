@@ -43,6 +43,8 @@ const propTypes = {
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
+    isUsedAsAnchor: PropTypes.bool,
+
     /* Onyx Props */
 
     /** Draft message - if this is set the comment is in 'edit' mode */
@@ -55,6 +57,7 @@ const propTypes = {
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
+    isUsedAsAnchor: false,
 };
 
 class ReportActionItem extends Component {
@@ -96,6 +99,7 @@ class ReportActionItem extends Component {
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
+            || this.props.isUsedAsAnchor !== nextProps.isUsedAsAnchor
             || !_.isEqual(this.props.action, nextProps.action);
     }
 
@@ -238,7 +242,8 @@ class ReportActionItem extends Component {
                                 style={getReportActionItemStyle(
                                     hovered
                                     || this.state.isPopoverVisible
-                                    || this.props.draftMessage,
+                                    || this.props.draftMessage
+                                    || this.props.isUsedAsAnchor,
                                 )}
                                 onLayout={this.props.onLayout}
                             >

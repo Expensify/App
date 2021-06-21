@@ -427,6 +427,7 @@ class ReportActionsView extends React.Component {
                 displayAsGroup={this.isConsecutiveActionMadeByPreviousActor(index)}
                 shouldDisplayNewIndicator={shouldDisplayNewIndicator}
                 isMostRecentIOUReportAction={item.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
+                isUsedAsAnchor={item.sequenceNumber === this.props.anchorSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
                 onLayout={this.recordTimeToMeasureItemLayout}
