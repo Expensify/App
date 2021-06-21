@@ -1565,7 +1565,8 @@ const styles = {
 
     buttonRow: {
         display: 'flex',
-        justifyContent: 'center',
+        width: '100%',
+        justifyContent: 'flex-start',
         flexDirection: 'row',
     },
 };
