@@ -1587,6 +1587,62 @@ const styles = {
         justifyContent: 'flex-start',
         flexDirection: 'row',
     },
+
+    peopleRow: {
+        display: 'flex',
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderBottomWidth: 2,
+        borderColor: themeColors.border,
+        paddingVertical: 16,
+    },
+
+    peopleHeaderRow: {
+        textTransform: 'uppercase',
+        fontWeight: '700',
+    },
+
+    peopleRowCell: {
+        display: 'flex',
+        flexDirection: 'column',
+        padding: spacing.p4,
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+    },
+
+    peopleCheckbox: {
+        minWidth: 36,
+    },
+
+    avatarWithName: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+
+    peopleBadgesContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+    },
+
+    peopleBadge: {
+        backgroundColor: themeColors.spinner,
+        borderRadius: 14,
+        height: variables.iconSizeNormal,
+        flexDirection: 'row',
+        paddingHorizontal: 16,
+        alignItems: 'center',
+    },
+
+    peopleBadgeText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        ...whiteSpace.noWrap,
+    },
 };
 
 const baseCodeTagStyles = {
