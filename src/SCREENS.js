@@ -6,4 +6,5 @@ export default {
     HOME: 'Home',
     LOADING: 'Loading',
     REPORT: 'Report',
+    VALIDATE_LOGIN_NEW_WORKSPACE: 'ValidateLoginNewWorkspace',
 };
