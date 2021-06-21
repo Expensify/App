@@ -39,8 +39,8 @@ const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (policy) => {
-        if (policy && policy.ID) {
-            policies[policy.ID] = policy;
+        if (policy && policy.id) {
+            policies[policy.id] = policy;
         }
     },
 });
@@ -161,9 +161,10 @@ function getSearchText(report, personalDetailList) {
  * @param {Object} [report]
  * @param {Object} draftComments
  * @param {Boolean} showChatPreviewLine
+ * @param {Boolean} forcePolicyNamePreview
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, {showChatPreviewLine = false}) {
+function createOption(personalDetailList, report, draftComments, {showChatPreviewLine = false, forcePolicyNamePreview = false}) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
@@ -187,7 +188,9 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
     let alternateText;
     if (isDefaultChatRoom) {
         text = lodashGet(report, ['reportName'], '');
-        alternateText = lodashGet(policyInfo, ['name'], 'Unknown Policy');
+        alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
+            ? lastMessageText
+            : lodashGet(policyInfo, ['name'], 'Unknown Policy');
     } else {
         text = hasMultipleParticipants
             ? personalDetailList
@@ -266,6 +269,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     showReportsWithNoComments = false,
     hideReadReports = false,
     sortByAlphaAsc = false,
+    forcePolicyNamePreview = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
@@ -310,12 +314,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         }
         allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, {
             showChatPreviewLine,
+            forcePolicyNamePreview,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
         createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, {
             showChatPreviewLine,
+            forcePolicyNamePreview,
         })
     ));
 
@@ -443,6 +449,7 @@ function getSearchOptions(
         showReportsWithNoComments: true,
         includePersonalDetails: true,
         sortByLastMessageTimestamp: false,
+        forcePolicyNamePreview: true,
     });
 }
 
