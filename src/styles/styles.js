@@ -1601,6 +1601,7 @@ const styles = {
         height: 400,
         borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
+        backgroundColor: themeColors.heroCard,
     },
 
     workspaceCardMainText: {
