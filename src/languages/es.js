@@ -352,4 +352,14 @@ export default {
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
     },
+    requestCallPage: {
+        requestACall: 'Llámame por teléfono',
+        description: 'Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías te pueden ayudar.',
+        instructions: 'Escribe tu nombre y número de teléfono y te llamaremos.',
+        availabilityText: '*Nuestros guías están disponibles desde el Domingo a las 5pm CT hasta el Viernes a las 5pm CT. Si pides una llamada fuera de este horario, te llamaremos de 9am a 5pm en tu horario local.',
+        callMe: 'Llámame',
+        growlMessageOnSave: 'Llamada perdida.',
+        growlMessageInvalidPhone: 'El teléfono no es valido. Intenta nuevamente agregando el código de país. Eg: +15005550006',
+        growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
+    },
 };
