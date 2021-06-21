@@ -49,13 +49,10 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-<<<<<<< HEAD
 import * as User from '../../../libs/actions/User';
-=======
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
->>>>>>> 5e00c6607e410d26b2ace036e9c278ec609bb390
 
 const propTypes = {
     /** Beta features list */
@@ -101,16 +98,13 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-<<<<<<< HEAD
+    // The NVP describing a user's block status
     blockedFromConcierge: PropTypes.shape({
-
         // The date that the user will be unblocked
         expiresAt: PropTypes.string,
     }),
-=======
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
->>>>>>> 5e00c6607e410d26b2ace036e9c278ec609bb390
 };
 
 const defaultProps = {
@@ -410,6 +404,10 @@ class ReportActionCompose extends React.Component {
             isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
         }
 
+        const inputPlaceholder = isBlockedFromConcierge
+            ? this.props.translate('reportActionCompose.blockedFromConcierge')
+            : this.props.translate('reportActionCompose.writeSomething');
+
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -498,15 +496,7 @@ class ReportActionCompose extends React.Component {
                                     multiline
                                     ref={this.setTextInputRef}
                                     textAlignVertical="top"
-<<<<<<< HEAD
-                                    placeholder={
-                                        isBlockedFromConcierge
-                                            ? 'Communication is barred'
-                                            : 'Write something...'
-                                    }
-=======
-                                    placeholder={this.props.translate('reportActionCompose.writeSomething')}
->>>>>>> 5e00c6607e410d26b2ace036e9c278ec609bb390
+                                    placeholder={inputPlaceholder}
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerHotkeyActions}
@@ -531,13 +521,9 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-<<<<<<< HEAD
                                     isDisabled={isComposeDisabled || isBlockedFromConcierge}
-=======
-                                    isDisabled={isComposeDisabled}
                                     selection={this.state.selection}
                                     onSelectionChange={this.onSelectionChange}
->>>>>>> 5e00c6607e410d26b2ace036e9c278ec609bb390
                                 />
 
                             </>
