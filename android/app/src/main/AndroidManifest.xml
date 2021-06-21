@@ -7,8 +7,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
-    <!-- To provide linking to services in other apps, media browser clients
-    that target Android 11+ need to add the following in their manifest -->
+    <!-- To provide a link to services in other apps
+    that target Android 11+ we need to add the following -->
     <queries>
       <intent>
         <action android:name="android.intent.action.VIEW"/>
