@@ -31,6 +31,6 @@ export default PropTypes.shape({
     // Whether the report is pinned or not
     isPinned: PropTypes.bool,
 
-    // Whether the report is corresponds to a default room
+    // Whether the report corresponds to a default room
     isDefaultChatRoom: PropTypes.bool,
 });
