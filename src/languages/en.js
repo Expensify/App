@@ -365,6 +365,8 @@ export default {
         industryClassificationCode: 'Industry Classification Code',
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
+        incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
+        companyPhonePlaceholder: '10 digits, no hyphens',
     },
     requestorStep: {
         headerTitle: 'Requestor Information',

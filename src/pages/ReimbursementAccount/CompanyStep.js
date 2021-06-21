@@ -155,6 +155,7 @@ class CompanyStep extends React.Component {
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                             onChangeText={companyPhone => this.setState({companyPhone})}
                             value={this.state.companyPhone}
+                            placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         />
                         <TextInputWithLabel
                             label={this.props.translate('companyStep.companyWebsite')}
@@ -186,6 +187,7 @@ class CompanyStep extends React.Component {
                                     label={this.props.translate('companyStep.incorporationDate')}
                                     onChangeText={incorporationDate => this.setState({incorporationDate})}
                                     value={this.state.incorporationDate}
+                                    placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                                 />
                             </View>
                             <View style={[styles.flex1]}>
