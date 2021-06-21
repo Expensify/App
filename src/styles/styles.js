@@ -1492,7 +1492,7 @@ const styles = {
 
     fullScreenLoading: {
         backgroundColor: themeColors.componentBG,
-        opacity: 0.8,
+        opacity: 1,
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 10,
