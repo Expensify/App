@@ -350,6 +350,8 @@ function fetchFreePlanVerifiedBankAccount() {
                     achDataThrottledResponse,
                     bankAccountListResponse,
                 ]) => {
+                    // Users have a limited amount of attempts to get the validations amounts correct.
+                    // Once exceeded, we need to block them from attempting to validate.
                     const failedValidationAttempts = lodashGet(failedValidationAttemptsResponse, [
                         'value', 'nameValuePairs', failedValidationAttemptsName,
                     ], 0);
@@ -432,6 +434,8 @@ function fetchFreePlanVerifiedBankAccount() {
                         currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
                     }
 
+                    // 'error' displays any string set as an error encountered during the add Verified BBA flow.
+                    // If we are fetching a bank account, clear the error to reset.
                     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate, maxAttemptsReached, error: ''});
                     goToWithdrawalAccountSetupStep(currentStep, achData);
                 })

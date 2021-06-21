@@ -20,20 +20,26 @@ import ImageView from '../../components/ImageView';
 const propTypes = {
     ...withLocalizePropTypes,
 
+    /** Additional data for the account in setup */
     achData: PropTypes.shape({
+
+        /** Bank account ID of the VBA that we are validating is required */
         bankAccountID: PropTypes.number.isRequired,
+
+        /** State of bank account */
         state: PropTypes.string,
-    }),
+    }).isRequired,
 
-    maxAttemptsReached: PropTypes.bool,
-
+    /** Error message to display to user */
     error: PropTypes.string,
+
+    /** Disable validation button if max attempts exceeded */
+    maxAttemptsReached: PropTypes.bool,
 };
 
 const defaultProps = {
-    achData: {},
-    maxAttemptsReached: false,
     error: '',
+    maxAttemptsReached: false,
 };
 
 class ValidationStep extends React.Component {
@@ -61,17 +67,27 @@ class ValidationStep extends React.Component {
 
             // Make a call to bankAccounts
             validateBankAccount(this.props.achData.bankAccountID, validateCode);
-        } else {
-            // If any values are falsey, indicate to user that inputs are invalid
-            this.setState({error: 'Invalid amounts'});
+            return;
         }
+
+        // If any values are falsey, indicate to user that inputs are invalid
+        this.setState({error: 'Invalid amounts'});
     }
 
-    // Anything that isn't a number is returned as 0. Any dollar amount (e.g. 1.01 will be turned into 101)
+    /**
+     *
+     * Filter input for validation amount
+     * Anything that isn't a number is returned as an empty string
+     * Any dollar amount (e.g. 1.12) will be returned as 112
+     *
+     * @param {String} amount field input
+     *
+     * @returns {String}
+     */
     filterInput(amount) {
         let value = amount.trim();
         if (value === '' || !Math.abs(Str.fromUSDToNumber(value)) || _.isNaN(Number(value))) {
-            return 0;
+            return '';
         }
 
         // If the user enters the values in dollars, convert it to the respective cents amount
@@ -97,17 +113,23 @@ class ValidationStep extends React.Component {
                 />
                 {state === BankAccount.STATE.PENDING && (
                     <View style={[styles.m5, styles.flex1]}>
-                        <Text style={[styles.mh5, styles.mb5]}>
-                            A day or two after you add your account to Expensify
-                            we send three (3) transactions to your account. They have a merchant line like
-                            &quot;Expensify, Inc. Validation&quot;.
-                        </Text>
-                        <Text style={[styles.mh5, styles.mb5]}>
-                            Please enter each transaction amount in the fields below.
-                        </Text>
-                        <Text style={[styles.mh5, styles.mb5]}>
-                            Example: 1.51
-                        </Text>
+                        <View style={[styles.mb2]}>
+                            <Text style={[styles.mh5, styles.mb1]}>
+                                {this.props.translate('validationStep.description')}
+                            </Text>
+                            <Text style={[styles.mh5, styles.mb5, styles.textStrong]}>
+                                {this.props.translate('validationStep.expensifyMerchantName')}
+                            </Text>
+
+                            <Text style={[styles.mh5, styles.mb5, styles.textStrong]}>
+                                Please enter each transaction amount in the fields below.
+                            </Text>
+                        </View>
+                        <View style={[styles.alignSelfCenter]}>
+                            <Text style={[styles.mh5, styles.mb5, styles.textStrong, styles.badge]}>
+                                Example: 1.51
+                            </Text>
+                        </View>
                         <View style={[styles.m5, styles.flex1]}>
                             {errorMessage && (
                                 <Text style={[styles.mh5, styles.mb5]}>

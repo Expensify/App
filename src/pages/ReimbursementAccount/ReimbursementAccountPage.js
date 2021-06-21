@@ -42,6 +42,9 @@ const propTypes = {
             /** Step of the setup flow that we are on. Determines which view is presented. */
             currentStep: PropTypes.string,
         }),
+
+        /** Disable validation button if max attempts exceeded */
+        maxAttemptsReached: PropTypes.bool,
     }),
 
     /** Current session for the user */
