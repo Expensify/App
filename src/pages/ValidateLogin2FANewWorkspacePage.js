@@ -52,6 +52,13 @@ class ValidateLogin2FANewWorkspacePage extends Component {
     componentDidMount() {
         // If the user has an active session already, they need to be redirected straight to the new workspace page
         if (this.props.session.authToken) {
+            // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
+            // modal you say? I know, it confuses me too. Without dismissing the current modal, if they user cancels
+            // out of the new workspace modal, then they will be routed back to
+            // /v/<accountID>/<validateCode>/new-workspace and we don't want that. We want them to go back to `/` and
+            // by calling dismissModal(), the /v/... route is removed from history so the user will get taken to `/`
+            // if they cancel out of the new workspace modal.
+            Navigation.dismissModal();
             Navigation.navigate(ROUTES.WORKSPACE_NEW);
         }
     }
