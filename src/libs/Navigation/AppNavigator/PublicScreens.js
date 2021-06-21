@@ -41,5 +41,10 @@ export default () => (
             name="NewWorkspace"
             component={PublicWorkspaceNewView}
         />
+        <RootStack.Screen
+            name={SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE}
+            options={defaultScreenOptions}
+            component={ValidateLoginPage}
+        />
     </RootStack.Navigator>
 );
