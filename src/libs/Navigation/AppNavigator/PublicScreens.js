@@ -5,6 +5,8 @@ import SetPasswordPage from '../../../pages/SetPasswordPage';
 import PublicWorkspaceNewView from '../../../pages/workspace/PublicWorkspaceNewView';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import SCREENS from '../../../SCREENS';
+import ValidateLoginNewWorkspacePage from '../../../pages/ValidateLoginNewWorkspacePage';
+import ValidateLogin2FANewWorkspacePage from '../../../pages/ValidateLogin2FANewWorkspacePage';
 
 const RootStack = createStackNavigator();
 const defaultScreenOptions = {
@@ -44,7 +46,12 @@ export default () => (
         <RootStack.Screen
             name={SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE}
             options={defaultScreenOptions}
-            component={ValidateLoginPage}
+            component={ValidateLoginNewWorkspacePage}
+        />
+        <RootStack.Screen
+            name={SCREENS.VALIDATE_LOGIN_2FA_NEW_WORKSPACE}
+            options={defaultScreenOptions}
+            component={ValidateLogin2FANewWorkspacePage}
         />
     </RootStack.Navigator>
 );

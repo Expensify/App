@@ -7,4 +7,5 @@ export default {
     LOADING: 'Loading',
     REPORT: 'Report',
     VALIDATE_LOGIN_NEW_WORKSPACE: 'ValidateLoginNewWorkspace',
+    VALIDATE_LOGIN_2FA_NEW_WORKSPACE: 'ValidateLogin2FANewWorkspace',
 };
