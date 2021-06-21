@@ -352,4 +352,14 @@ export default {
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
     },
+    validationStep: {
+        headerTitle: 'Validar',
+        buttonText: 'Finalizar Configuración',
+        maxAttemptError: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos. Por favor contáctenos.',
+        description: 'Uno o dos días después de agregar su cuenta a Expensify, enviamos tres (3) transacciones a su cuenta. Tienen una línea comercial como ',
+        expensifyMerchantName: '"Expensify, Inc. Validation"',
+        desriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación.',
+        example: 'Ejemplo: 1.51',
+        verifyingDescription: 'Estamos revisando su información y lo llevaremos a los siguientes pasos en solo unos segundos.'
+    },
 };
