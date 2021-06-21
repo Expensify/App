@@ -85,6 +85,7 @@ const CONST = {
         HOVERED: 'hovered',
         PRESSED: 'pressed',
         COMPLETE: 'complete',
+        DISABLED: 'disabled',
     },
     COUNTRY: {
         US: 'US',

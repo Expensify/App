@@ -123,15 +123,19 @@ class BankAccountStep extends React.Component {
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('bankAccount.toGetStarted')}
                             </Text>
-                            {!this.props.isPlaidDisabled && (
-                                <MenuItem
-                                    icon={Bank}
-                                    title={this.props.translate('bankAccount.logIntoYourBank')}
-                                    onPress={() => {
-                                        this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
-                                    }}
-                                    shouldShowRightIcon
-                                />
+                            <MenuItem
+                                icon={Bank}
+                                title={this.props.translate('bankAccount.logIntoYourBank')}
+                                onPress={() => {
+                                    this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
+                                }}
+                                disabled={this.props.isPlaidDisabled}
+                                shouldShowRightIcon
+                            />
+                            {this.props.isPlaidDisabled && (
+                                <Text style={[styles.formError, styles.mh5]}>
+                                    {this.props.translate('bankAccount.error.tooManyAttempts')}
+                                </Text>
                             )}
                             <MenuItem
                                 icon={Paycheck}
