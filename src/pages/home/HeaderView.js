@@ -22,6 +22,7 @@ import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
