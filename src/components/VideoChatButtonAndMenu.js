@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {
     View, Pressable, Dimensions, Linking,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import Icon from './Icon';
 import {Phone} from './Icon/Expensicons';
 import Popover from './Popover';
@@ -14,11 +15,18 @@ import themeColors from '../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    isConcierge: PropTypes.bool,
 };
+
+const defaultProps = {
+    isConcierge: false,
+}
 
 class VideoChatButtonAndMenu extends Component {
     constructor(props) {
@@ -89,6 +97,11 @@ class VideoChatButtonAndMenu extends Component {
                 >
                     <Pressable
                         onPress={() => {
+                            // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
+                            if (this.props.isConcierge) {
+                                Navigation.navigate(ROUTES.REQUEST_CALL);
+                                return;
+                            }
                             this.toggleVideoChatMenu();
                         }}
                         style={[styles.touchableButtonImage, styles.mr0]}
@@ -127,6 +140,7 @@ class VideoChatButtonAndMenu extends Component {
 }
 
 VideoChatButtonAndMenu.propTypes = propTypes;
+VideoChatButtonAndMenu.propTypes = defaultProps;
 VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
 export default compose(
     withWindowDimensions,

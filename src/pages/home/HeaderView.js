@@ -70,6 +70,7 @@ const HeaderView = (props) => {
         },
     );
     const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+    const isConcierge = participants.length === 2 && participants.includes(CONST.EMAIL.CONCIERGE);
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -117,7 +118,7 @@ const HeaderView = (props) => {
                             {props.report.hasOutstandingIOU && (
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
-                            <VideoChatButtonAndMenu />
+                            <VideoChatButtonAndMenu isConcierge={isConcierge} />
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}
