@@ -311,8 +311,10 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
 
 /**
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
+ *
+ * @param {String} [stepToOpen]
  */
-function fetchFreePlanVerifiedBankAccount() {
+function fetchFreePlanVerifiedBankAccount(stepToOpen) {
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
@@ -415,6 +417,13 @@ function fetchFreePlanVerifiedBankAccount() {
             // If at this point we still don't have a current step, default to the BankAccountStep
             if (!currentStep) {
                 currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+            }
+
+            // If we are providing a stepToOpen via a deep link then we will always navigate to that step. This should
+            // be used with caution as it is possible to drop a user into a flow they can't complete e.g. if we drop
+            // the user into the CompanyStep, but they have no accountNumber or routing Number in their achData.
+            if (stepToOpen) {
+                currentStep = stepToOpen;
             }
 
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate});

@@ -299,6 +299,7 @@ class AuthScreens extends React.Component {
                     options={modalScreenOptions}
                     component={ReimbursementAccountModalStackNavigator}
                     listeners={modalScreenListeners}
+                    initialParams={{stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT}}
                 />
                 <RootStack.Screen
                     name="WorkspaceInvite"
