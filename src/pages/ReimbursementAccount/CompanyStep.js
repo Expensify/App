@@ -213,6 +213,7 @@ class CompanyStep extends React.Component {
                             textContentType="password"
                             onChangeText={password => this.setState({password})}
                             value={this.state.password}
+                            onSubmitEditing={this.submit}
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}
