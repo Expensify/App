@@ -237,6 +237,51 @@ function setPersonalDetails(details) {
 }
 
 /**
+ * Sets the onyx with the currency list from the network
+ * @returns {Object}
+ */
+function getCurrencyList() {
+    return API.GetCurrencyList()
+        .then((data) => {
+            const currencyListObject = JSON.parse(data.currencyList);
+            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
+            return currencyListObject;
+        });
+}
+
+/**
+ * Fetches the Currency preferences based on location and sets currency code/symbol to local storage
+ */
+function fetchCurrencyPreferences() {
+    const coords = {};
+    let currency = '';
+
+    Onyx.merge(ONYXKEYS.IOU, {
+        isRetrievingCurrency: true,
+    });
+
+    API.GetPreferredCurrency({...coords})
+        .then((data) => {
+            currency = data.currency;
+        })
+        .then(API.GetCurrencyList)
+        .then(getCurrencyList)
+        .then((currencyList) => {
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
+                {
+                    preferredCurrencyCode: currency,
+                    preferredCurrencySymbol: currencyList[currency].symbol,
+                });
+        })
+        .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.IOU, {
+                isRetrievingCurrency: false,
+            });
+        });
+}
+
+/**
  * Sets the user's avatar image
  *
  * @param {File|Object} file
@@ -267,10 +312,13 @@ NetworkConnection.onReconnect(fetchPersonalDetails);
 
 export {
     fetchPersonalDetails,
+    formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
+    fetchCurrencyPreferences,
+    getCurrencyList,
 };

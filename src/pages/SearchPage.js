@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -15,38 +16,46 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
 
 const personalDetailsPropTypes = PropTypes.shape({
-    // The login of the person (either email or phone number)
+    /** The login of the person (either email or phone number) */
     login: PropTypes.string.isRequired,
 
-    // The URL of the person's avatar (there should already be a default avatar if
-    // the person doesn't have their own avatar uploaded yet)
+    /** The URL of the person's avatar (there should already be a default avatar if
+    the person doesn't have their own avatar uploaded yet) */
     avatar: PropTypes.string.isRequired,
 
-    // This is either the user's full name, or their login if full name is an empty string
+    /** This is either the user's full name, or their login if full name is an empty string */
     displayName: PropTypes.string.isRequired,
 });
 
 const propTypes = {
     /* Onyx Props */
 
-    // All of the personal details for everyone
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
-    // All reports shared with the user
+    /** All reports shared with the user */
     reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
     }).isRequired,
 
-    // Session of currently logged in user
+    /** Session of currently logged in user */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
 
-    /* Window Dimensions Props */
+    /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 class SearchPage extends Component {
@@ -56,6 +65,8 @@ class SearchPage extends Component {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
 
         this.selectReport = this.selectReport.bind(this);
+        this.onChangeText = this.onChangeText.bind(this);
+        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 300);
 
         const {
             recentReports,
@@ -65,6 +76,7 @@ class SearchPage extends Component {
             props.reports,
             props.personalDetails,
             '',
+            props.betas,
         );
 
         this.state = {
@@ -79,6 +91,10 @@ class SearchPage extends Component {
         Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
+    onChangeText(searchValue = '') {
+        this.setState({searchValue}, this.debouncedUpdateOptions);
+    }
+
     /**
      * Returns the sections needed for the OptionsSelector
      *
@@ -86,7 +102,7 @@ class SearchPage extends Component {
      */
     getSections() {
         const sections = [{
-            title: 'RECENT',
+            title: this.props.translate('common.recents'),
             data: this.state.recentReports.concat(this.state.personalDetails),
             shouldShow: true,
             indexOffset: 0,
@@ -102,6 +118,24 @@ class SearchPage extends Component {
         }
 
         return sections;
+    }
+
+    updateOptions() {
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = getSearchOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            this.state.searchValue,
+            this.props.betas,
+        );
+        this.setState({
+            userToInvite,
+            recentReports,
+            personalDetails,
+        });
     }
 
     /**
@@ -137,39 +171,30 @@ class SearchPage extends Component {
         );
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title="Search"
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        sections={sections}
-                        value={this.state.searchValue}
-                        onSelectRow={this.selectReport}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                                userToInvite,
-                            } = getSearchOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                recentReports,
-                                personalDetails,
-                            });
-                        }}
-                        headerMessage={headerMessage}
-                        hideSectionHeaders
-                        hideAdditionalOptionStates
-                        showTitleTooltip
-                    />
-                </View>
-                <KeyboardSpacer />
+                {({didScreenTransitionEnd}) => (
+                    <>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('common.search')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.selectReport}
+                                onChangeText={this.onChangeText}
+                                headerMessage={headerMessage}
+                                hideSectionHeaders
+                                hideAdditionalOptionStates
+                                showTitleTooltip
+                            />
+                            )}
+                        </View>
+                        <KeyboardSpacer />
+                    </>
+                )}
             </ScreenWrapper>
         );
     }
@@ -178,14 +203,21 @@ class SearchPage extends Component {
 SearchPage.propTypes = propTypes;
 SearchPage.displayName = 'SearchPage';
 
-export default withWindowDimensions(withOnyx({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(SearchPage));
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+)(SearchPage);

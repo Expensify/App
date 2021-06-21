@@ -12,12 +12,14 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/bumpVersion/bumpVersion.js"
     "$ACTIONS_DIR/checkDeployBlockers/checkDeployBlockers.js"
     "$ACTIONS_DIR/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy.js"
-    "$ACTIONS_DIR/getReleaseBody/getReleaseBody.js"
     "$ACTIONS_DIR/getDeployPullRequestList/getDeployPullRequestList.js"
+    "$ACTIONS_DIR/getMergeCommitForPullRequest/getMergeCommitForPullRequest.js"
+    "$ACTIONS_DIR/getReleaseBody/getReleaseBody.js"
     "$ACTIONS_DIR/isPullRequestMergeable/isPullRequestMergeable.js"
     "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.js"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.js"
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.js"
+    "$ACTIONS_DIR/triggerWorkflowAndWait/triggerWorkflowAndWait.js"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

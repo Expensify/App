@@ -9,29 +9,33 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
 import {fetchAccountDetails} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 
 const propTypes = {
     /* Onyx Props */
 
-    // The details about the account that the user is signing in with
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        // An error message to display to the user
+        /** An error message to display to the user */
         error: PropTypes.string,
 
-        // Success message to display when necessary
+        /** Success message to display when necessary */
         success: PropTypes.string,
 
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -55,7 +59,7 @@ class LoginForm extends React.Component {
      */
     validateAndSubmitForm() {
         if (!this.state.login.trim()) {
-            this.setState({formError: 'Please enter an email or phone number'});
+            this.setState({formError: this.props.translate('loginForm.pleaseEnterEmailOrPhoneNumber')});
             return;
         }
 
@@ -71,7 +75,7 @@ class LoginForm extends React.Component {
         return (
             <>
                 <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>Enter your phone or email:</Text>
+                    <Text style={[styles.formLabel]}>{this.props.translate('loginForm.enterYourPhoneOrEmail')}</Text>
                     <TextInput
                         style={[styles.textInput]}
                         value={this.state.login}
@@ -80,16 +84,20 @@ class LoginForm extends React.Component {
                         onChangeText={text => this.setState({login: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
-                        placeholder="Phone or Email"
+                        autoCorrect={false}
+                        keyboardType={getEmailKeyboardType()}
+                        placeholder={this.props.translate('loginForm.phoneOrEmail')}
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
                 <View>
-                    <ButtonWithLoader
-                        text="Continue"
+                    <Button
+                        success
+                        style={[styles.mb2]}
+                        text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}
-                        onClick={this.validateAndSubmitForm}
+                        onPress={this.validateAndSubmitForm}
                     />
                 </View>
 
@@ -122,4 +130,5 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
     }),
     withWindowDimensions,
+    withLocalize,
 )(LoginForm);

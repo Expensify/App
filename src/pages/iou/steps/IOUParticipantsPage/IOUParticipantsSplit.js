@@ -1,9 +1,5 @@
 import React, {Component} from 'react';
-import {
-    Pressable,
-    View,
-    Text,
-} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -12,6 +8,10 @@ import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import {getNewGroupOptions} from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import compose from '../../../../libs/compose';
+import Button from '../../../../components/Button';
+import FixedFooter from '../../../../components/FixedFooter';
 
 const personalDetailsPropTypes = PropTypes.shape({
     // The login of the person (either email or phone number)
@@ -26,13 +26,16 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    // Callback to add participants in IOUModal
+    /** Callback to add participants in IOUModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    // Selected participants from IOUMOdal with login
+    /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -46,14 +49,16 @@ const propTypes = {
         reportID: PropTypes.number,
     })),
 
-    // All of the personal details for everyone
+    /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
-    // All reports shared with the user
+    /** All reports shared with the user */
     reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -76,6 +81,8 @@ class IOUParticipantsSplit extends Component {
             props.personalDetails,
             '',
             props.participants,
+            true,
+            props.betas,
         );
 
         this.state = {
@@ -106,9 +113,9 @@ class IOUParticipantsSplit extends Component {
         }
 
         sections.push({
-            title: 'RECENTS',
+            title: this.props.translate('common.recents'),
             data: this.state.recentReports,
-            shouldShow: this.state.recentReports.length > 0,
+            shouldShow: !_.isEmpty(this.state.recentReports),
 
             // takes the sum off the length of all data
             // (this.state.selectedOptions) in previous sections
@@ -116,9 +123,9 @@ class IOUParticipantsSplit extends Component {
         });
 
         sections.push({
-            title: 'CONTACTS',
+            title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
-            shouldShow: this.state.personalDetails.length > 0,
+            shouldShow: !_.isEmpty(this.state.personalDetails),
 
             // takes the sum off the length of all data
             // (this.state.selectedOptions, this.state.recentReports) in previous sections
@@ -175,6 +182,8 @@ class IOUParticipantsSplit extends Component {
                 this.props.personalDetails,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
+                true,
+                this.props.betas,
             );
             return {
                 recentReports,
@@ -189,56 +198,53 @@ class IOUParticipantsSplit extends Component {
         const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
         return (
-            <View style={[styles.flex1, styles.w100]}>
-                <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
-                    To
-                </Text>
-                <OptionsSelector
-                    canSelectMultipleOptions
-                    sections={sections}
-                    selectedOptions={this.props.participants}
-                    value={this.state.searchValue}
-                    onSelectRow={this.toggleOption}
-                    onChangeText={(searchValue = '') => {
-                        const {
-                            recentReports,
-                            personalDetails,
-                            userToInvite,
-                        } = getNewGroupOptions(
-                            this.props.reports,
-                            this.props.personalDetails,
-                            searchValue,
-                            [],
-                        );
-                        this.setState({
-                            searchValue,
-                            userToInvite,
-                            recentReports,
-                            personalDetails,
-                        });
-                    }}
-                    disableArrowKeysActions
-                    hideAdditionalOptionStates
-                    forceTextUnreadStyle
-                />
+            <>
+                <View style={[styles.flex1, styles.w100]}>
+                    <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
+                        {this.props.translate('common.to')}
+                    </Text>
+                    <OptionsSelector
+                        canSelectMultipleOptions
+                        sections={sections}
+                        selectedOptions={this.props.participants}
+                        value={this.state.searchValue}
+                        onSelectRow={this.toggleOption}
+                        onChangeText={(searchValue = '') => {
+                            const {
+                                recentReports,
+                                personalDetails,
+                                userToInvite,
+                            } = getNewGroupOptions(
+                                this.props.reports,
+                                this.props.personalDetails,
+                                searchValue,
+                                [],
+                                true,
+                                this.props.betas,
+                            );
+                            this.setState({
+                                searchValue,
+                                userToInvite,
+                                recentReports,
+                                personalDetails,
+                            });
+                        }}
+                        disableArrowKeysActions
+                        hideAdditionalOptionStates
+                        forceTextUnreadStyle
+                    />
+                </View>
                 {this.props.participants?.length > 0 && (
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Pressable
+                    <FixedFooter>
+                        <Button
+                            success
+                            style={[styles.w100]}
                             onPress={this.finalizeParticipants}
-                            style={({hovered}) => [
-                                styles.button,
-                                styles.buttonSuccess,
-                                styles.w100,
-                                hovered && styles.buttonSuccessHovered,
-                            ]}
-                        >
-                            <Text style={[styles.buttonText, styles.buttonSuccessText]}>
-                                Next
-                            </Text>
-                        </Pressable>
-                    </View>
+                            text={this.props.translate('common.next')}
+                        />
+                    </FixedFooter>
                 )}
-            </View>
+            </>
         );
     }
 }
@@ -247,11 +253,17 @@ IOUParticipantsSplit.displayName = 'IOUParticipantsSplit';
 IOUParticipantsSplit.propTypes = propTypes;
 IOUParticipantsSplit.defaultProps = defaultProps;
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(IOUParticipantsSplit);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+)(IOUParticipantsSplit);

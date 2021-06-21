@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {
     SafeAreaView,
     Text,
-    TextInput,
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -13,34 +12,37 @@ import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import ButtonWithLoader from '../components/ButtonWithLoader';
-import themeColors from '../styles/themes/default';
+import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
-import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
+import NewPasswordForm from './settings/NewPasswordForm';
 
 const propTypes = {
     /* Onyx Props */
 
-    // The details about the account that the user is signing in with
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        // An error message to display to the user
+        /** An error message to display to the user */
         error: PropTypes.string,
 
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
 
-    // The credentials of the logged in person
+    /** The credentials of the logged in person */
     credentials: PropTypes.shape({
-        // The email the user logged in with
+        /** The email the user logged in with */
         login: PropTypes.string,
 
-        // The password used to log in the user
+        /** The password used to log in the user */
         password: PropTypes.string,
     }),
 
-    // The accountID and validateCode are passed via the URL
+    /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -59,7 +61,7 @@ class SetPasswordPage extends Component {
 
         this.state = {
             password: '',
-            formError: null,
+            isFormValid: false,
         };
     }
 
@@ -67,16 +69,9 @@ class SetPasswordPage extends Component {
      * Validate the form and then submit it
      */
     validateAndSubmitForm() {
-        if (!this.state.password.trim()) {
-            this.setState({
-                formError: 'Password cannot be blank',
-            });
+        if (!this.state.isFormValid) {
             return;
         }
-
-        this.setState({
-            formError: null,
-        });
         setPassword(
             this.state.password,
             lodashGet(this.props.route, 'params.validateCode', ''),
@@ -89,33 +84,22 @@ class SetPasswordPage extends Component {
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout>
                     <View style={[styles.mb4]}>
-                        <Text style={[styles.formLabel]}>Enter a password:</Text>
-                        <TextInput
-                            style={[styles.textInput]}
-                            value={this.state.password}
-                            secureTextEntry
-                            autoCompleteType="password"
-                            textContentType="password"
-                            onChangeText={text => this.setState({password: text})}
+                        <NewPasswordForm
+                            password={this.state.password}
+                            updatePassword={password => this.setState({password})}
+                            updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
                             onSubmitEditing={this.validateAndSubmitForm}
-                            autoCapitalize="none"
-                            placeholderTextColor={themeColors.placeholderText}
-                            autoFocus={canFocusInputOnScreenFocus()}
                         />
                     </View>
                     <View>
-                        <ButtonWithLoader
-                            text="Set Password"
+                        <Button
+                            success
+                            style={[styles.mb2]}
+                            text={this.props.translate('setPasswordPage.setPassword')}
                             isLoading={this.props.account.loading}
-                            onClick={this.validateAndSubmitForm}
+                            onPress={this.validateAndSubmitForm}
                         />
                     </View>
-
-                    {this.state.formError && (
-                        <Text style={[styles.formError]}>
-                            {this.state.formError}
-                        </Text>
-                    )}
 
                     {!_.isEmpty(this.props.account.error) && (
                         <Text style={[styles.formError]}>
@@ -131,7 +115,10 @@ class SetPasswordPage extends Component {
 SetPasswordPage.propTypes = propTypes;
 SetPasswordPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    account: {key: ONYXKEYS.ACCOUNT},
-})(SetPasswordPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        credentials: {key: ONYXKEYS.CREDENTIALS},
+        account: {key: ONYXKEYS.ACCOUNT},
+    }),
+)(SetPasswordPage);

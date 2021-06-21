@@ -1,17 +1,15 @@
 const _ = require('underscore');
 const core = require('@actions/core');
-const github = require('@actions/github');
-const {GITHUB_OWNER, EXPENSIFY_CASH_REPO} = require('../../libs/GithubUtils');
+const GithubUtils = require('../../libs/GithubUtils');
 
 const run = function () {
-    const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', {required: true}));
 
     console.log(`Fetching issue number ${issueNumber}`);
 
-    return octokit.issues.get({
-        owner: GITHUB_OWNER,
-        repo: EXPENSIFY_CASH_REPO,
+    return GithubUtils.octokit.issues.get({
+        owner: GithubUtils.GITHUB_OWNER,
+        repo: GithubUtils.EXPENSIFY_CASH_REPO,
         issue_number: issueNumber,
     })
         .then(({data}) => {
@@ -26,9 +24,9 @@ const run = function () {
                 return;
             }
 
-            return octokit.issues.listComments({
-                owner: GITHUB_OWNER,
-                repo: EXPENSIFY_CASH_REPO,
+            return GithubUtils.octokit.issues.listComments({
+                owner: GithubUtils.GITHUB_OWNER,
+                repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 issue_number: issueNumber,
                 per_page: 100,
             });

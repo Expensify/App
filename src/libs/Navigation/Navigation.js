@@ -1,8 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {StackActions, DrawerActions} from '@react-navigation/native';
-import {getIsDrawerOpenFromState} from '@react-navigation/drawer';
-
+import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
@@ -100,17 +99,36 @@ function dismissModal(shouldOpenDrawer = false) {
 }
 
 /**
- * Determines whether the drawer is currently open.
+ * Alternative to the `Navigation.dismissModal()` function that we can use inside
+ * the render function of other components to avoid breaking React rules about side-effects.
  *
- * @returns {Boolean}
+ * Example:
+ * ```jsx
+ * if (!Permissions.canUseFreePlan(this.props.betas)) {
+ *     return <Navigation.DismissModal />;
+ * }
+ * ```
  */
-function isDrawerOpen() {
-    return getIsDrawerOpenFromState(navigationRef.current.getRootState().routes[0].state);
+class DismissModal extends React.Component {
+    componentDidMount() {
+        dismissModal(this.props.shouldOpenDrawer);
+    }
+
+    render() {
+        return null;
+    }
 }
+
+DismissModal.propTypes = {
+    shouldOpenDrawer: PropTypes.bool,
+};
+DismissModal.defaultProps = {
+    shouldOpenDrawer: false,
+};
 
 export default {
     navigate,
     dismissModal,
-    isDrawerOpen,
     goBack,
+    DismissModal,
 };

@@ -1,12 +1,13 @@
 const _ = require('underscore');
 const core = require('@actions/core');
 const github = require('@actions/github');
+const ActionUtils = require('../../libs/ActionUtils');
 const GitUtils = require('../../libs/GitUtils');
 
 const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
 const inputTag = core.getInput('TAG', {required: true});
 
-const isProductionDeploy = JSON.parse(core.getInput('IS_PRODUCTION_DEPLOY', {required: false}));
+const isProductionDeploy = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: false}, false);
 const itemToFetch = isProductionDeploy ? 'release' : 'tag';
 
 /**
@@ -54,9 +55,7 @@ getTagsOrReleases(isProductionDeploy)
         console.log(`Given ${itemToFetch}: ${inputTag}`);
         console.log(`Prior ${itemToFetch}: ${priorTag}`);
 
-        return GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
-    })
-    .then((pullRequestList) => {
+        const pullRequestList = GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
         console.log(`Found the pull request list: ${pullRequestList}`);
         return core.setOutput('PR_LIST', pullRequestList);
     })

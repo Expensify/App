@@ -1,13 +1,14 @@
 import React from 'react';
-import {
-    TouchableOpacity, Text, View,
-} from 'react-native';
+import {Text, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Header from './Header';
 import Modal from './Modal';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
+import Button from './Button';
 
 const propTypes = {
     /** Title of the modal */
@@ -31,12 +32,14 @@ const propTypes = {
     /** Modal content text */
     prompt: PropTypes.string,
 
+    ...withLocalizePropTypes,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    confirmText: 'Yes',
-    cancelText: 'No',
+    confirmText: '',
+    cancelText: '',
     prompt: '',
 };
 
@@ -58,28 +61,17 @@ const ConfirmModal = props => (
                 {props.prompt}
             </Text>
 
-            <TouchableOpacity
-                style={[styles.button, styles.buttonSuccess, styles.mt4]}
+            <Button
+                success
+                style={[styles.mt4]}
                 onPress={props.onConfirm}
-            >
-                <Text
-                    style={[
-                        styles.buttonText,
-                        styles.buttonSuccessText,
-                    ]}
-                >
-                    {props.confirmText}
-                </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={[styles.button, styles.mt3]}
+                text={props.confirmText || props.translate('common.yes')}
+            />
+            <Button
+                style={[styles.mt3]}
                 onPress={props.onCancel}
-            >
-                <Text style={styles.buttonText}>
-                    {props.cancelText}
-                </Text>
-            </TouchableOpacity>
+                text={props.cancelText || props.translate('common.no')}
+            />
         </View>
     </Modal>
 );
@@ -87,4 +79,7 @@ const ConfirmModal = props => (
 ConfirmModal.propTypes = propTypes;
 ConfirmModal.defaultProps = defaultProps;
 ConfirmModal.displayName = 'ConfirmModal';
-export default withWindowDimensions(ConfirmModal);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(ConfirmModal);

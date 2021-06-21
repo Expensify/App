@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {useWindowDimensions, TouchableOpacity} from 'react-native';
@@ -8,12 +9,15 @@ import HTML, {
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import Config from '../CONFIG';
-import styles, {webViewStyles} from '../styles/styles';
+import styles, {webViewStyles, getFontFamilyMonospace} from '../styles/styles';
 import fontFamily from '../styles/fontFamily';
 import AnchorForCommentsOnly from './AnchorForCommentsOnly';
 import InlineCodeBlock from './InlineCodeBlock';
 import AttachmentModal from './AttachmentModal';
 import ThumbnailImage from './ThumbnailImage';
+import variables from '../styles/variables';
+import themeColors from '../styles/themes/default';
+import Text from './Text';
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -22,6 +26,9 @@ const EXTRA_FONTS = [
     fontFamily.GTA_BOLD,
     fontFamily.GTA_ITALIC,
     fontFamily.MONOSPACE,
+    fontFamily.MONOSPACE_ITALIC,
+    fontFamily.MONOSPACE_BOLD,
+    fontFamily.MONOSPACE_BOLD_ITALIC,
     fontFamily.SYSTEM,
 ];
 
@@ -40,9 +47,13 @@ function computeImagesMaxWidth(contentWidth) {
 
 function AnchorRenderer({tnode, key, style}) {
     const htmlAttribs = tnode.attributes;
+
+    // An auth token is needed to download Expensify chat attachments
+    const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
     return (
         <AnchorForCommentsOnly
             href={htmlAttribs.href}
+            isAuthTokenRequired={isAttachment}
 
             // Unless otherwise specified open all links in
             // a new window. On Desktop this means that we will
@@ -65,14 +76,47 @@ function CodeRenderer({
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
     const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style);
+
+    // Get the correct fontFamily variant based in the fontStyle and fontWeight
+    const font = getFontFamilyMonospace({
+        fontStyle: textStyle.fontStyle,
+        fontWeight: textStyle.fontWeight,
+    });
+
+    const textStyleOverride = {
+        fontFamily: font,
+
+        // We need to override this properties bellow that was defined in `textStyle`
+        // Because by default the `react-native-render-html` add a style in the elements,
+        // for example the <strong> tag has a fontWeight: "bold" and in the android it break the font
+        fontWeight: undefined,
+        fontStyle: undefined,
+    };
+
     return (
         <InlineCodeBlock
             TDefaultRenderer={TDefaultRenderer}
             boxModelStyle={boxModelStyle}
-            textStyle={textStyle}
+            textStyle={{...textStyle, ...textStyleOverride}}
             defaultRendererProps={defaultRendererProps}
             key={key}
         />
+    );
+}
+
+function EditedRenderer(props) {
+    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
+    return (
+        <Text
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...defaultRendererProps}
+            fontSize={variables.fontSizeSmall}
+            color={themeColors.textSupporting}
+        >
+            {/* Native devices do not support margin between nested text */}
+            <Text style={styles.w1}>{' '}</Text>
+            (edited)
+        </Text>
     );
 }
 
@@ -138,16 +182,21 @@ function ImgRenderer({tnode}) {
 AnchorRenderer.model = defaultHTMLElementModels.a;
 CodeRenderer.model = defaultHTMLElementModels.code;
 ImgRenderer.model = defaultHTMLElementModels.img;
+EditedRenderer.model = defaultHTMLElementModels.span;
 
 // Define the custom render methods
 const renderers = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImgRenderer,
+    edited: EditedRenderer,
 };
 
 const propTypes = {
+    /** HTML string to render */
     html: PropTypes.string.isRequired,
+
+    /** Optional debug flag */
     debug: PropTypes.bool,
 };
 
