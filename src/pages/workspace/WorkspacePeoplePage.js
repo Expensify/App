@@ -96,6 +96,7 @@ class WorkspacePeoplePage extends React.Component {
                                 onPress={this.inviteUser}
                             />
                             <Button
+                                danger
                                 style={[styles.ml2]}
                                 isDisabled={this.state.selectedEmployees.length === 0}
                                 text={this.props.translate('common.remove')}
