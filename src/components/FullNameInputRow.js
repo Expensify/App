@@ -80,7 +80,7 @@ const FullNameInputRow = ({
             </View>
         </View>
     );
-}
+};
 
 FullNameInputRow.displayName = 'FullNameInputRow';
 FullNameInputRow.propTypes = propTypes;
