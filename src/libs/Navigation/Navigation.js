@@ -106,7 +106,9 @@ function dismissModal(shouldOpenDrawer = false) {
  */
 function isActive(routePath) {
     // We remove First forward slash from the URL before matching
-    const path = navigationRef.current ? navigationRef.current.getCurrentRoute().path.substring(1) : '';
+    const path = navigationRef.current && navigationRef.current.getCurrentRoute().path
+        ? navigationRef.current.getCurrentRoute().path.substring(1)
+        : '';
     return path === routePath;
 }
 
