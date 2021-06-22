@@ -18,6 +18,7 @@ import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
 import {requestConciergeDMCall} from '../libs/actions/Inbox';
+import {fetchOrCreateChatReport} from '../libs/actions/Report';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -31,15 +32,13 @@ const propTypes = {
         login: PropTypes.string,
     }),
 
-    /** List of reports */
-    reports: PropTypes.objectOf(PropTypes.shape({
-        reportID: PropTypes.number,
-        participants: PropTypes.arrayOf(PropTypes.string),
-    })),
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }).isRequired,
 };
 const defaultProps = {
     myPersonalDetails: {},
-    reports: {},
 };
 
 class RequestCallPage extends React.Component {
@@ -58,13 +57,8 @@ class RequestCallPage extends React.Component {
             isLoading: false,
         };
 
-        this.conciergeReport = _.find(
-            this.props.reports,
-            report => report.participants.length === 1 && report.participants[0] === CONST.EMAIL.CONCIERGE,
-        );
-
-        this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.getPhoneNumber = this.getPhoneNumber.bind(this);
     }
 
     onSubmit() {
@@ -80,7 +74,7 @@ class RequestCallPage extends React.Component {
                 this.setState({isLoading: false});
                 if (result.jsonCode === 200) {
                     Growl.show(this.props.translate('requestCallPage.growlMessageOnSave'), CONST.GROWL.SUCCESS);
-                    Navigation.navigate(ROUTES.getReportRoute(this.conciergeReport.reportID));
+                    fetchOrCreateChatReport([this.props.session.email, CONST.EMAIL.CONCIERGE], true);
                     return;
                 }
 
@@ -108,7 +102,10 @@ class RequestCallPage extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('requestCallPage.requestACall')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getReportRoute(this.conciergeReport.reportID))}
+                    onBackButtonPress={() => fetchOrCreateChatReport([
+                        this.props.session.email,
+                        CONST.EMAIL.CONCIERGE,
+                    ], true)}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.p5]}>
