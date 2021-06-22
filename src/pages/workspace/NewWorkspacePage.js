@@ -12,11 +12,6 @@ import styles from '../../styles/styles';
 import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
-import AttachmentPicker from '../../components/AttachmentPicker';
-import Icon from '../../components/Icon';
-import {DownArrow, Upload} from '../../components/Icon/Expensicons';
-import PopoverMenu from '../../components/PopoverMenu';
-import Switch from '../../components/Switch';
 import compose from '../../libs/compose';
 import {create} from '../../libs/actions/Policy';
 
