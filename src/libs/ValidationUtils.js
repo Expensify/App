@@ -84,4 +84,5 @@ export {
     isValidDate,
     isValidIndustryCode,
     isValidIdentity,
+    isValidZipCode,
 };
