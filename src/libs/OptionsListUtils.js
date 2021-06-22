@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import {getReportParticipantsTitle, isDefaultRoom} from './reportUtils';
-import {translate} from './translate';
+import {getPreferredLocale, translate} from './translate';
 import Permissions from './Permissions';
 import md5 from './md5';
 
@@ -27,12 +27,6 @@ let countryCodeByIP;
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: val => countryCodeByIP = val || 1,
-});
-
-let preferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 const policies = {};
@@ -585,12 +579,12 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  */
 function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return translate(preferredLocale, 'messages.maxParticipantsReached');
+        return translate(getPreferredLocale(), 'messages.maxParticipantsReached');
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return translate(preferredLocale, 'messages.noPhoneNumber');
+            return translate(getPreferredLocale(), 'messages.noPhoneNumber');
         }
 
         return searchValue;

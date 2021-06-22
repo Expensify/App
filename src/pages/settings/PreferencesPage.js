@@ -18,6 +18,7 @@ import Switch from '../../components/Switch';
 import Picker from '../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import {getPreferredLocale} from '../../libs/translate';
 
 const propTypes = {
     /** The chat priority mode */
@@ -38,7 +39,7 @@ const propTypes = {
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     user: {},
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: getPreferredLocale(),
 };
 
 const PreferencesPage = ({

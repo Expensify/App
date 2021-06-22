@@ -7,7 +7,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {formatPersonalDetails} from './PersonalDetails';
 import Growl from '../Growl';
 import CONST from '../../CONST';
-import {translate} from '../translate';
+import {getPreferredLocale, translate} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
@@ -17,16 +17,6 @@ Onyx.connect({
     callback: (val, key) => {
         if (val && key) {
             allPolicies[key] = {...allPolicies[key], ...val};
-        }
-    },
-});
-
-let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: (preferredLocale) => {
-        if (preferredLocale) {
-            translateLocal = (phrase, variables) => translate(preferredLocale, phrase, variables);
         }
     },
 });
@@ -137,9 +127,9 @@ function invite(login, welcomeNote, policyID) {
             Onyx.set(key, policyDataWithoutLogin);
 
             // Show the user feedback that the addition failed
-            let errorMessage = translateLocal('workspace.invite.genericFailureMessage');
+            let errorMessage = translate(getPreferredLocale(), 'workspace.invite.genericFailureMessage');
             if (data.jsonCode === 402) {
-                errorMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
+                errorMessage += ` ${translate(getPreferredLocale(), 'workspace.invite.pleaseEnterValidLogin')}`;
             }
 
             Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
@@ -156,7 +146,7 @@ function create(name) {
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
-                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
+                const errorMessage = translate(getPreferredLocale(), 'workspace.new.genericFailureMessage');
                 Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
                 return;
             }
