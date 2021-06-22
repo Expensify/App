@@ -376,6 +376,17 @@ export default {
         descriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación. Ejemplo: 1.51',
         verifyingDescription: 'Estamos revisando su información y lo llevaremos a los siguientes pasos en solo unos segundos.',
     },
+    requestorStep: {
+        headerTitle: 'Información del solicitante',
+        financialRegulations: 'Las leyes fiscales y el reglamento bancario nos obliga a verificar la identidad de todo individuo que desee añadir una cuenta bancaria representando a una compañía. ',
+        learnMore: 'Más información',
+        isMyDataSafe: '¿Están seguros mis datos?',
+        onFidoConditions: 'Al continuar con la solicitud de añadir esta cuenta bancaria, confirma que ha leído, entiende y acepta ',
+        facialScan: 'la política de reconocimiento facial y la exención de Onfido',
+        ssnLast4: 'Últimos 4 dígitos de su SSN',
+        isControllingOfficer: 'Estoy autorizado a utilizar la cuenta bancaria de mi compañía para gastos de empresa',
+        isControllingOfficerError: 'Debe ser un oficial controlador con autorización para operar la cuenta bancaria de la compañía',
+    },
     requestCallPage: {
         requestACall: 'Llámame por teléfono',
         description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte.',
