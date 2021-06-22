@@ -63,6 +63,7 @@ const CONST = {
             IBAN: /^[A-Za-z0-9]{2,30}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
+        VERIFICATION_MAX_ATTEMPTS: 7,
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -191,6 +192,7 @@ const CONST = {
         TIMEZONE: 'timeZone',
         FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
+        FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
         BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},

@@ -853,6 +853,12 @@ function BankAccount_Create(parameters) {
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
+function BankAccount_Validate(parameters) {
+    const commandName = 'ValidateBankAccount';
+    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
+}
+
 /**
  * @param {*} parameters
  * @returns {Promise}
@@ -960,6 +966,7 @@ export {
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
+    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
