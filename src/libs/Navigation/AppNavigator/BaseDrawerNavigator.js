@@ -6,9 +6,23 @@ import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../.
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
-    screens: PropTypes.arrayOf(PropTypes.object).isRequired,
+    /** Screens to be passed in the Drawer */
+    screens: PropTypes.arrayOf(PropTypes.shape({
+        /** Name of the Screen */
+        name: PropTypes.string.isRequired,
+
+        /** Component for the Screen */
+        component: PropTypes.elementType.isRequired,
+
+        /** Optional params to be passed to the Screen */
+        // eslint-disable-next-line react/forbid-prop-types
+        initialParams: PropTypes.object,
+    })).isRequired,
+
+    /** Drawer content Component */
     drawerContent: PropTypes.elementType.isRequired,
 
+    /** Window Dimensions props */
     ...windowDimensionsPropTypes,
 };
 const Drawer = createDrawerNavigator();

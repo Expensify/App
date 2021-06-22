@@ -53,14 +53,14 @@ const WorkspaceCardPage = ({
 }) => {
     const publicLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.ADD_SECONDARY_LOGIN_URL;
     const manageCardLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.MANAGE_CARDS_URL;
+    const buttonTextIfUsingCard = user.isUsingExpensifyCard
+        ? translate('workspace.card.manageCards')
+        : translate('workspace.card.getStarted');
+    const buttonText = user.isFromPublicDomain ? translate('workspace.card.addEmail') : buttonTextIfUsingCard;
 
-    /**
-     * When user is on public domain, navigate the user to Add new bank Account.
-     *
-     */
     const onPress = () => {
         if (user.isFromPublicDomain) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NEW);
+            Linking.openURL(publicLink);
         } else if (user.isUsingExpensifyCard) {
             Linking.openURL(manageCardLink);
         } else {
@@ -69,10 +69,11 @@ const WorkspaceCardPage = ({
     };
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper style={[styles.defaultModalContainer]}>
             <HeaderWithCloseButton
                 title={translate('workspace.common.card')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
+                shouldShowBackButton={isSmallScreenWidth}
             />
             <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.pageWrapper}>
@@ -126,43 +127,23 @@ const WorkspaceCardPage = ({
                                     style={[styles.mb8]}
                                 >
                                     {user.isFromPublicDomain
-                                        ? (
-                                            <>
-                                                <RNText>{translate('workspace.card.publicCopy')}</RNText>
-                                                {' '}
-                                                <TextLink
-                                                    href={publicLink}
-                                                    style={[styles.cWhite]}
-                                                    hoveredStyle={[styles.cWhite]}
-                                                >
-                                                    {translate('common.here')}
-                                                </TextLink>
-                                                .
-                                            </>
-                                        )
+                                        ? translate('workspace.card.publicCopy')
                                         : translate('workspace.card.privateCopy')}
                                 </Text>
-                                {!user.isFromPublicDomain
-                                    && (
-                                        <Button
-                                            style={[
-                                                styles.alignSelfStart,
-                                                styles.workspaceCardCTA,
-                                                isSmallScreenWidth && styles.wAuto,
-                                            ]}
-                                            textStyles={[
-                                                !isSmallScreenWidth && styles.p5,
-                                            ]}
-                                            onPress={onPress}
-                                            success
-                                            large
-                                            text={
-                                                user.isUsingExpensifyCard
-                                                    ? translate('workspace.card.manageCards')
-                                                    : translate('workspace.card.getStarted')
-                                            }
-                                        />
-                                    )}
+                                <Button
+                                    style={[
+                                        styles.alignSelfStart,
+                                        styles.workspaceCardCTA,
+                                        isSmallScreenWidth && styles.wAuto,
+                                    ]}
+                                    textStyles={[
+                                        !isSmallScreenWidth && styles.p5,
+                                    ]}
+                                    onPress={onPress}
+                                    success
+                                    large
+                                    text={buttonText}
+                                />
                             </View>
                         </View>
                     </View>

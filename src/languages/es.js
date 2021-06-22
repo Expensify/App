@@ -337,8 +337,9 @@ export default {
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
         },
         card: {
+            addEmail: 'Agregar correo electrónico',
             tagline: 'La tarjeta corporativa más inteligente de la habitación.',
-            publicCopy: 'Para utilizar la Tarjeta Expensify debe utilizar el dominio privado de su empresa. Continúe y agregue su dirección de correo electrónico privada como inicio de sesión secundario',
+            publicCopy: 'Para utilizar la Tarjeta Expensify debe utilizar el dominio privado de su empresa. Continúe y agregue su dirección de correo electrónico privada como inicio de sesión secundario.',
             privateCopy: 'Simplemente deslice su tarjeta Expensify y sus gastos estarán listos, ¡es así de simple!',
             getStarted: 'Empezar',
             manageCards: 'Administrar tarjetas',

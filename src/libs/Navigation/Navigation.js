@@ -98,7 +98,14 @@ function dismissModal(shouldOpenDrawer = false) {
     openDrawer();
 }
 
+/**
+ * Check whether the passed route is currently Active or not.
+ *
+ * @param {String} routePath Path to check
+ * @return {Boolean} is active
+ */
 function isActive(routePath) {
+    // We remove First forward slash from the URL before matching
     const path = navigationRef.current ? navigationRef.current.getCurrentRoute().path.substring(1) : '';
     return path === routePath;
 }
