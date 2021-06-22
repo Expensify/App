@@ -68,7 +68,11 @@ function getUserDetails() {
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
-            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus});
+            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus});
+
+            // Update the nvp_payPalMeAddress NVP
+            const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
+            Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, payPalMeAddress);
         });
 }
 
