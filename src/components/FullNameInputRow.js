@@ -33,7 +33,6 @@ const propTypes = {
         PropTypes.arrayOf(PropTypes.object),
         PropTypes.object,
     ]),
-
 };
 const defaultProps = {
     firstName: '',
