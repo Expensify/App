@@ -206,18 +206,6 @@ function getPublicDomainInfo() {
         });
 }
 
-/**
- *
- * @param {Number} accountID
- * @param {String} validateCode
- * @param {String} [twoFactorAuthCode]
- */
-function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
-    // @TODO Figure out what API to call for this
-    // then once there is an authToken, put that bad boy into Onyx
-    // If the API fails to return a jsonCode === 200 response, then send the user to the sign in page
-}
-
 export {
     changePassword,
     getBetas,
@@ -227,5 +215,4 @@ export {
     setSecondaryLogin,
     validateLogin,
     getPublicDomainInfo,
-    continueSessionFromECom,
 };
