@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Screens
-import BaseDrawerNavigator from './baseDrawerNavigator';
+import BaseDrawerNavigator from './BaseDrawerNavigator';
 import WorkspaceCardPage from '../../../pages/workspace/WorkspaceCardPage';
 import WorkspaceSidebar from '../../../pages/workspace/WorkspaceSidebar';
 

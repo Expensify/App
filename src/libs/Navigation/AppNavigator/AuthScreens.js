@@ -33,7 +33,7 @@ import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import Permissions from '../../Permissions';
 
 // Main drawer navigator
-import MainDrawerNavigator from './mainDrawerNavigator';
+import MainDrawerNavigator from './MainDrawerNavigator';
 
 // Validate login page
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
@@ -197,7 +197,7 @@ class AuthScreens extends React.Component {
         };
         const fullscreenModalScreenOptions = {
             ...commonModalScreenOptions,
-            cardStyle: {...styles.fullscreenCard, ...styles.bgTransparent},
+            cardStyle: {...styles.fullscreenCard},
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
             cardOverlayEnabled: false,
         };

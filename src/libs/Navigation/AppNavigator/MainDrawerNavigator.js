@@ -10,7 +10,7 @@ import SCREENS from '../../../SCREENS';
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
-import BaseDrawerNavigator from './baseDrawerNavigator';
+import BaseDrawerNavigator from './BaseDrawerNavigator';
 import {findLastAccessedReport} from '../../reportUtils';
 
 const propTypes = {
@@ -32,7 +32,6 @@ const getInitialReportScreenParams = (reports) => {
     const reportID = lodashGet(last, 'reportID', '');
     return {reportID: String(reportID)};
 };
-
 
 const MainDrawerNavigator = (props) => {
     const initialParams = getInitialReportScreenParams(props.reports);

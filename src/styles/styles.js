@@ -37,10 +37,6 @@ const styles = {
         color: themeColors.linkHover,
     },
 
-    cWhite: {
-        color: themeColors.textReversed,
-    },
-
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -1163,6 +1159,11 @@ const styles = {
 
     borderBottom: {
         borderBottomWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderRight: {
+        borderRightWidth: 1,
         borderColor: themeColors.border,
     },
 
