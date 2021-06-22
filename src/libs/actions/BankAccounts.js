@@ -9,6 +9,25 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
+import {translateLocal} from '../translate';
+
+/**
+ * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
+ *
+ * @private
+ */
+let plaidBankAccounts = [];
+let bankName = '';
+let plaidAccessToken = '';
+
+/** Reimbursement account actively being set up */
+let reimbursementAccountInSetup = {};
+Onyx.connect({
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    callback: (val) => {
+        reimbursementAccountInSetup = lodashGet(val, 'achData', {});
+    },
+});
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -25,13 +44,31 @@ function fetchPlaidLinkToken() {
 }
 
 /**
- * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
+ * Navigate to a specific step in the VBA flow
  *
- * @private
+ * @param {String} stepID
+ * @param {Object} achData
  */
-let plaidBankAccounts = [];
-let bankName = '';
-let plaidAccessToken = '';
+function goToWithdrawalAccountSetupStep(stepID, achData) {
+    const newACHData = {...reimbursementAccountInSetup};
+
+    // If we go back to Requestor Step, reset any validation and previously answered questions from expectID.
+    if (!newACHData.useOnfido && stepID === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
+        delete newACHData.questions;
+        delete newACHData.answers;
+        if (lodashHas(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.EXTERNAL_API_RESPONSES)) {
+            delete newACHData.verifications.externalApiResponses.requestorIdentityID;
+            delete newACHData.verifications.externalApiResponses.requestorIdentityKBA;
+        }
+    }
+
+    // When going back to the BankAccountStep from the Company Step, show the manual form instead of Plaid
+    if (newACHData.currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && stepID === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
+        newACHData.subStep = 'manual';
+    }
+
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
+}
 
 /**
  * @param {String} publicToken
@@ -47,8 +84,19 @@ function getPlaidBankAccounts(publicToken, bank) {
         bank,
     })
         .then((response) => {
+            if (response.jsonCode === 666 && response.title === CONST.BANK_ACCOUNT.PLAID.ERROR.TOO_MANY_ATTEMPTS) {
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isPlaidDisabled: true});
+            }
+
             plaidAccessToken = response.plaidAccessToken;
-            plaidBankAccounts = response.accounts;
+
+            // Filter out any accounts that already exist since they cannot be used again.
+            plaidBankAccounts = _.filter(response.accounts, account => !account.alreadyExists);
+
+            if (plaidBankAccounts.length === 0) {
+                Growl.error(translateLocal('bankAccount.error.noBankAccountAvailable'));
+            }
+
             Onyx.merge(ONYXKEYS.PLAID_BANK_ACCOUNTS, {
                 error: {
                     title: response.title,
@@ -274,41 +322,6 @@ function fetchUserWallet() {
         });
 }
 
-let reimbursementAccountInSetup = {};
-Onyx.connect({
-    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    callback: (val) => {
-        reimbursementAccountInSetup = lodashGet(val, 'achData', {});
-    },
-});
-
-/**
- * Navigate to a specific step in the VBA flow
- *
- * @param {String} stepID
- * @param {Object} achData
- */
-function goToWithdrawalAccountSetupStep(stepID, achData) {
-    const newACHData = {...reimbursementAccountInSetup};
-
-    // If we go back to Requestor Step, reset any validation and previously answered questions from expectID.
-    if (!newACHData.useOnfido && stepID === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
-        delete newACHData.questions;
-        delete newACHData.answers;
-        if (lodashHas(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.EXTERNAL_API_RESPONSES)) {
-            delete newACHData.verifications.externalApiResponses.requestorIdentityID;
-            delete newACHData.verifications.externalApiResponses.requestorIdentityKBA;
-        }
-    }
-
-    // When going back to the BankAccountStep from the Company Step, show the manual form instead of Plaid
-    if (newACHData.currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && stepID === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
-        newACHData.subStep = 'manual';
-    }
-
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
-}
-
 /**
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  */
@@ -330,12 +343,17 @@ function fetchFreePlanVerifiedBankAccount() {
             name: CONST.NVP.ACH_DATA_THROTTLED,
         }),
         API.Get({returnValueList: 'bankAccountList'}),
+        API.Get({
+            returnValueList: 'nameValuePairs',
+            name: CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
+        }),
     ])
         .then(([
             freePlanBankAccountIDResponse,
             kycVerificationsMigrationResponse,
             achDataThrottledResponse,
             bankAccountListResponse,
+            throttledBankAccountGetResponse,
         ]) => {
             const bankAccountID = lodashGet(freePlanBankAccountIDResponse, [
                 'value', 'nameValuePairs', CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
@@ -352,6 +370,10 @@ function fetchFreePlanVerifiedBankAccount() {
                 ),
             );
             const bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
+            const throttledHistoryCount = lodashGet(throttledBankAccountGetResponse, [
+                'value', 'nameValuePairs', CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
+            ], 0);
+            const isPlaidDisabled = throttledHistoryCount > CONST.BANK_ACCOUNT.PLAID.ALLOWED_THROTTLED_COUNT;
 
             // Next we'll build the achData and save it to Onyx
             // If the user is already setting up a bank account we will continue the flow for them
@@ -417,7 +439,7 @@ function fetchFreePlanVerifiedBankAccount() {
                 currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             }
 
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {throttledDate, isPlaidDisabled});
             goToWithdrawalAccountSetupStep(currentStep, achData);
         })
         .finally(() => {
@@ -604,6 +626,22 @@ function setupWithdrawalAccount(data) {
                 if (response.jsonCode === 666 || response.jsonCode === 404) {
                     error = response.message;
                 }
+
+                if (response.jsonCode === 402) {
+                    if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_ROUTING_NUMBER
+                        || response.message === CONST.BANK_ACCOUNT.ERROR.MAX_ROUTING_NUMBER
+                    ) {
+                        error = translateLocal('bankAccount.error.routingNumber');
+                        achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+                    } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
+                        error = translateLocal('bankAccount.error.incorporationState');
+                    } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_TYPE) {
+                        error = translateLocal('bankAccount.error.companyType');
+                    } else {
+                        console.error(response.message);
+                    }
+                }
+
                 if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {
                     achData.disableFields = true;
                 }
@@ -613,7 +651,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                Growl.show(`Error setting up account: ${error}`, CONST.GROWL.ERROR, 5000);
+                Growl.error(error, 5000);
             }
         });
 }
