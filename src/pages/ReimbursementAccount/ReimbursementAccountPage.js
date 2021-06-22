@@ -76,7 +76,7 @@ const defaultProps = {
 
 class ReimbursementAccountPage extends React.Component {
     componentDidMount() {
-        // We can specify a specific step to navigate to by using route params when the component mounts.
+        // We can specify a step to navigate to by using route params when the component mounts.
         fetchFreePlanVerifiedBankAccount(this.getStepToOpenFromRouteParams());
     }
 
@@ -96,7 +96,7 @@ class ReimbursementAccountPage extends React.Component {
             return;
         }
 
-        // When the step changes we will navigate to update the route params. This is mostly cosmestic as we only use
+        // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
         Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
