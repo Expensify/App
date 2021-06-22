@@ -108,7 +108,7 @@ class VideoChatButtonAndMenu extends Component {
                     >
                         <Icon
                             src={Phone}
-                            fill={this.state.isVideoChatMenuActive
+                            fill={(this.props.isConcierge || this.state.isVideoChatMenuActive)
                                 ? themeColors.heading
                                 : themeColors.icon}
                         />
