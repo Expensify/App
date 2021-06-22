@@ -52,12 +52,12 @@ class BeneficialOwnersStep extends React.Component {
         }
 
         if (!this.state.acceptTermsAndConditions) {
-            Growl.error('Must accept the terms and conditions');
+            Growl.error(this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
             return false;
         }
 
         if (!this.state.certifyTrueInformation) {
-            Growl.error('Must certify information is true and accurate');
+            Growl.error(this.props.translate('beneficialOwnersStep.error.certify'));
             return false;
         }
 
