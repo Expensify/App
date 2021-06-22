@@ -6,6 +6,10 @@ on:
       PULL_REQUEST_NUMBER:
         description: The number of a pull request to CP
         required: true
+      NEW_VERSION:
+        description: The new app version
+        required: false
+        default: ''
 
 jobs:
   validateActor:
@@ -20,35 +24,104 @@ jobs:
           username: ${{ github.actor }}
           team: expensify-cash-deployers
 
-  cherryPick:
+  createNewVersion:
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: ubuntu-latest
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER && github.event.inputs.NEW_VERSION == '' }}
+    outputs:
+      NEW_VERSION: ${{ steps.getNewVersion.outputs.NEW_VERSION }}
     steps:
-      # Version: 2.3.4
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+      - name: Checkout main branch
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get merge commit for pull request
-        id: getMergeCommit
+      - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create new BUILD version
+        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          WORKFLOW: createNewVersion.yml
+          INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
+
+      - name: Pull main to get the new version
+        id: getNewVersion
+        run: |
+          git pull origin main
+          echo "New version is $(npm run print-version --silent)"
+          echo "::set-output name=NEW_VERSION::$(npm run print-version --silent)"
+
+  cherryPick:
+    needs: [validateActor, createNewVersion]
+    if: ${{ always() && needs.validateActor.outputs.IS_DEPLOYER }}
+    runs-on: ubuntu-latest
+    steps:
+      # Version: 2.3.4
+      - name: Checkout staging branch
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          ref: staging
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create branch for new pull request
+        run: |
+          git config user.name ${{ github.actor }}
+          git checkout -b cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          git push --set-upstream origin cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+
+      - name: Get merge commit for CP pull request
+        id: getCPMergeCommit
         uses: Expensify/Expensify.cash/.github/actions/getMergeCommitForPullRequest@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
-      # Version: 2.3.4
-      - name: Checkout merge commit
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
-        with:
-          ref: ${{ steps.getMergeCommit.outputs.MERGE_COMMIT_SHA }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create branch for new pull request
+      - name: Save correct NEW_VERSION to env
         run: |
-          git checkout -b cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          git push --set-upstream origin cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          if [ -z ${{ github.event.inputs.NEW_VERSION }} ]; then
+            echo "NEW_VERSION=${{ needs.createNewVersion.outputs.NEW_VERSION }}" >> $GITHUB_ENV
+            echo "New version is ${{ env.NEW_VERSION }}"
+          else
+            echo "NEW_VERSION=${{ github.event.inputs.NEW_VERSION }}" >> $GITHUB_ENV
+            echo "New version is ${{ env.NEW_VERSION }}"
+          fi;
+
+      - name: Get merge commit for version-bump pull request
+        id: getVersionBumpMergeCommit
+        uses: Expensify/Expensify.cash/.github/actions/getMergeCommitForPullRequest@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USER: OSBotify
+          TITLE_REGEX: Update version to ${{ env.NEW_VERSION }}
+
+      - name: Cherry-pick the version-bump to new branch
+        run: |
+          git fetch
+          git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }}
+
+      - name: Cherry-pick the merge commit of target PR to new branch
+        id: cherryPick
+        run: |
+          echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
+          if git cherry-pick -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
+            echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
+            echo "::set-output name=SHOULD_AUTOMERGE::true"
+          else
+            echo "😞 PR can't be automerged, there are merge conflicts in the following files:"
+            git --no-pager diff --name-only --diff-filter=U
+            git add .
+            GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
+            echo "::set-output name=SHOULD_AUTOMERGE::false"
+          fi
+
+      - name: Push changes to CP branch
+        run: git push
 
       - name: Create Pull Request
         id: createPullRequest
@@ -69,8 +142,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
 
-      - name: Auto-assign PR if it is not mergeable
-        if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+      - name: Auto-assign PR if there are merge conflicts
+        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'false' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
         uses: actions-ecosystem/action-add-labels@a8ae047fee0ca28235f9764e1c478d2136dc15c1
         with:
           number: ${{ steps.createPullRequest.outputs.pr_number }}
@@ -78,25 +151,29 @@ jobs:
             Engineering
             Hourly
 
-      - name: If PR is not mergeable, comment with instructions for assignee
-        if: ${{ steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+      - name: If PR has merge conflicts, comment with instructions for assignee
+        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'false' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
         with:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           number: ${{ steps.createPullRequest.outputs.pr_number }}
           body: |
-            This pull request has a merge conflict and could not be automatically merged. :disappointed:
+            This pull request has merge conflicts and can not be automatically merged. :disappointed:
             Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
+            **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving.
 
-      # TODO: Once https://github.com/hmarr/auto-approve-action/pull/186 is merged, point back at the non-forked repo
       - name: Check for an auto approve
+        # Important: only auto-approve if there was no merge conflict!
+        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'true' && steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'true' }}
         # Version: 2.0.0
-        uses: roryabraham/auto-approve-action@6bb4a3dcf07664d0131e1c74a4bc6d0d8c849978
+        uses: hmarr/auto-approve-action@6a9ec7556f0a7fa5b49527a1eea4878b8a22d2e0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ steps.createPullRequest.outputs.pr_number }}
 
       - name: Check for an auto merge
+        # Important: only auto-merge if there was no merge conflict!
+        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'true' && steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'true' }}
         # Version: 0.12.0
         uses: pascalgn/automerge-action@39d831e1bb389bd242626bc25d4060064a97181c
         env:

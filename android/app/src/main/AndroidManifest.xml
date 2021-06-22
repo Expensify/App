@@ -6,7 +6,15 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- To provide a link to services in other apps
+    that target Android 11+ we need to add the following -->
+    <queries>
+      <intent>
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="venmo"/>
+      </intent>
+    </queries>
 
     <application
       android:name=".MainApplication"
@@ -14,7 +22,6 @@
       android:icon="@mipmap/ic_launcher"
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
-      android:requestLegacyExternalStorage="true"
       android:theme="@style/AppTheme">
       <activity
         android:name=".MainActivity"

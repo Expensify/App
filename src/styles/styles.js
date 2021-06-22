@@ -33,6 +33,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
     },
 
+    linkHovered: {
+        color: themeColors.linkHover,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -66,7 +70,9 @@ const styles = {
     },
 
     textMicro: {
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textMicroBold: {
@@ -74,6 +80,13 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
+    },
+
+    textMicroSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textLarge: {
@@ -109,6 +122,10 @@ const styles = {
         color: themeColors.heading,
     },
 
+    textDanger: {
+        color: colors.red,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -132,6 +149,7 @@ const styles = {
         paddingRight: 10,
         paddingBottom: 6,
         paddingLeft: 10,
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     buttonSmallText: {
@@ -229,6 +247,7 @@ const styles = {
             appearance: 'none',
             height: variables.componentSizeNormal,
             opacity: 1,
+            cursor: 'pointer',
         },
         inputAndroid: {
             fontFamily: fontFamily.GTA,
@@ -264,8 +283,16 @@ const styles = {
         backgroundColor: themeColors.badgeSuccessBG,
     },
 
+    badgeSuccessPressed: {
+        backgroundColor: themeColors.badgeSuccessPressedBG,
+    },
+
     badgeDanger: {
         backgroundColor: themeColors.badgeDangerBG,
+    },
+
+    badgeDangerPressed: {
+        backgroundColor: themeColors.badgeDangerPressedBG,
     },
 
     badgeText: {
@@ -273,6 +300,12 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    border: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
     },
 
     headerText: {
@@ -330,6 +363,10 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         textAlignVertical: 'center',
+    },
+
+    disabledText: {
+        color: colors.gray3,
     },
 
     disabledTextInput: {
@@ -581,11 +618,22 @@ const styles = {
         alignItems: 'center',
     },
 
+    createMenuIconEmphasized: {
+        backgroundColor: themeColors.iconSuccessFill,
+        borderRadius: variables.componentSizeLarge / 2,
+    },
+
     createMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    createMenuDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
     },
 
     menuItemTextContainer: {
@@ -972,6 +1020,14 @@ const styles = {
         borderRightWidth: 0,
     },
 
+    exampleCheckImage: {
+        width: '100%',
+        height: 80,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+    },
+
     singleAvatar: {
         height: 24,
         width: 24,
@@ -1022,7 +1078,6 @@ const styles = {
         width: variables.componentSizeNormal,
         backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
-        pointerEvents: 'none',
     },
 
     avatarSmall: {
@@ -1030,7 +1085,6 @@ const styles = {
         width: variables.avatarSizeSmall,
         backgroundColor: themeColors.icon,
         borderRadius: variables.avatarSizeSmall,
-        pointerEvents: 'none',
     },
 
     avatarInnerText: {
@@ -1197,7 +1251,7 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
-    reportTransaction: {
+    reportTransactionWrapper: {
         paddingVertical: 8,
         display: 'flex',
         flexDirection: 'row',
@@ -1377,13 +1431,15 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
+        backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
-        maxWidth: 300,
+        maxWidth: variables.sideBarWidth,
         width: '100%',
+        cursor: 'pointer',
     },
 
     iouPreviewBoxLoading: {
@@ -1467,12 +1523,12 @@ const styles = {
         justifyContent: 'flex-start',
         position: 'absolute',
         width: '100%',
+        top: 20,
         ...spacing.ph5,
     },
 
     growlNotificationDesktopContainer: {
-        maxWidth: '380px',
-        top: '20px',
+        maxWidth: 380,
         right: 0,
         position: 'fixed',
     },
@@ -1508,6 +1564,15 @@ const styles = {
 
     cursorDisabled: {
         cursor: 'not-allowed',
+    },
+
+    textItalic: {
+        fontFamily: fontFamily.GTA_ITALIC,
+        fontStyle: 'italic',
+    },
+
+    workspaceInviteWelcome: {
+        minHeight: 150,
     },
 };
 
@@ -1620,18 +1685,19 @@ function getSafeAreaMargins(insets) {
  * Return navigation menu styles.
  *
  * @param {Number} windowWidth
+ * @param {Number} windowHeight
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationDrawerStyle(windowWidth, isSmallScreenWidth) {
+function getNavigationDrawerStyle(windowWidth, windowHeight, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             width: windowWidth,
-            height: '100%',
+            height: windowHeight,
             borderColor: themeColors.border,
         }
         : {
-            height: '100%',
+            height: windowHeight,
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
         };
@@ -1717,6 +1783,20 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Generate a style for the background color of the IOU badge
+ *
+ * @param {Boolean} isOwner
+ * @param {Boolean} [isPressed]
+ * @returns {Object}
+ */
+function getBadgeColorStyle(isOwner, isPressed = false) {
+    if (isOwner) {
+        return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
+    }
+    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+}
+
+/**
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
@@ -1728,6 +1808,7 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
             return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
             return {};
@@ -1749,6 +1830,7 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         case CONST.BUTTON_STATES.COMPLETE:
             return themeColors.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
+        case CONST.BUTTON_STATES.DISABLED:
         default:
             return themeColors.icon;
     }
@@ -1839,6 +1921,7 @@ export {
     getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
     getAnimatedFABStyle,

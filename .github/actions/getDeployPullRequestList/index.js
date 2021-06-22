@@ -65,9 +65,7 @@ getTagsOrReleases(isProductionDeploy)
         console.log(`Given ${itemToFetch}: ${inputTag}`);
         console.log(`Prior ${itemToFetch}: ${priorTag}`);
 
-        return GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
-    })
-    .then((pullRequestList) => {
+        const pullRequestList = GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
         console.log(`Found the pull request list: ${pullRequestList}`);
         return core.setOutput('PR_LIST', pullRequestList);
     })
@@ -108,22 +106,22 @@ module.exports = {
 /***/ 669:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const {promisify} = __nccwpck_require__(1669);
-const exec = promisify(__nccwpck_require__(3129).exec);
+const _ = __nccwpck_require__(4987);
+const {execSync} = __nccwpck_require__(3129);
 
 /**
  * Takes in two git refs and returns a list of PR numbers of all PRs merged between those two refs
  *
  * @param {String} fromRef
  * @param {String} toRef
- * @returns {Promise}
+ * @returns {Array}
  */
 function getPullRequestsMergedBetween(fromRef, toRef) {
-    return exec(`git log --format="%s" ${fromRef}...${toRef}`)
-        .then(({stdout}) => (
-            [...stdout.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)]
-                .map(match => match[1])
-        ));
+    const localGitLogs = execSync(`git log --format="%s" ${fromRef}...${toRef}`).toString();
+    return _.map(
+        [...localGitLogs.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)],
+        match => match[1],
+    );
 }
 
 module.exports = {

@@ -74,6 +74,9 @@ const propTypes = {
 
     /** Toggle between compact and default view of the option */
     optionMode: PropTypes.oneOf(['compact', 'default']),
+
+    /** Whether to disable the interactivity of the list's option row(s) */
+    disableRowInteractivity: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -94,6 +97,7 @@ const defaultProps = {
     innerRef: null,
     showTitleTooltip: false,
     optionMode: undefined,
+    disableRowInteractivity: false,
 };
 
 class OptionsList extends Component {
@@ -170,6 +174,7 @@ class OptionsList extends Component {
                 showSelectedState={this.props.canSelectMultipleOptions}
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                disableRowInteractivity={this.props.disableRowInteractivity}
             />
         );
     }

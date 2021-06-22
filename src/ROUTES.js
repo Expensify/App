@@ -8,7 +8,8 @@ import {addTrailingForwardSlash} from './libs/Url';
 const REPORT = 'r';
 
 export default {
-    ADD_BANK_ACCOUNT: 'add-bank-account',
+    BANK_ACCOUNT: 'bank-account/:stepToOpen?',
+    BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -46,6 +47,11 @@ export default {
     getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
+    ENABLE_PAYMENTS: 'enable-payments',
+    WORKSPACE_NEW: 'workspace/new',
+    getWorkspaceRoute: policyID => `workspace/${policyID}`,
+    WORKSPACE_INVITE: 'workspace/:policyID/invite',
+    getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
 
     /**
      * @param {String} route

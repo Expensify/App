@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
+import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
@@ -8,9 +10,13 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
 let sessionAuthToken = '';
+let sessionEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => sessionAuthToken = val ? val.authToken : '',
+    callback: (val) => {
+        sessionAuthToken = lodashGet(val, 'authToken', '');
+        sessionEmail = lodashGet(val, 'email', '');
+    },
 });
 
 let currentlyViewedReportID = '';
@@ -63,7 +69,7 @@ function getUserDetails() {
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
-            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus});
+            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus});
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
@@ -168,6 +174,38 @@ function validateLogin(accountID, validateCode) {
     });
 }
 
+/**
+ * Fetch the public domain info for the current user.
+ *
+ * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
+ * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
+ * If that happens, this function will automatically retry itself in 10 minutes.
+ */
+function getPublicDomainInfo() {
+    // If this command fails, we'll retry again in 10 minutes,
+    // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
+    const RETRY_TIMEOUT = 600000;
+
+    // First check list of common public domains
+    if (_.contains(COMMON_PUBLIC_DOMAINS, sessionEmail)) {
+        Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain: true});
+        return;
+    }
+
+    // If it is not a common public domain, check the API
+    API.User_IsFromPublicDomain({email: sessionEmail})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                const {isFromPublicDomain} = response;
+                Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
+            } else {
+                // eslint-disable-next-line max-len
+                console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
+                setTimeout(getPublicDomainInfo, RETRY_TIMEOUT);
+            }
+        });
+}
+
 export {
     changePassword,
     getBetas,
@@ -176,4 +214,5 @@ export {
     setExpensifyNewsStatus,
     setSecondaryLogin,
     validateLogin,
+    getPublicDomainInfo,
 };

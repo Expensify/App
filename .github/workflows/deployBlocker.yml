@@ -14,6 +14,11 @@ jobs:
     if: ${{ github.event.label.name == 'DeployBlockerCash' }}
 
     steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Get URL, title, & number of new deploy blocker (issue)
         if: ${{ github.event_name == 'issues' }}
         run: |
@@ -32,7 +37,6 @@ jobs:
         uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NEW_DEPLOY_BLOCKERS: ${{ env.DEPLOY_BLOCKER_URL }}
 
       - name: Give the issue/PR the Hourly, Engineering labels
         uses: andymckay/labeler@978f846c4ca6299fd136f465b42c5e87aca28cac

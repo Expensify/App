@@ -1,5 +1,15 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
+
+let sessionEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => sessionEmail = val ? val.email : null,
+});
 
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
@@ -36,6 +46,22 @@ function sortReportsByLastVisited(reports) {
 }
 
 /**
+ * Can only edit if it's a ADDCOMMENT, the author is this user and it's not a optimistic response.
+ * If it's an optimistic response comment it will not have a reportActionID,
+ * and we should wait until it does before we show the actions
+ *
+ * @param {Object} reportAction
+ * @param {String} sessionEmail
+ * @returns {Boolean}
+ */
+function canEditReportAction(reportAction) {
+    return reportAction.actorEmail === sessionEmail
+        && reportAction.reportActionID
+        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
@@ -45,9 +71,25 @@ function findLastAccessedReport(reports) {
     return _.last(sortReportsByLastVisited(reports));
 }
 
+/**
+ * Whether the provided report is a default room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isDefaultRoom(report) {
+    return _.contains([
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+    ], lodashGet(report, ['chatType'], ''));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
+    canEditReportAction,
     sortReportsByLastVisited,
+    isDefaultRoom,
 };

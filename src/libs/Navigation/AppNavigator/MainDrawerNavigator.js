@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {withOnyx} from 'react-native-onyx';
@@ -32,21 +31,19 @@ const defaultProps = {
 
 const Drawer = createDrawerNavigator();
 
-/**
- * We are decorating findLastAccessedReport so that it caches the first result once the reports load.
- * This will ensure the initialParams are only set once for the ReportScreen.
- */
-const getInitialReportScreenParams = _.once((reports) => {
+const getInitialReportScreenParams = (reports) => {
     const last = findLastAccessedReport(reports);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
     return {reportID: String(reportID)};
-});
+};
 
 const MainDrawerNavigator = (props) => {
-    // When there are no reports there's no point to render the empty navigator
-    if (_.size(props.reports) === 0) {
+    const initialParams = getInitialReportScreenParams(props.reports);
+
+    // Wait until reports are fetched and there is a reportID in initialParams
+    if (!initialParams.reportID) {
         return <FullScreenLoadingIndicator visible />;
     }
 
@@ -55,24 +52,25 @@ const MainDrawerNavigator = (props) => {
     // This is usually needed after login/create account and re-launches
     return (
         <Drawer.Navigator
-            openByDefault={props.isSmallScreenWidth}
-            drawerType={getNavigationDrawerType(props.isSmallScreenWidth)}
-            drawerStyle={getNavigationDrawerStyle(
-                props.windowWidth,
-                props.isSmallScreenWidth,
-            )}
+            defaultStatus={props.isSmallScreenWidth ? 'open' : 'closed'}
             sceneContainerStyle={styles.navigationSceneContainer}
-            edgeWidth={500}
             drawerContent={() => <SidebarScreen />}
             screenOptions={{
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
+                drawerType: getNavigationDrawerType(props.isSmallScreenWidth),
+                drawerStyle: getNavigationDrawerStyle(
+                    props.windowWidth,
+                    props.windowHeight,
+                    props.isSmallScreenWidth,
+                ),
+                swipeEdgeWidth: 500,
             }}
         >
             <Drawer.Screen
                 name={SCREENS.REPORT}
                 component={ReportScreen}
-                initialParams={getInitialReportScreenParams(props.reports)}
+                initialParams={initialParams}
             />
         </Drawer.Navigator>
     );

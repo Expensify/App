@@ -27,7 +27,12 @@ import {
     Receipt,
 } from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import {addAction, saveReportComment, broadcastUserIsTyping} from '../../../libs/actions/Report';
+import {
+    addAction,
+    saveReportComment,
+    saveReportActionDraft,
+    broadcastUserIsTyping,
+} from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
@@ -44,8 +49,14 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import ReportActionPropTypes from './ReportActionPropTypes';
+import {canEditReportAction} from '../../../libs/reportUtils';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     /** A method to call when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
 
@@ -67,6 +78,9 @@ const propTypes = {
         /** participants associated with current report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
+
+    /** Array of report actions for this report */
+    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
     /** Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -91,6 +105,7 @@ const defaultProps = {
     comment: '',
     modal: {},
     report: {},
+    reportActions: {},
     network: {isOffline: false},
 };
 
@@ -101,7 +116,7 @@ class ReportActionCompose extends React.Component {
         this.updateComment = this.updateComment.bind(this);
         this.debouncedSaveReportComment = _.debounce(this.debouncedSaveReportComment.bind(this), 1000, false);
         this.debouncedBroadcastUserIsTyping = _.debounce(this.debouncedBroadcastUserIsTyping.bind(this), 100, true);
-        this.triggerSubmitShortcut = this.triggerSubmitShortcut.bind(this);
+        this.triggerHotkeyActions = this.triggerHotkeyActions.bind(this);
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.showEmojiPicker = this.showEmojiPicker.bind(this);
@@ -115,6 +130,7 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
+        this.setTextInputRef = this.setTextInputRef.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -136,6 +152,11 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (this.shouldFocusInputOnScreenFocus && this.props.isFocused) {
+                this.focus(false);
+            }
+        });
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
@@ -145,12 +166,12 @@ class ReportActionCompose extends React.Component {
         // open creates a jarring and broken UX.
         if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
-            this.setIsFocused(true);
             this.focus();
         }
     }
 
     componentWillUnmount() {
+        ReportActionComposeFocusManager.clear();
         Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
@@ -186,16 +207,37 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Focus the composer text input
+     * Set the TextInput Ref
+     *
+     * @param {Element} el
+     * @memberof ReportActionCompose
      */
-    focus() {
-        if (this.textInput) {
-            // There could be other animations running while we trigger manual focus.
-            // This prevents focus from making those animations janky.
-            InteractionManager.runAfterInteractions(() => {
-                this.textInput.focus();
-            });
-        }
+    setTextInputRef(el) {
+        ReportActionComposeFocusManager.composerRef.current = el;
+        this.textInput = el;
+    }
+
+    /**
+     * Focus the composer text input
+     * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
+     * @memberof ReportActionCompose
+     */
+    focus(shouldelay = false) {
+        // There could be other animations running while we trigger manual focus.
+        // This prevents focus from making those animations janky.
+        InteractionManager.runAfterInteractions(() => {
+            if (this.textInput) {
+                if (!shouldelay) {
+                    this.textInput.focus();
+                } else {
+                    // Keyboard is not opened after Emoji Picker is closed
+                    // SetTimeout is used as a workaround
+                    // https://github.com/react-native-modal/react-native-modal/issues/114
+                    // We carefully choose a delay. 50ms is found enough for keyboard to open.
+                    setTimeout(() => this.textInput.focus(), 50);
+                }
+            }
+        });
     }
 
     /**
@@ -222,6 +264,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} newComment
      */
     updateComment(newComment) {
+        this.textInput.setNativeProps({text: newComment});
         this.setState({
             isCommentEmpty: newComment.length === 0,
         });
@@ -231,15 +274,32 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Listens for the keyboard shortcut and submits
-     * the form when we have enter
+     * Listens for keyboard shortcuts and applies the action
      *
      * @param {Object} e
      */
-    triggerSubmitShortcut(e) {
-        if (e && e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            this.submitForm();
+    triggerHotkeyActions(e) {
+        if (e) {
+            // Submit the form when Enter is pressed
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.submitForm();
+            }
+
+            // Trigger the edit box for last sent message if ArrowUp is pressed
+            if (e.key === 'ArrowUp' && this.state.isCommentEmpty) {
+                e.preventDefault();
+
+                const reportActionKey = _.find(
+                    Object.keys(this.props.reportActions).reverse(),
+                    key => canEditReportAction(this.props.reportActions[key]),
+                );
+
+                if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
+                    const {reportActionID, message} = this.props.reportActions[reportActionKey];
+                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).text);
+                }
+            }
         }
     }
 
@@ -279,16 +339,17 @@ class ReportActionCompose extends React.Component {
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
         const {selection} = this.state;
-        this.textInput.value = this.comment.slice(0, selection.start)
+        const newComment = this.comment.slice(0, selection.start)
             + emoji + this.comment.slice(selection.end, this.comment.length);
+        this.textInput.setNativeProps({
+            text: newComment,
+        });
         const updatedSelection = {
             start: selection.start + emoji.length,
             end: selection.start + emoji.length,
         };
         this.setState({selection: updatedSelection});
-        this.setIsFocused(true);
-        this.focus();
-        this.updateComment(this.textInput.value);
+        this.updateComment(newComment);
     }
 
     /**
@@ -369,27 +430,32 @@ class ReportActionCompose extends React.Component {
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
-                                                    ...(!hasConciergeParticipant && Permissions.canUseIOU() ? [
-                                                        hasMultipleParticipants
-                                                            ? {
-                                                                icon: Receipt,
-                                                                text: this.props.translate('iou.splitBill'),
-                                                                onSelected: () => {
-                                                                    Navigation.navigate(
-                                                                        ROUTES.getIouSplitRoute(this.props.reportID),
-                                                                    );
+                                                    ...(!hasConciergeParticipant
+                                                        && Permissions.canUseIOU(this.props.betas) ? [
+                                                            hasMultipleParticipants
+                                                                ? {
+                                                                    icon: Receipt,
+                                                                    text: this.props.translate('iou.splitBill'),
+                                                                    onSelected: () => {
+                                                                        Navigation.navigate(
+                                                                            ROUTES.getIouSplitRoute(
+                                                                                this.props.reportID,
+                                                                            ),
+                                                                        );
+                                                                    },
+                                                                }
+                                                                : {
+                                                                    icon: MoneyCircle,
+                                                                    text: this.props.translate('iou.requestMoney'),
+                                                                    onSelected: () => {
+                                                                        Navigation.navigate(
+                                                                            ROUTES.getIouRequestRoute(
+                                                                                this.props.reportID,
+                                                                            ),
+                                                                        );
+                                                                    },
                                                                 },
-                                                            }
-                                                            : {
-                                                                icon: MoneyCircle,
-                                                                text: this.props.translate('iou.requestMoney'),
-                                                                onSelected: () => {
-                                                                    Navigation.navigate(
-                                                                        ROUTES.getIouRequestRoute(this.props.reportID),
-                                                                    );
-                                                                },
-                                                            },
-                                                    ] : []),
+                                                        ] : []),
                                                     {
                                                         icon: Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
@@ -409,12 +475,12 @@ class ReportActionCompose extends React.Component {
                                 <TextInputFocusable
                                     autoFocus={this.shouldFocusInputOnScreenFocus}
                                     multiline
-                                    ref={el => this.textInput = el}
+                                    ref={this.setTextInputRef}
                                     textAlignVertical="top"
                                     placeholder={this.props.translate('reportActionCompose.writeSomething')}
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
-                                    onKeyPress={this.triggerSubmitShortcut}
+                                    onKeyPress={this.triggerHotkeyActions}
                                     onDragEnter={() => this.setState({isDraggingOver: true})}
                                     onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
@@ -453,6 +519,7 @@ class ReportActionCompose extends React.Component {
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
                         onModalShow={this.focusEmojiSearchInput}
+                        onModalHide={() => this.focus(true)}
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
@@ -525,6 +592,9 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
         comment: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
         },
@@ -533,6 +603,10 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        reportActions: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            canEvict: false,
         },
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
