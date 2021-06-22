@@ -1,6 +1,7 @@
 import moment from 'moment';
 import CONST from '../CONST';
 import Growl from './Growl';
+import {translateLocal} from './translate';
 
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
@@ -56,22 +57,22 @@ function isValidSSNLastFour(ssnLast4) {
  */
 function isValidIdentity(identity) {
     if (!isValidAddress(identity.street)) {
-        Growl.error('Please enter a valid address');
+        Growl.error(translateLocal('bankAccount.error.address'));
         return false;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
-        Growl.error('Please enter a valid zip code');
+        Growl.error(translateLocal('bankAccount.error.zipCode'));
         return false;
     }
 
     if (!isValidDate(identity.dob)) {
-        Growl.error('Please enter a valid date of birth');
+        Growl.error(translateLocal('bankAccount.error.dob'));
         return false;
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
-        Growl.error('Please enter a valid SSN (last 4)');
+        Growl.error(translateLocal('bankAccount.error.ssnLast4'));
         return false;
     }
 

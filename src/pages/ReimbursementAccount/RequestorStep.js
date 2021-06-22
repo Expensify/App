@@ -57,7 +57,7 @@ class RequestorStep extends React.Component {
 
         if (!isValidIdentity({...this.state})) {
             return false;
-        };
+        }
 
         return true;
     }
