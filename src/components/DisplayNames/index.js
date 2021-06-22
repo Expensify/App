@@ -88,7 +88,7 @@ class DisplayNames extends PureComponent {
                 numberOfLines={1}
                 ref={el => this.containerRef = el}
             >
-                {this.props.shouldUseFullTitle
+                {this.props.shouldUseReportTitle
                     ? this.props.fullTitle
                     : _.map(this.props.displayNamesWithTooltips, ({displayName, tooltip}, index) => (
                         <Fragment key={index}>

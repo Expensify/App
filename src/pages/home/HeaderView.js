@@ -45,6 +45,7 @@ const propTypes = {
         isPinned: PropTypes.bool,
     }),
 
+    /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
@@ -77,7 +78,7 @@ const HeaderView = (props) => {
         },
     );
     const isDefaultChatRoom = isDefaultRoom(props.report);
-    const fullTitle = isDefaultChatRoom
+    const title = isDefaultChatRoom
         ? props.report.reportName
         : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
 
@@ -118,12 +119,12 @@ const HeaderView = (props) => {
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
-                                    fullTitle={fullTitle}
+                                    fullTitle={title}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
-                                    shouldUseFullTitle={isDefaultChatRoom}
+                                    shouldUseReportTitle={isDefaultChatRoom}
                                 />
                                 {subTitle && (
                                     <Text
