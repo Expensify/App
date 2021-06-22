@@ -40,9 +40,11 @@ class PaymentsPage extends React.Component {
         this.state = {
             showDefaultOrDeleteMenu: false,
             selectedPaymentMethodIndex: null,
+            showAddPaymentMenu: false,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
+        this.addPaymentMethodPressed = this.addPaymentMethodPressed.bind(this);
     }
 
     componentDidMount() {
@@ -54,6 +56,10 @@ class PaymentsPage extends React.Component {
             showDefaultOrDeleteMenu: true,
             selectedPaymentMethodIndex: index,
         });
+    }
+
+    addPaymentMethodPressed() {
+        this.setState({showAddPaymentMenu: true});
     }
 
     render() {
@@ -84,7 +90,6 @@ class PaymentsPage extends React.Component {
             }
         });
 
-        debugger;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
