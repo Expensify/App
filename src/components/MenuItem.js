@@ -83,7 +83,7 @@ const MenuItem = ({
         onPress={onPress}
         style={({hovered, pressed}) => ([
             styles.createMenuItem,
-            getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+            getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed)),
             wrapperStyle,
         ])}
     >

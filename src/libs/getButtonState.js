@@ -3,12 +3,12 @@ import CONST from '../CONST';
 /**
  * Get the string representation of a button's state.
  *
- * @param {Boolean} [isHovered]
+ * @param {Boolean} [isActive]
  * @param {Boolean} [isPressed]
  * @param {Boolean} [isComplete]
  * @returns {String}
  */
-export default function (isHovered = false, isPressed = false, isComplete = false) {
+export default function (isActive = false, isPressed = false, isComplete = false) {
     if (isComplete) {
         return CONST.BUTTON_STATES.COMPLETE;
     }
@@ -17,8 +17,8 @@ export default function (isHovered = false, isPressed = false, isComplete = fals
         return CONST.BUTTON_STATES.PRESSED;
     }
 
-    if (isHovered) {
-        return CONST.BUTTON_STATES.HOVERED;
+    if (isActive) {
+        return CONST.BUTTON_STATES.ACTIVE;
     }
 
     return CONST.BUTTON_STATES.DEFAULT;

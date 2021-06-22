@@ -1615,13 +1615,13 @@ const styles = {
     },
 
     workspaceSidebarAvatar: {
-        width: 100,
-        height: 100,
+        width: 80,
+        height: 80,
     },
 
     workspaceSidebarAvatarPencil: {
-        width: 40,
-        height: 40,
+        width: 32,
+        height: 32,
         position: 'absolute',
         right: -1,
         bottom: -1,
@@ -1892,7 +1892,7 @@ function getBadgeColorStyle(isOwner, isPressed = false) {
  */
 function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
+        case CONST.BUTTON_STATES.ACTIVE:
             return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
@@ -1910,7 +1910,7 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  */
 function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
+        case CONST.BUTTON_STATES.ACTIVE:
             return themeColors.text;
         case CONST.BUTTON_STATES.PRESSED:
             return themeColors.heading;

@@ -18,9 +18,6 @@ const propTypes = {
     /** Additional style props */
     style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
 
-    /** Link hovered style  */
-    hoveredStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
-
     /** Overwrites the default link behavior with a custom callback */
     onPress: PropTypes.func,
 };
@@ -28,7 +25,6 @@ const propTypes = {
 const defaultProps = {
     href: '',
     style: [],
-    hoveredStyle: [],
     onPress: undefined,
 };
 
@@ -49,13 +45,7 @@ const TextLink = (props) => {
             href={props.href}
         >
             {({hovered, pressed}) => (
-                <Text style={[
-                    styles.link,
-                    (hovered || pressed) ? styles.linkHovered : undefined,
-                    (hovered || pressed) ? props.hoveredStyle : undefined,
-                    ...additionalStyles,
-                ]}
-                >
+                <Text style={[styles.link, (hovered || pressed) ? styles.linkHovered : undefined, ...additionalStyles]}>
                     {props.children}
                 </Text>
             )}

@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, ScrollView, Text as RNText, Linking, StyleSheet,
+    View, ScrollView, Linking, StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -19,7 +19,6 @@ import themeDefault from '../../styles/themes/default';
 import ROUTES from '../../ROUTES';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
-import TextLink from '../../components/TextLink';
 import HeroCardWebImage from '../../../assets/images/cascading-cards-web.svg';
 import HeroCardMobileImage from '../../../assets/images/cascading-cards-mobile.svg';
 
