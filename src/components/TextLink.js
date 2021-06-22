@@ -1,22 +1,32 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text, Pressable, Linking} from 'react-native';
+import {Pressable, Linking} from 'react-native';
+import Text from './Text';
 import styles from '../styles/styles';
 
 const propTypes = {
     /** Link to open in new tab */
-    href: PropTypes.string.isRequired,
+    href: PropTypes.string,
 
-    /** Text content child or <Text> as child */
-    children: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
+    /** Text content child */
+    children: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.array,
+        PropTypes.object,
+    ]).isRequired,
 
     /** Additional style props */
     style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
+
+    /** Overwrites the default link behavior with a custom callback */
+    onPress: PropTypes.func,
 };
 
 const defaultProps = {
+    href: '',
     style: [],
+    onPress: undefined,
 };
 
 const TextLink = (props) => {
@@ -25,6 +35,11 @@ const TextLink = (props) => {
         <Pressable
             onPress={(e) => {
                 e.preventDefault();
+                if (props.onPress) {
+                    props.onPress();
+                    return;
+                }
+
                 Linking.openURL(props.href);
             }}
             accessibilityRole="link"
