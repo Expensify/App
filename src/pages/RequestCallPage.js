@@ -51,12 +51,11 @@ class RequestCallPage extends React.Component {
         const [firstName, lastName] = props.myPersonalDetails.displayName !== props.myPersonalDetails.login
             ? props.myPersonalDetails.displayName.split(' ')
             : [];
-
-        //
         this.state = {
             firstName: firstName ?? '',
             lastName: lastName ?? '',
-            phoneNumber: '',
+            phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
+            isLoading: false,
         };
 
         this.conciergeReport = _.find(
@@ -64,22 +63,42 @@ class RequestCallPage extends React.Component {
             report => report.participants.length === 1 && report.participants[0] === CONST.EMAIL.CONCIERGE,
         );
 
+        this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
     }
 
     onSubmit() {
+        this.setState({isLoading: true});
         if (!this.state.firstName.length || !this.state.lastName.length) {
             Growl.show(this.props.translate('requestCallPage.growlMessageEmptyName'), CONST.GROWL.ERROR);
+            this.setState({isLoading: false});
             return;
         }
-        if (!Str.isValidPhone(this.state.phoneNumber)) {
-            Growl.show(this.props.translate('requestCallPage.growlMessageInvalidPhone'), CONST.GROWL.ERROR);
-            return;
-        }
+
         requestConciergeDMCall('', this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
-                console.log(">>>> result", result);
+                this.setState({isLoading: false});
+                if (result.jsonCode === 200) {
+                    Growl.show(this.props.translate('requestCallPage.growlMessageOnSave'), CONST.GROWL.SUCCESS);
+                    Navigation.navigate(ROUTES.getReportRoute(this.conciergeReport.reportID));
+                    return;
+                }
+
+                // Phone number validation is handled by the API
+                Growl.show(result.message, CONST.GROWL.ERROR, 3000);
             });
+    }
+
+    /**
+     * Gets the user's phone number from their secondary login.
+     * Returns null if it doesn't exist.
+     * @param {Array<Object>} loginList
+     *
+     * @returns {String|null}
+     */
+    getPhoneNumber(loginList) {
+        const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
+        return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : null;
     }
 
     render() {
@@ -125,6 +144,7 @@ class RequestCallPage extends React.Component {
                         onPress={this.onSubmit}
                         style={[styles.w100]}
                         text={this.props.translate('requestCallPage.callMe')}
+                        isLoading={this.state.isLoading}
                     />
                 </FixedFooter>
             </ScreenWrapper>
@@ -149,6 +169,9 @@ export default compose(
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(RequestCallPage);
