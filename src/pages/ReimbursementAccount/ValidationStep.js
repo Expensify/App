@@ -47,6 +47,8 @@ class ValidationStep extends React.Component {
 
         this.submit = this.submit.bind(this);
 
+        this.verifyingUrl = `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`;
+
         this.state = {
             amount1: '',
             amount2: '',
@@ -64,7 +66,7 @@ class ValidationStep extends React.Component {
         if (amount1 && amount2 && amount3) {
             const validateCode = [amount1, amount2, amount3].join(',');
 
-            // Make a call to bankAccounts
+            // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
             validateBankAccount(this.props.achData.bankAccountID, validateCode);
             return;
         }
@@ -74,7 +76,6 @@ class ValidationStep extends React.Component {
     }
 
     /**
-     *
      * Filter input for validation amount
      * Anything that isn't a number is returned as an empty string
      * Any dollar amount (e.g. 1.12) will be returned as 112
@@ -104,7 +105,6 @@ class ValidationStep extends React.Component {
         }
 
         const state = this.props.achData.state;
-        const verifyingUrl = `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`;
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -118,15 +118,10 @@ class ValidationStep extends React.Component {
                                 {this.props.translate('validationStep.description')}
                             </Text>
                             <Text style={[styles.mh5, styles.mb2]}>
-                                {this.props.translate('validationStep.desriptionCTA')}
+                                {this.props.translate('validationStep.descriptionCTA')}
                             </Text>
                         </View>
                         <View style={[styles.m5, styles.flex1]}>
-                            {errorMessage && (
-                                <Text style={[styles.mh5, styles.mb5, styles.textDanger]}>
-                                    {errorMessage}
-                                </Text>
-                            )}
                             <TextInputWithLabel
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
@@ -148,6 +143,11 @@ class ValidationStep extends React.Component {
                                 value={this.state.amount3}
                                 onChangeText={amount3 => this.setState({amount3})}
                             />
+                            {errorMessage && (
+                                <Text style={[styles.mb5, styles.textDanger]}>
+                                    {errorMessage}
+                                </Text>
+                            )}
                         </View>
                         <Button
                             success
@@ -161,7 +161,7 @@ class ValidationStep extends React.Component {
                 {state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.flex1]}>
                         <Image
-                            source={{uri: verifyingUrl}}
+                            source={{uri: this.verifyingUrl}}
                             style={[styles.workspaceInviteWelcome]}
                             resizeMode="center"
                         />
