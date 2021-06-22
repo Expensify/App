@@ -367,10 +367,8 @@ export default {
         headerTitle: 'Validate',
         buttonText: 'Finish Setup',
         maxAttemptError: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
-        description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like ',
-        expensifyMerchantName: '"Expensify, Inc. Validation"',
-        desriptionCTA: 'Please enter each transaction amount in the fields below.',
-        example: 'Example: 1.51',
+        description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation"',
+        desriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
         verifyingDescription: 'We\'re taking a look at your information and will have you onto next steps in just a few seconds.',
     },
     beneficialOwnersStep: {

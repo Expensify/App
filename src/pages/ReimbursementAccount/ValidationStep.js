@@ -114,25 +114,16 @@ class ValidationStep extends React.Component {
                 {state === BankAccount.STATE.PENDING && (
                     <View style={[styles.flex1, styles.mt2]}>
                         <View style={[styles.mb2]}>
-                            <Text style={[styles.mh5, styles.mb1]}>
+                            <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('validationStep.description')}
                             </Text>
-                            <Text style={[styles.mh5, styles.mb6, styles.textStrong, styles.alignSelfCenter]}>
-                                {this.props.translate('validationStep.expensifyMerchantName')}
-                            </Text>
-
                             <Text style={[styles.mh5, styles.mb2]}>
                                 {this.props.translate('validationStep.desriptionCTA')}
                             </Text>
                         </View>
-                        <View style={[styles.alignSelfCenter]}>
-                            <Text style={[styles.mh5, styles.mb2, styles.textStrong, styles.badge]}>
-                                {this.props.translate('validationStep.example')}
-                            </Text>
-                        </View>
                         <View style={[styles.m5, styles.flex1]}>
                             {errorMessage && (
-                                <Text style={[styles.mh5, styles.mb5]}>
+                                <Text style={[styles.mh5, styles.mb5, styles.textDanger]}>
                                     {errorMessage}
                                 </Text>
                             )}
