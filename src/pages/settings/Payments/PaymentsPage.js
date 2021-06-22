@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import PaymentMethodList from './paymentMethodList';
+import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
