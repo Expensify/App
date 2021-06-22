@@ -912,9 +912,9 @@ function Mobile_GetConstants(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {number} [parameters.latitude]
- * @param {number} [parameters.longitude]
+ * @param {Object} parameters
+ * @param {Number} [parameters.latitude]
+ * @param {Number} [parameters.longitude]
  * @returns {Promise}
  */
 function GetPreferredCurrency(parameters) {
@@ -927,6 +927,32 @@ function GetPreferredCurrency(parameters) {
  */
 function GetCurrencyList() {
     return Mobile_GetConstants({data: ['currencyList']});
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} [parameters.type]
+ * @param {String} [parameters.policyName]
+ * @returns {Promise}
+ */
+function Policy_Create(parameters) {
+    const commandName = 'Policy_Create';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.taskID
+ * @param {String} parameters.policyID
+ * @param {String} parameters.firstName
+ * @param {String} parameters.lastName
+ * @param {String} parameters.phoneNumber
+ * @returns {Promise}
+ */
+function Inbox_CallUser(parameters) {
+    const commandName = 'Inbox_CallUser';
+    requireParameters(['taskID', 'policyID', 'firstName', 'lastName', 'phoneNumber'], parameters, commandName);
+    return Network.post(commandName, parameters);
 }
 
 export {
@@ -945,6 +971,7 @@ export {
     GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
+    Inbox_CallUser,
     Log,
     PayIOU,
     PayWithWallet,
@@ -978,4 +1005,5 @@ export {
     Wallet_GetOnfidoSDKToken,
     GetPreferredCurrency,
     GetCurrencyList,
+    Policy_Create,
 };
