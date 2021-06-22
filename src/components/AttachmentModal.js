@@ -109,7 +109,7 @@ class AttachmentModal extends PureComponent {
                 >
                     <HeaderWithCloseButton
                         title={this.props.isUploadingAttachment
-                            ? this.props.translate('reportActionCompose.uploadAttachment')
+                            ? this.props.translate('reportActionCompose.sendAttachment')
                             : this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton
@@ -128,7 +128,7 @@ class AttachmentModal extends PureComponent {
                             success
                             style={[styles.buttonConfirm]}
                             textStyles={[styles.buttonConfirmText]}
-                            text={this.props.translate('common.upload')}
+                            text={this.props.translate('common.send')}
                             onPress={this.submitAndClose}
                         />
                     )}
