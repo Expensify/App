@@ -2,7 +2,6 @@
 export default {
     common: {
         cancel: 'Cancel',
-        upload: 'Upload',
         yes: 'Yes',
         no: 'No',
         attachment: 'Attachment',
