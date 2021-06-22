@@ -67,7 +67,7 @@ const CONST = {
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
-        HOVERED: 'hovered',
+        ACTIVE: 'active',
         PRESSED: 'pressed',
         COMPLETE: 'complete',
     },

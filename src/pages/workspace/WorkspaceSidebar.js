@@ -63,8 +63,8 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
                         )}
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter, styles.pv5]}>
-                            <View style={[styles.pRelative, styles.workspaceSidebarAvatar]}>
-                                <WorkspaceDefaultAvatar height={100} width={100} fill={themedefault.icon} />
+                            <View style={[styles.pRelative, styles.workspaceSidebarAvatar, styles.mb3]}>
+                                <WorkspaceDefaultAvatar height={80} width={80} fill={themedefault.icon} />
                                 <View style={[
                                     styles.workspaceSidebarAvatarPencil,
                                     styles.alignItemsCenter,
@@ -74,6 +74,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
                                     <Icon
                                         src={Pencil}
                                         fill={themedefault.textReversed}
+                                        small
                                     />
                                 </View>
                             </View>
@@ -82,7 +83,8 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
                                 style={[
                                     styles.textStrong,
                                     styles.alignSelfCenter,
-                                    styles.mv4,
+                                    styles.mt1,
+                                    styles.mb6,
                                 ]}
                             >
                                 Borton Enterprises
@@ -96,7 +98,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
                             icon={item.icon}
                             iconRight={item.iconRight}
                             onPress={() => item.action()}
-                            wrapperStyle={!isSmallScreenWidth && item.isActive ? styles.activeComponentBG : undefined}
+                            wrapperStyle={!isSmallScreenWidth && item.isActive ? styles.hoverComponentBG : undefined}
                             focused={item.isActive}
                             shouldShowRightIcon
                         />
