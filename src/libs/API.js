@@ -194,7 +194,6 @@ function Authenticate(parameters) {
         'partnerUserSecret',
     ], parameters, commandName);
 
-    // eslint-disable-next-line no-use-before-define
     return Network.post(commandName, {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check
         // for credentials for the expensify partnerID to let users Authenticate with their expensify user
@@ -295,6 +294,37 @@ function reauthenticate(command = '') {
                 error: error.message,
             });
         });
+}
+
+/**
+ * Calls the command=Authenticate API with an accountID, validateCode, and optional 2FA code. This is used specifically
+ * for sharing sessions between e.com and this app. It will return an authToken that is used for initiating a session
+ * in this app. This API call doesn't have any special handling (like retries or special error handling).
+ *
+ * @param {Object} parameters
+ * @param {String} parameters.accountID
+ * @param {String} parameters.validateCode
+ * @param {String} [parameters.twoFactorAuthCode]
+ * @returns {Promise<unknown>}
+ */
+function authenticateWithAccountID(parameters) {
+    const commandName = 'Authenticate';
+
+    requireParameters([
+        'partnerName',
+        'partnerPassword',
+        'accountID',
+        'validateCode',
+    ], parameters, commandName);
+
+    return Network.post(commandName, {
+        partnerName: parameters.partnerName,
+        partnerPassword: parameters.partnerPassword,
+        accountID: parameters.accountID,
+        validateCode: parameters.validateCode,
+        twoFactorAuthCode: parameters.twoFactorAuthCode,
+        doNotRetry: true,
+    });
 }
 
 /**
@@ -942,6 +972,7 @@ function Policy_Create(parameters) {
 
 export {
     Authenticate,
+    authenticateWithAccountID,
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,

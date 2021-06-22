@@ -7,7 +7,7 @@ import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import {continueSessionFromECom} from '../libs/actions/User';
+import {continueSessionFromECom} from '../libs/actions/Session';
 
 const propTypes = {
     /* Onyx Props */
