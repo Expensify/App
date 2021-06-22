@@ -33,6 +33,9 @@ export default {
         saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de servicio',
+        people: 'Personas',
+        invite: 'Invitación',
+        here: 'aquí',
         dob: 'Fecha de Nacimiento',
         ssn: 'Número de Seguridad Social',
         addressNoPO: 'Dirección (sin Apartado Postal)',
@@ -42,7 +45,6 @@ export default {
         zip: 'Código Postal',
         isRequiredField: 'es un campo obligatorio',
         whatThis: '¿Qué es esto?',
-        invite: 'Invitar',
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
     },
@@ -321,6 +323,10 @@ export default {
         offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',
     },
     workspace: {
+        common: {
+            card: 'Tarjeta Expensify',
+            workspace: 'Espacio de trabajo',
+        },
         new: {
             newWorkspace: 'Nuevo Workspace',
             getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
@@ -329,6 +335,14 @@ export default {
             helpText: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
             getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
+        },
+        card: {
+            tagline: 'La tarjeta corporativa más inteligente de la habitación.',
+            publicCopy: 'Para utilizar la Tarjeta Expensify debe utilizar el dominio privado de su empresa. Continúe y agregue su dirección de correo electrónico privada como inicio de sesión secundario',
+            privateCopy: 'Simplemente deslice su tarjeta Expensify y sus gastos estarán listos, ¡es así de simple!',
+            getStarted: 'Empezar',
+            manageCards: 'Administrar tarjetas',
+            cardReadyTagline: 'Tus tarjetas Expensify están listas para usar!',
         },
         invite: {
             invitePeople: 'Invitar a la gente',
