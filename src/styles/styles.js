@@ -1631,7 +1631,7 @@ const styles = {
         bottom: -1,
         backgroundColor: themeColors.icon,
         color: themeColors.textReversed,
-        borderRadius: '100%',
+        borderRadius: 32,
         borderWidth: 3,
         borderColor: themeColors.textReversed,
     },
