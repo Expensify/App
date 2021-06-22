@@ -6,10 +6,25 @@ const CONST = {
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
     },
+    DATE: {
+        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+    },
     SMS: {
         DOMAIN: '@expensify.sms',
     },
     BANK_ACCOUNT: {
+        PLAID: {
+            ALLOWED_THROTTLED_COUNT: 2,
+            ERROR: {
+                TOO_MANY_ATTEMPTS: 'Too many attempts',
+            },
+        },
+        ERROR: {
+            MISSING_ROUTING_NUMBER: '402 Missing routingNumber',
+            MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
+            MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
+            MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
+        },
         STEP: {
             // In the order they appear in the VBA flow
             BANK_ACCOUNT: 'BankAccountStep',
@@ -48,6 +63,7 @@ const CONST = {
             IBAN: /^[A-Za-z0-9]{2,30}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
+        VERIFICATION_MAX_ATTEMPTS: 7,
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -70,6 +86,7 @@ const CONST = {
         HOVERED: 'hovered',
         PRESSED: 'pressed',
         COMPLETE: 'complete',
+        DISABLED: 'disabled',
     },
     COUNTRY: {
         US: 'US',
@@ -117,6 +134,11 @@ const CONST = {
         TYPE: {
             CHAT: 'chat',
             IOU: 'iou',
+        },
+        CHAT_TYPE: {
+            POLICY_ANNOUNCE: 'policyAnnounce',
+            POLICY_ADMINS: 'policyAdmins',
+            DOMAIN_ALL: 'domainAll',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -170,6 +192,8 @@ const CONST = {
         TIMEZONE: 'timeZone',
         FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
+        FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
+        BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},

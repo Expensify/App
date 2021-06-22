@@ -2,6 +2,8 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
+import Str from 'expensify-common/lib/str';
+import moment from 'moment';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
@@ -17,6 +19,7 @@ import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Growl from '../../libs/Growl';
+import {isValidAddress, isValidDate, isValidIndustryCode} from '../../libs/ValidationUtils';
 
 class CompanyStep extends React.Component {
     constructor(props) {
@@ -28,14 +31,14 @@ class CompanyStep extends React.Component {
             companyName: lodashGet(props, ['achData', 'companyName'], ''),
             addressStreet: lodashGet(props, ['achData', 'addressStreet'], ''),
             addressCity: lodashGet(props, ['achData', 'addressCity'], ''),
-            addressState: lodashGet(props, ['achData', 'addressState'], ''),
+            addressState: lodashGet(props, ['achData', 'addressState']) || 'AK',
             addressZipCode: lodashGet(props, ['achData', 'addressZipCode'], ''),
             companyPhone: lodashGet(props, ['achData', 'companyPhone'], ''),
             website: lodashGet(props, ['achData', 'website'], ''),
             companyTaxID: lodashGet(props, ['achData', 'companyTaxID'], ''),
             incorporationType: lodashGet(props, ['achData', 'incorporationType'], ''),
             incorporationDate: lodashGet(props, ['achData', 'incorporationDate'], ''),
-            incorporationState: lodashGet(props, ['achData', 'incorporationState'], ''),
+            incorporationState: lodashGet(props, ['achData', 'incorporationState']) || 'AK',
             industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
@@ -43,9 +46,43 @@ class CompanyStep extends React.Component {
     }
 
     validate() {
-        // @TODO check more than just the password
         if (!this.state.password.trim()) {
-            Growl.show(this.props.translate('common.passwordCannotBeBlank'), CONST.GROWL.ERROR);
+            Growl.error(this.props.translate('common.passwordCannotBeBlank'));
+            return false;
+        }
+
+        if (!isValidAddress(this.state.addressStreet)) {
+            Growl.error(this.props.translate('bankAccount.error.addressStreet'));
+            return false;
+        }
+
+        if (!CONST.REGEX.ZIP_CODE.test(this.state.addressZipCode)) {
+            Growl.error(this.props.translate('bankAccount.error.zipCode'));
+            return false;
+        }
+
+        if (!Str.isValidURL(this.state.website)) {
+            Growl.error(this.props.translate('bankAccount.error.website'));
+            return false;
+        }
+
+        if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
+            Growl.error(this.props.translate('bankAccount.error.taxID'));
+            return false;
+        }
+
+        if (!isValidDate(this.state.incorporationDate)) {
+            Growl.error(this.props.translate('bankAccount.error.incorporationDate'));
+            return false;
+        }
+
+        if (!isValidIndustryCode(this.state.industryCode)) {
+            Growl.error(this.props.translate('bankAccount.error.industryCode'));
+            return false;
+        }
+
+        if (!this.state.hasNoConnectionToCannabis) {
+            Growl.error(this.props.translate('bankAccount.error.restrictedBusiness'));
             return false;
         }
 
@@ -57,7 +94,8 @@ class CompanyStep extends React.Component {
             return;
         }
 
-        setupWithdrawalAccount({...this.state});
+        const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
+        setupWithdrawalAccount({...this.state, incorporationDate});
     }
 
     render() {
@@ -117,6 +155,7 @@ class CompanyStep extends React.Component {
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                             onChangeText={companyPhone => this.setState({companyPhone})}
                             value={this.state.companyPhone}
+                            placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         />
                         <TextInputWithLabel
                             label={this.props.translate('companyStep.companyWebsite')}
@@ -148,6 +187,7 @@ class CompanyStep extends React.Component {
                                     label={this.props.translate('companyStep.incorporationDate')}
                                     onChangeText={incorporationDate => this.setState({incorporationDate})}
                                     value={this.state.incorporationDate}
+                                    placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                                 />
                             </View>
                             <View style={[styles.flex1]}>
@@ -175,6 +215,7 @@ class CompanyStep extends React.Component {
                             textContentType="password"
                             onChangeText={password => this.setState({password})}
                             value={this.state.password}
+                            onSubmitEditing={this.submit}
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}

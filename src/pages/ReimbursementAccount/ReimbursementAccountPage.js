@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
@@ -16,6 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import Text from '../../components/Text';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
@@ -23,6 +24,7 @@ import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import BeneficialOwnersStep from './BeneficialOwnersStep';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 
 const propTypes = {
     /** List of betas */
@@ -42,6 +44,9 @@ const propTypes = {
             /** Step of the setup flow that we are on. Determines which view is presented. */
             currentStep: PropTypes.string,
         }),
+
+        /** Disable validation button if max attempts exceeded */
+        maxAttemptsReached: PropTypes.bool,
     }),
 
     /** Current session for the user */
@@ -109,10 +114,11 @@ class ReimbursementAccountPage extends React.Component {
             return <FullScreenLoadingIndicator visible />;
         }
 
+        let errorComponent;
         const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
 
         if (userHasPhonePrimaryEmail) {
-            return (
+            errorComponent = (
                 <View style={[styles.m5]}>
                     <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
                 </View>
@@ -123,7 +129,7 @@ class ReimbursementAccountPage extends React.Component {
         if (throttledDate) {
             const throttledEnd = moment().add(24, 'hours');
             if (moment() < throttledEnd) {
-                return (
+                errorComponent = (
                     <View style={[styles.m5]}>
                         <Text>
                             {this.props.translate('bankAccount.hasBeenThrottledError', {
@@ -135,6 +141,21 @@ class ReimbursementAccountPage extends React.Component {
             }
         }
 
+        if (errorComponent) {
+            return (
+                <ScreenWrapper>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('bankAccount.addBankAccount')}
+                        onCloseButtonPress={Navigation.dismissModal}
+                    />
+                    {errorComponent}
+                </ScreenWrapper>
+            );
+        }
+
+        const error = lodashGet(this.props, 'reimbursementAccount.error');
+        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
+
         // We grab the currentStep from the achData to determine which view to display. The SetupWithdrawalAccount flow
         // allows us to continue the flow from various points depending on where the user left off. We can also
         // specify a specific step to navigate to by using route params.
@@ -144,19 +165,26 @@ class ReimbursementAccountPage extends React.Component {
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
-                        <BankAccountStep achData={achData} />
+                        <BankAccountStep
+                            achData={achData}
+                            isPlaidDisabled={this.props.reimbursementAccount.isPlaidDisabled}
+                        />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
                         <CompanyStep achData={achData} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
-                        <RequestorStep />
+                        <RequestorStep achData={achData} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
                         <BeneficialOwnersStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                        <ValidationStep />
+                        <ValidationStep
+                            achData={this.props.reimbursementAccount.achData}
+                            maxAttemptsReached={maxAttemptsReached}
+                            error={error}
+                        />
                     )}
                 </KeyboardAvoidingView>
             </ScreenWrapper>

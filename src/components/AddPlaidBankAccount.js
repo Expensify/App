@@ -96,12 +96,9 @@ class AddPlaidBankAccount extends React.Component {
 
     render() {
         const accounts = this.getAccounts();
-        const options = _.chain(accounts)
-            .filter(account => !account.alreadyExists)
-            .map((account, index) => ({
-                value: index, label: `${account.addressName} ${account.accountNumber}`,
-            }))
-            .value();
+        const options = _.map(accounts, (account, index) => ({
+            value: index, label: `${account.addressName} ${account.accountNumber}`,
+        }));
 
         return (
             <>
