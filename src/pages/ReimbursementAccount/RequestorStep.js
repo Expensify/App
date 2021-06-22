@@ -66,7 +66,6 @@ class RequestorStep extends React.Component {
         if (!this.validate()) {
             return;
         }
-
         setupWithdrawalAccount({...this.state});
     }
 
