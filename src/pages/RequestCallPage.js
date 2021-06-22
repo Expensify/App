@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import styles from '../styles/styles';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
