@@ -368,6 +368,14 @@ export default {
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
         companyPhonePlaceholder: '10 dígitos, sin guiones',
     },
+    validationStep: {
+        headerTitle: 'Validar',
+        buttonText: 'Finalizar Configuración',
+        maxAttemptError: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos. Por favor contáctenos.',
+        description: 'Uno o dos días después de agregar su cuenta a Expensify, enviamos tres (3) transacciones a su cuenta. Tienen una línea comercial como "Expensify, Inc. Validation"',
+        descriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación. Ejemplo: 1.51',
+        verifyingDescription: 'Estamos revisando su información y lo llevaremos a los siguientes pasos en solo unos segundos.',
+    },
     requestCallPage: {
         requestACall: 'Llámame por teléfono',
         description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte.',
