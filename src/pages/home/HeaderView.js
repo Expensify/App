@@ -124,7 +124,7 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
-                                    shouldUseReportTitle={isDefaultChatRoom}
+                                    shouldUseFullTitle={isDefaultChatRoom}
                                 />
                                 {subTitle && (
                                     <Text
