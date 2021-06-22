@@ -68,10 +68,19 @@ class AddSecondaryLoginPage extends Component {
         this.state = {
             login: '',
             password: '',
+            didScreenTransitionEnd: false,
         };
         this.formType = props.route.params.type;
         this.submitForm = this.submitForm.bind(this);
         this.validateForm = this.validateForm.bind(this);
+
+        this.phoneNumberInputRef = null;
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (!prevState.didScreenTransitionEnd && this.state.didScreenTransitionEnd) {
+            this.phoneNumberInputRef.focus();
+        }
     }
 
     componentWillUnmount() {
@@ -103,68 +112,75 @@ class AddSecondaryLoginPage extends Component {
     render() {
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
-                            ? 'addSecondaryLoginPage.addPhoneNumber'
-                            : 'addSecondaryLoginPage.addEmailAddress')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <Text style={[styles.mb6, styles.textP]}>
-                            {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
-                                ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
-                                : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
-                        </Text>
-                        <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
-                                    ? 'common.phoneNumber'
-                                    : 'profilePage.emailAddress')}
-                            </Text>
-                            <TextInput
-                                style={styles.textInput}
-                                value={this.state.login}
-                                onChangeText={login => this.setState({login})}
-                                autoFocus
-                                keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
-                                    ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
-                                returnKeyType="done"
+                {({didScreenTransitionEnd}) => {
+                    if (didScreenTransitionEnd && !this.state.didScreenTransitionEnd) {
+                        this.setState({didScreenTransitionEnd});
+                    }
+                    return (
+                        <KeyboardAvoidingView>
+                            <HeaderWithCloseButton
+                                title={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                    ? 'addSecondaryLoginPage.addPhoneNumber'
+                                    : 'addSecondaryLoginPage.addEmailAddress')}
+                                shouldShowBackButton
+                                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                                onCloseButtonPress={() => Navigation.dismissModal()}
                             />
-                        </View>
-                        <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {this.props.translate('common.password')}
-                            </Text>
-                            <TextInput
-                                style={styles.textInput}
-                                value={this.state.password}
-                                onChangeText={password => this.setState({password})}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                onSubmitEditing={this.submitForm}
-                            />
-                        </View>
-                        {!_.isEmpty(this.props.user.error) && (
-                            <Text style={styles.formError}>
-                                {this.props.user.error}
-                            </Text>
-                        )}
-                    </ScrollView>
-                    <FixedFooter style={[styles.flexGrow0]}>
-                        <Button
-                            success
-                            style={[styles.mb2]}
-                            isDisabled={this.validateForm()}
-                            isLoading={this.props.user.loading}
-                            text={this.props.translate('addSecondaryLoginPage.sendValidation')}
-                            onPress={this.submitForm}
-                        />
-                    </FixedFooter>
-                </KeyboardAvoidingView>
+                            <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                                <Text style={[styles.mb6, styles.textP]}>
+                                    {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                        ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
+                                        : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
+                                </Text>
+                                <View style={styles.mb6}>
+                                    <Text style={[styles.mb1, styles.formLabel]}>
+                                        {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                                            ? 'common.phoneNumber'
+                                            : 'profilePage.emailAddress')}
+                                    </Text>
+                                    <TextInput
+                                        ref={e => this.phoneNumberInputRef = e}
+                                        style={styles.textInput}
+                                        value={this.state.login}
+                                        onChangeText={login => this.setState({login})}
+                                        keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
+                                            ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
+                                        returnKeyType="done"
+                                    />
+                                </View>
+                                <View style={styles.mb6}>
+                                    <Text style={[styles.mb1, styles.formLabel]}>
+                                        {this.props.translate('common.password')}
+                                    </Text>
+                                    <TextInput
+                                        style={styles.textInput}
+                                        value={this.state.password}
+                                        onChangeText={password => this.setState({password})}
+                                        secureTextEntry
+                                        autoCompleteType="password"
+                                        textContentType="password"
+                                        onSubmitEditing={this.submitForm}
+                                    />
+                                </View>
+                                {!_.isEmpty(this.props.user.error) && (
+                                    <Text style={styles.formError}>
+                                        {this.props.user.error}
+                                    </Text>
+                                )}
+                            </ScrollView>
+                            <FixedFooter style={[styles.flexGrow0]}>
+                                <Button
+                                    success
+                                    style={[styles.mb2]}
+                                    isDisabled={this.validateForm()}
+                                    isLoading={this.props.user.loading}
+                                    text={this.props.translate('addSecondaryLoginPage.sendValidation')}
+                                    onPress={this.submitForm}
+                                />
+                            </FixedFooter>
+                        </KeyboardAvoidingView>
+                    );
+                }}
             </ScreenWrapper>
         );
     }
