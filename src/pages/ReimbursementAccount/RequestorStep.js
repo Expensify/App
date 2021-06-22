@@ -73,7 +73,7 @@ class RequestorStep extends React.Component {
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY_STEP)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                { this.props.achData.useOnfido && this.props.achData.sdkToken ? (
+                {this.props.achData.useOnfido && this.props.achData.sdkToken ? (
                     <Onfido
                         sdkToken={this.props.achData.sdkToken}
                         onUserExit={() => {
@@ -81,10 +81,9 @@ class RequestorStep extends React.Component {
                         }}
                         onSuccess={(onfidoData) => {
                             this.setState({
-                                onFidoData: JSON.stringify(onfidoData),
+                                onfidoData,
                                 isOnfidoSetupComplete: true,
-                            });
-                            this.submit();
+                            }, this.submit);
                         }}
                     />
                 ) : (
