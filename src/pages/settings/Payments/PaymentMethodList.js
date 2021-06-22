@@ -4,17 +4,36 @@ import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, View} from 'react-native';
 import MenuItem from '../../../components/MenuItem';
+import compose from '../../../libs/compose';
+import withLocalize from '../../../components/withLocalize';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
+import {Bank, Plus} from '../../../components/Icon/Expensicons';
 
 const propTypes = {
-    // Same as FlatList can be any array of anything
-    data: PropTypes.arrayOf(PropTypes.any),
-
     // What to do when a menu item is pressed
     onPress: PropTypes.func.isRequired,
+
+    // Users paypal.me username if they have one
+    payPalMeUsername: PropTypes.string,
+
+    // Array of bank account objects
+    bankAccountList: PropTypes.arrayOf(PropTypes.shape({
+        addressName: PropTypes.string,
+        accountNubmer: PropTypes.string,
+    })),
+
+    // Array of card objects
+    cardList: PropTypes.arrayOf(PropTypes.shape({
+        cardName: PropTypes.string,
+        accountNumber: PropTypes.string,
+    })),
 };
 
 const defaultProps = {
-    data: [],
+    payPalMeUsername: '',
+    bankAccountList: [],
+    cardList: [],
 };
 
 class PaymentMethodList extends Component {
@@ -38,7 +57,7 @@ class PaymentMethodList extends Component {
     renderItem({item, index}) {
         return (
             <MenuItem
-                onPress={() => this.props.onPress(index)}
+                onPress={() => item.onPress}
                 title={item.primaryText}
                 icon={item.icon}
                 key={`paymentMethod-${index}`}
@@ -47,10 +66,45 @@ class PaymentMethodList extends Component {
     }
 
     render() {
+        const combinedPaymentMethods = [];
+        if (this.props.payPalMeUsername) {
+            combinedPaymentMethods[0] = {
+                primaryText: 'PayPal.me',
+                secondaryText: this.props.payPalMeUsername,
+                icon: Bank,
+                onPress: () => this.props.onPress('payPalMe'),
+            };
+        }
+
+        _.each(this.props.bankAccountList, (bankAccount) => {
+            combinedPaymentMethods.push({
+                primaryText: bankAccount.addressName,
+                secondaryText: `Account ending in ${bankAccount.accountNumber.slice(-4)}`,
+                icon: Bank,
+                onPress: () => this.props.onPress(bankAccount.bankAccountID),
+            });
+        });
+
+        _.each(this.props.cardList, (card) => {
+            if (card.cardName !== '__CASH__') {
+                combinedPaymentMethods.push({
+                    primaryText: card.cardName,
+                    secondaryText: `Card ending in ${card.cardNumber.slice(-4)}`,
+                    icon: Bank,
+                    onPress: () => this.props.onPress(card.cardID),
+                });
+            }
+        });
+
+        combinedPaymentMethods.push({
+            primaryText: 'Add Payment Method',
+            icon: Plus,
+        });
+
         return (
             <FlatList
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
+                data={combinedPaymentMethods}
                 inverted
                 renderItem={this.renderItem}
                 bounces
@@ -63,7 +117,20 @@ class PaymentMethodList extends Component {
 PaymentMethodList.propTypes = propTypes;
 PaymentMethodList.defaultProps = defaultProps;
 
-export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <PaymentMethodList {...props} innerRef={ref} />
-));
+export default compose(
+    withLocalize,
+    withOnyx({
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
+        },
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+        },
+    }),
+)(PaymentMethodList);

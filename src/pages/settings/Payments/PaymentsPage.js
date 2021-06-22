@@ -21,16 +21,9 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import getPaymentMethods from '../../../libs/actions/PaymentMethods';
-import {Bank} from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    payPalMeUsername: '',
-    bankAccountList: [],
-    cardList: [],
 };
 
 class PaymentsPage extends React.Component {
@@ -51,10 +44,10 @@ class PaymentsPage extends React.Component {
         getPaymentMethods();
     }
 
-    paymentMethodPressed(index) {
+    paymentMethodPressed(account) {
         this.setState({
             showDefaultOrDeleteMenu: true,
-            selectedPaymentMethodIndex: index,
+            selectedPaymentMethod: account,
         });
     }
 
@@ -63,33 +56,6 @@ class PaymentsPage extends React.Component {
     }
 
     render() {
-        const combinedPaymentMethods = [];
-        if (this.props.payPalMeUsername) {
-            combinedPaymentMethods[0] = {
-                primaryText: 'PayPal.me',
-                secondaryText: this.props.payPalMeUsername,
-                icon: Bank,
-            };
-        }
-
-        _.each(this.props.bankAccountList, (bankAccount) => {
-            combinedPaymentMethods.push({
-                primaryText: bankAccount.addressName,
-                secondaryText: `Account ending in ${bankAccount.accountNumber.slice(-4)}`,
-                icon: Bank,
-            });
-        });
-
-        _.each(this.props.cardList, (card) => {
-            if (card.cardName !== '__CASH__') {
-                combinedPaymentMethods.push({
-                    primaryText: card.cardName,
-                    secondaryText: `Card ending in ${card.cardNumber.slice(-4)}`,
-                    icon: Bank,
-                });
-            }
-        });
-
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -101,7 +67,6 @@ class PaymentsPage extends React.Component {
                     />
                     <View style={[styles.flex1, styles.p5]}>
                         <PaymentMethodList
-                            data={combinedPaymentMethods}
                             onPress={this.paymentMethodPressed}
                         />
                     </View>
@@ -119,23 +84,8 @@ class PaymentsPage extends React.Component {
 }
 
 PaymentsPage.propTypes = propTypes;
-PaymentsPage.defaultProps = defaultProps;
 PaymentsPage.displayName = 'PaymentsPage';
 
 export default compose(
     withLocalize,
-    withOnyx({
-        bankAccountList: {
-            key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-        },
-    }),
 )(PaymentsPage);
