@@ -188,10 +188,6 @@ export default {
         paddingVertical: 20,
     },
 
-    pv8: {
-        paddingVertical: 32,
-    },
-
     ph0: {
         paddingHorizontal: 0,
     },
