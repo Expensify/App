@@ -96,10 +96,10 @@ class RequestorStep extends React.Component {
                                     values={{
                                         firstName: this.state.firstName,
                                         lastName: this.state.lastName,
-                                        street: this.state.street,
-                                        city: this.state.city,
-                                        state: this.state.state,
-                                        zipCode: this.state.zipCode,
+                                        street: this.state.requestorAddressStreet,
+                                        city: this.state.requestorAddressCity,
+                                        state: this.state.requestorAddressCity,
+                                        zipCode: this.state.requestorAddressZipCode,
                                         dob: this.state.dob,
                                         ssnLast4: this.state.ssnLast4,
                                     }}
