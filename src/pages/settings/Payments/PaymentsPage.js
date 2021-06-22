@@ -36,10 +36,24 @@ const defaultProps = {
 class PaymentsPage extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            showDefaultOrDeleteMenu: false,
+            selectedPaymentMethodIndex: null,
+        };
+
+        this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
     }
 
     componentDidMount() {
         getPaymentMethods();
+    }
+
+    paymentMethodPressed(index) {
+        this.setState({
+            showDefaultOrDeleteMenu: true,
+            selectedPaymentMethodIndex: index,
+        });
     }
 
     render() {
