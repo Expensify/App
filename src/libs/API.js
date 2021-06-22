@@ -853,6 +853,12 @@ function BankAccount_Create(parameters) {
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
+function BankAccount_Validate(parameters) {
+    const commandName = 'ValidateBankAccount';
+    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
+}
+
 /**
  * @param {*} parameters
  * @returns {Promise}
@@ -912,9 +918,9 @@ function Mobile_GetConstants(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {number} [parameters.latitude]
- * @param {number} [parameters.longitude]
+ * @param {Object} parameters
+ * @param {Number} [parameters.latitude]
+ * @param {Number} [parameters.longitude]
  * @returns {Promise}
  */
 function GetPreferredCurrency(parameters) {
@@ -936,11 +942,38 @@ function User_IsUsingExpensifyCard() {
     return Network.post('User_IsUsingExpensifyCard', {});
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} [parameters.type]
+ * @param {String} [parameters.policyName]
+ * @returns {Promise}
+ */
+function Policy_Create(parameters) {
+    const commandName = 'Policy_Create';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.taskID
+ * @param {String} parameters.policyID
+ * @param {String} parameters.firstName
+ * @param {String} parameters.lastName
+ * @param {String} parameters.phoneNumber
+ * @returns {Promise}
+ */
+function Inbox_CallUser(parameters) {
+    const commandName = 'Inbox_CallUser';
+    requireParameters(['taskID', 'policyID', 'firstName', 'lastName', 'phoneNumber'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
+    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -952,6 +985,7 @@ export {
     GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
+    Inbox_CallUser,
     Log,
     PayIOU,
     PayWithWallet,
@@ -986,4 +1020,5 @@ export {
     Wallet_GetOnfidoSDKToken,
     GetPreferredCurrency,
     GetCurrencyList,
+    Policy_Create,
 };

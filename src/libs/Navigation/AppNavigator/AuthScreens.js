@@ -30,6 +30,7 @@ import NameValuePair from '../../actions/NameValuePair';
 import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
+import Permissions from '../../Permissions';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -94,11 +95,15 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
+    betas: [],
 };
 
 class AuthScreens extends React.Component {
@@ -128,8 +133,11 @@ class AuthScreens extends React.Component {
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
-        getPolicySummaries();
-        getPolicyList();
+
+        if (Permissions.canUseFreePlan(this.props.betas)) {
+            getPolicySummaries();
+            getPolicyList();
+        }
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -310,6 +318,9 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(AuthScreens);

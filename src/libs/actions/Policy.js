@@ -1,11 +1,15 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import {GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge} from '../API';
+import {
+    GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge, Policy_Create,
+} from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import {formatPersonalDetails} from './PersonalDetails';
 import Growl from '../Growl';
 import CONST from '../../CONST';
-import {translate} from '../translate';
+import {translateLocal} from '../translate';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const allPolicies = {};
 Onyx.connect({
@@ -17,27 +21,23 @@ Onyx.connect({
     },
 });
 
-let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: (preferredLocale) => {
-        if (preferredLocale) {
-            translateLocal = (phrase, variables) => translate(preferredLocale, phrase, variables);
-        }
-    },
-});
-
 /**
  * Takes a full policy summary that is returned from the policySummaryList and simplifies it so we are only storing
  * the pieces of data that we need to in Onyx
  *
  * @param {Object} fullPolicy
+ * @param {String} fullPolicy.id
  * @param {String} fullPolicy.name
+ * @param {String} fullPolicy.role
+ * @param {String} fullPolicy.type
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicy) {
     return {
+        id: fullPolicy.id,
         name: fullPolicy.name,
+        role: fullPolicy.role,
+        type: fullPolicy.type,
     };
 }
 
@@ -132,7 +132,31 @@ function invite(login, welcomeNote, policyID) {
                 errorMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
 
-            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+            Growl.error(errorMessage, 5000);
+        });
+}
+
+/**
+ * Merges the passed in login into the specified policy
+ *
+ * @param {String} name
+ */
+function create(name) {
+    Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
+                Growl.error(errorMessage, 5000);
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+                id: response.policyID,
+                type: response.policy.type,
+                name: response.policy.name,
+            });
+            Navigation.navigate(ROUTES.getWorkspaceRoute(response.policyID));
         });
 }
 
@@ -140,4 +164,5 @@ export {
     getPolicySummaries,
     getPolicyList,
     invite,
+    create,
 };
