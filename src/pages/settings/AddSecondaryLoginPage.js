@@ -104,7 +104,12 @@ class AddSecondaryLoginPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper onTransitionEnd={() => this.phoneNumberInputRef.focus()}>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (this.phoneNumberInputRef) {
+                    this.phoneNumberInputRef.focus();
+                }
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
@@ -127,7 +132,7 @@ class AddSecondaryLoginPage extends Component {
                                     : 'profilePage.emailAddress')}
                             </Text>
                             <TextInput
-                                ref={e => this.phoneNumberInputRef = e}
+                                ref={el => this.phoneNumberInputRef = el}
                                 style={styles.textInput}
                                 value={this.state.login}
                                 onChangeText={login => this.setState({login})}
