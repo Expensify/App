@@ -375,9 +375,9 @@ export default {
         isMyDataSafe: 'Is my data safe?',
         onFidoConditions: 'By continuing with the request to add this bank account, you confirm that you have read, understand and accept ',
         onFidoFacialScan: 'Onfido’s Facial Scan Policy and Release',
-        requestorAddressStreet: 'Your Personal Address',
         ssnLast4: 'Last 4 Digits of SSN',
-        isAuthorized: 'I am authorized to use my company bank account for business spend',
+        isControllingOfficer: 'I am authorized to use my company bank account for business spend',
+        isControllingOfficerError: 'You must be a controlling officer with authorization to operate the business bank account.',
     },
     validationStep: {
         headerTitle: 'Validate',
