@@ -399,4 +399,14 @@ export default {
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
         },
     },
+    requestCallPage: {
+        requestACall: 'Request a Call',
+        description: 'Need help with your account configuration? Our team of guides are on hand to help you each step of the way.',
+        instructions: 'Type in your name and phone number, and we’ll give you a call back.',
+        availabilityText: '*Our guides are available from Sunday at 5pm CT to Friday at 5pm CT. Any requests outside this window will be returned 9am - 5pm, Monday - Friday in your local time. Call time is based on the order the call was received.',
+        callMe: 'Call Me',
+        growlMessageOnSave: 'Call requested.',
+        growlMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code.\ne.g. +15005550006',
+        growlMessageEmptyName: 'Please provide both a first and last name so our Guides know how to address you!',
+    },
 };
