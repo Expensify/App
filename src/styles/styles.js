@@ -122,6 +122,10 @@ const styles = {
         color: themeColors.heading,
     },
 
+    textDanger: {
+        color: colors.red,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
