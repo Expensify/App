@@ -14,15 +14,14 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
+import {isValidIdentity} from '../../libs/ValidationUtils';
+import Growl from '../../libs/Growl';
 
 const propTypes = {
-    companyName: PropTypes.string,
+    /** Name of the company */
+    companyName: PropTypes.string.isRequired,
 
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    companyName: 'Company Name',
 };
 
 class BeneficialOwnersStep extends React.Component {
@@ -39,6 +38,30 @@ class BeneficialOwnersStep extends React.Component {
             certifyTrueInformation: false,
             beneficialOwners: [],
         };
+    }
+
+    validate() {
+        if (this.state.hasOtherBeneficialOwners) {
+            const invalidBeneficifialOwner = _.find(this.state.beneficialOwners, owner => (
+                !isValidIdentity(owner)
+            ));
+
+            if (invalidBeneficifialOwner) {
+                return false;
+            }
+        }
+
+        if (!this.state.acceptTermsAndConditions) {
+            Growl.error('Must accept the terms and conditions');
+            return false;
+        }
+
+        if (!this.state.certifyTrueInformation) {
+            Growl.error('Must certify information is true and accurate');
+            return false;
+        }
+
+        return true;
     }
 
     removeBeneficialOwner(beneficialOwner) {
@@ -58,7 +81,18 @@ class BeneficialOwnersStep extends React.Component {
     }
 
     submit() {
-        setupWithdrawalAccount({...this.state});
+        if (!this.validate()) {
+            return;
+        }
+
+        // If they did not select that there are other beneficial owners, then we need to clear out the array here. The
+        // reason we do it here is that if they filled out several beneficial owners, but then toggled the checkbox, we
+        // want the data to remain in the form so we don't lose the user input until they submit the form. This will
+        // prevent the data from being sent to the API
+        this.setState(prevState => ({
+            beneficialOwners: !prevState.hasOtherBeneficialOwners ? [] : prevState.beneficialOwners,
+        }),
+        () => setupWithdrawalAccount({...this.state}));
     }
 
     render() {
@@ -193,6 +227,5 @@ class BeneficialOwnersStep extends React.Component {
 }
 
 BeneficialOwnersStep.propTypes = propTypes;
-BeneficialOwnersStep.defaultProps = defaultProps;
 
 export default withLocalize(BeneficialOwnersStep);
