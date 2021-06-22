@@ -1,7 +1,9 @@
+import _ from 'underscore';
 import React from 'react';
 import {TextInput, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import PaymentMethodList from './paymentMethodList';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
@@ -18,16 +20,17 @@ import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
+import getPaymentMethods from '../../../libs/actions/PaymentMethods';
+import {Bank} from '../../../components/Icon/Expensicons';
 
 const propTypes = {
-    /** Username for PayPal.Me */
-    payPalMeUsername: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     payPalMeUsername: '',
+    bankAccountList: [],
+    cardList: [],
 };
 
 class PaymentsPage extends React.Component {
@@ -40,6 +43,34 @@ class PaymentsPage extends React.Component {
     }
 
     render() {
+        const combinedPaymentMethods = [];
+        if (this.props.payPalMeUsername) {
+            combinedPaymentMethods[0] = {
+                primaryText: 'PayPal.me',
+                secondaryText: this.props.payPalMeUsername,
+                icon: Bank,
+            };
+        }
+
+        _.each(this.props.bankAccountList, (bankAccount) => {
+            combinedPaymentMethods.push({
+                primaryText: bankAccount.addressName,
+                secondaryText: `Account ending in ${bankAccount.accountNumber.slice(-4)}`,
+                icon: Bank,
+            });
+        });
+
+        _.each(this.props.cardList, (card) => {
+            if (card.cardName !== '__CASH__') {
+                combinedPaymentMethods.push({
+                    primaryText: card.cardName,
+                    secondaryText: `Card ending in ${card.cardNumber.slice(-4)}`,
+                    icon: Bank,
+                });
+            }
+        });
+
+        debugger;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -50,31 +81,16 @@ class PaymentsPage extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <View style={[styles.flex1, styles.p5]}>
-                        <View style={[styles.flex1]}>
-                            <Text style={[styles.textP, styles.mb4]}>
-                                {this.props.translate('paymentsPage.enterYourUsernameToGetPaidViaPayPal')}
-                            </Text>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('paymentsPage.payPalMe')}
-                            </Text>
-                            <TextInput
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                style={[styles.textInput]}
-                                value={this.state.payPalMeUsername}
-                                placeholder={this.props.translate('paymentsPage.yourPayPalUsername')}
-                                onChangeText={text => this.setState({payPalMeUsername: text})}
-                                editable={!this.props.payPalMeUsername}
-                            />
-                        </View>
+                        <PaymentMethodList
+                            data={combinedPaymentMethods}
+                            onPress={this.paymentMethodPressed}
+                        />
                     </View>
                     <FixedFooter>
                         <Button
                             success
-                            isDisabled={!this.state.payPalMeUsername}
-                            onPress={this.setPayPalMeUsername}
                             style={[styles.mt3]}
-                            text={this.props.translate('paymentsPage.addPayPalAccount')}
+                            text={this.props.translate('addPayPalMePage.addPayPalAccount')}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
@@ -98,6 +114,9 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
+        },
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(PaymentsPage);
