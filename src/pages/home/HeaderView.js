@@ -85,7 +85,10 @@ const HeaderView = (props) => {
 
     const subTitle = isDefaultChatRoom
         && lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'name'], 'Unknown Policy');
-    const isConcierge = participants.length === 2 && participants.includes(CONST.EMAIL.CONCIERGE);
+    const isConcierge = participants.length === 1 && participants.includes(CONST.EMAIL.CONCIERGE);
+
+    console.log(">>>>", participants);
+
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>

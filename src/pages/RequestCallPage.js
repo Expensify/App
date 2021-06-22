@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {Text} from 'react-native';
 
 // NOTE: suppressing, since this will need to be a class component eventually
 // eslint-disable-next-line react/prefer-stateless-function
