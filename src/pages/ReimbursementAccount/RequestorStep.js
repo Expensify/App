@@ -55,7 +55,12 @@ class RequestorStep extends React.Component {
             return false;
         }
 
-        if (!isValidIdentity({...this.state})) {
+        if (!isValidIdentity({
+            street: this.state.requestorAddressStreet,
+            zipCode: this.state.requestorAddressZipCode,
+            dob: this.state.dob,
+            ssnLast4: this.state.ssnLast4,
+        })) {
             return false;
         }
 
