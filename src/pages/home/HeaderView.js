@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View, Pressable, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
