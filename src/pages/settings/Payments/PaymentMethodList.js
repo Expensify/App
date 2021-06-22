@@ -1,12 +1,12 @@
 /* eslint-disable react/jsx-props-no-multi-spaces */
 import _ from 'underscore';
-import React, {forwardRef, Component} from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {FlatList, View} from 'react-native';
+import {FlatList} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {Bank, Plus} from '../../../components/Icon/Expensicons';
 
