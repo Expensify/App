@@ -6,10 +6,25 @@ const CONST = {
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
     },
+    DATE: {
+        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+    },
     SMS: {
         DOMAIN: '@expensify.sms',
     },
     BANK_ACCOUNT: {
+        PLAID: {
+            ALLOWED_THROTTLED_COUNT: 2,
+            ERROR: {
+                TOO_MANY_ATTEMPTS: 'Too many attempts',
+            },
+        },
+        ERROR: {
+            MISSING_ROUTING_NUMBER: '402 Missing routingNumber',
+            MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
+            MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
+            MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
+        },
         STEP: {
             // In the order they appear in the VBA flow
             BANK_ACCOUNT: 'BankAccountStep',
@@ -71,6 +86,7 @@ const CONST = {
         HOVERED: 'hovered',
         PRESSED: 'pressed',
         COMPLETE: 'complete',
+        DISABLED: 'disabled',
     },
     COUNTRY: {
         US: 'US',
@@ -177,6 +193,7 @@ const CONST = {
         FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
         FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
+        BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
@@ -291,6 +308,10 @@ const CONST = {
         US_PHONE: /^\+1\d{10}$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
+        PO_BOX: /\\b[P|p]?(OST|ost)?\\.?\\s*[O|o|0]?(ffice|FFICE)?\\.?\\s*[B|b][O|o|0]?[X|x]?\\.?\\s+[#]?(\\d+)\\b/,
+        ANY_VALUE: /^.+$/,
+        ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
+        INDUSTRY_CODE: /^[0-9]{6}$/,
     },
 
     GROWL: {
