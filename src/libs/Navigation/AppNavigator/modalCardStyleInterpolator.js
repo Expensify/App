@@ -3,7 +3,7 @@ import variables from '../../../styles/variables';
 
 export default (
     isSmallScreenWidth,
-    isfullScreenModal,
+    isFullScreenModal,
     {
         current: {progress},
         inverted,
@@ -21,7 +21,7 @@ export default (
     const opacity = Animated.multiply(progress, inverted);
     const cardStyle = {};
 
-    if (isfullScreenModal && !isSmallScreenWidth) {
+    if (isFullScreenModal && !isSmallScreenWidth) {
         cardStyle.opacity = opacity;
     } else {
         cardStyle.transform = [{translateX}];

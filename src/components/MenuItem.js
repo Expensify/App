@@ -112,7 +112,9 @@ const MenuItem = ({
                                 src={icon}
                                 width={iconWidth}
                                 height={iconHeight}
-                                fill={iconFill || getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
+                                fill={iconFill || getIconFillColor(
+                                    getButtonState(focused || hovered, pressed, success, disabled),
+                                )}
                             />
                         </View>
                     )}
