@@ -21,8 +21,6 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
 import Picker from './Picker';
-import Icon from './Icon';
-import {DownArrow} from './Icon/Expensicons';
 import Text from './Text';
 
 const propTypes = {
@@ -98,12 +96,9 @@ class AddPlaidBankAccount extends React.Component {
 
     render() {
         const accounts = this.getAccounts();
-        const options = _.chain(accounts)
-            .filter(account => !account.alreadyExists)
-            .map((account, index) => ({
-                value: index, label: `${account.addressName} ${account.accountNumber}`,
-            }))
-            .value();
+        const options = _.map(accounts, (account, index) => ({
+            value: index, label: `${account.addressName} ${account.accountNumber}`,
+        }));
 
         return (
             <>
@@ -149,7 +144,6 @@ class AddPlaidBankAccount extends React.Component {
                                         label: this.props.translate('bankAccount.chooseAnAccount'),
                                     } : {}}
                                     value={this.state.selectedIndex}
-                                    icon={() => <Icon src={DownArrow} />}
                                 />
                             </View>
                             {!_.isUndefined(this.state.selectedIndex) && (

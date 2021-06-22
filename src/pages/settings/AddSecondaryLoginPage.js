@@ -14,7 +14,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Button from '../../components/Button';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
-import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
@@ -72,6 +72,8 @@ class AddSecondaryLoginPage extends Component {
         this.formType = props.route.params.type;
         this.submitForm = this.submitForm.bind(this);
         this.validateForm = this.validateForm.bind(this);
+
+        this.phoneNumberInputRef = null;
     }
 
     componentWillUnmount() {
@@ -102,7 +104,12 @@ class AddSecondaryLoginPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (this.phoneNumberInputRef) {
+                    this.phoneNumberInputRef.focus();
+                }
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
@@ -125,10 +132,10 @@ class AddSecondaryLoginPage extends Component {
                                     : 'profilePage.emailAddress')}
                             </Text>
                             <TextInput
+                                ref={el => this.phoneNumberInputRef = el}
                                 style={styles.textInput}
                                 value={this.state.login}
                                 onChangeText={login => this.setState({login})}
-                                autoFocus
                                 keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
                                     ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
                                 returnKeyType="done"
