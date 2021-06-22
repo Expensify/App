@@ -58,7 +58,8 @@ class PaymentMethodList extends Component {
         return (
             <MenuItem
                 onPress={() => item.onPress}
-                title={item.primaryText}
+                title={item.title}
+                description={item.description}
                 icon={item.icon}
                 key={`paymentMethod-${index}`}
             />
@@ -67,19 +68,25 @@ class PaymentMethodList extends Component {
 
     render() {
         const combinedPaymentMethods = [];
+
+        combinedPaymentMethods.push({
+            title: 'Add Payment Method',
+            icon: Plus,
+        });
+
         if (this.props.payPalMeUsername) {
-            combinedPaymentMethods[0] = {
-                primaryText: 'PayPal.me',
-                secondaryText: this.props.payPalMeUsername,
+            combinedPaymentMethods.push({
+                title: 'PayPal.me',
+                description: this.props.payPalMeUsername,
                 icon: Bank,
                 onPress: () => this.props.onPress('payPalMe'),
-            };
+            });
         }
 
         _.each(this.props.bankAccountList, (bankAccount) => {
             combinedPaymentMethods.push({
-                primaryText: bankAccount.addressName,
-                secondaryText: `Account ending in ${bankAccount.accountNumber.slice(-4)}`,
+                title: bankAccount.addressName,
+                description: `Account ending in ${bankAccount.accountNumber.slice(-4)}`,
                 icon: Bank,
                 onPress: () => this.props.onPress(bankAccount.bankAccountID),
             });
@@ -88,17 +95,12 @@ class PaymentMethodList extends Component {
         _.each(this.props.cardList, (card) => {
             if (card.cardName !== '__CASH__') {
                 combinedPaymentMethods.push({
-                    primaryText: card.cardName,
-                    secondaryText: `Card ending in ${card.cardNumber.slice(-4)}`,
+                    title: card.cardName,
+                    description: `Card ending in ${card.cardNumber.slice(-4)}`,
                     icon: Bank,
                     onPress: () => this.props.onPress(card.cardID),
                 });
             }
-        });
-
-        combinedPaymentMethods.push({
-            primaryText: 'Add Payment Method',
-            icon: Plus,
         });
 
         return (
