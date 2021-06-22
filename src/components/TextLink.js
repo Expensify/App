@@ -8,8 +8,8 @@ const propTypes = {
     /** Link to open in new tab */
     href: PropTypes.string.isRequired,
 
-    /** Text content child */
-    children: PropTypes.string.isRequired,
+    /** Text content child or <Text> as child */
+    children: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
 
     /** Additional style props */
     style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
