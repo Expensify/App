@@ -33,7 +33,7 @@ import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
-import NameEntryInputRow from '../../../components/NameEntryInputRow';
+import FullNameInputRow from '../../../components/FullNameInputRow';
 
 const propTypes = {
     /* Onyx Props */
@@ -307,7 +307,7 @@ class ProfilePage extends Component {
                         <Text style={[styles.mt6, styles.mb6, styles.textP]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
                         </Text>
-                        <NameEntryInputRow
+                        <FullNameInputRow
                             firstName={this.state.firstName}
                             lastName={this.state.lastName}
                             onChangeFirstName={firstName => this.setState({firstName})}

@@ -43,7 +43,7 @@ const defaultProps = {
     style: {},
 };
 
-const NameEntryInputRow = ({
+const FullNameInputRow = ({
     translate,
     onChangeFirstName, onChangeLastName,
     firstName, lastName,
@@ -82,7 +82,7 @@ const NameEntryInputRow = ({
     );
 }
 
-NameEntryInputRow.displayName = 'NameEntryInputRow';
-NameEntryInputRow.propTypes = propTypes;
-NameEntryInputRow.defaultProps = defaultProps;
-export default withLocalize(NameEntryInputRow);
+FullNameInputRow.displayName = 'FullNameInputRow';
+FullNameInputRow.propTypes = propTypes;
+FullNameInputRow.defaultProps = defaultProps;
+export default withLocalize(FullNameInputRow);
