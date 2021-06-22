@@ -1,9 +1,30 @@
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import Onyx from 'react-native-onyx';
 import Log from './Log';
 import Config from '../CONFIG';
 import translations from '../languages/translations';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
+
+/** Subscribe to the preferredLocale key so exports that do not use withLocalize can easily access the preferredLocale.
+ *
+ * @type {string}
+ */
+let preferredLocale = CONST.DEFAULT_LOCALE;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
+});
+
+/**
+ * Return the preferred locale
+ *
+ * @returns {String}
+ */
+function getPreferredLocale() {
+    return preferredLocale;
+}
 
 /**
  * Return translated string for given locale and phrase
@@ -54,8 +75,6 @@ function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
 }
 
 export {
-
-    // Ignoring this lint error in case of we want to export more functions from this library
-    // eslint-disable-next-line import/prefer-default-export
     translate,
+    getPreferredLocale,
 };
