@@ -32,6 +32,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -107,7 +108,11 @@ class ReportActionsView extends React.Component {
     componentDidMount() {
         AppState.addEventListener('change', this.onVisibilityChange);
         subscribeToReportTypingEvents(this.props.reportID);
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
+            if (ReportActionComposeFocusManager.isFocused()) {
+                this.scrollToListBottom();
+            }
+        });
         updateLastReadActionID(this.props.reportID);
 
         // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
@@ -248,7 +253,14 @@ class ReportActionsView extends React.Component {
     updateSortedReportActions(reportActions) {
         this.sortedReportActions = _.chain(reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'ADDCOMMENT' || action.actionName === 'IOU')
+            .filter((action) => {
+                // Only show non-empty ADDCOMMENT actions or IOU actions
+                // Empty ADDCOMMENT actions typically mean they have been deleted and should not be shown
+                const message = _.first(lodashGet(action, 'message', null));
+                const html = lodashGet(message, 'html', '');
+                return action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
+                    || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && html !== '');
+            })
             .map((item, index) => ({action: item, index}))
             .value()
             .reverse();
@@ -291,7 +303,7 @@ class ReportActionsView extends React.Component {
     updateMostRecentIOUReportActionNumber(reportActions) {
         this.mostRecentIOUReportSequenceNumber = _.chain(reportActions)
             .sortBy('sequenceNumber')
-            .filter(action => action.actionName === 'IOU')
+            .filter(action => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU)
             .max(action => action.sequenceNumber)
             .value().sequenceNumber;
     }

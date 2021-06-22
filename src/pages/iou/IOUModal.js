@@ -9,14 +9,18 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {createIOUSplit, createIOUTransaction, getPreferredCurrency} from '../../libs/actions/IOU';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import {createIOUSplit, createIOUTransaction} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -48,6 +52,9 @@ const propTypes = {
 
         /** Whether or not transaction creation has resulted to error */
         error: PropTypes.bool,
+
+        /** Flag to show a loading indicator and avoid showing a previously selected currency */
+        isRetrievingCurrency: PropTypes.bool,
     }).isRequired,
 
     /** Personal details of all the users */
@@ -93,6 +100,7 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
+        this.getReady = this.getReady.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
@@ -125,10 +133,6 @@ class IOUModal extends Component {
         }
     }
 
-    componentDidMount() {
-        getPreferredCurrency();
-    }
-
     componentDidUpdate(prevProps) {
         // Successfully close the modal if transaction creation has ended and there is no error
         if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
@@ -142,6 +146,10 @@ class IOUModal extends Component {
                 currencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
             });
         }
+    }
+
+    getReady() {
+        PersonalDetails.fetchCurrencyPreferences();
     }
 
     /**
@@ -239,7 +247,7 @@ class IOUModal extends Component {
                 comment: this.state.comment,
 
                 // should send in cents to API
-                amount: this.state.amount * 100,
+                amount: Math.round(this.state.amount * 100),
                 currency: this.state.selectedCurrency.currencyCode,
                 splits,
             });
@@ -250,7 +258,7 @@ class IOUModal extends Component {
             comment: this.state.comment,
 
             // should send in cents to API
-            amount: this.state.amount * 100,
+            amount: Math.round(this.state.amount * 100),
             currency: this.state.selectedCurrency.currencyCode,
             debtorEmail: this.state.participants[0].login,
         });
@@ -259,71 +267,86 @@ class IOUModal extends Component {
     render() {
         const currentStep = this.steps[this.state.currentStepIndex];
         return (
-            <>
-                <View style={[styles.headerBar, true && styles.borderBottom]}>
-                    <View style={[
-                        styles.dFlex,
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.flexGrow1,
-                        styles.justifyContentBetween,
-                        styles.overflowHidden,
-                    ]}
-                    >
-                        {this.state.currentStepIndex > 0
-                        && (
-                            <TouchableOpacity
-                                onPress={this.navigateToPreviousStep}
-                                style={[styles.touchableButtonImage]}
+            <ScreenWrapper onTransitionEnd={this.getReady}>
+                {({didScreenTransitionEnd}) => (
+                    <KeyboardAvoidingView>
+                        <View style={[styles.headerBar]}>
+                            <View style={[
+                                styles.dFlex,
+                                styles.flexRow,
+                                styles.alignItemsCenter,
+                                styles.flexGrow1,
+                                styles.justifyContentBetween,
+                                styles.overflowHidden,
+                            ]}
                             >
-                                <Icon src={BackArrow} />
-                            </TouchableOpacity>
-                        )}
-                        <Header title={this.getTitleForStep()} />
-                        <View style={[styles.reportOptions, styles.flexRow]}>
-                            <TouchableOpacity
-                                onPress={() => Navigation.dismissModal()}
-                                style={[styles.touchableButtonImage]}
-                            >
-                                <Icon src={Close} />
-                            </TouchableOpacity>
+                                {this.state.currentStepIndex > 0
+                                    && (
+                                        <TouchableOpacity
+                                            onPress={this.navigateToPreviousStep}
+                                            style={[styles.touchableButtonImage]}
+                                        >
+                                            <Icon src={BackArrow} />
+                                        </TouchableOpacity>
+                                    )}
+                                <Header title={this.getTitleForStep()} />
+                                <View style={[styles.reportOptions, styles.flexRow]}>
+                                    <TouchableOpacity
+                                        onPress={() => Navigation.dismissModal()}
+                                        style={[styles.touchableButtonImage]}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={this.props.translate('common.close')}
+                                    >
+                                        <Icon src={Close} />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </View>
-                    </View>
-                </View>
-                {currentStep === Steps.IOUAmount && (
-                    <IOUAmountPage
-                        onStepComplete={(amount) => {
-                            this.setState({amount});
-                            this.navigateToNextStep();
-                        }}
-                        currencySelected={this.currencySelected}
-                        reportID={this.props.route.params.reportID}
-                        selectedCurrency={this.state.selectedCurrency}
-                        hasMultipleParticipants={this.props.hasMultipleParticipants}
-                        selectedAmount={this.state.amount}
-                        navigation={this.props.navigation}
-                    />
+                        <View style={[styles.pRelative, styles.flex1]}>
+                            <FullScreenLoadingIndicator
+                                visible={!didScreenTransitionEnd || this.props.iou.isRetrievingCurrency}
+                            />
+                            {didScreenTransitionEnd && !this.props.iou.isRetrievingCurrency && (
+                                <>
+                                    {currentStep === Steps.IOUAmount && (
+                                        <IOUAmountPage
+                                            onStepComplete={(amount) => {
+                                                this.setState({amount});
+                                                this.navigateToNextStep();
+                                            }}
+                                            currencySelected={this.currencySelected}
+                                            reportID={this.props.route.params.reportID}
+                                            selectedCurrency={this.state.selectedCurrency}
+                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                            selectedAmount={this.state.amount}
+                                            navigation={this.props.navigation}
+                                        />
+                                    )}
+                                    {currentStep === Steps.IOUParticipants && (
+                                        <IOUParticipantsPage
+                                            participants={this.state.participants}
+                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                            onAddParticipants={this.addParticipants}
+                                            onStepComplete={this.navigateToNextStep}
+                                        />
+                                    )}
+                                    {currentStep === Steps.IOUConfirm && (
+                                        <IOUConfirmPage
+                                            onConfirm={this.createTransaction}
+                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                            participants={this.state.participants}
+                                            iouAmount={this.state.amount}
+                                            comment={this.state.comment}
+                                            selectedCurrency={this.state.selectedCurrency}
+                                            onUpdateComment={this.updateComment}
+                                        />
+                                    )}
+                                </>
+                            )}
+                        </View>
+                    </KeyboardAvoidingView>
                 )}
-                {currentStep === Steps.IOUParticipants && (
-                    <IOUParticipantsPage
-                        participants={this.state.participants}
-                        hasMultipleParticipants={this.props.hasMultipleParticipants}
-                        onAddParticipants={this.addParticipants}
-                        onStepComplete={this.navigateToNextStep}
-                    />
-                )}
-                {currentStep === Steps.IOUConfirm && (
-                    <IOUConfirmPage
-                        onConfirm={this.createTransaction}
-                        hasMultipleParticipants={this.props.hasMultipleParticipants}
-                        participants={this.state.participants}
-                        iouAmount={this.state.amount}
-                        comment={this.state.comment}
-                        selectedCurrency={this.state.selectedCurrency}
-                        onUpdateComment={this.updateComment}
-                    />
-                )}
-            </>
+            </ScreenWrapper>
         );
     }
 }

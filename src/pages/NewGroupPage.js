@@ -9,14 +9,16 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import CONST from '../CONST';
-import KeyboardSpacer from '../components/KeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import Button from '../components/Button';
+import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
+import FixedFooter from '../components/FixedFooter';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -31,6 +33,9 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
@@ -56,7 +61,6 @@ class NewGroupPage extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
         this.createGroup = this.createGroup.bind(this);
-
         const {
             recentReports,
             personalDetails,
@@ -66,6 +70,8 @@ class NewGroupPage extends Component {
             props.personalDetails,
             '',
             [],
+            false,
+            props.betas,
         );
 
         this.state = {
@@ -163,6 +169,8 @@ class NewGroupPage extends Component {
                 this.props.personalDetails,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
+                false,
+                this.props.betas,
             );
 
             return {
@@ -186,53 +194,65 @@ class NewGroupPage extends Component {
         );
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('sidebarScreen.newGroup')}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.w100]}>
-                    <OptionsSelector
-                        canSelectMultipleOptions
-                        sections={sections}
-                        selectedOptions={this.state.selectedOptions}
-                        value={this.state.searchValue}
-                        onSelectRow={this.toggleOption}
-                        onChangeText={(searchValue = '') => {
-                            const {
-                                recentReports,
-                                personalDetails,
-                                userToInvite,
-                            } = getNewGroupOptions(
-                                this.props.reports,
-                                this.props.personalDetails,
-                                searchValue,
-                                [],
-                            );
-                            this.setState({
-                                searchValue,
-                                userToInvite,
-                                recentReports,
-                                personalDetails,
-                            });
-                        }}
-                        headerMessage={headerMessage}
-                        disableArrowKeysActions
-                        hideAdditionalOptionStates
-                        forceTextUnreadStyle
-                        shouldFocusOnSelectRow
-                    />
-                    {this.state.selectedOptions?.length > 0 && (
-                        <View style={[styles.ph5, styles.pb5]}>
-                            <Button
-                                success
-                                onPress={this.createGroup}
-                                style={[styles.w100]}
-                                text={this.props.translate('newGroupPage.createGroup')}
-                            />
+                {({didScreenTransitionEnd}) => (
+                    <KeyboardAvoidingView>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('sidebarScreen.newGroup')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                                <>
+                                    <View style={[styles.flex1, styles.w100]}>
+                                        <OptionsSelector
+                                            canSelectMultipleOptions
+                                            sections={sections}
+                                            selectedOptions={this.state.selectedOptions}
+                                            value={this.state.searchValue}
+                                            onSelectRow={this.toggleOption}
+                                            onChangeText={(searchValue = '') => {
+                                                const {
+                                                    recentReports,
+                                                    personalDetails,
+                                                    userToInvite,
+                                                } = getNewGroupOptions(
+                                                    this.props.reports,
+                                                    this.props.personalDetails,
+                                                    searchValue,
+                                                    [],
+                                                    false,
+                                                    this.props.betas,
+                                                );
+                                                this.setState({
+                                                    searchValue,
+                                                    userToInvite,
+                                                    recentReports,
+                                                    personalDetails,
+                                                });
+                                            }}
+                                            headerMessage={headerMessage}
+                                            disableArrowKeysActions
+                                            hideAdditionalOptionStates
+                                            forceTextUnreadStyle
+                                            shouldFocusOnSelectRow
+                                        />
+                                    </View>
+                                    {this.state.selectedOptions?.length > 0 && (
+                                        <FixedFooter>
+                                            <Button
+                                                success
+                                                onPress={this.createGroup}
+                                                style={[styles.w100]}
+                                                text={this.props.translate('newGroupPage.createGroup')}
+                                            />
+                                        </FixedFooter>
+                                    )}
+                                </>
+                            )}
                         </View>
-                    )}
-                </View>
-                <KeyboardSpacer />
+                    </KeyboardAvoidingView>
+                )}
             </ScreenWrapper>
         );
     }
@@ -252,6 +272,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(NewGroupPage);

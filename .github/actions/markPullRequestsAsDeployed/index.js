@@ -9,7 +9,7 @@ module.exports =
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(2186);
-const {GitHub} = __nccwpck_require__(3030);
+const {context} = __nccwpck_require__(5438);
 const ActionUtils = __nccwpck_require__(970);
 const GithubUtils = __nccwpck_require__(7999);
 
@@ -56,11 +56,11 @@ message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 /**
  * Comment Single PR
  *
- * @param {Object} pr
+ * @param {Number} pr
  * @returns {Promise<void>}
  */
 function commentPR(pr) {
-    return GithubUtils.createComment(GitHub.context.repo.repo, pr, message)
+    return GithubUtils.createComment(context.repo.repo, pr, message)
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
         })
@@ -127,6 +127,7 @@ const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/
 
 const APPLAUSE_BOT = 'applausebot';
 const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
+const DEPLOY_BLOCKER_CASH_LABEL = 'DeployBlockerCash';
 
 class GithubUtils {
     /**
@@ -209,6 +210,7 @@ class GithubUtils {
             return {
                 title: issue.title,
                 url: issue.url,
+                number: this.getIssueOrPullRequestNumberFromURL(issue.url),
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
@@ -294,85 +296,7 @@ class GithubUtils {
     }
 
     /**
-     * Creates a new StagingDeployCash issue.
-     *
-     * @param {String} title
-     * @param {String} tag
-     * @param {Array} PRList
-     * @returns {Promise}
-     */
-    static createNewStagingDeployCash(title, tag, PRList) {
-        return this.generateStagingDeployCashBody(tag, PRList)
-            .then(body => this.octokit.issues.create({
-                owner: GITHUB_OWNER,
-                repo: EXPENSIFY_CASH_REPO,
-                labels: [STAGING_DEPLOY_CASH_LABEL],
-                assignees: [APPLAUSE_BOT],
-                title,
-                body,
-            }));
-    }
-
-    /**
-     * Updates the existing open StagingDeployCash issue.
-     *
-     * @param {String} [newTag]
-     * @param {Array} newPRs
-     * @param {Array} newDeployBlockers
-     * @returns {Promise}
-     * @throws {Error} If the StagingDeployCash could not be found or updated.
-     */
-    static updateStagingDeployCash(newTag = '', newPRs, newDeployBlockers) {
-        let issueNumber;
-        return this.getStagingDeployCash()
-            .then(({
-                url,
-                tag: oldTag,
-                PRList: oldPRs,
-                deployBlockers: oldDeployBlockers,
-            }) => {
-                issueNumber = GithubUtils.getIssueNumberFromURL(url);
-
-                // If we aren't sent a tag, then use the existing tag
-                const tag = _.isEmpty(newTag) ? oldTag : newTag;
-
-                const PRList = _.sortBy(
-                    _.union(oldPRs, _.map(newPRs, URL => ({
-                        url: URL,
-                        number: GithubUtils.getPullRequestNumberFromURL(URL),
-                        isVerified: false,
-                    }))),
-                    'number',
-                );
-                const deployBlockers = _.sortBy(
-                    _.union(oldDeployBlockers, _.map(newDeployBlockers, URL => ({
-                        url: URL,
-                        number: GithubUtils.getIssueOrPullRequestNumberFromURL(URL),
-                        isResolved: false,
-                    }))),
-                    'number',
-                );
-
-                return this.generateStagingDeployCashBody(
-                    tag,
-                    _.pluck(PRList, 'url'),
-                    _.pluck(_.where(PRList, {isVerified: true}), 'url'),
-                    _.pluck(deployBlockers, 'url'),
-                    _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
-                );
-            })
-            .then(updatedBody => this.octokit.issues.update({
-                owner: GITHUB_OWNER,
-                repo: EXPENSIFY_CASH_REPO,
-                issue_number: issueNumber,
-                body: updatedBody,
-            }));
-    }
-
-    /**
      * Generate the issue body for a StagingDeployCash.
-     *
-     * @private
      *
      * @param {String} tag
      * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
@@ -391,6 +315,7 @@ class GithubUtils {
         return this.octokit.pulls.list({
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
+            state: 'all',
             per_page: 100,
         })
             .then(({data}) => {
@@ -413,7 +338,7 @@ class GithubUtils {
                 let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n`;
 
                 // PR list
-                if (!_.isEmpty(PRList)) {
+                if (!_.isEmpty(sortedPRList)) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     _.each(sortedPRList, (URL) => {
                         issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';
@@ -557,6 +482,8 @@ module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
 module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
+module.exports.DEPLOY_BLOCKER_CASH_LABEL = DEPLOY_BLOCKER_CASH_LABEL;
+module.exports.APPLAUSE_BOT = APPLAUSE_BOT;
 
 
 /***/ }),
@@ -1008,6 +935,49 @@ class Context {
 }
 exports.Context = Context;
 //# sourceMappingURL=context.js.map
+
+/***/ }),
+
+/***/ 5438:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getOctokit = exports.context = void 0;
+const Context = __importStar(__nccwpck_require__(4087));
+const utils_1 = __nccwpck_require__(3030);
+exports.context = new Context.Context();
+/**
+ * Returns a hydrated octokit ready to use for GitHub Actions
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+function getOctokit(token, options) {
+    return new utils_1.GitHub(utils_1.getOctokitOptions(token, options));
+}
+exports.getOctokit = getOctokit;
+//# sourceMappingURL=github.js.map
 
 /***/ }),
 

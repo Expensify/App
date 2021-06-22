@@ -6,16 +6,97 @@ const CONST = {
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
     },
+    DATE: {
+        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+    },
+    SMS: {
+        DOMAIN: '@expensify.sms',
+    },
+    BANK_ACCOUNT: {
+        PLAID: {
+            ALLOWED_THROTTLED_COUNT: 2,
+            ERROR: {
+                TOO_MANY_ATTEMPTS: 'Too many attempts',
+            },
+        },
+        ERROR: {
+            MISSING_ROUTING_NUMBER: '402 Missing routingNumber',
+            MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
+            MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
+            MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
+        },
+        STEP: {
+            // In the order they appear in the VBA flow
+            BANK_ACCOUNT: 'BankAccountStep',
+            COMPANY: 'CompanyStep',
+            REQUESTOR: 'RequestorStep',
+            ACH_CONTRACT: 'ACHContractStep',
+            VALIDATION: 'ValidationStep',
+            ENABLE: 'EnableStep',
+        },
+        SUBSTEP: {
+            MANUAL: 'manual',
+        },
+        VERIFICATIONS: {
+            ERROR_MESSAGE: 'verifications.errorMessage',
+            EXTERNAL_API_RESPONSES: 'verifications.externalApiResponses',
+            REQUESTOR_IDENTITY_ID: 'verifications.externalApiResponses.requestorIdentityID',
+            REQUESTOR_IDENTITY_ONFIDO: 'verifications.externalApiResponses.requestorIdentityOnfido',
+            THROTTLED: 'verifications.throttled',
+        },
+        FIELDS_TYPE: {
+            LOCAL: 'local',
+        },
+        ONFIDO_RESPONSE: {
+            SDK_TOKEN: 'apiResult.sdkToken',
+            PASS: 'pass',
+        },
+        QUESTIONS: {
+            QUESTION: 'apiResult.questions.question',
+            DIFFERENTIATOR_QUESTION: 'apiResult.differentiator-question',
+        },
+        SETUP_TYPE: {
+            MANUAL: 'manual',
+            PLAID: 'plaid',
+        },
+        REGEX: {
+            IBAN: /^[A-Za-z0-9]{2,30}$/,
+            SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
+        },
+        VERIFICATION_MAX_ATTEMPTS: 7,
+    },
+    INCORPORATION_TYPES: {
+        LLC: 'LLC',
+        CORPORATION: 'Corp',
+        PARTNERSHIP: 'Partnership',
+        COOPERATIVE: 'Cooperative',
+        SOLE_PROPRIETORSHIP: 'Sole Proprietorship',
+        OTHER: 'Other',
+    },
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
         IOU: 'IOU',
+        PAY_WITH_EXPENSIFY: 'payWithExpensify',
+        FREE_PLAN: 'freePlan',
+        DEFAULT_ROOMS: 'defaultRooms',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
         HOVERED: 'hovered',
         PRESSED: 'pressed',
         COMPLETE: 'complete',
+        DISABLED: 'disabled',
+    },
+    COUNTRY: {
+        US: 'US',
+        MX: 'MX',
+        AU: 'AU',
+        CA: 'CA',
+    },
+    PLATFORM: {
+        IOS: 'ios',
+        ANDROID: 'android',
     },
     CURRENCY: {
         USD: 'USD',
@@ -42,17 +123,34 @@ const CONST = {
             LIMIT: 50,
             TYPE: {
                 IOU: 'IOU',
+                ADDCOMMENT: 'ADDCOMMENT',
+            },
+        },
+        MESSAGE: {
+            TYPE: {
+                COMMENT: 'COMMENT',
             },
         },
         TYPE: {
             CHAT: 'chat',
             IOU: 'iou',
         },
+        CHAT_TYPE: {
+            POLICY_ANNOUNCE: 'policyAnnounce',
+            POLICY_ADMINS: 'policyAdmins',
+            DOMAIN_ALL: 'domainAll',
+        },
+        STATE_NUM: {
+            OPEN: 0,
+            PROCESSING: 1,
+            SUBMITTED: 2,
+        },
     },
     MODAL: {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
             CENTERED: 'centered',
+            CENTERED_UNSWIPEABLE: 'centered_unswipeable',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
@@ -92,6 +190,10 @@ const CONST = {
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
         TIMEZONE: 'timeZone',
+        FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
+        ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
+        FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
+        BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
@@ -140,10 +242,45 @@ const CONST = {
         RECONNECT: 1000,
     },
 
+    WALLET: {
+        ERROR: {
+            IDENTITY_NOT_FOUND: 'Identity not found',
+            INVALID_SSN: 'Invalid SSN',
+            UNEXPECTED: 'Unexpected error',
+            MISSING_FIELD: 'Missing required additional details fields',
+            UNABLE_TO_VERIFY: 'Unable to verify identity',
+        },
+        STEP: {
+            ONFIDO: 'OnfidoStep',
+            ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            TERMS: 'TermsStep',
+            ACTIVATE: 'ActivateStep',
+        },
+        STATUS: {
+            GOLD: 'GOLD',
+            SILVER: 'SILVER',
+        },
+    },
+
     PLAID: {
         EVENT: {
             ERROR: 'ERROR',
             EXIT: 'EXIT',
+        },
+    },
+
+    ONFIDO: {
+        CONTAINER_ID: 'onfido-mount',
+        TYPE: {
+            DOCUMENT: 'document',
+            FACE: 'face',
+        },
+        VARIANT: {
+            VIDEO: 'video',
+        },
+        SMS_NUMBER_COUNTRY_CODE: 'US',
+        ERROR: {
+            USER_CANCELLED: 'User canceled flow',
         },
     },
 
@@ -161,6 +298,7 @@ const CONST = {
         // not be changed.
         PAYMENT_TYPE: {
             ELSEWHERE: 'Elsewhere',
+            EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
         },
@@ -170,6 +308,28 @@ const CONST = {
         US_PHONE: /^\+1\d{10}$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
+        PO_BOX: /\\b[P|p]?(OST|ost)?\\.?\\s*[O|o|0]?(ffice|FFICE)?\\.?\\s*[B|b][O|o|0]?[X|x]?\\.?\\s+[#]?(\\d+)\\b/,
+        ANY_VALUE: /^.+$/,
+        ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
+        INDUSTRY_CODE: /^[0-9]{6}$/,
+    },
+
+    GROWL: {
+        SUCCESS: 'success',
+        ERROR: 'error',
+        WARNING: 'warning',
+        DURATION: 2000,
+    },
+
+    DEFAULT_LOCALE: 'en',
+
+    POLICY: {
+        TYPE: {
+            FREE: 'free',
+        },
+        ROLE: {
+            ADMIN: 'admin',
+        },
     },
 };
 

@@ -43,7 +43,7 @@ jobs:
   skipDeploy:
     runs-on: ubuntu-latest
     needs: chooseDeployActions
-    if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.isAutomatedPullRequest == 'false' }}
+    if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.isAutomatedPullRequest == 'false' && needs.chooseDeployActions.outputs.shouldCherryPick == 'false' }}
 
     steps:
       - name: Comment on deferred PR
@@ -55,7 +55,7 @@ jobs:
             :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
 
   version:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     needs: chooseDeployActions
     if: ${{ needs.chooseDeployActions.outputs.shouldCherryPick == 'true' || (needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' && needs.chooseDeployActions.outputs.isAutomatedPullRequest == 'false') }}
 
@@ -87,14 +87,6 @@ jobs:
           WORKFLOW: updateProtectedBranch.yml
           INPUTS: '{ "TARGET_BRANCH": "staging" }'
 
-      - name: Cherry pick to staging
-        if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.shouldCherryPick == 'true' }}
-        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          WORKFLOW: cherryPick.yml
-          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ needs.chooseDeployActions.outputs.mergedPullRequest }}" }'
-
       - name: Pull main to get the new version
         run: |
           git pull origin main
@@ -105,12 +97,19 @@ jobs:
       - name: Tag version
         run: git tag ${{ env.NEW_VERSION }}
 
+      - name: Cherry pick to staging
+        if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.shouldCherryPick == 'true' }}
+        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          WORKFLOW: cherryPick.yml
+          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ needs.chooseDeployActions.outputs.mergedPullRequest }}", "NEW_VERSION": "${{ env.NEW_VERSION }}" }'
+
       - name: Update StagingDeployCash
         uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ env.NEW_VERSION }}
-          NEW_PULL_REQUESTS: https://github.com/Expensify/Expensify.cash/pull/${{ needs.chooseDeployActions.outputs.mergedPullRequest }}
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change

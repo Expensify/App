@@ -15,6 +15,7 @@
 * [Debugging](#debugging)
 * [Structure of the app](#structure-of-the-app)
 * [Philosophy](#Philosophy)
+* [Internationalization](#Internationalization)
 * [Deploying](#deploying)
 
 #### Additional Reading
@@ -45,6 +46,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
+* Make sure you have Java installed `java -version`. If not, install it by running `npm install -g openjdk8`.
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
@@ -236,20 +238,70 @@ This application is built with the following principles.
 
 ----
 
+# Internationalization
+This application is built with Internationalization (I18n) / Localization (L10n) support, so it's important to always 
+localize the following types of data when presented to the user (even accessibility texts that are not rendered):
+
+- Texts: See [translate method](https://github.com/Expensify/Expensify.cash/blob/655ba416d552d5c88e57977a6e0165fb7eb7ab58/src/libs/translate.js#L15) 
+- Date/time: see [DateUtils](https://github.com/Expensify/Expensify.cash/blob/f579946fbfbdc62acc5bd281dc75cabb803d9af0/src/libs/DateUtils.js)
+- Numbers and amounts: see [numberFormat](https://github.com/Expensify/Expensify.cash/tree/965f92fc2a5a2a0d01e6114bf5aa8755b9d9fd1a/src/libs/numberFormat)
+- Phones: see [LocalPhoneNumber](https://github.com/Expensify/Expensify.cash/blob/bdfbafe18ee2d60f766c697744f23fad64b62cad/src/libs/LocalePhoneNumber.js#L51-L52)
+
+In most cases, you will be needing to localize data used in a component, if that's the case, there's a HOC [withLocalize](https://github.com/Expensify/Expensify.cash/blob/37465dbd07da1feab8347835d82ed3d2302cde4c/src/components/withLocalize.js).
+It will abstract most of the logic you need (mostly subscribe to the [PREFERRED_LOCALE](https://github.com/Expensify/Expensify.cash/blob/6cf1a56df670a11bf61aa67eeb64c1f87161dea1/src/ONYXKEYS.js#L88) Onyx key)
+and is the preferred way of localizing things inside components.
+
+Some pointers:
+
+- All translations are stored in language files in [src/languages](https://github.com/Expensify/Expensify.cash/tree/b114bc86ff38e3feca764e75b3f5bf4f60fcd6fe/src/languages).
+- We try to group translations by their pages/components
+- A common rule of thumb is to move a common word/phrase to be shared when it's in 3 places
+- Always prefer longer and more complex strings in the translation files. For example 
+  if you need to generate the text `User has sent $20.00 to you on Oct 25th at 10:05am`, add just one
+  key to the translation file and use the arrow function version, like so:
+  `nameOfTheKey: ({amount, dateTime}) => "User has sent " + amount + " to you on " + dateTime,`.
+  This is because the order of the phrases might vary from one language to another.
+
+----
+
 # Deploying
-##  Continuous deployment / GitHub workflows
-Every PR merged into `main` will kick off the **Create a new version** GitHub workflow defined in `.github/workflows/version.yml`.
-It will look at the current version and increment it by one build version (using [`react-native-version`](https://www.npmjs.com/package/react-native-version)), create a PR with that new version, and tag the version.
+## QA and deploy cycles
+We utilize a CI/CD deployment system built using [GitHub Actions](https://github.com/features/actions) to ensure that new code is automatically deployed to our users as fast as possible. As part of this process, all code is first deployed to our staging environments, where it undergoes quality assurance (QA) testing before it is deployed to production. Typically, pull requests are deployed to staging immediately after they are merged.
 
-The PR will be merged automatically by the GitHub workflow **automerge** to keep the version always up to date.
+Every time a PR is deployed to staging, it is added to a [special tracking issue](https://github.com/Expensify/Expensify.cash/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) with the label `StagingDeployCash` (there will only ever be one open at a time). This tracking issue contains information about the new application version, a list of recently deployed pull requests, and any issues found on staging that are not present on production. Every weekday at 9am PST, our QA team adds the `🔐LockCashDeploys🔐` label to that tracking issue, and that signifies that they are starting their daily QA cycle. They will perform both regular regression testing and the QA steps listed for every pull request on the `StagingDeployCash` checklist.
 
-When a new tag is pushed, it will trigger a deploy of all four clients:
-1. The **web** app automatically deploys via a GitHub Action in `.github/workflows/main.yml`
-2. The **MacOS desktop** app automatically deploys via a GitHub Action in `.github/workflows/desktop.yml`
-3. The **Android** app automatically deploys via a GitHub Action in `.github/workflows/android.yml`
-4. The **iOS** app automatically deploys via a GitHub Action in `.github/workflows/ios.yml`
+Once the `StagingDeployCash` is locked, we won't run any staging deploys until it is either unlocked, or we run a production deploy. If severe issues are found on staging that are not present on production, a new issue (or the PR that caused the issue) will be labeled with `DeployBlockerCash`, and added to the `StagingDeployCash` deploy checklist. If we want to resolve a deploy blocker by reverting a pull request or deploying a hotfix directly to the staging environment, we can merge a pull request with the `CP Staging` label.
 
-## Local production build
+Once we have confirmed to the best of our ability that there are no deploy-blocking issues and that all our new features are working as expected on staging, we'll close the `StagingDeployCash`. That will automatically trigger a production deployment, open a new `StagingDeployCash` checklist, and deploy to staging any pull requests that were merged while the previous checklist was locked.
+
+##  Key GitHub workflows
+These are some of the most central [GitHub Workflows](https://github.com/Expensify/Expensify.cash/tree/main/.github/workflows). There is more detailed information in the README [here](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/README.md).
+
+### preDeploy
+The [preDeploy workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/preDeploy.yml) executes whenever a pull request is merged to `main`, and at a high level does the following:
+
+- If the `StagingDeployCash` is locked, comment on the merged PR that it will be deployed later.
+- Otherwise:
+  - Create a new version by triggering the [`createNewVersion` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/createNewVersion.yml)
+  - Use the [`updateProtectedBranch` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/updateProtectedBranch.yml) to update the `staging` branch.
+- Also, if the pull request has the `CP Staging` label, it will execute the [`cherryPick` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/cherryPick.yml) to deploy the pull request directly to staging, even if the `StagingDeployCash` is locked
+
+### deploy
+The [`deploy` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/deploy.yml) is really quite simple. It runs when code is pushed to the `staging` or `production` branches, and:
+
+- If `staging` was updated, it creates a tag matching the new version, and pushes tags.
+- If `production` was updated, it creates a GitHub Release for the new version
+
+### platformDeploy
+The [`platformDeploy` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all four platforms (iOS, Android, Web, macOS Desktop). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.
+
+### lockDeploys
+The [`lockDeploys` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/lockDeploys.yml) executes when the `StagingDeployCash` is locked, and it prepares the staging branch for a production release by creating a new `PATCH` version (i.e: `1.0.57-5` -> `1.0.58.0`).
+
+### finishReleaseCycle
+The [`finishReleaseCycle` workflow](https://github.com/Expensify/Expensify.cash/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging, and creates a new `StagingDeployCash` deploy checklist.
+
+## Local production builds
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
 
 #### Local production build of the web app

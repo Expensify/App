@@ -10,6 +10,7 @@ import {scrollToIndex} from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import Button from '../../../components/Button';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** All the data of the action */
@@ -36,10 +37,24 @@ class ReportActionItemMessageEdit extends React.Component {
         this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000, true);
         this.publishDraft = this.publishDraft.bind(this);
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
+        this.onSelectionChange = this.onSelectionChange.bind(this);
 
         this.state = {
             draft: this.props.draftMessage,
+            selection: {
+                start: this.props.draftMessage.length,
+                end: this.props.draftMessage.length,
+            },
         };
+    }
+
+    /**
+     * Update Selection on change cursor position.
+     *
+     * @param {Event} e
+     */
+    onSelectionChange(e) {
+        this.setState({selection: e.nativeEvent.selection});
     }
 
     /**
@@ -48,6 +63,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} newDraft
      */
     updateDraft(newDraft) {
+        this.textInput.setNativeProps({text: newDraft});
         const trimmedNewDraft = newDraft.trim();
         this.setState({draft: trimmedNewDraft});
         this.debouncedSaveDraft(trimmedNewDraft);
@@ -59,6 +75,7 @@ class ReportActionItemMessageEdit extends React.Component {
     deleteDraft() {
         saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+        ReportActionComposeFocusManager.focus();
     }
 
     /**
@@ -96,19 +113,24 @@ class ReportActionItemMessageEdit extends React.Component {
     render() {
         return (
             <View style={styles.chatItemMessage}>
-                <TextInputFocusable
-                    multiline
-                    onChangeText={this.updateDraft} // Debounced saveDraftComment
-                    onKeyPress={this.triggerSaveOrCancel}
-                    defaultValue={this.props.draftMessage}
-                    maxLines={16} // This is the same that slack has
-                    style={[styles.textInput, styles.flex0]}
-                    onFocus={() => {
-                        scrollToIndex({animated: true, index: this.props.index}, true);
-                        toggleReportActionComposeView(false);
-                    }}
-                    autoFocus
-                />
+                <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
+                    <TextInputFocusable
+                        multiline
+                        ref={el => this.textInput = el}
+                        onChangeText={this.updateDraft} // Debounced saveDraftComment
+                        onKeyPress={this.triggerSaveOrCancel}
+                        defaultValue={this.props.draftMessage}
+                        maxLines={16} // This is the same that slack has
+                        style={[styles.textInputCompose, styles.flex4]}
+                        onFocus={() => {
+                            scrollToIndex({animated: true, index: this.props.index}, true);
+                            toggleReportActionComposeView(false);
+                        }}
+                        autoFocus
+                        selection={this.state.selection}
+                        onSelectionChange={this.onSelectionChange}
+                    />
+                </View>
                 <View style={[styles.flexRow, styles.mt1]}>
                     <Button
                         style={[styles.mr2]}
