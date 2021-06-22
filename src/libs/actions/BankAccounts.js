@@ -326,7 +326,7 @@ function fetchFreePlanVerifiedBankAccount() {
         .then((response) => {
             bankAccountID = lodashGet(response, ['nameValuePairs', CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
             ], '');
-            const failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFACE + bankAccountID;
+            const failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX + bankAccountID;
 
             // Now that we have the bank account. Lets grab the rest of the bank info we need
             promiseAllSettled([
