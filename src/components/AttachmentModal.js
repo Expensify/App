@@ -2,14 +2,12 @@ import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
-import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import ONYXKEYS from '../ONYXKEYS';
-import addAuthTokenToURL from '../libs/addAuthTokenToURL';
+import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
@@ -40,11 +38,6 @@ const propTypes = {
 
     /** Do the urls require an authToken? */
     isAuthTokenRequired: PropTypes.bool,
-
-    /** Current user session */
-    session: PropTypes.shape({
-        authToken: PropTypes.string.isRequired,
-    }).isRequired,
 
     ...withLocalizePropTypes,
 
@@ -89,11 +82,9 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const sourceURL = addAuthTokenToURL({
-            url: this.state.sourceURL,
-            authToken: this.props.session.authToken,
-            required: this.props.isAuthTokenRequired,
-        });
+        const sourceURL = this.props.isAuthTokenRequired
+            ? addEncryptedAuthTokenToURL(this.state.sourceURL)
+            : this.state.sourceURL;
 
         const attachmentViewStyles = this.props.isSmallScreenWidth
             ? [styles.imageModalImageCenterContainer]
@@ -164,10 +155,5 @@ AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
     withLocalize,
 )(AttachmentModal);
