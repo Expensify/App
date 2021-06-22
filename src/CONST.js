@@ -119,6 +119,11 @@ const CONST = {
             CHAT: 'chat',
             IOU: 'iou',
         },
+        CHAT_TYPE: {
+            POLICY_ANNOUNCE: 'policyAnnounce',
+            POLICY_ADMINS: 'policyAdmins',
+            DOMAIN_ALL: 'domainAll',
+        },
         STATE_NUM: {
             OPEN: 0,
             PROCESSING: 1,
