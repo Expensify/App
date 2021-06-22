@@ -36,6 +36,7 @@ Onyx.connect({
  * the pieces of data that we need to in Onyx
  *
  * @param {Object} fullPolicy
+ * @param {String} fullPolicy.id
  * @param {String} fullPolicy.name
  * @param {String} fullPolicy.role
  * @param {String} fullPolicy.type
