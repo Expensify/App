@@ -73,7 +73,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
 
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        continueSessionFromECom(accountID, validateCode);
+        continueSessionFromECom(accountID, validateCode, this.state.twoFactorAuthCode);
 
         this.setState({
             formError: null,
