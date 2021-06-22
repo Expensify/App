@@ -132,6 +132,9 @@ class RequestCallPage extends React.Component {
                         placeholder="+14158675309"
                         onChangeText={phoneNumber => this.setState({phoneNumber})}
                     />
+                    <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
+                        {this.props.translate('requestCallPage.availabilityText')}
+                    </Text>
                 </View>
                 <FixedFooter>
                     <Button
