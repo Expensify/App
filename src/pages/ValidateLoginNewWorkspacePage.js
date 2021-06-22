@@ -7,7 +7,7 @@ import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import {getAuthTokenFromECom} from '../libs/actions/User';
+import {continueSessionFromECom} from '../libs/actions/User';
 
 const propTypes = {
     /* Onyx Props */
@@ -45,7 +45,7 @@ class ValidateLoginNewWorkspacePage extends Component {
 
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        getAuthTokenFromECom(accountID, validateCode);
+        continueSessionFromECom(accountID, validateCode);
     }
 
     render() {
