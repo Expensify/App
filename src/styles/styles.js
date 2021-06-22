@@ -391,6 +391,10 @@ const styles = {
         textAlignVertical: 'center',
     },
 
+    disabledText: {
+        color: colors.gray3,
+    },
+
     disabledTextInput: {
         backgroundColor: colors.gray1,
         color: colors.gray3,
@@ -1896,6 +1900,7 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
             return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
             return {};
@@ -1917,6 +1922,7 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         case CONST.BUTTON_STATES.COMPLETE:
             return themeColors.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
+        case CONST.BUTTON_STATES.DISABLED:
         default:
             return themeColors.icon;
     }
