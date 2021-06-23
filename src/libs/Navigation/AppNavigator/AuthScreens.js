@@ -27,9 +27,10 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
-import {getPolicySummaries} from '../../actions/Policy';
+import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
+import Permissions from '../../Permissions';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -49,8 +50,11 @@ import {
     NewChatModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
-    BusinessBankAccountModalStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
+    ReimbursementAccountModalStackNavigator,
+    NewWorkspaceStackNavigator,
+    WorkspaceInviteModalStackNavigator,
+    RequestCallModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -92,11 +96,15 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
+    betas: [],
 };
 
 class AuthScreens extends React.Component {
@@ -121,11 +129,16 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
+        User.getDomainInfo();
         PersonalDetails.fetchCurrencyPreferences();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
-        getPolicySummaries();
+
+        if (Permissions.canUseFreePlan(this.props.betas)) {
+            getPolicySummaries();
+            getPolicyList();
+        }
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -277,9 +290,28 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="BusinessBankAccount"
+                    name="NewWorkspace"
                     options={modalScreenOptions}
-                    component={BusinessBankAccountModalStackNavigator}
+                    component={NewWorkspaceStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="ReimbursementAccount"
+                    options={modalScreenOptions}
+                    component={ReimbursementAccountModalStackNavigator}
+                    listeners={modalScreenListeners}
+                    initialParams={{stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT}}
+                />
+                <RootStack.Screen
+                    name="WorkspaceInvite"
+                    options={modalScreenOptions}
+                    component={WorkspaceInviteModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="RequestCall"
+                    options={modalScreenOptions}
+                    component={RequestCallModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
@@ -294,6 +326,9 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(AuthScreens);

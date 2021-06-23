@@ -106,17 +106,32 @@ export default {
             },
             AddPersonalBankAccount: {
                 screens: {
-                    AddPersonalBankAccount_Root: ROUTES.ADD_PERSONAL_BANK_ACCOUNT,
-                },
-            },
-            BusinessBankAccount: {
-                screens: {
-                    BusinessBankAccount_New: ROUTES.BANK_ACCOUNT_NEW,
+                    AddPersonalBankAccount_Root: ROUTES.BANK_ACCOUNT_PERSONAL,
                 },
             },
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
+                },
+            },
+            ReimbursementAccount: {
+                screens: {
+                    ReimbursementAccount_Root: ROUTES.BANK_ACCOUNT,
+                },
+            },
+            WorkspaceInvite: {
+                screens: {
+                    WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
+                },
+            },
+            NewWorkspace: {
+                screens: {
+                    NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
+                },
+            },
+            RequestCall: {
+                screens: {
+                    RequestCall_Root: ROUTES.REQUEST_CALL,
                 },
             },
         },
