@@ -266,7 +266,10 @@ function reauthenticate(command = '') {
 
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
-            Onyx.merge(ONYXKEYS.SESSION, {authToken: response.authToken});
+            Onyx.merge(ONYXKEYS.SESSION, {
+                authToken: response.authToken,
+                encryptedAuthToken: response.encryptedAuthToken,
+            });
             authToken = response.authToken;
 
             // The authentication process is finished so the network can be unpaused to continue
@@ -853,6 +856,12 @@ function BankAccount_Create(parameters) {
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
+function BankAccount_Validate(parameters) {
+    const commandName = 'ValidateBankAccount';
+    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
+}
+
 /**
  * @param {*} parameters
  * @returns {Promise}
@@ -930,6 +939,13 @@ function GetCurrencyList() {
 }
 
 /**
+ * @returns {Promise}
+ */
+function User_IsUsingExpensifyCard() {
+    return Network.post('User_IsUsingExpensifyCard', {});
+}
+
+/**
  * @param {Object} parameters
  * @param {String} [parameters.type]
  * @param {String} [parameters.policyName]
@@ -960,6 +976,7 @@ export {
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
+    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -994,6 +1011,7 @@ export {
     User_SignUp,
     User_GetBetas,
     User_IsFromPublicDomain,
+    User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,

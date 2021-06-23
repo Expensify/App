@@ -2,7 +2,6 @@
 export default {
     common: {
         cancel: 'Cancelar',
-        upload: 'Subir',
         yes: 'Si',
         no: 'No',
         attachment: 'Archivo Adjunto',
@@ -47,6 +46,8 @@ export default {
         whatThis: '¿Qué es esto?',
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
+        dateFormat: 'AAAA-MM-DD',
+        send: 'Enviar',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -90,7 +91,7 @@ export default {
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
     },
     reportActionCompose: {
-        uploadAttachment: 'Subir Archivo Adjunto',
+        sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar Archivo Adjunto',
         writeSomething: 'Escribe algo...',
         youAppearToBeOffline: 'Parece que estás desconectado.',
@@ -298,6 +299,9 @@ export default {
             routingNumber: 'Ingrese un número de ruta válido',
             companyType: 'Ingrese un tipo de compañía válido',
             tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelva a intentarlo más tarde o introduzca los detalles manualmente.',
+            address: 'Ingrese una dirección válida',
+            dob: 'Ingrese una fecha de nacimiento válida',
+            ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
         },
     },
     addPersonalBankAccountPage: {
@@ -332,6 +336,10 @@ export default {
         agreement: 'Agreement:',
         termsAndConditions: 'terms and conditions',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
+        error: {
+            termsAndConditions: 'Debe aceptar términos y condiciones',
+            certify: 'Debe certificar que la información es verdadera y precisa',
+        },
     },
     session: {
         offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',
@@ -382,6 +390,25 @@ export default {
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
         companyPhonePlaceholder: '10 dígitos, sin guiones',
+    },
+    validationStep: {
+        headerTitle: 'Validar',
+        buttonText: 'Finalizar Configuración',
+        maxAttemptError: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos. Por favor contáctenos.',
+        description: 'Uno o dos días después de agregar su cuenta a Expensify, enviamos tres (3) transacciones a su cuenta. Tienen una línea comercial como "Expensify, Inc. Validation"',
+        descriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación. Ejemplo: 1.51',
+        verifyingDescription: 'Estamos revisando su información y lo llevaremos a los siguientes pasos en solo unos segundos.',
+    },
+    requestorStep: {
+        headerTitle: 'Información del solicitante',
+        financialRegulations: 'Las leyes fiscales y el reglamento bancario nos obliga a verificar la identidad de todo individuo que desee añadir una cuenta bancaria representando a una compañía. ',
+        learnMore: 'Más información',
+        isMyDataSafe: '¿Están seguros mis datos?',
+        onFidoConditions: 'Al continuar con la solicitud de añadir esta cuenta bancaria, confirma que ha leído, entiende y acepta ',
+        facialScan: 'la política de reconocimiento facial y la exención de Onfido',
+        ssnLast4: 'Últimos 4 dígitos de su SSN',
+        isControllingOfficer: 'Estoy autorizado a utilizar la cuenta bancaria de mi compañía para gastos de empresa',
+        isControllingOfficerError: 'Debe ser un oficial controlador con autorización para operar la cuenta bancaria de la compañía',
     },
     requestCallPage: {
         requestACall: 'Llámame por teléfono',

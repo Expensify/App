@@ -63,6 +63,7 @@ const CONST = {
             IBAN: /^[A-Za-z0-9]{2,30}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
+        VERIFICATION_MAX_ATTEMPTS: 7,
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -193,6 +194,7 @@ const CONST = {
         TIMEZONE: 'timeZone',
         FREE_PLAN_BANK_ACCOUNT_ID: 'expensify_freePlanBankAccountID',
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
+        FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
         BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
@@ -308,10 +310,11 @@ const CONST = {
         US_PHONE: /^\+1\d{10}$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
-        PO_BOX: /\\b[P|p]?(OST|ost)?\\.?\\s*[O|o|0]?(ffice|FFICE)?\\.?\\s*[B|b][O|o|0]?[X|x]?\\.?\\s+[#]?(\\d+)\\b/,
+        PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
+        SSN_LAST_FOUR: /[0-9]{4}/,
     },
 
     GROWL: {
