@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, ScrollView,
+    View, FlatList, ScrollView
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -16,7 +16,6 @@ import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
-import InvertedFlatList from '../../components/InvertedFlatList';
 import ROUTES from '../../ROUTES';
 import personalDetailsPropType from '../personalDetailsPropType';
 
@@ -236,15 +235,19 @@ class WorkspacePeoplePage extends React.Component {
                         <View style={[styles.w100, styles.mt4]}>
                             {
                                 this.props.policy.employeeList ? (
-                                    <InvertedFlatList
+                                    <FlatList
+                                        ListHeaderComponent={this.renderHeader()}
                                         ref={flatListRef}
-                                        data={(this.props.policy.employeeList && this.props.policy.employeeList.length !== 0)
-                                            ? this.props.policy.employeeList.map(email => this.props.personalDetails[email])
-                                            : []}
-                                        ListFooterComponent={this.renderHeader()}
                                         renderItem={this.renderItem}
                                         contentContainerStyle={[styles.w100]}
                                         initialRowHeight={32}
+                                        data={(this.props.policy.employeeList && this.props.policy.employeeList.length !== 0)
+                                            ? this.props.policy.employeeList.map(email => this.props.personalDetails[email])
+                                            : []}
+                                        // We keep this property very low so that chat switching remains fast
+                                        maxToRenderPerBatch={1}
+                                        windowSize={15}
+                                        removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
                                     />
                                 ) : (
                                     <View style={[styles.peopleRow]}>
