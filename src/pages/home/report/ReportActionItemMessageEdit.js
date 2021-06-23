@@ -2,6 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import lodashGet from 'lodash/get';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -18,6 +20,9 @@ const propTypes = {
 
     /** Draft message */
     draftMessage: PropTypes.string.isRequired,
+
+    /** The report action this context menu is attached to. */
+    reportAction: PropTypes.shape(ReportActionPropTypes).isRequired,
 
     /** ReportID that holds the comment we're editing */
     reportID: PropTypes.number.isRequired,
@@ -39,11 +44,15 @@ class ReportActionItemMessageEdit extends React.Component {
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
 
+        const message = _.last(lodashGet(this.props.reportAction, 'message', this.props.draftMessage));
+        const parser = new ExpensiMark();
+        const draftMessage = parser.htmlToMarkdown(lodashGet(message, 'html', ''));
+
         this.state = {
-            draft: this.props.draftMessage,
+            draft: draftMessage,
             selection: {
                 start: this.props.draftMessage.length,
-                end: this.props.draftMessage.length,
+                end: this.props.deleteDraft.length,
             },
         };
     }
@@ -119,7 +128,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         ref={el => this.textInput = el}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
-                        defaultValue={this.props.draftMessage}
+                        defaultValue={this.state.draft}
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4]}
                         onFocus={() => {
