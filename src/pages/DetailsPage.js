@@ -42,18 +42,19 @@ const propTypes = {
 /**
  * Gets the phone number to display for SMS logins
  *
- * @param {String} login
- * @param {String} displayName
+ * @param {Object} details
+ * @param {String} details.login
+ * @param {String} details.displayName
  * @returns {String}
  */
-const getPhoneNumber = (login, displayName) => {
+const getPhoneNumber = (details) => {
     // If the user hasn't set a displayName, it is set to their phone number, so use that
-    if (Str.isValidPhone(displayName)) {
-        return displayName;
+    if (Str.isValidPhone(details.displayName)) {
+        return details.displayName;
     }
 
     // If the user has set a displayName, get the phone number from the SMS login
-    return Str.removeSMSDomain(login);
+    return Str.removeSMSDomain(details.login);
 };
 
 const DetailsPage = ({
@@ -104,7 +105,7 @@ const DetailsPage = ({
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
                                         {isSMSLogin
-                                            ? toLocalPhone(getPhoneNumber(details.login, details.displayName))
+                                            ? toLocalPhone(getPhoneNumber(details))
                                             : details.login}
                                     </Text>
                                 </View>
