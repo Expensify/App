@@ -44,6 +44,12 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 * To run a on a **Development Simulator**: `npm run ios`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
+### Static iOS Builds
+In some rare cases, it may be useful to create a static build of the mobile app from a development branch. A static or "Release" build can be installed to a device just like any other app, and is not connected to your local React Native Metro server. This means that you can more closely emulate a production environment, where the app can be fully closed and/or run without any connection to the metro process. 
+
+- In order to run a static iOS build, simply run `npm run ios-static`.
+- To launch to a connected physical device, run `npm run ios-static -- --device "Device Name"`
+
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
 * Make sure you have Java installed `java -version`. If not, install it by running `npm install -g openjdk8`.
