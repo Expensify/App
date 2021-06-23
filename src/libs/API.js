@@ -940,6 +940,17 @@ function Policy_Create(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {Array} [parameters.emailList]
+ * @param {String} [parameters.policyID]
+ * @returns {Promise}
+ */
+ function Policy_Employees_Remove(parameters) {
+    const commandName = 'Policy_Employees_Remove';
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     BankAccount_Create,
@@ -990,4 +1001,5 @@ export {
     GetPreferredCurrency,
     GetCurrencyList,
     Policy_Create,
+    Policy_Employees_Remove,
 };
