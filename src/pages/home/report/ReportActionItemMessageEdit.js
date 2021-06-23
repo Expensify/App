@@ -52,7 +52,7 @@ class ReportActionItemMessageEdit extends React.Component {
             draft: draftMessage,
             selection: {
                 start: this.props.draftMessage.length,
-                end: this.props.deleteDraft.length,
+                end: this.props.draftMessage.length,
             },
         };
     }
