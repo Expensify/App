@@ -44,6 +44,10 @@ export default {
                         path: ROUTES.SETTINGS_PAYMENTS,
                         exact: true,
                     },
+                    Settings_Add_Paypal_Me: {
+                        path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
+                        exact: true,
+                    },
                     Settings_Profile: {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,

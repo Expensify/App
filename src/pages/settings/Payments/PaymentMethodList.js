@@ -57,7 +57,7 @@ class PaymentMethodList extends Component {
     renderItem({item, index}) {
         return (
             <MenuItem
-                onPress={() => item.onPress}
+                onPress={item.onPress}
                 title={item.title}
                 description={item.description}
                 icon={item.icon}
@@ -72,6 +72,7 @@ class PaymentMethodList extends Component {
         combinedPaymentMethods.push({
             title: 'Add Payment Method',
             icon: Plus,
+            onPress: e => this.props.onPress(e),
         });
 
         if (this.props.payPalMeUsername) {
@@ -79,7 +80,7 @@ class PaymentMethodList extends Component {
                 title: 'PayPal.me',
                 description: this.props.payPalMeUsername,
                 icon: Bank,
-                onPress: () => this.props.onPress('payPalMe'),
+                onPress: e => this.props.onPress(e, 'payPalMe'),
             });
         }
 
@@ -88,7 +89,7 @@ class PaymentMethodList extends Component {
                 title: bankAccount.addressName,
                 description: `Account ending in ${bankAccount.accountNumber.slice(-4)}`,
                 icon: Bank,
-                onPress: () => this.props.onPress(bankAccount.bankAccountID),
+                onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
             });
         });
 
@@ -98,7 +99,7 @@ class PaymentMethodList extends Component {
                     title: card.cardName,
                     description: `Card ending in ${card.cardNumber.slice(-4)}`,
                     icon: Bank,
-                    onPress: () => this.props.onPress(card.cardID),
+                    onPress: e => this.props.onPress(e, card.cardID),
                 });
             }
         });
