@@ -109,6 +109,10 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
+                                if (isDefaultRoom(props.report)) {
+                                    console.log(">>>>", ROUTES.getReportDetailsRoute(props.report.reportID))
+                                    return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
+                                }
                                 if (participants.length === 1) {
                                     return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
                                 }
