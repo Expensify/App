@@ -13,7 +13,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import getPaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
-import {Bank} from '../../../components/Icon/Expensicons';
+import {PayPal} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
@@ -103,7 +103,7 @@ class PaymentsPage extends React.Component {
                     >
                         <MenuItem
                             title="PayPal.me"
-                            icon={Bank}
+                            icon={PayPal}
                             onPress={() => this.addPaymentMethodTypePressed(this.PAYPAL)}
                         />
                     </Popover>

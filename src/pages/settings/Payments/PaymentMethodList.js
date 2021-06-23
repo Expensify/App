@@ -8,7 +8,7 @@ import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {Bank, Plus} from '../../../components/Icon/Expensicons';
+import {Bank, CreditCard, PayPal, Plus} from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     // What to do when a menu item is pressed
@@ -79,7 +79,7 @@ class PaymentMethodList extends Component {
             combinedPaymentMethods.push({
                 title: 'PayPal.me',
                 description: this.props.payPalMeUsername,
-                icon: Bank,
+                icon: PayPal,
                 onPress: e => this.props.onPress(e, 'payPalMe'),
             });
         }
@@ -98,7 +98,7 @@ class PaymentMethodList extends Component {
                 combinedPaymentMethods.push({
                     title: card.cardName,
                     description: `Card ending in ${card.cardNumber.slice(-4)}`,
-                    icon: Bank,
+                    icon: CreditCard,
                     onPress: e => this.props.onPress(e, card.cardID),
                 });
             }
