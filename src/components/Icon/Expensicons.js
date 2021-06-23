@@ -10,6 +10,7 @@ import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
 import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
+import CreditCard from '../../../assets/images/creditcard.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
@@ -30,6 +31,7 @@ import NewWindow from '../../../assets/images/new-window.svg';
 import Offline from '../../../assets/images/offline.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
 import Paycheck from '../../../assets/images/paycheck.svg';
+import PayPal from '../../../assets/images/paypal.svg';
 import Pencil from '../../../assets/images/pencil.svg';
 import Phone from '../../../assets/images/phone.svg';
 import Pin from '../../../assets/images/pin.svg';
@@ -59,6 +61,7 @@ export {
     Checkmark,
     Clipboard,
     Close,
+    CreditCard,
     DownArrow,
     Download,
     Emoji,
@@ -79,6 +82,7 @@ export {
     Offline,
     Paperclip,
     Paycheck,
+    PayPal,
     Pencil,
     Phone,
     Pin,
