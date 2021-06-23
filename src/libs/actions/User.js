@@ -190,12 +190,7 @@ function isBlockedFromConcierge(expiresAt) {
         return false;
     }
 
-    const now = moment()
-        .format('YYYY-MM-DD');
-    const expires = moment(expiresAt)
-        .format('YYYY-MM-DD');
-
-    return now < expires;
+    return moment().isBefore(moment(expiresAt), 'day');
 }
 
 /**
