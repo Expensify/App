@@ -1,4 +1,4 @@
-import * as React from 'react';
+import {Component} from 'react';
 import {View, Text, TextInput} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -18,29 +18,31 @@ import CONST from '../CONST';
 import Growl from '../libs/Growl';
 import {requestConciergeDMCall} from '../libs/actions/Inbox';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import personalDetailsPropType from './personalDetailsPropType';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Display name of the current user from their personal details */
-        displayName: PropTypes.string,
-
-        /** Primary login of the current user */
-        login: PropTypes.string,
-    }),
+    myPersonalDetails: personalDetailsPropType.isRequired,
 
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }).isRequired,
-};
-const defaultProps = {
-    myPersonalDetails: {},
+
+    /** The details about the user that is signed in */
+    user: PropTypes.shape({
+        /** Whether or not the user is subscribed to news updates */
+        loginList: PropTypes.arrayOf(PropTypes.shape({
+
+            /** Phone/Email associated with user */
+            partnerUserID: PropTypes.string,
+        })),
+    }).isRequired,
 };
 
-class RequestCallPage extends React.Component {
+class RequestCallPage extends Component {
     constructor(props) {
         super(props);
 
@@ -153,21 +155,14 @@ class RequestCallPage extends React.Component {
 
 RequestCallPage.displayName = 'RequestCallPage';
 RequestCallPage.propTypes = propTypes;
-RequestCallPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
-        account: {
-            key: ONYXKEYS.ACCOUNT,
-        },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
         },
         user: {
             key: ONYXKEYS.USER,
