@@ -51,6 +51,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** Beta features list */
@@ -129,6 +130,7 @@ class ReportActionCompose extends React.Component {
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
+        this.setTextInputRef = this.setTextInputRef.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -150,6 +152,11 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (this.shouldFocusInputOnScreenFocus && this.props.isFocused) {
+                this.focus(false);
+            }
+        });
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
@@ -159,12 +166,12 @@ class ReportActionCompose extends React.Component {
         // open creates a jarring and broken UX.
         if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
-            this.setIsFocused(true);
             this.focus();
         }
     }
 
     componentWillUnmount() {
+        ReportActionComposeFocusManager.clear();
         Dimensions.removeEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
@@ -200,16 +207,37 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Focus the composer text input
+     * Set the TextInput Ref
+     *
+     * @param {Element} el
+     * @memberof ReportActionCompose
      */
-    focus() {
-        if (this.textInput) {
-            // There could be other animations running while we trigger manual focus.
-            // This prevents focus from making those animations janky.
-            InteractionManager.runAfterInteractions(() => {
-                this.textInput.focus();
-            });
-        }
+    setTextInputRef(el) {
+        ReportActionComposeFocusManager.composerRef.current = el;
+        this.textInput = el;
+    }
+
+    /**
+     * Focus the composer text input
+     * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
+     * @memberof ReportActionCompose
+     */
+    focus(shouldelay = false) {
+        // There could be other animations running while we trigger manual focus.
+        // This prevents focus from making those animations janky.
+        InteractionManager.runAfterInteractions(() => {
+            if (this.textInput) {
+                if (!shouldelay) {
+                    this.textInput.focus();
+                } else {
+                    // Keyboard is not opened after Emoji Picker is closed
+                    // SetTimeout is used as a workaround
+                    // https://github.com/react-native-modal/react-native-modal/issues/114
+                    // We carefully choose a delay. 50ms is found enough for keyboard to open.
+                    setTimeout(() => this.textInput.focus(), 50);
+                }
+            }
+        });
     }
 
     /**
@@ -311,16 +339,17 @@ class ReportActionCompose extends React.Component {
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
         const {selection} = this.state;
-        this.textInput.value = this.comment.slice(0, selection.start)
+        const newComment = this.comment.slice(0, selection.start)
             + emoji + this.comment.slice(selection.end, this.comment.length);
+        this.textInput.setNativeProps({
+            text: newComment,
+        });
         const updatedSelection = {
             start: selection.start + emoji.length,
             end: selection.start + emoji.length,
         };
         this.setState({selection: updatedSelection});
-        this.setIsFocused(true);
-        this.focus();
-        this.updateComment(this.textInput.value);
+        this.updateComment(newComment);
     }
 
     /**
@@ -374,6 +403,7 @@ class ReportActionCompose extends React.Component {
                     <AttachmentModal
                         isUploadingAttachment
                         onConfirm={(file) => {
+                            this.submitForm();
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
                         }}
@@ -446,7 +476,7 @@ class ReportActionCompose extends React.Component {
                                 <TextInputFocusable
                                     autoFocus={this.shouldFocusInputOnScreenFocus}
                                     multiline
-                                    ref={el => this.textInput = el}
+                                    ref={this.setTextInputRef}
                                     textAlignVertical="top"
                                     placeholder={this.props.translate('reportActionCompose.writeSomething')}
                                     placeholderTextColor={themeColors.placeholderText}
@@ -490,6 +520,7 @@ class ReportActionCompose extends React.Component {
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
                         onModalShow={this.focusEmojiSearchInput}
+                        onModalHide={() => this.focus(true)}
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
