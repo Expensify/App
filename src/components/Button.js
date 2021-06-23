@@ -78,7 +78,7 @@ const Button = (props) => {
                     style={[
                         styles.buttonText,
                         props.success && styles.buttonSuccessText,
-                        (props.danger && !props.isDisabled) && styles.buttonDangerText,
+                        props.danger && styles.buttonDangerText,
                         ...props.textStyles,
                     ]}
                 >
@@ -102,7 +102,8 @@ const Button = (props) => {
                         styles.button,
                         props.success ? styles.buttonSuccess : undefined,
                         props.danger ? styles.buttonDanger : undefined,
-                        props.isDisabled ? styles.buttonDisable : undefined,
+                        (props.isDisabled && props.danger) ? styles.buttonDangerDisabled : undefined,
+                        (props.isDisabled && !props.danger) ? styles.buttonDisable : undefined,
                         (props.success && hovered) ? styles.buttonSuccessHovered : undefined,
                         (props.danger && hovered) ? styles.buttonDangerHovered : undefined,
                         props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,

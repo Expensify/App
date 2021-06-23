@@ -28,6 +28,7 @@ export default {
     buttonSuccessHoveredBG: colors.greenHover,
     buttonDangerBG: colors.red,
     buttonDangerPressedBG: colors.redHover,
+    buttonDangerDisabledBG: colors.redDisabled,
     online: colors.green,
     offline: colors.gray3,
     sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
