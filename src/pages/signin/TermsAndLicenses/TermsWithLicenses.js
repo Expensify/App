@@ -35,8 +35,6 @@ const TermsWithLicenses = ({translate}) => (
             {'\n'}
             {translate('termsOfUse.phrase5')}
             {' '}
-
-
             {translate('termsOfUse.phrase6')}
             {' '}
             <TextLink
