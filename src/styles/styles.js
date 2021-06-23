@@ -1629,11 +1629,11 @@ const styles = {
     },
 
     peopleBadge: {
-        backgroundColor: themeColors.spinner,
+        backgroundColor: themeColors.icon,
         borderRadius: 14,
         height: variables.iconSizeNormal,
         flexDirection: 'row',
-        paddingHorizontal: 16,
+        paddingHorizontal: 12,
         alignItems: 'center',
     },
 
