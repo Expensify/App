@@ -24,6 +24,7 @@ import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPag
 import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
+import WorkspacePeoplePage from '../../../pages/workspace/WorkspacePeoplePage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -170,6 +171,12 @@ const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
     name: 'WorkspaceInvite_Root',
 }]);
 
+// Standalone page for now
+const WorkspacePeopleModalStackNavigator = createModalStackNavigator([{
+    Component: WorkspacePeoplePage,
+    name: 'WorkspaceSettingsPeople_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -185,4 +192,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
+    WorkspacePeopleModalStackNavigator,
 };

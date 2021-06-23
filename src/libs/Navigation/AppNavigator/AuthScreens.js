@@ -31,6 +31,7 @@ import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import Permissions from '../../Permissions';
+import WorkspacePeoplePage from '../../../pages/workspace/WorkspacePeoplePage';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -54,6 +55,7 @@ import {
     ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
+    WorkspacePeopleModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -225,6 +227,21 @@ class AuthScreens extends React.Component {
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
                 <RootStack.Screen
+<<<<<<< HEAD
+=======
+                    name="WorkspaceSettings"
+                    options={fullscreenModalScreenOptions}
+                    component={WorkspaceSettingsDrawerNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="WorkspaceSettingsPeople"
+                    options={fullscreenModalScreenOptions}
+                    component={WorkspacePeopleModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+>>>>>>> bc0b2e0ad (Refactor the pages so the settings is a standalone page)
                     name="Settings"
                     options={modalScreenOptions}
                     component={SettingsModalStackNavigator}
