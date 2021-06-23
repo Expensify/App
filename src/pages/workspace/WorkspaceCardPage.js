@@ -71,7 +71,7 @@ const WorkspaceCardPage = ({
         <ScreenWrapper style={[styles.defaultModalContainer]}>
             <HeaderWithCloseButton
                 title={translate('workspace.common.card')}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onCloseButtonPress={() => Navigation.dismissModal(true, false)}
                 onBackButtonPress={() => Navigation.navigate(ROUTES.WORKSPACE)}
                 shouldShowBackButton={isSmallScreenWidth}
             />
