@@ -2,7 +2,6 @@
 export default {
     common: {
         cancel: 'Cancelar',
-        upload: 'Subir',
         yes: 'Si',
         no: 'No',
         attachment: 'Archivo Adjunto',
@@ -46,6 +45,7 @@ export default {
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
         dateFormat: 'AAAA-MM-DD',
+        send: 'Enviar',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -89,7 +89,7 @@ export default {
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
     },
     reportActionCompose: {
-        uploadAttachment: 'Subir Archivo Adjunto',
+        sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar Archivo Adjunto',
         writeSomething: 'Escribe algo...',
         youAppearToBeOffline: 'Parece que estás desconectado.',
