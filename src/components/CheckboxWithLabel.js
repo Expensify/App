@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity, Pressable} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
