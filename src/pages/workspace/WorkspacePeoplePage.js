@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, FlatList, ScrollView
+    View, FlatList, ScrollView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -12,11 +12,13 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import {flatListRef} from '../../libs/ReportScrollManager';
+import {removeMembers} from '../../libs/actions/Policy';
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
+import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 
 const propTypes = {
@@ -53,32 +55,7 @@ class WorkspacePeoplePage extends React.Component {
 
         this.state = {
             selectedEmployees: [],
-            mockData: [
-                {
-                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_1.png',
-                    displayName: 'Shawn Borton',
-                    firstName: 'Shawn',
-                    lastName: 'Borton',
-                    login: 'shawn@expensify.com',
-                    isAdmin: true,
-                },
-                {
-                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png',
-                    displayName: 'Vit Horacek',
-                    firstName: 'Vit',
-                    lastName: 'Horacek',
-                    login: 'vit@expensify.com',
-                    isAdmin: false,
-                },
-                {
-                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                    displayName: 'Peter Barker',
-                    firstName: 'Peter',
-                    lastName: 'Barker',
-                    login: 'peter@expensify.com',
-                    isAdmin: false,
-                },
-            ],
+            isRemoveMembersConfirmModalVisible: false,
         };
 
         this.inviteUser = this.inviteUser.bind(this);
@@ -86,6 +63,8 @@ class WorkspacePeoplePage extends React.Component {
         this.toggleUser = this.toggleUser.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.renderHeader = this.renderHeader.bind(this);
+        this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
+        this.hideConfirmModal = this.hideConfirmModal.bind(this);
     }
 
     /**
@@ -100,7 +79,22 @@ class WorkspacePeoplePage extends React.Component {
     */
     removeUsers() {
         // navigate ro ROUTES.WORKSPACE_INVITE
-        Navigation.navigate(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID));
+        removeMembers(this.state.selectedEmployees, this.props.route.params.policyID);
+        this.setState(prevState => ({...prevState, isRemoveMembersConfirmModalVisible: false}));
+    }
+
+    /**
+    * Show the modal to confirm removal of the selected members
+    */
+    askForConfirmationToRemove() {
+        this.setState(prevState => ({...prevState, isRemoveMembersConfirmModalVisible: true}));
+    }
+
+    /**
+    * Hide the confirmation modal
+    */
+    hideConfirmModal() {
+        this.setState(prevState => ({...prevState, isRemoveMembersConfirmModalVisible: false}));
     }
 
     /**
@@ -212,6 +206,15 @@ class WorkspacePeoplePage extends React.Component {
                     title={this.props.translate('common.people')}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
+                <ConfirmModal
+                    title={this.props.translate('workspace.people.removeMembersTitle')}
+                    isVisible={this.state.isRemoveMembersConfirmModalVisible}
+                    onConfirm={this.removeUsers}
+                    onCancel={this.hideConfirmModal}
+                    prompt={this.props.translate('workspace.people.removeMembersPrompt')}
+                    confirmText={this.props.translate('common.remove')}
+                    cancelText={this.props.translate('common.cancel')}
+                />
                 <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                     <View style={styles.pageWrapper}>
                         <Text style={[styles.mb6, styles.textP, styles.textFull]}>
@@ -229,7 +232,7 @@ class WorkspacePeoplePage extends React.Component {
                                 style={[styles.ml2]}
                                 isDisabled={this.state.selectedEmployees.length === 0}
                                 text={this.props.translate('common.remove')}
-                                onPress={this.removeUsers}
+                                onPress={this.askForConfirmationToRemove}
                             />
                         </View>
                         <View style={[styles.w100, styles.mt4]}>
@@ -244,7 +247,6 @@ class WorkspacePeoplePage extends React.Component {
                                         data={(this.props.policy.employeeList && this.props.policy.employeeList.length !== 0)
                                             ? this.props.policy.employeeList.map(email => this.props.personalDetails[email])
                                             : []}
-                                        // We keep this property very low so that chat switching remains fast
                                         maxToRenderPerBatch={1}
                                         windowSize={15}
                                         removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
