@@ -16,10 +16,11 @@ const TermsWithLicenses = ({translate}) => (
         <View
             style={[
                 styles.dFlex,
+                styles.flexRow,
                 styles.flexWrap,
+                styles.textAlignCenter,
                 styles.alignItemsCenter,
                 styles.justifyContentCenter,
-                styles.flexRow,
             ]}
         >
             <Text style={[styles.textAlignCenter, styles.loginTermsText]}>
@@ -27,18 +28,17 @@ const TermsWithLicenses = ({translate}) => (
                 {' '}
             </Text>
             <TextLink
-                style={[styles.loginTermsText, styles.termsLink]}
+                style={[styles.loginTermsText, styles.termsLinkNative]}
                 href={CONST.TERMS_URL}
             >
                 {translate('termsOfUse.phrase2')}
             </TextLink>
             <Text style={[styles.textAlignCenter, styles.loginTermsText]}>
-                {' '}
                 {translate('termsOfUse.phrase3')}
                 {' '}
             </Text>
             <TextLink
-                style={[styles.loginTermsText, styles.termsLink]}
+                style={[styles.loginTermsText, styles.termsLinkNative]}
                 href={CONST.PRIVACY_URL}
             >
                 {translate('termsOfUse.phrase4')}
@@ -53,7 +53,7 @@ const TermsWithLicenses = ({translate}) => (
                 {' '}
             </Text>
             <TextLink
-                style={[styles.loginTermsText, styles.termsLink]}
+                style={[styles.loginTermsText, styles.termsLinkNative]}
                 href={CONST.LICENSES_URL}
             >
                 {translate('termsOfUse.phrase7')}
