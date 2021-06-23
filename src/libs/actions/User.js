@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
@@ -63,7 +64,7 @@ function getBetas() {
 function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
-        name: CONST.NVP.PAYPAL_ME_ADDRESS,
+        nvpNames: `${CONST.NVP.BLOCKED_FROM_CONCIERGE}, ${CONST.NVP.PAYPAL_ME_ADDRESS}`,
     })
         .then((response) => {
             // Update the User onyx key
@@ -74,6 +75,10 @@ function getUserDetails() {
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
             Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, payPalMeAddress);
+
+            // Update the blockedFromConcierge NVP
+            const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, '');
+            Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
         });
 }
 
@@ -175,6 +180,20 @@ function validateLogin(accountID, validateCode) {
 }
 
 /**
+ * Checks if the expiresAt date of a user's ban is before right now
+ *
+ * @param {String} expiresAt
+ * @returns {boolean}
+ */
+function isBlockedFromConcierge(expiresAt) {
+    if (!expiresAt) {
+        return false;
+    }
+
+    return moment().isBefore(moment(expiresAt), 'day');
+}
+
+/**
  * Fetch the public domain info for the current user.
  *
  * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
@@ -225,5 +244,6 @@ export {
     setExpensifyNewsStatus,
     setSecondaryLogin,
     validateLogin,
+    isBlockedFromConcierge,
     getDomainInfo,
 };

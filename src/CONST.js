@@ -187,6 +187,7 @@ const CONST = {
         },
     },
     NVP: {
+        BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
         TIMEZONE: 'timeZone',
