@@ -174,7 +174,7 @@ const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
 // Standalone page for now
 const WorkspacePeopleModalStackNavigator = createModalStackNavigator([{
     Component: WorkspacePeoplePage,
-    name: 'WorkspaceSettingsPeople_Root',
+    name: 'WorkspacePeople_Root',
 }]);
 
 export {

@@ -48,13 +48,9 @@ export default {
         whatThis: 'What\'s this?',
         invite: 'Invite',
         passwordCannotBeBlank: 'Password cannot be blank',
-<<<<<<< HEAD
-=======
         people: 'People',
-        here: 'here',
         remove: 'Remove',
-        admin: "Admin",
->>>>>>> ef0267630 (Update languages)
+        admin: 'Admin',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -382,6 +378,10 @@ export default {
             helpText: 'Name your Workspace before enabling your Expensify Cards!',
             getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
+        },
+        people: {
+            assignee: 'Assignee',
+            tagline: 'In life you need colors. At home you have unlimited time. Maybe we got a few little happy bushes here.',
         },
         invite: {
             invitePeople: 'Invite People',

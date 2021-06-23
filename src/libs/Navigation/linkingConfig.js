@@ -129,26 +129,11 @@ export default {
                     NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
-<<<<<<< HEAD
-=======
-
-            // Fullscreen Modal Screens
-            WorkspaceSettings: {
+            WorkspacePeople: {
                 screens: {
-                    WorkspaceCard: {
-                        path: ROUTES.WORKSPACE_CARD,
-                        exact: true,
-                    },
+                    WorkspacePeople_Root: ROUTES.WORKSPACE_PEOPLE,
                 },
             },
-
-            // Standalone page for now
-            WorkspaceSettingsPeople: {
-                screens: {
-                    WorkspaceSettingsPeople_Root: ROUTES.WORKSPACE_PEOPLE,
-                },
-            },
->>>>>>> bc0b2e0ad (Refactor the pages so the settings is a standalone page)
         },
     },
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, ScrollView, Image, Text as RNText, Linking,
+    View, ScrollView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -11,18 +11,13 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {flatListRef, scrollToBottom} from '../../libs/ReportScrollManager';
+import {flatListRef} from '../../libs/ReportScrollManager';
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
 import InvertedFlatList from '../../components/InvertedFlatList';
-import variables from '../../styles/variables';
-import themeDefault from '../../styles/themes/default';
 import ROUTES from '../../ROUTES';
-import CONFIG from '../../CONFIG';
-import CONST from '../../CONST';
-import TextLink from '../../components/TextLink';
 import personalDetailsPropType from '../personalDetailsPropType';
 
 const propTypes = {
@@ -57,37 +52,34 @@ class WorkspacePeoplePage extends React.Component {
     constructor(props) {
         super(props);
 
-        console.log(props);
-
         this.state = {
             selectedEmployees: [],
-            allChecked: false,
             mockData: [
                 {
-                    avatar: "https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_1.png",
-                    displayName: "Shawn Borton",
-                    firstName: "Shawn",
-                    lastName: "Borton",
-                    login: "shawn@expensify.com",
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_1.png',
+                    displayName: 'Shawn Borton',
+                    firstName: 'Shawn',
+                    lastName: 'Borton',
+                    login: 'shawn@expensify.com',
                     isAdmin: true,
                 },
                 {
-                    avatar: "https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png",
-                    displayName: "Vit Horacek",
-                    firstName: "Vit",
-                    lastName: "Horacek",
-                    login: "vit@expensify.com",
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png',
+                    displayName: 'Vit Horacek',
+                    firstName: 'Vit',
+                    lastName: 'Horacek',
+                    login: 'vit@expensify.com',
                     isAdmin: false,
                 },
                 {
-                    avatar: "https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png",
-                    displayName: "Peter Barker",
-                    firstName: "Peter",
-                    lastName: "Barker",
-                    login: "peter@expensify.com",
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'Peter Barker',
+                    firstName: 'Peter',
+                    lastName: 'Barker',
+                    login: 'peter@expensify.com',
                     isAdmin: false,
                 },
-            ]
+            ],
         };
 
         this.inviteUser = this.inviteUser.bind(this);
@@ -114,16 +106,16 @@ class WorkspacePeoplePage extends React.Component {
 
     /**
     * Add or remove user from the selectedEmployees list
+    *
+    * @param {Sting} login
     */
     toggleUser(login) {
         if (login === 'ALL') {
-            console.log('check all');
             this.setState(prevState => ({
                 ...prevState,
-                allChecked: !prevState.allChecked,
-                selectedEmployees: !prevState.allChecked
-                    ? prevState.mockData.map(item => item.login)
-                    : []
+                selectedEmployees: prevState.selectedEmployees.length !== this.props.policy.employeeList.length
+                    ? this.props.policy.employeeList
+                    : [],
             }));
             return;
         }
@@ -132,7 +124,7 @@ class WorkspacePeoplePage extends React.Component {
             ...prevState,
             selectedEmployees: prevState.selectedEmployees.includes(login)
                 ? prevState.selectedEmployees.filter(item => item !== login)
-                : [...prevState.selectedEmployees, login]
+                : [...prevState.selectedEmployees, login],
         }));
     }
 
@@ -150,7 +142,6 @@ class WorkspacePeoplePage extends React.Component {
      */
     renderItem({
         item,
-        index,
     }) {
         return (
             <View style={[styles.peopleRow]}>
@@ -177,15 +168,15 @@ class WorkspacePeoplePage extends React.Component {
                     </Text>
                 </View>
                 <View style={[styles.peopleRowCell, styles.flex2, styles.peopleBadgesContainer]}>
-                    {/* {
-                        item.isAdmin && ( */}
+                    {
+                        this.props.session.email === item.login && (
                             <View style={[styles.peopleBadge]}>
                                 <Text style={[styles.peopleBadgeText]}>
                                     Admin
                                 </Text>
                             </View>
-                        {/* )
-                    } */}
+                        )
+                    }
                 </View>
             </View>
         );
@@ -196,8 +187,8 @@ class WorkspacePeoplePage extends React.Component {
             <View style={[styles.peopleRow, styles.peopleHeaderRow]}>
                 <View style={[styles.peopleRowCell, styles.peopleCheckbox]}>
                     <Checkbox
-                        isChecked={this.state.allChecked}
-                        onPress={() => this.toggleUser("ALL")}
+                        isChecked={this.state.selectedEmployees.length === this.props.policy.employeeList.length}
+                        onPress={() => this.toggleUser('ALL')}
                     />
                 </View>
                 <View style={[styles.peopleRowCell, styles.flex2]}>
@@ -210,10 +201,7 @@ class WorkspacePeoplePage extends React.Component {
                         {this.props.translate('common.email')}
                     </Text>
                 </View>
-                <View style={[styles.peopleRowCell, styles.flex2]}>
-                    <Text style={[styles.textStrong]}>
-                    </Text>
-                </View>
+                <View style={[styles.peopleRowCell, styles.flex2]} />
             </View>
         );
     }
@@ -246,29 +234,35 @@ class WorkspacePeoplePage extends React.Component {
                             />
                         </View>
                         <View style={[styles.w100, styles.mt4]}>
-                            <InvertedFlatList
-                                ref={flatListRef}
-                                data={(this.props.policy.employeeList && this.props.policy.employeeList.length !== 0)
-                                    ? this.props.policy.employeeList.map(email => this.props.personalDetails[email])
-                                    : this.state.mockData
-                                }
-                                ListFooterComponent={this.renderHeader()}
-                                renderItem={this.renderItem}
-                                contentContainerStyle={[styles.w100]}
-
-                                // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
-                                // shouldn't happen, but might be possible in some rare cases.
-                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                // keyExtractor={item => `${item.action.sequenceNumber}${item.action.clientID}`}
-                                initialRowHeight={32}
-                            />
+                            {
+                                this.props.policy.employeeList ? (
+                                    <InvertedFlatList
+                                        ref={flatListRef}
+                                        data={(this.props.policy.employeeList && this.props.policy.employeeList.length !== 0)
+                                            ? this.props.policy.employeeList.map(email => this.props.personalDetails[email])
+                                            : []}
+                                        ListFooterComponent={this.renderHeader()}
+                                        renderItem={this.renderItem}
+                                        contentContainerStyle={[styles.w100]}
+                                        initialRowHeight={32}
+                                    />
+                                ) : (
+                                    <View style={[styles.peopleRow]}>
+                                        <View style={[styles.peopleRowCell, styles.flex2]}>
+                                            <Text>
+                                                Unfortunately, this workspace has no members.
+                                            </Text>
+                                        </View>
+                                    </View>
+                                )
+                            }
                         </View>
                     </View>
                 </ScrollView>
             </ScreenWrapper>
         );
-    };
-};
+    }
+}
 
 WorkspacePeoplePage.propTypes = propTypes;
 WorkspacePeoplePage.defaultProps = defaultProps;
