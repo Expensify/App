@@ -3,7 +3,6 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
@@ -154,8 +153,7 @@ class ReportActionContextMenu extends React.Component {
      */
     getActionText() {
         const message = _.last(lodashGet(this.props.reportAction, 'message', null));
-        const parser = new ExpensiMark();
-        return parser.htmlToMarkdown(lodashGet(message, 'html', ''));
+        return lodashGet(message, 'text', '');
     }
 
     confirmDeleteAndHideModal() {
