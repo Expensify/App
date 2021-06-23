@@ -44,6 +44,7 @@ export default {
         invite: 'Invitar',
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
+        dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
     },
     attachmentPicker: {
@@ -296,6 +297,9 @@ export default {
             routingNumber: 'Ingrese un número de ruta válido',
             companyType: 'Ingrese un tipo de compañía válido',
             tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelva a intentarlo más tarde o introduzca los detalles manualmente.',
+            address: 'Ingrese una dirección válida',
+            dob: 'Ingrese una fecha de nacimiento válida',
+            ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
         },
     },
     addPersonalBankAccountPage: {
@@ -330,6 +334,10 @@ export default {
         agreement: 'Agreement:',
         termsAndConditions: 'terms and conditions',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
+        error: {
+            termsAndConditions: 'Debe aceptar términos y condiciones',
+            certify: 'Debe certificar que la información es verdadera y precisa',
+        },
     },
     session: {
         offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',

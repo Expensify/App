@@ -13,6 +13,7 @@ import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
+import {isValidIdentity} from '../../libs/ValidationUtils';
 import Growl from '../../libs/Growl';
 import Onfido from '../../components/Onfido';
 
@@ -48,9 +49,21 @@ class RequestorStep extends React.Component {
         this.setState({[fieldName]: value});
     }
 
+    /**
+     * @returns {Boolean}
+     */
     validate() {
         if (!this.state.isControllingOfficer) {
-            Growl.show(this.props.translate('requestorStep.isControllingOfficerError'), CONST.GROWL.ERROR);
+            Growl.error(this.props.translate('requestorStep.isControllingOfficerError'));
+            return false;
+        }
+
+        if (!isValidIdentity({
+            street: this.state.requestorAddressStreet,
+            zipCode: this.state.requestorAddressZipCode,
+            dob: this.state.dob,
+            ssnLast4: this.state.ssnLast4,
+        })) {
             return false;
         }
 

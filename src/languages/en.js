@@ -48,6 +48,7 @@ export default {
         invite: 'Invite',
         iAcceptThe: 'I accept the ',
         passwordCannotBeBlank: 'Password cannot be blank',
+        dateFormat: 'YYYY-MM-DD',
         send: 'Send',
     },
     attachmentPicker: {
@@ -303,6 +304,9 @@ export default {
             routingNumber: 'Please enter a valid Routing Number',
             companyType: 'Please enter a valid Company Type',
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
+            address: 'Please enter a valid address',
+            dob: 'Please enter a valid date of birth',
+            ssnLast4: 'Please enter valid last 4 digits of SSN',
         },
     },
     addPersonalBankAccountPage: {
@@ -399,6 +403,10 @@ export default {
         agreement: 'Agreement:',
         termsAndConditions: 'terms and conditions',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
+        error: {
+            termsAndConditions: 'Must accept terms and conditions',
+            certify: 'Must certify information is true and accurate',
+        },
     },
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
