@@ -13,7 +13,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
 import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
-import variables from '../../styles/variables';
 import themedefault from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -58,6 +57,8 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
                         && (
                             <HeaderWithCloseButton
                                 title={translate('workspace.common.workspace')}
+                                onBackButtonPress={() => Navigation.dismissModal(true)}
+                                onCloseButtonPress={() => Navigation.dismissModal(true)}
                                 shouldShowBackButton
                             />
                         )}
