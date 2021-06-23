@@ -54,6 +54,7 @@ import {
     ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
+    RequestCallModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -128,7 +129,7 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
-        User.getPublicDomainInfo();
+        User.getDomainInfo();
         PersonalDetails.fetchCurrencyPreferences();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
@@ -299,11 +300,18 @@ class AuthScreens extends React.Component {
                     options={modalScreenOptions}
                     component={ReimbursementAccountModalStackNavigator}
                     listeners={modalScreenListeners}
+                    initialParams={{stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT}}
                 />
                 <RootStack.Screen
                     name="WorkspaceInvite"
                     options={modalScreenOptions}
                     component={WorkspaceInviteModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="RequestCall"
+                    options={modalScreenOptions}
+                    component={RequestCallModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

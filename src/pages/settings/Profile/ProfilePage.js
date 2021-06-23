@@ -20,7 +20,6 @@ import Avatar from '../../../components/Avatar';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import Icon from '../../../components/Icon';
-import Checkbox from '../../../components/Checkbox';
 import themeColors from '../../../styles/themes/default';
 import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
@@ -33,6 +32,8 @@ import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
+import FullNameInputRow from '../../../components/FullNameInputRow';
+import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 
 const propTypes = {
     /* Onyx Props */
@@ -306,32 +307,13 @@ class ProfilePage extends Component {
                         <Text style={[styles.mt6, styles.mb6, styles.textP]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
                         </Text>
-                        <View style={[styles.flexRow, styles.mb6]}>
-                            <View style={styles.flex1}>
-                                <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.props.translate('common.firstName')}
-                                </Text>
-                                <TextInput
-                                    style={styles.textInput}
-                                    value={this.state.firstName}
-                                    onChangeText={firstName => this.setState({firstName})}
-                                    placeholder={this.props.translate('profilePage.john')}
-                                    placeholderTextColor={themeColors.placeholderText}
-                                />
-                            </View>
-                            <View style={[styles.flex1, styles.ml2]}>
-                                <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.props.translate('common.lastName')}
-                                </Text>
-                                <TextInput
-                                    style={styles.textInput}
-                                    value={this.state.lastName}
-                                    onChangeText={lastName => this.setState({lastName})}
-                                    placeholder={this.props.translate('profilePage.doe')}
-                                    placeholderTextColor={themeColors.placeholderText}
-                                />
-                            </View>
-                        </View>
+                        <FullNameInputRow
+                            firstName={this.state.firstName}
+                            lastName={this.state.lastName}
+                            onChangeFirstName={firstName => this.setState({firstName})}
+                            onChangeLastName={lastName => this.setState({lastName})}
+                            style={[styles.mt4, styles.mb4]}
+                        />
                         <View style={styles.mb6}>
                             <Text style={[styles.mb1, styles.formLabel]}>
                                 {this.props.translate('profilePage.preferredPronouns')}
@@ -379,7 +361,7 @@ class ProfilePage extends Component {
                                 disabled={this.state.isAutomaticTimezone}
                             />
                         </View>
-                        <Checkbox
+                        <CheckboxWithLabel
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                             isChecked={this.state.isAutomaticTimezone}
                             onPress={this.setAutomaticTimezone}
