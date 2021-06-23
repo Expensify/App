@@ -39,6 +39,23 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+/**
+ * Gets the phone number to display for SMS logins
+ *
+ * @param {String} login
+ * @param {String} displayName
+ * @returns {String}
+ */
+const getPhoneNumber = (login, displayName) => {
+    // If the user hasn't set a displayName, it is set to their phone number, so use that
+    if (Str.isValidPhone(displayName)) {
+        return displayName;
+    }
+
+    // If the user has set a displayName, get the phone number from the SMS login
+    return Str.removeSMSDomain(login);
+};
+
 const DetailsPage = ({
     personalDetails, route, translate, toLocalPhone,
 }) => {
@@ -87,7 +104,7 @@ const DetailsPage = ({
                                     </Text>
                                     <Text style={[styles.textP]} numberOfLines={1}>
                                         {isSMSLogin
-                                            ? toLocalPhone(details.displayName)
+                                            ? toLocalPhone(getPhoneNumber(details.login, details.displayName))
                                             : details.login}
                                     </Text>
                                 </View>
