@@ -2,7 +2,6 @@
 export default {
     common: {
         cancel: 'Cancel',
-        upload: 'Upload',
         yes: 'Yes',
         no: 'No',
         attachment: 'Attachment',
@@ -49,6 +48,8 @@ export default {
         invite: 'Invite',
         iAcceptThe: 'I accept the ',
         passwordCannotBeBlank: 'Password cannot be blank',
+        dateFormat: 'YYYY-MM-DD',
+        send: 'Send',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -92,7 +93,7 @@ export default {
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
     reportActionCompose: {
-        uploadAttachment: 'Upload Attachment',
+        sendAttachment: 'Send Attachment',
         addAttachment: 'Add Attachment',
         writeSomething: 'Write something...',
         youAppearToBeOffline: 'You appear to be offline.',
@@ -290,6 +291,23 @@ export default {
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: ({fromNow}) => `For security reasons, we're taking a break from bank account setup so you can double-check your company information. Please try again ${fromNow}. Sorry!`,
+        error: {
+            noBankAccountAvailable: 'Sorry, no bank account is available',
+            taxID: 'Please enter a valid Tax ID Number',
+            website: 'Please enter a valid website',
+            zipCode: 'Please enter a valid zip code',
+            addressStreet: 'Please enter a valid address street that is not a PO Box',
+            incorporationDate: 'Please enter a valid incorporation date',
+            incorporationState: 'Please enter a valid Incorporation State',
+            industryCode: 'Please enter a valid industry classification code',
+            restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
+            routingNumber: 'Please enter a valid Routing Number',
+            companyType: 'Please enter a valid Company Type',
+            tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
+            address: 'Please enter a valid address',
+            dob: 'Please enter a valid date of birth',
+            ssnLast4: 'Please enter valid last 4 digits of SSN',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter password',
@@ -351,6 +369,8 @@ export default {
         industryClassificationCode: 'Industry Classification Code',
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
+        incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
+        companyPhonePlaceholder: '10 digits, no hyphens',
     },
     requestorStep: {
         headerTitle: 'Requestor Information',
@@ -359,9 +379,17 @@ export default {
         isMyDataSafe: 'Is my data safe?',
         onFidoConditions: 'By continuing with the request to add this bank account, you confirm that you have read, understand and accept ',
         onFidoFacialScan: 'Onfido’s Facial Scan Policy and Release',
-        requestorAddressStreet: 'Your Personal Address',
         ssnLast4: 'Last 4 Digits of SSN',
-        isAuthorized: 'I am authorized to use my company bank account for business spend',
+        isControllingOfficer: 'I am authorized to use my company bank account for business spend',
+        isControllingOfficerError: 'You must be a controlling officer with authorization to operate the business bank account.',
+    },
+    validationStep: {
+        headerTitle: 'Validate',
+        buttonText: 'Finish Setup',
+        maxAttemptError: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
+        description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation"',
+        descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
+        verifyingDescription: 'We\'re taking a look at your information and will have you onto next steps in just a few seconds.',
     },
     beneficialOwnersStep: {
         beneficialOwners: 'Beneficial Owners',
@@ -375,6 +403,10 @@ export default {
         agreement: 'Agreement:',
         termsAndConditions: 'terms and conditions',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
+        error: {
+            termsAndConditions: 'Must accept terms and conditions',
+            certify: 'Must certify information is true and accurate',
+        },
     },
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
