@@ -20,7 +20,6 @@ import Avatar from '../../../components/Avatar';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import Icon from '../../../components/Icon';
-import Checkbox from '../../../components/Checkbox';
 import themeColors from '../../../styles/themes/default';
 import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
@@ -34,6 +33,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import FullNameInputRow from '../../../components/FullNameInputRow';
+import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 
 const propTypes = {
     /* Onyx Props */
@@ -361,7 +361,7 @@ class ProfilePage extends Component {
                                 disabled={this.state.isAutomaticTimezone}
                             />
                         </View>
-                        <Checkbox
+                        <CheckboxWithLabel
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                             isChecked={this.state.isAutomaticTimezone}
                             onPress={this.setAutomaticTimezone}
