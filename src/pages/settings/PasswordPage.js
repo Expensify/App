@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, TextInput} from 'react-native';
+import {View, TextInput, ScrollView} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {isEmpty} from 'underscore';
@@ -16,6 +16,8 @@ import Button from '../../components/Button';
 import {changePassword} from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /* Onyx Props */
@@ -68,14 +70,14 @@ class PasswordPage extends Component {
     render() {
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('passwordPage.changePassword')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
-                    <View style={styles.flexGrow1}>
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('passwordPage.changePassword')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    />
+                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <Text style={[styles.mb6, styles.textP]}>
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
                         </Text>
@@ -131,8 +133,8 @@ class PasswordPage extends Component {
                                 {this.props.account.error}
                             </Text>
                         )}
-                    </View>
-                    <View style={styles.flexGrow0}>
+                    </ScrollView>
+                    <FixedFooter style={[styles.flexGrow0]}>
                         <Button
                             success
                             style={[styles.mb2]}
@@ -145,8 +147,8 @@ class PasswordPage extends Component {
                             text={this.props.translate('common.save')}
                             onPress={this.handleChangePassword}
                         />
-                    </View>
-                </View>
+                    </FixedFooter>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }

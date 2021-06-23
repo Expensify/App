@@ -9,18 +9,6 @@ import {getSimplifiedIOUReport, syncChatAndIOUReports} from './Report';
 import Navigation from '../Navigation/Navigation';
 
 /**
- * Retrieve the users preferred currency
- */
-function getPreferredCurrency() {
-    Onyx.merge(ONYXKEYS.IOU, {loading: true});
-
-    // fake loading timer, to be replaced with actual network request
-    setTimeout(() => {
-        Onyx.merge(ONYXKEYS.IOU, {loading: false});
-    }, 1600);
-}
-
-/**
  * @param {Object[]} requestParams
  * @param {Number} requestParams.reportID the ID of the IOU report
  * @param {Number} requestParams.chatReportID the ID of the chat report that the IOU report belongs to
@@ -135,6 +123,9 @@ function createIOUSplit(params) {
 function rejectTransaction({
     reportID, chatReportID, transactionID, comment,
 }) {
+    Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
+        [transactionID]: true,
+    });
     API.RejectTransaction({
         reportID,
         transactionID,
@@ -154,7 +145,13 @@ function rejectTransaction({
             const iouReportStuff = response.reports[reportID];
             syncChatAndIOUReports(chatReportStuff, iouReportStuff);
         })
-        .catch(error => console.error(`Error rejecting transaction: ${error}`));
+        .catch(error => console.error(`Error rejecting transaction: ${error}`))
+        .finally(() => {
+            // setting as null deletes the tranactionID
+            Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
+                [transactionID]: null,
+            });
+        });
 }
 
 /**
@@ -231,7 +228,6 @@ function payIOUReport({
 }
 
 export {
-    getPreferredCurrency,
     createIOUTransaction,
     createIOUSplit,
     rejectTransaction,

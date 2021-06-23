@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {View, StatusBar, AppState} from 'react-native';
+import {View, AppState} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import BootSplash from './libs/BootSplash';
@@ -18,6 +18,8 @@ import UpdateAppModal from './components/UpdateAppModal';
 import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
 import {growlRef} from './libs/Growl';
+import Navigation from './libs/Navigation/Navigation';
+import ROUTES from './ROUTES';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -29,7 +31,9 @@ Onyx.init({
         [ONYXKEYS.SESSION]: {loading: false, shouldShowComposeInput: true},
         [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
         [ONYXKEYS.NETWORK]: {isOffline: false},
-        [ONYXKEYS.IOU]: {loading: false, error: false, creatingIOUTransaction: false},
+        [ONYXKEYS.IOU]: {
+            loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
+        },
     },
     registerStorageEventListener: (onStorageEvent) => {
         listenToStorageEvents(onStorageEvent);
@@ -54,6 +58,9 @@ const propTypes = {
 
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
+
+        /** Should app immediately redirect to new workspace route once authenticated */
+        redirectToWorkspaceNewAfterSignIn: PropTypes.bool,
     }),
 
     /** Whether a new update is available and ready to install. */
@@ -67,6 +74,7 @@ const defaultProps = {
     session: {
         authToken: null,
         accountID: null,
+        redirectToWorkspaceNewAfterSignIn: false,
     },
     updateAvailable: false,
     initialReportDataLoaded: false,
@@ -113,6 +121,9 @@ class Expensify extends PureComponent {
         const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
         if (this.getAuthToken() && !previousAuthToken) {
             BootSplash.show({fade: true});
+            if (lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
+                Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            }
         }
 
         if (this.getAuthToken() && this.props.initialReportDataLoaded) {
@@ -142,11 +153,7 @@ class Expensify extends PureComponent {
     }
 
     hideSplash() {
-        BootSplash.hide({fade: true}).then(() => {
-            // To prevent the splash from shifting positions we set status bar translucent after splash is hidden.
-            // on IOS it has no effect.
-            StatusBar.setTranslucent(true);
-        });
+        BootSplash.hide({fade: true});
     }
 
     render() {
