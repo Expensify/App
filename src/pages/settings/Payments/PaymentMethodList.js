@@ -8,7 +8,12 @@ import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {Bank, CreditCard, PayPal, Plus} from '../../../components/Icon/Expensicons';
+import {
+    Bank,
+    CreditCard,
+    PayPal,
+    Plus,
+} from '../../../components/Icon/Expensicons';
 
 const propTypes = {
     // What to do when a menu item is pressed
