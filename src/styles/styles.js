@@ -70,7 +70,9 @@ const styles = {
     },
 
     textMicro: {
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textMicroBold: {
@@ -78,6 +80,13 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
+    },
+
+    textMicroSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textLarge: {
@@ -111,6 +120,10 @@ const styles = {
 
     colorHeading: {
         color: themeColors.heading,
+    },
+
+    textDanger: {
+        color: colors.red,
     },
 
     button: {
@@ -234,6 +247,7 @@ const styles = {
             appearance: 'none',
             height: variables.componentSizeNormal,
             opacity: 1,
+            cursor: 'pointer',
         },
         inputAndroid: {
             fontFamily: fontFamily.GTA,
@@ -286,6 +300,12 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    border: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
     },
 
     headerText: {
@@ -343,6 +363,10 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         textAlignVertical: 'center',
+    },
+
+    disabledText: {
+        color: colors.gray3,
     },
 
     disabledTextInput: {
@@ -594,11 +618,22 @@ const styles = {
         alignItems: 'center',
     },
 
+    createMenuIconEmphasized: {
+        backgroundColor: themeColors.iconSuccessFill,
+        borderRadius: variables.componentSizeLarge / 2,
+    },
+
     createMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    createMenuDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
     },
 
     menuItemTextContainer: {
@@ -1531,6 +1566,11 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    textItalic: {
+        fontFamily: fontFamily.GTA_ITALIC,
+        fontStyle: 'italic',
+    },
+
     workspaceInviteWelcome: {
         minHeight: 150,
     },
@@ -1768,6 +1808,7 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
             return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
             return {};
@@ -1789,6 +1830,7 @@ function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
         case CONST.BUTTON_STATES.COMPLETE:
             return themeColors.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
+        case CONST.BUTTON_STATES.DISABLED:
         default:
             return themeColors.icon;
     }

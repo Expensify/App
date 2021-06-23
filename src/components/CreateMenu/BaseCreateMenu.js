@@ -48,7 +48,10 @@ class BaseCreateMenu extends PureComponent {
                         <MenuItem
                             key={item.text}
                             icon={item.icon}
+                            iconWidth={item.iconWidth}
+                            iconHeight={item.iconHeight}
                             title={item.text}
+                            description={item.description}
                             onPress={() => this.props.onItemSelected(item)}
                         />
                     ))}
