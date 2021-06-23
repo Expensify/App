@@ -40,6 +40,9 @@ class BeneficialOwnersStep extends React.Component {
         };
     }
 
+    /**
+     * @returns {Boolean}
+     */
     validate() {
         if (this.state.hasOtherBeneficialOwners) {
             const invalidBeneficifialOwner = _.find(this.state.beneficialOwners, owner => (
