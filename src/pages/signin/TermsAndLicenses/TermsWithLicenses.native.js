@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {Text, View, Platform} from 'react-native';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import TextLink from '../../../components/TextLink';
@@ -7,6 +7,11 @@ import withLocalize, {
     withLocalizePropTypes,
 } from '../../../components/withLocalize';
 import LogoWordmark from '../../../../assets/images/expensify-wordmark.svg';
+
+const PlatformLinkStyles = Platform.select({
+    ios: styles.termsLinkIos,
+    default: {},
+});
 
 const TermsWithLicenses = ({translate}) => (
     <View>
@@ -28,12 +33,16 @@ const TermsWithLicenses = ({translate}) => (
                 {' '}
             </Text>
             <TextLink
-                style={[styles.loginTermsText, styles.termsLinkNative]}
+                style={[styles.loginTermsText, styles.termsLinkNative, PlatformLinkStyles]}
                 href={CONST.TERMS_URL}
             >
                 {translate('termsOfUse.phrase2')}
+                {Platform.select({
+                    android: ' ',
+                    default: '',
+                })}
             </TextLink>
-            <Text style={[styles.textAlignCenter, styles.loginTermsText]}>
+            <Text style={[styles.textAlignCenter, styles.loginTermsText, PlatformLinkStyles]}>
                 {translate('termsOfUse.phrase3')}
                 {' '}
             </Text>
@@ -53,7 +62,7 @@ const TermsWithLicenses = ({translate}) => (
                 {' '}
             </Text>
             <TextLink
-                style={[styles.loginTermsText, styles.termsLinkNative]}
+                style={[styles.loginTermsText, styles.termsLinkNative, PlatformLinkStyles]}
                 href={CONST.LICENSES_URL}
             >
                 {translate('termsOfUse.phrase7')}
