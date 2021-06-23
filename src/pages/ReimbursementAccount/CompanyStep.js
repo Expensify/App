@@ -47,6 +47,9 @@ class CompanyStep extends React.Component {
         };
     }
 
+    /**
+     * @returns {Boolean}
+     */
     validate() {
         if (!this.state.password.trim()) {
             Growl.error(this.props.translate('common.passwordCannotBeBlank'));

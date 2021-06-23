@@ -49,6 +49,9 @@ class RequestorStep extends React.Component {
         this.setState({[fieldName]: value});
     }
 
+    /**
+     * @returns {Boolean}
+     */
     validate() {
         if (!this.state.isControllingOfficer) {
             Growl.error(this.props.translate('requestorStep.isControllingOfficerError'));
