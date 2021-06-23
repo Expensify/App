@@ -130,10 +130,15 @@ export default {
                 },
             },
 
-            // Fullscreen Modal Screens
             WorkspaceSettings: {
                 screens: {
                     WorkspaceCard: ROUTES.WORKSPACE_CARD,
+                },
+            },
+
+            RequestCall: {
+                screens: {
+                    RequestCall_Root: ROUTES.REQUEST_CALL,
                 },
             },
         },

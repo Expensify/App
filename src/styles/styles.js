@@ -131,6 +131,10 @@ const styles = {
         backgroundColor: 'transparent',
     },
 
+    textDanger: {
+        color: colors.red,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
