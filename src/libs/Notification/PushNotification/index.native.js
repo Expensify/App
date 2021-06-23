@@ -3,6 +3,7 @@ import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import NotificationType from './NotificationType';
+import Log from '../../Log';
 
 const notificationEventActionMap = {};
 
@@ -32,15 +33,6 @@ function pushNotificationEventCallback(eventType, notification) {
         return;
     }
 
-    // If a push notification is received while the app is in foreground,
-    // we'll assume pusher is connected so we'll ignore is and not fetch the same data twice.
-    // However, we will allow NotificationResponse events through, so that tapping on a foreground notification
-    // will take you to the relevant report.
-    if (AppState.currentState === 'active') {
-        console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
-        return;
-    }
-
     if (!payload.type) {
         console.debug('[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.');
         return;
@@ -63,6 +55,7 @@ function pushNotificationEventCallback(eventType, notification) {
  * @param {String|Number} accountID
  */
 function register(accountID) {
+    // TODO: fix this conditional - getNamedUser returns a promise
     if (UrbanAirship.getNamedUser() === accountID.toString()) {
         // No need to register again for this accountID.
         return;
@@ -83,12 +76,26 @@ function register(accountID) {
 
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
+        console.debug('RORY_DEBUG PushReceived callback executed');
+        Log.info('[PUSH_CLIENT][RORY_DEBUG] PushReceived callback executed', true, {});
+
+        // If a push notification is received while the app is in foreground,
+        // we'll assume pusher is connected so we'll ignore is and not fetch the same data twice.
+        // However, we will allow NotificationResponse events through, so that tapping on a foreground notification
+        // will take you to the relevant report.
+        if (AppState.currentState === 'active') {
+            console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
+            return;
+        }
+
         pushNotificationEventCallback(EventType.PushReceived, notification);
     });
 
     // Note: the NotificationResponse event has a nested PushReceived event,
     // so event.notification refers to the same thing as notification above ^
     UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
+        console.debug('RORY_DEBUG NotificationResponse callback executed');
+        Log.info('[PUSH_CLIENT][RORY_DEBUG] PushReceived callback executed', true, {});
         pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
     });
 }

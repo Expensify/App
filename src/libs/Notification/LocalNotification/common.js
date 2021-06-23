@@ -15,5 +15,5 @@ function showCommentNotification({reportAction, onPress}) {
 }
 
 export default {
-    showCommentNotification,
+    showCommentNotification: () => {},
 };
