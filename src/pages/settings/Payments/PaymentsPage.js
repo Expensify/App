@@ -12,6 +12,9 @@ import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import getPaymentMethods from '../../../libs/actions/PaymentMethods';
+import Popover from '../../../components/Popover';
+import {Bank} from '../../../components/Icon/Expensicons';
+import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -21,29 +24,51 @@ class PaymentsPage extends React.Component {
     constructor(props) {
         super(props);
 
+        this.PAYPAL = 'payPalMe';
+
         this.state = {
             showDefaultOrDeleteMenu: false,
             selectedPaymentMethodIndex: null,
             showAddPaymentMenu: false,
+            anchorPositionTop: 0,
+            anchorPositionLeft: 0,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
-        this.addPaymentMethodPressed = this.addPaymentMethodPressed.bind(this);
+        this.addPaymentMethodTypePressed = this.addPaymentMethodTypePressed.bind(this);
+        this.hideAddPaymentMenu = this.hideAddPaymentMenu.bind(this);
     }
 
     componentDidMount() {
         getPaymentMethods();
     }
 
-    paymentMethodPressed(account) {
-        this.setState({
-            showDefaultOrDeleteMenu: true,
-            selectedPaymentMethod: account,
-        });
+    paymentMethodPressed(nativeEvent, account) {
+        if (account) {
+            this.setState({
+                showDefaultOrDeleteMenu: true,
+                selectedPaymentMethod: account,
+            });
+        } else {
+            const position = nativeEvent.currentTarget.getBoundingClientRect();
+            this.setState({
+                showAddPaymentMenu: true,
+                anchorPositionTop: position.bottom,
+                anchorPositionLeft: position.left,
+            });
+        }
     }
 
-    addPaymentMethodPressed() {
-        this.setState({showAddPaymentMenu: true});
+    addPaymentMethodTypePressed(paymentType) {
+        this.hideAddPaymentMenu();
+
+        if (paymentType === this.PAYPAL) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
+        }
+    }
+
+    hideAddPaymentMenu() {
+        this.setState({showAddPaymentMenu: false});
     }
 
     render() {
@@ -68,6 +93,20 @@ class PaymentsPage extends React.Component {
                             text={this.props.translate('addPayPalMePage.addPayPalAccount')}
                         />
                     </FixedFooter>
+                    <Popover
+                        isVisible={this.state.showAddPaymentMenu}
+                        onClose={this.hideAddPaymentMenu}
+                        anchorPosition={{
+                            top: this.state.anchorPositionTop,
+                            left: this.state.anchorPositionLeft,
+                        }}
+                    >
+                        <MenuItem
+                            title="PayPal.me"
+                            icon={Bank}
+                            onPress={() => this.addPaymentMethodTypePressed(this.PAYPAL)}
+                        />
+                    </Popover>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
