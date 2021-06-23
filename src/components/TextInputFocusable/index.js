@@ -33,13 +33,16 @@ const propTypes = {
     /** When the input has cleared whoever owns this input should know about it */
     onClear: PropTypes.func,
 
-    /** Callback to fire when a file has been dragged into the text input */
+    /** Callback to fire when a file has being dragged over the text input & report body */
+    onDragOver: PropTypes.func,
+
+    /** Callback to fire when a file has been dragged into the text input & report body */
     onDragEnter: PropTypes.func,
 
-    /** Callback to fire when the user is no longer dragging over the text input */
+    /** Callback to fire when the user is no longer dragging over the text input & report body */
     onDragLeave: PropTypes.func,
 
-    /** Callback to fire when a file is dropped on the text input */
+    /** Callback to fire when a file is dropped on the text input & report body */
     onDrop: PropTypes.func,
 
     /** Whether or not this TextInput is disabled. */
@@ -70,6 +73,7 @@ const defaultProps = {
     onClear: () => {},
     style: null,
     onDragEnter: () => {},
+    onDragOver: () => {},
     onDragLeave: () => {},
     onDrop: () => {},
     isDisabled: false,
@@ -197,7 +201,7 @@ class TextInputFocusable extends React.Component {
             switch (e.type) {
                 case 'dragover':
                     e.preventDefault();
-                    this.props.onDragEnter(e, isOriginComposer);
+                    this.props.onDragOver(e, isOriginComposer);
                     break;
                 case 'dragenter':
                     e.dataTransfer.dropEffect = 'copy';
