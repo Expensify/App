@@ -57,8 +57,8 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
                         && (
                             <HeaderWithCloseButton
                                 title={translate('workspace.common.workspace')}
-                                onBackButtonPress={() => Navigation.dismissModal(true)}
-                                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                                onBackButtonPress={() => Navigation.dismissModal(false, false)}
+                                onCloseButtonPress={() => Navigation.dismissModal(false, false)}
                                 shouldShowBackButton
                             />
                         )}

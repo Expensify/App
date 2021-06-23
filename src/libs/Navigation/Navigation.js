@@ -70,14 +70,20 @@ function navigate(route = ROUTES.HOME) {
  * Dismisses a screen presented modally and returns us back to the previous view.
  *
  * @param {Boolean} shouldOpenDrawer
+ * @param {Boolean} [canGoBack=true]
  */
-function dismissModal(shouldOpenDrawer = false) {
+function dismissModal(shouldOpenDrawer = false, canGoBack = true) {
     const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
         ? shouldOpenDrawer
         : false;
 
     // This should take us to the first view of the modal's stack navigator
     navigationRef.current.dispatch((state) => {
+        // If this is a nested drawer navigator then we must pop this screen
+        if (state.type === 'drawer') {
+            return StackActions.pop();
+        }
+
         // If there are multiple routes then we can pop back to the first route
         if (state.routes.length > 1) {
             return StackActions.popToTop();
@@ -89,7 +95,9 @@ function dismissModal(shouldOpenDrawer = false) {
     });
 
     // Navigate back to where we were before we launched the modal
-    goBack();
+    if (canGoBack) {
+        goBack();
+    }
 
     if (!normalizedShouldOpenDrawer) {
         return;
