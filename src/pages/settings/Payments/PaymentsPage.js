@@ -27,8 +27,6 @@ class PaymentsPage extends React.Component {
         this.PAYPAL = 'payPalMe';
 
         this.state = {
-            showDefaultOrDeleteMenu: false,
-            selectedPaymentMethodIndex: null,
             showAddPaymentMenu: false,
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
@@ -45,10 +43,7 @@ class PaymentsPage extends React.Component {
 
     paymentMethodPressed(nativeEvent, account) {
         if (account) {
-            this.setState({
-                showDefaultOrDeleteMenu: true,
-                selectedPaymentMethod: account,
-            });
+            // Show the make default/delete popover
         } else {
             const position = nativeEvent.currentTarget.getBoundingClientRect();
             this.setState({
