@@ -43,7 +43,7 @@ function goBack() {
  * @param {String} route
  */
 function navigate(route = ROUTES.HOME) {
-    if (route === ROUTES.HOME) {
+    if (route === ROUTES.HOME || route === ROUTES.WORKSPACE) {
         if (isLoggedIn) {
             openDrawer();
             return;
