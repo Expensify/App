@@ -506,6 +506,11 @@ const styles = {
         color: themeColors.link,
     },
 
+    termsLinkNative: {
+        color: themeColors.link,
+        marginTop: -1,
+    },
+
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,
