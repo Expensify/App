@@ -54,6 +54,7 @@ import {
     ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
+    RequestCallModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -305,6 +306,12 @@ class AuthScreens extends React.Component {
                     name="WorkspaceInvite"
                     options={modalScreenOptions}
                     component={WorkspaceInviteModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="RequestCall"
+                    options={modalScreenOptions}
+                    component={RequestCallModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
