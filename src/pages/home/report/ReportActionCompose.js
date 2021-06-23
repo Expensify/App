@@ -482,7 +482,16 @@ class ReportActionCompose extends React.Component {
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerHotkeyActions}
-                                    onDragEnter={() => this.setState({isDraggingOver: true})}
+                                    onDragEnter={(e, isOriginComposer) => {
+                                        if (isOriginComposer) {
+                                            this.setState({isDraggingOver: true});
+                                        }
+                                    }}
+                                    onDragOver={(e, isOriginComposer) => {
+                                        if (isOriginComposer) {
+                                            this.setState({isDraggingOver: true});
+                                        }
+                                    }}
                                     onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
                                         e.preventDefault();
