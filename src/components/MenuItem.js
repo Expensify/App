@@ -45,6 +45,9 @@ const propTypes = {
 
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
+
+    /** Should we disable this menu item? */
+    disabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -58,6 +61,7 @@ const defaultProps = {
     iconRight: ArrowRight,
     iconStyles: [],
     iconFill: undefined,
+    disabled: false,
 };
 
 const MenuItem = ({
@@ -73,12 +77,19 @@ const MenuItem = ({
     description,
     iconStyles,
     iconFill,
+    disabled,
 }) => (
     <Pressable
-        onPress={onPress}
+        onPress={(e) => {
+            if (disabled) {
+                return;
+            }
+
+            onPress(e);
+        }}
         style={({hovered, pressed}) => ([
             styles.createMenuItem,
-            getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+            getButtonBackgroundColorStyle(getButtonState(hovered, pressed, success, disabled)),
             wrapperStyle,
         ])}
     >
@@ -86,22 +97,22 @@ const MenuItem = ({
             <>
                 <View style={styles.flexRow}>
                     {icon && (
-                    <View
-                        style={[
-                            styles.createMenuIcon,
-                            ...iconStyles,
-                        ]}
-                    >
-                        <Icon
-                            src={icon}
-                            width={iconWidth}
-                            height={iconHeight}
-                            fill={iconFill || getIconFillColor(getButtonState(hovered, pressed, success))}
-                        />
-                    </View>
+                        <View
+                            style={[
+                                styles.createMenuIcon,
+                                ...iconStyles,
+                            ]}
+                        >
+                            <Icon
+                                src={icon}
+                                width={iconWidth}
+                                height={iconHeight}
+                                fill={iconFill || getIconFillColor(getButtonState(hovered, pressed, success, disabled))}
+                            />
+                        </View>
                     )}
                     <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
-                        <Text style={[styles.createMenuText, styles.ml3]}>
+                        <Text style={[styles.createMenuText, styles.ml3, (disabled ? styles.disabledText : undefined)]}>
                             {title}
                         </Text>
                         {description && (
@@ -112,9 +123,12 @@ const MenuItem = ({
                     </View>
                 </View>
                 {shouldShowRightIcon && (
-                <View style={styles.createMenuIcon}>
-                    <Icon src={iconRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
-                </View>
+                    <View style={styles.createMenuIcon}>
+                        <Icon
+                            src={iconRight}
+                            fill={getIconFillColor(getButtonState(hovered, pressed, success, disabled))}
+                        />
+                    </View>
                 )}
             </>
         )}
