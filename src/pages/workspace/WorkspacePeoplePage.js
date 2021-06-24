@@ -244,7 +244,9 @@ class WorkspacePeoplePage extends React.Component {
                                         renderItem={this.renderItem}
                                         contentContainerStyle={[styles.w100]}
                                         initialRowHeight={32}
+                                        // eslint-disable-next-line max-len
                                         data={(this.props.policy.employeeList && this.props.policy.employeeList.length !== 0)
+                                            // eslint-disable-next-line max-len
                                             ? this.props.policy.employeeList.map(email => this.props.personalDetails[email] || false)
                                             : []}
                                         maxToRenderPerBatch={1}
