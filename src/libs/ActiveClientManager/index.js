@@ -13,9 +13,10 @@ let didInitialize = false;
 
 let resolveReadyPromise = null;
 
-// Keeps track of the ActiveClientManager's readiness.
-const readyPromise = new Promise((res) => {
-    resolveReadyPromise = res;
+// Keeps track of the ActiveClientManager's readiness in one place
+// so that multiple calls of isReady resolve the same promise
+const readyPromise = new Promise((resolve) => {
+    resolveReadyPromise = resolve;
 });
 
 Onyx.connect({
