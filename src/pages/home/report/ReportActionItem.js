@@ -222,7 +222,6 @@ class ReportActionItem extends Component {
                     <ReportActionItemMessageEdit
                             action={this.props.action}
                             draftMessage={this.props.draftMessage}
-                            reportAction={this.props.action}
                             reportID={this.props.reportID}
                             index={this.props.index}
                     />
