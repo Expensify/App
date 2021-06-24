@@ -245,7 +245,7 @@ class WorkspacePeoplePage extends React.Component {
                                         contentContainerStyle={[styles.w100]}
                                         initialRowHeight={32}
                                         data={(this.props.policy.employeeList && this.props.policy.employeeList.length !== 0)
-                                            ? this.props.policy.employeeList.map(email => this.props.personalDetails[email])
+                                            ? this.props.policy.employeeList.map(email => this.props.personalDetails[email] || false)
                                             : []}
                                         maxToRenderPerBatch={1}
                                         windowSize={15}
