@@ -98,6 +98,11 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
+    textItalic: {
+        fontFamily: fontFamily.GTA_ITALIC,
+        fontStyle: 'italic',
+    },
+
     textDecorationNoLine: {
         textDecorationLine: 'none',
     },
@@ -120,6 +125,10 @@ const styles = {
 
     colorHeading: {
         color: themeColors.heading,
+    },
+
+    bgTransparent: {
+        backgroundColor: 'transparent',
     },
 
     textDanger: {
@@ -150,6 +159,23 @@ const styles = {
         paddingBottom: 6,
         paddingLeft: 10,
         backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    buttonLarge: {
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeLarge,
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
+    },
+
+    buttonLargeText: {
+        fontSize: variables.fontSizeLarge,
+        lineHeight: 18,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
     },
 
     buttonSmallText: {
@@ -208,6 +234,10 @@ const styles = {
 
     hoveredComponentBG: {
         backgroundColor: themeColors.hoverComponentBG,
+    },
+
+    activeComponentBG: {
+        backgroundColor: themeColors.activeComponentBG,
     },
 
     touchableButtonImage: {
@@ -1145,6 +1175,11 @@ const styles = {
         borderColor: themeColors.border,
     },
 
+    borderRight: {
+        borderRightWidth: 1,
+        borderColor: themeColors.border,
+    },
+
     headerBar: {
         overflow: 'hidden',
         justifyContent: 'center',
@@ -1571,9 +1606,70 @@ const styles = {
         cursor: 'not-allowed',
     },
 
-    textItalic: {
-        fontFamily: fontFamily.GTA_ITALIC,
-        fontStyle: 'italic',
+    fullscreenCard: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: '100%',
+        height: '100%',
+    },
+
+    fullscreenCardWeb: {
+        left: 'auto',
+        right: '-24%',
+        top: '-18%',
+        height: '120%',
+    },
+
+    fullscreenCardMobile: {
+        left: '-20%',
+        top: '-30%',
+        width: '150%',
+    },
+
+    workspaceSidebarAvatar: {
+        width: 80,
+        height: 80,
+    },
+
+    workspaceSidebarAvatarPencil: {
+        width: 32,
+        height: 32,
+        position: 'absolute',
+        right: -1,
+        bottom: -1,
+        backgroundColor: themeColors.icon,
+        color: themeColors.textReversed,
+        borderRadius: 32,
+        borderWidth: 3,
+        borderColor: themeColors.textReversed,
+    },
+
+    workspaceCard: {
+        width: '100%',
+        height: 400,
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        backgroundColor: themeColors.heroCard,
+    },
+
+    workspaceCardMobile: {
+        height: 475,
+    },
+
+    workspaceCardMainText: {
+        fontSize: variables.fontSizeXXXLarge,
+        fontWeight: 'bold',
+        lineHeight: variables.fontSizeXXXLarge,
+    },
+
+    workspaceCardContent: {
+        zIndex: 1,
+        padding: 50,
+    },
+
+    workspaceCardCTA: {
+        width: 250,
     },
 
     workspaceInviteWelcome: {
@@ -1809,7 +1905,7 @@ function getBadgeColorStyle(isOwner, isPressed = false) {
  */
 function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
+        case CONST.BUTTON_STATES.ACTIVE:
             return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
@@ -1828,7 +1924,7 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  */
 function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
+        case CONST.BUTTON_STATES.ACTIVE:
             return themeColors.text;
         case CONST.BUTTON_STATES.PRESSED:
             return themeColors.heading;

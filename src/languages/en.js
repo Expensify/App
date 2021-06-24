@@ -36,6 +36,9 @@ export default {
         saveAndContinue: 'Save & Continue',
         settings: 'Settings',
         termsOfService: 'Terms of Service',
+        people: 'People',
+        invite: 'Invite',
+        here: 'here',
         dob: 'Date of Birth',
         ssn: 'Social Security Number',
         addressNoPO: 'Address (no P.O. boxes)',
@@ -45,7 +48,6 @@ export default {
         zip: 'Zip Code',
         isRequiredField: 'is a required field',
         whatThis: 'What\'s this?',
-        invite: 'Invite',
         iAcceptThe: 'I accept the ',
         passwordCannotBeBlank: 'Password cannot be blank',
         dateFormat: 'YYYY-MM-DD',
@@ -413,6 +415,10 @@ export default {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
     workspace: {
+        common: {
+            card: 'Expensify Card',
+            workspace: 'Workspace',
+        },
         new: {
             newWorkspace: 'New Workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
@@ -421,6 +427,15 @@ export default {
             helpText: 'Name your Workspace before enabling your Expensify Cards!',
             getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
+        },
+        card: {
+            addEmail: 'Add Email',
+            tagline: 'The Smartest corporate card in the room.',
+            publicCopy: 'In order to use the Expensify Card you must use your company\'s private domain. Go ahead and add your private email address as a secondary login.',
+            privateCopy: 'Just swipe your Expensify card and your expenses are done, its that simple!',
+            getStarted: 'Get Started',
+            manageCards: 'Manage Cards',
+            cardReadyTagline: 'Your Expensify Cards are ready to go!',
         },
         invite: {
             invitePeople: 'Invite People',
