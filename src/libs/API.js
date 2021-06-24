@@ -311,15 +311,11 @@ function authenticateWithAccountID(parameters) {
     const commandName = 'Authenticate';
 
     requireParameters([
-        'partnerName',
-        'partnerPassword',
         'accountID',
         'validateCode',
     ], parameters, commandName);
 
     return Network.post(commandName, {
-        partnerName: parameters.partnerName,
-        partnerPassword: parameters.partnerPassword,
         accountID: parameters.accountID,
         validateCode: parameters.validateCode,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
