@@ -9,6 +9,8 @@ export default {
     componentBorderRadiusCard: 12,
     avatarSizeNormal: 40,
     avatarSizeSmall: 28,
+    fontSizeSingleEmoji: 30,
+    fontSizeSingleEmojiHeight: 35,
     fontSizeSmall: 11,
     fontSizeExtraSmall: 9,
     fontSizeLabel: 13,
