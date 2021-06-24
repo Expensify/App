@@ -7,6 +7,7 @@ import HTML, {
     TNodeChildrenRenderer,
     splitBoxModelStyle,
 } from 'react-native-render-html';
+import PropTypes from 'prop-types';
 import Config from '../../CONFIG';
 import styles, {webViewStyles, getFontFamilyMonospace} from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
@@ -17,11 +18,20 @@ import ThumbnailImage from '../ThumbnailImage';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import Text from '../Text';
-import renderHTMLpropTypes from './renderHTMLPropTypes';
+import {
+    propTypes as renderHTMLPropTypes,
+    defaultProps as renderHTMLDefaultProps,
+} from './renderHTMLPropTypes';
+
+const propTypes = {
+    // Whether text elements should be selectable
+    textSelectable: PropTypes.bool,
+    ...renderHTMLPropTypes,
+};
 
 const defaultProps = {
-    debug: false,
     textSelectable: false,
+    ...renderHTMLDefaultProps,
 };
 
 const MAX_IMG_DIMENSIONS = 512;
@@ -197,7 +207,7 @@ const renderers = {
     edited: EditedRenderer,
 };
 
-const RenderHTML = ({html, debug, textSelectable}) => {
+const BaseRenderHTML = ({html, debug, textSelectable}) => {
     const {width} = useWindowDimensions();
     const containerWidth = width * 0.8;
     return (
@@ -220,8 +230,8 @@ const RenderHTML = ({html, debug, textSelectable}) => {
     );
 };
 
-RenderHTML.displayName = 'RenderHTML';
-RenderHTML.propTypes = renderHTMLpropTypes;
-RenderHTML.defaultProps = defaultProps;
+BaseRenderHTML.displayName = 'BaseRenderHTML';
+BaseRenderHTML.propTypes = propTypes;
+BaseRenderHTML.defaultProps = defaultProps;
 
-export default RenderHTML;
+export default BaseRenderHTML;

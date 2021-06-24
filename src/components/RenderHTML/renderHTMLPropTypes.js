@@ -1,10 +1,15 @@
 import PropTypes from 'prop-types';
 
-export default {
+const propTypes = {
     /** HTML string to render */
     html: PropTypes.string.isRequired,
 
     /** Optional debug flag */
     debug: PropTypes.bool,
-    textSelectable: PropTypes.bool,
 };
+
+const defaultProps = {
+    debug: false,
+};
+
+export {propTypes, defaultProps};
