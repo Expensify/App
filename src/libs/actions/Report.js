@@ -191,6 +191,11 @@ function getSimplifiedReportObject(report) {
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         hasOutstandingIOU: false,
+        notificationPreference: lodashGet(
+            report,
+            ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID],
+            'always',
+        ),
     };
 }
 
@@ -1263,6 +1268,17 @@ function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
 
+/**
+ * Updates a user's notification preferences for a chat room
+ *
+ * @param {Number} reportID
+ * @param {String} notificationPreference
+ */
+function updateNotificationPreference(reportID, notificationPreference) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {notificationPreference});
+    API.Report_UpdateNotificationPreference({reportID, notificationPreference});
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1272,6 +1288,7 @@ export {
     fetchIOUReportByIDAndUpdateChatReport,
     addAction,
     updateLastReadActionID,
+    updateNotificationPreference,
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,

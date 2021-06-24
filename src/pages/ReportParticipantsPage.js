@@ -16,6 +16,7 @@ import ROUTES from '../ROUTES';
 import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
+import {isDefaultRoom} from '../libs/reportUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -84,8 +85,10 @@ const ReportParticipantsPage = ({
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('common.details')}
+                title={translate(isDefaultRoom(report) ? 'reportDetailsPage.members' : 'common.details')}
                 onCloseButtonPress={Navigation.dismissModal}
+                onBackButtonPress={Navigation.dismissModal}
+                shouldShowBackButton={isDefaultRoom(report)}
             />
             <View
                 pointerEvents="box-none"

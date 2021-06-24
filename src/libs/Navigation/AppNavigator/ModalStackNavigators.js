@@ -88,7 +88,7 @@ const DetailsModalStackNavigator = createModalStackNavigator([{
 
 const ReportDetailsModalStackNavigator = createModalStackNavigator([{
     Component: ReportDetailsPage,
-    name: 'Report_Details',
+    name: 'Report_Details_Root',
 }]);
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
