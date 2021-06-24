@@ -78,9 +78,14 @@ class WorkspacePeoplePage extends React.Component {
     * Remove selected users from the workspace
     */
     removeUsers() {
-        // navigate ro ROUTES.WORKSPACE_INVITE
-        removeMembers(this.state.selectedEmployees, this.props.route.params.policyID);
-        this.setState(prevState => ({...prevState, isRemoveMembersConfirmModalVisible: false}));
+        // Remove the admin from the list
+        // eslint-disable-next-line max-len
+        removeMembers(this.state.selectedEmployees.filter(email => email !== this.props.session.email), this.props.route.params.policyID);
+        this.setState(prevState => ({
+            ...prevState,
+            selectedEmployees: [],
+            isRemoveMembersConfirmModalVisible: false,
+        }));
     }
 
     /**
