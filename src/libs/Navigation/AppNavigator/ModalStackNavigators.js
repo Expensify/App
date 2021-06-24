@@ -24,11 +24,8 @@ import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPag
 import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
-<<<<<<< HEAD
 import WorkspacePeoplePage from '../../../pages/workspace/WorkspacePeoplePage';
-=======
 import RequestCallPage from '../../../pages/RequestCallPage';
->>>>>>> main
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
