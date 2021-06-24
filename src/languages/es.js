@@ -2,7 +2,6 @@
 export default {
     common: {
         cancel: 'Cancelar',
-        upload: 'Subir',
         yes: 'Si',
         no: 'No',
         attachment: 'Archivo Adjunto',
@@ -33,6 +32,9 @@ export default {
         saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de servicio',
+        people: 'Personas',
+        invite: 'Invitación',
+        here: 'aquí',
         dob: 'Fecha de Nacimiento',
         ssn: 'Número de Seguridad Social',
         addressNoPO: 'Dirección (sin Apartado Postal)',
@@ -42,9 +44,10 @@ export default {
         zip: 'Código Postal',
         isRequiredField: 'es un campo obligatorio',
         whatThis: '¿Qué es esto?',
-        invite: 'Invitar',
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
+        dateFormat: 'AAAA-MM-DD',
+        send: 'Enviar',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -88,9 +91,10 @@ export default {
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
     },
     reportActionCompose: {
-        uploadAttachment: 'Subir Archivo Adjunto',
+        sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar Archivo Adjunto',
         writeSomething: 'Escribe algo...',
+        blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
     },
     reportActionContextMenu: {
@@ -296,6 +300,9 @@ export default {
             routingNumber: 'Ingrese un número de ruta válido',
             companyType: 'Ingrese un tipo de compañía válido',
             tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelva a intentarlo más tarde o introduzca los detalles manualmente.',
+            address: 'Ingrese una dirección válida',
+            dob: 'Ingrese una fecha de nacimiento válida',
+            ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
         },
     },
     addPersonalBankAccountPage: {
@@ -330,11 +337,19 @@ export default {
         agreement: 'Agreement:',
         termsAndConditions: 'terms and conditions',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
+        error: {
+            termsAndConditions: 'Debe aceptar términos y condiciones',
+            certify: 'Debe certificar que la información es verdadera y precisa',
+        },
     },
     session: {
         offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',
     },
     workspace: {
+        common: {
+            card: 'Tarjeta Expensify',
+            workspace: 'Espacio de trabajo',
+        },
         new: {
             newWorkspace: 'Nuevo Workspace',
             getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
@@ -343,6 +358,15 @@ export default {
             helpText: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
             getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
+        },
+        card: {
+            addEmail: 'Agregar correo electrónico',
+            tagline: 'La tarjeta corporativa más inteligente de la habitación.',
+            publicCopy: 'Para utilizar la Tarjeta Expensify debe utilizar el dominio privado de su empresa. Continúe y agregue su dirección de correo electrónico privada como inicio de sesión secundario.',
+            privateCopy: 'Simplemente deslice su tarjeta Expensify y sus gastos estarán listos, ¡es así de simple!',
+            getStarted: 'Empezar',
+            manageCards: 'Administrar tarjetas',
+            cardReadyTagline: 'Tus tarjetas Expensify están listas para usar!',
         },
         invite: {
             invitePeople: 'Invitar a la gente',

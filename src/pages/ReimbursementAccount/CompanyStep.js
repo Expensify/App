@@ -19,7 +19,9 @@ import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Growl from '../../libs/Growl';
-import {isValidAddress, isValidDate, isValidIndustryCode} from '../../libs/ValidationUtils';
+import {
+    isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode,
+} from '../../libs/ValidationUtils';
 
 class CompanyStep extends React.Component {
     constructor(props) {
@@ -45,6 +47,9 @@ class CompanyStep extends React.Component {
         };
     }
 
+    /**
+     * @returns {Boolean}
+     */
     validate() {
         if (!this.state.password.trim()) {
             Growl.error(this.props.translate('common.passwordCannotBeBlank'));
@@ -56,7 +61,7 @@ class CompanyStep extends React.Component {
             return false;
         }
 
-        if (!CONST.REGEX.ZIP_CODE.test(this.state.addressZipCode)) {
+        if (!isValidZipCode(this.state.addressZipCode)) {
             Growl.error(this.props.translate('bankAccount.error.zipCode'));
             return false;
         }

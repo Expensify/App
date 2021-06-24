@@ -47,6 +47,7 @@ import Users from '../../../assets/images/users.svg';
 import Upload from '../../../assets/images/upload.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import NewWorkspace from '../../../assets/images/new-workspace.svg';
+import ExpensifyCard from '../../../assets/images/expensifycard.svg';
 
 export {
     Android,
@@ -67,6 +68,7 @@ export {
     Emoji,
     Exclamation,
     Eye,
+    ExpensifyCard,
     Gallery,
     Gear,
     Info,
