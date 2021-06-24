@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import {Text, View} from 'react-native';
+import {Image, Text, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -12,13 +12,23 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
-import MultipleAvatars from '../components/MultipleAvatars';
 import DisplayNames from '../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
 import {isDefaultRoom} from '../libs/reportUtils';
+import {participantPropTypes} from './home/sidebar/optionPropTypes';
+import Picker from '../components/Picker';
+import {updateNotificationPreference} from '../libs/actions/Report';
+import {Users} from '../components/Icon/Expensicons';
+import ROUTES from '../ROUTES';
+import MenuItem from '../components/MenuItem';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** Whether or not to show the Compose Input */
+    session: PropTypes.shape({
+        accountID: PropTypes.number,
+    }).isRequired,
 
     /** The report currently being looked at */
     report: PropTypes.shape({
@@ -28,8 +38,14 @@ const propTypes = {
         /** List of primarylogins of participants of the report */
         participants: PropTypes.arrayOf(PropTypes.string),
 
+        /** List of icons for report participants */
+        icons: PropTypes.arrayOf(PropTypes.string),
+
         /** ID of the report */
         reportID: PropTypes.number,
+
+        /** The current user's notification preference for this report */
+        notificationPreference: PropTypes.string,
     }).isRequired,
 
     /** The policies which the user has access to and which the report could be tied to */
@@ -45,12 +61,39 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
+
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 };
 
 class ReportDetailsPage extends Component {
     constructor(props) {
-        console.log('>>>>');
         super(props);
+
+        this.notificationPreferencesOptions = {
+            default: {
+                value: 'always',
+                label: props.translate('reportDetailsPage.always'),
+
+            },
+            daily: {
+                value: 'daily',
+                label: props.translate('reportDetailsPage.daily'),
+            },
+            mute: {
+                value: 'mute',
+                label: props.translate('reportDetailsPage.mute'),
+            },
+        };
+
+        this.menuItems = [
+            {
+                translationKey: 'reportDetailsPage.members',
+                icon: Users,
+                subtitle: props.report.participants.length,
+                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+            },
+        ];
     }
 
     render() {
@@ -77,34 +120,66 @@ class ReportDetailsPage extends Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.flex1, styles.p5]}>
-                    <View style={[styles.dFlex, styles.flexColumn, styles.alignItemsCenter]}>
-                        <MultipleAvatars
-                            avatarImageURLs={this.props.report.icons}
-                            secondAvatarStyle={[styles.secondAvatarHovered]}
-                        />
-                        <View style={[styles.flex1, styles.flexColumn]}>
-                            <DisplayNames
-                                fullTitle={this.props.report.reportName}
-                                displayNamesWithTooltips={displayNamesWithTooltips}
-                                tooltipEnabled
-                                numberOfLines={1}
-                                textStyles={[styles.headerText]}
-                                shouldUseFullTitle={isDefaultRoom(this.props.report)}
+                <View style={[styles.flex1]}>
+                    <View style={[styles.m5]}>
+                        <View style={[styles.dFlex, styles.flexColumn, styles.alignItemsCenter, styles.mt4, styles.mb4]}>
+                            <Image
+                                source={{uri: this.props.report.icons[0]}}
+                                style={[styles.singleAvatarLarge, styles.mb4]}
                             />
-                            <Text
-                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mt1]}
-                                numberOfLines={1}
-                            >
-                                {policyName}
+                            <View style={[styles.flex1, styles.dFlex, styles.flexColumn, styles.alignItemsCenter]}>
+                                <DisplayNames
+                                    fullTitle={this.props.report.reportName}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
+                                    tooltipEnabled
+                                    numberOfLines={1}
+                                    textStyles={[styles.headerText, styles.mb2]}
+                                    shouldUseFullTitle={isDefaultRoom(this.props.report)}
+                                />
+                                <Text
+                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mb6]}
+                                    numberOfLines={1}
+                                >
+                                    {policyName}
+                                </Text>
+                            </View>
+                        </View>
+                        <Text style={[styles.formLabel]} numberOfLines={1}>
+                            {this.props.translate('common.notifications')}
+                        </Text>
+                        <View>
+                            <Text style={[styles.mb3]}>
+                                {this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
                             </Text>
+                            <View style={[styles.mb5]}>
+                                <Picker
+                                    onChange={(notificationPreference) => {
+                                        updateNotificationPreference(this.props.report.reportID, notificationPreference);
+                                    }}
+                                    items={Object.values(this.notificationPreferencesOptions)}
+                                    value={this.props.report.notificationPreference}
+                                />
+                            </View>
                         </View>
                     </View>
+                    {this.menuItems.map((item) => {
+                        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+                        return (
+                            <MenuItem
+                                key={keyTitle}
+                                title={keyTitle}
+                                subtitle={item.subtitle}
+                                icon={item.icon}
+                                onPress={item.action}
+                                iconStyles={item.iconStyles}
+                                iconFill={item.iconFill}
+                                shouldShowRightIcon
+                            />
+                        );
+                    })}
                 </View>
-
-
             </ScreenWrapper>
-        )
+        );
     }
 }
 
@@ -115,7 +190,16 @@ export default compose(
     withLocalize,
     withOnyx({
         report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

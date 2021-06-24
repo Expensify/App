@@ -1042,6 +1042,13 @@ const styles = {
         borderRadius: 18,
     },
 
+    singleAvatarLarge: {
+        height: 64,
+        width: 64,
+        backgroundColor: themeColors.icon,
+        borderRadius: 64,
+    },
+
     secondAvatar: {
         position: 'absolute',
         right: -18,
