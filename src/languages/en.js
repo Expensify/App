@@ -2,7 +2,6 @@
 export default {
     common: {
         cancel: 'Cancel',
-        upload: 'Upload',
         yes: 'Yes',
         no: 'No',
         attachment: 'Attachment',
@@ -38,6 +37,9 @@ export default {
         saveAndContinue: 'Save & Continue',
         settings: 'Settings',
         termsOfService: 'Terms of Service',
+        people: 'People',
+        invite: 'Invite',
+        here: 'here',
         dob: 'Date of Birth',
         ssn: 'Social Security Number',
         addressNoPO: 'Address (no P.O. boxes)',
@@ -47,9 +49,10 @@ export default {
         zip: 'Zip Code',
         isRequiredField: 'is a required field',
         whatThis: 'What\'s this?',
-        invite: 'Invite',
         iAcceptThe: 'I accept the ',
         passwordCannotBeBlank: 'Password cannot be blank',
+        dateFormat: 'YYYY-MM-DD',
+        send: 'Send',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -93,9 +96,10 @@ export default {
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
     reportActionCompose: {
-        uploadAttachment: 'Upload Attachment',
+        sendAttachment: 'Send Attachment',
         addAttachment: 'Add Attachment',
         writeSomething: 'Write something...',
+        blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
     },
@@ -304,6 +308,9 @@ export default {
             routingNumber: 'Please enter a valid Routing Number',
             companyType: 'Please enter a valid Company Type',
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
+            address: 'Please enter a valid address',
+            dob: 'Please enter a valid date of birth',
+            ssnLast4: 'Please enter valid last 4 digits of SSN',
         },
     },
     addPersonalBankAccountPage: {
@@ -400,11 +407,19 @@ export default {
         agreement: 'Agreement:',
         termsAndConditions: 'terms and conditions',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
+        error: {
+            termsAndConditions: 'Must accept terms and conditions',
+            certify: 'Must certify information is true and accurate',
+        },
     },
     session: {
         offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
     },
     workspace: {
+        common: {
+            card: 'Expensify Card',
+            workspace: 'Workspace',
+        },
         new: {
             newWorkspace: 'New Workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
@@ -413,6 +428,15 @@ export default {
             helpText: 'Name your Workspace before enabling your Expensify Cards!',
             getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
+        },
+        card: {
+            addEmail: 'Add Email',
+            tagline: 'The Smartest corporate card in the room.',
+            publicCopy: 'In order to use the Expensify Card you must use your company\'s private domain. Go ahead and add your private email address as a secondary login.',
+            privateCopy: 'Just swipe your Expensify card and your expenses are done, its that simple!',
+            getStarted: 'Get Started',
+            manageCards: 'Manage Cards',
+            cardReadyTagline: 'Your Expensify Cards are ready to go!',
         },
         invite: {
             invitePeople: 'Invite People',

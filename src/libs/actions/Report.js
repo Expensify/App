@@ -1073,9 +1073,10 @@ function addAction(reportID, text, file) {
  */
 function deleteReportComment(reportID, reportAction) {
     // Optimistic Response
+    const sequenceNumber = reportAction.sequenceNumber;
     const reportActionsToMerge = {};
     const oldMessage = {...reportAction.message};
-    reportActionsToMerge[reportAction.sequenceNumber] = {
+    reportActionsToMerge[sequenceNumber] = {
         ...reportAction,
         message: [
             {
@@ -1093,11 +1094,12 @@ function deleteReportComment(reportID, reportAction) {
         reportID,
         reportActionID: reportAction.reportActionID,
         reportComment: '',
+        sequenceNumber,
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Reverse Optimistic Response
-                reportActionsToMerge[reportAction.sequenceNumber] = {
+                reportActionsToMerge[sequenceNumber] = {
                     ...reportAction,
                     message: oldMessage,
                 };
