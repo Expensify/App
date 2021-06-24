@@ -52,10 +52,6 @@ export default {
         alignSelf: 'center',
     },
 
-    alignSelfFlexEnd: {
-        alignSelf: 'flex-end',
-    },
-
     alignItemsCenter: {
         alignItems: 'center',
     },
