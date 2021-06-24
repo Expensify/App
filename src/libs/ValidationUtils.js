@@ -23,15 +23,15 @@ function isValidAddress(value) {
  * @param {String} string
  * @returns {Boolean}
  */
-function isSingleEmoji(string) {
-    const match = string.match(CONST.REGEX.EMOJIS);
+function isSingleEmoji(message) {
+    const match = message.match(CONST.REGEX.EMOJIS);
 
     if (!match) {
         return false;
     }
 
     const matchedEmoji = match[0];
-    return string.length === matchedEmoji.length;
+    return message.length === matchedEmoji.length;
 }
 
 /**
