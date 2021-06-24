@@ -429,9 +429,9 @@ export default {
             assignee: 'Assignee',
             tagline: 'In life you need colors. At home you have unlimited time. Maybe we got a few little happy bushes here.',
             genericFailureMessage: 'An error occurred removing an user from the workspace, please try again.',
-            onlyAdminCanRemove: 'Can’t remove people from the policy if you are not an admin.',
-            cannotRemovePolicyOwner: 'Can’t remove the policy owner of this policy.',
-            removeMembersPrompt: 'Are you sure you want to remove these users from your policy?',
+            onlyAdminCanRemove: 'Can’t remove people from the workspace if you are not an admin.',
+            cannotRemovePolicyOwner: 'Can’t remove the admin of this workspace.',
+            removeMembersPrompt: 'Are you sure you want to remove the selected people from your workspace?',
             removeMembersTitle: 'Remove members',
         },
         invite: {
