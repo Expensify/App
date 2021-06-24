@@ -400,7 +400,7 @@ class ReportActionCompose extends React.Component {
         const isConciergeChat = this.props.report.participants
             && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE);
         let isBlockedFromConcierge = false;
-        if (isConciergeChat && this.props.blockedFromConcierge) {
+        if (isConciergeChat && !_.isEmpty(this.props.blockedFromConcierge)) {
             isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
         }
 
