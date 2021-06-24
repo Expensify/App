@@ -116,8 +116,6 @@ function removeMembers(members, policyID) {
             if (data.jsonCode === 200) {
                 return;
             }
-            
-            // If the operation failed, undo the optimistic removal
             const policyDataWithMembersRemoved = _.clone(allPolicies[key]);
             policyDataWithMembersRemoved.employeeList = [...policyDataWithMembersRemoved.employeeList, ...members];
             Onyx.set(key, policyDataWithMembersRemoved);
