@@ -162,7 +162,7 @@ class ReportDetailsPage extends Component {
                                     onChange={(notificationPreference) => {
                                         updateNotificationPreference(
                                             this.props.report.reportID,
-                                            notificationPreference
+                                            notificationPreference,
                                         );
                                     }}
                                     items={Object.values(this.notificationPreferencesOptions)}
