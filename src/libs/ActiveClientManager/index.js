@@ -38,8 +38,8 @@ Onyx.connect({
  * Add our client ID to the list of active IDs
  */
 function init() {
-    Onyx.merge(ONYXKEYS.ACTIVE_CLIENTS, [clientID]);
     didInitialize = true;
+    Onyx.merge(ONYXKEYS.ACTIVE_CLIENTS, [clientID]);
 }
 
 /**
