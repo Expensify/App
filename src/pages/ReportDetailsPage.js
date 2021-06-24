@@ -98,7 +98,11 @@ class ReportDetailsPage extends Component {
 
     render() {
         const policyID = lodashGet(this.props.report, 'policyID', '');
-        const policyName = lodashGet(this.props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'name'], 'Unknown Policy');
+        const policyName = lodashGet(
+            this.props.policies,
+            [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'name'],
+            'Unknown Policy'
+        );
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = _.map(
@@ -122,7 +126,9 @@ class ReportDetailsPage extends Component {
                 />
                 <View style={[styles.flex1]}>
                     <View style={[styles.m5]}>
-                        <View style={[styles.dFlex, styles.flexColumn, styles.alignItemsCenter, styles.mt4, styles.mb4]}>
+                        <View
+                            style={[styles.dFlex, styles.flexColumn, styles.alignItemsCenter, styles.mt4, styles.mb4]}
+                        >
                             <Image
                                 source={{uri: this.props.report.icons[0]}}
                                 style={[styles.singleAvatarLarge, styles.mb4]}
@@ -154,7 +160,10 @@ class ReportDetailsPage extends Component {
                             <View style={[styles.mb5]}>
                                 <Picker
                                     onChange={(notificationPreference) => {
-                                        updateNotificationPreference(this.props.report.reportID, notificationPreference);
+                                        updateNotificationPreference(
+                                            this.props.report.reportID,
+                                            notificationPreference
+                                        );
                                     }}
                                     items={Object.values(this.notificationPreferencesOptions)}
                                     value={this.props.report.notificationPreference}

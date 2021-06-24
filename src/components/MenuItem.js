@@ -130,7 +130,15 @@ const MenuItem = ({
 
                 <View style={[styles.flexRow, styles.menuItemTextContainer]}>
                     {subtitle && (
-                        <Text style={[styles.mr1, styles.h100, styles.dFlex, styles.alignItemsCenter, styles.createMenuDescription]}>
+                        <Text
+                            style={[
+                                styles.mr1,
+                                styles.h100,
+                                styles.dFlex,
+                                styles.alignItemsCenter,
+                                styles.createMenuDescription,
+                            ]}
+                        >
                             {subtitle}
                         </Text>
                     )}
