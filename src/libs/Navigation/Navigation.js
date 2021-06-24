@@ -70,17 +70,20 @@ function navigate(route = ROUTES.HOME) {
  * Dismisses a screen presented modally and returns us back to the previous view.
  *
  * @param {Boolean} shouldOpenDrawer
- * @param {Boolean} [canGoBack=true]
  */
-function dismissModal(shouldOpenDrawer = false, canGoBack = true) {
+function dismissModal(shouldOpenDrawer = false) {
     const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
         ? shouldOpenDrawer
         : false;
 
+    let isLeavingDrawerNavigator;
+
     // This should take us to the first view of the modal's stack navigator
     navigationRef.current.dispatch((state) => {
-        // If this is a nested drawer navigator then we must pop this screen
+        // If this is a nested drawer navigator then we pop the screen and
+        // prevent calling goBack() as it's default behavior is to toggle open the active drawer
         if (state.type === 'drawer') {
+            isLeavingDrawerNavigator = true;
             return StackActions.pop();
         }
 
@@ -94,10 +97,12 @@ function dismissModal(shouldOpenDrawer = false, canGoBack = true) {
         return StackActions.pop(0);
     });
 
-    // Navigate back to where we were before we launched the modal
-    if (canGoBack) {
-        goBack();
+    if (isLeavingDrawerNavigator) {
+        return;
     }
+
+    // Navigate back to where we were before we launched the modal
+    goBack();
 
     if (!normalizedShouldOpenDrawer) {
         return;
