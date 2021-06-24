@@ -1,20 +1,20 @@
 import React from 'react';
 import {View} from 'react-native';
-import PaymentMethodList from './PaymentMethodList';
-import ROUTES from '../../../ROUTES';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import Navigation from '../../../libs/Navigation/Navigation';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
-import Button from '../../../components/Button';
-import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
-import FixedFooter from '../../../components/FixedFooter';
-import getPaymentMethods from '../../../libs/actions/PaymentMethods';
-import Popover from '../../../components/Popover';
-import {PayPal} from '../../../components/Icon/Expensicons';
-import MenuItem from '../../../components/MenuItem';
+import PaymentMethodList from '../PaymentMethodList';
+import ROUTES from '../../../../ROUTES';
+import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import styles from '../../../../styles/styles';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import compose from '../../../../libs/compose';
+import Button from '../../../../components/Button';
+import KeyboardAvoidingView from '../../../../components/KeyboardAvoidingView';
+import FixedFooter from '../../../../components/FixedFooter';
+import getPaymentMethods from '../../../../libs/actions/PaymentMethods';
+import Popover from '../../../../components/Popover';
+import {PayPal} from '../../../../components/Icon/Expensicons';
+import MenuItem from '../../../../components/MenuItem';
 
 const propTypes = {
     ...withLocalizePropTypes,
