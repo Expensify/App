@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
@@ -63,17 +64,21 @@ function getBetas() {
 function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
-        name: CONST.NVP.PAYPAL_ME_ADDRESS,
+        nvpNames: `${CONST.NVP.BLOCKED_FROM_CONCIERGE}, ${CONST.NVP.PAYPAL_ME_ADDRESS}`,
     })
         .then((response) => {
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
-            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus});
+            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus});
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
             Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, payPalMeAddress);
+
+            // Update the blockedFromConcierge NVP
+            const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, '');
+            Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
         });
 }
 
@@ -175,13 +180,27 @@ function validateLogin(accountID, validateCode) {
 }
 
 /**
+ * Checks if the expiresAt date of a user's ban is before right now
+ *
+ * @param {String} expiresAt
+ * @returns {boolean}
+ */
+function isBlockedFromConcierge(expiresAt) {
+    if (!expiresAt) {
+        return false;
+    }
+
+    return moment().isBefore(moment(expiresAt), 'day');
+}
+
+/**
  * Fetch the public domain info for the current user.
  *
  * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
  * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
  * If that happens, this function will automatically retry itself in 10 minutes.
  */
-function getPublicDomainInfo() {
+function getDomainInfo() {
     // If this command fails, we'll retry again in 10 minutes,
     // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
     const RETRY_TIMEOUT = 600000;
@@ -198,10 +217,21 @@ function getPublicDomainInfo() {
             if (response.jsonCode === 200) {
                 const {isFromPublicDomain} = response;
                 Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
+
+                // If the user is not on a public domain we'll want to know whether they are on a domain that has
+                // already provisioned the Expensify card
+                if (isFromPublicDomain) {
+                    return;
+                }
+
+                API.User_IsUsingExpensifyCard()
+                    .then(({isUsingExpensifyCard}) => {
+                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
+                    });
             } else {
                 // eslint-disable-next-line max-len
                 console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
-                setTimeout(getPublicDomainInfo, RETRY_TIMEOUT);
+                setTimeout(getDomainInfo, RETRY_TIMEOUT);
             }
         });
 }
@@ -214,5 +244,6 @@ export {
     setExpensifyNewsStatus,
     setSecondaryLogin,
     validateLogin,
-    getPublicDomainInfo,
+    isBlockedFromConcierge,
+    getDomainInfo,
 };

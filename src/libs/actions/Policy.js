@@ -7,7 +7,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {formatPersonalDetails} from './PersonalDetails';
 import Growl from '../Growl';
 import CONST from '../../CONST';
-import {translate} from '../translate';
+import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
@@ -21,21 +21,12 @@ Onyx.connect({
     },
 });
 
-let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: (preferredLocale) => {
-        if (preferredLocale) {
-            translateLocal = (phrase, variables) => translate(preferredLocale, phrase, variables);
-        }
-    },
-});
-
 /**
  * Takes a full policy summary that is returned from the policySummaryList and simplifies it so we are only storing
  * the pieces of data that we need to in Onyx
  *
  * @param {Object} fullPolicy
+ * @param {String} fullPolicy.id
  * @param {String} fullPolicy.name
  * @param {String} fullPolicy.role
  * @param {String} fullPolicy.type
@@ -185,7 +176,7 @@ function invite(login, welcomeNote, policyID) {
                 errorMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
 
-            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+            Growl.error(errorMessage, 5000);
         });
 }
 
@@ -200,7 +191,7 @@ function create(name) {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.new.genericFailureMessage');
-                Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+                Growl.error(errorMessage, 5000);
                 return;
             }
 
