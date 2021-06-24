@@ -153,7 +153,7 @@ class ReportActionContextMenu extends React.Component {
      */
     getActionText() {
         const message = _.last(lodashGet(this.props.reportAction, 'message', null));
-        return lodashGet(message, 'text', '');
+        return lodashGet(message, 'html', '');
     }
 
     confirmDeleteAndHideModal() {
