@@ -571,6 +571,11 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    singleEmojiText: {
+        fontSize: variables.fontSizeSingleEmoji,
+        lineHeight: variables.fontSizeSingleEmojiHeight,
+    },
+
     createMenuPositionSidebar: {
         left: 18,
         bottom: 100,
