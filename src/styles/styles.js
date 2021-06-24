@@ -508,6 +508,7 @@ const styles = {
 
     termsLinkNative: {
         color: themeColors.link,
+        margin: 0,
     },
 
     termsLinkIos: {
