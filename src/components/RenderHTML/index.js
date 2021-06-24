@@ -5,7 +5,7 @@ import HTML from './BaseRenderHTML';
 
 const RenderHTML = props => (
     <HTML
-        selectable
+        stextSelectable
         {...props}
     />
 );

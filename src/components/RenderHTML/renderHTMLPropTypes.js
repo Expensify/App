@@ -6,4 +6,5 @@ export default {
 
     /** Optional debug flag */
     debug: PropTypes.bool,
+    textSelectable: PropTypes.bool,
 };

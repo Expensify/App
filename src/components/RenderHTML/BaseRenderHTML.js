@@ -21,6 +21,7 @@ import renderHTMLpropTypes from './renderHTMLPropTypes';
 
 const defaultProps = {
     debug: false,
+    textSelectable: false,
 };
 
 const MAX_IMG_DIMENSIONS = 512;
@@ -196,12 +197,12 @@ const renderers = {
     edited: EditedRenderer,
 };
 
-const RenderHTML = ({html, debug = false, selectable = false}) => {
+const RenderHTML = ({html, debug, textSelectable}) => {
     const {width} = useWindowDimensions();
     const containerWidth = width * 0.8;
     return (
         <HTML
-            textSelectable={selectable}
+            textSelectable={textSelectable}
             renderers={renderers}
             baseStyle={webViewStyles.baseFontStyle}
             tagsStyles={webViewStyles.tagStyles}
