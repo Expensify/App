@@ -132,6 +132,8 @@ export default {
             WorkspacePeople: {
                 screens: {
                     WorkspacePeople_Root: ROUTES.WORKSPACE_PEOPLE,
+                },
+            },
             RequestCall: {
                 screens: {
                     RequestCall_Root: ROUTES.REQUEST_CALL,
