@@ -207,8 +207,12 @@ class TextInputFocusable extends React.Component {
                     e.dataTransfer.dropEffect = 'copy';
                     this.props.onDragEnter(e, isOriginComposer);
                     break;
-                case 'dragleave': this.props.onDragLeave(e, isOriginComposer); break;
-                case 'drop': this.props.onDrop(e, isOriginComposer); break;
+                case 'dragleave':
+                    this.props.onDragLeave(e, isOriginComposer);
+                    break;
+                case 'drop':
+                    this.props.onDrop(e, isOriginComposer);
+                    break;
                 default: break;
             }
         };
