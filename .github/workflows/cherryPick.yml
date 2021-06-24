@@ -84,7 +84,7 @@ jobs:
 
       - name: Save correct NEW_VERSION to env
         run: |
-          if [[ -z ${{ github.event.inputs.NEW_VERSION }} ]]; then
+          if [ -z ${{ github.event.inputs.NEW_VERSION }} ]; then
             echo "NEW_VERSION=${{ needs.createNewVersion.outputs.NEW_VERSION }}" >> $GITHUB_ENV
             echo "New version is ${{ env.NEW_VERSION }}"
           else
@@ -119,6 +119,9 @@ jobs:
             GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
             echo "::set-output name=SHOULD_AUTOMERGE::false"
           fi
+
+      - name: Push changes to CP branch
+        run: git push
 
       - name: Create Pull Request
         id: createPullRequest
@@ -159,12 +162,11 @@ jobs:
             Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
             **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving.
 
-      # TODO: Once https://github.com/hmarr/auto-approve-action/pull/186 is merged, point back at the non-forked repo
       - name: Check for an auto approve
         # Important: only auto-approve if there was no merge conflict!
         if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'true' && steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'true' }}
         # Version: 2.0.0
-        uses: roryabraham/auto-approve-action@6bb4a3dcf07664d0131e1c74a4bc6d0d8c849978
+        uses: hmarr/auto-approve-action@6a9ec7556f0a7fa5b49527a1eea4878b8a22d2e0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ steps.createPullRequest.outputs.pr_number }}

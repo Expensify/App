@@ -17,8 +17,7 @@ const defaultProps = {
 function KeyboardAvoidingView({children}) {
     return (
         <KeyboardAvoidingViewComponent
-            enabled={false}
-            behavior="height"
+            behavior="padding"
             style={[styles.w100, styles.h100]}
         >
             {children}
@@ -28,4 +27,5 @@ function KeyboardAvoidingView({children}) {
 
 KeyboardAvoidingView.propTypes = propTypes;
 KeyboardAvoidingView.defaultProps = defaultProps;
+KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
 export default KeyboardAvoidingView;
