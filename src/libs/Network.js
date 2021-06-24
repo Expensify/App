@@ -42,7 +42,8 @@ Onyx.connect({
 
 let didLoadPersistedRequests;
 
-ActiveClientManager.isReady().then(() => {
+ActiveClientManager.isClientTheLeader().then((isClientTheLeader) => {
+    console.log('ActiveClientManager is ready');
     Onyx.connect({
         key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
         callback: (persistedRequests) => {
@@ -54,7 +55,7 @@ ActiveClientManager.isReady().then(() => {
             // b) User is online.
             // c) requests are not already loaded,
             // d) When there is at least one request
-            if (!ActiveClientManager.isClientTheLeader()
+            if (!isClientTheLeader
                 || isOffline
                 || didLoadPersistedRequests
                 || !persistedRequests.length) {
