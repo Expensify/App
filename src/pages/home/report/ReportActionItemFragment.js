@@ -59,7 +59,7 @@ class ReportActionItemFragment extends React.PureComponent {
                     ) : (
                         <Text
                             selectable
-                            fontSize={isSingleEmoji(fragment.text) ? variables.fontSizeSingleEmoji : null}
+                            style={isSingleEmoji(fragment.text) ? styles.singleEmojiText : undefined}
                         >
                             {Str.htmlDecode(fragment.text)}
                             {fragment.isEdited && (
