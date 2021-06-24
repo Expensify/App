@@ -101,7 +101,7 @@ class ReportDetailsPage extends Component {
         const policyName = lodashGet(
             this.props.policies,
             [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'name'],
-            'Unknown Policy'
+            'Unknown Policy',
         );
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
