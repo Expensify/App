@@ -5,9 +5,9 @@ import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import {
-    Wallet,
     Users,
     Pencil,
+    ExpensifyCard,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -28,7 +28,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
     const menuItems = [
         {
             translationKey: 'workspace.common.card',
-            icon: Wallet,
+            icon: ExpensifyCard,
             action: () => {
                 Navigation.navigate(ROUTES.WORKSPACE_CARD);
             },
@@ -57,13 +57,11 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
                         && (
                             <HeaderWithCloseButton
                                 title={translate('workspace.common.workspace')}
-                                onBackButtonPress={() => Navigation.dismissModal(false, false)}
-                                onCloseButtonPress={() => Navigation.dismissModal(false, false)}
-                                shouldShowBackButton
+                                onCloseButtonPress={() => Navigation.dismissModal()}
                             />
                         )}
                     <View style={styles.pageWrapper}>
-                        <View style={[styles.settingsPageBody, styles.alignItemsCenter, styles.pv5]}>
+                        <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                             <View style={[styles.pRelative, styles.workspaceSidebarAvatar, styles.mb3]}>
                                 <WorkspaceDefaultAvatar height={80} width={80} fill={themedefault.icon} />
                                 <View style={[
