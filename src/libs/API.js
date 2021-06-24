@@ -962,12 +962,13 @@ function Policy_Create(parameters) {
  * @param {String} [parameters.policyID]
  * @returns {Promise}
  */
- function Policy_Employees_Remove(parameters) {
+function Policy_Employees_Remove(parameters) {
     const commandName = 'Policy_Employees_Remove';
     return Network.post(commandName, parameters);
 }
 
 /**
+ * @param {Object} parameters
  * @param {String} parameters.taskID
  * @param {String} parameters.policyID
  * @param {String} parameters.firstName

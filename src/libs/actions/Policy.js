@@ -93,11 +93,11 @@ function getPolicyList() {
 
 /**
  * Remove the passed members from the policy employeeList
- * 
+ *
  * @param {Array} members
  * @param {String} policyID
  */
- function removeMembers(members, policyID) {
+function removeMembers(members, policyID) {
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
 
     // Make a shallow copy to preserve original data and remove the members
