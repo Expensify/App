@@ -68,10 +68,6 @@ export default {
         marginRight: 16,
     },
 
-    mlAuto: {
-        marginLeft: 'auto',
-    },
-
     ml1: {
         marginLeft: 4,
     },
