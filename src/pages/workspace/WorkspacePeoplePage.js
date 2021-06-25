@@ -154,13 +154,13 @@ class WorkspacePeoplePage extends React.Component {
                 </View>
                 {
                     this.props.isSmallScreenWidth ? (
-                        <View style={[styles.peopleRowCell, styles.flex4]}>
+                        <View style={[styles.peopleRowCell, styles.mobileAvatarWithName]}>
                             <View style={[styles.avatarWithName]}>
                                 <Avatar
-                                    imageStyles={[styles.mr2]}
+                                    imageStyles={[styles.mr2, styles.mobileAvatarWithName]}
                                     source={item.avatar}
                                 />
-                                <View style={[styles.dFlex, styles.flexColumn, styles.justifyContentCenter]}>
+                                <View style={[styles.dFlex, styles.flexColumn, styles.justifyContentCenter, styles.overflowHidden, styles.mobilePeopleName]}>
                                     <Text style={[styles.textStrong, styles.peopleMobileAssigneeText]}>
                                         {item.displayName}
                                     </Text>
@@ -191,13 +191,19 @@ class WorkspacePeoplePage extends React.Component {
                         </Fragment>
                     )
                 }
-                <View style={[styles.peopleRowCell, styles.flex1, styles.peopleBadgesContainer]}>
+                <View style={[
+                    styles.peopleRowCell, 
+                    styles.peopleBadgesContainer,
+                    this.props.session.email === item.login ? styles.pl5 : undefined
+                ]}>
                     {
                         this.props.session.email === item.login && (
-                            <View style={[styles.peopleBadge]}>
-                                <Text style={[styles.peopleBadgeText]}>
-                                    Admin
-                                </Text>
+                            <View>
+                                <View style={[styles.peopleBadge]}>
+                                    <Text style={[styles.peopleBadgeText]}>
+                                        Admin
+                                    </Text>
+                                </View>
                             </View>
                         )
                     }

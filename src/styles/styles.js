@@ -1635,6 +1635,16 @@ const styles = {
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
+        width: '100%',
+    },
+
+    mobileAvatarWithName: {
+        flex: '0 1 auto',
+    },
+
+    mobilePeopleName: {
+        flex: '0 1 auto',
+        overflow: 'hidden',
     },
 
     peopleBadgesContainer: {
@@ -1642,6 +1652,7 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'flex-end',
+        flex: '1 1 auto',
     },
 
     peopleBadge: {
@@ -1661,7 +1672,11 @@ const styles = {
     },
 
     peopleMobileAssigneeText: {
-        paddingVertical: 2
+        paddingVertical: 2,
+        textOverflow: 'ellipsis',
+        whiteSpace: 'noWrap',
+        overflow: "hidden",
+        flexGrow: '0 1 auto',
     },
 };
 
