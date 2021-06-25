@@ -57,6 +57,7 @@ ActiveClientManager.isReady().then(() => {
             if (!ActiveClientManager.isClientTheLeader()
                 || isOffline
                 || didLoadPersistedRequests
+                || !persistedRequests
                 || !persistedRequests.length) {
                 return;
             }
