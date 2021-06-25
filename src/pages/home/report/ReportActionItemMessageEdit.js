@@ -46,8 +46,8 @@ class ReportActionItemMessageEdit extends React.Component {
         this.state = {
             draft: draftMessage,
             selection: {
-                start: this.props.draftMessage.length,
-                end: this.props.draftMessage.length,
+                start: draftMessage.length,
+                end: draftMessage.length,
             },
         };
     }
