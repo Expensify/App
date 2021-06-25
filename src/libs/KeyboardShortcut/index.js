@@ -11,43 +11,62 @@ function bindHandlerToKeyupEvent(event) {
         return;
     }
 
-    // The active callback is the last element in the array
     const eventCallbacks = events[event.keyCode];
-    const callback = eventCallbacks[eventCallbacks.length - 1];
 
-    const pressedModifiers = _.all(callback.modifiers, (modifier) => {
-        if (modifier === 'shift' && !event.shiftKey) {
+    // Loop over all the callbacks
+    eventCallbacks.forEach((callback) => {
+        let extraModifiers = ['shift', 'control', 'alt', 'meta'];
+        const pressedModifiers = _.all(callback.modifiers, (modifier) => {
+            extraModifiers = _.without(extraModifiers, modifier);
+            if (modifier === 'shift' && !event.shiftKey) {
+                return false;
+            }
+            if (modifier === 'control' && !event.ctrlKey) {
+                return false;
+            }
+            if (modifier === 'alt' && !event.altKey) {
+                return false;
+            }
+            if (modifier === 'meta' && !event.metaKey) {
+                return false;
+            }
+            return true;
+        });
+    
+        // returns true if extra modifiers are pressed
+        const pressedExtraModifiers = _.some(extraModifiers, (extraModifier) => {
+            if (extraModifier === 'shift' && event.shiftKey) {
+                return true;
+            }
+            if (extraModifier === 'control' && event.ctrlKey) {
+                return true;
+            }
+            if (extraModifier === 'alt' && event.altKey) {
+                return true;
+            }
+            if (extraModifier === 'meta' && event.metaKey) {
+                return true;
+            }
             return false;
+        });
+        if (!pressedModifiers || pressedExtraModifiers) {
+            return;
         }
-        if (modifier === 'control' && !event.ctrlKey) {
-            return false;
+    
+        // If configured to do so, prevent input text control to trigger this event
+        if (!callback.captureOnInputs && (
+            event.target.nodeName === 'INPUT'
+            || event.target.nodeName === 'TEXTAREA'
+            || event.target.contentEditable === 'true'
+        )) {
+            return;
         }
-        if (modifier === 'alt' && !event.altKey) {
-            return false;
+    
+        if (_.isFunction(callback.callback)) {
+            callback.callback(event);
         }
-        if (modifier === 'meta' && !event.metaKey) {
-            return false;
-        }
-        return true;
+        event.preventDefault();
     });
-
-    if (!pressedModifiers) {
-        return;
-    }
-
-    // If configured to do so, prevent input text control to trigger this event
-    if (!callback.captureOnInputs && (
-        event.target.nodeName === 'INPUT'
-        || event.target.nodeName === 'TEXTAREA'
-        || event.target.contentEditable === 'true'
-    )) {
-        return;
-    }
-
-    if (_.isFunction(callback.callback)) {
-        callback.callback(event);
-    }
-    event.preventDefault();
 }
 
 // Make sure we don't add multiple listeners
