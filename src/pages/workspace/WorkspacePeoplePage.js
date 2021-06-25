@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import {
     View, FlatList, ScrollView,
 } from 'react-native';
@@ -20,9 +20,12 @@ import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
 
     /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
@@ -65,6 +68,10 @@ class WorkspacePeoplePage extends React.Component {
         this.renderHeader = this.renderHeader.bind(this);
         this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
         this.hideConfirmModal = this.hideConfirmModal.bind(this);
+    }
+
+    componentDidUpdate(props) {
+        console.log('Props: ', props);
     }
 
     /**
@@ -149,23 +156,46 @@ class WorkspacePeoplePage extends React.Component {
                         onPress={() => this.toggleUser(item.login)}
                     />
                 </View>
-                <View style={[styles.peopleRowCell, styles.flex2]}>
-                    <View style={[styles.avatarWithName]}>
-                        <Avatar
-                            imageStyles={[styles.mr2]}
-                            source={item.avatar}
-                        />
-                        <Text style={[styles.textStrong]}>
-                            {item.displayName}
-                        </Text>
-                    </View>
-                </View>
-                <View style={[styles.peopleRowCell, styles.flex2]}>
-                    <Text>
-                        {item.login}
-                    </Text>
-                </View>
-                <View style={[styles.peopleRowCell, styles.flex2, styles.peopleBadgesContainer]}>
+                {
+                    this.props.isSmallScreenWidth ? (
+                        <View style={[styles.peopleRowCell, styles.flex4]}>
+                            <View style={[styles.avatarWithName]}>
+                                <Avatar
+                                    imageStyles={[styles.mr2]}
+                                    source={item.avatar}
+                                />
+                                <View style={[styles.dFlex, styles.flexColumn, styles.justifyContentCenter]}>
+                                    <Text style={[styles.textStrong, styles.peopleMobileAssigneeText]}>
+                                        {item.displayName}
+                                    </Text>
+                                    <Text style={[styles.textLabel, styles.colorMuted, styles.peopleMobileAssigneeText]}>
+                                        {item.login}
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+                    ) : (
+                        <Fragment>
+                            <View style={[styles.peopleRowCell, styles.flex4]}>
+                                <View style={[styles.avatarWithName]}>
+                                    <Avatar
+                                        imageStyles={[styles.mr2]}
+                                        source={item.avatar}
+                                    />
+                                    <Text style={[styles.textStrong]}>
+                                        {item.displayName}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View style={[styles.peopleRowCell, styles.flex4]}>
+                                <Text style={[styles.textLabel, styles.colorMuted]}>
+                                    {item.login}
+                                </Text>
+                            </View>
+                        </Fragment>
+                    )
+                }
+                <View style={[styles.peopleRowCell, styles.flex1, styles.peopleBadgesContainer]}>
                     {
                         this.props.session.email === item.login && (
                             <View style={[styles.peopleBadge]}>
@@ -189,17 +219,21 @@ class WorkspacePeoplePage extends React.Component {
                         onPress={() => this.toggleUser('ALL')}
                     />
                 </View>
-                <View style={[styles.peopleRowCell, styles.flex2]}>
+                <View style={[styles.peopleRowCell, styles.flex4]}>
                     <Text style={[styles.textStrong]}>
                         {this.props.translate('workspace.people.assignee')}
                     </Text>
                 </View>
-                <View style={[styles.peopleRowCell, styles.flex2]}>
-                    <Text style={[styles.textStrong]}>
-                        {this.props.translate('common.email')}
-                    </Text>
-                </View>
-                <View style={[styles.peopleRowCell, styles.flex2]} />
+                {
+                    !this.props.isSmallScreenWidth && (
+                        <View style={[styles.peopleRowCell, styles.flex4]}>
+                            <Text style={[styles.textStrong]}>
+                                {this.props.translate('common.email')}
+                            </Text>
+                        </View>
+                    )
+                }
+                <View style={[styles.peopleRowCell, styles.flex1]} />
             </View>
         );
     }
@@ -212,6 +246,7 @@ class WorkspacePeoplePage extends React.Component {
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <ConfirmModal
+                    danger
                     title={this.props.translate('workspace.people.removeMembersTitle')}
                     isVisible={this.state.isRemoveMembersConfirmModalVisible}
                     onConfirm={this.removeUsers}
@@ -282,6 +317,7 @@ WorkspacePeoplePage.displayName = 'WorkspacePeoplePage';
 
 export default compose(
     withLocalize,
+    withWindowDimensions,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

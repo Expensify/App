@@ -98,6 +98,12 @@ function getPolicyList() {
  * @param {String} policyID
  */
 function removeMembers(members, policyID) {
+
+    // Check if the members array is not empty
+    if (members.length === 0) {
+        return;
+    }
+
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
 
     // Make a shallow copy to preserve original data and remove the members
