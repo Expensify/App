@@ -24,7 +24,7 @@ import {
 } from './renderHTMLPropTypes';
 
 const propTypes = {
-    // Whether text elements should be selectable
+    /** Whether text elements should be selectable */
     textSelectable: PropTypes.bool,
     ...renderHTMLPropTypes,
 };
