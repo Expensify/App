@@ -1,5 +1,8 @@
-import moment from 'moment';
-import 'moment-timezone';
+import moment from 'moment-timezone';
+
+// IMPORTANT: load any locales (other than english) that might be passed to moment.locale()
+import 'moment/locale/es';
+
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
