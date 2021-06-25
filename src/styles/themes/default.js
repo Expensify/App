@@ -15,6 +15,7 @@ export default {
     borderFocus: colors.blue,
     icon: colors.gray3,
     iconSuccessFill: colors.green,
+    iconReversed: colors.white,
     textSupporting: colors.gray4,
     text: colors.dark,
     textError: colors.red,
@@ -41,4 +42,5 @@ export default {
     spinner: colors.gray4,
     unreadIndicator: colors.green,
     placeholderText: colors.gray3,
+    heroCard: colors.blue,
 };

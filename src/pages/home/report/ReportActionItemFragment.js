@@ -9,6 +9,7 @@ import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
+import {isSingleEmoji} from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -56,7 +57,9 @@ class ReportActionItemFragment extends React.PureComponent {
                             debug={false}
                         />
                     ) : (
-                        <Text>
+                        <Text
+                            style={isSingleEmoji(fragment.text) ? styles.singleEmojiText : undefined}
+                        >
                             {Str.htmlDecode(fragment.text)}
                             {fragment.isEdited && (
                             <Text
