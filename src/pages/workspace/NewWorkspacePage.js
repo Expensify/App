@@ -14,6 +14,7 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
 import compose from '../../libs/compose';
 import {create} from '../../libs/actions/Policy';
+import defaultTheme from '../../styles/themes/default';
 
 
 const propTypes = {
@@ -53,7 +54,7 @@ class NewWorkspacePage extends React.Component {
                 />
 
                 <View style={[styles.pageWrapper, styles.flex1]}>
-                    <WorkspaceDefaultAvatar height={80} width={80} />
+                    <WorkspaceDefaultAvatar height={80} width={80} fill={defaultTheme.iconSuccessFill} />
 
                     <View style={[styles.mt6, styles.w100, styles.flex1]}>
                         <TextInputWithLabel
