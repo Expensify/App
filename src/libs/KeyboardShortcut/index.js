@@ -32,7 +32,7 @@ function bindHandlerToKeyupEvent(event) {
             }
             return true;
         });
-    
+
         // returns true if extra modifiers are pressed
         const pressedExtraModifiers = _.some(extraModifiers, (extraModifier) => {
             if (extraModifier === 'shift' && event.shiftKey) {
@@ -52,7 +52,7 @@ function bindHandlerToKeyupEvent(event) {
         if (!pressedModifiers || pressedExtraModifiers) {
             return;
         }
-    
+
         // If configured to do so, prevent input text control to trigger this event
         if (!callback.captureOnInputs && (
             event.target.nodeName === 'INPUT'
@@ -61,7 +61,7 @@ function bindHandlerToKeyupEvent(event) {
         )) {
             return;
         }
-    
+
         if (_.isFunction(callback.callback)) {
             callback.callback(event);
         }
