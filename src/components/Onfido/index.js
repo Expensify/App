@@ -47,7 +47,7 @@ class Onfido extends React.Component {
             onComplete: this.props.onSuccess,
             onError: () => {
                 this.props.onUserExit();
-                Growl.show(this.props.translate('onfidoStep.genericError'), CONST.GROWL.ERROR);
+                Growl.error(this.props.translate('onfidoStep.genericError'));
             },
             onUserExit: this.props.onUserExit,
             onModalRequestClose: () => {},
