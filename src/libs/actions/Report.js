@@ -171,6 +171,9 @@ function getSimplifiedReportObject(report) {
         ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
+    const notificationPreference = isDefaultRoom({chatType})
+        ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
+        : '';
 
     return {
         reportID: report.reportID,
@@ -191,11 +194,7 @@ function getSimplifiedReportObject(report) {
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         hasOutstandingIOU: false,
-        notificationPreference: lodashGet(
-            report,
-            ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID],
-            'always',
-        ),
+        notificationPreference,
     };
 }
 
@@ -1098,11 +1097,12 @@ function deleteReportComment(reportID, reportAction) {
         reportID,
         reportActionID: reportAction.reportActionID,
         reportComment: '',
+        sequenceNumber,
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Reverse Optimistic Response
-                reportActionsToMerge[reportAction.sequenceNumber] = {
+                reportActionsToMerge[sequenceNumber] = {
                     ...reportAction,
                     message: oldMessage,
                 };
