@@ -42,4 +42,5 @@ export default {
     spinner: colors.gray4,
     unreadIndicator: colors.green,
     placeholderText: colors.gray3,
+    heroCard: colors.blue,
 };
