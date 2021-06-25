@@ -22,6 +22,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
 import Picker from './Picker';
 import Text from './Text';
+import BankLogo from '../../assets/images/bankLogos/chase.png'
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -132,8 +133,8 @@ class AddPlaidBankAccount extends React.Component {
                             )}
                             {/* @TODO there are a bunch of logos to incorporate here to replace this name
                             https://d2k5nsl2zxldvw.cloudfront.net/images/plaid/bg_plaidLogos_12@2x.png */}
-                            <Image>
-                            </Image>
+                            <BankLogo>
+                            </BankLogo>
                             <Text style={[styles.mb5, styles.h1]}>{this.state.institution.name}</Text>
                             <View style={[styles.mb5]}>
                                 <Picker

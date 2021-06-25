@@ -18,6 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import exampleCheckImage from '../../../assets/images/example-check-image.png';
 import Text from '../../components/Text';
 import {setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
+import chaseLogo from '../../../assets/images/bankLogos/chase.png';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -119,6 +120,16 @@ class BankAccountStep extends React.Component {
                 />
                 {!this.state.bankAccountAddMethod && (
                     <>
+                        <View>
+                            <Image
+                                resizeMode="contain"
+                                style={{
+                                    height: '100%',
+                                    width: '100%',
+                                }}
+                                source={chaseLogo}
+                            />
+                        </View>
                         <View style={[styles.flex1]}>
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('bankAccount.toGetStarted')}
