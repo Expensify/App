@@ -31,6 +31,7 @@ import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import Permissions from '../../Permissions';
+import getOperatingSystem from '../../getOperatingSystem';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -155,10 +156,24 @@ class AuthScreens extends React.Component {
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
-        // Listen for the Command+K key being pressed so the focus can be given to the chat switcher
-        KeyboardShortcut.subscribe('K', () => {
-            Navigation.navigate(ROUTES.SEARCH);
-        }, ['meta'], true);
+        // Listen for the key K being pressed so that focus can be given to
+        // the chat switcher, or new group chat
+        // based on the key modifiers pressed and the operating system
+        if (getOperatingSystem() === CONST.OS.MAC_OS) {
+            KeyboardShortcut.subscribe('K', () => {
+                Navigation.navigate(ROUTES.SEARCH);
+            }, ['meta'], true);
+            KeyboardShortcut.subscribe('K', () => {
+                Navigation.navigate(ROUTES.NEW_GROUP);
+            }, ['meta', 'shift'], true);
+        } else {
+            KeyboardShortcut.subscribe('K', () => {
+                Navigation.navigate(ROUTES.SEARCH);
+            }, ['control'], true);
+            KeyboardShortcut.subscribe('K', () => {
+                Navigation.navigate(ROUTES.NEW_GROUP);
+            }, ['control', 'shift'], true);
+        }
     }
 
     shouldComponentUpdate(nextProps) {
