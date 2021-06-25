@@ -32,15 +32,6 @@ function pushNotificationEventCallback(eventType, notification) {
         return;
     }
 
-    // If a push notification is received while the app is in foreground,
-    // we'll assume pusher is connected so we'll ignore is and not fetch the same data twice.
-    // However, we will allow NotificationResponse events through, so that tapping on a foreground notification
-    // will take you to the relevant report.
-    if (AppState.currentState === 'active') {
-        console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
-        return;
-    }
-
     if (!payload.type) {
         console.debug('[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.');
         return;
@@ -83,6 +74,13 @@ function register(accountID) {
 
     // Setup event listeners
     UrbanAirship.addListener(EventType.PushReceived, (notification) => {
+        // If a push notification is received while the app is in foreground,
+        // we'll assume pusher is connected so we'll ignore it and not write the same data twice.
+        if (AppState.currentState === 'active') {
+            console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
+            return;
+        }
+
         pushNotificationEventCallback(EventType.PushReceived, notification);
     });
 

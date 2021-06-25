@@ -16,7 +16,6 @@ import Avatar from '../../../components/Avatar';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import Icon from '../../../components/Icon';
-import Checkbox from '../../../components/Checkbox';
 import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
@@ -29,6 +28,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import ExpensiTextInput from '../../../libs/ExpensiTextInput';
+import FullNameInputRow from '../../../components/FullNameInputRow';
 
 const propTypes = {
     /* Onyx Props */
@@ -320,6 +320,13 @@ class ProfilePage extends Component {
                                 />
                             </View>
                         </View>
+                        <FullNameInputRow
+                            firstName={this.state.firstName}
+                            lastName={this.state.lastName}
+                            onChangeFirstName={firstName => this.setState({firstName})}
+                            onChangeLastName={lastName => this.setState({lastName})}
+                            style={[styles.mt4, styles.mb4]}
+                        />
                         <View style={styles.mb6}>
                             <Text style={[styles.mb1, styles.formLabel]}>
                                 {this.props.translate('profilePage.preferredPronouns')}
@@ -365,7 +372,7 @@ class ProfilePage extends Component {
                                 disabled={this.state.isAutomaticTimezone}
                             />
                         </View>
-                        <Checkbox
+                        <CheckboxWithLabel
                             label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
                             isChecked={this.state.isAutomaticTimezone}
                             onPress={this.setAutomaticTimezone}
