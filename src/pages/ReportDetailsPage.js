@@ -127,13 +127,13 @@ class ReportDetailsPage extends Component {
                 <View style={[styles.flex1]}>
                     <View style={[styles.m5]}>
                         <View
-                            style={[styles.dFlex, styles.flexColumn, styles.alignItemsCenter, styles.mt4, styles.mb4]}
+                            style={styles.reportDetailsTitleContainer}
                         >
                             <Image
                                 source={{uri: this.props.report.icons[0]}}
                                 style={[styles.singleAvatarLarge, styles.mb4]}
                             />
-                            <View style={[styles.flex1, styles.dFlex, styles.flexColumn, styles.alignItemsCenter]}>
+                            <View style={styles.reportDetailsRoomInfo}>
                                 <DisplayNames
                                     fullTitle={this.props.report.reportName}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
@@ -150,9 +150,11 @@ class ReportDetailsPage extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <Text style={[styles.formLabel]} numberOfLines={1}>
-                            {this.props.translate('common.notifications')}
-                        </Text>
+                        <View style={styles.mt4}>
+                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                                {this.props.translate('common.notifications')}
+                            </Text>
+                        </View>
                         <View>
                             <Text style={[styles.mb3]}>
                                 {this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
