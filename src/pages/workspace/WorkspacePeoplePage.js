@@ -70,10 +70,6 @@ class WorkspacePeoplePage extends React.Component {
         this.hideConfirmModal = this.hideConfirmModal.bind(this);
     }
 
-    componentDidUpdate(props) {
-        console.log('Props: ', props);
-    }
-
     /**
     * Open the modal to invite a user
     */
