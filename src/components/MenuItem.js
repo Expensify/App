@@ -46,6 +46,9 @@ const propTypes = {
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
 
+    /** Whether item is focused or active */
+    focused: PropTypes.bool,
+
     /** Should we disable this menu item? */
     disabled: PropTypes.bool,
 
@@ -64,6 +67,7 @@ const defaultProps = {
     iconRight: ArrowRight,
     iconStyles: [],
     iconFill: undefined,
+    focused: false,
     disabled: false,
     subtitle: '',
 };
@@ -81,6 +85,7 @@ const MenuItem = ({
     description,
     iconStyles,
     iconFill,
+    focused,
     disabled,
     subtitle,
 }) => (
@@ -94,7 +99,7 @@ const MenuItem = ({
         }}
         style={({hovered, pressed}) => ([
             styles.createMenuItem,
-            getButtonBackgroundColorStyle(getButtonState(hovered, pressed, success, disabled)),
+            getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled)),
             wrapperStyle,
         ])}
     >
@@ -112,7 +117,9 @@ const MenuItem = ({
                                 src={icon}
                                 width={iconWidth}
                                 height={iconHeight}
-                                fill={iconFill || getIconFillColor(getButtonState(hovered, pressed, success, disabled))}
+                                fill={iconFill || getIconFillColor(
+                                    getButtonState(focused || hovered, pressed, success, disabled),
+                                )}
                             />
                         </View>
                     )}
@@ -127,7 +134,6 @@ const MenuItem = ({
                         )}
                     </View>
                 </View>
-
                 <View style={[styles.flexRow, styles.menuItemTextContainer]}>
                     {subtitle && (
                         <Text
@@ -146,7 +152,7 @@ const MenuItem = ({
                         <View style={styles.createMenuIcon}>
                             <Icon
                                 src={iconRight}
-                                fill={getIconFillColor(getButtonState(hovered, pressed, success, disabled))}
+                                fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
                             />
                         </View>
                     )}

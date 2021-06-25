@@ -134,6 +134,14 @@ export default {
                     NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
+
+            WorkspaceSettings: {
+                screens: {
+                    Workspace_Root: ROUTES.WORKSPACE,
+                    WorkspaceCard: ROUTES.WORKSPACE_CARD,
+                },
+            },
+
             RequestCall: {
                 screens: {
                     RequestCall_Root: ROUTES.REQUEST_CALL,

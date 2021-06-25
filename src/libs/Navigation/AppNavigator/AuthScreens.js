@@ -4,7 +4,7 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {getNavigationModalCardStyle} from '../../../styles/styles';
+import styles, {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -59,6 +59,7 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
+import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -177,22 +178,32 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        const modalScreenOptions = {
+        const commonModalScreenOptions = {
             headerShown: false,
-            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, props),
-            animationEnabled: true,
             gestureDirection: 'horizontal',
-            cardOverlayEnabled: true,
+            animationEnabled: true,
 
             // This option is required to make previous screen visible underneath the modal screen
             // https://reactnavigation.org/docs/6.x/stack-navigator#transparent-modals
             presentation: 'transparentModal',
+        };
+        const modalScreenOptions = {
+            ...commonModalScreenOptions,
+            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
+            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
+            cardOverlayEnabled: true,
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
         };
+        const fullscreenModalScreenOptions = {
+            ...commonModalScreenOptions,
+            cardStyle: {...styles.fullscreenCard},
+            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
+            cardOverlayEnabled: false,
+        };
+
         return (
             <RootStack.Navigator
                 mode="modal"
@@ -226,6 +237,12 @@ class AuthScreens extends React.Component {
                 modal subscreens e.g. `/settings/profile` and this will allow us to navigate while inside the modal. We
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
+                <RootStack.Screen
+                    name="WorkspaceSettings"
+                    options={fullscreenModalScreenOptions}
+                    component={WorkspaceSettingsDrawerNavigator}
+                    listeners={modalScreenListeners}
+                />
                 <RootStack.Screen
                     name="Settings"
                     options={modalScreenOptions}
