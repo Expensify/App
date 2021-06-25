@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -31,10 +32,14 @@ const propTypes = {
 
         /** Name of the policy */
         name: PropTypes.string,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    policy: {},
 };
 
 const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
@@ -54,6 +59,10 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
             isActive: false,
         },
     ];
+
+    if (_.isEmpty(policy)) {
+        return null;
+    }
 
     return (
         <ScreenWrapper style={[!isSmallScreenWidth ? styles.borderRight : {}]}>
@@ -122,6 +131,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
 };
 
 WorkspaceSidebar.propTypes = propTypes;
+WorkspaceSidebar.defaultProps = defaultProps;
 WorkspaceSidebar.displayName = 'WorkspaceSidebar';
 
 export default compose(
