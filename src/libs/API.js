@@ -220,23 +220,19 @@ function Authenticate(parameters) {
             if (response.jsonCode !== 200) {
                 switch (response.jsonCode) {
                     case 401:
-                        throw new Error('Incorrect login or password. Please try again.');
+                        throw new Error('passwordForm.error.incorrectLoginOrPassword');
                     case 402:
-                        // eslint-disable-next-line max-len
-                        throw new Error('You have 2FA enabled on this account. Please sign in using your email or phone number.');
+                        throw new Error('passwordForm.error.twoFactorAuthenticationEnabled');
                     case 403:
-                        throw new Error('Invalid login or password. Please try again or reset your password.');
+                        throw new Error('passwordForm.error.invalidLoginOrPassword');
                     case 404:
-                        // eslint-disable-next-line max-len
-                        throw new Error('We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.');
+                        throw new Error('passwordForm.error.unableToResetPassword');
                     case 405:
-                        // eslint-disable-next-line max-len
-                        throw new Error('You do not have access to this application. Please add your GitHub username for access.');
+                        throw new Error('passwordForm.error.noAccess');
                     case 413:
-                        // eslint-disable-next-line max-len
-                        throw new Error('Your account has been locked after too many unsuccessful attempts. Please try again after 1 hour.');
+                        throw new Error('passwordForm.error.accountLocked');
                     default:
-                        throw new Error('Something went wrong. Please try again later.');
+                        throw new Error('passwordForm.error.fallback');
                 }
             }
             return response;

@@ -216,7 +216,7 @@ function signIn(password, twoFactorAuthCode) {
             createTemporaryLogin(authToken, encryptedAuthToken, email);
         })
         .catch((error) => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: error.message, loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translate('en', error.message), loading: false});
         });
 }
 
