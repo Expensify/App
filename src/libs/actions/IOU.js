@@ -7,6 +7,8 @@ import ROUTES from '../../ROUTES';
 import * as API from '../API';
 import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
 import Navigation from '../Navigation/Navigation';
+import Growl from '../Growl';
+import {translateLocal} from '../translate';
 
 /**
  * @param {Object[]} requestParams
@@ -220,6 +222,12 @@ function payIOUReport({
         })
         .catch((error) => {
             console.error(`Error Paying iouReport: ${error}`);
+            if (error.startsWith('404 No default linked bank account or debit card found for payer')) {
+                Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'));
+            } else {
+                Growl.error(error);
+            }
+
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));

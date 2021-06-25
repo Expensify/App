@@ -310,6 +310,7 @@ export default {
             address: 'Please enter a valid address',
             dob: 'Please enter a valid date of birth',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit account or debit card',
         },
     },
     addPersonalBankAccountPage: {
