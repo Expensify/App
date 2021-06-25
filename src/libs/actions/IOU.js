@@ -221,13 +221,11 @@ function payIOUReport({
             }
         })
         .catch((error) => {
-            console.error(`Error Paying iouReport: ${error}`);
-            if (error.startsWith('404 No default linked bank account or debit card found for payer')) {
-                Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'));
+            if (error.message.startsWith('You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.')) {
+                Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
             } else {
-                Growl.error(error);
+                Growl.error(error.message, 5000);
             }
-
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
