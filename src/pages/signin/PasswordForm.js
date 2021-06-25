@@ -13,7 +13,7 @@ import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import ExpensiTextInput from '../../libs/ExpensiTextInput';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */

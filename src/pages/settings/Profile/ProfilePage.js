@@ -27,8 +27,9 @@ import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
-import ExpensiTextInput from '../../../libs/ExpensiTextInput';
+import ExpensiTextInput from '../../../components/ExpensiTextInput';
 import FullNameInputRow from '../../../components/FullNameInputRow';
+import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 
 const propTypes = {
     /* Onyx Props */
@@ -302,24 +303,6 @@ class ProfilePage extends Component {
                         <Text style={[styles.mt6, styles.mb6, styles.textP]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
                         </Text>
-                        <View style={[styles.flexRow, styles.mb6]}>
-                            <View style={styles.flex1}>
-                                <ExpensiTextInput
-                                    label={this.props.translate('common.firstName')}
-                                    value={this.state.firstName}
-                                    onChangeText={firstName => this.setState({firstName})}
-                                    placeholder={this.props.translate('profilePage.john')}
-                                />
-                            </View>
-                            <View style={[styles.flex1, styles.ml2]}>
-                                <ExpensiTextInput
-                                    label={this.props.translate('common.lastName')}
-                                    value={this.state.lastName}
-                                    onChangeText={lastName => this.setState({lastName})}
-                                    placeholder={this.props.translate('profilePage.doe')}
-                                />
-                            </View>
-                        </View>
                         <FullNameInputRow
                             firstName={this.state.firstName}
                             lastName={this.state.lastName}

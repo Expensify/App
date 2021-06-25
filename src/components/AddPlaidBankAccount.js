@@ -3,7 +3,6 @@ import React from 'react';
 import {
     ActivityIndicator,
     View,
-    TextInput,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -22,6 +21,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
 import Picker from './Picker';
 import Text from './Text';
+import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -148,12 +148,9 @@ class AddPlaidBankAccount extends React.Component {
                             </View>
                             {!_.isUndefined(this.state.selectedIndex) && (
                                 <View style={[styles.mb5]}>
-                                    <Text style={[styles.formLabel]}>
-                                        {this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                    </Text>
-                                    <TextInput
+                                    <ExpensiTextInput
+                                        label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
                                         secureTextEntry
-                                        style={[styles.textInput, styles.mb2]}
                                         value={this.state.password}
                                         autoCompleteType="password"
                                         textContentType="password"

@@ -13,7 +13,7 @@ import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
-import ExpensiTextInput from '../../libs/ExpensiTextInput';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */

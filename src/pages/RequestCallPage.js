@@ -1,5 +1,5 @@
 import {Component} from 'react';
-import {View, Text, TextInput} from 'react-native';
+import {View, Text} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -19,6 +19,7 @@ import Growl from '../libs/Growl';
 import {requestConciergeDMCall} from '../libs/actions/Inbox';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
+import ExpensiTextInput from '../components/ExpensiTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -123,13 +124,11 @@ class RequestCallPage extends Component {
                         onChangeLastName={lastName => this.setState({lastName})}
                         style={[styles.mt4, styles.mb4]}
                     />
-                    <Text style={[styles.mt4, styles.formLabel]} numberOfLines={1}>
-                        {this.props.translate('common.phoneNumber')}
-                    </Text>
-                    <TextInput
+                    <ExpensiTextInput
+                        label={this.props.translate('common.phoneNumber')}
+                        containerStyle={[styles.mt4]}
                         autoCompleteType="off"
                         autoCorrect={false}
-                        style={[styles.textInput]}
                         value={this.state.phoneNumber}
                         placeholder="+14158675309"
                         onChangeText={phoneNumber => this.setState({phoneNumber})}

@@ -1,5 +1,5 @@
 import React from 'react';
-import {TextInput, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../../CONST';
@@ -18,7 +18,7 @@ import Button from '../../components/Button';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import Growl from '../../libs/Growl';
-import ExpensiTextInput from '../../libs/ExpensiTextInput';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /** Username for PayPal.Me */
@@ -76,16 +76,10 @@ class PaymentsPage extends React.Component {
                             <Text style={[styles.textP, styles.mb4]}>
                                 {this.props.translate('paymentsPage.enterYourUsernameToGetPaidViaPayPal')}
                             </Text>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('paymentsPage.payPalMe')}
-                            </Text>
-                            {/* <ExpensiTextInput
-
-                            /> */}
-                            <TextInput
+                            <ExpensiTextInput
+                                label={this.props.translate('paymentsPage.payPalMe')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                style={[styles.textInput]}
                                 value={this.state.payPalMeUsername}
                                 placeholder={this.props.translate('paymentsPage.yourPayPalUsername')}
                                 onChangeText={text => this.setState({payPalMeUsername: text})}

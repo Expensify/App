@@ -18,7 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
-import ExpensiTextInput from '../../libs/ExpensiTextInput';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */

@@ -9,7 +9,7 @@ import CONST from '../../CONST';
 import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
@@ -119,14 +119,14 @@ class CompanyStep extends React.Component {
                         <View style={[styles.alignItemsCenter]}>
                             <Text>{this.props.translate('companyStep.subtitle')}</Text>
                         </View>
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('companyStep.legalBusinessName')}
                             containerStyles={[styles.mt4]}
                             onChangeText={companyName => this.setState({companyName})}
                             value={this.state.companyName}
                             disabled={shouldDisableCompanyName}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('common.companyAddressNoPO')}
                             containerStyles={[styles.mt4]}
                             onChangeText={addressStreet => this.setState({addressStreet})}
@@ -134,7 +134,7 @@ class CompanyStep extends React.Component {
                         />
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
-                                <TextInputWithLabel
+                                <ExpensiTextInput
                                     label={this.props.translate('common.city')}
                                     onChangeText={addressCity => this.setState({addressCity})}
                                     value={this.state.addressCity}
@@ -148,13 +148,13 @@ class CompanyStep extends React.Component {
                                 />
                             </View>
                         </View>
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('common.zip')}
                             containerStyles={[styles.mt4]}
                             onChangeText={addressZipCode => this.setState({addressZipCode})}
                             value={this.state.addressZipCode}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('common.phoneNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
@@ -162,13 +162,13 @@ class CompanyStep extends React.Component {
                             value={this.state.companyPhone}
                             placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('companyStep.companyWebsite')}
                             containerStyles={[styles.mt4]}
                             onChangeText={website => this.setState({website})}
                             value={this.state.website}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('companyStep.taxIDNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
@@ -188,7 +188,7 @@ class CompanyStep extends React.Component {
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
                                 {/* TODO: Replace with date picker */}
-                                <TextInputWithLabel
+                                <ExpensiTextInput
                                     label={this.props.translate('companyStep.incorporationDate')}
                                     onChangeText={incorporationDate => this.setState({incorporationDate})}
                                     value={this.state.incorporationDate}
@@ -204,7 +204,7 @@ class CompanyStep extends React.Component {
                             </View>
                         </View>
                         {/* TODO: Replace with NAICS picker */}
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('companyStep.industryClassificationCode')}
                             helpLinkText={this.props.translate('common.whatThis')}
                             helpLinkURL="https://www.naics.com/search/"
@@ -212,7 +212,7 @@ class CompanyStep extends React.Component {
                             onChangeText={industryCode => this.setState({industryCode})}
                             value={this.state.industryCode}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry

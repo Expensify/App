@@ -419,6 +419,11 @@ const styles = {
             {scale},
         ],
     }),
+    expensiTextInput: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        outline: 'none',
+    },
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
