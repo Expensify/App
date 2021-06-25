@@ -240,6 +240,9 @@ const mainWindow = (() => {
             // Listen to badge updater event emitted by the render process
             // and update the app badge count (MacOS only)
             ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount) => {
+                if (totalCount === -1) {
+                    app.setBadgeCount();
+                }
                 app.setBadgeCount(totalCount);
             });
 

@@ -147,6 +147,11 @@ const CONST = {
             PROCESSING: 1,
             SUBMITTED: 2,
         },
+        NOTIFICATION_PREFERENCE: {
+            MUTE: 'mute',
+            DAILY: 'daily',
+            ALWAYS: 'always',
+        },
     },
     MODAL: {
         MODAL_TYPE: {
