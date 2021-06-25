@@ -3,7 +3,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import {
-    addPlaidBankAccount,
+    addPersonalBankAccount,
 } from '../libs/actions/BankAccounts';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
@@ -20,7 +20,7 @@ const AddPersonalBankAccountPage = props => (
         />
         <AddPlaidBankAccount
             onSubmit={({account, password, plaidLinkToken}) => {
-                addPlaidBankAccount(account, password, plaidLinkToken);
+                addPersonalBankAccount(account, password, plaidLinkToken);
             }}
             onExitPlaid={Navigation.dismissModal}
         />

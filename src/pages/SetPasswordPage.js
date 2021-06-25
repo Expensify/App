@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {
     SafeAreaView,
     Text,
-    TextInput,
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -14,11 +13,10 @@ import styles from '../styles/styles';
 import {setPassword} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from '../components/Button';
-import themeColors from '../styles/themes/default';
 import SignInPageLayout from './signin/SignInPageLayout';
-import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
+import NewPasswordForm from './settings/NewPasswordForm';
 
 const propTypes = {
     /* Onyx Props */
@@ -63,7 +61,7 @@ class SetPasswordPage extends Component {
 
         this.state = {
             password: '',
-            formError: null,
+            isFormValid: false,
         };
     }
 
@@ -71,16 +69,9 @@ class SetPasswordPage extends Component {
      * Validate the form and then submit it
      */
     validateAndSubmitForm() {
-        if (!this.state.password.trim()) {
-            this.setState({
-                formError: this.props.translate('setPasswordPage.passwordCannotBeBlank'),
-            });
+        if (!this.state.isFormValid) {
             return;
         }
-
-        this.setState({
-            formError: null,
-        });
         setPassword(
             this.state.password,
             lodashGet(this.props.route, 'params.validateCode', ''),
@@ -93,20 +84,11 @@ class SetPasswordPage extends Component {
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout>
                     <View style={[styles.mb4]}>
-                        <Text style={[styles.formLabel]}>
-                            {this.props.translate('setPasswordPage.enterPassword')}
-                        </Text>
-                        <TextInput
-                            style={[styles.textInput]}
-                            value={this.state.password}
-                            secureTextEntry
-                            autoCompleteType="password"
-                            textContentType="password"
-                            onChangeText={text => this.setState({password: text})}
+                        <NewPasswordForm
+                            password={this.state.password}
+                            updatePassword={password => this.setState({password})}
+                            updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
                             onSubmitEditing={this.validateAndSubmitForm}
-                            autoCapitalize="none"
-                            placeholderTextColor={themeColors.placeholderText}
-                            autoFocus={canFocusInputOnScreenFocus()}
                         />
                     </View>
                     <View>
@@ -118,12 +100,6 @@ class SetPasswordPage extends Component {
                             onPress={this.validateAndSubmitForm}
                         />
                     </View>
-
-                    {this.state.formError && (
-                        <Text style={[styles.formError]}>
-                            {this.state.formError}
-                        </Text>
-                    )}
 
                     {!_.isEmpty(this.props.account.error) && (
                         <Text style={[styles.formError]}>
