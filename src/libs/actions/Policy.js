@@ -156,7 +156,7 @@ function create(name) {
                 type: response.policy.type,
                 name: response.policy.name,
             });
-            Navigation.navigate(ROUTES.getWorkspaceRoute(response.policyID));
+            Navigation.navigate(ROUTES.getWorkspaceCardRoute(response.policyID));
         });
 }
 

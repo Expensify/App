@@ -7,7 +7,8 @@ import WorkspaceSidebar from '../../../pages/workspace/WorkspaceSidebar';
 
 const WorkspaceSettingsDrawerNavigator = () => (
     <BaseDrawerNavigator
-        drawerContent={() => <WorkspaceSidebar />}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        drawerContent={props => <WorkspaceSidebar {...props} />}
         screens={[
             {
                 name: 'WorkspaceCard',
