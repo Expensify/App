@@ -69,7 +69,7 @@ const defaultProps = {
     iconFill: undefined,
     focused: false,
     disabled: false,
-    subtitle: '',
+    subtitle: undefined,
 };
 
 const MenuItem = ({
@@ -136,17 +136,13 @@ const MenuItem = ({
                 </View>
                 <View style={[styles.flexRow, styles.menuItemTextContainer]}>
                     {subtitle && (
-                        <Text
-                            style={[
-                                styles.mr1,
-                                styles.h100,
-                                styles.dFlex,
-                                styles.alignItemsCenter,
-                                styles.createMenuDescription,
-                            ]}
-                        >
-                            {subtitle}
-                        </Text>
+                        <View style={[styles.justifyContentCenter, styles.mr1]}>
+                            <Text
+                                style={styles.createMenuDescription}
+                            >
+                                {subtitle}
+                            </Text>
+                        </View>
                     )}
                     {shouldShowRightIcon && (
                         <View style={styles.createMenuIcon}>

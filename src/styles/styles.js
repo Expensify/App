@@ -1298,6 +1298,21 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
+    reportDetailsTitleContainer: {
+        ...flex.dFlex,
+        ...flex.flexColumn,
+        ...flex.alignItemsCenter,
+        ...spacing.mt4,
+        height: 150,
+    },
+
+    reportDetailsRoomInfo: {
+        ...flex.flex1,
+        ...flex.dFlex,
+        ...flex.flexColumn,
+        ...flex.alignItemsCenter,
+    },
+
     reportTransactionWrapper: {
         paddingVertical: 8,
         display: 'flex',
