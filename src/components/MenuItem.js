@@ -19,6 +19,12 @@ const propTypes = {
     /** Icon to display on the left side of component */
     icon: PropTypes.elementType,
 
+    /** Icon Height */
+    iconWidth: PropTypes.number,
+
+    /** Icon Height */
+    iconHeight: PropTypes.number,
+
     /** Text to display for the item */
     title: PropTypes.string.isRequired,
 
@@ -28,8 +34,17 @@ const propTypes = {
     /** A boolean flag that gives the icon a green fill if true */
     success: PropTypes.bool,
 
-    // Overrides the icon for shouldShowRightIcon
+    /** Overrides the icon for shouldShowRightIcon */
     iconRight: PropTypes.elementType,
+
+    /** A description text to show under the title */
+    description: PropTypes.string,
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** The fill color to pass into the icon. */
+    iconFill: PropTypes.string,
 };
 
 const defaultProps = {
@@ -37,7 +52,12 @@ const defaultProps = {
     wrapperStyle: {},
     success: false,
     icon: undefined,
+    iconWidth: undefined,
+    iconHeight: undefined,
+    description: undefined,
     iconRight: ArrowRight,
+    iconStyles: [],
+    iconFill: undefined,
 };
 
 const MenuItem = ({
@@ -48,6 +68,11 @@ const MenuItem = ({
     shouldShowRightIcon,
     wrapperStyle,
     success,
+    iconWidth,
+    iconHeight,
+    description,
+    iconStyles,
+    iconFill,
 }) => (
     <Pressable
         onPress={onPress}
@@ -61,20 +86,35 @@ const MenuItem = ({
             <>
                 <View style={styles.flexRow}>
                     {icon && (
-                        <View style={styles.createMenuIcon}>
-                            <Icon src={icon} fill={getIconFillColor(getButtonState(hovered, pressed, success))} />
-                        </View>
+                    <View
+                        style={[
+                            styles.createMenuIcon,
+                            ...iconStyles,
+                        ]}
+                    >
+                        <Icon
+                            src={icon}
+                            width={iconWidth}
+                            height={iconHeight}
+                            fill={iconFill || getIconFillColor(getButtonState(hovered, pressed, success))}
+                        />
+                    </View>
                     )}
                     <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
                         <Text style={[styles.createMenuText, styles.ml3]}>
                             {title}
                         </Text>
+                        {description && (
+                            <Text style={[styles.createMenuDescription, styles.ml3, styles.mt1]}>
+                                {description}
+                            </Text>
+                        )}
                     </View>
                 </View>
                 {shouldShowRightIcon && (
-                    <View style={styles.createMenuIcon}>
-                        <Icon src={iconRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
-                    </View>
+                <View style={styles.createMenuIcon}>
+                    <Icon src={iconRight} fill={getIconFillColor(getButtonState(hovered, pressed))} />
+                </View>
                 )}
             </>
         )}

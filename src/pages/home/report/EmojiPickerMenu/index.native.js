@@ -78,4 +78,8 @@ class EmojiPickerMenu extends Component {
 
 EmojiPickerMenu.propTypes = propTypes;
 
-export default EmojiPickerMenu;
+// eslint-disable-next-line no-unused-vars
+export default React.forwardRef((props, _ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <EmojiPickerMenu {...props} />
+));

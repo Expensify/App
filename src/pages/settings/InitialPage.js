@@ -5,6 +5,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import {signOut} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -12,18 +13,20 @@ import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import {
+    Building,
     Gear,
+    Info,
     Lock,
     Profile,
-    Wallet,
     SignOut,
-    Info,
+    Wallet,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -49,6 +52,21 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** The list of this user's policies */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The ID of the policy */
+        ID: PropTypes.string,
+
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
+
+        /** The user's role in the policy */
+        role: PropTypes.string,
+    })),
+
     ...withLocalizePropTypes,
 };
 
@@ -56,9 +74,10 @@ const defaultProps = {
     myPersonalDetails: {},
     network: {},
     session: {},
+    policies: {},
 };
 
-const menuItems = [
+const defaultMenuItems = [
     {
         translationKey: 'common.profile',
         icon: Profile,
@@ -95,6 +114,7 @@ const InitialSettingsPage = ({
     myPersonalDetails,
     network,
     session,
+    policies,
     translate,
 }) => {
     // On the very first sign in or after clearing storage these
@@ -103,6 +123,20 @@ const InitialSettingsPage = ({
     if (_.isEmpty(myPersonalDetails)) {
         return null;
     }
+
+    // Add free policies (workspaces) to the list of menu items
+    const menuItems = _.chain(policies)
+        .filter(policy => policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+        .map(policy => ({
+            title: policy.name,
+            icon: Building,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceRoute(policy.ID)),
+            iconStyles: [styles.createMenuIconEmphasized],
+            iconFill: themeColors.iconReversed,
+        }))
+        .value();
+    menuItems.push(...defaultMenuItems);
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -133,15 +167,20 @@ const InitialSettingsPage = ({
                             </Text>
                         )}
                     </View>
-                    {menuItems.map(item => (
-                        <MenuItem
-                            key={item.title}
-                            title={translate(item.translationKey)}
-                            icon={item.icon}
-                            onPress={() => item.action()}
-                            shouldShowRightIcon
-                        />
-                    ))}
+                    {menuItems.map((item) => {
+                        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                        return (
+                            <MenuItem
+                                key={keyTitle}
+                                title={keyTitle}
+                                icon={item.icon}
+                                onPress={item.action}
+                                iconStyles={item.iconStyles}
+                                iconFill={item.iconFill}
+                                shouldShowRightIcon
+                            />
+                        );
+                    })}
                 </View>
             </ScrollView>
         </ScreenWrapper>
@@ -163,6 +202,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(InitialSettingsPage);
