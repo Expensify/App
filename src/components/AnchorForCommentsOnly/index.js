@@ -5,8 +5,8 @@ import {
     propTypes as anchorForCommentsOnlyPropTypes,
     defaultProps as anchorForCommentsOnlyDefaultProps,
 } from './anchorForCommentsOnlyPropTypes';
-import AnchorWithAuthToken from './AnchorWithAuthToken';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
+import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 
 const propTypes = {
     /** Do we need an auth token to view this link or download the remote resource? */
@@ -27,11 +27,12 @@ const defaultProps = {
  */
 const AnchorForCommentsOnly = (props) => {
     const propsToPass = _.omit(props, 'isAuthTokenRequired');
-    return props.isAuthTokenRequired
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        ? <AnchorWithAuthToken {...propsToPass} />
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        : <BaseAnchorForCommentsOnly {...propsToPass} />;
+    if (props.isAuthTokenRequired) {
+        propsToPass.href = addEncryptedAuthTokenToURL(props.href);
+        propsToPass.shouldDownloadFile = true;
+    }
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <BaseAnchorForCommentsOnly {...propsToPass} />;
 };
 
 AnchorForCommentsOnly.propTypes = propTypes;

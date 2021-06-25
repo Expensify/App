@@ -85,8 +85,10 @@ class AdditionalDetailsStep extends React.Component {
                 fieldName: 'dob',
             },
             {
-                label: props.translate('common.ssn'),
+                label: props.translate('common.ssnLast4'),
                 fieldName: 'ssn',
+                maxLength: 4,
+                keyboardType: 'number-pad',
             },
         ];
 
@@ -133,6 +135,8 @@ class AdditionalDetailsStep extends React.Component {
                                     errorText={errorFields.includes(field.fieldName)
                                         ? `${field.label} ${this.requiredText}`
                                         : ''}
+                                    // eslint-disable-next-line react/jsx-props-no-spreading
+                                    {..._.omit(field, ['label', 'fieldName'])}
                                 />
                             ))}
                         </ScrollView>
