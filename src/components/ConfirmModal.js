@@ -32,6 +32,9 @@ const propTypes = {
     /** Modal content text */
     prompt: PropTypes.string,
 
+    /** Is the action destructive */
+    danger: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -41,6 +44,7 @@ const defaultProps = {
     confirmText: '',
     cancelText: '',
     prompt: '',
+    danger: false,
 };
 
 const ConfirmModal = props => (
@@ -62,7 +66,8 @@ const ConfirmModal = props => (
             </Text>
 
             <Button
-                success
+                success={!props.danger}
+                danger={props.danger}
                 style={[styles.mt4]}
                 onPress={props.onConfirm}
                 text={props.confirmText || props.translate('common.yes')}

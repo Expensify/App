@@ -1659,6 +1659,10 @@ const styles = {
         lineHeight: 16,
         ...whiteSpace.noWrap,
     },
+
+    peopleMobileAssigneeText: {
+        paddingVertical: 2
+    },
 };
 
 const baseCodeTagStyles = {
