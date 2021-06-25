@@ -13,7 +13,7 @@ import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-ava
 import Button from '../../components/Button';
 import compose from '../../libs/compose';
 import {create} from '../../libs/actions/Policy';
-import ExpensiTextInput from '../../libs/ExpensiTextInput';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import defaultTheme from '../../styles/themes/default';
 
 

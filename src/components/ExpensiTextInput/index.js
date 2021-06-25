@@ -4,11 +4,11 @@ import PropTypes from 'prop-types';
 import {
     Animated, TextInput, TouchableWithoutFeedback, View,
 } from 'react-native';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -10;
-const ACTIVE_LABEL_TRANSLATE_X = -10;
+const ACTIVE_LABEL_TRANSLATE_X = (fullWidth = true) => (fullWidth ? -22 : -10);
 const ACTIVE_LABEL_SCALE = 0.8668;
 
 const INACTIVE_LABEL_TRANSLATE_Y = 0;
@@ -33,6 +33,12 @@ const propTypes = {
 
     /** Input with error  */
     error: PropTypes.bool,
+
+    /** Styles for the outermost container for this component. */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Input width */
+    fullWidth: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -41,6 +47,8 @@ const defaultProps = {
     error: false,
     onFocusExtra: null,
     onBlurExtra: null,
+    containerStyles: [],
+    fullWidth: true,
 };
 
 class ExpensiTextInput extends Component {
@@ -52,7 +60,8 @@ class ExpensiTextInput extends Component {
         this.state = {
             isFocused: false,
             labelTranslateY: new Animated.Value(hasValue ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
-            labelTranslateX: new Animated.Value(hasValue ? ACTIVE_LABEL_TRANSLATE_X : INACTIVE_LABEL_TRANSLATE_X),
+            labelTranslateX: new Animated.Value(hasValue
+                ? ACTIVE_LABEL_TRANSLATE_X(props.fullWidth) : INACTIVE_LABEL_TRANSLATE_X),
             labelScale: new Animated.Value(hasValue ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
         };
 
@@ -83,7 +92,11 @@ class ExpensiTextInput extends Component {
         if (this.props.onFocusExtra) { this.props.onFocusExtra(); }
         this.setState({isFocused: true});
         if (this.props.value.length === 0) {
-            this.animateLabel(ACTIVE_LABEL_TRANSLATE_Y, ACTIVE_LABEL_TRANSLATE_X, ACTIVE_LABEL_SCALE);
+            this.animateLabel(
+                ACTIVE_LABEL_TRANSLATE_Y,
+                ACTIVE_LABEL_TRANSLATE_X(this.props.fullWidth),
+                ACTIVE_LABEL_SCALE,
+            );
         }
     }
 
@@ -95,9 +108,11 @@ class ExpensiTextInput extends Component {
         }
     }
 
+    focus = () => this.input.focus()
+
     render() {
         const {
-            label, value, placeholder, error, ...inputProps
+            label, value, placeholder, error, containerStyles, ...inputProps
         } = this.props;
         const {
             isFocused, labelTranslateY, labelTranslateX, labelScale,
@@ -105,8 +120,8 @@ class ExpensiTextInput extends Component {
 
         const hasLabel = !!label.length;
         return (
-            <View style={styles.expensiTextInputWrapper}>
-                <TouchableWithoutFeedback onPress={() => this.input.focus()}>
+            <View style={[styles.expensiTextInputWrapper, ...containerStyles]}>
+                <TouchableWithoutFeedback onPress={this.focus}>
                     <View
                         style={[
                             styles.expensiTextInputContainer,
@@ -121,18 +136,18 @@ class ExpensiTextInput extends Component {
                         ]}
                     >
                         {hasLabel > 0 && (
-                        <Animated.Text
-                            style={[
-                                styles.expensiTextInputLabel,
-                                styles.expensiTextInputLabelTransformation(
-                                    labelTranslateY,
-                                    labelTranslateX,
-                                    labelScale,
-                                ),
-                            ]}
-                        >
-                            {label}
-                        </Animated.Text>
+                            <Animated.Text
+                                style={[
+                                    styles.expensiTextInputLabel,
+                                    styles.expensiTextInputLabelTransformation(
+                                        labelTranslateY,
+                                        labelTranslateX,
+                                        labelScale,
+                                    ),
+                                ]}
+                            >
+                                {label}
+                            </Animated.Text>
                         )}
                         <TextInput
                             ref={ref => this.input = ref}
@@ -141,6 +156,7 @@ class ExpensiTextInput extends Component {
                             onBlur={this.onBlur}
                             placeholder={isFocused || !label ? placeholder : null}
                             placeholderTextColor={themeColors.placeholderText}
+                            style={styles.expensiTextInput}
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...inputProps}
                         />
