@@ -184,7 +184,7 @@ class IOUAmountPage extends React.Component {
                         success
                         style={[styles.w100, styles.mt5]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}
-                        isDisabled={this.state.amount.length === 0}
+                        isDisabled={this.state.amount < 0.01}
                         text={this.props.translate('common.next')}
                     />
                 </View>
