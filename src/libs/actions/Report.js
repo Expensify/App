@@ -1077,6 +1077,7 @@ function addAction(reportID, text, file) {
  */
 function deleteReportComment(reportID, reportAction) {
     // Optimistic Response
+    const sequenceNumber = reportAction.sequenceNumber;
     const reportActionsToMerge = {};
     const oldMessage = {...reportAction.message};
     reportActionsToMerge[reportAction.sequenceNumber] = {
