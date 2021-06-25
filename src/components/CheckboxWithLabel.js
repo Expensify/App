@@ -4,11 +4,9 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
+import Text from './Text';
 
 const propTypes = {
-    /** Component to display for label */
-    LabelComponent: PropTypes.func.isRequired,
-
     /** Whether the checkbox is checked */
     isChecked: PropTypes.bool.isRequired,
 
@@ -17,25 +15,39 @@ const propTypes = {
 
     /** Container styles */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /** Text that appears next to check box */
+    label: PropTypes.string,
+
+    /** Component to display for label */
+    LabelComponent: PropTypes.func,
 };
 
 const defaultProps = {
     style: [],
+    label: undefined,
+    LabelComponent: undefined,
 };
 
 const CheckboxWithLabel = ({
-    LabelComponent, isChecked, onPress, style,
+    LabelComponent, isChecked, onPress, style, label,
 }) => {
-    const defaultStyles = [styles.flexRow];
+    const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(style) ? [...defaultStyles, ...style] : [...defaultStyles, style];
+
+    if (!label && !LabelComponent) {
+        throw new Error('Must provide at least label or LabelComponent prop');
+    }
+
     return (
         <View style={wrapperStyles}>
             <Checkbox
                 isChecked={isChecked}
-                onPress={onPress}
+                onPress={() => onPress(!isChecked)}
+                label={label}
             />
             <TouchableOpacity
-                onPress={onPress}
+                onPress={() => onPress(!isChecked)}
                 style={[
                     styles.ml2,
                     styles.pr2,
@@ -45,7 +57,12 @@ const CheckboxWithLabel = ({
                     styles.alignItemsCenter,
                 ]}
             >
-                <LabelComponent />
+                {label && (
+                    <Text style={[styles.ml2, styles.textP]}>
+                        {label}
+                    </Text>
+                )}
+                {LabelComponent && (<LabelComponent />)}
             </TouchableOpacity>
         </View>
     );

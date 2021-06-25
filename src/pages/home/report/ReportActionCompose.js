@@ -49,6 +49,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import * as User from '../../../libs/actions/User';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -97,6 +98,11 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
+    // The NVP describing a user's block status
+    blockedFromConcierge: PropTypes.shape({
+        // The date that the user will be unblocked
+        expiresAt: PropTypes.string,
+    }),
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -107,6 +113,7 @@ const defaultProps = {
     report: {},
     reportActions: {},
     network: {isOffline: false},
+    blockedFromConcierge: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -152,7 +159,11 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
-        ReportActionComposeFocusManager.onComposerFocus(this.focus);
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (this.shouldFocusInputOnScreenFocus && this.props.isFocused) {
+                this.focus(false);
+            }
+        });
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
@@ -162,7 +173,6 @@ class ReportActionCompose extends React.Component {
         // open creates a jarring and broken UX.
         if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
-            this.setIsFocused(true);
             this.focus();
         }
     }
@@ -216,15 +226,25 @@ class ReportActionCompose extends React.Component {
 
     /**
      * Focus the composer text input
+     * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
+     * @memberof ReportActionCompose
      */
-    focus() {
-        if (this.shouldFocusInputOnScreenFocus && this.props.isFocused && this.textInput) {
-            // There could be other animations running while we trigger manual focus.
-            // This prevents focus from making those animations janky.
-            InteractionManager.runAfterInteractions(() => {
-                this.textInput.focus();
-            });
-        }
+    focus(shouldelay = false) {
+        // There could be other animations running while we trigger manual focus.
+        // This prevents focus from making those animations janky.
+        InteractionManager.runAfterInteractions(() => {
+            if (this.textInput) {
+                if (!shouldelay) {
+                    this.textInput.focus();
+                } else {
+                    // Keyboard is not opened after Emoji Picker is closed
+                    // SetTimeout is used as a workaround
+                    // https://github.com/react-native-modal/react-native-modal/issues/114
+                    // We carefully choose a delay. 50ms is found enough for keyboard to open.
+                    setTimeout(() => this.textInput.focus(), 50);
+                }
+            }
+        });
     }
 
     /**
@@ -326,16 +346,17 @@ class ReportActionCompose extends React.Component {
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
         const {selection} = this.state;
-        this.textInput.value = this.comment.slice(0, selection.start)
+        const newComment = this.comment.slice(0, selection.start)
             + emoji + this.comment.slice(selection.end, this.comment.length);
+        this.textInput.setNativeProps({
+            text: newComment,
+        });
         const updatedSelection = {
             start: selection.start + emoji.length,
             end: selection.start + emoji.length,
         };
         this.setState({selection: updatedSelection});
-        this.setIsFocused(true);
-        this.focus();
-        this.updateComment(this.textInput.value);
+        this.updateComment(newComment);
     }
 
     /**
@@ -376,6 +397,17 @@ class ReportActionCompose extends React.Component {
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
+        const isConciergeChat = this.props.report.participants
+            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE);
+        let isBlockedFromConcierge = false;
+        if (isConciergeChat && !_.isEmpty(this.props.blockedFromConcierge)) {
+            isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
+        }
+
+        const inputPlaceholder = isBlockedFromConcierge
+            ? this.props.translate('reportActionCompose.blockedFromConcierge')
+            : this.props.translate('reportActionCompose.writeSomething');
+
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -389,6 +421,7 @@ class ReportActionCompose extends React.Component {
                     <AttachmentModal
                         isUploadingAttachment
                         onConfirm={(file) => {
+                            this.submitForm();
                             addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
                         }}
@@ -405,6 +438,7 @@ class ReportActionCompose extends React.Component {
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
+                                                disabled={isBlockedFromConcierge}
                                             >
                                                 <Icon src={Plus} />
                                             </TouchableOpacity>
@@ -463,7 +497,7 @@ class ReportActionCompose extends React.Component {
                                     multiline
                                     ref={this.setTextInputRef}
                                     textAlignVertical="top"
-                                    placeholder={this.props.translate('reportActionCompose.writeSomething')}
+                                    placeholder={inputPlaceholder}
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerHotkeyActions}
@@ -488,7 +522,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={isComposeDisabled}
+                                    isDisabled={isComposeDisabled || isBlockedFromConcierge}
                                     selection={this.state.selection}
                                     onSelectionChange={this.onSelectionChange}
                                 />
@@ -505,6 +539,7 @@ class ReportActionCompose extends React.Component {
                         isVisible={this.state.isEmojiPickerVisible}
                         onClose={this.hideEmojiPicker}
                         onModalShow={this.focusEmojiSearchInput}
+                        onModalHide={() => this.focus(true)}
                         hideModalContentWhileAnimating
                         animationInTiming={1}
                         animationOutTiming={1}
@@ -526,6 +561,7 @@ class ReportActionCompose extends React.Component {
                         ref={el => this.emojiPopoverAnchor = el}
                         onLayout={this.measureEmojiPopoverAnchorPosition}
                         onPress={this.showEmojiPicker}
+                        disabled={isBlockedFromConcierge}
                     >
                         {({hovered, pressed}) => (
                             <Icon
@@ -540,7 +576,7 @@ class ReportActionCompose extends React.Component {
                                 ? styles.buttonDisable : styles.buttonSuccess]}
                         onPress={this.submitForm}
                         underlayColor={themeColors.componentBG}
-                        disabled={this.state.isCommentEmpty}
+                        disabled={this.state.isCommentEmpty || isBlockedFromConcierge}
                     >
                         <Icon src={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>
@@ -595,6 +631,9 @@ export default compose(
         },
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        },
+        blockedFromConcierge: {
+            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
     }),
 )(ReportActionCompose);

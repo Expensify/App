@@ -1,7 +1,14 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {Text, View, Pressable} from 'react-native';
+import lodashGet from 'lodash/get';
+import {
+    Text, View, Pressable, ActivityIndicator,
+} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
@@ -23,6 +30,15 @@ const propTypes = {
 
     /** Text label for the reject transaction button */
     rejectButtonLabelText: PropTypes.string.isRequired,
+
+    /* Onyx Props */
+
+    /** List of transactionIDs in process of rejection */
+    /* eslint-disable-next-line react/no-unused-prop-types, react/require-default-props */
+    transactionsBeingRejected: PropTypes.shape({
+        /** IOUTransactionID that's being rejected */
+        transactionID: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
@@ -45,6 +61,19 @@ class ReportTransaction extends Component {
         });
     }
 
+    /**
+     * Checks if current IOUTransactionID is being rejected.
+     * @returns {boolean} Returns `true` if current IOUtransactionID is being rejected, else `false`.
+     */
+    isBeingRejected() {
+        const IOUTransactionID = lodashGet(this.props.action, 'originalMessage.IOUTransactionID', '');
+        const transactionsBeingRejected = lodashGet(this.props, 'transactionsBeingRejected', {});
+        if (_.isEmpty(transactionsBeingRejected)) {
+            return false;
+        }
+        return _.has(transactionsBeingRejected, IOUTransactionID);
+    }
+
     render() {
         return (
             <View styles={[styles.mb5]}>
@@ -63,10 +92,24 @@ class ReportTransaction extends Component {
                                 styles.buttonSmall,
                                 styles.chatItemComposeSecondaryRowOffset,
                                 styles.mb3,
+                                styles.w20,
                             ]}
                             onPress={this.rejectTransaction}
                         >
-                            <Text style={[styles.buttonSmallText]}>{this.props.rejectButtonLabelText}</Text>
+                            {
+                            this.isBeingRejected()
+                                ? (
+                                    <ActivityIndicator
+                                        color={themeColors.text}
+                                        style={[styles.flex1]}
+                                    />
+                                )
+                                : (
+                                    <Text style={[styles.buttonSmallText]}>
+                                        {this.props.rejectButtonLabelText}
+                                    </Text>
+                                )
+                            }
                         </Pressable>
                     </View>
                 )}
@@ -78,4 +121,8 @@ class ReportTransaction extends Component {
 ReportTransaction.displayName = 'ReportTransaction';
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
-export default ReportTransaction;
+export default withOnyx({
+    transactionsBeingRejected: {
+        key: ONYXKEYS.TRANSACTIONS_BEING_REJECTED,
+    },
+})(ReportTransaction);

@@ -12,6 +12,10 @@ export default {
         flex: 1,
     },
 
+    flex2: {
+        flex: 2,
+    },
+
     flex4: {
         flex: 4,
     },
@@ -48,12 +52,24 @@ export default {
         alignSelf: 'center',
     },
 
+    alignSelfStart: {
+        alignSelf: 'flex-start',
+    },
+
+    alignItemsStart: {
+        alignItems: 'flex-start',
+    },
+
     alignItemsCenter: {
         alignItems: 'center',
     },
 
     alignItemsEnd: {
         alignItems: 'flex-end',
+    },
+
+    alignItemsBaseline: {
+        alignItems: 'baseline',
     },
 
     flexWrap: {

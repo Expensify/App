@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -9,11 +9,10 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import Icon from '../../components/Icon';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
-import {DownArrow} from '../../components/Icon/Expensicons';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
+import {setLocale} from '../../libs/actions/App';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import Picker from '../../components/Picker';
@@ -30,15 +29,16 @@ const propTypes = {
         expensifyNewsStatus: PropTypes.bool,
     }),
 
-    ...withLocalizePropTypes,
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
 
-    // Indicates which locale the user currently has selected
-    preferredLocale: PropTypes.string.isRequired,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     user: {},
+    preferredLocale: CONST.DEFAULT_LOCALE,
 };
 
 const PreferencesPage = ({
@@ -60,11 +60,11 @@ const PreferencesPage = ({
     const localesToLanguages = {
         default: {
             value: 'en',
-            label: 'English',
+            label: translate('preferencesPage.languages.english'),
         },
         es: {
             value: 'es',
-            label: 'Spanish',
+            label: translate('preferencesPage.languages.spanish'),
         },
     };
 
@@ -104,7 +104,6 @@ const PreferencesPage = ({
                             }
                             items={Object.values(priorityModes)}
                             value={priorityMode}
-                            icon={() => <Icon src={DownArrow} />}
                         />
                     </View>
                     <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
@@ -115,10 +114,13 @@ const PreferencesPage = ({
                     </Text>
                     <View style={[styles.mb2]}>
                         <Picker
-                            onChange={locale => Onyx.merge(ONYXKEYS.PREFERRED_LOCALE, locale)}
+                            onChange={(locale) => {
+                                if (locale !== preferredLocale) {
+                                    setLocale(locale);
+                                }
+                            }}
                             items={Object.values(localesToLanguages)}
                             value={preferredLocale}
-                            icon={() => <Icon src={DownArrow} />}
                         />
                     </View>
                 </View>
@@ -139,6 +141,9 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.PREFERRED_LOCALE,
         },
     }),
 )(PreferencesPage);

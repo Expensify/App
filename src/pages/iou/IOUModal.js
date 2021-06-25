@@ -20,7 +20,7 @@ import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
-import KeyboardAvoidingView from '../../libs/KeyboardAvoidingView';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -53,8 +53,8 @@ const propTypes = {
         /** Whether or not transaction creation has resulted to error */
         error: PropTypes.bool,
 
-        // is loading
-        loading: PropTypes.bool,
+        /** Flag to show a loading indicator and avoid showing a previously selected currency */
+        isRetrievingCurrency: PropTypes.bool,
     }).isRequired,
 
     /** Personal details of all the users */
@@ -303,8 +303,10 @@ class IOUModal extends Component {
                             </View>
                         </View>
                         <View style={[styles.pRelative, styles.flex1]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
-                            {didScreenTransitionEnd && (
+                            <FullScreenLoadingIndicator
+                                visible={!didScreenTransitionEnd || this.props.iou.isRetrievingCurrency}
+                            />
+                            {didScreenTransitionEnd && !this.props.iou.isRetrievingCurrency && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
                                         <IOUAmountPage
