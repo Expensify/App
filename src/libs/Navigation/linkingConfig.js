@@ -131,6 +131,7 @@ export default {
             },
 
             WorkspaceSettings: {
+                path: ROUTES.WORKSPACE,
                 screens: {
                     WorkspaceCard: ROUTES.WORKSPACE_CARD,
                 },

@@ -139,8 +139,8 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         policy: {
-            key: ({navigation}) => {
-                const state = navigation.getState();
+            key: (props) => {
+                const state = props.navigation.getState();
                 const policyID = lodashGet(state, ['routes', 0, 'params', 'policyID']);
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
