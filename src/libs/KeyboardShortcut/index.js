@@ -15,9 +15,8 @@ function bindHandlerToKeyupEvent(event) {
 
     // Loop over all the callbacks
     eventCallbacks.forEach((callback) => {
-        let extraModifiers = ['shift', 'control', 'alt', 'meta'];
+        const extraModifiers = _.difference(['shift', 'control', 'alt', 'meta'], callback.modifiers);
         const pressedModifiers = _.all(callback.modifiers, (modifier) => {
-            extraModifiers = _.without(extraModifiers, modifier);
             if (modifier === 'shift' && !event.shiftKey) {
                 return false;
             }
