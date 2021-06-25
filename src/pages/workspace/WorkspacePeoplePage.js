@@ -192,9 +192,9 @@ class WorkspacePeoplePage extends React.Component {
                     )
                 }
                 <View style={[
-                    styles.peopleRowCell, 
+                    styles.peopleRowCell,
                     styles.peopleBadgesContainer,
-                    this.props.session.email === item.login ? styles.pl5 : undefined
+                    this.props.isSmallScreenWidth ? styles.peopleBadgesMobile : styles.peopleBadgesContainerDesktop,
                 ]}>
                     {
                         this.props.session.email === item.login && (
@@ -259,9 +259,6 @@ class WorkspacePeoplePage extends React.Component {
                 />
                 <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                     <View style={styles.pageWrapper}>
-                        <Text style={[styles.mb6, styles.textP, styles.textFull]}>
-                            {this.props.translate('workspace.people.tagline')}
-                        </Text>
                         <View style={styles.buttonRow}>
                             <Button
                                 success

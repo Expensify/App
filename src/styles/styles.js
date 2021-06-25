@@ -1652,7 +1652,15 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'flex-end',
+    },
+
+    peopleBadgesContainerDesktop: {
+        flex: '1 1 0',
+    },
+    
+    peopleBadgesMobile: {
         flex: '1 1 auto',
+        paddingLeft: 20,
     },
 
     peopleBadge: {
