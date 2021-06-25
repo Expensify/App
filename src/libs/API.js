@@ -869,7 +869,7 @@ function BankAccount_Validate(parameters) {
 function BankAccount_SetupWithdrawal(parameters) {
     const commandName = 'BankAccount_SetupWithdrawal';
     let allowedParameters = [
-        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount',
+        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
 
         // data from bankAccount step:
         'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
