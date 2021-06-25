@@ -105,16 +105,22 @@ class ExpensiTextInput extends Component {
 
         const hasLabel = !!label.length;
         return (
-            <TouchableWithoutFeedback onPress={() => this.input.focus()}>
-                <View
-                    style={[
-                        styles.expensiTextInputContainer,
-                        !hasLabel && styles.expensiTextInputContainerWithoutLabel,
-                        isFocused && styles.expensiTextInputContainerOnFocus,
-                        error && styles.expensiTextInputContainerOnError,
-                    ]}
-                >
-                    {hasLabel > 0 && (
+            <View style={styles.expensiTextInputWrapper}>
+                <TouchableWithoutFeedback onPress={() => this.input.focus()}>
+                    <View
+                        style={[
+                            styles.expensiTextInputContainer,
+                            !hasLabel && styles.expensiTextInputContainerWithoutLabel,
+                            isFocused && styles.expensiTextInputContainerOnFocus,
+                            error && styles.expensiTextInputContainerOnError,
+                            {
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 100,
+                            },
+                        ]}
+                    >
+                        {hasLabel > 0 && (
                         <Animated.Text
                             style={[
                                 styles.expensiTextInputLabel,
@@ -127,19 +133,20 @@ class ExpensiTextInput extends Component {
                         >
                             {label}
                         </Animated.Text>
-                    )}
-                    <TextInput
-                        ref={ref => this.input = ref}
-                        value={value}
-                        onFocus={this.onFocus}
-                        onBlur={this.onBlur}
-                        placeholder={isFocused || !label ? placeholder : null}
-                        placeholderTextColor={themeColors.placeholderText}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...inputProps}
-                    />
-                </View>
-            </TouchableWithoutFeedback>
+                        )}
+                        <TextInput
+                            ref={ref => this.input = ref}
+                            value={value}
+                            onFocus={this.onFocus}
+                            onBlur={this.onBlur}
+                            placeholder={isFocused || !label ? placeholder : null}
+                            placeholderTextColor={themeColors.placeholderText}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...inputProps}
+                        />
+                    </View>
+                </TouchableWithoutFeedback>
+            </View>
         );
     }
 }

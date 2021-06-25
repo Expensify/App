@@ -18,6 +18,7 @@ import Button from '../../components/Button';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import Growl from '../../libs/Growl';
+import ExpensiTextInput from '../../libs/ExpensiTextInput';
 
 const propTypes = {
     /** Username for PayPal.Me */
@@ -78,6 +79,9 @@ class PaymentsPage extends React.Component {
                             <Text style={[styles.formLabel]} numberOfLines={1}>
                                 {this.props.translate('paymentsPage.payPalMe')}
                             </Text>
+                            {/* <ExpensiTextInput
+
+                            /> */}
                             <TextInput
                                 autoCompleteType="off"
                                 autoCorrect={false}

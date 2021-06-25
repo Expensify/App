@@ -345,6 +345,9 @@ const styles = {
         marginRight: 8,
     },
 
+    expensiTextInputWrapper: {
+        height: 52,
+    },
     expensiTextInputContainer: {
         flex: 1,
         borderWidth: 1,
@@ -354,7 +357,7 @@ const styles = {
         paddingHorizontal: 12,
         paddingVertical: 8,
         justifyContent: 'center',
-        height: 52,
+        height: '100%',
         backgroundColor: '#fff',
     },
     expensiTextInputContainerWithoutLabel: {
