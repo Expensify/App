@@ -143,10 +143,11 @@ export default {
         choosePaymentMethod: 'Elige el método de pago:',
     },
     reportDetailsPage: {
-        notificationPreferencesDescription: '???',
-        always: '???',
-        daily: '???',
-        mute: '???',
+        notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
+        always: 'Siempre',
+        daily: 'Cada día',
+        mute: 'Nunca',
+        members: 'Miembros',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
