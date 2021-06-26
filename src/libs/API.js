@@ -958,12 +958,13 @@ function Policy_Create(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Array} [parameters.emailList]
- * @param {String} [parameters.policyID]
+ * @param {String} parameters.policyID
+ * @param {Array} parameters.emailList
  * @returns {Promise}
  */
 function Policy_Employees_Remove(parameters) {
     const commandName = 'Policy_Employees_Remove';
+    requireParameters(['policyID', 'emailList'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
