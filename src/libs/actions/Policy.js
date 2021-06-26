@@ -99,7 +99,8 @@ function getPolicyList() {
  */
 function removeMembers(members, policyID) {
 
-    // Check if the members array is not empty
+    // In case user selects only themselves (admin), their email will be filtered out and the members
+    // array passed will be empty, prevent the funtion from proceeding in that case as there is noone to remove
     if (members.length === 0) {
         return;
     }
