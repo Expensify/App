@@ -316,7 +316,7 @@ const CONST = {
         DURATION: 2000,
     },
 
-    DEFAULT_LOCALE: 'es',
+    DEFAULT_LOCALE: 'en',
 
     POLICY: {
         TYPE: {
