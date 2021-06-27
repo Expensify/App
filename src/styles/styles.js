@@ -407,10 +407,12 @@ const styles = {
     expensiTextInputLabel: {
         position: 'absolute',
         left: 12,
+        top: 14,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
+        transformOrigin: 'left center',
     },
     expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
         transform: [
