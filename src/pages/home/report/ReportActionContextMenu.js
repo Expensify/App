@@ -147,7 +147,7 @@ class ReportActionContextMenu extends React.Component {
     }
 
     /**
-     * Gets the text (not HTML) portion of the message in an action.
+     * Gets the text (HTML) portion of the message in an action.
      *
      * @return {String}
      */
