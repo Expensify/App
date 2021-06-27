@@ -10,6 +10,7 @@ import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import {isSingleEmoji} from '../../../libs/ValidationUtils';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -23,6 +24,8 @@ const propTypes = {
 
     /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -58,6 +61,7 @@ class ReportActionItemFragment extends React.PureComponent {
                         />
                     ) : (
                         <Text
+                            selectable={!this.props.isSmallScreenWidth}
                             style={isSingleEmoji(fragment.text) ? styles.singleEmojiText : undefined}
                         >
                             {Str.htmlDecode(fragment.text)}
@@ -108,4 +112,4 @@ ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
 ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
-export default ReportActionItemFragment;
+export default withWindowDimensions(ReportActionItemFragment);
