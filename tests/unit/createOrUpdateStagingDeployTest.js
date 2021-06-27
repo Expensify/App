@@ -37,6 +37,7 @@ beforeAll(() => {
             // in the test for GithubUtils.generateStagingDeployCashBody
             list: jest.fn().mockResolvedValue([]),
         },
+        paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
     };
     GithubUtils.octokitInternal = mocktokit;
 
