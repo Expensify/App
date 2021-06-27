@@ -1,8 +1,11 @@
 import React, {Component} from 'react';
-import PropTypes from 'prop-types';
 import {
-    Animated, TextInput, TouchableWithoutFeedback, View,
+    Animated, TextInput,
 } from 'react-native';
+import ExpensiTextInputWrapper from './ExpensiTextInputWrapper';
+import ExpensiTextInputLabel from './ExpensiTextInputLabel';
+import expensiTextInputPropTypes from './ExpensiTextInputPropTypes';
+import expensiTextInputDefaultProps from './ExpensiTextInputDefaultProps';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 
@@ -13,42 +16,6 @@ const ACTIVE_LABEL_SCALE = 0.8668;
 const INACTIVE_LABEL_TRANSLATE_Y = 0;
 const INACTIVE_LABEL_TRANSLATE_X = 0;
 const INACTIVE_LABEL_SCALE = 1;
-
-const propTypes = {
-    /** Input label */
-    label: PropTypes.string,
-
-    /** Input value */
-    value: PropTypes.string.isRequired,
-
-    /** Input value placeholder */
-    placeholder: PropTypes.string,
-
-    /** Callback that is called when the text input is focused. */
-    onFocusExtra: PropTypes.func,
-
-    /** Callback that is called when the text input is blurred. */
-    onBlurExtra: PropTypes.func,
-
-    /** Input with error  */
-    error: PropTypes.bool,
-
-    /** Styles for the outermost container for this component. */
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Input width */
-    fullWidth: PropTypes.bool,
-};
-
-const defaultProps = {
-    label: '',
-    placeholder: '',
-    error: false,
-    onFocusExtra: null,
-    onBlurExtra: null,
-    containerStyles: [],
-    fullWidth: true,
-};
 
 class ExpensiTextInput extends Component {
     constructor(props) {
@@ -119,54 +86,40 @@ class ExpensiTextInput extends Component {
 
         const hasLabel = !!label.length;
         return (
-            <View style={[styles.expensiTextInputWrapper, ...containerStyles]}>
-                <TouchableWithoutFeedback onPress={this.focus}>
-                    <View
-                        style={[
-                            styles.expensiTextInputContainer,
-                            !hasLabel && styles.expensiTextInputContainerWithoutLabel,
-                            isFocused && styles.expensiTextInputContainerOnFocus,
-                            error && styles.expensiTextInputContainerOnError,
-                            {
-                                display: 'flex',
-                                flexDirection: 'column',
-                                height: 100,
-                            },
-                        ]}
-                    >
-                        {hasLabel > 0 && (
-                            <Animated.Text
-                                style={[
-                                    styles.expensiTextInputLabel,
-                                    styles.expensiTextInputLabelTransformation(
-                                        labelTranslateY,
-                                        labelTranslateX,
-                                        labelScale,
-                                    ),
-                                ]}
-                            >
-                                {label}
-                            </Animated.Text>
-                        )}
-                        <TextInput
-                            ref={ref => this.input = ref}
-                            value={value}
-                            onFocus={this.onFocus}
-                            onBlur={this.onBlur}
-                            placeholder={isFocused || !label ? placeholder : null}
-                            placeholderTextColor={themeColors.placeholderText}
-                            style={styles.expensiTextInput}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...inputProps}
+            <ExpensiTextInputWrapper
+                containerStyles={containerStyles}
+                isFocused={isFocused}
+                error={error}
+                onPress={this.focus}
+                hasLabel={hasLabel}
+            >
+                <>
+                    {hasLabel ? (
+                        <ExpensiTextInputLabel
+                            label={label}
+                            labelTranslateX={labelTranslateX}
+                            labelTranslateY={labelTranslateY}
+                            labelScale={labelScale}
                         />
-                    </View>
-                </TouchableWithoutFeedback>
-            </View>
+                    ) : null}
+                    <TextInput
+                        ref={ref => this.input = ref}
+                        value={value}
+                        onFocus={this.onFocus}
+                        onBlur={this.onBlur}
+                        placeholder={isFocused || !label ? placeholder : null}
+                        placeholderTextColor={themeColors.placeholderText}
+                        style={styles.expensiTextInput}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...inputProps}
+                    />
+                </>
+            </ExpensiTextInputWrapper>
         );
     }
 }
 
-ExpensiTextInput.propTypes = propTypes;
-ExpensiTextInput.defaultProps = defaultProps;
+ExpensiTextInput.propTypes = expensiTextInputPropTypes;
+ExpensiTextInput.defaultProps = expensiTextInputDefaultProps;
 
 export default ExpensiTextInput;

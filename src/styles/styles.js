@@ -412,6 +412,8 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
+    },
+    expensiTextInputLabelDesktop: {
         transformOrigin: 'left center',
     },
     expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
@@ -424,7 +426,10 @@ const styles = {
     expensiTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
+    },
+    expensiTextInputDesktop: {
         outline: 'none',
+        paddingTop: 16,
     },
     textInput: {
         backgroundColor: themeColors.componentBG,
