@@ -264,6 +264,7 @@ describe('GithubUtils', () => {
                 pulls: {
                     list: jest.fn().mockResolvedValue({data: mockPRs}),
                 },
+                paginate: jest.fn().mockImplementation(objectMethod => objectMethod().then(({data}) => data)),
             }),
         }));
 
