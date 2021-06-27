@@ -41,21 +41,6 @@ class EmojiPickerMenu extends Component {
         };
     }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.windowWidth !== prevProps.windowWidth) {
-            this.setDynamicEmojiSize();
-        }
-    }
-
-    /**
-     * Sets emoji size dynamically based on the window width
-     */
-    setDynamicEmojiSize() {
-        this.setState({
-            emojiSize: dynamicEmojiSize(this.props.windowWidth),
-        });
-    }
-
     /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
@@ -81,7 +66,7 @@ class EmojiPickerMenu extends Component {
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
                 emoji={item.code}
-                size={this.state.emojiSize}
+                emojiSize={this.state.emojiSize}
             />
         );
     }
@@ -95,7 +80,6 @@ class EmojiPickerMenu extends Component {
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
                     numColumns={this.numColumns}
                     style={styles.emojiPickerList}
-                    extraData={this.state}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
             </View>
