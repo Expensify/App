@@ -74,7 +74,9 @@ class EmojiPickerMenu extends Component {
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
             arePointerEventsDisabled: false,
-            emojiSize: dynamicEmojiSize(this.props.windowWidth),
+            emojiSize: {
+                fontSize: dynamicEmojiSize(this.props.windowWidth),
+            },
         };
     }
 
@@ -89,23 +91,8 @@ class EmojiPickerMenu extends Component {
         this.setupEventHandlers();
     }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.windowWidth !== prevProps.windowWidth) {
-            this.setDynamicEmojiSize();
-        }
-    }
-
     componentWillUnmount() {
         this.cleanupEventHandlers();
-    }
-
-    /**
-     * Sets emoji size dynamically based on the window width
-     */
-    setDynamicEmojiSize() {
-        this.setState({
-            emojiSize: dynamicEmojiSize(this.props.windowWidth),
-        });
     }
 
     /**
@@ -320,7 +307,7 @@ class EmojiPickerMenu extends Component {
                 onHover={() => this.setState({highlightedIndex: index})}
                 emoji={code}
                 isHighlighted={index === this.state.highlightedIndex}
-                size={this.state.emojiSize}
+                emojiSize={this.state.emojiSize}
             />
         );
     }
@@ -352,7 +339,7 @@ class EmojiPickerMenu extends Component {
                     keyExtractor={item => `emoji_picker_${item.code}`}
                     numColumns={this.numColumns}
                     style={styles.emojiPickerList}
-                    extraData={this.state}
+                    extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
                     stickyHeaderIndices={this.state.headerIndices}
                     onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
                 />
