@@ -13,10 +13,10 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** Handles what to do when we hover over this item with our cursor */
-    onHover: PropTypes.func.isRequired,
+    onHover: PropTypes.func,
 
     /** Whether this menu item is currently highlighted or not */
-    isHighlighted: PropTypes.bool.isRequired,
+    isHighlighted: PropTypes.bool,
 
     /** Size of the emoji item */
     emojiSize: PropTypes.shape({
@@ -46,6 +46,10 @@ const EmojiPickerMenuItem = props => (
 );
 EmojiPickerMenuItem.propTypes = propTypes;
 EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
+EmojiPickerMenuItem.defaultProps = {
+    isHighlighted: false,
+    onHover: () => {},
+};
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
