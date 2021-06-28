@@ -109,7 +109,7 @@ function removeMembers(members, policyID) {
 
     // Make a shallow copy to preserve original data and remove the members
     const policy = _.clone(allPolicies[key]);
-    policy.employeeList = policy.employeeList.filter(email => !members.includes(email));
+    policy.employeeList = _.without(policy.employeeList, ...members);
 
     // Optimistically remove the members from the policy
     Onyx.set(key, policy);
@@ -130,10 +130,10 @@ function removeMembers(members, policyID) {
             // Show the user feedback that the removal failed
             let errorMessage = translateLocal('workspace.people.genericFailureMessage');
             if (data.jsonCode === 401) {
-                errorMessage += ` ${translateLocal('workspace.people.onlyAdminCanRemove')}`;
+                console.log('Error removing workspace members: ', translateLocal('workspace.people.onlyAdminCanRemove'));
             }
             if (data.jsonCode === 402) {
-                errorMessage += ` ${translateLocal('workspace.people.cannotRemovePolicyOwner')}`;
+                console.log('Error removing workspace members: ', translateLocal('workspace.people.cannotRemovePolicyOwner'));
             }
 
             Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);

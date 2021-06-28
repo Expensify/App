@@ -24,7 +24,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const WorkspaceSidebar = ({translate, isSmallScreenWidth, props}) => {
+const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
     const menuItems = [
         {
             translationKey: 'workspace.common.card',
@@ -44,7 +44,6 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, props}) => {
             isActive: Navigation.isActive(ROUTES.WORKSPACE_PEOPLE),
         },
     ];
-    console.log('props: ', props);
 
     return (
         <ScreenWrapper style={[!isSmallScreenWidth ? styles.borderRight : {}]}>

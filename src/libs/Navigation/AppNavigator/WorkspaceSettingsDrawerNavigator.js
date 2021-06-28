@@ -6,9 +6,9 @@ import WorkspaceCardPage from '../../../pages/workspace/WorkspaceCardPage';
 import WorkspacePeoplePage from '../../../pages/workspace/WorkspacePeoplePage';
 import WorkspaceSidebar from '../../../pages/workspace/WorkspaceSidebar';
 
-const WorkspaceSettingsDrawerNavigator = (props) => (
+const WorkspaceSettingsDrawerNavigator = () => (
     <BaseDrawerNavigator
-        drawerContent={() => <WorkspaceSidebar props={props} />}
+        drawerContent={() => <WorkspaceSidebar />}
         screens={[
             {
                 name: 'WorkspaceCard',
