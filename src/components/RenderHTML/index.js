@@ -6,11 +6,11 @@ import {
     defaultProps,
 } from './renderHTMLPropTypes';
 
-const RenderHTML = ({html, debag, isSmallScreenWidth}) => (
+const RenderHTML = ({html, debug, isSmallScreenWidth}) => (
     <BaseRenderHTML
         textSelectable={!isSmallScreenWidth}
         html={html}
-        debag={debag}
+        debug={debug}
     />
 );
 

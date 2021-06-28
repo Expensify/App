@@ -5,10 +5,10 @@ import {
     defaultProps,
 } from './renderHTMLPropTypes';
 
-const RenderHTML = ({html, debag}) => (
+const RenderHTML = ({html, debug}) => (
     <BaseRenderHTML
         html={html}
-        debag={debag}
+        debug={debug}
     />
 );
 
