@@ -45,21 +45,20 @@ const propTypes = {
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-
-        // The displayName defaults to the user's login if they haven't set a first and last name,
-        // which we can't use to prefill the input fields
-        const [firstName, lastName] = props.myPersonalDetails.displayName !== props.myPersonalDetails.login
-            ? props.myPersonalDetails.displayName.split(' ')
-            : [];
+        const {firstName, lastName} = this.getFirstAndLastName(
+            props.myPersonalDetails.login,
+            props.myPersonalDetails.displayName,
+        );
         this.state = {
-            firstName: firstName ?? '',
-            lastName: lastName ?? '',
+            firstName,
+            lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
             isLoading: false,
         };
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
+        this.getFirstAndLastName = this.getFirstAndLastName.bind(this);
     }
 
     onSubmit() {
@@ -94,6 +93,28 @@ class RequestCallPage extends Component {
     getPhoneNumber(loginList) {
         const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
         return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : null;
+    }
+
+    /**
+     * Gets the first and last name from the displayName.
+     * If the login is the same as the displayName, then they don't exist,
+     * so we return empty strings instead.
+     * @param {String} login
+     * @param {String} displayName
+     *
+     * @returns {Object}
+     */
+    getFirstAndLastName(login, displayName) {
+        if (login === displayName) {
+            return {firstName: '', lastName: ''};
+        }
+
+        const firstSpaceIndex = displayName.indexOf(' ');
+        const lastSpaceIndex = displayName.lastIndexOf(' ');
+        return {
+            firstName: displayName.substring(0, firstSpaceIndex),
+            lastName: displayName.substring(lastSpaceIndex),
+        };
     }
 
     render() {
