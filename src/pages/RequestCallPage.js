@@ -45,10 +45,7 @@ const propTypes = {
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-        const {firstName, lastName} = this.getFirstAndLastName(
-            props.myPersonalDetails.login,
-            props.myPersonalDetails.displayName,
-        );
+        const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
         this.state = {
             firstName,
             lastName,
@@ -96,7 +93,7 @@ class RequestCallPage extends Component {
     }
 
     /**
-     * Gets the first and last name from the displayName.
+     * Gets the first and last name from the user's personal details.
      * If the login is the same as the displayName, then they don't exist,
      * so we return empty strings instead.
      * @param {String} login
@@ -104,7 +101,7 @@ class RequestCallPage extends Component {
      *
      * @returns {Object}
      */
-    getFirstAndLastName(login, displayName) {
+    getFirstAndLastName({login, displayName}) {
         if (login === displayName) {
             return {firstName: '', lastName: ''};
         }
