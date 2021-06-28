@@ -79,7 +79,7 @@ class RequestCallPage extends Component {
             return;
         }
 
-        const personalPolicyID = _.find(this.props.policies, policy => policy.type === 'personal').policyID;
+        const personalPolicyID = _.find(this.props.policies, policy => policy.type === 'personal').id;
         requestConciergeDMCall(personalPolicyID, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
