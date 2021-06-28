@@ -197,6 +197,16 @@ function payIOUReport({
         ? API.PayWithWallet({reportID})
         : API.PayIOU({reportID, paymentMethodType});
 
+    // Build the url for the user's platform of choice if they have
+    // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
+    let url;
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+        url = buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency);
+    }
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
+        url = buildVenmoPaymentURL(amount, submitterPhoneNumber);
+    }
+
     asyncOpenURL(payIOUPromise
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -210,21 +220,13 @@ function payIOUReport({
             // iouReport being fetched here must be open, because only an open iouReoport can be paid.
             // Therefore, we should also sync the chatReport after fetching the iouReport.
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
-
-            // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
-            // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                return buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency);
-            }
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-                return buildVenmoPaymentURL(amount, submitterPhoneNumber);
-            }
         })
         .catch((error) => {
             console.error(`Error Paying iouReport: ${error}`);
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
-        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})));
+        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})),
+    url);
 }
 
 export {
