@@ -1,4 +1,4 @@
-import {Component} from 'react';
+import React, {Component} from 'react';
 import {View, Text, TextInput} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
