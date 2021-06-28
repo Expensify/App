@@ -18,6 +18,23 @@ function isValidAddress(value) {
 }
 
 /**
+ * Validates that this string is composed of a single emoji
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+function isSingleEmoji(message) {
+    const match = message.match(CONST.REGEX.EMOJIS);
+
+    if (!match) {
+        return false;
+    }
+
+    const matchedEmoji = match[0];
+    return message.length === matchedEmoji.length;
+}
+
+/**
  * Validate date fields
  *
  * @param {String} date
@@ -85,4 +102,5 @@ export {
     isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
+    isSingleEmoji,
 };
