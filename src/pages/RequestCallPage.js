@@ -40,6 +40,15 @@ const propTypes = {
             partnerUserID: PropTypes.string,
         })),
     }).isRequired,
+
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** ID of the policy */
+        policyID: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
+    }).isRequired,
 };
 
 class RequestCallPage extends Component {
@@ -70,7 +79,8 @@ class RequestCallPage extends Component {
             return;
         }
 
-        requestConciergeDMCall('', this.state.firstName, this.state.lastName, this.state.phoneNumber)
+        const personalPolicyID = _.find(this.props.policies, policy => policy.type === 'personal').policyID;
+        requestConciergeDMCall(personalPolicyID, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
                 if (result.jsonCode === 200) {
@@ -166,6 +176,9 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(RequestCallPage);
