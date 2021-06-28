@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
@@ -173,11 +173,7 @@ class SearchPage extends Component {
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     !didScreenTransitionEnd
-                        ? (
-                            <Text>
-                                ...
-                            </Text>
-                        )
+                        ? null
                         : (
                             <>
                                 <HeaderWithCloseButton
