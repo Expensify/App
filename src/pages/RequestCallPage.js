@@ -41,7 +41,7 @@ const propTypes = {
         })),
     }).isRequired,
 
-    /** The policies which the user has access to and which the report could be tied to */
+    /** The policies which the user has access to */
     policies: PropTypes.shape({
         /** ID of the policy */
         policyID: PropTypes.string,
