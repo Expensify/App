@@ -66,7 +66,6 @@ class SearchPage extends Component {
         this.selectReport = this.selectReport.bind(this);
         this.filterAdapter = this.filterAdapter.bind(this);
         this.getCustomHeaderMessage = this.getCustomHeaderMessage.bind(this);
-        this.lazyLoad = this.lazyLoad.bind(this);
 
         const {
             recentReports,
@@ -143,10 +142,6 @@ class SearchPage extends Component {
         }
 
         return sections;
-    }
-
-    lazyLoad() {
-        this.setState({readyToLoad: true});
     }
 
     /**
