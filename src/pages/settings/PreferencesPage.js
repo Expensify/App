@@ -79,7 +79,7 @@ const PreferencesPage = ({
             <View style={styles.pageWrapper}>
                 <View style={[styles.settingsPageBody, styles.mb6]}>
                     <Text style={[styles.formLabel]} numberOfLines={1}>
-                        {translate('preferencesPage.notifications')}
+                        {translate('common.notifications')}
                     </Text>
                     <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
                         <View style={styles.flex4}>

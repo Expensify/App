@@ -61,6 +61,11 @@ export default {
                     },
                 },
             },
+            Report_Details: {
+                screens: {
+                    Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                },
+            },
             NewGroup: {
                 screens: {
                     NewGroup_Root: ROUTES.NEW_GROUP,

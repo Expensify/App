@@ -46,6 +46,8 @@ export default {
     getReportParticipantsRoute: reportID => `r/${reportID}/participants`,
     REPORT_PARTICIPANT: 'r/:reportID/participants/:login',
     getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
+    REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
+    getReportDetailsRoute: reportID => `r/${reportID}/details`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
     ENABLE_PAYMENTS: 'enable-payments',
