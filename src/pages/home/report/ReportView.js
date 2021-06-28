@@ -9,6 +9,7 @@ import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import styles from '../../../styles/styles';
 import SwipeableView from '../../../components/SwipeableView';
 import ONYXKEYS from '../../../ONYXKEYS';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The ID of the report the selected report */
@@ -29,7 +30,7 @@ const defaultProps = {
 };
 
 const ReportView = ({reportID, session}) => (
-    <View key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
+    <View nativeID={CONST.REPORT.DROP_NATIVE_ID} key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
         <ReportActionsView reportID={reportID} />
 
         {session.shouldShowComposeInput && (
