@@ -12,8 +12,10 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 const propTypes = {
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
+
     /** Function to get a filtered result as list */
     filterAdapter: PropTypes.func,
+
     /** FUnction to get header message from parent component */
     getCustomHeaderMessage: PropTypes.func,
 
