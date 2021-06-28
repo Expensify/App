@@ -129,11 +129,15 @@ export default {
                     NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
-            WorkspacePeople: {
+
+            WorkspaceSettings: {
                 screens: {
-                    WorkspacePeople_Root: ROUTES.WORKSPACE_PEOPLE,
+                    Workspace_Root: ROUTES.WORKSPACE,
+                    WorkspaceCard: ROUTES.WORKSPACE_CARD,
+                    WorkspacePeople: ROUTES.WORKSPACE_PEOPLE,
                 },
             },
+
             RequestCall: {
                 screens: {
                     RequestCall_Root: ROUTES.REQUEST_CALL,
