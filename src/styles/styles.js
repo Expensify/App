@@ -923,6 +923,7 @@ const styles = {
     },
 
     emojiItem: {
+        flex: 1,
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
