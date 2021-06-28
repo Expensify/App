@@ -32,7 +32,7 @@ function canUseIOU(betas) {
  * @returns {Boolean}
  */
 function canUsePayWithExpensify(betas) {
-    return _.contains(betas, CONST.BETAS.PAY_WITH_EXPENSIFY) || canUseAllBetas();
+    return _.contains(betas, CONST.BETAS.PAY_WITH_EXPENSIFY) || canUseAllBetas(betas);
 }
 
 /**
@@ -40,7 +40,7 @@ function canUsePayWithExpensify(betas) {
  * @returns {Boolean}
  */
 function canUseFreePlan(betas) {
-    return _.contains(betas, CONST.BETAS.FREE_PLAN) || canUseAllBetas();
+    return _.contains(betas, CONST.BETAS.FREE_PLAN) || canUseAllBetas(betas);
 }
 
 /**
@@ -48,7 +48,7 @@ function canUseFreePlan(betas) {
  * @returns {Boolean}
  */
 function canUseDefaultRooms(betas) {
-    return _.contains(betas, CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas();
+    return _.contains(betas, CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
 export default {
