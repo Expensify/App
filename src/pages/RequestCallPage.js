@@ -113,7 +113,7 @@ class RequestCallPage extends Component {
         const lastSpaceIndex = displayName.lastIndexOf(' ');
         return {
             firstName: displayName.substring(0, firstSpaceIndex),
-            lastName: displayName.substring(lastSpaceIndex),
+            lastName: firstSpaceIndex !== lastSpaceIndex ? displayName.substring(lastSpaceIndex) : '',
         };
     }
 
