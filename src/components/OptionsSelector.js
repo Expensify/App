@@ -12,7 +12,9 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 const propTypes = {
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
+    /** Function to get a filtered result as list */
     filterAdapter: PropTypes.func,
+    /** FUnction to get header message from parent component */
     getCustomHeaderMessage: PropTypes.func,
 
     /** Sections for the section list */
@@ -87,6 +89,7 @@ class OptionsSelector extends Component {
 
         this.state = {
             focusedIndex: 0,
+            sections: props.sections,
         };
     }
 
@@ -195,7 +198,6 @@ class OptionsSelector extends Component {
     }
 
     render() {
-        const headerMessage = this.props.getCustomHeaderMessage(this.searchValue);
         return (
             <View style={[styles.flex1]}>
                 <View style={[styles.ph5, styles.pv3]}>
@@ -214,12 +216,12 @@ class OptionsSelector extends Component {
                     ref={el => this.list = el}
                     optionHoveredStyle={styles.hoveredComponentBG}
                     onSelectRow={this.selectRow}
-                    sections={this.state.sections || this.props.sections}
+                    sections={this.state.sections}
                     focusedIndex={this.state.focusedIndex}
                     selectedOptions={this.props.selectedOptions}
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
-                    headerMessage={headerMessage}
+                    headerMessage={this.props.getCustomHeaderMessage(this.searchValue)}
                     disableFocusOptions={this.props.disableArrowKeysActions}
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                     forceTextUnreadStyle={this.props.forceTextUnreadStyle}

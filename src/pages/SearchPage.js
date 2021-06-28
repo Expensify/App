@@ -13,6 +13,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
+import Timing from '../libs/actions/Timing';
+import CONST from '../CONST';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
@@ -58,6 +60,8 @@ const propTypes = {
 class SearchPage extends Component {
     constructor(props) {
         super(props);
+
+        Timing.start(CONST.TIMING.SEARCH_RENDER);
 
         this.selectReport = this.selectReport.bind(this);
         this.filterAdapter = this.filterAdapter.bind(this);
