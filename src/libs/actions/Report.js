@@ -18,9 +18,11 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
+import {isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
+import Growl from '../Growl';
+import {translateLocal} from '../translate';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -121,12 +123,18 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 }
 
 /**
- * Returns a generated report title based on the participants
+ * Returns the title for a default room or generates one based on the participants
  *
- * @param {Array} sharedReportList
+ * @param {Object} fullReport
+ * @param {String} chatType
  * @return {String}
  */
-function getChatReportName(sharedReportList) {
+function getChatReportName(fullReport, chatType) {
+    if (isDefaultRoom({chatType})) {
+        return `#${fullReport.reportName}`;
+    }
+
+    const {sharedReportList} = fullReport;
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
@@ -151,6 +159,7 @@ function getSimplifiedReportObject(report) {
     const createTimestamp = lastReportAction ? lastReportAction.created : 0;
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
     const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lodashGet(lastReportAction, ['message', 'html'], ''));
+    const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
     // We are removing any html tags from the message html since we cannot access the text version of any comments as
     // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
@@ -159,14 +168,17 @@ function getSimplifiedReportObject(report) {
         .replace(/((<br[^>]*>)+)/gi, ' ')
         .replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
-        ? getChatReportName(report.sharedReportList)
+        ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
+    const notificationPreference = isDefaultRoom({chatType})
+        ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
+        : '';
 
     return {
         reportID: report.reportID,
         reportName,
-        chatType: lodashGet(report, ['reportNameValuePairs', 'chatType'], ''),
+        chatType,
         ownerEmail: lodashGet(report, ['ownerEmail'], ''),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
@@ -182,6 +194,7 @@ function getSimplifiedReportObject(report) {
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         hasOutstandingIOU: false,
+        notificationPreference,
     };
 }
 
@@ -1043,7 +1056,17 @@ function addAction(reportID, text, file) {
         // the same way report actions can.
         persist: !isAttachment,
     })
-        .then(({reportAction}) => updateReportWithNewAction(reportID, reportAction));
+        .then((response) => {
+            if (response.jsonCode === 408) {
+                Growl.error(translateLocal('reportActionCompose.fileUploadFailed'));
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [optimisticReportActionID]: null,
+                });
+                console.error(response.message);
+                return;
+            }
+            updateReportWithNewAction(reportID, response.reportAction);
+        });
 }
 
 /**
@@ -1054,9 +1077,10 @@ function addAction(reportID, text, file) {
  */
 function deleteReportComment(reportID, reportAction) {
     // Optimistic Response
+    const sequenceNumber = reportAction.sequenceNumber;
     const reportActionsToMerge = {};
     const oldMessage = {...reportAction.message};
-    reportActionsToMerge[reportAction.sequenceNumber] = {
+    reportActionsToMerge[sequenceNumber] = {
         ...reportAction,
         message: [
             {
@@ -1074,11 +1098,12 @@ function deleteReportComment(reportID, reportAction) {
         reportID,
         reportActionID: reportAction.reportActionID,
         reportComment: '',
+        sequenceNumber,
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Reverse Optimistic Response
-                reportActionsToMerge[reportAction.sequenceNumber] = {
+                reportActionsToMerge[sequenceNumber] = {
                     ...reportAction,
                     message: oldMessage,
                 };

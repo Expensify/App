@@ -9,11 +9,10 @@ import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import Icon from '../../components/Icon';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
-import {DownArrow} from '../../components/Icon/Expensicons';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
+import {setLocale} from '../../libs/actions/App';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import Picker from '../../components/Picker';
@@ -30,15 +29,21 @@ const propTypes = {
         expensifyNewsStatus: PropTypes.bool,
     }),
 
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     user: {},
+    preferredLocale: CONST.DEFAULT_LOCALE,
 };
 
-const PreferencesPage = ({priorityMode, user, translate}) => {
+const PreferencesPage = ({
+    priorityMode, user, translate, preferredLocale,
+}) => {
     const priorityModes = {
         default: {
             value: CONST.PRIORITY_MODE.DEFAULT,
@@ -49,6 +54,17 @@ const PreferencesPage = ({priorityMode, user, translate}) => {
             value: CONST.PRIORITY_MODE.GSD,
             label: translate('preferencesPage.focus'),
             description: translate('preferencesPage.focusModeDescription'),
+        },
+    };
+
+    const localesToLanguages = {
+        default: {
+            value: 'en',
+            label: translate('preferencesPage.languages.english'),
+        },
+        es: {
+            value: 'es',
+            label: translate('preferencesPage.languages.spanish'),
         },
     };
 
@@ -88,12 +104,25 @@ const PreferencesPage = ({priorityMode, user, translate}) => {
                             }
                             items={Object.values(priorityModes)}
                             value={priorityMode}
-                            icon={() => <Icon src={DownArrow} />}
                         />
                     </View>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                    <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
                         {priorityModes[priorityMode].description}
                     </Text>
+                    <Text style={[styles.formLabel]} numberOfLines={1}>
+                        {translate('preferencesPage.language')}
+                    </Text>
+                    <View style={[styles.mb2]}>
+                        <Picker
+                            onChange={(locale) => {
+                                if (locale !== preferredLocale) {
+                                    setLocale(locale);
+                                }
+                            }}
+                            items={Object.values(localesToLanguages)}
+                            value={preferredLocale}
+                        />
+                    </View>
                 </View>
             </View>
         </ScreenWrapper>
@@ -112,6 +141,9 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.PREFERRED_LOCALE,
         },
     }),
 )(PreferencesPage);

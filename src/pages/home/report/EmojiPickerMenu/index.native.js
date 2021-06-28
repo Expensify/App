@@ -89,4 +89,9 @@ class EmojiPickerMenu extends Component {
 
 EmojiPickerMenu.propTypes = propTypes;
 
-export default compose(withWindowDimensions)(EmojiPickerMenu);
+export default compose(
+    withWindowDimensions,
+)(React.forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <EmojiPickerMenu {...props} forwardedRef={ref} />
+)));

@@ -20,7 +20,6 @@ import Avatar from '../../../components/Avatar';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import Icon from '../../../components/Icon';
-import Checkbox from '../../../components/Checkbox';
 import themeColors from '../../../styles/themes/default';
 import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
@@ -30,7 +29,11 @@ import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
+import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
+import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
+import FullNameInputRow from '../../../components/FullNameInputRow';
+import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 
 const propTypes = {
     /* Onyx Props */
@@ -260,139 +263,120 @@ class ProfilePage extends Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.profile')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                    <Avatar
-                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                        source={this.props.myPersonalDetails.avatar}
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('common.profile')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <AttachmentPicker>
-                        {({openPicker}) => (
-                            <>
-                                <Button
-                                    style={[styles.alignSelfCenter, styles.mt3]}
-                                    onPress={() => this.setState({isEditPhotoMenuVisible: true})}
-                                    ContentComponent={() => (
-                                        <View style={[styles.flexRow]}>
-                                            <Icon src={DownArrow} />
-                                            <View style={styles.justifyContentCenter}>
-                                                <Text style={[styles.headerText, styles.ml2]}>
-                                                    {this.props.translate('profilePage.editPhoto')}
-                                                </Text>
+                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                        <Avatar
+                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                            source={this.props.myPersonalDetails.avatar}
+                        />
+                        <AttachmentPicker>
+                            {({openPicker}) => (
+                                <>
+                                    <Button
+                                        style={[styles.alignSelfCenter, styles.mt3]}
+                                        onPress={() => this.setState({isEditPhotoMenuVisible: true})}
+                                        ContentComponent={() => (
+                                            <View style={[styles.flexRow]}>
+                                                <Icon src={DownArrow} />
+                                                <View style={styles.justifyContentCenter}>
+                                                    <Text style={[styles.headerText, styles.ml2]}>
+                                                        {this.props.translate('profilePage.editPhoto')}
+                                                    </Text>
+                                                </View>
                                             </View>
-                                        </View>
-                                    )}
-                                />
-                                <CreateMenu
-                                    isVisible={this.state.isEditPhotoMenuVisible}
-                                    onClose={() => this.setState({isEditPhotoMenuVisible: false})}
-                                    onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}
-                                    menuItems={this.createMenuItems(openPicker)}
-                                    anchorPosition={styles.createMenuPositionProfile}
-                                    animationIn="fadeInRight"
-                                    animationOut="fadeOutRight"
-                                />
-                            </>
-                        )}
-                    </AttachmentPicker>
-                    <Text style={[styles.mt6, styles.mb6, styles.textP]}>
-                        {this.props.translate('profilePage.tellUsAboutYourself')}
-                    </Text>
-                    <View style={[styles.flexRow, styles.mb6]}>
-                        <View style={styles.flex1}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {this.props.translate('profilePage.firstName')}
-                            </Text>
-                            <TextInput
-                                style={styles.textInput}
-                                value={this.state.firstName}
-                                onChangeText={firstName => this.setState({firstName})}
-                                placeholder={this.props.translate('profilePage.john')}
-                                placeholderTextColor={themeColors.placeholderText}
-                            />
-                        </View>
-                        <View style={[styles.flex1, styles.ml2]}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {this.props.translate('profilePage.lastName')}
-                            </Text>
-                            <TextInput
-                                style={styles.textInput}
-                                value={this.state.lastName}
-                                onChangeText={lastName => this.setState({lastName})}
-                                placeholder={this.props.translate('profilePage.doe')}
-                                placeholderTextColor={themeColors.placeholderText}
-                            />
-                        </View>
-                    </View>
-                    <View style={styles.mb6}>
-                        <Text style={[styles.mb1, styles.formLabel]}>
-                            {this.props.translate('profilePage.preferredPronouns')}
+                                        )}
+                                    />
+                                    <CreateMenu
+                                        isVisible={this.state.isEditPhotoMenuVisible}
+                                        onClose={() => this.setState({isEditPhotoMenuVisible: false})}
+                                        onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}
+                                        menuItems={this.createMenuItems(openPicker)}
+                                        anchorPosition={styles.createMenuPositionProfile}
+                                        animationIn="fadeInRight"
+                                        animationOut="fadeOutRight"
+                                    />
+                                </>
+                            )}
+                        </AttachmentPicker>
+                        <Text style={[styles.mt6, styles.mb6, styles.textP]}>
+                            {this.props.translate('profilePage.tellUsAboutYourself')}
                         </Text>
-                        <View style={styles.mb1}>
+                        <FullNameInputRow
+                            firstName={this.state.firstName}
+                            lastName={this.state.lastName}
+                            onChangeFirstName={firstName => this.setState({firstName})}
+                            onChangeLastName={lastName => this.setState({lastName})}
+                            style={[styles.mt4, styles.mb4]}
+                        />
+                        <View style={styles.mb6}>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {this.props.translate('profilePage.preferredPronouns')}
+                            </Text>
+                            <View style={styles.mb1}>
+                                <Picker
+                                    onChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
+                                    items={this.pronounDropdownValues}
+                                    placeholder={{
+                                        value: '',
+                                        label: this.props.translate('profilePage.selectYourPronouns'),
+                                    }}
+                                    value={this.state.pronouns}
+                                />
+                            </View>
+                            {this.state.pronouns === this.props.translate('pronouns.selfSelect') && (
+                            <TextInput
+                                style={styles.textInput}
+                                value={this.state.selfSelectedPronouns}
+                                onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
+                                placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                placeholderTextColor={themeColors.placeholderText}
+                            />
+                            )}
+                        </View>
+                        <LoginField
+                            label={this.props.translate('profilePage.emailAddress')}
+                            type="email"
+                            login={this.state.logins.email}
+                        />
+                        <LoginField
+                            label={this.props.translate('common.phoneNumber')}
+                            type="phone"
+                            login={this.state.logins.phone}
+                        />
+                        <View style={styles.mb3}>
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {this.props.translate('profilePage.timezone')}
+                            </Text>
                             <Picker
-                                onChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
-                                items={this.pronounDropdownValues}
-                                placeholder={{
-                                    value: '',
-                                    label: this.props.translate('profilePage.selectYourPronouns'),
-                                }}
-                                value={this.state.pronouns}
-                                icon={() => <Icon src={DownArrow} />}
+                                onChange={selectedTimezone => this.setState({selectedTimezone})}
+                                items={timezones}
+                                useDisabledStyles={this.state.isAutomaticTimezone}
+                                value={this.state.selectedTimezone}
+                                disabled={this.state.isAutomaticTimezone}
                             />
                         </View>
-                        {this.state.pronouns === this.props.translate('pronouns.selfSelect') && (
-                        <TextInput
-                            style={styles.textInput}
-                            value={this.state.selfSelectedPronouns}
-                            onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
-                            placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                            placeholderTextColor={themeColors.placeholderText}
+                        <CheckboxWithLabel
+                            label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
+                            isChecked={this.state.isAutomaticTimezone}
+                            onPress={this.setAutomaticTimezone}
                         />
-                        )}
-                    </View>
-                    <LoginField
-                        label={this.props.translate('profilePage.emailAddress')}
-                        type="email"
-                        login={this.state.logins.email}
-                    />
-                    <LoginField
-                        label={this.props.translate('common.phoneNumber')}
-                        type="phone"
-                        login={this.state.logins.phone}
-                    />
-                    <View style={styles.mb3}>
-                        <Text style={[styles.mb1, styles.formLabel]}>
-                            {this.props.translate('profilePage.timezone')}
-                        </Text>
-                        <Picker
-                            onChange={selectedTimezone => this.setState({selectedTimezone})}
-                            items={timezones}
-                            useDisabledStyles={this.state.isAutomaticTimezone}
-                            value={this.state.selectedTimezone}
-                            icon={() => <Icon src={DownArrow} />}
-                            disabled={this.state.isAutomaticTimezone}
+                    </ScrollView>
+                    <FixedFooter>
+                        <Button
+                            success
+                            isDisabled={isButtonDisabled}
+                            onPress={this.updatePersonalDetails}
+                            style={[styles.w100]}
+                            text={this.props.translate('common.save')}
                         />
-                    </View>
-                    <Checkbox
-                        label={this.props.translate('profilePage.setMyTimezoneAutomatically')}
-                        isChecked={this.state.isAutomaticTimezone}
-                        onClick={this.setAutomaticTimezone}
-                    />
-                </ScrollView>
-                <View style={[styles.ph5, styles.pb5]}>
-                    <Button
-                        success
-                        isDisabled={isButtonDisabled}
-                        onPress={this.updatePersonalDetails}
-                        style={[styles.w100]}
-                        text={this.props.translate('common.save')}
-                    />
-                </View>
+                    </FixedFooter>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }

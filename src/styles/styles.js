@@ -70,7 +70,9 @@ const styles = {
     },
 
     textMicro: {
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textMicroBold: {
@@ -80,6 +82,13 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textMicroSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -87,6 +96,11 @@ const styles = {
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
+    },
+
+    textItalic: {
+        fontFamily: fontFamily.GTA_ITALIC,
+        fontStyle: 'italic',
     },
 
     textDecorationNoLine: {
@@ -113,6 +127,14 @@ const styles = {
         color: themeColors.heading,
     },
 
+    bgTransparent: {
+        backgroundColor: 'transparent',
+    },
+
+    textDanger: {
+        color: colors.red,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -137,6 +159,23 @@ const styles = {
         paddingBottom: 6,
         paddingLeft: 10,
         backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    buttonLarge: {
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeLarge,
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
+    },
+
+    buttonLargeText: {
+        fontSize: variables.fontSizeLarge,
+        lineHeight: 18,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
     },
 
     buttonSmallText: {
@@ -197,6 +236,10 @@ const styles = {
         backgroundColor: themeColors.hoverComponentBG,
     },
 
+    activeComponentBG: {
+        backgroundColor: themeColors.activeComponentBG,
+    },
+
     touchableButtonImage: {
         alignItems: 'center',
         height: variables.componentSizeNormal,
@@ -234,6 +277,7 @@ const styles = {
             appearance: 'none',
             height: variables.componentSizeNormal,
             opacity: 1,
+            cursor: 'pointer',
         },
         inputAndroid: {
             fontFamily: fontFamily.GTA,
@@ -286,6 +330,12 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    border: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
     },
 
     headerText: {
@@ -343,6 +393,10 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         textAlignVertical: 'center',
+    },
+
+    disabledText: {
+        color: colors.gray3,
     },
 
     disabledTextInput: {
@@ -547,6 +601,11 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    singleEmojiText: {
+        fontSize: variables.fontSizeSingleEmoji,
+        lineHeight: variables.fontSizeSingleEmojiHeight,
+    },
+
     createMenuPositionSidebar: {
         left: 18,
         bottom: 100,
@@ -594,11 +653,22 @@ const styles = {
         alignItems: 'center',
     },
 
+    createMenuIconEmphasized: {
+        backgroundColor: themeColors.iconSuccessFill,
+        borderRadius: variables.componentSizeLarge / 2,
+    },
+
     createMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    createMenuDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
     },
 
     menuItemTextContainer: {
@@ -992,6 +1062,14 @@ const styles = {
         borderRightWidth: 0,
     },
 
+    exampleCheckImage: {
+        width: '100%',
+        height: 80,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+    },
+
     singleAvatar: {
         height: 24,
         width: 24,
@@ -1101,6 +1179,11 @@ const styles = {
 
     borderBottom: {
         borderBottomWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderRight: {
+        borderRightWidth: 1,
         borderColor: themeColors.border,
     },
 
@@ -1403,6 +1486,7 @@ const styles = {
         marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
+        cursor: 'pointer',
     },
 
     iouPreviewBoxLoading: {
@@ -1527,6 +1611,76 @@ const styles = {
 
     cursorDisabled: {
         cursor: 'not-allowed',
+    },
+
+    fullscreenCard: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: '100%',
+        height: '100%',
+    },
+
+    fullscreenCardWeb: {
+        left: 'auto',
+        right: '-24%',
+        top: '-18%',
+        height: '120%',
+    },
+
+    fullscreenCardMobile: {
+        left: '-20%',
+        top: '-30%',
+        width: '150%',
+    },
+
+    workspaceSidebarAvatar: {
+        width: 80,
+        height: 80,
+    },
+
+    workspaceSidebarAvatarPencil: {
+        width: 32,
+        height: 32,
+        position: 'absolute',
+        right: -1,
+        bottom: -1,
+        backgroundColor: themeColors.icon,
+        color: themeColors.textReversed,
+        borderRadius: 32,
+        borderWidth: 3,
+        borderColor: themeColors.textReversed,
+    },
+
+    workspaceCard: {
+        width: '100%',
+        height: 400,
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        backgroundColor: themeColors.heroCard,
+    },
+
+    workspaceCardMobile: {
+        height: 475,
+    },
+
+    workspaceCardMainText: {
+        fontSize: variables.fontSizeXXXLarge,
+        fontWeight: 'bold',
+        lineHeight: variables.fontSizeXXXLarge,
+    },
+
+    workspaceCardContent: {
+        zIndex: 1,
+        padding: 50,
+    },
+
+    workspaceCardCTA: {
+        width: 250,
+    },
+
+    workspaceInviteWelcome: {
+        minHeight: 150,
     },
 };
 
@@ -1758,10 +1912,11 @@ function getBadgeColorStyle(isOwner, isPressed = false) {
  */
 function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
+        case CONST.BUTTON_STATES.ACTIVE:
             return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
             return {};
@@ -1776,13 +1931,14 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  */
 function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
+        case CONST.BUTTON_STATES.ACTIVE:
             return themeColors.text;
         case CONST.BUTTON_STATES.PRESSED:
             return themeColors.heading;
         case CONST.BUTTON_STATES.COMPLETE:
             return themeColors.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
+        case CONST.BUTTON_STATES.DISABLED:
         default:
             return themeColors.icon;
     }

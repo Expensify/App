@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View, Pressable, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -22,6 +22,8 @@ import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import CONST from '../../CONST';
+import {isDefaultRoom} from '../../libs/reportUtils';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -44,6 +46,12 @@ const propTypes = {
         isPinned: PropTypes.bool,
     }),
 
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }).isRequired,
+
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
@@ -57,6 +65,7 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
+    const policyID = lodashGet(props.report, 'policyID', '');
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
@@ -65,11 +74,19 @@ const HeaderView = (props) => {
 
             return {
                 displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
-                tooltip: login,
+                tooltip: Str.removeSMSDomain(login),
             };
         },
     );
-    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+    const isDefaultChatRoom = isDefaultRoom(props.report);
+    const title = isDefaultChatRoom
+        ? props.report.reportName
+        : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+
+    const subTitle = isDefaultChatRoom
+        && lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'name'], 'Unknown Policy');
+    const isConcierge = participants.length === 1 && participants.includes(CONST.EMAIL.CONCIERGE);
+
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -103,21 +120,30 @@ const HeaderView = (props) => {
                                 avatarImageURLs={props.report.icons}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                             />
-                            <View style={[styles.flex1, styles.flexRow]}>
+                            <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
-                                    fullTitle={fullTitle}
+                                    fullTitle={title}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
+                                    shouldUseFullTitle={isDefaultChatRoom}
                                 />
+                                {subTitle && (
+                                    <Text
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mt1]}
+                                        numberOfLines={1}
+                                    >
+                                        {subTitle}
+                                    </Text>
+                                )}
                             </View>
                         </Pressable>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                             {props.report.hasOutstandingIOU && (
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
-                            <VideoChatButtonAndMenu />
+                            <VideoChatButtonAndMenu isConcierge={isConcierge} />
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}
@@ -144,6 +170,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(HeaderView);
