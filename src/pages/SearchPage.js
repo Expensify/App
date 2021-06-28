@@ -142,8 +142,6 @@ class SearchPage extends Component {
     }
 
     lazyLoad() {
-        // eslint-disable-next-line no-console
-        console.log('lazyLoad', this.state.readyToLoad);
         this.setState({readyToLoad: true});
     }
 
