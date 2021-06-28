@@ -19,6 +19,7 @@ import {
     Users,
     MoneyCircle,
     Receipt,
+    NewWorkspace,
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -115,13 +116,6 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newChat'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
-                                ...(Permissions.canUseIOU(this.props.betas) ? [
-                                    {
-                                        icon: MoneyCircle,
-                                        text: this.props.translate('iou.requestMoney'),
-                                        onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
-                                    },
-                                ] : []),
                                 {
                                     icon: Users,
                                     text: this.props.translate('sidebarScreen.newGroup'),
@@ -129,9 +123,26 @@ class SidebarScreen extends Component {
                                 },
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
+                                        icon: MoneyCircle,
+                                        text: this.props.translate('iou.requestMoney'),
+                                        onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
+                                    },
+                                ] : []),
+                                ...(Permissions.canUseIOU(this.props.betas) ? [
+                                    {
                                         icon: Receipt,
                                         text: this.props.translate('iou.splitBill'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                    },
+                                ] : []),
+                                ...(Permissions.canUseFreePlan(this.props.betas) ? [
+                                    {
+                                        icon: NewWorkspace,
+                                        iconWidth: 46,
+                                        iconHeight: 40,
+                                        text: this.props.translate('workspace.new.newWorkspace'),
+                                        description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
+                                        onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW),
                                     },
                                 ] : []),
                             ]}

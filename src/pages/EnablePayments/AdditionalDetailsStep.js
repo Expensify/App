@@ -46,7 +46,7 @@ class AdditionalDetailsStep extends React.Component {
     constructor(props) {
         super(props);
 
-        this.requiredText = props.translate('additionalDetailsStep.isRequiredField');
+        this.requiredText = `${props.translate('common.isRequiredField')}.`;
         this.fields = [
             {
                 label: props.translate('additionalDetailsStep.legalFirstNameLabel'),
@@ -61,32 +61,34 @@ class AdditionalDetailsStep extends React.Component {
                 fieldName: 'legalLastName',
             },
             {
-                label: props.translate('additionalDetailsStep.addressLabel'),
+                label: props.translate('common.addressNoPO'),
                 fieldName: 'addressStreet',
             },
             {
-                label: props.translate('additionalDetailsStep.cityLabel'),
+                label: props.translate('common.city'),
                 fieldName: 'addressCity',
             },
             {
-                label: props.translate('additionalDetailsStep.stateLabel'),
+                label: props.translate('common.state'),
                 fieldName: 'addressState',
             },
             {
-                label: props.translate('additionalDetailsStep.zipCodeLabel'),
+                label: props.translate('common.zip'),
                 fieldName: 'addressZip',
             },
             {
-                label: props.translate('additionalDetailsStep.phoneNumberLabel'),
+                label: props.translate('common.phoneNumber'),
                 fieldName: 'phoneNumber',
             },
             {
-                label: props.translate('additionalDetailsStep.dobLabel'),
+                label: props.translate('common.dob'),
                 fieldName: 'dob',
             },
             {
-                label: props.translate('additionalDetailsStep.ssnLabel'),
+                label: props.translate('common.ssnLast4'),
                 fieldName: 'ssn',
+                maxLength: 4,
+                keyboardType: 'number-pad',
             },
         ];
 
@@ -133,6 +135,8 @@ class AdditionalDetailsStep extends React.Component {
                                     errorText={errorFields.includes(field.fieldName)
                                         ? `${field.label} ${this.requiredText}`
                                         : ''}
+                                    // eslint-disable-next-line react/jsx-props-no-spreading
+                                    {..._.omit(field, ['label', 'fieldName'])}
                                 />
                             ))}
                         </ScrollView>
@@ -144,7 +148,7 @@ class AdditionalDetailsStep extends React.Component {
                             )}
                             <Button
                                 success
-                                text={this.props.translate('additionalDetailsStep.continueButtonText')}
+                                text={this.props.translate('common.saveAndContinue')}
                                 isLoading={this.props.walletAdditionalDetails.loading}
                                 onPress={() => {
                                     activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {

@@ -16,7 +16,7 @@ import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredC
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionContextMenu from './ReportActionContextMenu';
-import ReportActionItemIOUAction from '../../../components/ReportActionItemIOUAction';
+import IOUAction from '../../../components/ReportActionItem/IOUAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
@@ -61,6 +61,7 @@ class ReportActionItem extends Component {
     constructor(props) {
         super(props);
 
+        this.onPopoverHide = () => {};
         this.state = {
             isPopoverVisible: false,
             cursorPosition: {
@@ -164,6 +165,10 @@ class ReportActionItem extends Component {
      * @param {string} [selection] - A copy text.
      */
     showPopover(event, selection) {
+        // Block menu on the message being Edited
+        if (this.props.draftMessage) {
+            return;
+        }
         const nativeEvent = event.nativeEvent || {};
         this.selection = selection;
         this.capturePressLocation(nativeEvent).then(() => {
@@ -173,8 +178,12 @@ class ReportActionItem extends Component {
 
     /**
      * Hide the ReportActionContextMenu modal popover.
+     * @param {Function} onHideCallback Callback to be called after popover is completely hidden
      */
-    hidePopover() {
+    hidePopover(onHideCallback) {
+        if (_.isFunction(onHideCallback)) {
+            this.onPopoverHide = onHideCallback;
+        }
         this.setState({isPopoverVisible: false});
     }
 
@@ -200,7 +209,7 @@ class ReportActionItem extends Component {
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
-                <ReportActionItemIOUAction
+                <IOUAction
                     chatReportID={this.props.reportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
@@ -256,6 +265,7 @@ class ReportActionItem extends Component {
                                     isVisible={
                                         hovered
                                         && !this.state.isPopoverVisible
+                                        && !this.props.draftMessage
                                     }
                                     draftMessage={this.props.draftMessage}
                                     hidePopover={this.hidePopover}
@@ -268,10 +278,13 @@ class ReportActionItem extends Component {
                 <PopoverWithMeasuredContent
                     isVisible={this.state.isPopoverVisible}
                     onClose={this.hidePopover}
+                    onModalHide={this.onPopoverHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     animationOutTiming={1}
                     measureContent={this.measureContent}
+                    shouldSetModalVisibility={false}
+                    fullscreen={false}
                 >
                     <ReportActionContextMenu
                         isVisible

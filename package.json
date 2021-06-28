@@ -1,16 +1,16 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.66-0",
+  "version": "1.0.74-0",
   "author": "Expensify, Inc.",
   "homepage": "https://expensify.cash",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
-    "ipad": "react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
-    "ipad-sm": "react-native run-ios --simulator=\"iPad Pro (9.7-inch)\"",
+    "android": "npm run check-port -- 8081 && react-native run-android",
+    "ios": "npm run check-port -- 8081 && react-native run-ios",
+    "ipad": "npm run check-port -- 8081 && react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
+    "ipad-sm": "npm run check-port -- 8081 && react-native run-ios --simulator=\"iPad Pro (9.7-inch)\"",
     "desktop": "node desktop/start.js",
     "start": "react-native start",
     "web": "node web/proxy.js & webpack-dev-server --open --config config/webpack/webpack.dev.js",
@@ -29,7 +29,8 @@
     "storybook-build": "build-storybook -o dist/docs",
     "gh-actions-build": "./.github/scripts/buildActions.sh",
     "gh-actions-validate": "./.github/scripts/validateActionsAndWorkflows.sh",
-    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js"
+    "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js",
+    "check-port": "node config/checkPort.js"
   },
   "dependencies": {
     "@formatjs/intl-getcanonicallocales": "^1.5.8",
@@ -73,14 +74,13 @@
     "react-native": "0.64.1",
     "react-native-bootsplash": "^3.2.0",
     "react-native-config": "^1.4.0",
-    "react-native-document-picker": "^4.0.0",
-    "react-native-geolocation-service": "^5.2.0",
+    "react-native-document-picker": "^5.1.0",
     "react-native-gesture-handler": "1.9.0",
     "react-native-image-pan-zoom": "^2.1.12",
-    "react-native-image-picker": "^2.3.3",
+    "react-native-image-picker": "^4.0.3",
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-modal": "^11.10.0",
-    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#52c254fbc4b96224d2ac087e57ef6efc4210ccc1",
+    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#1e82e592032c6d0ede8e40f08beb6be790d149e8",
     "react-native-pdf": "^6.2.2",
     "react-native-permissions": "^3.0.1",
     "react-native-picker-select": "8.0.4",
@@ -97,7 +97,7 @@
     "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
     "underscore": "^1.10.2",
-    "urbanairship-react-native": "^10.0.0"
+    "urbanairship-react-native": "^11.0.1"
   },
   "devDependencies": {
     "@actions/core": "^1.2.6",

@@ -2,7 +2,9 @@ import Android from '../../../assets/images/android.svg';
 import Apple from '../../../assets/images/apple.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
+import Bank from '../../../assets/images/bank.svg';
 import Bug from '../../../assets/images/bug.svg';
+import Building from '../../../assets/images/building.svg';
 import Camera from '../../../assets/images/camera.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
@@ -27,6 +29,7 @@ import Monitor from '../../../assets/images/monitor.svg';
 import NewWindow from '../../../assets/images/new-window.svg';
 import Offline from '../../../assets/images/offline.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
+import Paycheck from '../../../assets/images/paycheck.svg';
 import Pencil from '../../../assets/images/pencil.svg';
 import Phone from '../../../assets/images/phone.svg';
 import Pin from '../../../assets/images/pin.svg';
@@ -41,12 +44,16 @@ import Trashcan from '../../../assets/images/trashcan.svg';
 import Users from '../../../assets/images/users.svg';
 import Upload from '../../../assets/images/upload.svg';
 import Wallet from '../../../assets/images/wallet.svg';
+import NewWorkspace from '../../../assets/images/new-workspace.svg';
+import ExpensifyCard from '../../../assets/images/expensifycard.svg';
 
 export {
     Android,
     Apple,
     ArrowRight,
     BackArrow,
+    Bank,
+    Building,
     Bug,
     Camera,
     ChatBubble,
@@ -58,6 +65,7 @@ export {
     Emoji,
     Exclamation,
     Eye,
+    ExpensifyCard,
     Gallery,
     Gear,
     Info,
@@ -72,6 +80,7 @@ export {
     NewWindow,
     Offline,
     Paperclip,
+    Paycheck,
     Pencil,
     Phone,
     Pin,
@@ -86,4 +95,5 @@ export {
     Upload,
     Users,
     Wallet,
+    NewWorkspace,
 };

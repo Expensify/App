@@ -32,6 +32,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -107,7 +108,11 @@ class ReportActionsView extends React.Component {
     componentDidMount() {
         AppState.addEventListener('change', this.onVisibilityChange);
         subscribeToReportTypingEvents(this.props.reportID);
-        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', this.scrollToListBottom);
+        this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
+            if (ReportActionComposeFocusManager.isFocused()) {
+                this.scrollToListBottom();
+            }
+        });
         updateLastReadActionID(this.props.reportID);
 
         // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.

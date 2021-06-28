@@ -39,8 +39,8 @@ Onyx.connect({
         // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
         // this once when the app initializes
         networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
-        Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
         didLoadPersistedRequests = true;
+        Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
     },
 });
 

@@ -266,7 +266,10 @@ function reauthenticate(command = '') {
 
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
-            Onyx.merge(ONYXKEYS.SESSION, {authToken: response.authToken});
+            Onyx.merge(ONYXKEYS.SESSION, {
+                authToken: response.authToken,
+                encryptedAuthToken: response.encryptedAuthToken,
+            });
             authToken = response.authToken;
 
             // The authentication process is finished so the network can be unpaused to continue
@@ -403,6 +406,17 @@ function GetAccountStatus(parameters) {
 function GetIOUReport(parameters) {
     const commandName = 'GetIOUReport';
     requireParameters(['debtorEmail'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
+function GetPolicyList() {
+    const commandName = 'Get';
+    const parameters = {
+        returnValueList: 'policyList',
+    };
     return Network.post(commandName, parameters);
 }
 
@@ -661,6 +675,21 @@ function User_GetBetas() {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @param {Boolean} [parameters.requireCertainty]
+ * @returns {Promise}
+ */
+function User_IsFromPublicDomain(parameters) {
+    const commandName = 'User_IsFromPublicDomain';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, {
+        ...{requireCertainty: true},
+        ...parameters,
+    });
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
  * @returns {Promise}
  */
 function User_ReopenAccount(parameters) {
@@ -785,6 +814,21 @@ function BankAccount_Get(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Object[]} parameters.employees
+ * @param {String} parameters.welcomeNote
+ * @param {String} parameters.policyID
+ * @returns {Promise}
+ */
+function Policy_Employees_Merge(parameters) {
+    const commandName = 'Policy_Employees_Merge';
+    requireParameters(['employees', 'welcomeNote', 'policyID'], parameters, commandName);
+
+    // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
+    return Network.post(commandName, {...parameters, returnPersonalDetails: true});
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.accountNumber
  * @param {String} parameters.addressName
  * @param {Boolean} parameters.allowDebit
@@ -812,6 +856,54 @@ function BankAccount_Create(parameters) {
     return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
+function BankAccount_Validate(parameters) {
+    const commandName = 'ValidateBankAccount';
+    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
+}
+
+/**
+ * @param {*} parameters
+ * @returns {Promise}
+ */
+function BankAccount_SetupWithdrawal(parameters) {
+    const commandName = 'BankAccount_SetupWithdrawal';
+    let allowedParameters = [
+        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
+
+        // data from bankAccount step:
+        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
+        'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
+
+        // data from company step:
+        'companyName', 'companyTaxID', 'addressStreet', 'addressCity', 'addressState', 'addressZipCode',
+        'hasNoConnectionToCannabis', 'incorporationType', 'incorporationState', 'incorporationDate', 'industryCode',
+        'website', 'companyPhone', 'ficticiousBusinessName',
+
+        // data from requestor step:
+        'firstName', 'lastName', 'dob', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState',
+        'requestorAddressZipCode', 'isOnfidoSetupComplete', 'onfidoData', 'isControllingOfficer', 'ssnLast4',
+
+        // data from ACHContract step (which became the "Beneficial Owners" step, but the key is still ACHContract as
+        // it's used in several logic:
+        'ownsMoreThan25Percent', 'beneficialOwners', 'acceptTermsAndConditions', 'certifyTrueInformation',
+    ];
+
+    if (!parameters.useOnfido) {
+        allowedParameters = allowedParameters.concat(['passport', 'answers']);
+    }
+
+    // Only keep allowed parameters in the additionalData object
+    const additionalData = _.pick(parameters, allowedParameters);
+
+    requireParameters(['currentStep'], parameters, commandName);
+    return Network.post(
+        commandName, {additionalData: JSON.stringify(additionalData), password: parameters.password},
+        CONST.NETWORK.METHOD.POST,
+        true,
+    );
+}
+
 /**
  * @param {Object} parameters
  * @param {String[]} data
@@ -821,7 +913,7 @@ function Mobile_GetConstants(parameters) {
     const commandName = 'Mobile_GetConstants';
     requireParameters(['data'], parameters, commandName);
 
-    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
+    // Stringinfy the parameters object as we cannot send an object via FormData
     const finalParameters = parameters;
     finalParameters.data = JSON.stringify(parameters.data);
 
@@ -829,9 +921,9 @@ function Mobile_GetConstants(parameters) {
 }
 
 /**
- * @param {object} parameters
- * @param {number} [parameters.latitude]
- * @param {number} [parameters.longitude]
+ * @param {Object} parameters
+ * @param {Number} [parameters.latitude]
+ * @param {Number} [parameters.longitude]
  * @returns {Promise}
  */
 function GetPreferredCurrency(parameters) {
@@ -846,10 +938,45 @@ function GetCurrencyList() {
     return Mobile_GetConstants({data: ['currencyList']});
 }
 
+/**
+ * @returns {Promise}
+ */
+function User_IsUsingExpensifyCard() {
+    return Network.post('User_IsUsingExpensifyCard', {});
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} [parameters.type]
+ * @param {String} [parameters.policyName]
+ * @returns {Promise}
+ */
+function Policy_Create(parameters) {
+    const commandName = 'Policy_Create';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.taskID
+ * @param {String} parameters.policyID
+ * @param {String} parameters.firstName
+ * @param {String} parameters.lastName
+ * @param {String} parameters.phoneNumber
+ * @returns {Promise}
+ */
+function Inbox_CallUser(parameters) {
+    const commandName = 'Inbox_CallUser';
+    requireParameters(['taskID', 'policyID', 'firstName', 'lastName', 'phoneNumber'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     BankAccount_Create,
     BankAccount_Get,
+    BankAccount_SetupWithdrawal,
+    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -857,15 +984,18 @@ export {
     Get,
     GetAccountStatus,
     GetIOUReport,
+    GetPolicyList,
     GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
+    Inbox_CallUser,
     Log,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
     Plaid_GetLinkToken,
+    Policy_Employees_Merge,
     Push_Authenticate,
     RejectTransaction,
     Report_AddComment,
@@ -880,6 +1010,8 @@ export {
     UpdateAccount,
     User_SignUp,
     User_GetBetas,
+    User_IsFromPublicDomain,
+    User_IsUsingExpensifyCard,
     User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
@@ -891,4 +1023,5 @@ export {
     Wallet_GetOnfidoSDKToken,
     GetPreferredCurrency,
     GetCurrencyList,
+    Policy_Create,
 };
