@@ -136,7 +136,7 @@ class AuthScreens extends React.Component {
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 
-        if (Permissions.canUseFreePlan(this.props.betas)) {
+        if (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas)) {
             getPolicySummaries();
             getPolicyList();
         }
