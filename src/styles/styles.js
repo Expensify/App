@@ -637,7 +637,7 @@ const styles = {
         color: themeColors.heading,
     },
 
-    createMenuItem: {
+    popoverMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
         paddingHorizontal: 20,
@@ -646,26 +646,26 @@ const styles = {
         width: '100%',
     },
 
-    createMenuIcon: {
+    popoverMenuIcon: {
         width: variables.componentSizeNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
 
-    createMenuIconEmphasized: {
+    popoverMenuIconEmphasized: {
         backgroundColor: themeColors.iconSuccessFill,
         borderRadius: variables.componentSizeLarge / 2,
     },
 
-    createMenuText: {
+    popoverMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
     },
 
-    createMenuDescription: {
+    popoverMenuDescription: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,

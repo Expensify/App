@@ -3,7 +3,7 @@ import BasePopoverMenu from './BasePopoverMenu';
 import {propTypes, defaultProps} from './PopoverMenuPropTypes';
 
 /**
- * The mobile native implementation of the CreateMenu needs to trigger actions after the popup closes
+ * The mobile native implementation of the PopoverMenu needs to trigger actions after the popup closes
  * We need to wait for the modal to close otherwise menu actions that trigger another modal
  * would not work
  */
