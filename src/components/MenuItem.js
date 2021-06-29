@@ -51,6 +51,9 @@ const propTypes = {
 
     /** Should we disable this menu item? */
     disabled: PropTypes.bool,
+
+    /** A right-aligned subtitle for this menu option */
+    subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 const defaultProps = {
@@ -66,6 +69,7 @@ const defaultProps = {
     iconFill: undefined,
     focused: false,
     disabled: false,
+    subtitle: undefined,
 };
 
 const MenuItem = ({
@@ -83,6 +87,7 @@ const MenuItem = ({
     iconFill,
     focused,
     disabled,
+    subtitle,
 }) => (
     <Pressable
         onPress={(e) => {
@@ -133,14 +138,25 @@ const MenuItem = ({
                         )}
                     </View>
                 </View>
-                {shouldShowRightIcon && (
-                    <View style={styles.popoverMenuIcon}>
-                        <Icon
-                            src={iconRight}
-                            fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
-                        />
-                    </View>
-                )}
+                <View style={[styles.flexRow, styles.menuItemTextContainer]}>
+                    {subtitle && (
+                        <View style={[styles.justifyContentCenter, styles.mr1]}>
+                            <Text
+                                style={styles.popoverMenuDescription}
+                            >
+                                {subtitle}
+                            </Text>
+                        </View>
+                    )}
+                    {shouldShowRightIcon && (
+                        <View style={styles.popoverMenuIcon}>
+                            <Icon
+                                src={iconRight}
+                                fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
+                            />
+                        </View>
+                    )}
+                </View>
             </>
         )}
     </Pressable>

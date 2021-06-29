@@ -1,3 +1,4 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 import {TextInput, View} from 'react-native';
 import _ from 'underscore';
