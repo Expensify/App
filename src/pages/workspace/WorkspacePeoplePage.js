@@ -68,15 +68,15 @@ class WorkspacePeoplePage extends React.Component {
     }
 
     /**
-    * Open the modal to invite a user
-    */
+     * Open the modal to invite a user
+     */
     inviteUser() {
         Navigation.navigate(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID));
     }
 
     /**
-    * Remove selected users from the workspace
-    */
+     * Remove selected users from the workspace
+     */
     removeUsers() {
         // Remove the admin from the list
         // eslint-disable-next-line max-len
@@ -89,24 +89,24 @@ class WorkspacePeoplePage extends React.Component {
     }
 
     /**
-    * Show the modal to confirm removal of the selected members
-    */
+     * Show the modal to confirm removal of the selected members
+     */
     askForConfirmationToRemove() {
         this.setState(prevState => ({...prevState, isRemoveMembersConfirmModalVisible: true}));
     }
 
     /**
-    * Hide the confirmation modal
-    */
+     * Hide the confirmation modal
+     */
     hideConfirmModal() {
         this.setState(prevState => ({...prevState, isRemoveMembersConfirmModalVisible: false}));
     }
 
     /**
-    * Add or remove user from the selectedEmployees list
-    *
-    * @param {Sting} login
-    */
+     * Add or remove user from the selectedEmployees list
+     *
+     * @param {Sting} login
+     */
     toggleUser(login) {
         if (login === 'ALL') {
             this.setState(prevState => ({
