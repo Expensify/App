@@ -2,7 +2,8 @@ import {Animated} from 'react-native';
 import variables from '../../../styles/variables';
 
 export default (
-    isSmallScreen,
+    isSmallScreenWidth,
+    isFullScreenModal,
     {
         current: {progress},
         inverted,
@@ -13,17 +14,24 @@ export default (
 ) => {
     const translateX = Animated.multiply(progress.interpolate({
         inputRange: [0, 1],
-        outputRange: [isSmallScreen ? screen.width : variables.sideBarWidth, 0],
+        outputRange: [isSmallScreenWidth ? screen.width : variables.sideBarWidth, 0],
         extrapolate: 'clamp',
     }), inverted);
+
+    const opacity = Animated.multiply(progress, inverted);
+    const cardStyle = {};
+
+    if (isFullScreenModal && !isSmallScreenWidth) {
+        cardStyle.opacity = opacity;
+    } else {
+        cardStyle.transform = [{translateX}];
+    }
 
     return ({
         containerStyle: {
             overflow: 'hidden',
         },
-        cardStyle: {
-            transform: [{translateX}],
-        },
+        cardStyle,
         overlayStyle: {
             opacity: progress.interpolate({
                 inputRange: [0, 1],

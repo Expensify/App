@@ -1,52 +1,53 @@
 name: E2E iOS Tests
 
 on:
-    pull_request:
-        types: [opened, synchronize]
-        branches-ignore: [staging, production]
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
 
 env:
-    DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer
 
 jobs:
-    test:
-        runs-on: macos-latest
-        steps:
-            - uses: actions/checkout@v2
-            - uses: actions/setup-ruby@v1
-              with:
-                ruby-version: '2.7'
+  test:
+    if: github.actor != 'OSBotify'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
 
-            - name: Install bundler
-              run: gem install bundler
+      - name: Install bundler
+        run: gem install bundler
 
-            - name: Install gems
-              run: bundle install
+      - name: Install gems
+        run: bundle install
 
-            - name: Install node packages
-              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
-              with:
-                timeout_minutes: 10
-                max_attempts: 5
-                command: npm ci
+      - name: Install node packages
+        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: npm ci
 
-            - name: Install detox
-              run: npm install -g detox-cli
+      - name: Install detox
+        run: npm install -g detox-cli
 
-            - name: Install cocoapods
-              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
-              with:
-                timeout_minutes: 15
-                max_attempts: 3
-                command: cd ios && pod install --repo-update
+      - name: Install cocoapods
+        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          command: cd ios && pod install --repo-update
 
-            - name: Install brew depdencies
-              run: |
-                brew tap wix/brew
-                brew install applesimutils
+      - name: Install brew depdencies
+        run: |
+          brew tap wix/brew
+          brew install applesimutils
 
-            - name: Build tests
-              run: detox build --configuration ios.sim.release
+      - name: Build tests
+        run: detox build --configuration ios.sim.release
 
-            - name: Run tests
-              run: detox test --configuration ios.sim.release --cleanup --debug-synchronization 200 --loglevel trace
+      - name: Run tests
+        run: detox test --configuration ios.sim.release --cleanup --debug-synchronization 200 --loglevel trace

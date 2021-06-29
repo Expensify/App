@@ -1,32 +1,33 @@
 name: Validate Github Actions
 
 on:
-    pull_request:
-        types: [opened, synchronize]
-        branches-ignore: [staging, production]
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
 
 jobs:
-    verify:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v2
+  verify:
+    if: github.actor != 'OSBotify'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-            - name: Use Node.js
-              uses: actions/setup-node@v1
-              with:
-                node-version: '14.x'
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
 
-            - name: Install node packages
-              uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
-              with:
-                  timeout_minutes: 10
-                  max_attempts: 5
-                  command: npm ci
+      - name: Install node packages
+        uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: npm ci
 
-            # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
-            # because that would be a sign that the PR author did not rebuild the Github Actions
-            - name: Verify Javascript Action Builds
-              run: ./.github/scripts/verifyActions.sh
+      # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
+      # because that would be a sign that the PR author did not rebuild the Github Actions
+      - name: Verify Javascript Action Builds
+        run: ./.github/scripts/verifyActions.sh
 
-            - name: Validate actions and workflows
-              run: npm run gh-actions-validate
+      - name: Validate actions and workflows
+        run: npm run gh-actions-validate

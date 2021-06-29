@@ -193,6 +193,7 @@ const OptionRow = ({
                                     tooltipEnabled={showTitleTooltip}
                                     numberOfLines={1}
                                     textStyles={displayNameStyle}
+                                    shouldUseFullTitle={option.isDefaultChatRoom}
                                 />
                                 {option.alternateText ? (
                                     <Text

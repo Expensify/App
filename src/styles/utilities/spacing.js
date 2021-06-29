@@ -32,6 +32,7 @@ export default {
     mv1: {
         marginVertical: 4,
     },
+
     mv2: {
         marginVertical: 8,
     },
@@ -134,6 +135,10 @@ export default {
 
     mb6: {
         marginBottom: 24,
+    },
+
+    mb8: {
+        marginBottom: 32,
     },
 
     mbn1: {
