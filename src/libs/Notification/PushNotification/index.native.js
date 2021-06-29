@@ -78,8 +78,6 @@ function register(accountID) {
 
                 // If a push notification is received while the app is in foreground,
                 // we'll assume pusher is connected so we'll ignore is and not fetch the same data twice.
-                // However, we allow NotificationResponse events through, so that tapping on a foreground notification
-                // will take you to the relevant report.
                 if (AppState.currentState === 'active') {
                     // eslint-disable-next-line max-len
                     console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');

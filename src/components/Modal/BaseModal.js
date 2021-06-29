@@ -33,18 +33,22 @@ class BaseModal extends PureComponent {
     }
 
     componentWillUnmount() {
-        this.hideModalAndRemoveEventListeners();
+        // we don't want to call the onModalHide on unmount
+        this.hideModalAndRemoveEventListeners(this.props.isVisible);
     }
 
     /**
      * Hides modal and unsubscribes from key event listeners
+     * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
      */
-    hideModalAndRemoveEventListeners() {
+    hideModalAndRemoveEventListeners(callHideCallback = true) {
         this.unsubscribeFromKeyEvents();
         if (this.props.shouldSetModalVisibility) {
             setModalVisibility(false);
         }
-        this.props.onModalHide();
+        if (callHideCallback) {
+            this.props.onModalHide();
+        }
     }
 
     /**

@@ -70,7 +70,9 @@ const styles = {
     },
 
     textMicro: {
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textMicroBold: {
@@ -80,6 +82,13 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    textMicroSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -87,6 +96,11 @@ const styles = {
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
+    },
+
+    textItalic: {
+        fontFamily: fontFamily.GTA_ITALIC,
+        fontStyle: 'italic',
     },
 
     textDecorationNoLine: {
@@ -113,6 +127,14 @@ const styles = {
         color: themeColors.heading,
     },
 
+    bgTransparent: {
+        backgroundColor: 'transparent',
+    },
+
+    textDanger: {
+        color: colors.red,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -137,6 +159,23 @@ const styles = {
         paddingBottom: 6,
         paddingLeft: 10,
         backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    buttonLarge: {
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeLarge,
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
+    },
+
+    buttonLargeText: {
+        fontSize: variables.fontSizeLarge,
+        lineHeight: 18,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
     },
 
     buttonSmallText: {
@@ -195,6 +234,10 @@ const styles = {
 
     hoveredComponentBG: {
         backgroundColor: themeColors.hoverComponentBG,
+    },
+
+    activeComponentBG: {
+        backgroundColor: themeColors.activeComponentBG,
     },
 
     touchableButtonImage: {
@@ -289,6 +332,12 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    border: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+    },
+
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -344,6 +393,10 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         textAlignVertical: 'center',
+    },
+
+    disabledText: {
+        color: colors.gray3,
     },
 
     disabledTextInput: {
@@ -455,13 +508,6 @@ const styles = {
         lineHeight: 16,
     },
 
-    textMicroSupporting: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-    },
-
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,
@@ -553,6 +599,11 @@ const styles = {
     sidebarListItem: {
         justifyContent: 'center',
         textDecorationLine: 'none',
+    },
+
+    singleEmojiText: {
+        fontSize: variables.fontSizeSingleEmoji,
+        lineHeight: variables.fontSizeSingleEmojiHeight,
     },
 
     createMenuPositionSidebar: {
@@ -1026,6 +1077,13 @@ const styles = {
         borderRadius: 18,
     },
 
+    singleAvatarLarge: {
+        height: 64,
+        width: 64,
+        backgroundColor: themeColors.icon,
+        borderRadius: 64,
+    },
+
     secondAvatar: {
         position: 'absolute',
         right: -18,
@@ -1121,6 +1179,11 @@ const styles = {
 
     borderBottom: {
         borderBottomWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderRight: {
+        borderRightWidth: 1,
         borderColor: themeColors.border,
     },
 
@@ -1233,6 +1296,21 @@ const styles = {
         ...spacing.mv1,
         ...spacing.mh1,
         ...{borderRadius: variables.componentBorderRadiusSmall},
+    },
+
+    reportDetailsTitleContainer: {
+        ...flex.dFlex,
+        ...flex.flexColumn,
+        ...flex.alignItemsCenter,
+        ...spacing.mt4,
+        height: 150,
+    },
+
+    reportDetailsRoomInfo: {
+        ...flex.flex1,
+        ...flex.dFlex,
+        ...flex.flexColumn,
+        ...flex.alignItemsCenter,
     },
 
     reportTransactionWrapper: {
@@ -1550,9 +1628,70 @@ const styles = {
         cursor: 'not-allowed',
     },
 
-    textItalic: {
-        fontFamily: fontFamily.GTA_ITALIC,
-        fontStyle: 'italic',
+    fullscreenCard: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: '100%',
+        height: '100%',
+    },
+
+    fullscreenCardWeb: {
+        left: 'auto',
+        right: '-24%',
+        top: '-18%',
+        height: '120%',
+    },
+
+    fullscreenCardMobile: {
+        left: '-20%',
+        top: '-30%',
+        width: '150%',
+    },
+
+    workspaceSidebarAvatar: {
+        width: 80,
+        height: 80,
+    },
+
+    workspaceSidebarAvatarPencil: {
+        width: 32,
+        height: 32,
+        position: 'absolute',
+        right: -1,
+        bottom: -1,
+        backgroundColor: themeColors.icon,
+        color: themeColors.textReversed,
+        borderRadius: 32,
+        borderWidth: 3,
+        borderColor: themeColors.textReversed,
+    },
+
+    workspaceCard: {
+        width: '100%',
+        height: 400,
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        backgroundColor: themeColors.heroCard,
+    },
+
+    workspaceCardMobile: {
+        height: 475,
+    },
+
+    workspaceCardMainText: {
+        fontSize: variables.fontSizeXXXLarge,
+        fontWeight: 'bold',
+        lineHeight: variables.fontSizeXXXLarge,
+    },
+
+    workspaceCardContent: {
+        zIndex: 1,
+        padding: 50,
+    },
+
+    workspaceCardCTA: {
+        width: 250,
     },
 
     workspaceInviteWelcome: {
@@ -1788,10 +1927,11 @@ function getBadgeColorStyle(isOwner, isPressed = false) {
  */
 function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
+        case CONST.BUTTON_STATES.ACTIVE:
             return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
             return {};
@@ -1806,13 +1946,14 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  */
 function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
+        case CONST.BUTTON_STATES.ACTIVE:
             return themeColors.text;
         case CONST.BUTTON_STATES.PRESSED:
             return themeColors.heading;
         case CONST.BUTTON_STATES.COMPLETE:
             return themeColors.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
+        case CONST.BUTTON_STATES.DISABLED:
         default:
             return themeColors.icon;
     }

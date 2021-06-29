@@ -34,12 +34,10 @@ function clear() {
 
 /**
  * Exposes the current focus state of the report action composer.
- *
+ * @return {Boolean} isFocused
  */
 function isFocused() {
-    if (composerRef.current) {
-        composerRef.current.isFocused();
-    }
+    return composerRef.current && composerRef.current.isFocused();
 }
 
 export default {

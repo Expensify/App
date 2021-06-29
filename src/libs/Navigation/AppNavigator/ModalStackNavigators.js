@@ -24,6 +24,8 @@ import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPag
 import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
+import RequestCallPage from '../../../pages/RequestCallPage';
+import ReportDetailsPage from '../../../pages/ReportDetailsPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -82,6 +84,11 @@ const IOUDetailsModalStackNavigator = createModalStackNavigator([{
 const DetailsModalStackNavigator = createModalStackNavigator([{
     Component: DetailsPage,
     name: 'Details_Root',
+}]);
+
+const ReportDetailsModalStackNavigator = createModalStackNavigator([{
+    Component: ReportDetailsPage,
+    name: 'Report_Details_Root',
 }]);
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
@@ -170,11 +177,17 @@ const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
     name: 'WorkspaceInvite_Root',
 }]);
 
+const RequestCallModalStackNavigator = createModalStackNavigator([{
+    Component: RequestCallPage,
+    name: 'RequestCall_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
+    ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
@@ -185,4 +198,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
+    RequestCallModalStackNavigator,
 };

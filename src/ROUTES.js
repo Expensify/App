@@ -10,6 +10,7 @@ const REPORT = 'r';
 export default {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
+    getBankAccountRoute: stepToOpen => `bank-account/${stepToOpen}`,
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -45,13 +46,18 @@ export default {
     getReportParticipantsRoute: reportID => `r/${reportID}/participants`,
     REPORT_PARTICIPANT: 'r/:reportID/participants/:login',
     getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
+    REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
+    getReportDetailsRoute: reportID => `r/${reportID}/details`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
     ENABLE_PAYMENTS: 'enable-payments',
+    WORKSPACE: 'workspace',
     WORKSPACE_NEW: 'workspace/new',
+    WORKSPACE_CARD: 'workspace/card',
     getWorkspaceRoute: policyID => `workspace/${policyID}`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
+    REQUEST_CALL: 'request-call',
 
     /**
      * @param {String} route

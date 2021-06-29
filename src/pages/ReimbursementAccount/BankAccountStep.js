@@ -129,8 +129,14 @@ class BankAccountStep extends React.Component {
                                 onPress={() => {
                                     this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
                                 }}
+                                disabled={this.props.isPlaidDisabled}
                                 shouldShowRightIcon
                             />
+                            {this.props.isPlaidDisabled && (
+                                <Text style={[styles.formError, styles.mh5]}>
+                                    {this.props.translate('bankAccount.error.tooManyAttempts')}
+                                </Text>
+                            )}
                             <MenuItem
                                 icon={Paycheck}
                                 title={this.props.translate('bankAccount.connectManually')}
@@ -199,7 +205,7 @@ class BankAccountStep extends React.Component {
                                 LabelComponent={() => (
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         <Text>
-                                            {this.props.translate('bankAccount.iAcceptThe')}
+                                            {this.props.translate('common.iAcceptThe')}
                                         </Text>
                                         <TextLink href="https://use.expensify.com/terms">
                                             {`Expensify ${this.props.translate('common.termsOfService')}`}

@@ -41,7 +41,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
     3. If there is no existing issue or Upwork job, create a new GitHub issue in the Expensify.cash repo.
     4. Make sure to fill out all the required information fields in the issue template.
     5. Add the `AutoAssignerTriage` label to your issue.
-    6. Optional: If you would like to solve the bug or enhancement that you are proposing, please add a comment on your issue with a solution proposal.
+    6. Before starting your PR to solve the bug or enhancement that you are proposing, please add a comment on your issue with a solution proposal. 
     7. Pause on this step until a member of the Expensify team responds on your issue with next steps.
 
 >**Note:** Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with results that are difficult to measure. We also prefer to identify and solve problems at their root. Given that, please ensure all proposed jobs fix a specific problem in a measurable way with evidence so they are easy to evaluate. Here's an example of a good problem/solution:

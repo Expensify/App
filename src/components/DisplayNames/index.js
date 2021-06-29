@@ -88,23 +88,25 @@ class DisplayNames extends PureComponent {
                 numberOfLines={1}
                 ref={el => this.containerRef = el}
             >
-                {_.map(this.props.displayNamesWithTooltips, ({displayName, tooltip}, index) => (
-                    <Fragment key={index}>
-                        <Tooltip
-                            key={index}
-                            text={tooltip}
-                            containerStyle={styles.dInline}
-                            shiftHorizontal={() => this.getTooltipShiftX(index)}
-                        >
-                            {/*  // We need to get the refs to all the names which will be used to correct
-                                 the horizontal position of the tooltip */}
-                            <Text ref={el => this.childRefs[index] = el}>
-                                {displayName}
-                            </Text>
-                        </Tooltip>
-                        {index < this.props.displayNamesWithTooltips.length - 1 && <Text>,&nbsp;</Text>}
-                    </Fragment>
-                ))}
+                {this.props.shouldUseFullTitle
+                    ? this.props.fullTitle
+                    : _.map(this.props.displayNamesWithTooltips, ({displayName, tooltip}, index) => (
+                        <Fragment key={index}>
+                            <Tooltip
+                                key={index}
+                                text={tooltip}
+                                containerStyle={styles.dInline}
+                                shiftHorizontal={() => this.getTooltipShiftX(index)}
+                            >
+                                {/*  // We need to get the refs to all the names which will be used to correct
+                                    the horizontal position of the tooltip */}
+                                <Text ref={el => this.childRefs[index] = el}>
+                                    {displayName}
+                                </Text>
+                            </Tooltip>
+                            {index < this.props.displayNamesWithTooltips.length - 1 && <Text>,&nbsp;</Text>}
+                        </Fragment>
+                    ))}
                 {this.props.displayNamesWithTooltips.length > 1 && this.state.isEllipsisActive
                     && (
                         <View style={styles.displayNameTooltipEllipsis}>

@@ -4,12 +4,12 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
-import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {getReportParticipantsTitle} from './reportUtils';
+import {getReportParticipantsTitle, isDefaultRoom} from './reportUtils';
 import {translate} from './translate';
 import Permissions from './Permissions';
+import md5 from './md5';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -18,8 +18,45 @@ import Permissions from './Permissions';
  */
 
 let currentUserLogin;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => currentUserLogin = val && val.email,
+});
+
 let countryCodeByIP;
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY_CODE,
+    callback: val => countryCodeByIP = val || 1,
+});
+
 let preferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
+});
+
+const policies = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (policy) => {
+        if (policy && policy.id) {
+            policies[policy.id] = policy;
+        }
+    },
+});
+
+/**
+ * Helper method to return a default avatar
+ *
+ * @param {String} [login]
+ * @returns {String}
+ */
+function getDefaultAvatar(login = '') {
+    // There are 8 possible default avatars, so we choose which one this user has based
+    // on a simple hash of their login (which is converted from HEX to INT)
+    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+}
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
@@ -107,6 +144,11 @@ function getSearchText(report, personalDetailList) {
         searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
         searchTerms.push(...report.participants);
+
+        // Add policy name as a search term for default rooms
+        if (isDefaultRoom(report) && policies[report.policyID]) {
+            searchTerms.push(...policies[report.policyID].name);
+        }
     }
 
     return _.unique(searchTerms).join(' ');
@@ -119,9 +161,12 @@ function getSearchText(report, personalDetailList) {
  * @param {Object} [report]
  * @param {Object} draftComments
  * @param {Boolean} showChatPreviewLine
+ * @param {Boolean} forcePolicyNamePreview
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, {showChatPreviewLine = false}) {
+function createOption(personalDetailList, report, draftComments, {
+    showChatPreviewLine = false, forcePolicyNamePreview = false,
+}) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = report
@@ -136,15 +181,31 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
             : '')
         + _.unescape(report.lastMessageText)
         : '';
+
+    const isDefaultChatRoom = isDefaultRoom(report);
+    const policyInfo = policies[lodashGet(report, ['policyID'], '')];
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
-    const fullTitle = personalDetailList
-        .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
-        .join(', ');
-    return {
-        text: hasMultipleParticipants ? fullTitle : report?.reportName || personalDetail.displayName,
-        alternateText: (showChatPreviewLine && lastMessageText)
+
+    let text;
+    let alternateText;
+    if (isDefaultChatRoom) {
+        text = lodashGet(report, ['reportName'], '');
+        alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
-            : Str.removeSMSDomain(personalDetail.login),
+            : lodashGet(policyInfo, ['name'], 'Unknown Policy');
+    } else {
+        text = hasMultipleParticipants
+            ? personalDetailList
+                .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
+                .join(', ')
+            : lodashGet(report, ['reportName'], personalDetail.displayName);
+        alternateText = (showChatPreviewLine && lastMessageText)
+            ? lastMessageText
+            : Str.removeSMSDomain(personalDetail.login);
+    }
+    return {
+        text,
+        alternateText,
         icons: report ? report.icons : [personalDetail.avatar],
         tooltipText,
         participantsList: personalDetailList,
@@ -160,23 +221,9 @@ function createOption(personalDetailList, report, draftComments, {showChatPrevie
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
+        isDefaultChatRoom,
     };
 }
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => currentUserLogin = val && val.email,
-});
-
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY_CODE,
-    callback: val => countryCodeByIP = val || 1,
-});
-
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
-});
 
 /**
  * Searches for a match when provided with a value
@@ -224,6 +271,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     showReportsWithNoComments = false,
     hideReadReports = false,
     sortByAlphaAsc = false,
+    forcePolicyNamePreview = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
@@ -254,6 +302,11 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
             return;
         }
+
+        if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+            return;
+        }
+
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
@@ -263,12 +316,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         }
         allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, {
             showChatPreviewLine,
+            forcePolicyNamePreview,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
         createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, {
             showChatPreviewLine,
+            forcePolicyNamePreview,
         })
     ));
 
@@ -396,6 +451,7 @@ function getSearchOptions(
         showReportsWithNoComments: true,
         includePersonalDetails: true,
         sortByLastMessageTimestamp: false,
+        forcePolicyNamePreview: true,
     });
 }
 
@@ -561,6 +617,27 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
     };
 }
 
+/**
+ * Returns the appropriate icons for the given chat report using personalDetails if applicable
+ *
+ * @param {Object} report
+ * @param {Object} personalDetails
+ * @returns {String}
+ */
+function getReportIcons(report, personalDetails) {
+    if (isDefaultRoom(report)) {
+        // Placeholder image for default rooms soon to be updated
+        return [`${CONST.CLOUDFRONT_URL}/images/avatars/default_avatar_external.png`];
+    }
+    return _.map(report.participants, dmParticipant => ({
+        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
+            || getDefaultAvatar(dmParticipant),
+    }))
+        .sort((first, second) => first.firstName - second.firstName)
+        .map(item => item.avatar);
+}
+
 export {
     getSearchOptions,
     getNewChatOptions,
@@ -571,4 +648,6 @@ export {
     getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
+    getDefaultAvatar,
+    getReportIcons,
 };

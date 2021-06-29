@@ -165,6 +165,10 @@ class ReportActionItem extends Component {
      * @param {string} [selection] - A copy text.
      */
     showPopover(event, selection) {
+        // Block menu on the message being Edited
+        if (this.props.draftMessage) {
+            return;
+        }
         const nativeEvent = event.nativeEvent || {};
         this.selection = selection;
         this.capturePressLocation(nativeEvent).then(() => {
@@ -261,6 +265,7 @@ class ReportActionItem extends Component {
                                     isVisible={
                                         hovered
                                         && !this.state.isPopoverVisible
+                                        && !this.props.draftMessage
                                     }
                                     draftMessage={this.props.draftMessage}
                                     hidePopover={this.hidePopover}

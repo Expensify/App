@@ -61,6 +61,11 @@ export default {
                     },
                 },
             },
+            Report_Details: {
+                screens: {
+                    Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                },
+            },
             NewGroup: {
                 screens: {
                     NewGroup_Root: ROUTES.NEW_GROUP,
@@ -127,6 +132,19 @@ export default {
             NewWorkspace: {
                 screens: {
                     NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
+                },
+            },
+
+            WorkspaceSettings: {
+                screens: {
+                    Workspace_Root: ROUTES.WORKSPACE,
+                    WorkspaceCard: ROUTES.WORKSPACE_CARD,
+                },
+            },
+
+            RequestCall: {
+                screens: {
+                    RequestCall_Root: ROUTES.REQUEST_CALL,
                 },
             },
         },
