@@ -54,7 +54,6 @@ import {
     ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
-    WorkspacePeopleModalStackNavigator,
     RequestCallModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
