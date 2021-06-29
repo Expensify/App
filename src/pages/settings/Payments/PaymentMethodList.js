@@ -90,6 +90,8 @@ class PaymentMethodList extends Component {
         _.each(this.props.bankAccountList, (bankAccount) => {
             combinedPaymentMethods.push({
                 title: bankAccount.addressName,
+
+                // eslint-disable-next-line
                 description: `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`,
                 icon: Bank,
                 onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
@@ -101,6 +103,8 @@ class PaymentMethodList extends Component {
             if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
                 combinedPaymentMethods.push({
                     title: card.cardName,
+
+                    // eslint-disable-next-line
                     description: `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`,
                     icon: CreditCard,
                     onPress: e => this.props.onPress(e, card.cardID),
