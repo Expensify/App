@@ -19,7 +19,7 @@ function getPaymentMethods() {
                 [ONYXKEYS.BANK_ACCOUNT_LIST]: lodashGet(response, 'bankAccountList', []),
                 [ONYXKEYS.CARD_LIST]: lodashGet(response, 'cardList', []),
                 [ONYXKEYS.NVP_PAYPAL_ME_ADDRESS]:
-                    lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, ''),
+                    lodashGet(response, ['nameValuePairs', CONST.NVP.PAYPAL_ME_ADDRESS], ''),
             });
         });
 }
