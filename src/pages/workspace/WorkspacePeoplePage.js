@@ -1,4 +1,5 @@
 import React, { Fragment } from 'react';
+import _ from 'underscore';
 import {
     View, FlatList, ScrollView,
 } from 'react-native';
@@ -79,27 +80,26 @@ class WorkspacePeoplePage extends React.Component {
      */
     removeUsers() {
         // Remove the admin from the list
-        // eslint-disable-next-line max-len
-        removeMembers(this.state.selectedEmployees.filter(email => email !== this.props.session.email), this.props.route.params.policyID);
-        this.setState(prevState => ({
-            ...prevState,
+        const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
+        removeMembers(membersToRemove, this.props.route.params.policyID);
+        this.setState({
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
-        }));
+        });
     }
 
     /**
      * Show the modal to confirm removal of the selected members
      */
     askForConfirmationToRemove() {
-        this.setState(prevState => ({...prevState, isRemoveMembersConfirmModalVisible: true}));
+        this.setState({isRemoveMembersConfirmModalVisible: true});
     }
 
     /**
      * Hide the confirmation modal
      */
     hideConfirmModal() {
-        this.setState(prevState => ({...prevState, isRemoveMembersConfirmModalVisible: false}));
+        this.setState({isRemoveMembersConfirmModalVisible: false});
     }
 
     /**
@@ -110,18 +110,16 @@ class WorkspacePeoplePage extends React.Component {
     toggleUser(login) {
         if (login === 'ALL') {
             this.setState(prevState => ({
-                ...prevState,
-                selectedEmployees: prevState.selectedEmployees.length !== this.props.policy.employeeList.length
-                    ? this.props.policy.employeeList
+                selectedEmployees: this.props.policy.employeeList.length !== prevState.selectedEmployees.length 
+                    ? this.props.policy.employeeList 
                     : [],
             }));
             return;
         }
 
         this.setState(prevState => ({
-            ...prevState,
-            selectedEmployees: prevState.selectedEmployees.includes(login)
-                ? prevState.selectedEmployees.filter(item => item !== login)
+            selectedEmployees: _.contains(prevState.selectedEmployees, login)
+                ? _.without(prevState.selectedEmployees, login)
                 : [...prevState.selectedEmployees, login],
         }));
     }
@@ -248,7 +246,7 @@ class WorkspacePeoplePage extends React.Component {
                     danger
                     title={this.props.translate('workspace.people.removeMembersTitle')}
                     isVisible={this.state.isRemoveMembersConfirmModalVisible}
-                    onConfirm={this.removeUsers}
+                    onConfirm={() => this.removeUsers()}
                     onCancel={this.hideConfirmModal}
                     prompt={this.props.translate('workspace.people.removeMembersPrompt')}
                     confirmText={this.props.translate('common.remove')}
@@ -261,7 +259,7 @@ class WorkspacePeoplePage extends React.Component {
                                 success
                                 style={[]}
                                 text={this.props.translate('common.invite')}
-                                onPress={this.inviteUser}
+                                onPress={() => this.inviteUser()}
                             />
                             <Button
                                 danger
