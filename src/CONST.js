@@ -88,6 +88,10 @@ const CONST = {
         COMPLETE: 'complete',
         DISABLED: 'disabled',
     },
+    CARD_TYPES: {
+        /** This is a default card type that all users have. It is just a placeholder, not an actual card */
+        DEFAULT_CASH: '__CASH__',
+    },
     COUNTRY: {
         US: 'US',
         MX: 'MX',
