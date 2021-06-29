@@ -24,8 +24,15 @@ jobs:
         with:
           ruby-version: '2.7'
 
+      - uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+
       - name: Install bundler
-        run: gem install bundler
+        run: |
+          bundle config path vendor/bundle
+          gem install bundler
 
       - name: Install gems
         run: bundle install
@@ -140,8 +147,15 @@ jobs:
         with:
           ruby-version: '2.7'
 
+      - uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+
       - name: Install bundler
-        run: gem install bundler
+        run: |
+          bundle config path vendor/bundle
+          gem install bundler
 
       - name: Install gems
         run: bundle install
