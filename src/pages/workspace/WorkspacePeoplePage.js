@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import _ from 'underscore';
 import {
     View, FlatList, ScrollView,
@@ -143,7 +143,7 @@ class WorkspacePeoplePage extends React.Component {
             <View style={[styles.peopleRow]}>
                 <View style={[styles.peopleRowCell, styles.peopleCheckbox]}>
                     <Checkbox
-                        isChecked={this.state.selectedEmployees.includes(item.login)}
+                        isChecked={_.contains(this.state.selectedEmployees, item.login)}
                         onPress={() => this.toggleUser(item.login)}
                     />
                 </View>
@@ -166,7 +166,7 @@ class WorkspacePeoplePage extends React.Component {
                             </View>
                         </View>
                     ) : (
-                        <Fragment>
+                        <>
                             <View style={[styles.peopleRowCell, styles.flex4]}>
                                 <View style={[styles.avatarWithName]}>
                                     <Avatar
@@ -183,7 +183,7 @@ class WorkspacePeoplePage extends React.Component {
                                     {item.login}
                                 </Text>
                             </View>
-                        </Fragment>
+                        </>
                     )
                 }
                 <View style={[
