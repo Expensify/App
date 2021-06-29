@@ -15,6 +15,7 @@ class PressableWithSecondaryInteraction extends Component {
         super(props);
 
         this.executeSecondaryInteractionOnContextMenu = this.executeSecondaryInteractionOnContextMenu.bind(this);
+        this.preventDefault = this.preventDefault.bind(this);
     }
 
     componentDidMount() {
@@ -34,7 +35,7 @@ class PressableWithSecondaryInteraction extends Component {
      * @param {touchstart} e - TouchEvent.
      * https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent
      */
-    preventDefault = (e) => {
+    preventDefault(e) {
         e.preventDefault();
     }
 
