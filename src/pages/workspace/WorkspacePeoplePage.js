@@ -147,7 +147,7 @@ class WorkspacePeoplePage extends React.Component {
                     />
                 </View>
                 {
-                    this.props.isSmallScreenWidth ? (
+                    this.props.windowWidth < 1100 ? (
                         <View style={[styles.peopleRowCell, styles.mobileAvatarWithName]}>
                             <View style={[styles.avatarWithName]}>
                                 <Avatar
@@ -188,7 +188,7 @@ class WorkspacePeoplePage extends React.Component {
                 <View style={[
                     styles.peopleRowCell,
                     styles.peopleBadgesContainer,
-                    this.props.isSmallScreenWidth ? styles.peopleBadgesMobile : styles.peopleBadgesContainerDesktop,
+                    this.props.windowWidth < 1100 ? styles.peopleBadgesMobile : styles.peopleBadgesContainerDesktop,
                 ]}>
                     {
                         this.props.session.email === item.login && (
@@ -221,7 +221,7 @@ class WorkspacePeoplePage extends React.Component {
                     </Text>
                 </View>
                 {
-                    !this.props.isSmallScreenWidth && (
+                    this.props.windowWidth >= 1100 && (
                         <View style={[styles.peopleRowCell, styles.flex4]}>
                             <Text style={[styles.textStrong]}>
                                 {this.props.translate('common.email')}
