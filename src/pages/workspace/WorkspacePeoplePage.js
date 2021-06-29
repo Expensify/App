@@ -61,9 +61,6 @@ class WorkspacePeoplePage extends React.Component {
             isRemoveMembersConfirmModalVisible: false,
         };
 
-        this.inviteUser = this.inviteUser.bind(this);
-        this.removeUsers = this.removeUsers.bind(this);
-        this.toggleUser = this.toggleUser.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.renderHeader = this.renderHeader.bind(this);
         this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
