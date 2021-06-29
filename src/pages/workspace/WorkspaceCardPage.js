@@ -72,7 +72,7 @@ const WorkspaceCardPage = ({
             <HeaderWithCloseButton
                 title={translate('workspace.common.card')}
                 onCloseButtonPress={() => Navigation.dismissModal()}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.WORKSPACE)}
+                onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton={isSmallScreenWidth}
             />
             <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
