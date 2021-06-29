@@ -13,6 +13,12 @@ const propTypes = {
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
 
+    /** Function to get a filtered result as list */
+    searchSections: PropTypes.func,
+
+    /** Function to get header message from parent component */
+    getCustomHeaderMessage: PropTypes.func,
+
     /** Sections for the section list */
     sections: PropTypes.arrayOf(PropTypes.shape({
         /** Title of the section */
@@ -28,20 +34,11 @@ const propTypes = {
         shouldShow: PropTypes.bool,
     })).isRequired,
 
-    /** Value in the search input field */
-    value: PropTypes.string.isRequired,
-
-    /** Callback fired when text changes */
-    onChangeText: PropTypes.func.isRequired,
-
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
 
     /** Options that have already been selected */
     selectedOptions: PropTypes.arrayOf(optionPropTypes),
-
-    /** Optional header message */
-    headerMessage: PropTypes.string,
 
     /** Whether we can select multiple options */
     canSelectMultipleOptions: PropTypes.bool,
@@ -69,9 +66,10 @@ const propTypes = {
 
 const defaultProps = {
     onSelectRow: () => {},
+    searchSections: () => {},
+    getCustomHeaderMessage: () => {},
     placeholderText: '',
     selectedOptions: [],
-    headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
     disableArrowKeysActions: false,
@@ -86,16 +84,30 @@ class OptionsSelector extends Component {
         super(props);
 
         this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.onChangeText = this.onChangeText.bind(this);
         this.selectRow = this.selectRow.bind(this);
         this.viewableItems = [];
+        this.searchValue = '';
 
         this.state = {
             focusedIndex: 0,
+            sections: props.sections,
         };
     }
 
     componentDidMount() {
         this.textInput.focus();
+    }
+
+    /**
+     * Updates sections filtered by searchValue
+     *
+     * @param {String} searchValue
+     */
+    onChangeText(searchValue) {
+        const sections = this.props.searchSections(searchValue);
+        this.searchValue = searchValue;
+        this.setState({sections});
     }
 
     /**
@@ -195,9 +207,8 @@ class OptionsSelector extends Component {
                         styleFocusIn={[styles.textInputReversedFocus]}
                         ref={el => this.textInput = el}
                         style={[styles.textInput]}
-                        value={this.props.value}
-                        onChangeText={this.props.onChangeText}
                         onKeyPress={this.handleKeyPress}
+                        onChangeText={this.onChangeText}
                         placeholder={this.props.placeholderText
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                         placeholderTextColor={themeColors.placeholderText}
@@ -207,12 +218,12 @@ class OptionsSelector extends Component {
                     ref={el => this.list = el}
                     optionHoveredStyle={styles.hoveredComponentBG}
                     onSelectRow={this.selectRow}
-                    sections={this.props.sections}
+                    sections={this.state.sections}
                     focusedIndex={this.state.focusedIndex}
                     selectedOptions={this.props.selectedOptions}
                     canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                     hideSectionHeaders={this.props.hideSectionHeaders}
-                    headerMessage={this.props.headerMessage}
+                    headerMessage={this.props.getCustomHeaderMessage(this.searchValue)}
                     disableFocusOptions={this.props.disableArrowKeysActions}
                     hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                     forceTextUnreadStyle={this.props.forceTextUnreadStyle}
