@@ -90,7 +90,7 @@ const run = function () {
             const tag = newVersion || currentStagingDeployCashData.tag;
 
             // Find the list of PRs merged between the last StagingDeployCash and the new version
-            const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newVersion);
+            const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, tag);
             console.log(
                 'The following PRs have been merged between the previous StagingDeployCash and new version:',
                 mergedPRs,
