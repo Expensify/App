@@ -55,7 +55,7 @@ const defaultProps = {
 };
 
 class ReportActionContextMenu extends React.Component {
-    // This is a dummy change for a dummy PR
+    // This is a second dummy change for a dummy PR
     constructor(props) {
         super(props);
 
