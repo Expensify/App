@@ -16,6 +16,7 @@ export default {
         password: 'Contraseña',
         profile: 'Perfil',
         payments: 'Pagos',
+        payPalMe: 'PayPal.me',
         preferences: 'Preferencias',
         view: 'Ver',
         not: 'No',
