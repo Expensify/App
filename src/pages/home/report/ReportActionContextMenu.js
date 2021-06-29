@@ -9,7 +9,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import {
-    setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft, deleteReportComment,
+    setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft,
 } from '../../../libs/actions/Report';
 import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -17,7 +17,6 @@ import Clipboard from '../../../libs/Clipboard';
 import compose from '../../../libs/compose';
 import {isReportMessageAttachment, canEditReportAction} from '../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ConfirmModal from '../../../components/ConfirmModal';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
@@ -44,6 +43,9 @@ const propTypes = {
     /** Function to dismiss the popover containing this menu */
     hidePopover: PropTypes.func.isRequired,
 
+    /** Function to show the delete Action confirmation modal */
+    showDeleteModal: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -58,8 +60,6 @@ class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
 
-        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
-        this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.getActionText = this.getActionText.bind(this);
         this.hidePopover = this.hidePopover.bind(this);
 
@@ -135,15 +135,19 @@ class ReportActionContextMenu extends React.Component {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
                 shouldShow: () => canEditReportAction(this.props.reportAction),
-                onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
+                onPress: () => {
+                    if (this.props.isMini) {
+                        // No popover to hide, call showDeleteModal immediately
+                        this.props.showDeleteModal();
+                    } else {
+                        // Hide popover, then call showDeleteModal
+                        this.hidePopover(false, this.props.showDeleteModal);
+                    }
+                },
             },
         ];
 
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
-
-        this.state = {
-            isDeleteCommentConfirmModalVisible: false,
-        };
     }
 
     /**
@@ -154,17 +158,6 @@ class ReportActionContextMenu extends React.Component {
     getActionText() {
         const message = _.last(lodashGet(this.props.reportAction, 'message', null));
         return lodashGet(message, 'text', '');
-    }
-
-    confirmDeleteAndHideModal() {
-        deleteReportComment(this.props.reportID, this.props.reportAction);
-        this.setState({isDeleteCommentConfirmModalVisible: false});
-        this.hidePopover();
-    }
-
-    hideDeleteConfirmModal() {
-        this.setState({isDeleteCommentConfirmModalVisible: false});
-        this.hidePopover();
     }
 
     /**
@@ -196,15 +189,6 @@ class ReportActionContextMenu extends React.Component {
                         onPress={() => contextAction.onPress(this.props.reportAction)}
                     />
                 ))}
-                <ConfirmModal
-                    title={this.props.translate('reportActionContextMenu.deleteComment')}
-                    isVisible={this.state.isDeleteCommentConfirmModalVisible}
-                    onConfirm={this.confirmDeleteAndHideModal}
-                    onCancel={this.hideDeleteConfirmModal}
-                    prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
-                    confirmText={this.props.translate('common.delete')}
-                    cancelText={this.props.translate('common.cancel')}
-                />
             </View>
         );
     }
