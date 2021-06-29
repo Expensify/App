@@ -18,7 +18,7 @@ const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** Users paypal.me username if they have one */
+    /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
 
     /** Array of bank account objects */

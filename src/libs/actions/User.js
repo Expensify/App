@@ -64,7 +64,7 @@ function getBetas() {
 function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
-        nvpNames: `${CONST.NVP.BLOCKED_FROM_CONCIERGE}`,
+        nvpNames: CONST.NVP.BLOCKED_FROM_CONCIERGE,
     })
         .then((response) => {
             // Update the User onyx key
