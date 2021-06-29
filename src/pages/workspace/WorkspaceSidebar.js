@@ -37,10 +37,9 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
         {
             translationKey: 'common.people',
             icon: Users,
-            action: () => {
-                return false
-                // Navigation.navigate(ROUTES.getWorkspacePeopleRoute(props.route.params.policyID));
-            },
+
+            // action: () => Navigation.navigate(ROUTES.getWorkspacePeopleRoute(props.route.params.policyID));
+            action: () => false,
             isActive: Navigation.isActive(ROUTES.WORKSPACE_PEOPLE),
         },
     ];

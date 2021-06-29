@@ -10,6 +10,7 @@ import CONST from '../../CONST';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import Log from '../Log';
 
 const allPolicies = {};
 Onyx.connect({
@@ -98,7 +99,6 @@ function getPolicyList() {
  * @param {String} policyID
  */
 function removeMembers(members, policyID) {
-
     // In case user selects only themselves (admin), their email will be filtered out and the members
     // array passed will be empty, prevent the funtion from proceeding in that case as there is noone to remove
     if (members.length === 0) {
@@ -128,12 +128,14 @@ function removeMembers(members, policyID) {
             Onyx.set(key, policyDataWithMembersRemoved);
 
             // Show the user feedback that the removal failed
-            let errorMessage = translateLocal('workspace.people.genericFailureMessage');
+            const errorMessage = translateLocal('workspace.people.genericFailureMessage');
             if (data.jsonCode === 401) {
-                console.log('Error removing workspace members: ', translateLocal('workspace.people.onlyAdminCanRemove'));
+                // eslint-disable-next-line max-len
+                Log.info(`Error removing workspace members: ${translateLocal('workspace.people.onlyAdminCanRemove')}`, true);
             }
             if (data.jsonCode === 402) {
-                console.log('Error removing workspace members: ', translateLocal('workspace.people.cannotRemovePolicyOwner'));
+                // eslint-disable-next-line max-len
+                Log.info(`Error removing workspace members: ${translateLocal('workspace.people.cannotRemovePolicyOwner')}`, true);
             }
 
             Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);

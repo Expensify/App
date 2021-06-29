@@ -109,8 +109,8 @@ class WorkspacePeoplePage extends React.Component {
     toggleUser(login) {
         if (login === 'ALL') {
             this.setState(prevState => ({
-                selectedEmployees: this.props.policy.employeeList.length !== prevState.selectedEmployees.length 
-                    ? this.props.policy.employeeList 
+                selectedEmployees: this.props.policy.employeeList.length !== prevState.selectedEmployees.length
+                    ? this.props.policy.employeeList
                     : [],
             }));
             return;
@@ -154,11 +154,25 @@ class WorkspacePeoplePage extends React.Component {
                                     imageStyles={[styles.mr2, styles.mobileAvatarWithName]}
                                     source={item.avatar}
                                 />
-                                <View style={[styles.dFlex, styles.flexColumn, styles.justifyContentCenter, styles.overflowHidden, styles.mobilePeopleName]}>
+                                <View
+                                    style={[
+                                        styles.dFlex,
+                                        styles.flexColumn,
+                                        styles.justifyContentCenter,
+                                        styles.overflowHidden,
+                                        styles.mobilePeopleName,
+                                    ]}
+                                >
                                     <Text style={[styles.textStrong, styles.peopleMobileAssigneeText]}>
                                         {item.displayName}
                                     </Text>
-                                    <Text style={[styles.textLabel, styles.colorMuted, styles.peopleMobileAssigneeText]}>
+                                    <Text
+                                        style={[
+                                            styles.textLabel,
+                                            styles.colorMuted,
+                                            styles.peopleMobileAssigneeText,
+                                        ]}
+                                    >
                                         {item.login}
                                     </Text>
                                 </View>
@@ -185,11 +199,13 @@ class WorkspacePeoplePage extends React.Component {
                         </>
                     )
                 }
-                <View style={[
-                    styles.peopleRowCell,
-                    styles.peopleBadgesContainer,
-                    this.props.windowWidth < 1100 ? styles.peopleBadgesMobile : styles.peopleBadgesContainerDesktop,
-                ]}>
+                <View
+                    style={[
+                        styles.peopleRowCell,
+                        styles.peopleBadgesContainer,
+                        this.props.windowWidth < 1100 ? styles.peopleBadgesMobile : styles.peopleBadgesContainerDesktop,
+                    ]}
+                >
                     {
                         this.props.session.email === item.login && (
                             <View>
@@ -237,8 +253,8 @@ class WorkspacePeoplePage extends React.Component {
     render() {
         let data = [];
         if (this.props.policy.employeeList && this.props.policy.employeeList.length !== 0) {
-            data = _.filter(this.props.policy.employeeList, (email) => this.props.personalDetails[email])
-                    .map(email => this.props.personalDetails[email]);
+            data = _.filter(this.props.policy.employeeList, email => this.props.personalDetails[email])
+                .map(email => this.props.personalDetails[email]);
         }
         return (
             <ScreenWrapper>

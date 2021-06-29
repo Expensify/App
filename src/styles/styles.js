@@ -1758,7 +1758,7 @@ const styles = {
     peopleBadgesContainerDesktop: {
         flex: '1 1 0',
     },
-    
+
     peopleBadgesMobile: {
         flex: '1 1 auto',
         paddingLeft: 20,
@@ -1784,7 +1784,7 @@ const styles = {
         paddingVertical: 2,
         textOverflow: 'ellipsis',
         whiteSpace: 'noWrap',
-        overflow: "hidden",
+        overflow: 'hidden',
         flexGrow: '0 1 auto',
     },
 };

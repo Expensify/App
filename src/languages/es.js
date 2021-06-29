@@ -46,7 +46,6 @@ export default {
         whatThis: '¿Qué es esto?',
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
-        people: '[Translate] People',
         remove: '[Translate] Remove',
         admin: '[Translate] Admin',
         dateFormat: 'AAAA-MM-DD',

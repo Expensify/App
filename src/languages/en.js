@@ -50,7 +50,6 @@ export default {
         whatThis: 'What\'s this?',
         iAcceptThe: 'I accept the ',
         passwordCannotBeBlank: 'Password cannot be blank',
-        people: 'People',
         remove: 'Remove',
         admin: 'Admin',
         dateFormat: 'YYYY-MM-DD',
