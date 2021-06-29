@@ -74,8 +74,6 @@ function register(accountID) {
 
             // Setup event listeners
             UrbanAirship.addListener(EventType.PushReceived, (notification) => {
-                console.debug('RORY_DEBUG PushReceived callback executed');
-
                 // If a push notification is received while the app is in foreground,
                 // we'll assume pusher is connected so we'll ignore is and not fetch the same data twice.
                 if (AppState.currentState === 'active') {
@@ -90,7 +88,6 @@ function register(accountID) {
             // Note: the NotificationResponse event has a nested PushReceived event,
             // so event.notification refers to the same thing as notification above ^
             UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
-                console.debug('RORY_DEBUG NotificationResponse callback executed');
                 pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
             });
         });
