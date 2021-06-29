@@ -48,29 +48,11 @@ class PaymentMethodList extends Component {
     }
 
     /**
-     * Render item method wraps the prop renderItem to render in a
-     * View component so we can attach an onLayout handler and
-     * measure it when it renders.
+     * Take all of the different payment methods and create a list that can be easily digested by renderItem
      *
-     * @param {Object} params
-     * @param {Object} params.item
-     * @param {Number} params.index
-     *
-     * @return {React.Component}
+     * @returns {Array}
      */
-    renderItem({item, index}) {
-        return (
-            <MenuItem
-                onPress={item.onPress}
-                title={item.title}
-                description={item.description}
-                icon={item.icon}
-                key={`paymentMethod-${index}`}
-            />
-        );
-    }
-
-    render() {
+    createPaymentMethodList() {
         const combinedPaymentMethods = [];
 
         combinedPaymentMethods.push({
@@ -107,6 +89,35 @@ class PaymentMethodList extends Component {
                 });
             }
         });
+
+        return combinedPaymentMethods;
+    }
+
+    /**
+     * Render item method wraps the prop renderItem to render in a
+     * View component so we can attach an onLayout handler and
+     * measure it when it renders.
+     *
+     * @param {Object} params
+     * @param {Object} params.item
+     * @param {Number} params.index
+     *
+     * @return {React.Component}
+     */
+    renderItem({item, index}) {
+        return (
+            <MenuItem
+                onPress={item.onPress}
+                title={item.title}
+                description={item.description}
+                icon={item.icon}
+                key={`paymentMethod-${index}`}
+            />
+        );
+    }
+
+    render() {
+        const combinedPaymentMethods = this.createPaymentMethodList();
 
         return (
             <FlatList
