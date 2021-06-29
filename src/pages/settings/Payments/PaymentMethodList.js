@@ -7,6 +7,7 @@ import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
+import CONST from '../../../CONST';
 import {
     Bank,
     CreditCard,
@@ -95,7 +96,7 @@ class PaymentMethodList extends Component {
         });
 
         _.each(this.props.cardList, (card) => {
-            if (card.cardName !== '__CASH__') {
+            if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
                 combinedPaymentMethods.push({
                     title: card.cardName,
                     description: `Card ending in ${card.cardNumber.slice(-4)}`,
