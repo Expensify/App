@@ -46,7 +46,7 @@ function sortReportsByLastVisited(reports) {
 }
 
 /**
- * Can only edit if it's a ADDCOMMENT that is not an attachment, 
+ * Can only edit if it's a ADDCOMMENT that is not an attachment,
  * the author is this user and it's not a optimistic response.
  * If it's an optimistic response comment it will not have a reportActionID,
  * and we should wait until it does before we show the actions
@@ -71,7 +71,7 @@ function canEditReportAction(reportAction) {
  * @param {String} sessionEmail
  * @returns {Boolean}
  */
- function canDeleteReportAction(reportAction) {
+function canDeleteReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
