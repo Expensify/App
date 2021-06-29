@@ -63,7 +63,7 @@ function canEditReportAction(reportAction) {
 }
 
 /**
- * Can only delete if it's a ADDCOMMENT, the author is this user and it's not a optimistic response.
+ * Can only delete if it's an ADDCOMMENT, the author is this user and it's not an optimistic response.
  * If it's an optimistic response comment it will not have a reportActionID,
  * and we should wait until it does before we show the actions
  *
