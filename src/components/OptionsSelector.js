@@ -14,9 +14,9 @@ const propTypes = {
     onSelectRow: PropTypes.func,
 
     /** Function to get a filtered result as list */
-    filterAdapter: PropTypes.func,
+    searchSections: PropTypes.func,
 
-    /** FUnction to get header message from parent component */
+    /** Function to get header message from parent component */
     getCustomHeaderMessage: PropTypes.func,
 
     /** Sections for the section list */
@@ -66,7 +66,7 @@ const propTypes = {
 
 const defaultProps = {
     onSelectRow: () => {},
-    filterAdapter: () => {},
+    searchSections: () => {},
     getCustomHeaderMessage: () => {},
     placeholderText: '',
     selectedOptions: [],
@@ -105,7 +105,7 @@ class OptionsSelector extends Component {
      * @param {String} searchValue
      */
     onChangeText(searchValue) {
-        const sections = this.props.filterAdapter(searchValue);
+        const sections = this.props.searchSections(searchValue);
         this.searchValue = searchValue;
         this.setState({sections});
     }
