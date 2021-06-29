@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-multi-spaces */
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
@@ -111,12 +110,10 @@ class PaymentMethodList extends Component {
 
         return (
             <FlatList
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 data={combinedPaymentMethods}
                 inverted
                 renderItem={this.renderItem}
                 bounces
-                windowSize={15}
             />
         );
     }
