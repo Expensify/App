@@ -221,6 +221,7 @@ function payIOUReport({
             }
         })
         .catch((error) => {
+            // eslint-disable-next-line max-len
             if (error.message.startsWith('You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.')) {
                 Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
             } else {
