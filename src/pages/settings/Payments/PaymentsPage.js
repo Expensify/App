@@ -26,7 +26,7 @@ class PaymentsPage extends React.Component {
         this.PAYPAL = 'payPalMe';
 
         this.state = {
-            showAddPaymentMenu: false,
+            shouldShowAddPaymentMenu: false,
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
         };
@@ -52,7 +52,7 @@ class PaymentsPage extends React.Component {
         } else {
             const position = getPaymentMethodScreenLocation(nativeEvent);
             this.setState({
-                showAddPaymentMenu: true,
+                shouldShowAddPaymentMenu: true,
                 anchorPositionTop: position.bottom,
                 anchorPositionLeft: position.left,
             });
@@ -76,7 +76,7 @@ class PaymentsPage extends React.Component {
      * Hide the add payment modal
      */
     hideAddPaymentMenu() {
-        this.setState({showAddPaymentMenu: false});
+        this.setState({shouldShowAddPaymentMenu: false});
     }
 
     render() {
@@ -95,7 +95,7 @@ class PaymentsPage extends React.Component {
                         />
                     </View>
                     <Popover
-                        isVisible={this.state.showAddPaymentMenu}
+                        isVisible={this.state.shouldShowAddPaymentMenu}
                         onClose={this.hideAddPaymentMenu}
                         anchorPosition={{
                             top: this.state.anchorPositionTop,
