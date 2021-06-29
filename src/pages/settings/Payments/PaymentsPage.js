@@ -40,6 +40,12 @@ class PaymentsPage extends React.Component {
         getPaymentMethods();
     }
 
+    /**
+     * Display the delete/default menu, or the add payment method menu
+     *
+     * @param {Object} nativeEvent
+     * @param {String} account
+     */
     paymentMethodPressed(nativeEvent, account) {
         if (account) {
             // TODO: Show the make default/delete popover
@@ -53,6 +59,11 @@ class PaymentsPage extends React.Component {
         }
     }
 
+    /**
+     * Navigate to the appropriate payment type addition screen
+     *
+     * @param {String} paymentType
+     */
     addPaymentMethodTypePressed(paymentType) {
         this.hideAddPaymentMenu();
 
@@ -61,6 +72,9 @@ class PaymentsPage extends React.Component {
         }
     }
 
+    /**
+     * Hide the add payment modal
+     */
     hideAddPaymentMenu() {
         this.setState({showAddPaymentMenu: false});
     }
