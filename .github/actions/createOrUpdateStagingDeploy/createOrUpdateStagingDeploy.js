@@ -6,6 +6,7 @@ const GitUtils = require('../../libs/GitUtils');
 
 const run = function () {
     const newVersion = core.getInput('NPM_VERSION');
+    console.log('New version found from action input:', newVersion);
 
     let shouldCreateNewStagingDeployCash = false;
     let currentStagingDeployCashIssueNumber = null;

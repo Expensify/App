@@ -16,6 +16,7 @@ const GitUtils = __nccwpck_require__(669);
 
 const run = function () {
     const newVersion = core.getInput('NPM_VERSION');
+    console.log('New version found from action input:', newVersion);
 
     let shouldCreateNewStagingDeployCash = false;
     let currentStagingDeployCashIssueNumber = null;
@@ -410,6 +411,8 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
+        // PRList is reverse-chronologically ordered
+        const oldestMergedPR = _.last(PRList);
         return this.octokit.paginate(this.octokit.pulls.list, {
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
@@ -418,8 +421,6 @@ class GithubUtils {
             direction: 'desc',
             per_page: 100,
         }, ({data}, done) => {
-            // PRList is reverse-chronologically ordered
-            const oldestMergedPR = _.last(PRList);
             if (_.find(data, pr => pr.html_url === oldestMergedPR)) {
                 done();
             }
