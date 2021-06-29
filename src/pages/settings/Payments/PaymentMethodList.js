@@ -71,6 +71,7 @@ class PaymentMethodList extends Component {
             title: 'Add Payment Method',
             icon: Plus,
             onPress: e => this.props.onPress(e),
+            key: 'addPaymentMethodButton',
         });
 
         if (this.props.payPalMeUsername) {
@@ -79,6 +80,7 @@ class PaymentMethodList extends Component {
                 description: this.props.payPalMeUsername,
                 icon: PayPal,
                 onPress: e => this.props.onPress(e, 'payPalMe'),
+                key: 'payPalMePaymentMethod',
             });
         }
 
@@ -88,6 +90,7 @@ class PaymentMethodList extends Component {
                 description: `Account ending in ${bankAccount.accountNumber.slice(-4)}`,
                 icon: Bank,
                 onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
+                key: `bankAccount-${bankAccount.bankAccountID}`,
             });
         });
 
@@ -98,6 +101,7 @@ class PaymentMethodList extends Component {
                     description: `Card ending in ${card.cardNumber.slice(-4)}`,
                     icon: CreditCard,
                     onPress: e => this.props.onPress(e, card.cardID),
+                    key: `card-${card.cardID}`,
                 });
             }
         });
@@ -110,18 +114,17 @@ class PaymentMethodList extends Component {
      *
      * @param {Object} params
      * @param {Object} params.item
-     * @param {Number} params.index
      *
      * @return {React.Component}
      */
-    renderItem({item, index}) {
+    renderItem({item}) {
         return (
             <MenuItem
                 onPress={item.onPress}
                 title={item.title}
                 description={item.description}
                 icon={item.icon}
-                key={`paymentMethod-${index}`}
+                key={item.key}
             />
         );
     }
