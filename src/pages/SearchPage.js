@@ -64,26 +64,12 @@ class SearchPage extends Component {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
 
         this.selectReport = this.selectReport.bind(this);
-        this.filterAdapter = this.filterAdapter.bind(this);
+        this.searchSections = this.searchSections.bind(this);
         this.getCustomHeaderMessage = this.getCustomHeaderMessage.bind(this);
-
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = getSearchOptions(
-            props.reports,
-            props.personalDetails,
-            '',
-            props.betas,
-        );
-
-        this.recentReports = recentReports;
-        this.personalDetails = personalDetails;
-        this.userToInvite = userToInvite;
     }
 
     componentDidMount() {
+        Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
     /**
@@ -92,9 +78,19 @@ class SearchPage extends Component {
      * @returns {String} header messae
      */
     getCustomHeaderMessage(searchValue = '') {
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = getSearchOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            '',
+            this.props.betas,
+        );
         return getHeaderMessage(
-            (this.recentReports.length + this.personalDetails.length) !== 0,
-            Boolean(this.userToInvite),
+            (recentReports.length + personalDetails.length) !== 0,
+            Boolean(userToInvite),
             searchValue,
         );
     }
@@ -105,16 +101,16 @@ class SearchPage extends Component {
      * @returns {Array}
      */
     getSections() {
-        return this.filterAdapter('');
+        // getSections is same to searchSections given empty searchValue
+        return this.searchSections();
     }
-
 
     /**
      * Returns the sections needed for the OptionsSelector
      * @param {String} searchValue
      * @returns {Array}
      */
-    filterAdapter(searchValue) {
+    searchSections(searchValue = '') {
         const {
             recentReports,
             personalDetails,
@@ -169,31 +165,29 @@ class SearchPage extends Component {
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    !didScreenTransitionEnd
-                        ? null
-                        : (
-                            <>
-                                <HeaderWithCloseButton
-                                    title={this.props.translate('common.search')}
-                                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    didScreenTransitionEnd && (
+                        <>
+                            <HeaderWithCloseButton
+                                title={this.props.translate('common.search')}
+                                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                            />
+                            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                                <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                                {didScreenTransitionEnd && (
+                                <OptionsSelector
+                                    sections={sections}
+                                    onSelectRow={this.selectReport}
+                                    searchSections={this.searchSections}
+                                    getCustomHeaderMessage={this.getCustomHeaderMessage}
+                                    hideSectionHeaders
+                                    hideAdditionalOptionStates
+                                    showTitleTooltip
                                 />
-                                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                                    <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
-                                    {didScreenTransitionEnd && (
-                                    <OptionsSelector
-                                        sections={sections}
-                                        onSelectRow={this.selectReport}
-                                        filterAdapter={this.filterAdapter}
-                                        getCustomHeaderMessage={this.getCustomHeaderMessage}
-                                        hideSectionHeaders
-                                        hideAdditionalOptionStates
-                                        showTitleTooltip
-                                    />
-                                    )}
-                                </View>
-                                <KeyboardSpacer />
-                            </>
-                        )
+                                )}
+                            </View>
+                            <KeyboardSpacer />
+                        </>
+                    )
                 )}
             </ScreenWrapper>
         );
