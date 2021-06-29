@@ -3,7 +3,6 @@ import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
 import NotificationType from './NotificationType';
-import Log from '../../Log';
 
 const notificationEventActionMap = {};
 
@@ -55,49 +54,48 @@ function pushNotificationEventCallback(eventType, notification) {
  * @param {String|Number} accountID
  */
 function register(accountID) {
-    // TODO: fix this conditional - getNamedUser returns a promise
-    if (UrbanAirship.getNamedUser() === accountID.toString()) {
-        // No need to register again for this accountID.
-        return;
-    }
-
-    // Get permissions to display push notifications (prompts user on iOS, but not Android)
-    UrbanAirship.enableUserPushNotifications()
-        .then((isEnabled) => {
-            if (!isEnabled) {
+    Promise.all([
+        UrbanAirship.getNamedUser(),
+        UrbanAirship.enableUserPushNotifications(),
+    ])
+        .then(([namedUser, arePushNotificationsEnabled]) => {
+            if (!arePushNotificationsEnabled) {
                 console.debug('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
             }
+
+            if (namedUser === accountID.toString()) {
+                console.debug('[PUSH_NOTIFICATIONS] This user is already registered for push notifications.');
+            } else {
+                // Register this device as a named user in AirshipAPI.
+                // Regardless of the user's opt-in status, we still want to receive silent push notifications.
+                console.debug(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
+                UrbanAirship.setNamedUser(accountID.toString());
+            }
+
+            // Setup event listeners
+            UrbanAirship.addListener(EventType.PushReceived, (notification) => {
+                console.debug('RORY_DEBUG PushReceived callback executed');
+
+                // If a push notification is received while the app is in foreground,
+                // we'll assume pusher is connected so we'll ignore is and not fetch the same data twice.
+                // However, we allow NotificationResponse events through, so that tapping on a foreground notification
+                // will take you to the relevant report.
+                if (AppState.currentState === 'active') {
+                    // eslint-disable-next-line max-len
+                    console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
+                    return;
+                }
+
+                pushNotificationEventCallback(EventType.PushReceived, notification);
+            });
+
+            // Note: the NotificationResponse event has a nested PushReceived event,
+            // so event.notification refers to the same thing as notification above ^
+            UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
+                console.debug('RORY_DEBUG NotificationResponse callback executed');
+                pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
+            });
         });
-
-    // Register this device as a named user in AirshipAPI.
-    // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-    console.debug(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
-    UrbanAirship.setNamedUser(accountID.toString());
-
-    // Setup event listeners
-    UrbanAirship.addListener(EventType.PushReceived, (notification) => {
-        console.debug('RORY_DEBUG PushReceived callback executed');
-        Log.info('[PUSH_CLIENT][RORY_DEBUG] PushReceived callback executed', true, {});
-
-        // If a push notification is received while the app is in foreground,
-        // we'll assume pusher is connected so we'll ignore is and not fetch the same data twice.
-        // However, we will allow NotificationResponse events through, so that tapping on a foreground notification
-        // will take you to the relevant report.
-        if (AppState.currentState === 'active') {
-            console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
-            return;
-        }
-
-        pushNotificationEventCallback(EventType.PushReceived, notification);
-    });
-
-    // Note: the NotificationResponse event has a nested PushReceived event,
-    // so event.notification refers to the same thing as notification above ^
-    UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
-        console.debug('RORY_DEBUG NotificationResponse callback executed');
-        Log.info('[PUSH_CLIENT][RORY_DEBUG] PushReceived callback executed', true, {});
-        pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
-    });
 }
 
 /**
