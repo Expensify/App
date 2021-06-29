@@ -225,6 +225,11 @@ export default {
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar Cuenta de Paypal',
     },
+    paymentMethodList: {
+        addPaymentMethod: 'Agrega método de pago',
+        accountLastFour: 'Cuenta con terminación',
+        cardLastFour: 'Tarjeta con terminacíon',
+    },
     preferencesPage: {
         mostRecent: 'Más Recientes',
         mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo',

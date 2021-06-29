@@ -229,6 +229,11 @@ export default {
         addPayPalAccount: 'Add PayPal Account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
     },
+    paymentMethodList: {
+        addPaymentMethod: 'Add Payment Method',
+        accountLastFour: 'Account ending in',
+        cardLastFour: 'Card ending in',
+    },
     preferencesPage: {
         mostRecent: 'Most Recent',
         mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top',

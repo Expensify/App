@@ -5,7 +5,7 @@ import {FlatList} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
-import withLocalize from '../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import {
@@ -45,6 +45,8 @@ const propTypes = {
         /** The ID of the card in the cards DB */
         cardID: PropTypes.string,
     })),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -69,7 +71,7 @@ class PaymentMethodList extends Component {
         const combinedPaymentMethods = [];
 
         combinedPaymentMethods.push({
-            title: 'Add Payment Method',
+            title: this.props.translate('paymentMethodList.addPaymentMethod'),
             icon: Plus,
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
@@ -88,7 +90,7 @@ class PaymentMethodList extends Component {
         _.each(this.props.bankAccountList, (bankAccount) => {
             combinedPaymentMethods.push({
                 title: bankAccount.addressName,
-                description: `Account ending in ${bankAccount.accountNumber.slice(-4)}`,
+                description: `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`,
                 icon: Bank,
                 onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
                 key: `bankAccount-${bankAccount.bankAccountID}`,
@@ -99,7 +101,7 @@ class PaymentMethodList extends Component {
             if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
                 combinedPaymentMethods.push({
                     title: card.cardName,
-                    description: `Card ending in ${card.cardNumber.slice(-4)}`,
+                    description: `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`,
                     icon: CreditCard,
                     onPress: e => this.props.onPress(e, card.cardID),
                     key: `card-${card.cardID}`,
