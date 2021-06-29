@@ -116,6 +116,11 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newChat'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
+                                {
+                                    icon: Users,
+                                    text: this.props.translate('sidebarScreen.newGroup'),
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
+                                },
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: MoneyCircle,
@@ -123,11 +128,6 @@ class SidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
                                     },
                                 ] : []),
-                                {
-                                    icon: Users,
-                                    text: this.props.translate('sidebarScreen.newGroup'),
-                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
-                                },
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: Receipt,

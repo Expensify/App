@@ -71,10 +71,25 @@ function findLastAccessedReport(reports) {
     return _.last(sortReportsByLastVisited(reports));
 }
 
+/**
+ * Whether the provided report is a default room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isDefaultRoom(report) {
+    return _.contains([
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+    ], lodashGet(report, ['chatType'], ''));
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
     sortReportsByLastVisited,
+    isDefaultRoom,
 };
