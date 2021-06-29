@@ -1,23 +1,38 @@
 /* eslint-disable react/prop-types */
 import _ from 'underscore';
 import React from 'react';
-import PropTypes from 'prop-types';
 import {useWindowDimensions, TouchableOpacity} from 'react-native';
 import HTML, {
     defaultHTMLElementModels,
     TNodeChildrenRenderer,
     splitBoxModelStyle,
 } from 'react-native-render-html';
-import Config from '../CONFIG';
-import styles, {webViewStyles, getFontFamilyMonospace} from '../styles/styles';
-import fontFamily from '../styles/fontFamily';
-import AnchorForCommentsOnly from './AnchorForCommentsOnly';
-import InlineCodeBlock from './InlineCodeBlock';
-import AttachmentModal from './AttachmentModal';
-import ThumbnailImage from './ThumbnailImage';
-import variables from '../styles/variables';
-import themeColors from '../styles/themes/default';
-import Text from './Text';
+import PropTypes from 'prop-types';
+import Config from '../../CONFIG';
+import styles, {webViewStyles, getFontFamilyMonospace} from '../../styles/styles';
+import fontFamily from '../../styles/fontFamily';
+import AnchorForCommentsOnly from '../AnchorForCommentsOnly';
+import InlineCodeBlock from '../InlineCodeBlock';
+import AttachmentModal from '../AttachmentModal';
+import ThumbnailImage from '../ThumbnailImage';
+import variables from '../../styles/variables';
+import themeColors from '../../styles/themes/default';
+import Text from '../Text';
+import {
+    propTypes as renderHTMLPropTypes,
+    defaultProps as renderHTMLDefaultProps,
+} from './renderHTMLPropTypes';
+
+const propTypes = {
+    /** Whether text elements should be selectable */
+    textSelectable: PropTypes.bool,
+    ...renderHTMLPropTypes,
+};
+
+const defaultProps = {
+    textSelectable: false,
+    ...renderHTMLDefaultProps,
+};
 
 const MAX_IMG_DIMENSIONS = 512;
 
@@ -192,20 +207,12 @@ const renderers = {
     edited: EditedRenderer,
 };
 
-const propTypes = {
-    /** HTML string to render */
-    html: PropTypes.string.isRequired,
-
-    /** Optional debug flag */
-    debug: PropTypes.bool,
-};
-
-const RenderHTML = ({html, debug = false}) => {
+const BaseRenderHTML = ({html, debug, textSelectable}) => {
     const {width} = useWindowDimensions();
     const containerWidth = width * 0.8;
     return (
         <HTML
-            textSelectable
+            textSelectable={textSelectable}
             renderers={renderers}
             baseStyle={webViewStyles.baseFontStyle}
             tagsStyles={webViewStyles.tagStyles}
@@ -223,10 +230,8 @@ const RenderHTML = ({html, debug = false}) => {
     );
 };
 
-RenderHTML.displayName = 'RenderHTML';
-RenderHTML.propTypes = propTypes;
-RenderHTML.defaultProps = {
-    debug: false,
-};
+BaseRenderHTML.displayName = 'BaseRenderHTML';
+BaseRenderHTML.propTypes = propTypes;
+BaseRenderHTML.defaultProps = defaultProps;
 
-export default RenderHTML;
+export default BaseRenderHTML;
