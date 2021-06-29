@@ -209,7 +209,7 @@ class GithubUtils {
             per_page: 100,
         }, ({data}, done) => {
             // PRList is reverse-chronologically ordered
-            const oldestMergedPR = PRList[PRList.length - 1];
+            const oldestMergedPR = _.last(PRList);
             if (data.find(pr => pr.html_url === oldestMergedPR)) {
                 done();
             }
