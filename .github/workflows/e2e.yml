@@ -18,8 +18,15 @@ jobs:
         with:
           ruby-version: '2.7'
 
+      - uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+
       - name: Install bundler
-        run: gem install bundler
+        run: |
+          bundle config path vendor/bundle
+          gem install bundler
 
       - name: Install gems
         run: bundle install
@@ -42,6 +49,11 @@ jobs:
 
       - name: Install detox
         run: npm install -g detox-cli
+
+      - uses: actions/cache@v2
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
 
       - name: Install cocoapods
         uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb

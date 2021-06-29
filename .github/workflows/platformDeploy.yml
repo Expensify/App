@@ -176,6 +176,11 @@ jobs:
           max_attempts: 5
           command: npm ci
 
+      - uses: actions/cache@v2
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+
       - name: Install cocoapods
         run: cd ios && pod install
 
