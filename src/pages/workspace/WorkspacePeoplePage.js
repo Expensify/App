@@ -63,6 +63,8 @@ class WorkspacePeoplePage extends React.Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.renderHeader = this.renderHeader.bind(this);
+        this.addUser = this.addUser.bind(this);
+        this.removeUser = this.removeUser.bind(this);
         this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
         this.hideConfirmModal = this.hideConfirmModal.bind(this);
     }
@@ -102,24 +104,48 @@ class WorkspacePeoplePage extends React.Component {
     }
 
     /**
-     * Add or remove user from the selectedEmployees list
+     * Add or remove all users from the selectedEmployees list
+     */
+    toggleAllUsers() {
+        this.setState(prevState => ({
+            selectedEmployees: this.props.policy.employeeList.length !== prevState.selectedEmployees.length
+                ? this.props.policy.employeeList
+                : [],
+        }));
+    }
+
+    /**
+     * Toggle user from the selectedEmployees list
      *
      * @param {Sting} login
      */
     toggleUser(login) {
-        if (login === 'ALL') {
-            this.setState(prevState => ({
-                selectedEmployees: this.props.policy.employeeList.length !== prevState.selectedEmployees.length
-                    ? this.props.policy.employeeList
-                    : [],
-            }));
-            return;
+        if (_.contains(this.state.selectedEmployees, login)) {
+            this.removeUser(login);
+        } else {
+            this.addUser(login);
         }
+    }
 
+    /**
+     * Add user from the selectedEmployees list
+     *
+     * @param {Sting} login
+     */
+    addUser(login) {
         this.setState(prevState => ({
-            selectedEmployees: _.contains(prevState.selectedEmployees, login)
-                ? _.without(prevState.selectedEmployees, login)
-                : [...prevState.selectedEmployees, login],
+            selectedEmployees: [...prevState.selectedEmployees, login],
+        }));
+    }
+
+    /**
+     * Remove user from the selectedEmployees list
+     *
+     * @param {Sting} login
+     */
+    removeUser(login) {
+        this.setState(prevState => ({
+            selectedEmployees: _.without(prevState.selectedEmployees, login),
         }));
     }
 
@@ -228,7 +254,7 @@ class WorkspacePeoplePage extends React.Component {
                 <View style={[styles.peopleRowCell, styles.peopleCheckbox]}>
                     <Checkbox
                         isChecked={this.state.selectedEmployees.length === this.props.policy.employeeList.length}
-                        onPress={() => this.toggleUser('ALL')}
+                        onPress={() => this.toggleAllUsers()}
                     />
                 </View>
                 <View style={[styles.peopleRowCell, styles.flex4]}>
