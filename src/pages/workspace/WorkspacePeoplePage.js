@@ -12,7 +12,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {flatListRef} from '../../libs/ReportScrollManager';
 import {removeMembers} from '../../libs/actions/Policy';
 import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
@@ -236,11 +235,16 @@ class WorkspacePeoplePage extends React.Component {
     }
 
     render() {
+        let data = [];
+        if (this.props.policy.employeeList && this.props.policy.employeeList.length !== 0) {
+            data = _.filter(this.props.policy.employeeList, (email) => this.props.personalDetails[email])
+                    .map(email => this.props.personalDetails[email]);
+        }
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.people')}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ConfirmModal
                     danger
@@ -257,7 +261,6 @@ class WorkspacePeoplePage extends React.Component {
                         <View style={styles.buttonRow}>
                             <Button
                                 success
-                                style={[]}
                                 text={this.props.translate('common.invite')}
                                 onPress={() => this.inviteUser()}
                             />
@@ -271,30 +274,12 @@ class WorkspacePeoplePage extends React.Component {
                         </View>
                         <View style={[styles.w100, styles.mt4]}>
                             {
-                                this.props.policy.employeeList ? (
+                                this.props.policy.employeeList && (
                                     <FlatList
                                         ListHeaderComponent={this.renderHeader()}
-                                        ref={flatListRef}
                                         renderItem={this.renderItem}
-                                        contentContainerStyle={[styles.w100]}
-                                        initialRowHeight={32}
-                                        // eslint-disable-next-line max-len
-                                        data={(this.props.policy.employeeList && this.props.policy.employeeList.length !== 0)
-                                            // eslint-disable-next-line max-len
-                                            ? this.props.policy.employeeList.map(email => this.props.personalDetails[email] || false)
-                                            : []}
-                                        maxToRenderPerBatch={1}
-                                        windowSize={15}
-                                        removeClippedSubviews={this.props.shouldRemoveClippedSubviews}
+                                        data={data}
                                     />
-                                ) : (
-                                    <View style={[styles.peopleRow]}>
-                                        <View style={[styles.peopleRowCell, styles.flex2]}>
-                                            <Text>
-                                                Unfortunately, this workspace has no members.
-                                            </Text>
-                                        </View>
-                                    </View>
                                 )
                             }
                         </View>
