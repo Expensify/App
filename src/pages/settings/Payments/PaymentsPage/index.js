@@ -81,13 +81,6 @@ class PaymentsPage extends React.Component {
                             onPress={this.paymentMethodPressed}
                         />
                     </View>
-                    <FixedFooter>
-                        <Button
-                            success
-                            style={[styles.mt3]}
-                            text={this.props.translate('addPayPalMePage.addPayPalAccount')}
-                        />
-                    </FixedFooter>
                     <Popover
                         isVisible={this.state.showAddPaymentMenu}
                         onClose={this.hideAddPaymentMenu}
