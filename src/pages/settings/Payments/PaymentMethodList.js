@@ -15,22 +15,34 @@ import {
 } from '../../../components/Icon/Expensicons';
 
 const propTypes = {
-    // What to do when a menu item is pressed
+    /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    // Users paypal.me username if they have one
+    /** Users paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
 
-    // Array of bank account objects
+    /** Array of bank account objects */
     bankAccountList: PropTypes.arrayOf(PropTypes.shape({
+        /** The name of the institution (bank of america, etc */
         addressName: PropTypes.string,
-        accountNubmer: PropTypes.string,
+
+        /** The masked bank account number */
+        accountNumber: PropTypes.string,
+
+        /** The bankAccountID in the bankAccounts db */
+        bankAccountID: PropTypes.string,
     })),
 
-    // Array of card objects
+    /** Array of card objects */
     cardList: PropTypes.arrayOf(PropTypes.shape({
+        /** The name of the institution (bank of america, etc */
         cardName: PropTypes.string,
-        accountNumber: PropTypes.string,
+
+        /** The masked credit card number */
+        cardNumber: PropTypes.string,
+
+        /** The ID of the card in the cards DB */
+        cardID: PropTypes.string,
     })),
 };
 
@@ -94,9 +106,7 @@ class PaymentMethodList extends Component {
     }
 
     /**
-     * Render item method wraps the prop renderItem to render in a
-     * View component so we can attach an onLayout handler and
-     * measure it when it renders.
+     * Create a menuItem for each passed paymentMethod
      *
      * @param {Object} params
      * @param {Object} params.item
