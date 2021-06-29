@@ -90,7 +90,7 @@ const IdentityForm = ({
                 onChangeText={val => onFieldChange('dob', val)}
             />
             <TextInputWithLabel
-                label={`${translate('requestorStep.ssnLast4')}`}
+                label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
                 value={ssnLast4}
                 onChangeText={val => onFieldChange('ssnLast4', val)}

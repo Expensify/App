@@ -130,7 +130,7 @@ const InitialSettingsPage = ({
         .map(policy => ({
             title: policy.name,
             icon: Building,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceRoute(policy.ID)),
+            action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
             iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
         }))

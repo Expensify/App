@@ -569,7 +569,16 @@ function setupWithdrawalAccount(data) {
     let nextStep;
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
 
-    const newACHData = {...reimbursementAccountInSetup, ...data};
+    const newACHData = {
+        ...reimbursementAccountInSetup,
+        ...data,
+
+        // This param tells Web-Secure that this bank account is from NewDot so we can modify links back to the correct
+        // app in any communications. It also will be used to provision a customer for the Expensify card automatically
+        // once their bank account is successfully validated.
+        enableCardAfterVerified: true,
+    };
+
     if (data && !_.isUndefined(data.isSavings)) {
         newACHData.isSavings = Boolean(data.isSavings);
     }

@@ -400,7 +400,7 @@ class ReportActionCompose extends React.Component {
         const isConciergeChat = this.props.report.participants
             && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE);
         let isBlockedFromConcierge = false;
-        if (isConciergeChat && this.props.blockedFromConcierge) {
+        if (isConciergeChat && !_.isEmpty(this.props.blockedFromConcierge)) {
             isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
         }
 
@@ -501,7 +501,16 @@ class ReportActionCompose extends React.Component {
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerHotkeyActions}
-                                    onDragEnter={() => this.setState({isDraggingOver: true})}
+                                    onDragEnter={(e, isOriginComposer) => {
+                                        if (isOriginComposer) {
+                                            this.setState({isDraggingOver: true});
+                                        }
+                                    }}
+                                    onDragOver={(e, isOriginComposer) => {
+                                        if (isOriginComposer) {
+                                            this.setState({isDraggingOver: true});
+                                        }
+                                    }}
                                     onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
                                         e.preventDefault();

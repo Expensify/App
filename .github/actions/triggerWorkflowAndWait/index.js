@@ -402,13 +402,22 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        return this.octokit.pulls.list({
+        return this.octokit.paginate(this.octokit.pulls.list, {
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
             state: 'all',
+            sort: 'created',
+            direction: 'desc',
             per_page: 100,
+        }, ({data}, done) => {
+            // PRList is reverse-chronologically ordered
+            const oldestMergedPR = _.last(PRList);
+            if (_.find(data, pr => pr.html_url === oldestMergedPR)) {
+                done();
+            }
+            return data;
         })
-            .then(({data}) => {
+            .then((data) => {
                 const automatedPRs = _.pluck(
                     _.filter(data, GithubUtils.isAutomatedPullRequest),
                     'html_url',
