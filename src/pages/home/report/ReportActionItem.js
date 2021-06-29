@@ -20,6 +20,10 @@ import IOUAction from '../../../components/ReportActionItem/IOUAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
+import ConfirmModal from '../../../components/ConfirmModal';
+import compose from '../../../libs/compose';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import {deleteReportComment} from '../../../libs/actions/Report';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -50,6 +54,8 @@ const propTypes = {
 
     /** Runs when the view enclosing the chat message lays out indicating it has rendered */
     onLayout: PropTypes.func.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -64,6 +70,7 @@ class ReportActionItem extends Component {
         this.onPopoverHide = () => {};
         this.state = {
             isPopoverVisible: false,
+            isDeleteCommentConfirmModalVisible: false,
             cursorPosition: {
                 horizontal: 0,
                 vertical: 0,
@@ -82,6 +89,9 @@ class ReportActionItem extends Component {
         this.measureContent = this.measureContent.bind(this);
         this.selection = '';
         this.measureContextMenuAnchorPosition = this.measureContextMenuAnchorPosition.bind(this);
+        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
+        this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
+        this.showDeleteModal = this.showDeleteModal.bind(this);
     }
 
     componentDidMount() {
@@ -91,6 +101,7 @@ class ReportActionItem extends Component {
     shouldComponentUpdate(nextProps, nextState) {
         return this.state.isPopoverVisible !== nextState.isPopoverVisible
             || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
+            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible
             || this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
@@ -181,6 +192,7 @@ class ReportActionItem extends Component {
      * @param {Function} onHideCallback Callback to be called after popover is completely hidden
      */
     hidePopover(onHideCallback) {
+        console.debug(onHideCallback);
         if (_.isFunction(onHideCallback)) {
             this.onPopoverHide = onHideCallback;
         }
@@ -201,8 +213,27 @@ class ReportActionItem extends Component {
                 reportID={this.props.reportID}
                 reportAction={this.props.action}
                 hidePopover={this.hidePopover}
+                showDeleteModal={this.showDeleteModal}
             />
         );
+    }
+
+    confirmDeleteAndHideModal() {
+        deleteReportComment(this.props.reportID, this.props.action);
+        this.setState({isDeleteCommentConfirmModalVisible: false});
+    }
+
+    hideDeleteConfirmModal() {
+        this.setState({isDeleteCommentConfirmModalVisible: false});
+    }
+
+    /**
+     * Opens the Confirm delete action modal
+     *
+     * @memberof ReportActionItem
+     */
+    showDeleteModal() {
+        this.setState({isDeleteCommentConfirmModalVisible: true});
     }
 
     render() {
@@ -228,53 +259,56 @@ class ReportActionItem extends Component {
                 );
         }
         return (
-            <PressableWithSecondaryInteraction
-                ref={el => this.popoverAnchor = el}
-                onSecondaryInteraction={this.showPopover}
-            >
-                <Hoverable resetsOnClickOutside={false}>
-                    {hovered => (
-                        <View>
-                            {this.props.shouldDisplayNewIndicator && (
-                                <UnreadActionIndicator />
-                            )}
-                            <View
-                                style={getReportActionItemStyle(
-                                    hovered
-                                    || this.state.isPopoverVisible
-                                    || this.props.draftMessage,
+            <>
+                <PressableWithSecondaryInteraction
+                    ref={el => this.popoverAnchor = el}
+                    onSecondaryInteraction={this.showPopover}
+                >
+                    <Hoverable resetsOnClickOutside={false}>
+                        {hovered => (
+                            <View>
+                                {this.props.shouldDisplayNewIndicator && (
+                                    <UnreadActionIndicator />
                                 )}
-                                onLayout={this.props.onLayout}
-                            >
-                                {!this.props.displayAsGroup
-                                    ? (
-                                        <ReportActionItemSingle action={this.props.action}>
-                                            {children}
-                                        </ReportActionItemSingle>
-                                    )
-                                    : (
-                                        <ReportActionItemGrouped>
-                                            {children}
-                                        </ReportActionItemGrouped>
-                                    )}
-                            </View>
-                            <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
-                                <ReportActionContextMenu
-                                    reportID={this.props.reportID}
-                                    reportAction={this.props.action}
-                                    isVisible={
+                                <View
+                                    style={getReportActionItemStyle(
                                         hovered
-                                        && !this.state.isPopoverVisible
-                                        && !this.props.draftMessage
-                                    }
-                                    draftMessage={this.props.draftMessage}
-                                    hidePopover={this.hidePopover}
-                                    isMini
-                                />
+                                        || this.state.isPopoverVisible
+                                        || this.props.draftMessage,
+                                    )}
+                                    onLayout={this.props.onLayout}
+                                >
+                                    {!this.props.displayAsGroup
+                                        ? (
+                                            <ReportActionItemSingle action={this.props.action}>
+                                                {children}
+                                            </ReportActionItemSingle>
+                                        )
+                                        : (
+                                            <ReportActionItemGrouped>
+                                                {children}
+                                            </ReportActionItemGrouped>
+                                        )}
+                                </View>
+                                <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
+                                    <ReportActionContextMenu
+                                        reportID={this.props.reportID}
+                                        reportAction={this.props.action}
+                                        isVisible={
+                                            hovered
+                                            && !this.state.isPopoverVisible
+                                            && !this.props.draftMessage
+                                        }
+                                        draftMessage={this.props.draftMessage}
+                                        hidePopover={this.hidePopover}
+                                        isMini
+                                        showDeleteModal={this.showDeleteModal}
+                                    />
+                                </View>
                             </View>
-                        </View>
-                    )}
-                </Hoverable>
+                        )}
+                    </Hoverable>
+                </PressableWithSecondaryInteraction>
                 <PopoverWithMeasuredContent
                     isVisible={this.state.isPopoverVisible}
                     onClose={this.hidePopover}
@@ -292,9 +326,19 @@ class ReportActionItem extends Component {
                         reportAction={this.props.action}
                         draftMessage={this.props.draftMessage}
                         hidePopover={this.hidePopover}
+                        showDeleteModal={this.showDeleteModal}
                     />
                 </PopoverWithMeasuredContent>
-            </PressableWithSecondaryInteraction>
+                <ConfirmModal
+                    title={this.props.translate('reportActionContextMenu.deleteComment')}
+                    isVisible={this.state.isDeleteCommentConfirmModalVisible}
+                    onConfirm={this.confirmDeleteAndHideModal}
+                    onCancel={this.hideDeleteConfirmModal}
+                    prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
+                    confirmText={this.props.translate('common.delete')}
+                    cancelText={this.props.translate('common.cancel')}
+                />
+            </>
         );
     }
 }
@@ -302,8 +346,14 @@ class ReportActionItem extends Component {
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
 
-export default withOnyx({
-    draftMessage: {
-        key: ({reportID, action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`,
-    },
-})(ReportActionItem);
+export default compose(
+    withLocalize,
+    withOnyx({
+        draftMessage: {
+            key: ({
+                reportID,
+                action,
+            }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`,
+        },
+    }),
+)(ReportActionItem);
