@@ -287,6 +287,8 @@ class WorkspacePeoplePage extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('common.people')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
+                    onBackButtonPress={() => Navigation.goBack()}
+                    shouldShowBackButton={this.props.isSmallScreenWidth}
                 />
                 <ConfirmModal
                     danger
