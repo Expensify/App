@@ -419,5 +419,6 @@ export default {
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
+        growlMessageNoPersonalPolicy: '[awaiting copy before getting translation]',
     },
 };
