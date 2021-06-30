@@ -243,7 +243,7 @@ class WorkspacePeoplePage extends React.Component {
                 />
                 <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                     <View style={styles.pageWrapper}>
-                        <View style={styles.buttonRow}>
+                        <View style={[styles.w100, styles.flexRow]}>
                             <Button
                                 success
                                 text={this.props.translate('common.invite')}
