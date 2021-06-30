@@ -92,6 +92,9 @@ const CONST = {
         /** This is a default card type that all users have. It is just a placeholder, not an actual card */
         DEFAULT_CASH: '__CASH__',
     },
+    BANK_ACCOUNT_TYPES: {
+        WALLET: 'WALLET',
+    },
     COUNTRY: {
         US: 'US',
         MX: 'MX',

@@ -13,6 +13,7 @@ import {
     CreditCard,
     PayPal,
     Plus,
+    Wallet,
 } from '../../../components/Icon/Expensicons';
 
 const propTypes = {
@@ -32,6 +33,9 @@ const propTypes = {
 
         /** The bankAccountID in the bankAccounts db */
         bankAccountID: PropTypes.string,
+
+        /** The bank account type */
+        type: PropTypes.string,
     })),
 
     /** Array of card objects */
@@ -93,7 +97,7 @@ class PaymentMethodList extends Component {
 
                 // eslint-disable-next-line
                 description: `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`,
-                icon: Bank,
+                icon: bankAccount.type === CONST.BANK_ACCOUNT_TYPES.WALLET ? Wallet : Bank,
                 onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
                 key: `bankAccount-${bankAccount.bankAccountID}`,
             });
