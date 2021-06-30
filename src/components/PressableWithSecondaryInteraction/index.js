@@ -15,6 +15,7 @@ class PressableWithSecondaryInteraction extends Component {
         super(props);
 
         this.executeSecondaryInteractionOnContextMenu = this.executeSecondaryInteractionOnContextMenu.bind(this);
+        this.preventDefault = this.preventDefault.bind(this);
     }
 
     componentDidMount() {
@@ -22,10 +23,20 @@ class PressableWithSecondaryInteraction extends Component {
             this.props.forwardedRef(this.pressableRef);
         }
         this.pressableRef.addEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
+        this.pressableRef.addEventListener('touchstart', this.preventDefault);
     }
 
     componentWillUnmount() {
         this.pressableRef.removeEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
+        this.pressableRef.removeEventListener('touchstart', this.preventDefault);
+    }
+
+    /**
+     * @param {touchstart} e - TouchEvent.
+     * https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent
+     */
+    preventDefault(e) {
+        e.preventDefault();
     }
 
     /**

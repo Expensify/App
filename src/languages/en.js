@@ -54,6 +54,7 @@ export default {
         admin: 'Admin',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
+        notifications: 'Notifications',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -148,6 +149,13 @@ export default {
         split: ({amount}) => `Split ${amount}`,
         choosePaymentMethod: 'Choose payment method:',
     },
+    reportDetailsPage: {
+        notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',
+        always: 'Always',
+        daily: 'Daily',
+        mute: 'Mute',
+        members: 'Members',
+    },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
@@ -227,7 +235,6 @@ export default {
         mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
         focus: '#focus',
         focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
-        notifications: 'Notifications',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
         priorityMode: 'Priority Mode',
         language: 'Language',

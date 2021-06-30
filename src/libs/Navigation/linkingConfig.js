@@ -61,6 +61,11 @@ export default {
                     },
                 },
             },
+            Report_Details: {
+                screens: {
+                    Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                },
+            },
             NewGroup: {
                 screens: {
                     NewGroup_Root: ROUTES.NEW_GROUP,
@@ -131,8 +136,8 @@ export default {
             },
 
             WorkspaceSettings: {
+                path: ROUTES.WORKSPACE,
                 screens: {
-                    Workspace_Root: ROUTES.WORKSPACE,
                     WorkspaceCard: ROUTES.WORKSPACE_CARD,
                     WorkspacePeople: ROUTES.WORKSPACE_PEOPLE,
                 },
