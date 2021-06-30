@@ -10,7 +10,6 @@ import CONST from '../../CONST';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import Log from '../Log';
 
 const allPolicies = {};
 Onyx.connect({
