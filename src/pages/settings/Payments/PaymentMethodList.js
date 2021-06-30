@@ -32,7 +32,7 @@ const propTypes = {
         accountNumber: PropTypes.string,
 
         /** The bankAccountID in the bankAccounts db */
-        bankAccountID: PropTypes.string,
+        bankAccountID: PropTypes.number,
 
         /** The bank account type */
         type: PropTypes.string,
@@ -47,7 +47,7 @@ const propTypes = {
         cardNumber: PropTypes.string,
 
         /** The ID of the card in the cards DB */
-        cardID: PropTypes.string,
+        cardID: PropTypes.number,
     })),
 
     ...withLocalizePropTypes,
