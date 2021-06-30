@@ -63,7 +63,7 @@ function getLockCashDeploysTimeline() {
         per_page: 100,
     }).then((events) => {
         let pair = [];
-        const startEndPairs = _.compact(events.map(({event, created_at, label}, index) => {
+        const startEndPairs = _.compact(_.map(events, ({event, created_at, label}, index) => {
             if (event === 'labeled' && label.name === '🔐 LockCashDeploys 🔐') {
                 if (pair.length) {
                     // flush the pair
@@ -78,7 +78,7 @@ function getLockCashDeploysTimeline() {
                 return pair;
             }
             return pair.length > 1 ? pair : undefined;
-        }, 1));
+        }));
         return startEndPairs;
     });
 }
@@ -102,7 +102,8 @@ function getPRDeployVerb(pr) {
         if (!hasCPStagingLabel) {
             return 'Deployed';
         }
-        const liesBetweenTimeline = lockCashDeployLabelTimeline.some(
+        const liesBetweenTimeline = _.some(
+            lockCashDeployLabelTimeline,
             ([startAt, endAt]) => moment(mergedAt).isBetween(startAt, endAt, undefined, '[]'),
         );
         return liesBetweenTimeline ? 'Cherry-picked' : 'Deployed';

@@ -72,23 +72,23 @@ function getLockCashDeploysTimeline() {
         issue_number: stagingDeployIssueNumber,
         per_page: 100,
     }).then((events) => {
-        const pair = [];
-        const startEndPairs = _.flatten(events.map(({event, created_at, label}, index) => {
+        let pair = [];
+        const startEndPairs = _.compact(_.map(events, ({event, created_at, label}, index) => {
             if (event === 'labeled' && label.name === '🔐 LockCashDeploys 🔐') {
                 if (pair.length) {
                     // flush the pair
-                    pair.length = 0;
+                    pair = [];
                 }
                 pair.push(created_at);
             } else if (event === 'unlabeled' && label.name === '🔐 LockCashDeploys 🔐') {
                 pair.push(created_at);
             }
             if (index === events.length - 1 && pair.length === 1) {
-                pair.push(new Date().toString());
+                pair.push(moment().toISOString());
                 return pair;
             }
-            return pair.length > 1 ? pair : [];
-        }, 1));
+            return pair.length > 1 ? pair : undefined;
+        }));
         return startEndPairs;
     });
 }
@@ -112,7 +112,8 @@ function getPRDeployVerb(pr) {
         if (!hasCPStagingLabel) {
             return 'Deployed';
         }
-        const liesBetweenTimeline = lockCashDeployLabelTimeline.some(
+        const liesBetweenTimeline = _.some(
+            lockCashDeployLabelTimeline,
             ([startAt, endAt]) => moment(mergedAt).isBetween(startAt, endAt, undefined, '[]'),
         );
         return liesBetweenTimeline ? 'Cherry-picked' : 'Deployed';
