@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -178,8 +179,8 @@ class WorkspacePeoplePage extends React.Component {
                         forceTextUnreadStyle
                         disableRowInteractivity
                         option={{
-                            text: item.displayName,
-                            alternateText: item.login,
+                            text: Str.removeSMSDomain(item.displayName),
+                            alternateText: Str.removeSMSDomain(item.login),
                             participantsList: [item],
                             icons: [item.avatar],
                             keyForList: item.login,
