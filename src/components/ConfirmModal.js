@@ -66,7 +66,7 @@ const ConfirmModal = props => (
             </Text>
 
             <Button
-                success={!props.danger}
+                success
                 danger={props.danger}
                 style={[styles.mt4]}
                 onPress={props.onConfirm}
