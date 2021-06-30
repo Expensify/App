@@ -79,9 +79,10 @@ class ReportActionItemFragment extends React.PureComponent {
                     );
             case 'TEXT':
                 return (
-                    <Tooltip text={tooltipText}>
+                    <Tooltip text={tooltipText} containerStyle={styles.w100}>
                         <Text
                             selectable
+                            numberOfLines={1}
                             style={[styles.chatItemMessageHeaderSender]}
                         >
                             {Str.htmlDecode(fragment.text)}
