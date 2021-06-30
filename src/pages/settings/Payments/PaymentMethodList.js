@@ -74,23 +74,6 @@ class PaymentMethodList extends Component {
     createPaymentMethodList() {
         const combinedPaymentMethods = [];
 
-        combinedPaymentMethods.push({
-            title: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Plus,
-            onPress: e => this.props.onPress(e),
-            key: 'addPaymentMethodButton',
-        });
-
-        if (this.props.payPalMeUsername) {
-            combinedPaymentMethods.push({
-                title: 'PayPal.me',
-                description: this.props.payPalMeUsername,
-                icon: PayPal,
-                onPress: e => this.props.onPress(e, 'payPalMe'),
-                key: 'payPalMePaymentMethod',
-            });
-        }
-
         _.each(this.props.bankAccountList, (bankAccount) => {
             combinedPaymentMethods.push({
                 title: bankAccount.addressName,
@@ -115,6 +98,23 @@ class PaymentMethodList extends Component {
                     key: `card-${card.cardID}`,
                 });
             }
+        });
+
+        if (this.props.payPalMeUsername) {
+            combinedPaymentMethods.push({
+                title: 'PayPal.me',
+                description: this.props.payPalMeUsername,
+                icon: PayPal,
+                onPress: e => this.props.onPress(e, 'payPalMe'),
+                key: 'payPalMePaymentMethod',
+            });
+        }
+
+        combinedPaymentMethods.push({
+            title: this.props.translate('paymentMethodList.addPaymentMethod'),
+            icon: Plus,
+            onPress: e => this.props.onPress(e),
+            key: 'addPaymentMethodButton',
         });
 
         return combinedPaymentMethods;
@@ -146,7 +146,6 @@ class PaymentMethodList extends Component {
         return (
             <FlatList
                 data={combinedPaymentMethods}
-                inverted
                 renderItem={this.renderItem}
                 bounces
             />
