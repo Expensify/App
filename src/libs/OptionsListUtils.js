@@ -551,9 +551,17 @@ function getNewGroupOptions(
  * @param {Object} draftComments
  * @param {Number} activeReportID
  * @param {String} priorityMode
+ * @param {Array<String>} betas
  * @returns {Object}
  */
-function getSidebarOptions(reports, personalDetails, draftComments, activeReportID, priorityMode) {
+function getSidebarOptions(
+    reports,
+    personalDetails,
+    draftComments,
+    activeReportID,
+    priorityMode,
+    betas,
+) {
     let sideBarOptions = {
         prioritizePinnedReports: true,
     };
@@ -565,6 +573,7 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
     }
 
     return getOptions(reports, personalDetails, draftComments, activeReportID, {
+        betas,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
