@@ -15,7 +15,7 @@ import ReportActionContextMenuItem from './ReportActionContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import compose from '../../../libs/compose';
-import {isReportMessageAttachment, canEditReportAction} from '../../../libs/reportUtils';
+import {isReportMessageAttachment, canEditReportAction, canDeleteReportAction} from '../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
@@ -134,7 +134,7 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
-                shouldShow: () => canEditReportAction(this.props.reportAction),
+                shouldShow: () => canDeleteReportAction(this.props.reportAction),
                 onPress: () => {
                     if (this.props.isMini) {
                         // No popover to hide, call showDeleteModal immediately
