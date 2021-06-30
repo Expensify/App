@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {
-    View, FlatList, ScrollView,
+    View, FlatList, TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -64,7 +64,6 @@ class WorkspacePeoplePage extends React.Component {
         };
 
         this.renderItem = this.renderItem.bind(this);
-        this.renderHeader = this.renderHeader.bind(this);
         this.addUser = this.addUser.bind(this);
         this.removeUser = this.removeUser.bind(this);
         this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
@@ -167,7 +166,11 @@ class WorkspacePeoplePage extends React.Component {
         item,
     }) {
         return (
-            <View style={[styles.peopleRow]}>
+            <TouchableOpacity
+                style={[styles.peopleRow]}
+                onPress={() => this.toggleUser(item.login)}
+                activeOpacity={0.7}
+            >
                 <View style={[styles.peopleRowCell]}>
                     <Checkbox
                         isChecked={_.contains(this.state.selectedEmployees, item.login)}
@@ -196,31 +199,13 @@ class WorkspacePeoplePage extends React.Component {
                         </View>
                     </View>
                 )}
-            </View>
-        );
-    }
-
-    renderHeader() {
-        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        return (
-            <View style={[styles.peopleRow]}>
-                <View style={[styles.peopleRowCell]}>
-                    <Checkbox
-                        isChecked={this.state.selectedEmployees.length === policyEmployeeList.length}
-                        onPress={() => this.toggleAllUsers()}
-                    />
-                </View>
-                <View style={[styles.peopleRowCell, styles.flex1]}>
-                    <Text style={[styles.textStrong, styles.textUppercase, styles.ph5]}>
-                        {this.props.translate('workspace.people.assignee')}
-                    </Text>
-                </View>
-            </View>
+            </TouchableOpacity>
         );
     }
 
     render() {
-        const data = _.chain(lodashGet(this.props, 'policy.employeeList', []))
+        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
+        const data = _.chain(policyEmployeeList)
             .map(email => this.props.personalDetails[email])
             .filter()
             .value();
@@ -242,32 +227,42 @@ class WorkspacePeoplePage extends React.Component {
                     confirmText={this.props.translate('common.remove')}
                     cancelText={this.props.translate('common.cancel')}
                 />
-                <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
-                    <View style={styles.pageWrapper}>
-                        <View style={[styles.w100, styles.flexRow]}>
-                            <Button
-                                success
-                                text={this.props.translate('common.invite')}
-                                onPress={() => this.inviteUser()}
-                            />
-                            <Button
-                                danger
-                                style={[styles.ml2]}
-                                isDisabled={this.state.selectedEmployees.length === 0}
-                                text={this.props.translate('common.remove')}
-                                onPress={this.askForConfirmationToRemove}
-                            />
-                        </View>
-                        <View style={[styles.w100, styles.mt4]}>
-                            <FlatList
-                                ListHeaderComponent={this.renderHeader()}
-                                renderItem={this.renderItem}
-                                data={data}
-                                keyExtractor={item => item.login}
-                            />
-                        </View>
+                <View style={styles.pageWrapper}>
+                    <View style={[styles.w100, styles.flexRow]}>
+                        <Button
+                            success
+                            text={this.props.translate('common.invite')}
+                            onPress={() => this.inviteUser()}
+                        />
+                        <Button
+                            danger
+                            style={[styles.ml2]}
+                            isDisabled={this.state.selectedEmployees.length === 0}
+                            text={this.props.translate('common.remove')}
+                            onPress={this.askForConfirmationToRemove}
+                        />
                     </View>
-                </ScrollView>
+                    <View style={[styles.w100, styles.mt4]}>
+                        <View style={[styles.peopleRow]}>
+                            <View style={[styles.peopleRowCell]}>
+                                <Checkbox
+                                    isChecked={this.state.selectedEmployees.length === policyEmployeeList.length}
+                                    onPress={() => this.toggleAllUsers()}
+                                />
+                            </View>
+                            <View style={[styles.peopleRowCell, styles.flex1]}>
+                                <Text style={[styles.textStrong, styles.textUppercase, styles.ph5]}>
+                                    {this.props.translate('workspace.people.assignee')}
+                                </Text>
+                            </View>
+                        </View>
+                        <FlatList
+                            renderItem={this.renderItem}
+                            data={data}
+                            keyExtractor={item => item.login}
+                        />
+                    </View>
+                </View>
             </ScreenWrapper>
         );
     }
