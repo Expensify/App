@@ -188,7 +188,7 @@ class WorkspacePeoplePage extends React.Component {
                 </View>
                 {this.props.session.email === item.login && (
                     <View style={styles.peopleRowCell}>
-                        <View style={[styles.peopleBadge]}>
+                        <View style={[styles.badge, styles.peopleBadge]}>
                             <Text style={[styles.peopleBadgeText]}>
                                 Admin
                             </Text>

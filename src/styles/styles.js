@@ -1731,10 +1731,7 @@ const styles = {
 
     peopleBadge: {
         backgroundColor: themeColors.icon,
-        borderRadius: 14,
-        height: variables.iconSizeNormal,
         ...spacing.ph3,
-        justifyContent: 'center',
     },
 
     peopleBadgeText: {
