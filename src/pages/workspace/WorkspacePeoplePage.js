@@ -284,7 +284,7 @@ class WorkspacePeoplePage extends React.Component {
             .filter()
             .value();
         return (
-            <ScreenWrapper>
+            <ScreenWrapper style={[styles.defaultModalContainer]}>
                 <HeaderWithCloseButton
                     title={this.props.translate('common.people')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
