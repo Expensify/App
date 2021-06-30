@@ -54,7 +54,9 @@ class PaymentsPage extends React.Component {
             this.setState({
                 shouldShowAddPaymentMenu: true,
                 anchorPositionTop: position.bottom,
-                anchorPositionLeft: position.left,
+
+                // We want the position to be 20px to the right of the left border
+                anchorPositionLeft: position.left + 20,
             });
         }
     }
