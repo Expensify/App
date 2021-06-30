@@ -1716,10 +1716,6 @@ const styles = {
         minHeight: 150,
     },
 
-    textFull: {
-        width: '100%',
-    },
-
     buttonRow: {
         display: 'flex',
         width: '100%',
@@ -1728,71 +1724,24 @@ const styles = {
     },
 
     peopleRow: {
-        display: 'flex',
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
         borderBottomWidth: 2,
         borderColor: themeColors.border,
-        paddingVertical: 16,
-    },
-
-    peopleHeaderRow: {
-        textTransform: 'uppercase',
-        fontWeight: '700',
+        ...spacing.pv2,
     },
 
     peopleRowCell: {
-        display: 'flex',
-        flexDirection: 'column',
-        padding: spacing.p4,
-        alignItems: 'flex-start',
         justifyContent: 'center',
-    },
-
-    peopleCheckbox: {
-        minWidth: 36,
-    },
-
-    avatarWithName: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-    },
-
-    mobileAvatarWithName: {
-        flex: '0 1 auto',
-    },
-
-    mobilePeopleName: {
-        flex: '0 1 auto',
-        overflow: 'hidden',
-    },
-
-    peopleBadgesContainer: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-    },
-
-    peopleBadgesContainerDesktop: {
-        flex: '1 1 0',
-    },
-
-    peopleBadgesMobile: {
-        flex: '1 1 auto',
-        paddingLeft: 20,
     },
 
     peopleBadge: {
         backgroundColor: themeColors.icon,
         borderRadius: 14,
         height: variables.iconSizeNormal,
-        flexDirection: 'row',
         paddingHorizontal: 12,
-        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     peopleBadgeText: {
@@ -1800,14 +1749,6 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
-    },
-
-    peopleMobileAssigneeText: {
-        paddingVertical: 2,
-        textOverflow: 'ellipsis',
-        whiteSpace: 'noWrap',
-        overflow: 'hidden',
-        flexGrow: '0 1 auto',
     },
 };
 
