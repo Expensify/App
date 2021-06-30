@@ -74,23 +74,27 @@ class RequestCallPage extends Component {
     onSubmit() {
         this.setState({isLoading: true});
         if (!this.state.firstName.length || !this.state.lastName.length) {
-            Growl.show(this.props.translate('requestCallPage.growlMessageEmptyName'), CONST.GROWL.ERROR);
+            Growl.success(this.props.translate('requestCallPage.growlMessageEmptyName'));
             this.setState({isLoading: false});
             return;
         }
 
-        const personalPolicyID = _.find(this.props.policies, policy => policy.type === 'personal').id;
-        requestConciergeDMCall(personalPolicyID, this.state.firstName, this.state.lastName, this.state.phoneNumber)
+        const personalPolicy = _.find(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.PERSONAL);
+        if (!personalPolicy) {
+            Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
+            return;
+        }
+        requestConciergeDMCall(personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
                 if (result.jsonCode === 200) {
-                    Growl.show(this.props.translate('requestCallPage.growlMessageOnSave'), CONST.GROWL.SUCCESS);
+                    Growl.success(this.props.translate('requestCallPage.growlMessageOnSave'));
                     fetchOrCreateChatReport([this.props.session.email, CONST.EMAIL.CONCIERGE], true);
                     return;
                 }
 
                 // Phone number validation is handled by the API
-                Growl.show(result.message, CONST.GROWL.ERROR, 3000);
+                Growl.error(result.message, 3000);
             });
     }
 
