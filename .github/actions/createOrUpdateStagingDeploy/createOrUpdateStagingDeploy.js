@@ -27,8 +27,7 @@ const run = function () {
             labels: GithubUtils.DEPLOY_BLOCKER_CASH_LABEL,
         }),
     ])
-        .then((results) => {
-            const [stagingDeployResponse, deployBlockerResponse] = results;
+        .then(([stagingDeployResponse, deployBlockerResponse]) => {
             if (!stagingDeployResponse || !stagingDeployResponse.data || _.isEmpty(stagingDeployResponse.data)) {
                 console.error('Failed fetching StagingDeployCash issues from Github!', stagingDeployResponse);
                 throw new Error('Failed fetching StagingDeployCash issues from Github');

@@ -316,21 +316,7 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        // PRList is reverse-chronologically ordered
-        const oldestMergedPR = _.last(PRList);
-        return this.octokit.paginate(this.octokit.pulls.list, {
-            owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
-            state: 'all',
-            sort: 'created',
-            direction: 'desc',
-            per_page: 100,
-        }, ({data}, done) => {
-            if (_.find(data, pr => pr.html_url === oldestMergedPR)) {
-                done();
-            }
-            return data;
-        })
+        return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
             .then((data) => {
                 const automatedPRs = _.pluck(
                     _.filter(data, GithubUtils.isAutomatedPullRequest),
@@ -488,6 +474,30 @@ class GithubUtils {
      */
     static isAutomatedPullRequest(pullRequest) {
         return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
+    }
+
+    /**
+     * Fetch all pull requests given a list of PR numbers.
+     *
+     * @param {Array<Number>} pullRequestNumbers
+     * @returns {Promise}
+     */
+    static fetchAllPullRequests(pullRequestNumbers) {
+        const oldestPR = _.first(_.sortBy(pullRequestNumbers));
+        return this.octokit.paginate(this.octokit.pulls.list, {
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            state: 'all',
+            sort: 'created',
+            direction: 'desc',
+            per_page: 100,
+        }, ({data}, done) => {
+            if (_.find(data, pr => pr.number === oldestPR)) {
+                done();
+            }
+            return data;
+        })
+            .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)));
     }
 }
 
