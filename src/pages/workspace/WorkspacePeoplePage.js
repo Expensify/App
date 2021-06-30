@@ -250,11 +250,12 @@ class WorkspacePeoplePage extends React.Component {
     }
 
     renderHeader() {
+        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
         return (
             <View style={[styles.peopleRow, styles.peopleHeaderRow]}>
                 <View style={[styles.peopleRowCell, styles.peopleCheckbox]}>
                     <Checkbox
-                        isChecked={this.state.selectedEmployees.length === this.props.policy.employeeList.length}
+                        isChecked={this.state.selectedEmployees.length === policyEmployeeList.length}
                         onPress={() => this.toggleAllUsers()}
                     />
                 </View>
