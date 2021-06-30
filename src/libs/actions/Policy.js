@@ -128,17 +128,8 @@ function removeMembers(members, policyID) {
             Onyx.set(key, policyDataWithMembersRemoved);
 
             // Show the user feedback that the removal failed
-            const errorMessage = translateLocal('workspace.people.genericFailureMessage');
-            if (data.jsonCode === 401) {
-                // eslint-disable-next-line max-len
-                Log.info(`Error removing workspace members: ${translateLocal('workspace.people.onlyAdminCanRemove')}`, true);
-            }
-            if (data.jsonCode === 402) {
-                // eslint-disable-next-line max-len
-                Log.info(`Error removing workspace members: ${translateLocal('workspace.people.cannotRemovePolicyOwner')}`, true);
-            }
-
-            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+            console.error(data.message);
+            Growl.show(translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
         });
 }
 
