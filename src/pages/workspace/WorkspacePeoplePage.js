@@ -322,6 +322,7 @@ class WorkspacePeoplePage extends React.Component {
                                 ListHeaderComponent={this.renderHeader()}
                                 renderItem={this.renderItem}
                                 data={data}
+                                keyExtractor={item => item.login}
                             />
                         </View>
                     </View>
