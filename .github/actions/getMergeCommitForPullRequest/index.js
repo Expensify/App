@@ -322,6 +322,7 @@ class GithubUtils {
                     _.filter(data, GithubUtils.isAutomatedPullRequest),
                     'html_url',
                 );
+                console.log('Filtering out the following automated pull requests:', automatedPRs);
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
                     .unique()
