@@ -47,7 +47,7 @@ export default {
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
         remove: 'Eliminar',
-        admin: 'Administrador/a',
+        admin: 'Administrador',
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
         notifications: 'Notificaciones',
