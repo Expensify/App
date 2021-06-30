@@ -14,7 +14,6 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import {removeMembers} from '../../libs/actions/Policy';
-import Avatar from '../../components/Avatar';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
@@ -22,6 +21,7 @@ import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import OptionRow from '../home/sidebar/OptionRow';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -167,84 +167,34 @@ class WorkspacePeoplePage extends React.Component {
     }) {
         return (
             <View style={[styles.peopleRow]}>
-                <View style={[styles.peopleRowCell, styles.peopleCheckbox]}>
+                <View style={[styles.peopleRowCell]}>
                     <Checkbox
                         isChecked={_.contains(this.state.selectedEmployees, item.login)}
                         onPress={() => this.toggleUser(item.login)}
                     />
                 </View>
-                {
-                    this.props.windowWidth < 1100 ? (
-                        <View style={[styles.peopleRowCell, styles.mobileAvatarWithName]}>
-                            <View style={[styles.avatarWithName]}>
-                                <Avatar
-                                    imageStyles={[styles.mr2, styles.mobileAvatarWithName]}
-                                    source={item.avatar}
-                                />
-                                <View
-                                    style={[
-                                        styles.dFlex,
-                                        styles.flexColumn,
-                                        styles.justifyContentCenter,
-                                        styles.overflowHidden,
-                                        styles.mobilePeopleName,
-                                    ]}
-                                >
-                                    <Text style={[styles.textStrong, styles.peopleMobileAssigneeText]}>
-                                        {item.displayName}
-                                    </Text>
-                                    <Text
-                                        style={[
-                                            styles.textLabel,
-                                            styles.colorMuted,
-                                            styles.peopleMobileAssigneeText,
-                                        ]}
-                                    >
-                                        {item.login}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    ) : (
-                        <>
-                            <View style={[styles.peopleRowCell, styles.flex4]}>
-                                <View style={[styles.avatarWithName]}>
-                                    <Avatar
-                                        imageStyles={[styles.mr2]}
-                                        source={item.avatar}
-                                    />
-                                    <Text style={[styles.textStrong]}>
-                                        {item.displayName}
-                                    </Text>
-                                </View>
-                            </View>
-                            <View style={[styles.peopleRowCell, styles.flex4]}>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>
-                                    {item.login}
-                                </Text>
-                            </View>
-                        </>
-                    )
-                }
-                <View
-                    style={[
-                        styles.peopleRowCell,
-                        styles.peopleBadgesContainer,
-                        this.props.windowWidth < 1100 ? styles.peopleBadgesMobile : styles.peopleBadgesContainerDesktop,
-                    ]}
-                >
-                    {
-                        this.props.session.email === item.login && (
-                            <View>
-                                <View style={[styles.peopleBadge]}>
-                                    <Text style={[styles.peopleBadgeText]}>
-                                        Admin
-                                    </Text>
-                                </View>
-                            </View>
-                        )
-                    }
+                <View style={styles.flex1}>
+                    <OptionRow
+                        forceTextUnreadStyle
+                        disableRowInteractivity
+                        option={{
+                            text: item.displayName,
+                            alternateText: item.login,
+                            participantsList: [item],
+                            icons: [item.avatar],
+                            keyForList: item.login,
+                        }}
+                    />
                 </View>
+                {this.props.session.email === item.login && (
+                    <View style={styles.peopleRowCell}>
+                        <View style={[styles.peopleBadge]}>
+                            <Text style={[styles.peopleBadgeText]}>
+                                Admin
+                            </Text>
+                        </View>
+                    </View>
+                )}
             </View>
         );
     }
@@ -252,28 +202,18 @@ class WorkspacePeoplePage extends React.Component {
     renderHeader() {
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
         return (
-            <View style={[styles.peopleRow, styles.peopleHeaderRow]}>
-                <View style={[styles.peopleRowCell, styles.peopleCheckbox]}>
+            <View style={[styles.peopleRow]}>
+                <View style={[styles.peopleRowCell]}>
                     <Checkbox
                         isChecked={this.state.selectedEmployees.length === policyEmployeeList.length}
                         onPress={() => this.toggleAllUsers()}
                     />
                 </View>
-                <View style={[styles.peopleRowCell, styles.flex4]}>
-                    <Text style={[styles.textStrong]}>
+                <View style={[styles.peopleRowCell, styles.flex1]}>
+                    <Text style={[styles.textStrong, styles.textUppercase, styles.ph5]}>
                         {this.props.translate('workspace.people.assignee')}
                     </Text>
                 </View>
-                {
-                    this.props.windowWidth >= 1100 && (
-                        <View style={[styles.peopleRowCell, styles.flex4]}>
-                            <Text style={[styles.textStrong]}>
-                                {this.props.translate('common.email')}
-                            </Text>
-                        </View>
-                    )
-                }
-                <View style={[styles.peopleRowCell, styles.flex1]} />
             </View>
         );
     }
