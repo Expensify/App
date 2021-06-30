@@ -67,7 +67,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
     }
 
     return (
-        <ScreenWrapper style={[!isSmallScreenWidth ? styles.borderRight : {}]}>
+        <ScreenWrapper>
             <ScrollView
                 bounces={false}
                 contentContainerStyle={[

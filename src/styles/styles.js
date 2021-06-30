@@ -1720,7 +1720,7 @@ const styles = {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderBottomWidth: 2,
+        borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.pv2,
     },
