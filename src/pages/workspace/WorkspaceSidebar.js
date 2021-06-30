@@ -24,7 +24,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
+const WorkspaceSidebar = ({translate, isSmallScreenWidth, ...props}) => {
     const menuItems = [
         {
             translationKey: 'workspace.common.card',

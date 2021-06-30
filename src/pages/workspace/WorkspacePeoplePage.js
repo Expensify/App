@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {
     View, FlatList, ScrollView,
 } from 'react-native';
@@ -277,11 +278,10 @@ class WorkspacePeoplePage extends React.Component {
     }
 
     render() {
-        let data = [];
-        if (this.props.policy.employeeList && this.props.policy.employeeList.length !== 0) {
-            data = _.filter(this.props.policy.employeeList, email => this.props.personalDetails[email])
-                .map(email => this.props.personalDetails[email]);
-        }
+        const data = _.chain(lodashGet(this.props, 'policy.employeeList', []))
+            .map(email => this.props.personalDetails[email])
+            .filter()
+            .value();
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
