@@ -1325,4 +1325,5 @@ export {
     saveReportActionDraft,
     deleteReportComment,
     getSimplifiedIOUReport,
+    syncChatAndIOUReports,
 };
