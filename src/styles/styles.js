@@ -260,7 +260,7 @@ const styles = {
             borderWidth: 1,
             borderColor: themeColors.border,
             color: themeColors.text,
-            height: variables.componentSizeNormal,
+            height: variables.inputComponentSizeNormal,
             opacity: 1,
         },
         inputWeb: {
@@ -275,7 +275,7 @@ const styles = {
             borderColor: themeColors.border,
             color: themeColors.text,
             appearance: 'none',
-            height: variables.componentSizeNormal,
+            height: variables.inputComponentSizeNormal,
             opacity: 1,
             cursor: 'pointer',
         },
@@ -290,7 +290,7 @@ const styles = {
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
             color: themeColors.text,
-            height: variables.componentSizeNormal,
+            height: variables.inputComponentSizeNormal,
             opacity: 1,
         },
         iconContainer: {
@@ -382,7 +382,7 @@ const styles = {
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeNormal,
+        height: variables.inputComponentSizeNormal,
         borderColor: themeColors.border,
         borderWidth: 1,
         color: themeColors.text,
