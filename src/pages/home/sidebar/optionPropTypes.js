@@ -22,7 +22,7 @@ const optionPropTypes = PropTypes.shape({
     participantsList: PropTypes.arrayOf(participantPropTypes),
 
     // The array URLs of the person's avatar
-    icon: PropTypes.arrayOf(PropTypes.string),
+    icons: PropTypes.arrayOf(PropTypes.string),
 
     // Descriptive text to be displayed besides selection element
     descriptiveText: PropTypes.string,
