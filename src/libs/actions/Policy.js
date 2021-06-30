@@ -196,8 +196,10 @@ function create(name) {
                 id: response.policyID,
                 type: response.policy.type,
                 name: response.policy.name,
+                role: CONST.POLICY.ROLE.ADMIN,
             });
-            Navigation.navigate(ROUTES.getWorkspaceRoute(response.policyID));
+            Navigation.dismissModal();
+            Navigation.navigate(ROUTES.getWorkspaceCardRoute(response.policyID));
         });
 }
 
