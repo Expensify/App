@@ -89,7 +89,7 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <View style={[styles.flex1, styles.p5]}>
+                    <View style={[styles.flex1]}>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                         />
