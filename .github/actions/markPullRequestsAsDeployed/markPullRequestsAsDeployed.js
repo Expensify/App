@@ -62,22 +62,22 @@ function getLockCashDeploysTimeline() {
         issue_number: stagingDeployIssueNumber,
         per_page: 100,
     }).then((events) => {
-        const pair = [];
-        const startEndPairs = _.flatten(events.map(({event, created_at, label}, index) => {
+        let pair = [];
+        const startEndPairs = _.compact(events.map(({event, created_at, label}, index) => {
             if (event === 'labeled' && label.name === '🔐 LockCashDeploys 🔐') {
                 if (pair.length) {
                     // flush the pair
-                    pair.length = 0;
+                    pair = [];
                 }
                 pair.push(created_at);
             } else if (event === 'unlabeled' && label.name === '🔐 LockCashDeploys 🔐') {
                 pair.push(created_at);
             }
             if (index === events.length - 1 && pair.length === 1) {
-                pair.push(new Date().toString());
+                pair.push(moment().toISOString());
                 return pair;
             }
-            return pair.length > 1 ? pair : [];
+            return pair.length > 1 ? pair : undefined;
         }, 1));
         return startEndPairs;
     });
