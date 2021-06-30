@@ -172,12 +172,6 @@ const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
     name: 'WorkspaceInvite_Root',
 }]);
 
-// Standalone page for now
-const WorkspacePeopleModalStackNavigator = createModalStackNavigator([{
-    Component: WorkspacePeoplePage,
-    name: 'WorkspacePeople_Root',
-}]);
-
 const RequestCallModalStackNavigator = createModalStackNavigator([{
     Component: RequestCallPage,
     name: 'RequestCall_Root',
@@ -198,6 +192,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
-    WorkspacePeopleModalStackNavigator,
     RequestCallModalStackNavigator,
 };
