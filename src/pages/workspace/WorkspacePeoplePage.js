@@ -118,7 +118,7 @@ class WorkspacePeoplePage extends React.Component {
     /**
      * Toggle user from the selectedEmployees list
      *
-     * @param {Sting} login
+     * @param {String} login
      */
     toggleUser(login) {
         if (_.contains(this.state.selectedEmployees, login)) {
@@ -131,7 +131,7 @@ class WorkspacePeoplePage extends React.Component {
     /**
      * Add user from the selectedEmployees list
      *
-     * @param {Sting} login
+     * @param {String} login
      */
     addUser(login) {
         this.setState(prevState => ({
@@ -142,7 +142,7 @@ class WorkspacePeoplePage extends React.Component {
     /**
      * Remove user from the selectedEmployees list
      *
-     * @param {Sting} login
+     * @param {String} login
      */
     removeUser(login) {
         this.setState(prevState => ({
@@ -315,15 +315,11 @@ class WorkspacePeoplePage extends React.Component {
                             />
                         </View>
                         <View style={[styles.w100, styles.mt4]}>
-                            {
-                                this.props.policy.employeeList && (
-                                    <FlatList
-                                        ListHeaderComponent={this.renderHeader()}
-                                        renderItem={this.renderItem}
-                                        data={data}
-                                    />
-                                )
-                            }
+                            <FlatList
+                                ListHeaderComponent={this.renderHeader()}
+                                renderItem={this.renderItem}
+                                data={data}
+                            />
                         </View>
                     </View>
                 </ScrollView>
