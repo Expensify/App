@@ -1292,6 +1292,17 @@ function syncChatAndIOUReports(chatReportStuff, iouReportStuff) {
     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportData);
 }
 
+/**
+ * Updates a user's notification preferences for a chat room
+ *
+ * @param {Number} reportID
+ * @param {String} notificationPreference
+ */
+function updateNotificationPreference(reportID, notificationPreference) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {notificationPreference});
+    API.Report_UpdateNotificationPreference({reportID, notificationPreference});
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1301,6 +1312,7 @@ export {
     fetchIOUReportByIDAndUpdateChatReport,
     addAction,
     updateLastReadActionID,
+    updateNotificationPreference,
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,
@@ -1313,6 +1325,4 @@ export {
     saveReportActionDraft,
     deleteReportComment,
     getSimplifiedIOUReport,
-    getSimplifiedReportObject,
-    syncChatAndIOUReports,
 };
