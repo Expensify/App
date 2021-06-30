@@ -54,7 +54,7 @@ const ReportActionItemSingle = ({
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
     const personArray = displayName
-        ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName, isSingleLine: true}]
+        ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName}]
         : action.person;
     return (
         <View style={wrapperStyles}>
@@ -71,6 +71,7 @@ const ReportActionItemSingle = ({
                             tooltipText={action.actorEmail}
                             isAttachment={action.isAttachment}
                             isLoading={action.loading}
+                            isSingleLine={true}
                         />
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />
