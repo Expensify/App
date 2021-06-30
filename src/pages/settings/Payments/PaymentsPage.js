@@ -15,6 +15,8 @@ import {PayPal} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getPaymentMethodScreenLocation from '../../../libs/getPaymentMethodScreenLocation';
 
+const PAYPAL = 'payPalMe';
+
 const propTypes = {
     ...withLocalizePropTypes,
 };
@@ -22,8 +24,6 @@ const propTypes = {
 class PaymentsPage extends React.Component {
     constructor(props) {
         super(props);
-
-        this.PAYPAL = 'payPalMe';
 
         this.state = {
             shouldShowAddPaymentMenu: false,
@@ -67,7 +67,7 @@ class PaymentsPage extends React.Component {
     addPaymentMethodTypePressed(paymentType) {
         this.hideAddPaymentMenu();
 
-        if (paymentType === this.PAYPAL) {
+        if (paymentType === PAYPAL) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
         }
     }
@@ -105,7 +105,7 @@ class PaymentsPage extends React.Component {
                         <MenuItem
                             title="PayPal.me"
                             icon={PayPal}
-                            onPress={() => this.addPaymentMethodTypePressed(this.PAYPAL)}
+                            onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
                         />
                     </Popover>
                 </KeyboardAvoidingView>
