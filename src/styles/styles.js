@@ -140,7 +140,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        paddingHorizontal: 12,
+        ...spacing.ph3,
     },
 
     buttonText: {
@@ -1716,13 +1716,6 @@ const styles = {
         minHeight: 150,
     },
 
-    buttonRow: {
-        display: 'flex',
-        width: '100%',
-        justifyContent: 'flex-start',
-        flexDirection: 'row',
-    },
-
     peopleRow: {
         width: '100%',
         flexDirection: 'row',
@@ -1740,7 +1733,7 @@ const styles = {
         backgroundColor: themeColors.icon,
         borderRadius: 14,
         height: variables.iconSizeNormal,
-        paddingHorizontal: 12,
+        ...spacing.ph3,
         justifyContent: 'center',
     },
 
