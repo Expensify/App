@@ -82,7 +82,6 @@ class ReportActionItemFragment extends React.PureComponent {
                         </Text>
                     );
             case 'TEXT':
-                console.log(fragment);
                 return (
                     <Tooltip text={tooltipText} containerStyle={styles.w100}>
                         <Text
