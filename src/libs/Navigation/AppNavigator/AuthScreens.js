@@ -217,6 +217,10 @@ class AuthScreens extends React.Component {
             cardStyle: {...styles.fullscreenCard},
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
             cardOverlayEnabled: false,
+
+            // This is a custom prop we are passing to custom navigator which makes
+            // sure we will not be able to dismiss the fullscreen modal other than close button.
+            isModal: false,
         };
 
         return (
