@@ -142,8 +142,9 @@ export default compose(
     withOnyx({
         policy: {
             key: (props) => {
-                const state = props.navigation.getState();
-                const policyID = lodashGet(state, ['routes', 0, 'params', 'policyID']);
+                const routes = lodashGet(props.navigation.getState(), 'routes', []);
+                const routeWithPolicyIDParam = _.find(routes, route => route.params && route.params.policyID);
+                const policyID = lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
         },
