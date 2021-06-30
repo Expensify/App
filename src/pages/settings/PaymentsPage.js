@@ -92,7 +92,7 @@ class PaymentsPage extends React.Component {
                     <FixedFooter>
                         <Button
                             success
-                            isDisabled={!this.state.payPalMeUsername}
+                            isDisabled={Boolean(this.props.payPalMeUsername)}
                             onPress={this.setPayPalMeUsername}
                             style={[styles.mt3]}
                             text={this.props.translate('paymentsPage.addPayPalAccount')}
