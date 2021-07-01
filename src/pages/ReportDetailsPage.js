@@ -14,13 +14,14 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
-import {isDefaultRoom} from '../libs/reportUtils';
+import {getDefaultRoomSubtitle, isDefaultRoom} from '../libs/reportUtils';
 import {participantPropTypes} from './home/sidebar/optionPropTypes';
 import Picker from '../components/Picker';
 import {updateNotificationPreference} from '../libs/actions/Report';
 import {Users} from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
+import CONST from '../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -97,12 +98,7 @@ class ReportDetailsPage extends Component {
     }
 
     render() {
-        const policyID = lodashGet(this.props.report, 'policyID', '');
-        const policyName = lodashGet(
-            this.props.policies,
-            [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'name'],
-            'Unknown Policy',
-        );
+        const defaultRoomSubtitle = getDefaultRoomSubtitle(props.report, props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = _.map(
