@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, Text} from 'react-native';
+import {Pressable} from 'react-native';
 import styles, {getButtonBackgroundColorStyle} from '../../../styles/styles';
 import getButtonState from '../../../libs/getButtonState';
 import Hoverable from '../../../components/Hoverable';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */

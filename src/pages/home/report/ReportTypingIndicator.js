@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -8,6 +8,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */

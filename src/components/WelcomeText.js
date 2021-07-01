@@ -1,8 +1,8 @@
 import React from 'react';
-import {Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Text from './Text';
 
 const propTypes = {
 
