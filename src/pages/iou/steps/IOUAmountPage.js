@@ -121,7 +121,7 @@ class IOUAmountPage extends React.Component {
      */
     updateAmountNumberPad(key) {
         // Backspace button is pressed
-        if (key === '<') {
+        if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
                 this.setState(prevState => ({
                     amount: prevState.amount.slice(0, -1),
