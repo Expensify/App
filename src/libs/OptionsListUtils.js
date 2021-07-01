@@ -193,6 +193,9 @@ function createOption(personalDetailList, report, draftComments, {
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : getDefaultRoomSubtitle(report, policies);
+        if (alternateText === 'Unknown Policy') {
+            debugger;
+        }
     } else {
         text = hasMultipleParticipants
             ? personalDetailList

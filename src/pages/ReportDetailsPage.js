@@ -21,7 +21,6 @@ import {updateNotificationPreference} from '../libs/actions/Report';
 import {Users} from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
-import CONST from '../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -98,7 +97,7 @@ class ReportDetailsPage extends Component {
     }
 
     render() {
-        const defaultRoomSubtitle = getDefaultRoomSubtitle(props.report, props.policies);
+        const defaultRoomSubtitle = getDefaultRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = _.map(
@@ -142,7 +141,7 @@ class ReportDetailsPage extends Component {
                                     style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mb6]}
                                     numberOfLines={1}
                                 >
-                                    {policyName}
+                                    {defaultRoomSubtitle}
                                 </Text>
                             </View>
                         </View>
