@@ -141,11 +141,9 @@ class PaymentMethodList extends Component {
     }
 
     render() {
-        const combinedPaymentMethods = this.createPaymentMethodList();
-
         return (
             <FlatList
-                data={combinedPaymentMethods}
+                data={this.createPaymentMethodList()}
                 renderItem={this.renderItem}
                 bounces
             />
