@@ -467,8 +467,23 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     // should be used with caution as it is possible to drop a user into a flow they can't complete e.g.
                     // if we drop the user into the CompanyStep, but they have no accountNumber or routing Number in
                     // their achData.
-                    if (stepToOpen) {
-                        currentStep = stepToOpen;
+                    switch (stepToOpen) {
+                        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                            // Only create another withdrawal account if there is not one already open
+                            if (bankAccount && bankAccount.isOpen()) {
+                                currentStep = stepToOpen;
+                            }
+                            break;
+                        case CONST.BANK_ACCOUNT.STEP.COMPANY:
+                        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+                            if (bankAccount
+                                && !_.isEmpty(bankAccount.getMaskedAccountNumber())
+                                && !_.isEmpty(bankAccount.getRoutingNumber())) {
+                                currentStep = stepToOpen;
+                            }
+                            break;
+                        default:
+                            currentStep = stepToOpen;
                     }
 
                     // 'error' displays any string set as an error encountered during the add Verified BBA flow.
@@ -598,10 +613,9 @@ function setupWithdrawalAccount(data) {
         newACHData.accountNumber = unmaskedAccount.accountNumber;
     }
 
-    API.BankAccount_SetupWithdrawal(newACHData)
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}})
+        .then(() => API.BankAccount_SetupWithdrawal(newACHData))
         .then((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
-
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
