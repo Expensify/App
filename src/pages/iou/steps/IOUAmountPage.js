@@ -103,6 +103,17 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * Check if amount is a decimal upto 3 digits
+     * 
+     * @param {String} amount 
+     * @returns True if amount is a decimal upto 3 digits
+     */
+    validateAmount(amount) {
+        const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
+        return amount === '' || decimalNumberRegex.test(amount);
+    }
+    
+    /**
      * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      *
@@ -120,16 +131,8 @@ class IOUAmountPage extends React.Component {
         }
 
         this.setState((prevState) => {
-            const newValue = `${prevState.amount}${key}`;
-
-            // Regex to validate decimal number with up to 3 decimal numbers
-            const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
-            if (!decimalNumberRegex.test(newValue)) {
-                return prevState;
-            }
-            return {
-                amount: newValue,
-            };
+            const amount = `${prevState.amount}${key}`;
+            return this.validateAmount(amount) ? {amount} : prevState;
         });
     }
 
@@ -140,12 +143,9 @@ class IOUAmountPage extends React.Component {
      * @param {String} amount
      */
     updateAmount(amount) {
-        // Regex to validate decimal number with up to 3 decimal numbers
-        const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
-        if (amount !== '' && !decimalNumberRegex.test(amount)) {
-            return;
-        }
-        this.setState({amount});
+        if (this.validateAmount(amount)) {
+            this.setState({amount});
+        }    
     }
 
     render() {
