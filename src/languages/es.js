@@ -46,6 +46,8 @@ export default {
         whatThis: '¿Qué es esto?',
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
+        remove: 'Eliminar',
+        admin: 'Administrador',
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
         notifications: 'Notificaciones',
@@ -367,6 +369,12 @@ export default {
             helpText: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
             getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
+        },
+        people: {
+            assignee: 'Persona asignada',
+            genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor inténtalo más tarde.',
+            removeMembersPrompt: '¿Estás seguro que quieres eliminar a las personas seleccionadas de tu espacio de trabajo?',
+            removeMembersTitle: 'Eliminar miembros',
         },
         card: {
             addEmail: 'Agregar correo electrónico',
