@@ -91,7 +91,7 @@ class ReportActionItem extends Component {
         this.measureContextMenuAnchorPosition = this.measureContextMenuAnchorPosition.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
-        this.showDeleteModal = this.showDeleteModal.bind(this);
+        this.showDeleteConfirmModal = this.showDeleteConfirmModal.bind(this);
     }
 
     componentDidMount() {
@@ -192,7 +192,6 @@ class ReportActionItem extends Component {
      * @param {Function} onHideCallback Callback to be called after popover is completely hidden
      */
     hidePopover(onHideCallback) {
-        console.debug(onHideCallback);
         if (_.isFunction(onHideCallback)) {
             this.onPopoverHide = onHideCallback;
         }
@@ -213,7 +212,7 @@ class ReportActionItem extends Component {
                 reportID={this.props.reportID}
                 reportAction={this.props.action}
                 hidePopover={this.hidePopover}
-                showDeleteModal={this.showDeleteModal}
+                showDeleteConfirmModal={this.showDeleteConfirmModal}
             />
         );
     }
@@ -232,7 +231,7 @@ class ReportActionItem extends Component {
      *
      * @memberof ReportActionItem
      */
-    showDeleteModal() {
+    showDeleteConfirmModal() {
         this.setState({isDeleteCommentConfirmModalVisible: true});
     }
 
@@ -302,7 +301,7 @@ class ReportActionItem extends Component {
                                         draftMessage={this.props.draftMessage}
                                         hidePopover={this.hidePopover}
                                         isMini
-                                        showDeleteModal={this.showDeleteModal}
+                                        showDeleteConfirmModal={this.showDeleteConfirmModal}
                                     />
                                 </View>
                             </View>
@@ -326,7 +325,7 @@ class ReportActionItem extends Component {
                         reportAction={this.props.action}
                         draftMessage={this.props.draftMessage}
                         hidePopover={this.hidePopover}
-                        showDeleteModal={this.showDeleteModal}
+                        showDeleteConfirmModal={this.showDeleteConfirmModal}
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal

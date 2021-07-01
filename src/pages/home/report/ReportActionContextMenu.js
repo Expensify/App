@@ -44,7 +44,7 @@ const propTypes = {
     hidePopover: PropTypes.func.isRequired,
 
     /** Function to show the delete Action confirmation modal */
-    showDeleteModal: PropTypes.func.isRequired,
+    showDeleteConfirmModal: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -137,11 +137,11 @@ class ReportActionContextMenu extends React.Component {
                 shouldShow: () => canDeleteReportAction(this.props.reportAction),
                 onPress: () => {
                     if (this.props.isMini) {
-                        // No popover to hide, call showDeleteModal immediately
-                        this.props.showDeleteModal();
+                        // No popover to hide, call showDeleteConfirmModal immediately
+                        this.props.showDeleteConfirmModal();
                     } else {
-                        // Hide popover, then call showDeleteModal
-                        this.hidePopover(false, this.props.showDeleteModal);
+                        // Hide popover, then call showDeleteConfirmModal
+                        this.hidePopover(false, this.props.showDeleteConfirmModal);
                     }
                 },
             },
