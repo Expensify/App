@@ -13,7 +13,7 @@ import getPaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
 import {PayPal} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
-import getPaymentMethodScreenLocation from '../../../libs/getPaymentMethodScreenLocation';
+import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 
 const PAYPAL = 'payPalMe';
 
@@ -50,7 +50,7 @@ class PaymentsPage extends React.Component {
         if (account) {
             // TODO: Show the make default/delete popover
         } else {
-            const position = getPaymentMethodScreenLocation(nativeEvent);
+            const position = getClickedElementLocation(nativeEvent);
             this.setState({
                 shouldShowAddPaymentMenu: true,
                 anchorPositionTop: position.bottom,

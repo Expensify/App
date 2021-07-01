@@ -4,8 +4,8 @@
  * @param {Object} nativeEvent
  * @returns {Object}
  */
-function getPaymentMethodScreenLocation(nativeEvent) {
+function getClickedElementLocation(nativeEvent) {
     return nativeEvent.currentTarget.getBoundingClientRect();
 }
 
-export default getPaymentMethodScreenLocation;
+export default getClickedElementLocation;
