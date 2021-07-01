@@ -68,7 +68,7 @@ class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updateAmountIfValidInput = this.updateAmountIfValidInput.bind(this);
+        this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
         this.state = {
             amount: props.selectedAmount,
         };
@@ -102,14 +102,14 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Update amount with number or Backspace pressed.
+     * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      *
      * @param {String} key
      */
-    updateAmountIfValidInput(key) {
+    updateAmountNumberPad(key) {
         // Backspace button is pressed
-        if (key === '<' || key === 'Backspace') {
+        if (key === '<') {
             if (this.state.amount.length > 0) {
                 this.setState(prevState => ({
                     amount: prevState.amount.substring(0, prevState.amount.length - 1),
@@ -180,7 +180,7 @@ class IOUAmountPage extends React.Component {
                     {this.props.isSmallScreenWidth
                         ? (
                             <BigNumberPad
-                                numberPressed={this.updateAmountIfValidInput}
+                                numberPressed={this.updateAmountNumberPad}
                             />
                         ) : <View />}
 
