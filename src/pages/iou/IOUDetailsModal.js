@@ -23,7 +23,7 @@ import isAppInstalled from '../../libs/isAppInstalled';
 import Button from '../../components/Button';
 import Permissions from '../../libs/Permissions';
 import {
-    Cash, Paypal, Venmo, Wallet,
+    Cash, PayPal, Venmo, Wallet,
 } from '../../components/Icon/Expensicons';
 
 const propTypes = {
@@ -212,7 +212,7 @@ class IOUDetailsModal extends Component {
             },
             [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
                 text: this.props.translate('iou.settlePaypalMe'),
-                icon: Paypal,
+                icon: PayPal,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: this.props.translate('iou.settleElsewhere'),
