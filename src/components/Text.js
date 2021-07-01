@@ -4,6 +4,7 @@ import _ from 'underscore';
 import {Text as RNText} from 'react-native';
 import fontFamily from '../styles/fontFamily';
 import themeColors from '../styles/themes/default';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** The color of the text */
@@ -28,7 +29,7 @@ const propTypes = {
 };
 const defaultProps = {
     color: themeColors.text,
-    fontSize: 15,
+    fontSize: variables.fontSizeNormal,
     family: 'GTA',
     textAlign: null,
     children: null,

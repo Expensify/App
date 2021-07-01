@@ -58,7 +58,7 @@ const ConfirmModal = props => (
                 <Header title={props.title} />
             </View>
 
-            <Text style={styles.textP}>
+            <Text>
                 {props.prompt}
             </Text>
 

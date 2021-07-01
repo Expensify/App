@@ -57,7 +57,7 @@ const AttachmentView = (props) => {
             <View style={styles.mr2}>
                 <Icon src={Paperclip} />
             </View>
-            <Text style={[styles.textP, styles.textStrong]}>{props.file && props.file.name}</Text>
+            <Text style={[styles.textStrong]}>{props.file && props.file.name}</Text>
         </View>
     );
 };
