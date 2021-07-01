@@ -221,11 +221,16 @@ function payIOUReport({
             }
         })
         .catch((error) => {
-            // eslint-disable-next-line max-len
-            if (error.message.startsWith('You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.')) {
-                Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
-            } else {
-                Growl.error(error.message, 5000);
+            switch (error.message) {
+                // eslint-disable-next-line max-len
+                case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
+                    Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
+                    break;
+                case 'This report doesn\'t have reimbursable expenses.':
+                    Growl.error(translateLocal('iou.noReimbursableExpenses'), 5000);
+                    break;
+                default:
+                    Growl.error(error.message, 5000);
             }
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
