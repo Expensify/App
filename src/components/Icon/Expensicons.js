@@ -16,6 +16,7 @@ import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
 import Eye from '../../../assets/images/eye.svg';
+import ExpensifyCard from '../../../assets/images/expensifycard.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Info from '../../../assets/images/info.svg';
@@ -28,6 +29,7 @@ import MoneyBag from '../../../assets/images/money-bag.svg';
 import MoneyCircle from '../../../assets/images/money-circle.svg';
 import Monitor from '../../../assets/images/monitor.svg';
 import NewWindow from '../../../assets/images/new-window.svg';
+import NewWorkspace from '../../../assets/images/new-workspace.svg';
 import Offline from '../../../assets/images/offline.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
 import Paycheck from '../../../assets/images/paycheck.svg';
@@ -47,8 +49,6 @@ import Users from '../../../assets/images/users.svg';
 import Upload from '../../../assets/images/upload.svg';
 import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
-import NewWorkspace from '../../../assets/images/new-workspace.svg';
-import ExpensifyCard from '../../../assets/images/expensifycard.svg';
 
 export {
     Android,
@@ -82,6 +82,7 @@ export {
     MoneyCircle,
     Monitor,
     NewWindow,
+    NewWorkspace,
     Offline,
     Paperclip,
     Paycheck,
@@ -101,5 +102,4 @@ export {
     Users,
     Venmo,
     Wallet,
-    NewWorkspace,
 };
