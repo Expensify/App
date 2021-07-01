@@ -68,15 +68,15 @@ class EmojiPickerMenu extends Component {
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.currentScrollOffset = 0;
+        this.emojiSize = {
+            fontSize: dynamicEmojiSize(this.props.windowWidth),
+        };
 
         this.state = {
             filteredEmojis: this.emojis,
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
             arePointerEventsDisabled: false,
-            emojiSize: {
-                fontSize: dynamicEmojiSize(this.props.windowWidth),
-            },
         };
     }
 
@@ -307,7 +307,7 @@ class EmojiPickerMenu extends Component {
                 onHover={() => this.setState({highlightedIndex: index})}
                 emoji={code}
                 isHighlighted={index === this.state.highlightedIndex}
-                emojiSize={this.state.emojiSize}
+                emojiSize={this.emojiSize}
             />
         );
     }
