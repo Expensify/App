@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
-    Text,
     TouchableOpacity,
     View,
     StyleSheet,
@@ -20,6 +19,7 @@ import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** Background Color of the Option Row */

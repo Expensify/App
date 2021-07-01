@@ -5,7 +5,6 @@ import {
     TouchableOpacity,
     Pressable,
     InteractionManager,
-    Text,
     Dimensions,
 } from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
@@ -53,6 +52,7 @@ import * as User from '../../../libs/actions/User';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** Beta features list */
