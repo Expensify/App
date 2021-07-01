@@ -102,16 +102,26 @@ class RequestCallPage extends Component {
      * @returns {Object}
      */
     getFirstAndLastName({login, displayName}) {
+        let firstName;
+        let lastName;
+
         if (login === displayName) {
-            return {firstName: '', lastName: ''};
+            firstName = '';
+            lastName = '';
+        } else {
+            const firstSpaceIndex = displayName.indexOf(' ');
+            const lastSpaceIndex = displayName.lastIndexOf(' ');
+
+            if (firstSpaceIndex === -1) {
+                firstName = displayName;
+                lastName = '';
+            } else {
+                firstName = displayName.substring(0, firstSpaceIndex);
+                lastName = displayName.substring(lastSpaceIndex);
+            }
         }
 
-        const firstSpaceIndex = displayName.indexOf(' ');
-        const lastSpaceIndex = displayName.lastIndexOf(' ');
-        return {
-            firstName: displayName.substring(0, firstSpaceIndex),
-            lastName: firstSpaceIndex !== lastSpaceIndex ? displayName.substring(lastSpaceIndex) : '',
-        };
+        return {firstName, lastName};
     }
 
     render() {
