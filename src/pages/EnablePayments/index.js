@@ -32,7 +32,8 @@ class EnablePaymentsPage extends React.Component {
             return <FullScreenLoadingIndicator />;
         }
 
-        const currentStep = this.props.userWallet.currentStep || CONST.WALLET.STEP.ONFIDO;
+        // TODO: revert the default step back to CONST.WALLET.STEP.ONFIDO
+        const currentStep = this.props.userWallet.currentStep || CONST.WALLET.STEP.TERMS;
         return (
             <ScreenWrapper>
                 {currentStep === CONST.WALLET.STEP.ONFIDO && <OnfidoStep />}
