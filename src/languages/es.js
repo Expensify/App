@@ -140,6 +140,7 @@ export default {
         paid: ({owner, manager}) => `${manager} pagó a ${owner}`,
         split: ({amount}) => `Dividir ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
+        noReimbursableExpenses: 'Este informe tiene una cantidad no válida',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
@@ -303,6 +304,7 @@ export default {
             address: 'Ingrese una dirección válida',
             dob: 'Ingrese una fecha de nacimiento válida',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria de depósito predeterminada o una tarjeta de débito',
         },
     },
     addPersonalBankAccountPage: {
