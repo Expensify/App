@@ -143,6 +143,7 @@ export default {
         paid: ({owner, manager}) => `${manager} pagó a ${owner}`,
         split: ({amount}) => `Dividir ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
+        noReimbursableExpenses: 'El monto de este informe es inválido',
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
@@ -312,6 +313,7 @@ export default {
             address: 'Ingrese una dirección válida',
             dob: 'Ingrese una fecha de nacimiento válida',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
         },
     },
     addPersonalBankAccountPage: {
