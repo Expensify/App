@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import {Linking} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -9,6 +8,7 @@ import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpda
 import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
+import asyncOpenURL from '../asyncOpenURL';
 
 /**
  * @param {Object[]} requestParams
@@ -198,7 +198,18 @@ function payIOUReport({
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? API.PayWithWallet({reportID})
         : API.PayIOU({reportID, paymentMethodType});
-    payIOUPromise
+
+    // Build the url for the user's platform of choice if they have
+    // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
+    let url;
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+        url = buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency);
+    }
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
+        url = buildVenmoPaymentURL(amount, submitterPhoneNumber);
+    }
+
+    asyncOpenURL(payIOUPromise
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
@@ -211,14 +222,6 @@ function payIOUReport({
             // iouReport being fetched here must be open, because only an open iouReoport can be paid.
             // Therefore, we should also sync the chatReport after fetching the iouReport.
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
-
-            // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
-            // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                Linking.openURL(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
-            } else if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-                Linking.openURL(buildVenmoPaymentURL(amount, submitterPhoneNumber));
-            }
         })
         .catch((error) => {
             switch (error.message) {
@@ -234,7 +237,8 @@ function payIOUReport({
             }
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
-        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
+        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})),
+    url);
 }
 
 export {
