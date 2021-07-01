@@ -69,6 +69,7 @@ class IOUAmountPage extends React.Component {
         super(props);
 
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
+        this.updateAmount = this.updateAmount.bind(this);
         this.state = {
             amount: props.selectedAmount,
         };
@@ -132,6 +133,21 @@ class IOUAmountPage extends React.Component {
         });
     }
 
+    /**
+     * Update amount on amount change
+     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
+     *
+     * @param {String} amount
+     */
+    updateAmount(amount) {
+        // Regex to validate decimal number with up to 3 decimal numbers
+        const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
+        if (amount !== '' && !decimalNumberRegex.test(amount)) {
+            return;
+        }
+        this.setState({amount});
+    }
+
     render() {
         return (
             <View style={[styles.flex1, styles.pageWrapper]}>
@@ -162,14 +178,7 @@ class IOUAmountPage extends React.Component {
                             <TextInputAutoWidth
                                 inputStyle={styles.iouAmountTextInput}
                                 textStyle={styles.iouAmountText}
-                                onChangeText={(amount) => {
-                                    // Regex to validate decimal number with up to 3 decimal numbers
-                                    const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
-                                    if (amount !== '' && !decimalNumberRegex.test(amount)) {
-                                        return;
-                                    }
-                                    this.setState({amount});
-                                }}
+                                onChangeText={this.updateAmount}
                                 ref={el => this.textInput = el}
                                 value={this.state.amount}
                                 placeholder="0"
