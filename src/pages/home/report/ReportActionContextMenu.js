@@ -151,13 +151,13 @@ class ReportActionContextMenu extends React.Component {
     }
 
     /**
-     * Gets the text (not HTML) portion of the message in an action.
+     * Gets the markdown version of the message in an action.
      *
      * @return {String}
      */
     getActionText() {
         const message = _.last(lodashGet(this.props.reportAction, 'message', null));
-        return lodashGet(message, 'text', '');
+        return lodashGet(message, 'html', '');
     }
 
     /**
