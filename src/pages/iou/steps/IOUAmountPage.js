@@ -162,10 +162,14 @@ class IOUAmountPage extends React.Component {
                             <TextInputAutoWidth
                                 inputStyle={styles.iouAmountTextInput}
                                 textStyle={styles.iouAmountText}
-                                onKeyPress={(event) => {
-                                    this.updateAmountIfValidInput(event.key);
-                                    event.preventDefault();
-                                }}
+                                onChangeText={(amount) => {
+                                    // Regex to validate decimal number with up to 3 decimal numbers
+                                    const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
+                                    if (amount != '' && !decimalNumberRegex.test(amount)) {
+                                       return;
+                                    }
+                                   this.setState({amount});
+                                }}                               
                                 ref={el => this.textInput = el}
                                 value={this.state.amount}
                                 placeholder="0"
