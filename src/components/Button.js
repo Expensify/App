@@ -2,11 +2,12 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-    Text, Pressable, ActivityIndicator,
+    Pressable, ActivityIndicator,
 } from 'react-native';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import OpacityView from './OpacityView';
+import Text from './Text';
 
 const propTypes = {
     /** The text for the button label */

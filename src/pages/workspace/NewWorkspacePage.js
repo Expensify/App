@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -12,6 +12,7 @@ import styles from '../../styles/styles';
 import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
+import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import {create} from '../../libs/actions/Policy';
 import defaultTheme from '../../styles/themes/default';
