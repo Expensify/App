@@ -120,6 +120,7 @@ const CONST = {
         PERSONAL_DETAIL: 'personalDetail',
     },
     REPORT: {
+        DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         ACTIONS: {
             LIMIT: 50,
@@ -146,6 +147,11 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+        },
+        NOTIFICATION_PREFERENCE: {
+            MUTE: 'mute',
+            DAILY: 'daily',
+            ALWAYS: 'always',
         },
     },
     MODAL: {
