@@ -10,6 +10,7 @@ import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
 import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
+import Cash from '../../../assets/images/cash.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
@@ -36,6 +37,7 @@ import Pin from '../../../assets/images/pin.svg';
 import PinCircle from '../../../assets/images/pin-circle.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Profile from '../../../assets/images/profile.svg';
+import Paypal from '../../../assets/images/paypal.svg';
 import Receipt from '../../../assets/images/receipt.svg';
 import Send from '../../../assets/images/send.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
@@ -43,6 +45,7 @@ import Sync from '../../../assets/images/sync.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
 import Users from '../../../assets/images/users.svg';
 import Upload from '../../../assets/images/upload.svg';
+import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import NewWorkspace from '../../../assets/images/new-workspace.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
@@ -60,6 +63,7 @@ export {
     Checkmark,
     Clipboard,
     Close,
+    Cash,
     DownArrow,
     Download,
     Emoji,
@@ -87,6 +91,7 @@ export {
     PinCircle,
     Plus,
     Profile,
+    Paypal,
     Receipt,
     Send,
     SignOut,
@@ -94,6 +99,7 @@ export {
     Trashcan,
     Upload,
     Users,
+    Venmo,
     Wallet,
     NewWorkspace,
 };
