@@ -301,14 +301,13 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && draftComments
             && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
 
-
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
-        const shouldShowReportIfhasDraft = showReportsWithDrafts && hasDraftComment;
+        const shouldShowReportIfHasDraft = showReportsWithDrafts && hasDraftComment;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
             && !report.isPinned
-            && !shouldShowReportIfhasDraft
+            && !shouldShowReportIfHasDraft
             && shouldFilterReport) {
             return;
         }
