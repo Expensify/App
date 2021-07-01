@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import {Linking} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -7,6 +6,7 @@ import ROUTES from '../../ROUTES';
 import * as API from '../API';
 import {getSimplifiedIOUReport, syncChatAndIOUReports} from './Report';
 import Navigation from '../Navigation/Navigation';
+import asyncOpenURL from '../asyncOpenURL';
 
 /**
  * @param {Object[]} requestParams
@@ -136,14 +136,9 @@ function rejectTransaction({
                 throw new Error(`${response.code} ${response.message}`);
             }
 
-            // Save the updated chat and IOU reports sent back in the response
-            // NOTE: since the API doesn't handle syncing chat reports with IOU reports,
-            // we also need to set the iouReportID and hasOutstandingIOU fields of the chatReport in Onyx manually
-            // If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
-            // iouReport being fetched here must be open, because only an open iouReport can be paid.
-            const chatReportStuff = response.reports[chatReportID];
-            const iouReportStuff = response.reports[reportID];
-            syncChatAndIOUReports(chatReportStuff, iouReportStuff);
+            const chatReport = response.reports[chatReportID];
+            const iouReport = response.reports[reportID];
+            syncChatAndIOUReports(chatReport, iouReport);
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
@@ -197,34 +192,33 @@ function payIOUReport({
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? API.PayWithWallet({reportID})
         : API.PayIOU({reportID, paymentMethodType});
-    payIOUPromise
+
+    // Build the url for the user's platform of choice if they have
+    // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
+    let url;
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+        url = buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency);
+    }
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
+        url = buildVenmoPaymentURL(amount, submitterPhoneNumber);
+    }
+
+    asyncOpenURL(payIOUPromise
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
 
-            // Save the updated chat and IOU reports sent back in the response
-            // NOTE: since the API doesn't handle syncing chat reports with IOU reports,
-            // we also need to set the iouReportID and hasOutstandingIOU fields of the chatReport in Onyx manually
-            // If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
-            // iouReport being fetched here must be open, because only an open iouReport can be paid.
             const chatReportStuff = response.reports[chatReportID];
             const iouReportStuff = response.reports[reportID];
             syncChatAndIOUReports(chatReportStuff, iouReportStuff);
-
-            // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
-            // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                Linking.openURL(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
-            } else if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-                Linking.openURL(buildVenmoPaymentURL(amount, submitterPhoneNumber));
-            }
         })
         .catch((error) => {
             console.error(`Error Paying iouReport: ${error}`);
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
-        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
+        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})),
+    url);
 }
 
 export {

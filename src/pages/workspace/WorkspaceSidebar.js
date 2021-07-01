@@ -55,8 +55,10 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
         {
             translationKey: 'common.people',
             icon: Users,
-            action: () => {},
-            isActive: false,
+            action: () => {
+                Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policy.id));
+            },
+            isActive: Navigation.isActive(ROUTES.getWorkspacePeopleRoute(policy.id)),
         },
     ];
 
@@ -65,7 +67,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
     }
 
     return (
-        <ScreenWrapper style={[!isSmallScreenWidth ? styles.borderRight : {}]}>
+        <ScreenWrapper>
             <ScrollView
                 bounces={false}
                 contentContainerStyle={[
@@ -140,8 +142,9 @@ export default compose(
     withOnyx({
         policy: {
             key: (props) => {
-                const state = props.navigation.getState();
-                const policyID = lodashGet(state, ['routes', 0, 'params', 'policyID']);
+                const routes = lodashGet(props.navigation.getState(), 'routes', []);
+                const routeWithPolicyIDParam = _.find(routes, route => route.params && route.params.policyID);
+                const policyID = lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
         },

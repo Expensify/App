@@ -1271,25 +1271,36 @@ function saveReportActionDraft(reportID, reportActionID, draftMessage) {
 
 /**
  * Syncs up a chat report and an IOU report in Onyx after an IOU transaction has been made
- * and they've both been updated in the back-end.
+ * by setting the iouReportID and hasOutstandingIOU for the chat report.
+ * Even though both reports are updated in the back-end, the API doesn't handle syncing their reportIDs.
+ * If we didn't sync these reportIDs, the paid IOU would still be shown to users as unpaid.
+ * The iouReport being fetched here must be open, because only an open iouReport can be paid.
  *
- * @param {Object} chatReportStuff
- * @param {Object} iouReportStuff
+ * @param {Object} chatReport
+ * @param {Object} iouReport
  */
-function syncChatAndIOUReports(chatReportStuff, iouReportStuff) {
-    const iouReportData = {};
-    const chatReportData = {};
-    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportStuff.reportID}`;
-    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportStuff.reportID}`;
+function syncChatAndIOUReports(chatReport, iouReport) {
+    // Return early in case there's a back-end issue preventing the IOU command from returning the report objects.
+    if (!chatReport || !iouReport) {
+        return;
+    }
 
-    chatReportData[chatReportKey] = getSimplifiedReportObject(chatReportStuff);
-    chatReportData[chatReportKey].iouReportID = iouReportStuff.reportID;
-    chatReportData[chatReportKey].hasOutstandingIOU = iouReportStuff.stateNum
-        === (CONST.REPORT.STATE_NUM.PROCESSING && iouReportStuff.total !== 0);
-    iouReportData[iouReportKey] = getSimplifiedIOUReport(iouReportStuff, chatReportStuff.reportID);
+    const simplifiedIouReport = {};
+    const simplifiedReport = {};
+    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`;
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`;
 
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, iouReportData);
-    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, chatReportData);
+    // We don't want to sync an iou report that's already been reimbursed with its chat report.
+    if (!iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
+        simplifiedReport[chatReportKey].iouReportID = iouReport.reportID;
+    }
+    simplifiedReport[chatReportKey] = getSimplifiedReportObject(chatReport);
+    simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
+        === (CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0);
+    simplifiedIouReport[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReport.reportID);
+
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, simplifiedIouReport);
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
 }
 
 /**

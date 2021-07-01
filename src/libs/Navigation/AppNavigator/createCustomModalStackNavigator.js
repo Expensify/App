@@ -13,7 +13,9 @@ const CustomRootStackNavigator = ({
     const {state, navigation, descriptors} = useNavigationBuilder(StackRouter, {
         children,
     });
-    const isDisplayingModal = Boolean(_.find(descriptors, descriptor => descriptor.options.isModal));
+    const topScreen = _.last(_.values(descriptors));
+    const isDisplayingModal = Boolean(topScreen.options.isModal);
+    const isDisplayingFullScreenModal = Boolean(topScreen.options.isFullScreenModal);
     return (
         <>
             <StackView
@@ -27,7 +29,7 @@ const CustomRootStackNavigator = ({
             {/* We need to superimpose a clickaway handler when showing modals so that they can be dismissed. Capturing
             press events on the cardOverlay element in react-navigation is not yet supported on web */}
             <ClickAwayHandler
-                isDisplayingModal={isDisplayingModal}
+                isDisplayingModal={isDisplayingModal && !isDisplayingFullScreenModal}
             />
         </>
     );
