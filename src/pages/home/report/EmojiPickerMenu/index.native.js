@@ -36,8 +36,8 @@ class EmojiPickerMenu extends Component {
 
         this.renderItem = this.renderItem.bind(this);
 
-        this.state = {
-            emojiSize: {fontSize: dynamicEmojiSize(this.props.windowWidth)},
+        this.emojiSize = {
+            fontSize: dynamicEmojiSize(this.props.windowWidth),
         };
     }
 
@@ -66,7 +66,7 @@ class EmojiPickerMenu extends Component {
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
                 emoji={item.code}
-                emojiSize={this.state.emojiSize}
+                emojiSize={this.emojiSize}
             />
         );
     }
