@@ -102,6 +102,26 @@ function isDefaultRoom(report) {
     ], lodashGet(report, ['chatType'], ''));
 }
 
+/**
+ * Get either the policyName or domainName the chat is tied to
+ * @param {Object} report
+ * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getDefaultRoomSubtitle(report, policiesMap) {
+    if (!isDefaultRoom(report)) {
+        return '';
+    }
+    if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
+        return report.reportName.substring(1);
+    }
+    return lodashGet(
+        policiesMap,
+        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
+        'Unknown Policy',
+    );
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -110,4 +130,5 @@ export {
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
+    getDefaultRoomSubtitle,
 };

@@ -6,7 +6,7 @@ import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {getReportParticipantsTitle, isDefaultRoom} from './reportUtils';
+import {getReportParticipantsTitle, isDefaultRoom, getDefaultRoomSubtitle} from './reportUtils';
 import {translate} from './translate';
 import Permissions from './Permissions';
 import md5 from './md5';
@@ -38,9 +38,9 @@ Onyx.connect({
 const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (policy) => {
-        if (policy && policy.id) {
-            policies[policy.id] = policy;
+    callback: (policy, key) => {
+        if (policy && key) {
+            policies[key] = policy;
         }
     },
 });
@@ -145,9 +145,10 @@ function getSearchText(report, personalDetailList) {
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
         searchTerms.push(...report.participants);
 
-        // Add policy name as a search term for default rooms
-        if (isDefaultRoom(report) && policies[report.policyID]) {
-            searchTerms.push(...policies[report.policyID].name);
+        // Add subtitle as a search term for default rooms
+        const defaultRoomSubtitle = getDefaultRoomSubtitle(report, policies);
+        if (defaultRoomSubtitle) {
+            searchTerms.push(...defaultRoomSubtitle);
         }
     }
 
@@ -183,7 +184,6 @@ function createOption(personalDetailList, report, draftComments, {
         : '';
 
     const isDefaultChatRoom = isDefaultRoom(report);
-    const policyInfo = policies[lodashGet(report, ['policyID'], '')];
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
     let text;
@@ -192,7 +192,7 @@ function createOption(personalDetailList, report, draftComments, {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
-            : lodashGet(policyInfo, ['name'], 'Unknown Policy');
+            : getDefaultRoomSubtitle(report, policies);
     } else {
         text = hasMultipleParticipants
             ? personalDetailList
