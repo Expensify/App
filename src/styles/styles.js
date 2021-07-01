@@ -56,13 +56,6 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
-    textP: {
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        lineHeight: 20,
-    },
-
     textLabel: {
         color: themeColors.text,
         fontSize: variables.fontSizeLabel,

@@ -63,7 +63,7 @@ class NewWorkspacePage extends React.Component {
                             value={this.state.name}
                             onChangeText={name => this.setState({name})}
                         />
-                        <Text style={[styles.mt6, styles.textP]}>{this.props.translate('workspace.new.helpText')}</Text>
+                        <Text style={[styles.mt6]}>{this.props.translate('workspace.new.helpText')}</Text>
                     </View>
 
                     <Button
