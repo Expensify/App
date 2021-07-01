@@ -1,3 +1,4 @@
+import AddEncryptedAuthToken from './migrations/AddEncryptedAuthToken';
 import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
 import RenamePriorityModeKey from './migrations/RenamePriorityModeKey';
 
@@ -10,6 +11,7 @@ export default function () {
         const migrationPromises = [
             RenameActiveClientsKey,
             RenamePriorityModeKey,
+            AddEncryptedAuthToken,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

@@ -1,9 +1,21 @@
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import Onyx from 'react-native-onyx';
 import Log from './Log';
 import Config from '../CONFIG';
 import translations from '../languages/translations';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
+
+let preferredLocale = CONST.DEFAULT_LOCALE;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: (val) => {
+        if (val) {
+            preferredLocale = val;
+        }
+    },
+});
 
 /**
  * Return translated string for given locale and phrase
@@ -53,9 +65,18 @@ function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
     throw new Error(`${phrase} was not found in the default language`);
 }
 
-export {
+/**
+ * Uses the locale in this file updated by the Onyx subscriber.
+ *
+ * @param {String|Array} phrase
+ * @param {Object} [variables]
+ * @returns {String}
+ */
+function translateLocal(phrase, variables) {
+    return translate(preferredLocale, phrase, variables);
+}
 
-    // Ignoring this lint error in case of we want to export more functions from this library
-    // eslint-disable-next-line import/prefer-default-export
+export {
     translate,
+    translateLocal,
 };

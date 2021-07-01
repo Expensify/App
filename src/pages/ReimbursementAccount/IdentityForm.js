@@ -85,11 +85,12 @@ const IdentityForm = ({
             <TextInputWithLabel
                 label={`${translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
+                placeholder={translate('common.dateFormat')}
                 value={dob}
                 onChangeText={val => onFieldChange('dob', val)}
             />
             <TextInputWithLabel
-                label={`${translate('requestorStep.ssnLast4')}`}
+                label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
                 value={ssnLast4}
                 onChangeText={val => onFieldChange('ssnLast4', val)}

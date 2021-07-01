@@ -17,7 +17,6 @@ import TextLink from '../../components/TextLink';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import themeColors from '../../styles/themes/default';
 import Growl from '../../libs/Growl';
-import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -72,7 +71,7 @@ class WorkspaceInvitePage extends React.Component {
      */
     inviteUser() {
         if (!Str.isValidEmail(this.state.emailOrPhone) && !Str.isValidPhone(this.state.emailOrPhone)) {
-            Growl.show(this.props.translate('workspace.invite.pleaseEnterValidLogin'), CONST.GROWL.ERROR, 5000);
+            Growl.error(this.props.translate('workspace.invite.pleaseEnterValidLogin'), 5000);
             return;
         }
 

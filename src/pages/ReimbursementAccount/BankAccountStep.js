@@ -129,8 +129,14 @@ class BankAccountStep extends React.Component {
                                 onPress={() => {
                                     this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
                                 }}
+                                disabled={this.props.isPlaidDisabled}
                                 shouldShowRightIcon
                             />
+                            {this.props.isPlaidDisabled && (
+                                <Text style={[styles.formError, styles.mh5]}>
+                                    {this.props.translate('bankAccount.error.tooManyAttempts')}
+                                </Text>
+                            )}
                             <MenuItem
                                 icon={Paycheck}
                                 title={this.props.translate('bankAccount.connectManually')}
