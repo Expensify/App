@@ -10,6 +10,7 @@ const REPORT = 'r';
 export default {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
+    getBankAccountRoute: stepToOpen => `bank-account/${stepToOpen}`,
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -45,6 +46,8 @@ export default {
     getReportParticipantsRoute: reportID => `r/${reportID}/participants`,
     REPORT_PARTICIPANT: 'r/:reportID/participants/:login',
     getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
+    REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
+    getReportDetailsRoute: reportID => `r/${reportID}/details`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
 
@@ -54,9 +57,14 @@ export default {
     VALIDATE_LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE: 'v/:accountID/:validateCode/2fa/new-workspace',
     ENABLE_PAYMENTS: 'enable-payments',
     WORKSPACE_NEW: 'workspace/new',
-    getWorkspaceRoute: policyID => `workspace/${policyID}`,
-    WORKSPACE_INVITE: 'workspace/:policyID/invite',
+    WORKSPACE: 'workspace',
+    WORKSPACE_CARD: ':policyID/card',
+    WORKSPACE_PEOPLE: ':policyID/people',
+    getWorkspaceCardRoute: policyID => `workspace/${policyID}/card`,
+    getWorkspacePeopleRoute: policyID => `workspace/${policyID}/people`,
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
+    WORKSPACE_INVITE: 'workspace/:policyID/invite',
+    REQUEST_CALL: 'request-call',
 
     /**
      * @param {String} route

@@ -99,7 +99,6 @@ class IOUModal extends Component {
         this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
-        this.addParticipants = this.addParticipants.bind(this);
         this.getReady = this.getReady.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)

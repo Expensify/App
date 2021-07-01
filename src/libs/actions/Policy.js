@@ -1,13 +1,13 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import {
-    GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge, Policy_Create,
+    GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge, Policy_Create, Policy_Employees_Remove,
 } from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import {formatPersonalDetails} from './PersonalDetails';
 import Growl from '../Growl';
 import CONST from '../../CONST';
-import {translate} from '../translate';
+import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
@@ -21,21 +21,12 @@ Onyx.connect({
     },
 });
 
-let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: (preferredLocale) => {
-        if (preferredLocale) {
-            translateLocal = (phrase, variables) => translate(preferredLocale, phrase, variables);
-        }
-    },
-});
-
 /**
  * Takes a full policy summary that is returned from the policySummaryList and simplifies it so we are only storing
  * the pieces of data that we need to in Onyx
  *
  * @param {Object} fullPolicy
+ * @param {String} fullPolicy.id
  * @param {String} fullPolicy.name
  * @param {String} fullPolicy.role
  * @param {String} fullPolicy.type
@@ -101,6 +92,47 @@ function getPolicyList() {
 }
 
 /**
+ * Remove the passed members from the policy employeeList
+ *
+ * @param {Array} members
+ * @param {String} policyID
+ */
+function removeMembers(members, policyID) {
+    // In case user selects only themselves (admin), their email will be filtered out and the members
+    // array passed will be empty, prevent the funtion from proceeding in that case as there is noone to remove
+    if (members.length === 0) {
+        return;
+    }
+
+    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+
+    // Make a shallow copy to preserve original data and remove the members
+    const policy = _.clone(allPolicies[key]);
+    policy.employeeList = _.without(policy.employeeList, ...members);
+
+    // Optimistically remove the members from the policy
+    Onyx.set(key, policy);
+
+    // Make the API call to merge the login into the policy
+    Policy_Employees_Remove({
+        emailList: members,
+        policyID,
+    })
+        .then((data) => {
+            if (data.jsonCode === 200) {
+                return;
+            }
+            const policyDataWithMembersRemoved = _.clone(allPolicies[key]);
+            policyDataWithMembersRemoved.employeeList = [...policyDataWithMembersRemoved.employeeList, ...members];
+            Onyx.set(key, policyDataWithMembersRemoved);
+
+            // Show the user feedback that the removal failed
+            console.error(data.message);
+            Growl.show(translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
+        });
+}
+
+/**
  * Merges the passed in login into the specified policy
  *
  * @param {String} login
@@ -141,7 +173,7 @@ function invite(login, welcomeNote, policyID) {
                 errorMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
 
-            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+            Growl.error(errorMessage, 5000);
         });
 }
 
@@ -156,7 +188,7 @@ function create(name) {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.new.genericFailureMessage');
-                Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+                Growl.error(errorMessage, 5000);
                 return;
             }
 
@@ -164,14 +196,17 @@ function create(name) {
                 id: response.policyID,
                 type: response.policy.type,
                 name: response.policy.name,
+                role: CONST.POLICY.ROLE.ADMIN,
             });
-            Navigation.navigate(ROUTES.getWorkspaceRoute(response.policyID));
+            Navigation.dismissModal();
+            Navigation.navigate(ROUTES.getWorkspaceCardRoute(response.policyID));
         });
 }
 
 export {
     getPolicySummaries,
     getPolicyList,
+    removeMembers,
     invite,
     create,
 };

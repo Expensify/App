@@ -14,8 +14,7 @@ import Header from '../../../components/Header';
 import OptionsList from '../../../components/OptionsList';
 import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import {getSidebarOptions} from '../../../libs/OptionsListUtils';
-import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
+import {getSidebarOptions, getDefaultAvatar} from '../../../libs/OptionsListUtils';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import CONST from '../../../CONST';
 import {participantPropTypes} from './optionPropTypes';
@@ -113,6 +112,7 @@ class SidebarLinks extends React.Component {
             this.props.draftComments,
             activeReportID,
             this.props.priorityMode,
+            this.props.betas,
         );
 
         const sections = [{
@@ -218,6 +218,9 @@ export default compose(
         },
         isSyncingData: {
             key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(SidebarLinks);
