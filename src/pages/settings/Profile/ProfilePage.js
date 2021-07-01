@@ -286,7 +286,13 @@ class ProfilePage extends Component {
                                             <View style={[styles.flexRow]}>
                                                 <Icon src={DownArrow} />
                                                 <View style={styles.justifyContentCenter}>
-                                                    <Text style={[styles.headerText, styles.ml2]}>
+                                                    <Text
+                                                        style={[
+                                                            styles.headerText,
+                                                            styles.buttonSmallText,
+                                                            styles.ml2,
+                                                        ]}
+                                                    >
                                                         {this.props.translate('profilePage.editPhoto')}
                                                     </Text>
                                                 </View>
