@@ -279,6 +279,7 @@ class ProfilePage extends Component {
                             {({openPicker}) => (
                                 <>
                                     <Button
+                                        small
                                         style={[styles.alignSelfCenter, styles.mt3]}
                                         onPress={() => this.setState({isEditPhotoMenuVisible: true})}
                                         ContentComponent={() => (
