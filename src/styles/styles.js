@@ -170,17 +170,17 @@ const styles = {
         paddingLeft: 12,
     },
 
-    buttonLargeText: {
-        fontSize: variables.fontSizeLarge,
-        lineHeight: 18,
+    buttonSmallText: {
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
-    buttonSmallText: {
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+    buttonLargeText: {
+        fontSize: variables.fontSizeLarge,
+        lineHeight: 18,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
