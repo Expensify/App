@@ -6,11 +6,11 @@ import Bank from '../../../assets/images/bank.svg';
 import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
 import Camera from '../../../assets/images/camera.svg';
+import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
 import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
-import Cash from '../../../assets/images/cash.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
@@ -33,13 +33,13 @@ import NewWorkspace from '../../../assets/images/new-workspace.svg';
 import Offline from '../../../assets/images/offline.svg';
 import Paperclip from '../../../assets/images/paperclip.svg';
 import Paycheck from '../../../assets/images/paycheck.svg';
+import Paypal from '../../../assets/images/paypal.svg';
 import Pencil from '../../../assets/images/pencil.svg';
 import Phone from '../../../assets/images/phone.svg';
 import Pin from '../../../assets/images/pin.svg';
 import PinCircle from '../../../assets/images/pin-circle.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Profile from '../../../assets/images/profile.svg';
-import Paypal from '../../../assets/images/paypal.svg';
 import Receipt from '../../../assets/images/receipt.svg';
 import Send from '../../../assets/images/send.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
@@ -59,11 +59,11 @@ export {
     Building,
     Bug,
     Camera,
+    Cash,
     ChatBubble,
     Checkmark,
     Clipboard,
     Close,
-    Cash,
     DownArrow,
     Download,
     Emoji,
@@ -86,13 +86,13 @@ export {
     Offline,
     Paperclip,
     Paycheck,
+    Paypal,
     Pencil,
     Phone,
     Pin,
     PinCircle,
     Plus,
     Profile,
-    Paypal,
     Receipt,
     Send,
     SignOut,
