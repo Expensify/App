@@ -471,16 +471,19 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                             // Only create another withdrawal account if there is not one already open
                             if (bankAccount && bankAccount.isOpen()) {
-                                currentStep = stepToOpen;
+                                Navigation.navigate();
                             }
+                            currentStep = stepToOpen;
                             break;
                         case CONST.BANK_ACCOUNT.STEP.COMPANY:
                         case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                            if (bankAccount
-                                && !_.isEmpty(bankAccount.getMaskedAccountNumber())
-                                && !_.isEmpty(bankAccount.getRoutingNumber())) {
-                                currentStep = stepToOpen;
+                            // If there is no account or routing number, go back to bank account step
+                            if (!bankAccount
+                                || _.isEmpty(bankAccount.getMaskedAccountNumber())
+                                || _.isEmpty(bankAccount.getRoutingNumber())) {
+                                currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
                             }
+                            currentStep = stepToOpen;
                             break;
                         default:
                             currentStep = stepToOpen;
