@@ -39,7 +39,7 @@ const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (policy, key) => {
-        if (policy && key) {
+        if (policy && key && policy.name) {
             policies[key] = policy;
         }
     },
@@ -193,9 +193,6 @@ function createOption(personalDetailList, report, draftComments, {
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : getDefaultRoomSubtitle(report, policies);
-        if (alternateText === 'Unknown Policy') {
-            debugger;
-        }
     } else {
         text = hasMultipleParticipants
             ? personalDetailList
