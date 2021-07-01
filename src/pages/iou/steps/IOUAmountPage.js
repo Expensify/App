@@ -106,7 +106,7 @@ class IOUAmountPage extends React.Component {
      * Check if amount is a decimal upto 3 digits
      *
      * @param {String} amount
-     * @returns {boolean} Return `true` if amount is a decimal upto 3 digits, else `false`
+     * @returns {Boolean}
      */
     validateAmount(amount) {
         const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
