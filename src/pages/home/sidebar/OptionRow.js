@@ -102,8 +102,8 @@ const OptionRow = ({
     const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     const displayNameStyle = mode === 'compact'
-        ? [styles.optionDisplayName, textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
-        : [styles.optionDisplayName, textUnreadStyle];
+        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
+        : [styles.optionDisplayName, ...textUnreadStyle];
     const alternateTextStyle = mode === 'compact'
         ? [textStyle, styles.optionAlternateText, styles.optionAlternateTextCompact]
         : [textStyle, styles.optionAlternateText, styles.mt1];
