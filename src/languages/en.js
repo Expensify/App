@@ -148,6 +148,7 @@ export default {
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
         split: ({amount}) => `Split ${amount}`,
         choosePaymentMethod: 'Choose payment method:',
+        noReimbursableExpenses: 'This report has an invalid amount',
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',
@@ -319,6 +320,7 @@ export default {
             address: 'Please enter a valid address',
             dob: 'Please enter a valid date of birth',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
         },
     },
     addPersonalBankAccountPage: {
