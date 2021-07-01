@@ -265,6 +265,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     excludeConcierge = false,
+    excludeDefaultRooms = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
@@ -307,7 +308,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
-        if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+        if (isDefaultRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
             return;
         }
 
@@ -479,6 +480,7 @@ function getNewChatOptions(
     return getOptions(reports, personalDetails, {}, 0, {
         betas,
         searchValue,
+        excludeDefaultRooms: true,
         includePersonalDetails: true,
         includeRecentReports: true,
         maxRecentReportsToShow: 5,
@@ -540,6 +542,7 @@ function getNewGroupOptions(
         betas,
         searchValue,
         selectedOptions,
+        excludeDefaultRooms: true,
         includeRecentReports: true,
         includePersonalDetails: true,
         includeMultipleParticipantReports: false,
