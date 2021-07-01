@@ -7,7 +7,6 @@ import CONST from '../../CONST';
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
  */
-
 function getPaymentMethods() {
     API.Get({
         returnValueList: 'bankAccountList, cardList, userWallet, nameValuePairs',
