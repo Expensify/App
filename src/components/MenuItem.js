@@ -126,7 +126,8 @@ const MenuItem = ({
                     <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
                         <Text style={[
                             styles.popoverMenuText,
-                            styles.ml3, (disabled ? styles.disabledText : undefined),
+                            styles.ml3,
+                            (disabled ? styles.disabledText : undefined),
                         ]}
                         >
                             {title}
