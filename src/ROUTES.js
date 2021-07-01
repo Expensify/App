@@ -6,6 +6,8 @@ import {addTrailingForwardSlash} from './libs/Url';
  */
 
 const REPORT = 'r';
+const IOU_REQUEST = 'iou/request';
+const IOU_BILL = 'iou/split';
 
 export default {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
@@ -26,14 +28,16 @@ export default {
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
-    IOU_BILL_CURRENCY: 'iou/split/:reportID/currency',
-    IOU_REQUEST_CURRENCY: 'iou/request/:reportID/currency',
-    getIouRequestCurrencyRoute: reportID => `iou/request/${reportID}/currency`,
-    getIouBillCurrencyRoute: reportID => `iou/split/${reportID}/currency`,
-    IOU_REQUEST: 'iou/request/:reportID',
-    IOU_BILL: 'iou/split/:reportID',
-    getIouRequestRoute: reportID => `iou/request/${reportID}`,
-    getIouSplitRoute: reportID => `iou/split/${reportID}`,
+    IOU_BILL_CURRENCY: `${IOU_BILL}/:reportID/currency`,
+    IOU_REQUEST_CURRENCY: `${IOU_REQUEST}/:reportID/currency`,
+    getIouRequestCurrencyRoute: reportID => `${IOU_REQUEST}/${reportID}/currency`,
+    getIouBillCurrencyRoute: reportID => `${IOU_BILL}/${reportID}/currency`,
+    IOU_REQUEST,
+    IOU_BILL,
+    IOU_REQUEST_WITH_REPORT_ID: `${IOU_REQUEST}/:reportID?`,
+    IOU_BILL_WITH_REPORTID: `${IOU_BILL}/:reportID?`,
+    getIouRequestRoute: reportID => `${IOU_REQUEST}/${reportID}`,
+    getIouSplitRoute: reportID => `${IOU_BILL}/${reportID}`,
     IOU_DETAILS: 'iou/details',
     IOU_DETAILS_WITH_IOU_REPORT_ID: 'iou/details/:chatReportID/:iouReportID/',
     getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
