@@ -139,6 +139,7 @@ export default {
                 path: ROUTES.WORKSPACE,
                 screens: {
                     WorkspaceCard: ROUTES.WORKSPACE_CARD,
+                    WorkspacePeople: ROUTES.WORKSPACE_PEOPLE,
                 },
             },
 
