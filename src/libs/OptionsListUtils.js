@@ -143,7 +143,11 @@ function getSearchText(report, personalDetailList) {
     if (report) {
         searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
-        searchTerms.push(...report.participants);
+
+        // Do not include participants as search terms for default rooms
+        if (!isDefaultRoom(report)) {
+            searchTerms.push(...report.participants);
+        }
 
         // Add policy name as a search term for default rooms
         if (isDefaultRoom(report) && policies[report.policyID]) {
