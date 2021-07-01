@@ -236,6 +236,11 @@ class AuthScreens extends React.Component {
                     options={{
                         headerShown: false,
                         title: 'Expensify.cash',
+
+                        // prevent unnecessary scrolling
+                        cardStyle: {
+                            overflow: 'hidden',
+                        },
                     }}
                     component={MainDrawerNavigator}
                 />
