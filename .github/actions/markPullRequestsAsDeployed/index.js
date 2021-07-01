@@ -21,6 +21,7 @@ const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true}
 const stagingDeployIssueNumber = ActionUtils.getJSONInput('STAGING_DEPLOY_NUMBER', {required: true});
 const version = core.getInput('DEPLOY_VERSION', {required: true});
 let lockCashDeployLabelTimeline = [];
+const PRMap = {};
 
 
 /**
@@ -41,23 +42,6 @@ function getDeployTableMessage(platformResult) {
         default:
             return `${platformResult} ❌`;
     }
-}
-
-/**
- * Get PR's neccessary information
- *
- * @param {Number} [pr] PR number
- * @returns {Promise<any>}
- */
-function getPR(pr) {
-    return GithubUtils.octokit.pulls.get({
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.GITHUB_REPOSITORY,
-        pull_number: pr,
-    }).then(({data}) => ({
-        mergedAt: data.merged_at,
-        hasCPStagingLabel: _.contains(_.pluck(data.labels, 'name'), 'CP Staging'),
-    }));
 }
 
 /**
@@ -108,26 +92,26 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
  * @return {Promise<'Cherry-picked' | 'Deployed'>}
  */
 function getPRDeployVerb(pr) {
-    return getPR(pr).then(({mergedAt, hasCPStagingLabel}) => {
-        if (!hasCPStagingLabel) {
-            return 'Deployed';
-        }
-        const liesBetweenTimeline = _.some(
-            lockCashDeployLabelTimeline,
-            ([startAt, endAt]) => moment(mergedAt).isBetween(startAt, endAt, undefined, '[]'),
-        );
-        return liesBetweenTimeline ? 'Cherry-picked' : 'Deployed';
-    });
+    const PR = PRMap[pr];
+    const hasCPStagingLabel = _.contains(_.pluck(PR.labels, 'name'), 'CP Staging');
+
+    if (!hasCPStagingLabel) {
+        return 'Deployed';
+    }
+    const liesBetweenTimeline = _.some(
+        lockCashDeployLabelTimeline,
+        ([startAt, endAt]) => moment(PR.mergedAt).isBetween(startAt, endAt, undefined, '[]'),
+    );
+    return liesBetweenTimeline ? 'Cherry-picked' : 'Deployed';
 }
 
 function getPRMessage(PR) {
-    return getPRDeployVerb(PR).then((deployVerb) => {
-        let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}\
+    const deployVerb = getPRDeployVerb(PR);
+    let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}\
          in version: ${version}🚀`;
-        message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
-        message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
-        return message;
-    });
+    message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
+    message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
+    return message;
 }
 
 /**
@@ -137,20 +121,26 @@ function getPRMessage(PR) {
  * @returns {Promise<void>}
  */
 function commentPR(pr) {
-    return getPRMessage(pr).then(message => GithubUtils.createComment(context.repo.repo, pr, message)
+    return GithubUtils.createComment(context.repo.repo, pr, getPRMessage(pr))
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
         })
         .catch((err) => {
             console.log(`Unable to write comment on #${pr} 😞`);
             core.setFailed(err.message);
-        }));
+        });
 }
 
 const run = function () {
-    return getLockCashDeploysTimeline()
-        .then((lockCashDeployLabelTimeSet) => {
+    return Promise.all([
+        getLockCashDeploysTimeline(),
+        GithubUtils.fetchAllPullRequests(prList),
+    ])
+        .then(([lockCashDeployLabelTimeSet, PRListWithDetails]) => {
             lockCashDeployLabelTimeline = lockCashDeployLabelTimeSet;
+            _.each(PRListWithDetails, (PR) => {
+                PRMap[PR.number] = PR;
+            });
 
             /**
              * Create comment on each pull request
@@ -453,6 +443,30 @@ class GithubUtils {
                 'Automated PRs may not be properly filtered out. Continuing...',
                 err,
             ));
+    }
+
+    /**
+     * Fetch all pull requests given a list of PR numbers.
+     *
+     * @param {Array<Number>} pullRequestNumbers
+     * @returns {Promise}
+     */
+    static fetchAllPullRequests(pullRequestNumbers) {
+        const oldestPR = _.first(_.sortBy(pullRequestNumbers));
+        return this.octokit.paginate(this.octokit.pulls.list, {
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            state: 'all',
+            sort: 'created',
+            direction: 'desc',
+            per_page: 100,
+        }, ({data}, done) => {
+            if (_.find(data, pr => pr.number === oldestPR)) {
+                done();
+            }
+            return data;
+        })
+            .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)));
     }
 
     /**
