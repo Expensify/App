@@ -3,11 +3,11 @@
  *
  * @returns {Object}
  */
-function getPaymentMethodScreenLocation() {
+function getClickedElementLocation() {
     return {
         bottom: 0,
         left: 0,
     };
 }
 
-export default getPaymentMethodScreenLocation;
+export default getClickedElementLocation;
