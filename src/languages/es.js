@@ -48,6 +48,7 @@ export default {
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
+        notifications: 'Notificaciones',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -142,6 +143,13 @@ export default {
         choosePaymentMethod: 'Elige el método de pago:',
         noReimbursableExpenses: 'El monto de este informe es inválido',
     },
+    reportDetailsPage: {
+        notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
+        always: 'Siempre',
+        daily: 'Cada día',
+        mute: 'Nunca',
+        members: 'Miembros',
+    },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
         numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
@@ -222,7 +230,6 @@ export default {
         mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo',
         focus: '#concentración',
         focusModeDescription: '#concentración – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
-        notifications: 'Notificaciones',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
         priorityMode: 'Modo Prioridad',
         language: 'Idioma',
