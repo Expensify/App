@@ -113,7 +113,7 @@ class IOUAmountPage extends React.Component {
         if (key === '<') {
             if (this.state.amount.length > 0) {
                 this.setState(prevState => ({
-                    amount: prevState.amount.substring(0, prevState.amount.length - 1),
+                    amount: prevState.amount.slice(0, -1),
                 }));
             }
             return;
