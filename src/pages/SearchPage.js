@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -64,35 +65,34 @@ class SearchPage extends Component {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
 
         this.selectReport = this.selectReport.bind(this);
-        this.searchSections = this.searchSections.bind(this);
-        this.getCustomHeaderMessage = this.getCustomHeaderMessage.bind(this);
+        this.onChangeText = this.onChangeText.bind(this);
+        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 300);
+
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = getSearchOptions(
+            props.reports,
+            props.personalDetails,
+            '',
+            props.betas,
+        );
+
+        this.state = {
+            searchValue: '',
+            recentReports,
+            personalDetails,
+            userToInvite,
+        };
     }
 
     componentDidMount() {
         Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
-    /**
-     * Returns header message given searchValue
-     * @param {String} searchValue
-     * @returns {String} header messae
-     */
-    getCustomHeaderMessage(searchValue = '') {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = getSearchOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            '',
-            this.props.betas,
-        );
-        return getHeaderMessage(
-            (recentReports.length + personalDetails.length) !== 0,
-            Boolean(userToInvite),
-            searchValue,
-        );
+    onChangeText(searchValue = '') {
+        this.setState({searchValue}, this.debouncedUpdateOptions);
     }
 
     /**
@@ -101,16 +101,26 @@ class SearchPage extends Component {
      * @returns {Array}
      */
     getSections() {
-        // getSections is same to searchSections given empty searchValue
-        return this.searchSections();
+        const sections = [{
+            title: this.props.translate('common.recents'),
+            data: this.state.recentReports.concat(this.state.personalDetails),
+            shouldShow: true,
+            indexOffset: 0,
+        }];
+
+        if (this.state.userToInvite) {
+            sections.push(({
+                undefined,
+                data: [this.state.userToInvite],
+                shouldShow: true,
+                indexOffset: 0,
+            }));
+        }
+
+        return sections;
     }
 
-    /**
-     * Returns the sections needed for the OptionsSelector
-     * @param {String} searchValue
-     * @returns {Array}
-     */
-    searchSections(searchValue = '') {
+    updateOptions() {
         const {
             recentReports,
             personalDetails,
@@ -118,26 +128,14 @@ class SearchPage extends Component {
         } = getSearchOptions(
             this.props.reports,
             this.props.personalDetails,
-            searchValue,
+            this.state.searchValue,
             this.props.betas,
         );
-        const sections = [{
-            title: this.props.translate('common.recents'),
-            data: recentReports.concat(personalDetails),
-            shouldShow: true,
-            indexOffset: 0,
-        }];
-
-        if (userToInvite) {
-            sections.push(({
-                undefined,
-                data: [userToInvite],
-                shouldShow: true,
-                indexOffset: 0,
-            }));
-        }
-
-        return sections;
+        this.setState({
+            userToInvite,
+            recentReports,
+            personalDetails,
+        });
     }
 
     /**
@@ -151,7 +149,11 @@ class SearchPage extends Component {
         }
 
         if (option.reportID) {
-            Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+            this.setState({
+                searchValue: '',
+            }, () => {
+                Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+            });
         } else {
             fetchOrCreateChatReport([
                 this.props.session.email,
@@ -162,32 +164,36 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
+        const headerMessage = getHeaderMessage(
+            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
+            Boolean(this.state.userToInvite),
+            this.state.searchValue,
+        );
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
-                    didScreenTransitionEnd && (
-                        <>
-                            <HeaderWithCloseButton
-                                title={this.props.translate('common.search')}
-                                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    <>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('common.search')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
+                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                            <OptionsSelector
+                                sections={sections}
+                                value={this.state.searchValue}
+                                onSelectRow={this.selectReport}
+                                onChangeText={this.onChangeText}
+                                headerMessage={headerMessage}
+                                hideSectionHeaders
+                                hideAdditionalOptionStates
+                                showTitleTooltip
                             />
-                            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                                <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
-                                {didScreenTransitionEnd && (
-                                <OptionsSelector
-                                    sections={sections}
-                                    onSelectRow={this.selectReport}
-                                    searchSections={this.searchSections}
-                                    getCustomHeaderMessage={this.getCustomHeaderMessage}
-                                    hideSectionHeaders
-                                    hideAdditionalOptionStates
-                                    showTitleTooltip
-                                />
-                                )}
-                            </View>
-                            <KeyboardSpacer />
-                        </>
-                    )
+                            )}
+                        </View>
+                        <KeyboardSpacer />
+                    </>
                 )}
             </ScreenWrapper>
         );

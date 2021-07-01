@@ -25,12 +25,16 @@ const propTypes = {
     /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
 
+    /** Should this fragment be contained in a single line? */
+    isSingleLine: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     isAttachment: false,
     loading: false,
+    isSingleLine: false,
     tooltipText: '',
 };
 
@@ -79,9 +83,10 @@ class ReportActionItemFragment extends React.PureComponent {
                     );
             case 'TEXT':
                 return (
-                    <Tooltip text={tooltipText}>
+                    <Tooltip text={tooltipText} containerStyle={styles.w100}>
                         <Text
                             selectable
+                            numberOfLines={this.props.isSingleLine ? 1 : undefined}
                             style={[styles.chatItemMessageHeaderSender]}
                         >
                             {Str.htmlDecode(fragment.text)}
