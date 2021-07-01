@@ -51,6 +51,8 @@ export default {
         whatThis: 'What\'s this?',
         iAcceptThe: 'I accept the ',
         passwordCannotBeBlank: 'Password cannot be blank',
+        remove: 'Remove',
+        admin: 'Admin',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
         notifications: 'Notifications',
@@ -439,6 +441,12 @@ export default {
             helpText: 'Name your Workspace before enabling your Expensify Cards!',
             getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
+        },
+        people: {
+            assignee: 'Assignee',
+            genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
+            removeMembersPrompt: 'Are you sure you want to remove the selected people from your workspace?',
+            removeMembersTitle: 'Remove Members',
         },
         card: {
             addEmail: 'Add Email',

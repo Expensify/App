@@ -140,7 +140,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        paddingHorizontal: 12,
+        ...spacing.ph3,
     },
 
     buttonText: {
@@ -200,6 +200,20 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonDanger: {
+        backgroundColor: themeColors.buttonDangerBG,
+        borderWidth: 0,
+    },
+
+    buttonDangerDisabled: {
+        backgroundColor: themeColors.buttonDangerDisabledBG,
+    },
+
+    buttonDangerHovered: {
+        backgroundColor: themeColors.buttonDangerPressedBG,
+        borderWidth: 0,
+    },
+
     buttonDisable: {
         backgroundColor: themeColors.buttonDisabledBG,
         borderWidth: 0,
@@ -229,6 +243,10 @@ const styles = {
     },
 
     buttonSuccessText: {
+        color: themeColors.textReversed,
+    },
+
+    buttonDangerText: {
         color: themeColors.textReversed,
     },
 
@@ -1696,6 +1714,31 @@ const styles = {
 
     workspaceInviteWelcome: {
         minHeight: 150,
+    },
+
+    peopleRow: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        ...spacing.pv2,
+    },
+
+    peopleRowCell: {
+        justifyContent: 'center',
+    },
+
+    peopleBadge: {
+        backgroundColor: themeColors.icon,
+        ...spacing.ph3,
+    },
+
+    peopleBadgeText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        ...whiteSpace.noWrap,
     },
 };
 
