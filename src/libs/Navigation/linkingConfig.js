@@ -46,6 +46,10 @@ export default {
                         path: ROUTES.SETTINGS_PAYMENTS,
                         exact: true,
                     },
+                    Settings_Add_Paypal_Me: {
+                        path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
+                        exact: true,
+                    },
                     Settings_Profile: {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
@@ -104,6 +108,12 @@ export default {
                 screens: {
                     IOU_Bill_Root: ROUTES.IOU_BILL,
                     IOU_Bill_Currency: ROUTES.IOU_BILL_CURRENCY,
+                },
+            },
+            IOU_Send: {
+                screens: {
+                    IOU_Send_Root: ROUTES.IOU_SEND,
+                    IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
                 },
             },
             IOU_Details: {
