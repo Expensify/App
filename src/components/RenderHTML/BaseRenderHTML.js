@@ -220,11 +220,16 @@ const BaseRenderHTML = ({html, debug, textSelectable}) => {
             contentWidth={containerWidth}
             computeImagesMaxWidth={computeImagesMaxWidth}
             systemFonts={EXTRA_FONTS}
-            imagesInitialDimensions={{
-                width: MAX_IMG_DIMENSIONS,
-                height: MAX_IMG_DIMENSIONS,
+            dangerouslyDisableWhitespaceCollapsing
+            renderersProps={{
+                img: {
+                    initialDimensions: {
+                        width: MAX_IMG_DIMENSIONS,
+                        height: MAX_IMG_DIMENSIONS,
+                    },
+                },
             }}
-            html={html}
+            source={{html}}
             debug={debug}
         />
     );
