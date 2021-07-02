@@ -5,8 +5,14 @@ import Collapse from 'react-collapse';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    // Whether the section should start expanded. False by default
+    /** Title of the Collapsible section */
+    title: PropTypes.string.isRequired,
+
+    /** Whether the section should start expanded. False by default */
     isExpanded: PropTypes.bool,
+
+    /** Children to display inside the Collapsible component */
+    children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {
@@ -36,12 +42,12 @@ class CollapsibleSection extends React.Component {
             <>
                 <View>
                     <TouchableOpacity onPress={this.toggle}>
-                        <Text>Test Title</Text>
+                        <Text>{this.props.title}</Text>
                     </TouchableOpacity>
 
                     <Collapse isOpened={this.state.isExpanded}>
                         <View>
-                            <Text>Test Content Test Content Test Content Test Content Test Content Test Content Test Content Test Content Test Content Test Content Test Content </Text>
+                            {this.props.children}
                         </View>
                     </Collapse>
                 </View>
