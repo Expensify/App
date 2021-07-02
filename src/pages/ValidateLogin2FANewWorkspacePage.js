@@ -62,7 +62,12 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
             Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            return;
         }
+
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+        continueSessionFromECom(accountID, validateCode);
     }
 
     validateAndSubmitForm() {
@@ -71,17 +76,19 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             return;
         }
 
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        continueSessionFromECom(accountID, validateCode, this.state.twoFactorAuthCode);
 
         this.setState({
             formError: null,
         });
+
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+        continueSessionFromECom(accountID, validateCode, this.state.twoFactorAuthCode);
     }
 
     render() {
-        // If the user is already logged in, don't need to display anything because they will get redirected
+        // If the user is already logged in, don't need to display anything because they will get redirected to the
+        // new workspace page in componentDidMount
         if (this.props.session.authToken) {
             return null;
         }
