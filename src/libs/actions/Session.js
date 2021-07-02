@@ -295,7 +295,14 @@ function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
             return;
         }
 
-        setSuccessfulSignInData(accountID, data.authToken, data.email);
+        setSuccessfulSignInData(data);
+
+        // Now that the user is authenticated, they can be redirected to the New Workspace modal.
+        // In order to navigate to a modal, we first have to dismiss the current modal. This will enable the "x" button
+        // in the modal to send the user back to the home page, as opposed to the current page the user was on when
+        // continueSessionFromECom() was called
+        Navigation.dismissModal();
+        Navigation.navigate(ROUTES.WORKSPACE_NEW);
     });
 }
 

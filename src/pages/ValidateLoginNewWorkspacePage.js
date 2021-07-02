@@ -49,7 +49,8 @@ class ValidateLoginNewWorkspacePage extends Component {
     }
 
     render() {
-        // Don't render anything here since we will redirect the user once we've attempted to validate their login
+        // Don't render anything here since the user is redirected to the new workspace page
+        // once we've attempted to validate their login in continueSessionFromECom()
         return null;
     }
 }
