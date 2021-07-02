@@ -12,6 +12,9 @@ const propTypes = {
     /** The text for the button label */
     text: PropTypes.string,
 
+    /** Small sized button */
+    small: PropTypes.bool,
+
     /** Large sized button */
     large: PropTypes.bool,
 
@@ -53,6 +56,7 @@ const defaultProps = {
     text: '',
     isLoading: false,
     isDisabled: false,
+    small: false,
     large: false,
     onPress: () => {},
     style: [],
@@ -81,6 +85,7 @@ const Button = (props) => {
                     selectable={false}
                     style={[
                         styles.buttonText,
+                        props.small && styles.buttonSmallText,
                         props.large && styles.buttonLargeText,
                         props.success && styles.buttonSuccessText,
                         props.danger && styles.buttonDangerText,
@@ -105,6 +110,7 @@ const Button = (props) => {
                     shouldDim={pressed}
                     style={[
                         styles.button,
+                        props.small ? styles.buttonSmall : undefined,
                         props.large ? styles.buttonLarge : undefined,
                         props.success ? styles.buttonSuccess : undefined,
                         props.danger ? styles.buttonDanger : undefined,
