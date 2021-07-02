@@ -163,17 +163,20 @@ class IOUModal extends Component {
     getTitleForStep() {
         const currentStepIndex = this.state.currentStepIndex;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
+            const formattedAmount = this.props.numberFormat(
+                this.state.amount, {
+                    style: 'currency',
+                    currency: this.state.selectedCurrency.currencyCode,
+                },
+            );
             if (this.props.iouType === 'send') {
-                return this.props.translate('iou.sent');
+                return this.props.translate('iou.send', {
+                    amount: formattedAmount,
+                });
             }
             return this.props.translate(
                 this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                    amount: this.props.numberFormat(
-                        this.state.amount, {
-                            style: 'currency',
-                            currency: this.state.selectedCurrency.currencyCode,
-                        },
-                    ),
+                    amount: formattedAmount,
                 },
             );
         }

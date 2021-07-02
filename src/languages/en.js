@@ -148,7 +148,7 @@ export default {
         owes: ({manager, owner}) => `${manager} owes ${owner}`,
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
         split: ({amount}) => `Split ${amount}`,
-        sent: ({amount}) => `Sent ${amount}`,
+        send: ({amount}) => `Send ${amount}`,
         choosePaymentMethod: 'Choose payment method:',
     },
     reportDetailsPage: {
