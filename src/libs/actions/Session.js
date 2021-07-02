@@ -105,7 +105,7 @@ function resendValidationLink(login = credentials.login) {
 function fetchAccountDetails(login) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    API.GetAccountStatus({email: login})
+    API.GetAccountStatus({email: login, forceNetworkRequest: true})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {
