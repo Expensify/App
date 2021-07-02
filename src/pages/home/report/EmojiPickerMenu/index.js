@@ -137,6 +137,14 @@ class EmojiPickerMenu extends Component {
     highlightAdjacentEmoji(arrowKey) {
         const firstNonHeaderIndex = this.state.filteredEmojis.length === this.emojis.length ? this.numColumns : 0;
 
+        // Arrow Down enable arrow navigation when search is focused
+        if (this.searchInput.isFocused() && this.state.filteredEmojis.length) {
+            if (arrowKey !== 'ArrowDown') {
+                return;
+            }
+            this.searchInput.blur();
+        }
+
         // If nothing is highlighted and an arrow key is pressed
         // select the first emoji
         if (this.state.highlightedIndex === -1) {
@@ -146,8 +154,9 @@ class EmojiPickerMenu extends Component {
         }
 
         let newIndex = this.state.highlightedIndex;
-        const move = (steps, boundsCheck) => {
+        const move = (steps, boundsCheck, onBoundReached = () => {}) => {
             if (boundsCheck()) {
+                onBoundReached();
                 return;
             }
 
@@ -172,7 +181,15 @@ class EmojiPickerMenu extends Component {
                 move(1, () => this.state.highlightedIndex + 1 > this.state.filteredEmojis.length - 1);
                 break;
             case 'ArrowUp':
-                move(-this.numColumns, () => this.state.highlightedIndex - this.numColumns < firstNonHeaderIndex);
+                move(
+                    -this.numColumns,
+                    () => this.state.highlightedIndex - this.numColumns < firstNonHeaderIndex,
+                    () => {
+                        // Reaching start of the list, arrow up set the focus to searchInput.
+                        this.searchInput.focus();
+                        newIndex = -1;
+                    },
+                );
                 break;
             default:
                 break;
