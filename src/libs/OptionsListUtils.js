@@ -279,6 +279,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     searchValue = '',
     showChatPreviewLine = false,
     showReportsWithNoComments = false,
+    showReportsWithDrafts = false,
     hideReadReports = false,
     sortByAlphaAsc = false,
     forcePolicyNamePreview = false,
@@ -306,10 +307,18 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
+        const hasDraftComment = report
+            && draftComments
+            && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
+
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldShowReportIfHasDraft = showReportsWithDrafts && hasDraftComment;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
+        if (report.reportID !== activeReportID
+            && !report.isPinned
+            && !shouldShowReportIfHasDraft
+            && shouldFilterReport) {
             return;
         }
 
@@ -416,11 +425,11 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
     let userToInvite = null;
     if (searchValue
-            && recentReportOptions.length === 0
-            && personalDetailsOptions.length === 0
-            && _.every(selectedOptions, option => option.login !== searchValue)
-            && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
-            && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
+        && recentReportOptions.length === 0
+        && personalDetailsOptions.length === 0
+        && _.every(selectedOptions, option => option.login !== searchValue)
+        && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
+        && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
         // current user's international code based on their IP address.
@@ -588,6 +597,7 @@ function getSidebarOptions(
         sideBarOptions = {
             hideReadReports: true,
             sortByAlphaAsc: true,
+            showReportsWithDrafts: true,
         };
     }
 
