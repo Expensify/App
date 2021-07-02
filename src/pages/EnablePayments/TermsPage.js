@@ -1,7 +1,7 @@
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import React from 'react';
 import compose from '../../libs/compose';
-import AccordionView from '../../components/Collapsible';
+import CollapsibleSection from '../../components/CollapsibleSection';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -19,7 +19,8 @@ class TermsPage extends React.Component {
     render() {
         return (
             <>
-                <AccordionView/>
+                <CollapsibleSection/>
+                <CollapsibleSection/>
             </>
         );
     }
