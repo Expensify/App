@@ -36,7 +36,7 @@ import {
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
-import CreateMenu from '../../../components/CreateMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -304,7 +304,7 @@ class ReportActionCompose extends React.Component {
 
                 if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
                     const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).text);
+                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
                 }
             }
         }
@@ -442,7 +442,7 @@ class ReportActionCompose extends React.Component {
                                             >
                                                 <Icon src={Plus} />
                                             </TouchableOpacity>
-                                            <CreateMenu
+                                            <PopoverMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
@@ -501,7 +501,16 @@ class ReportActionCompose extends React.Component {
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerHotkeyActions}
-                                    onDragEnter={() => this.setState({isDraggingOver: true})}
+                                    onDragEnter={(e, isOriginComposer) => {
+                                        if (isOriginComposer) {
+                                            this.setState({isDraggingOver: true});
+                                        }
+                                    }}
+                                    onDragOver={(e, isOriginComposer) => {
+                                        if (isOriginComposer) {
+                                            this.setState({isDraggingOver: true});
+                                        }
+                                    }}
                                     onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
                                         e.preventDefault();

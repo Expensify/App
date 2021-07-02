@@ -44,6 +44,10 @@ export default {
                         path: ROUTES.SETTINGS_PAYMENTS,
                         exact: true,
                     },
+                    Settings_Add_Paypal_Me: {
+                        path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
+                        exact: true,
+                    },
                     Settings_Profile: {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
@@ -59,6 +63,11 @@ export default {
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
                     },
+                },
+            },
+            Report_Details: {
+                screens: {
+                    Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
                 },
             },
             NewGroup: {
@@ -99,6 +108,12 @@ export default {
                     IOU_Bill_Currency: ROUTES.IOU_BILL_CURRENCY,
                 },
             },
+            IOU_Send: {
+                screens: {
+                    IOU_Send_Root: ROUTES.IOU_SEND,
+                    IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
+                },
+            },
             IOU_Details: {
                 screens: {
                     IOU_Details_Root: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,
@@ -131,9 +146,10 @@ export default {
             },
 
             WorkspaceSettings: {
+                path: ROUTES.WORKSPACE,
                 screens: {
-                    Workspace_Root: ROUTES.WORKSPACE,
                     WorkspaceCard: ROUTES.WORKSPACE_CARD,
+                    WorkspacePeople: ROUTES.WORKSPACE_PEOPLE,
                 },
             },
 
