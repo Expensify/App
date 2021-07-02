@@ -7,6 +7,8 @@ inputs:
 outputs:
     IS_LOCKED:
         description: Whether or not the open StagingDeployCash issue is locked.
+    NUMBER:
+        description: StagingDeployCash issue number
 runs:
     using: 'node12'
     main: 'index.js'
