@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View,
+    View, Pressable, Linking,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -60,6 +60,7 @@ const getPhoneNumber = (details) => {
 const DetailsPage = ({
     personalDetails, route, translate, toLocalPhone,
 }) => {
+    console.debug(route);
     const details = personalDetails[route.params.login];
     const isSMSLogin = Str.isSMSLogin(details.login);
 
@@ -91,11 +92,19 @@ const DetailsPage = ({
                                 imageStyles={[styles.avatarLarge]}
                                 source={details.avatar}
                             />
-                            <Text style={[styles.displayName, styles.mt1, styles.mb6]} numberOfLines={1}>
-                                {details.displayName && isSMSLogin
-                                    ? toLocalPhone(details.displayName)
-                                    : (details.displayName || null)}
-                            </Text>
+                            <Pressable
+                                onPress={() => (details.displayName && isSMSLogin
+                                    ? Linking.openURL(`tel:${getPhoneNumber(details)}`)
+                                    : false
+                                )}
+                            >
+
+                                <Text style={[styles.displayName, styles.mt1, styles.mb6]} numberOfLines={1}>
+                                    {details.displayName && isSMSLogin
+                                        ? toLocalPhone(details.displayName)
+                                        : (details.displayName || null)}
+                                </Text>
+                            </Pressable>
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
@@ -103,11 +112,20 @@ const DetailsPage = ({
                                             ? 'common.phoneNumber'
                                             : 'common.email')}
                                     </Text>
-                                    <Text style={[styles.textP]} numberOfLines={1}>
-                                        {isSMSLogin
-                                            ? toLocalPhone(getPhoneNumber(details))
-                                            : details.login}
-                                    </Text>
+                                    <Pressable
+                                        onPress={() => Linking.openURL(
+                                            isSMSLogin
+                                                ? `tel:${getPhoneNumber(details)}`
+                                                : `mailto:${details.login}`,
+                                        )}
+                                    >
+                                        <Text style={[styles.textP]} numberOfLines={1}>
+                                            {isSMSLogin
+                                                ? toLocalPhone(getPhoneNumber(details))
+                                                : details.login}
+                                        </Text>
+                                    </Pressable>
+
                                 </View>
                             ) : null}
                             {details.pronouns ? (
