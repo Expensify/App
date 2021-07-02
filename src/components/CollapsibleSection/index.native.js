@@ -2,22 +2,7 @@ import {View, TouchableOpacity, StyleSheet} from 'react-native';
 import Text from '../Text';
 import React from 'react';
 import Collapsible from 'react-native-collapsible';
-import PropTypes from "prop-types";
-
-const propTypes = {
-    /** Title of the Collapsible section */
-    title: PropTypes.string.isRequired,
-
-    /** Whether the section should start expanded. False by default */
-    isExpanded: PropTypes.bool,
-
-    /** Children to display inside the Collapsible component */
-    children: PropTypes.node.isRequired,
-};
-
-const defaultProps = {
-    isExpanded: false,
-};
+import {propTypes, defaultProps} from './CollapsibleSectionPropTypes';
 
 class CollapsibleSection extends React.Component {
     constructor(props) {
