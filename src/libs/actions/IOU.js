@@ -6,6 +6,8 @@ import ROUTES from '../../ROUTES';
 import * as API from '../API';
 import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
 import Navigation from '../Navigation/Navigation';
+import Growl from '../Growl';
+import {translateLocal} from '../translate';
 import asyncOpenURL from '../asyncOpenURL';
 
 /**
@@ -222,7 +224,17 @@ function payIOUReport({
             fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
         })
         .catch((error) => {
-            console.error(`Error Paying iouReport: ${error}`);
+            switch (error.message) {
+                // eslint-disable-next-line max-len
+                case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
+                    Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
+                    break;
+                case 'This report doesn\'t have reimbursable expenses.':
+                    Growl.error(translateLocal('iou.noReimbursableExpenses'), 5000);
+                    break;
+                default:
+                    Growl.error(error.message, 5000);
+            }
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
         .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})),
