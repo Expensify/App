@@ -250,18 +250,16 @@ const styles = {
 
     picker: {
         inputIOS: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingLeft: 12,
-            paddingRight: 12,
-            paddingTop: 10,
-            paddingBottom: 10,
-            borderRadius: variables.componentBorderRadius,
+            flex: 1,
             borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
             borderColor: themeColors.border,
-            color: themeColors.text,
-            height: variables.componentSizeNormal,
-            opacity: 1,
+            paddingTop: 25,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            justifyContent: 'center',
+            height: '100%',
+            backgroundColor: '#fff',
         },
         inputWeb: {
             fontFamily: fontFamily.GTA,
@@ -445,6 +443,52 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         textAlignVertical: 'center',
+    },
+
+    expensiPickerContainer: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        justifyContent: 'center',
+        height: 52,
+        backgroundColor: '#fff',
+    },
+    expensiPickerContainerOnFocus: {
+        borderColor: themeColors.borderFocus,
+    },
+    expensiPickerContainerDisabled: {
+        backgroundColor: colors.gray1,
+        color: colors.gray3,
+    },
+    expensiPickerLabel: {
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+    },
+    expensiPicker: {
+        iconContainer: {
+            top: -10,
+        },
+        inputWeb: {
+            backgroundColor: 'transparent',
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            appearance: 'none',
+            cursor: 'pointer',
+            border: 'none',
+        },
+        inputIOS: {
+            backgroundColor: 'transparent',
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+        },
+        inputAndroid: {
+            backgroundColor: 'transparent',
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+        },
     },
 
     disabledText: {

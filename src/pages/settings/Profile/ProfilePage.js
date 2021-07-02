@@ -20,7 +20,6 @@ import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import CreateMenu from '../../../components/CreateMenu';
-import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
@@ -28,6 +27,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import ExpensiPicker from '../../../components/ExpensiPicker';
 import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 
@@ -311,11 +311,9 @@ class ProfilePage extends Component {
                             style={[styles.mt4, styles.mb4]}
                         />
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {this.props.translate('profilePage.preferredPronouns')}
-                            </Text>
                             <View style={styles.mb1}>
-                                <Picker
+                                <ExpensiPicker
+                                    label={this.props.translate('profilePage.preferredPronouns')}
                                     onChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
                                     items={this.pronounDropdownValues}
                                     placeholder={{
@@ -344,10 +342,8 @@ class ProfilePage extends Component {
                             login={this.state.logins.phone}
                         />
                         <View style={styles.mb3}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {this.props.translate('profilePage.timezone')}
-                            </Text>
-                            <Picker
+                            <ExpensiPicker
+                                label={this.props.translate('profilePage.timezone')}
                                 onChange={selectedTimezone => this.setState({selectedTimezone})}
                                 items={timezones}
                                 useDisabledStyles={this.state.isAutomaticTimezone}
