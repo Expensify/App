@@ -19,7 +19,7 @@ import Icon from '../../../components/Icon';
 import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import CreateMenu from '../../../components/CreateMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
@@ -275,20 +275,27 @@ class ProfilePage extends Component {
                             {({openPicker}) => (
                                 <>
                                     <Button
+                                        small
                                         style={[styles.alignSelfCenter, styles.mt3]}
                                         onPress={() => this.setState({isEditPhotoMenuVisible: true})}
                                         ContentComponent={() => (
                                             <View style={[styles.flexRow]}>
                                                 <Icon src={DownArrow} />
                                                 <View style={styles.justifyContentCenter}>
-                                                    <Text style={[styles.headerText, styles.ml2]}>
+                                                    <Text
+                                                        style={[
+                                                            styles.headerText,
+                                                            styles.buttonSmallText,
+                                                            styles.ml2,
+                                                        ]}
+                                                    >
                                                         {this.props.translate('profilePage.editPhoto')}
                                                     </Text>
                                                 </View>
                                             </View>
                                         )}
                                     />
-                                    <CreateMenu
+                                    <PopoverMenu
                                         isVisible={this.state.isEditPhotoMenuVisible}
                                         onClose={() => this.setState({isEditPhotoMenuVisible: false})}
                                         onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}

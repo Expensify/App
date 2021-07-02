@@ -51,6 +51,9 @@ const propTypes = {
 
     /** Should we disable this menu item? */
     disabled: PropTypes.bool,
+
+    /** A right-aligned subtitle for this menu option */
+    subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 const defaultProps = {
@@ -66,6 +69,7 @@ const defaultProps = {
     iconFill: undefined,
     focused: false,
     disabled: false,
+    subtitle: undefined,
 };
 
 const MenuItem = ({
@@ -83,6 +87,7 @@ const MenuItem = ({
     iconFill,
     focused,
     disabled,
+    subtitle,
 }) => (
     <Pressable
         onPress={(e) => {
@@ -93,7 +98,7 @@ const MenuItem = ({
             onPress(e);
         }}
         style={({hovered, pressed}) => ([
-            styles.createMenuItem,
+            styles.popoverMenuItem,
             getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled)),
             wrapperStyle,
         ])}
@@ -104,7 +109,7 @@ const MenuItem = ({
                     {icon && (
                         <View
                             style={[
-                                styles.createMenuIcon,
+                                styles.popoverMenuIcon,
                                 ...iconStyles,
                             ]}
                         >
@@ -119,24 +124,40 @@ const MenuItem = ({
                         </View>
                     )}
                     <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
-                        <Text style={[styles.createMenuText, styles.ml3, (disabled ? styles.disabledText : undefined)]}>
+                        <Text style={[
+                            styles.popoverMenuText,
+                            styles.ml3,
+                            (disabled ? styles.disabledText : undefined),
+                        ]}
+                        >
                             {title}
                         </Text>
                         {description && (
-                            <Text style={[styles.createMenuDescription, styles.ml3, styles.mt1]}>
+                            <Text style={[styles.popoverMenuDescription, styles.ml3, styles.mt1]}>
                                 {description}
                             </Text>
                         )}
                     </View>
                 </View>
-                {shouldShowRightIcon && (
-                    <View style={styles.createMenuIcon}>
-                        <Icon
-                            src={iconRight}
-                            fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
-                        />
-                    </View>
-                )}
+                <View style={[styles.flexRow, styles.menuItemTextContainer]}>
+                    {subtitle && (
+                        <View style={[styles.justifyContentCenter, styles.mr1]}>
+                            <Text
+                                style={styles.popoverMenuDescription}
+                            >
+                                {subtitle}
+                            </Text>
+                        </View>
+                    )}
+                    {shouldShowRightIcon && (
+                        <View style={styles.popoverMenuIcon}>
+                            <Icon
+                                src={iconRight}
+                                fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
+                            />
+                        </View>
+                    )}
+                </View>
             </>
         )}
     </Pressable>
