@@ -113,6 +113,7 @@ function getDefaultRoomSubtitle(report, policiesMap) {
         return '';
     }
     if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
+        // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
         return report.reportName.substring(1);
     }
     return lodashGet(
