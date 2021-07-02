@@ -46,6 +46,8 @@ export default {
         whatThis: '¿Qué es esto?',
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
+        remove: 'Eliminar',
+        admin: 'Administrador',
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
         notifications: 'Notificaciones',
@@ -141,6 +143,7 @@ export default {
         paid: ({owner, manager}) => `${manager} pagó a ${owner}`,
         split: ({amount}) => `Dividir ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
+        noReimbursableExpenses: 'El monto de este informe es inválido',
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
@@ -218,11 +221,16 @@ export default {
         newPasswordPrompt: 'La nueva contraseña tiene que ser diferente de la antigua, tener al menos 8 letras,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
         confirmNewPassword: 'Confirma la Nueva Contraseña',
     },
-    paymentsPage: {
+    addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar Cuenta de Paypal',
+    },
+    paymentMethodList: {
+        addPaymentMethod: 'Agrega método de pago',
+        accountLastFour: 'Cuenta con terminación',
+        cardLastFour: 'Tarjeta con terminacíon',
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
@@ -310,6 +318,7 @@ export default {
             address: 'Ingrese una dirección válida',
             dob: 'Ingrese una fecha de nacimiento válida',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
         },
     },
     addPersonalBankAccountPage: {
@@ -365,6 +374,12 @@ export default {
             helpText: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
             getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
+        },
+        people: {
+            assignee: 'Persona asignada',
+            genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor inténtalo más tarde.',
+            removeMembersPrompt: '¿Estás seguro que quieres eliminar a las personas seleccionadas de tu espacio de trabajo?',
+            removeMembersTitle: 'Eliminar miembros',
         },
         card: {
             addEmail: 'Agregar correo electrónico',
