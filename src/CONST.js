@@ -340,6 +340,12 @@ const CONST = {
         },
     },
 
+    NOTIFICATION_PREFERENCE: {
+        ALWAYS: 'always',
+        DAILY: 'daily',
+        MUTE: 'mute',
+    },
+
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,

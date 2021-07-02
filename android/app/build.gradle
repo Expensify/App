@@ -161,11 +161,11 @@ android {
     }
     signingConfigs {
         release {
-            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
-                storeFile file(MYAPP_UPLOAD_STORE_FILE)
-                storePassword MYAPP_UPLOAD_STORE_PASSWORD
-                keyAlias MYAPP_UPLOAD_KEY_ALIAS
-                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            if (project.hasProperty('RORY_TEST_KEYSTORE_FILE')) {
+                storeFile file(RORY_TEST_KEYSTORE_FILE)
+                storePassword RORY_TEST_STORE_PASSWORD
+                keyAlias RORY_TEST_KEY_ALIAS
+                keyPassword RORY_TEST_KEY_PASSWORD
             }
         }
         debug {
@@ -199,6 +199,10 @@ android {
             }
 
         }
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
     }
 }
 

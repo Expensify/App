@@ -21,6 +21,7 @@ import {updateNotificationPreference} from '../libs/actions/Report';
 import {Users} from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
+import CONST from '../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -72,16 +73,16 @@ class ReportDetailsPage extends Component {
 
         this.notificationPreferencesOptions = {
             default: {
-                value: 'always',
+                value: CONST.NOTIFICATION_PREFERENCE.ALWAYS,
                 label: props.translate('reportDetailsPage.always'),
 
             },
             daily: {
-                value: 'daily',
+                value: CONST.NOTIFICATION_PREFERENCE.DAILY,
                 label: props.translate('reportDetailsPage.daily'),
             },
             mute: {
-                value: 'mute',
+                value: CONST.NOTIFICATION_PREFERENCE.MUTE,
                 label: props.translate('reportDetailsPage.mute'),
             },
         };
