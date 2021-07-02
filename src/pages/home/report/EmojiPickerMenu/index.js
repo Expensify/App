@@ -97,18 +97,6 @@ class EmojiPickerMenu extends Component {
         if (document) {
             this.keyDownHandler = (keyBoardEvent) => {
                 if (keyBoardEvent.key.startsWith('Arrow')) {
-                    // Arrow Down enable arrow navigation
-                    if (this.searchInput.isFocused()) {
-                        if (keyBoardEvent.key !== 'ArrowDown') {
-                            return;
-                        }
-                        this.searchInput.blur();
-                    }
-
-                    // Depending on the position of the highlighted emoji after moving and rendering,
-                    // toggle which arrow keys can affect the cursor position in the search input.
-                    this.toggleArrowKeysOnSearchInput(keyBoardEvent);
-
                     // Move the highlight when arrow keys are pressed
                     this.highlightAdjacentEmoji(keyBoardEvent.key);
                 }
@@ -260,27 +248,6 @@ class EmojiPickerMenu extends Component {
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
-    }
-
-    /**
-     * Toggles which arrow keys can affect the cursor in the search input,
-     * depending on whether the arrow keys will affect the index of the highlighted emoji.
-     *
-     * @param {KeyboardEvent} arrowKeyBoardEvent
-     */
-    toggleArrowKeysOnSearchInput(arrowKeyBoardEvent) {
-        let keysToIgnore = ['ArrowDown', 'ArrowRight', 'ArrowLeft', 'ArrowUp'];
-        if (this.state.highlightedIndex === 0 && this.state.filteredEmojis.length) {
-            keysToIgnore = ['ArrowDown', 'ArrowRight'];
-        } else if (this.state.highlightedIndex === this.state.filteredEmojis.length - 1) {
-            keysToIgnore = ['ArrowLeft', 'ArrowUp'];
-        }
-
-        // Moving the cursor is the default behavior for arrow key presses while an input is focused,
-        // so prevent it
-        if (keysToIgnore.includes(arrowKeyBoardEvent.key)) {
-            arrowKeyBoardEvent.preventDefault();
-        }
     }
 
     /**
