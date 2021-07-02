@@ -46,7 +46,8 @@ function sortReportsByLastVisited(reports) {
 }
 
 /**
- * Can only edit if it's a ADDCOMMENT, the author is this user and it's not a optimistic response.
+ * Can only edit if it's an ADDCOMMENT that is not an attachment,
+ * the author is this user and it's not an optimistic response.
  * If it's an optimistic response comment it will not have a reportActionID,
  * and we should wait until it does before we show the actions
  *
@@ -60,6 +61,22 @@ function canEditReportAction(reportAction) {
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
 }
+
+/**
+ * Can only delete if it's an ADDCOMMENT, the author is this user and it's not an optimistic response.
+ * If it's an optimistic response comment it will not have a reportActionID,
+ * and we should wait until it does before we show the actions
+ *
+ * @param {Object} reportAction
+ * @param {String} sessionEmail
+ * @returns {Boolean}
+ */
+function canDeleteReportAction(reportAction) {
+    return reportAction.actorEmail === sessionEmail
+        && reportAction.reportActionID
+        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
+}
+
 
 /**
  * Given a collection of reports returns the most recently accessed one
@@ -90,6 +107,7 @@ export {
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
+    canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
 };

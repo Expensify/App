@@ -126,12 +126,12 @@ const InitialSettingsPage = ({
 
     // Add free policies (workspaces) to the list of menu items
     const menuItems = _.chain(policies)
-        .filter(policy => policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+        .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
         .map(policy => ({
             title: policy.name,
             icon: Building,
             action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
-            iconStyles: [styles.createMenuIconEmphasized],
+            iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
         }))
         .value();

@@ -50,6 +50,8 @@ export default {
         whatThis: 'What\'s this?',
         iAcceptThe: 'I accept the ',
         passwordCannotBeBlank: 'Password cannot be blank',
+        remove: 'Remove',
+        admin: 'Admin',
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
         notifications: 'Notifications',
@@ -134,6 +136,7 @@ export default {
         confirm: 'Confirm',
         splitBill: 'Split Bill',
         requestMoney: 'Request Money',
+        sendMoney: 'Send Money',
         pay: 'Pay',
         viewDetails: 'View Details',
         settleExpensify: 'Pay with Expensify',
@@ -145,7 +148,9 @@ export default {
         owes: ({manager, owner}) => `${manager} owes ${owner}`,
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
         split: ({amount}) => `Split ${amount}`,
+        send: ({amount}) => `Send ${amount}`,
         choosePaymentMethod: 'Choose payment method:',
+        noReimbursableExpenses: 'This report has an invalid amount',
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',
@@ -221,12 +226,17 @@ export default {
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
         confirmNewPassword: 'Confirm New Password',
     },
-    paymentsPage: {
+    addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal Account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
+    },
+    paymentMethodList: {
+        addPaymentMethod: 'Add Payment Method',
+        accountLastFour: 'Account ending in',
+        cardLastFour: 'Card ending in',
     },
     preferencesPage: {
         mostRecent: 'Most Recent',
@@ -317,6 +327,7 @@ export default {
             address: 'Please enter a valid address',
             dob: 'Please enter a valid date of birth',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
         },
     },
     addPersonalBankAccountPage: {
@@ -433,6 +444,12 @@ export default {
             helpText: 'Name your Workspace before enabling your Expensify Cards!',
             getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
+        },
+        people: {
+            assignee: 'Assignee',
+            genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
+            removeMembersPrompt: 'Are you sure you want to remove the selected people from your workspace?',
+            removeMembersTitle: 'Remove Members',
         },
         card: {
             addEmail: 'Add Email',

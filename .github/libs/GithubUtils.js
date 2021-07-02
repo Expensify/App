@@ -250,6 +250,30 @@ class GithubUtils {
     }
 
     /**
+     * Fetch all pull requests given a list of PR numbers.
+     *
+     * @param {Array<Number>} pullRequestNumbers
+     * @returns {Promise}
+     */
+    static fetchAllPullRequests(pullRequestNumbers) {
+        const oldestPR = _.first(_.sortBy(pullRequestNumbers));
+        return this.octokit.paginate(this.octokit.pulls.list, {
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            state: 'all',
+            sort: 'created',
+            direction: 'desc',
+            per_page: 100,
+        }, ({data}, done) => {
+            if (_.find(data, pr => pr.number === oldestPR)) {
+                done();
+            }
+            return data;
+        })
+            .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)));
+    }
+
+    /**
      * Create comment on pull request
      *
      * @param {String} repo - The repo to search for a matching pull request or issue number
