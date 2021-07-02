@@ -719,7 +719,12 @@ function subscribeToUserEvents() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
             );
         });
+}
 
+/**
+ * Setup reportComment push notification callbacks.
+ */
+function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
         Log.info('[Report] Handled event sent by Airship', true, {reportID});
         updateReportWithNewAction(reportID, reportAction);
@@ -1297,6 +1302,7 @@ export {
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,
+    subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
     saveReportComment,
     broadcastUserIsTyping,
