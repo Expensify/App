@@ -131,7 +131,7 @@ const InitialSettingsPage = ({
             title: policy.name,
             icon: Building,
             action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
-            iconStyles: [styles.createMenuIconEmphasized],
+            iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
         }))
         .value();
