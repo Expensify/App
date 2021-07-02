@@ -18,12 +18,12 @@ import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
-import CreateMenu from '../../components/CreateMenu';
+import PopoverMenu from '../../components/PopoverMenu';
 import isAppInstalled from '../../libs/isAppInstalled';
 import Button from '../../components/Button';
 import Permissions from '../../libs/Permissions';
 import {
-    Cash, Paypal, Venmo, Wallet,
+    Cash, PayPal, Venmo, Wallet,
 } from '../../components/Icon/Expensicons';
 
 const propTypes = {
@@ -212,7 +212,7 @@ class IOUDetailsModal extends Component {
             },
             [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
                 text: this.props.translate('iou.settlePaypalMe'),
-                icon: Paypal,
+                icon: PayPal,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: this.props.translate('iou.settleElsewhere'),
@@ -264,7 +264,7 @@ class IOUDetailsModal extends Component {
                                     />
                                 )}
                                 {this.state.paymentOptions.length > 1 && (
-                                    <CreateMenu
+                                    <PopoverMenu
                                         isVisible={this.state.isSettlementMenuVisible}
                                         onClose={() => this.setMenuVisibility(false)}
                                         onItemSelected={() => this.setMenuVisibility(false)}

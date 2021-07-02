@@ -36,7 +36,7 @@ import {
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
-import CreateMenu from '../../../components/CreateMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -442,7 +442,7 @@ class ReportActionCompose extends React.Component {
                                             >
                                                 <Icon src={Plus} />
                                             </TouchableOpacity>
-                                            <CreateMenu
+                                            <PopoverMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
