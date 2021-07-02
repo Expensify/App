@@ -274,7 +274,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     includePersonalDetails = false,
     includeRecentReports = false,
     prioritizePinnedReports = false,
-    prioritizeDefaultChatRooms = false,
+    prioritizeDefaultRoomsInSearch = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
     showChatPreviewLine = false,
@@ -391,8 +391,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
     }
 
-    // If we are prioritizing the default rooms, split them out and put them first
-    if (prioritizeDefaultChatRooms) {
+    // If we are prioritizing default rooms in search, do it only once we started something
+    if (prioritizeDefaultRoomsInSearch && searchValue !== '') {
         const reportsSplitByDefaultChatRoom = _.partition(recentReportOptions, option => option.isDefaultChatRoom);
         recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
     }
@@ -463,7 +463,7 @@ function getSearchOptions(
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: false,
-        prioritizeDefaultChatRooms: true,
+        prioritizeDefaultRoomsInSearch: true,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
