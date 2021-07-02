@@ -1,4 +1,4 @@
-import {View, TouchableOpacity, ScrollView, StyleSheet} from 'react-native';
+import {View, TouchableOpacity, StyleSheet} from 'react-native';
 import Text from '../Text';
 import React from 'react';
 import Collapsible from 'react-native-collapsible';
