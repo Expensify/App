@@ -30,6 +30,10 @@ class ExpensiTextInput extends Component {
         this.input = null;
     }
 
+    componentDidMount = () => {
+        if (this.props.autoFocus) { this.animateLabel(ACTIVE_LABEL_TRANSLATE_Y, ACTIVE_LABEL_SCALE); }
+    }
+
     animateLabel = (translateY, scale) => {
         Animated.parallel([
             Animated.spring(this.state.labelTranslateY, {
