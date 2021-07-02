@@ -82,6 +82,7 @@ class ExpensiTextInput extends Component {
                 labelTranslateX={0}
                 labelScale={labelScale}
                 onPress={this.focus}
+                hasLabel={hasLabel}
             >
                 <>
                     {hasLabel ? (

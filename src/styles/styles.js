@@ -427,7 +427,6 @@ const styles = {
     },
     expensiTextInputDesktop: {
         outline: 'none',
-        paddingTop: 16,
     },
     textInput: {
         backgroundColor: themeColors.componentBG,
