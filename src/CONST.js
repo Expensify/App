@@ -88,6 +88,13 @@ const CONST = {
         COMPLETE: 'complete',
         DISABLED: 'disabled',
     },
+    CARD_TYPES: {
+        /** This is a default card type that all users have. It is just a placeholder, not an actual card */
+        DEFAULT_CASH: '__CASH__',
+    },
+    BANK_ACCOUNT_TYPES: {
+        WALLET: 'WALLET',
+    },
     COUNTRY: {
         US: 'US',
         MX: 'MX',
@@ -120,6 +127,7 @@ const CONST = {
         PERSONAL_DETAIL: 'personalDetail',
     },
     REPORT: {
+        DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         ACTIONS: {
             LIMIT: 50,
@@ -146,6 +154,11 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+        },
+        NOTIFICATION_PREFERENCE: {
+            MUTE: 'mute',
+            DAILY: 'daily',
+            ALWAYS: 'always',
         },
     },
     MODAL: {

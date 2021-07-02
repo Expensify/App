@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import {
-    GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge, Policy_Create,
+    GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge, Policy_Create, Policy_Employees_Remove,
 } from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import {formatPersonalDetails} from './PersonalDetails';
@@ -92,6 +92,47 @@ function getPolicyList() {
 }
 
 /**
+ * Remove the passed members from the policy employeeList
+ *
+ * @param {Array} members
+ * @param {String} policyID
+ */
+function removeMembers(members, policyID) {
+    // In case user selects only themselves (admin), their email will be filtered out and the members
+    // array passed will be empty, prevent the funtion from proceeding in that case as there is noone to remove
+    if (members.length === 0) {
+        return;
+    }
+
+    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+
+    // Make a shallow copy to preserve original data and remove the members
+    const policy = _.clone(allPolicies[key]);
+    policy.employeeList = _.without(policy.employeeList, ...members);
+
+    // Optimistically remove the members from the policy
+    Onyx.set(key, policy);
+
+    // Make the API call to merge the login into the policy
+    Policy_Employees_Remove({
+        emailList: members,
+        policyID,
+    })
+        .then((data) => {
+            if (data.jsonCode === 200) {
+                return;
+            }
+            const policyDataWithMembersRemoved = _.clone(allPolicies[key]);
+            policyDataWithMembersRemoved.employeeList = [...policyDataWithMembersRemoved.employeeList, ...members];
+            Onyx.set(key, policyDataWithMembersRemoved);
+
+            // Show the user feedback that the removal failed
+            console.error(data.message);
+            Growl.show(translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
+        });
+}
+
+/**
  * Merges the passed in login into the specified policy
  *
  * @param {String} login
@@ -155,14 +196,17 @@ function create(name) {
                 id: response.policyID,
                 type: response.policy.type,
                 name: response.policy.name,
+                role: CONST.POLICY.ROLE.ADMIN,
             });
-            Navigation.navigate(ROUTES.getWorkspaceRoute(response.policyID));
+            Navigation.dismissModal();
+            Navigation.navigate(ROUTES.getWorkspaceCardRoute(response.policyID));
         });
 }
 
 export {
     getPolicySummaries,
     getPolicyList,
+    removeMembers,
     invite,
     create,
 };
