@@ -55,6 +55,7 @@ export default {
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
         notifications: 'Notifications',
+        noResultsFound: 'No results found',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
