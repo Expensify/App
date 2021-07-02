@@ -5,21 +5,33 @@ import PropTypes from 'prop-types';
 // We can't use the common component for the Tooltip as Web implementation uses DOM specific method to
 // render the View which is not present on the Mobile.
 const propTypes = {
-    children: PropTypes.element,
+    /** Styles to be assigned to the Tooltip wrapper views */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyle: PropTypes.object,
+
+    /** Children to wrap with Tooltip. */
+    children: PropTypes.node.isRequired,
+};
+
+const defaultProps = {
+    containerStyle: {},
 };
 
 /**
- * There is no native support for the Hover on the Mobile platform so we just return the enclosing childrens
+ * There is no native support for the Hover on the Mobile platform, but as we use the Tooltip as a
+ * container we must past pass that containerStyle to a simple View in order to avoid different
+ * styles across platforms.
  * @param {propTypes} props
  * @returns {ReactNodeLike}
  */
-const Tooltip = (props) => {
-    console.log(props.containerStyle);
-    return (
+const Tooltip = props => (
     <View style={props.containerStyle}>
         {props.children}
-        </View>)}
+    </View>
+);
+
 
 Tooltip.propTypes = propTypes;
+Tooltip.defaultProps = defaultProps;
 Tooltip.displayName = 'Tooltip';
 export default Tooltip;
