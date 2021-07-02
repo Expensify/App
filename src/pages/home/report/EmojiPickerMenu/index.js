@@ -97,6 +97,14 @@ class EmojiPickerMenu extends Component {
         if (document) {
             this.keyDownHandler = (keyBoardEvent) => {
                 if (keyBoardEvent.key.startsWith('Arrow')) {
+                    // Arrow Down enable arrow navigation
+                    if (this.searchInput.isFocused()) {
+                        if (keyBoardEvent.key !== 'ArrowDown') {
+                            return;
+                        }
+                        this.searchInput.blur();
+                    }
+
                     // Depending on the position of the highlighted emoji after moving and rendering,
                     // toggle which arrow keys can affect the cursor position in the search input.
                     this.toggleArrowKeysOnSearchInput(keyBoardEvent);
@@ -110,7 +118,9 @@ class EmojiPickerMenu extends Component {
                     this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
                 }
             };
-            document.addEventListener('keydown', this.keyDownHandler);
+
+            // Keyboard events are not bubbling in RN-Web
+            document.addEventListener('keydown', this.keyDownHandler, true);
 
             // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
             this.mouseMoveHandler = () => {
