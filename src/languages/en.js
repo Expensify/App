@@ -224,12 +224,17 @@ export default {
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
         confirmNewPassword: 'Confirm New Password',
     },
-    paymentsPage: {
+    addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal Account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
+    },
+    paymentMethodList: {
+        addPaymentMethod: 'Add Payment Method',
+        accountLastFour: 'Account ending in',
+        cardLastFour: 'Card ending in',
     },
     preferencesPage: {
         mostRecent: 'Most Recent',
