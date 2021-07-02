@@ -514,9 +514,13 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
  *
  * @param {Number} reportID
  * @param {Object} reportAction
- * @param {String} notificationPreference On what cadence the user would like to be notified
+ * @param {String} [notificationPreference] On what cadence the user would like to be notified
  */
-function updateReportWithNewAction(reportID, reportAction, notificationPreference) {
+function updateReportWithNewAction(
+    reportID,
+    reportAction,
+    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
     const initialLastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
