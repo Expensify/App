@@ -127,30 +127,32 @@ function getParticipantNames(personalDetailList) {
 }
 
 /**
- * Returns a string with all relevant search terms
+ * Returns a string with all relevant search terms.
+ * Default should be serachable by policy/domain name but not by participants.
  *
  * @param {Object} report
  * @param {Array} personalDetailList
+ * @param {Boolean} isDefaultChatRoom
  * @return {String}
  */
-function getSearchText(report, personalDetailList) {
+function getSearchText(report, personalDetailList, isDefaultChatRoom) {
     const searchTerms = [];
 
-    _.each(personalDetailList, (personalDetail) => {
-        searchTerms.push(personalDetail.displayName);
-        searchTerms.push(personalDetail.login);
-    });
+    if (!isDefaultChatRoom) {
+        _.each(personalDetailList, (personalDetail) => {
+            searchTerms.push(personalDetail.displayName);
+            searchTerms.push(personalDetail.login);
+        });
+    }
     if (report) {
         searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
 
-        // Do not include participants as search terms for default rooms
-        if (!isDefaultRoom(report)) {
+        if (!isDefaultChatRoom) {
             searchTerms.push(...report.participants);
         }
 
-        // Add policy name as a search term for default rooms
-        if (isDefaultRoom(report) && policies[report.policyID]) {
+        if (isDefaultChatRoom && policies[report.policyID]) {
             searchTerms.push(...policies[report.policyID].name);
         }
     }
@@ -221,7 +223,7 @@ function createOption(personalDetailList, report, draftComments, {
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment,
         keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, personalDetailList),
+        searchText: getSearchText(report, personalDetailList, isDefaultChatRoom),
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
