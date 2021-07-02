@@ -51,6 +51,7 @@ export default {
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
         notifications: 'Notificaciones',
+        noResultsFound: 'No se han encontrado resultados',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
