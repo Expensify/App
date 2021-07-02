@@ -1,24 +1,9 @@
 import React, {PureComponent} from 'react';
 import {Text, View} from 'react-native';
-import PropTypes from 'prop-types';
 import Picker from '../Picker';
 import styles from '../../styles/styles';
-
-const propTypes = {
-    label: PropTypes.string,
-    value: PropTypes.string,
-
-    /** Something to show as the placeholder before something is selected */
-    placeholder: PropTypes.shape({
-        /** The value of the placeholder item, usually an empty string */
-        value: PropTypes.string,
-
-        /** The text to be displayed as the placeholder */
-        label: PropTypes.string,
-    }),
-
-    useDisabledStyles: PropTypes.boolean,
-};
+import propTypes from './propTypes';
+import defaultProps from './defaultProps';
 
 class ExpensiPicker extends PureComponent {
     constructor() {
@@ -61,11 +46,6 @@ class ExpensiPicker extends PureComponent {
 }
 
 ExpensiPicker.propTypes = propTypes;
-ExpensiPicker.defaultProps = {
-    label: '',
-    value: '',
-    placeholder: {},
-    useDisabledStyles: false,
-};
+ExpensiPicker.defaultProps = defaultProps;
 
 export default ExpensiPicker;
