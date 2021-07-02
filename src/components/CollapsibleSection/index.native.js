@@ -2,14 +2,33 @@ import {View, TouchableOpacity, StyleSheet} from 'react-native';
 import Text from '../Text';
 import React from 'react';
 import Collapsible from 'react-native-collapsible';
+import PropTypes from "prop-types";
+
+const propTypes = {
+    /** Title of the Collapsible section */
+    title: PropTypes.string.isRequired,
+
+    /** Whether the section should start expanded. False by default */
+    isExpanded: PropTypes.bool,
+
+    /** Children to display inside the Collapsible component */
+    children: PropTypes.node.isRequired,
+};
+
+const defaultProps = {
+    isExpanded: false,
+};
 
 class CollapsibleSection extends React.Component {
-    state = {
-        collapsed: true,
-    };
+    constructor(props) {
+        super(props);
+        this.state = {
+            isExpanded: this.props.isExpanded,
+        }
+    }
 
     toggleExpanded = () => {
-        this.setState({ collapsed: !this.state.collapsed });
+        this.setState({isExpanded: !this.state.isExpanded});
     };
 
     render() {
@@ -20,12 +39,9 @@ class CollapsibleSection extends React.Component {
                         <Text style={styles.headerText}>Single Collapsible</Text>
                     </View>
                 </TouchableOpacity>
-                <Collapsible collapsed={this.state.collapsed} align="center">
+                <Collapsible collapsed={!this.state.isExpanded} align="center">
                     <View style={styles.content}>
-                        <Text>
-                            Bacon ipsum dolor amet chuck turducken landjaeger tongue spare
-                            ribs
-                        </Text>
+                        {this.props.children}
                     </View>
                 </Collapsible>
             </View>
@@ -60,4 +76,6 @@ const styles = StyleSheet.create({
     },
 });
 
+CollapsibleSection.propTypes = propTypes;
+CollapsibleSection.defaultProps = defaultProps;
 export default CollapsibleSection;
