@@ -15,9 +15,9 @@ import {setExpensifyNewsStatus} from '../../libs/actions/User';
 import {setLocale} from '../../libs/actions/App';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
-import Picker from '../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import ExpensiPicker from '../../components/ExpensiPicker';
 
 const propTypes = {
     /** The chat priority mode */
@@ -94,11 +94,9 @@ const PreferencesPage = ({
                             />
                         </View>
                     </View>
-                    <Text style={[styles.formLabel]} numberOfLines={1}>
-                        {translate('preferencesPage.priorityMode')}
-                    </Text>
                     <View style={[styles.mb2]}>
-                        <Picker
+                        <ExpensiPicker
+                            label={translate('preferencesPage.priorityMode')}
                             onChange={
                                 mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
                             }
@@ -109,11 +107,9 @@ const PreferencesPage = ({
                     <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
                         {priorityModes[priorityMode].description}
                     </Text>
-                    <Text style={[styles.formLabel]} numberOfLines={1}>
-                        {translate('preferencesPage.language')}
-                    </Text>
                     <View style={[styles.mb2]}>
-                        <Picker
+                        <ExpensiPicker
+                            label={translate('preferencesPage.language')}
                             onChange={(locale) => {
                                 if (locale !== preferredLocale) {
                                     setLocale(locale);

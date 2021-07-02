@@ -176,15 +176,15 @@ class CompanyStep extends React.Component {
                             value={this.state.companyTaxID}
                             disabled={shouldDisableCompanyTaxID}
                         />
-                        <Text style={[styles.formLabel, styles.mt4]}>
-                            {this.props.translate('companyStep.companyType')}
-                        </Text>
-                        <Picker
-                            items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
-                            onChange={incorporationType => this.setState({incorporationType})}
-                            value={this.state.incorporationType}
-                            placeholder={{value: '', label: 'Type'}}
-                        />
+                        <View style={styles.mt4}>
+                            <Picker
+                                label={this.props.translate('companyStep.companyType')}
+                                items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
+                                onChange={incorporationType => this.setState({incorporationType})}
+                                value={this.state.incorporationType}
+                                placeholder={{value: '', label: 'Type'}}
+                            />
+                        </View>
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
                                 {/* TODO: Replace with date picker */}
