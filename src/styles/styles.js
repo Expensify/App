@@ -140,7 +140,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        paddingHorizontal: 12,
+        ...spacing.ph3,
     },
 
     buttonText: {
@@ -200,6 +200,20 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonDanger: {
+        backgroundColor: themeColors.buttonDangerBG,
+        borderWidth: 0,
+    },
+
+    buttonDangerDisabled: {
+        backgroundColor: themeColors.buttonDangerDisabledBG,
+    },
+
+    buttonDangerHovered: {
+        backgroundColor: themeColors.buttonDangerPressedBG,
+        borderWidth: 0,
+    },
+
     buttonDisable: {
         backgroundColor: themeColors.buttonDisabledBG,
         borderWidth: 0,
@@ -232,6 +246,10 @@ const styles = {
         color: themeColors.textReversed,
     },
 
+    buttonDangerText: {
+        color: themeColors.textReversed,
+    },
+
     hoveredComponentBG: {
         backgroundColor: themeColors.hoverComponentBG,
     },
@@ -260,7 +278,7 @@ const styles = {
             borderWidth: 1,
             borderColor: themeColors.border,
             color: themeColors.text,
-            height: variables.componentSizeNormal,
+            height: variables.inputComponentSizeNormal,
             opacity: 1,
         },
         inputWeb: {
@@ -275,7 +293,7 @@ const styles = {
             borderColor: themeColors.border,
             color: themeColors.text,
             appearance: 'none',
-            height: variables.componentSizeNormal,
+            height: variables.inputComponentSizeNormal,
             opacity: 1,
             cursor: 'pointer',
         },
@@ -290,7 +308,7 @@ const styles = {
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
             color: themeColors.text,
-            height: variables.componentSizeNormal,
+            height: variables.inputComponentSizeNormal,
             opacity: 1,
         },
         iconContainer: {
@@ -382,7 +400,7 @@ const styles = {
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeNormal,
+        height: variables.inputComponentSizeNormal,
         borderColor: themeColors.border,
         borderWidth: 1,
         color: themeColors.text,
@@ -637,7 +655,7 @@ const styles = {
         color: themeColors.heading,
     },
 
-    createMenuItem: {
+    popoverMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
         paddingHorizontal: 20,
@@ -646,26 +664,26 @@ const styles = {
         width: '100%',
     },
 
-    createMenuIcon: {
+    popoverMenuIcon: {
         width: variables.componentSizeNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
 
-    createMenuIconEmphasized: {
+    popoverMenuIconEmphasized: {
         backgroundColor: themeColors.iconSuccessFill,
         borderRadius: variables.componentSizeLarge / 2,
     },
 
-    createMenuText: {
+    popoverMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
     },
 
-    createMenuDescription: {
+    popoverMenuDescription: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,
@@ -1077,6 +1095,13 @@ const styles = {
         borderRadius: 18,
     },
 
+    singleAvatarLarge: {
+        height: 64,
+        width: 64,
+        backgroundColor: themeColors.icon,
+        borderRadius: 64,
+    },
+
     secondAvatar: {
         position: 'absolute',
         right: -18,
@@ -1289,6 +1314,21 @@ const styles = {
         ...spacing.mv1,
         ...spacing.mh1,
         ...{borderRadius: variables.componentBorderRadiusSmall},
+    },
+
+    reportDetailsTitleContainer: {
+        ...flex.dFlex,
+        ...flex.flexColumn,
+        ...flex.alignItemsCenter,
+        ...spacing.mt4,
+        height: 150,
+    },
+
+    reportDetailsRoomInfo: {
+        ...flex.flex1,
+        ...flex.dFlex,
+        ...flex.flexColumn,
+        ...flex.alignItemsCenter,
     },
 
     reportTransactionWrapper: {
@@ -1674,6 +1714,31 @@ const styles = {
 
     workspaceInviteWelcome: {
         minHeight: 150,
+    },
+
+    peopleRow: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        ...spacing.pv2,
+    },
+
+    peopleRowCell: {
+        justifyContent: 'center',
+    },
+
+    peopleBadge: {
+        backgroundColor: themeColors.icon,
+        ...spacing.ph3,
+    },
+
+    peopleBadgeText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        ...whiteSpace.noWrap,
     },
 };
 

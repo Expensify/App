@@ -112,6 +112,7 @@ class SidebarLinks extends React.Component {
             this.props.draftComments,
             activeReportID,
             this.props.priorityMode,
+            this.props.betas,
         );
 
         const sections = [{
@@ -217,6 +218,9 @@ export default compose(
         },
         isSyncingData: {
             key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(SidebarLinks);

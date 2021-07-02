@@ -15,7 +15,8 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsAboutPage from '../../../pages/settings/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
-import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
+import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
+import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
@@ -25,6 +26,7 @@ import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
 import RequestCallPage from '../../../pages/RequestCallPage';
+import ReportDetailsPage from '../../../pages/ReportDetailsPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -83,6 +85,11 @@ const IOUDetailsModalStackNavigator = createModalStackNavigator([{
 const DetailsModalStackNavigator = createModalStackNavigator([{
     Component: DetailsPage,
     name: 'Details_Root',
+}]);
+
+const ReportDetailsModalStackNavigator = createModalStackNavigator([{
+    Component: ReportDetailsPage,
+    name: 'Report_Details_Root',
 }]);
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
@@ -144,6 +151,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         Component: SettingsPaymentsPage,
         name: 'Settings_Payments',
     },
+    {
+        Component: SettingsAddPayPalMePage,
+        name: 'Settings_Add_Paypal_Me',
+    },
 ]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([{
@@ -181,6 +192,7 @@ export {
     IOURequestModalStackNavigator,
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
+    ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
