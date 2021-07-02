@@ -128,7 +128,7 @@ function getParticipantNames(personalDetailList) {
 
 /**
  * Returns a string with all relevant search terms.
- * Default should be serachable by policy/domain name but not by participants.
+ * Default should be serachable by policy name but not by participants.
  *
  * @param {Object} report
  * @param {Array} personalDetailList
@@ -153,7 +153,9 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
         }
 
         if (isDefaultChatRoom && policies[report.policyID]) {
-            searchTerms.push(...policies[report.policyID].name);
+            const policyName = policies[report.policyID].name;
+            searchTerms.push(...policyName);
+            searchTerms.push(...policyName.split(',').map(name => name.trim()));
         }
     }
 
