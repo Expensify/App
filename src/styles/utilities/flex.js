@@ -87,4 +87,8 @@ export default {
     flexGrow4: {
         flexGrow: 4,
     },
+    
+    flexShrink1: {
+        flexShrink: 1,
+    },
 };

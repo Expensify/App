@@ -1,3 +1,5 @@
+import React from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 
 // We can't use the common component for the Tooltip as Web implementation uses DOM specific method to
@@ -11,7 +13,12 @@ const propTypes = {
  * @param {propTypes} props
  * @returns {ReactNodeLike}
  */
-const Tooltip = props => props.children;
+const Tooltip = (props) => {
+    console.log(props.containerStyle);
+    return (
+    <View style={props.containerStyle}>
+        {props.children}
+        </View>)}
 
 Tooltip.propTypes = propTypes;
 Tooltip.displayName = 'Tooltip';
