@@ -12,6 +12,9 @@ class CollapsibleSection extends React.Component {
         }
     }
 
+    /**
+     * Expands/collapses the section
+     */
     toggleExpanded = () => {
         this.setState({isExpanded: !this.state.isExpanded});
     };
