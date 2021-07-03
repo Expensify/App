@@ -104,6 +104,8 @@ class IOUConfirmationList extends Component {
     constructor(props) {
         super(props);
 
+        this.toggleOption = this.toggleOption.bind(this); 
+
         this.state = {
             selectedParticipants: this.props.participants,
             unselectedParticipants: [],
@@ -240,6 +242,44 @@ class IOUConfirmationList extends Component {
         return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
     }
 
+    /**
+    * Toggle selected option between selectedParticipant and unselectedParticipant.
+    * @param {Object} option
+    */
+    toggleOption(option) {
+        const isOptionInSelectedList = _.some(this.state.selectedParticipants, selectedOption => (
+            selectedOption.login === option.login
+        ));
+        const isOptionInUnselectedList = _.some(this.state.unselectedParticipants, selectedOption => (
+            selectedOption.login === option.login
+        ));
+
+        // selected option is self
+        if (!isOptionInSelectedList && !isOptionInUnselectedList) {
+            return;
+        }
+
+        let newSelectedParticipants;
+        let newUnselectedParticipants;
+        if (isOptionInSelectedList) {
+            newSelectedParticipants = _.without(this.state.selectedParticipants, option);
+            newUnselectedParticipants = [...this.state.unselectedParticipants, option];
+        } else {
+            newSelectedParticipants = [...this.state.selectedParticipants, option];
+            newUnselectedParticipants = _.reject(this.state.unselectedParticipants, selectedOption => (
+                selectedOption.login === option.login
+            ));
+        }
+
+        const formattedSelectedParticipants = this.getFormattedSelectedParticipants(newSelectedParticipants);
+        const formattedUnselectedParticipants = this.getFormattedUnselectedParticipants(newUnselectedParticipants);
+
+        this.setState({
+            selectedParticipants: formattedSelectedParticipants,
+            unselectedParticipants: formattedUnselectedParticipants,
+        });
+    }
+
     render() {
         const buttonText = this.props.translate(
             this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
@@ -249,6 +289,7 @@ class IOUConfirmationList extends Component {
                 ),
             },
         );
+        const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
         return (
             <>
                 <ScrollView style={[styles.flex1, styles.w100]}>
@@ -267,6 +308,7 @@ class IOUConfirmationList extends Component {
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         disableFocusOptions
                         selectedOptions={this.getAllOptionsAsSelected()}
+                        onSelectRow={toggleOption}
                     />
                     <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
                         {this.props.translate('iOUConfirmationList.whatsItFor')}
