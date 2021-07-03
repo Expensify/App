@@ -119,7 +119,6 @@ class IOUConfirmationList extends Component {
         });
     }
 
-
     /**
      * Returns the selectedParticipants with amount
      *
@@ -155,21 +154,14 @@ class IOUConfirmationList extends Component {
      */
     getSections() {
         const sections = [];
-
         if (this.props.hasMultipleParticipants) {
             const formattedMyPersonalDetails = getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
-                this.props.numberFormat(this.calculateAmount() / 100, {
+                this.props.numberFormat(this.calculateAmount(this.state.selectedParticipants) / 100, {
                     style: 'currency',
                     currency: this.props.selectedCurrency.currencyCode,
                 }),
             );
-
-            const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                this.props.numberFormat(this.calculateAmount() / 100, {
-                    style: 'currency',
-                    currency: this.props.selectedCurrency.currencyCode,
-                }));
 
             sections.push({
                 title: this.props.translate('iOUConfirmationList.whoPaid'),
@@ -177,18 +169,22 @@ class IOUConfirmationList extends Component {
                 shouldShow: true,
                 indexOffset: 0,
             });
+
             sections.push({
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
-                data: formattedParticipants,
+                data: this.state.selectedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
             });
+
+            sections.push(({
+                title: undefined,
+                data: this.state.unselectedParticipants,
+                shouldShow: !_.isEmpty(this.state.unselectedParticipants),
+                indexOffset: 0,
+            }));
         } else {
-            const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                this.props.numberFormat(this.props.iouAmount, {
-                    style: 'currency',
-                    currency: this.props.selectedCurrency.currencyCode,
-                }));
+            const formattedParticipants = this.getFormattedSelectedParticipants(this.props.participants);
 
             sections.push({
                 title: this.props.translate('common.to').toUpperCase(),
