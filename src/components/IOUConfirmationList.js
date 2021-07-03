@@ -101,6 +101,14 @@ const defaultProps = {
 const MINIMUM_BOTTOM_OFFSET = 240;
 
 class IOUConfirmationList extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            selectedParticipants: this.props.participants,
+            unselectedParticipants: [],
+        };
+    }
     /**
      * Returns the sections needed for the OptionsSelector
      *
