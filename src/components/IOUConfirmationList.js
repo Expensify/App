@@ -111,6 +111,34 @@ class IOUConfirmationList extends Component {
             unselectedParticipants: [],
         };
     }
+
+    /**
+     * Returns the selectedParticipants with amount
+     *
+     * @param {Array} selectedParticipants
+     * @returns {Array}
+     */
+    getFormattedSelectedParticipants(selectedParticipants) {
+        return getIOUConfirmationOptionsFromParticipants(
+            selectedParticipants,
+            this.props.numberFormat(this.calculateAmount(selectedParticipants) / 100, {
+                style: 'currency',
+                currency: this.props.selectedCurrency.currencyCode,
+            }),
+        );
+    }
+
+    /**
+     * Returns the unselectedParticipants without amount
+     *
+     * @param {Array} unselectedParticipants
+     * @returns {Array}
+     */
+    getFormattedUnselectedParticipants(unselectedParticipants) {
+        return unselectedParticipants.map(option => _.omit(option, 'descriptiveText'));
+    }
+
+
     /**
      * Returns the sections needed for the OptionsSelector
      *
