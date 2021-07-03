@@ -7,6 +7,7 @@ import {propTypes, defaultProps} from './CollapsibleSectionPropTypes';
 class CollapsibleSection extends React.Component {
     constructor(props) {
         super(props);
+        this.toggleExpanded = this.toggleExpanded.bind(this);
         this.state = {
             isExpanded: this.props.isExpanded,
         }
@@ -15,7 +16,7 @@ class CollapsibleSection extends React.Component {
     /**
      * Expands/collapses the section
      */
-    toggleExpanded = () => {
+    toggleExpanded() {
         this.setState({isExpanded: !this.state.isExpanded});
     };
 

@@ -17,7 +17,7 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
-import TermsPage from './TermsPage';
+import TermsPage from './TermsPage/TermsPage';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
