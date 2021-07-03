@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {ScrollView, TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
@@ -104,19 +105,14 @@ class IOUConfirmationList extends Component {
     constructor(props) {
         super(props);
 
-        this.toggleOption = this.toggleOption.bind(this); 
+        this.toggleOption = this.toggleOption.bind(this);
+
+        const formattedSelectedParticipants = this.getFormattedSelectedParticipants(this.props.participants);
 
         this.state = {
-            selectedParticipants: this.props.participants,
+            selectedParticipants: formattedSelectedParticipants,
             unselectedParticipants: [],
         };
-    }
-
-    componentDidMount() {
-        const formattedSelectedParticipants = this.getFormattedSelectedParticipants(this.state.selectedParticipants);
-        this.setState({
-            selectedParticipants: formattedSelectedParticipants,
-        });
     }
 
     /**
@@ -144,7 +140,6 @@ class IOUConfirmationList extends Component {
     getFormattedUnselectedParticipants(unselectedParticipants) {
         return unselectedParticipants.map(option => _.omit(option, 'descriptiveText'));
     }
-
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -257,7 +252,7 @@ class IOUConfirmationList extends Component {
      * @param {Boolean} isDefaultUser
      * @returns {Number}
      */
-     calculateAmount(participants, isDefaultUser = false) {
+    calculateAmount(participants, isDefaultUser = false) {
         // Convert to cents before working with iouAmount to avoid
         // javascript subtraction with decimal problem -- when dealing with decimals,
         // because they are encoded as IEEE 754 floating point numbers, some of the decimal
@@ -363,6 +358,7 @@ class IOUConfirmationList extends Component {
                         success
                         style={[styles.w100]}
                         isLoading={this.props.iou.loading}
+                        isDisabled={this.state.selectedParticipants.length === 0}
                         text={buttonText}
                         onPress={() => this.props.onConfirm(this.getSplits())}
                     />
