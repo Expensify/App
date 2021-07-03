@@ -322,6 +322,7 @@ class IOUConfirmationList extends Component {
                 ),
             },
         );
+        const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
         const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
         return (
             <>
@@ -335,13 +336,14 @@ class IOUConfirmationList extends Component {
                         }]}
                         sections={this.getSections()}
                         disableArrowKeysActions
-                        disableRowInteractivity
+                        disableFocusOptions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
-                        disableFocusOptions
                         selectedOptions={this.getSelectedOptions()}
                         onSelectRow={toggleOption}
+                        disableRowInteractivity={!this.props.hasMultipleParticipants}
+                        optionHoveredStyle={hoverStyle}
                     />
                     <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
                         {this.props.translate('iOUConfirmationList.whatsItFor')}
