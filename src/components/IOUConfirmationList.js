@@ -112,6 +112,14 @@ class IOUConfirmationList extends Component {
         };
     }
 
+    componentDidMount() {
+        const formattedSelectedParticipants = this.getFormattedSelectedParticipants(this.state.selectedParticipants);
+        this.setState({
+            selectedParticipants: formattedSelectedParticipants,
+        });
+    }
+
+
     /**
      * Returns the selectedParticipants with amount
      *
