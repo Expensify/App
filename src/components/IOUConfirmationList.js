@@ -238,15 +238,15 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * Returns selected options with all participant logins -- there is checkmark for every row in List for split flow
+     * Returns selected options -- there is checkmark for every row in List for split flow
      * @returns {Array}
      */
-    getAllOptionsAsSelected() {
+    getSelectedOptions() {
         if (!this.props.hasMultipleParticipants) {
             return [];
         }
         return [
-            ...this.props.participants,
+            ...this.state.selectedParticipants,
             getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails),
         ];
     }
@@ -340,7 +340,7 @@ class IOUConfirmationList extends Component {
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         disableFocusOptions
-                        selectedOptions={this.getAllOptionsAsSelected()}
+                        selectedOptions={this.getSelectedOptions()}
                         onSelectRow={toggleOption}
                     />
                     <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
