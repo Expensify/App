@@ -1740,6 +1740,11 @@ const styles = {
         lineHeight: 16,
         ...whiteSpace.noWrap,
     },
+
+    shortTermsRow: {
+        borderTopColor: themeColors.border,
+        borderTopWidth: 1,
+    },
 };
 
 const baseCodeTagStyles = {
