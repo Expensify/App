@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F5FCFF',
-        paddingTop: 20,
+        paddingTop: 10,
     },
     title: {
         textAlign: 'center',
@@ -60,7 +60,6 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     content: {
-        padding: 20,
         backgroundColor: '#fff',
     },
 });
