@@ -208,12 +208,12 @@ class IOUConfirmationList extends Component {
             return null;
         }
 
-        const splits = this.props.participants.map(participant => ({
+        const splits = this.state.selectedParticipants.map(participant => ({
             email: participant.login,
 
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(),
+            amount: this.calculateAmount(this.state.selectedParticipants),
         }));
 
         splits.push({
@@ -221,7 +221,7 @@ class IOUConfirmationList extends Component {
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(true),
+            amount: this.calculateAmount(this.state.selectedParticipants, true),
         });
         return splits;
     }
@@ -252,18 +252,19 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * Calculates the amount per user
+     * Calculates the amount per user given a list of participants
+     * @param {Array} participants
      * @param {Boolean} isDefaultUser
      * @returns {Number}
      */
-    calculateAmount(isDefaultUser = false) {
+     calculateAmount(participants, isDefaultUser = false) {
         // Convert to cents before working with iouAmount to avoid
         // javascript subtraction with decimal problem -- when dealing with decimals,
         // because they are encoded as IEEE 754 floating point numbers, some of the decimal
         // numbers cannot be represented with perfect accuracy.
         // Cents is temporary and there must be support for other currencies in the future
         const iouAmount = Math.round(parseFloat(this.props.iouAmount * 100));
-        const totalParticipants = this.props.participants.length + 1;
+        const totalParticipants = participants.length + 1;
         const amountPerPerson = Math.round(iouAmount / totalParticipants);
 
         if (!isDefaultUser) { return amountPerPerson; }
