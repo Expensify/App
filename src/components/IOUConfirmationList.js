@@ -179,7 +179,11 @@ class IOUConfirmationList extends Component {
                 indexOffset: 0,
             }));
         } else {
-            const formattedParticipants = this.getFormattedSelectedParticipants(this.props.participants);
+            const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
+                this.props.numberFormat(this.props.iouAmount, {
+                    style: 'currency',
+                    currency: this.props.selectedCurrency.currencyCode,
+                }));
 
             sections.push({
                 title: this.props.translate('common.to').toUpperCase(),
