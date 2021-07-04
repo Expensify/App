@@ -130,7 +130,7 @@ function createIOUSplit(params) {
     });
     const emailsWithoutSelf = participantEmails.slice(0, -1);
 
-    return API.CreateIOUSplit({
+    API.CreateIOUSplit({
         ...params,
         splits: JSON.stringify(params.splits),
         participantEmails: emailsWithoutSelf,
