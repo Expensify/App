@@ -609,6 +609,19 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.notificationPreference
+ * @returns {Promise}
+ *
+ */
+function Report_UpdateNotificationPreference(parameters) {
+    const commandName = 'Report_UpdateNotificationPreference';
+    requireParameters(['reportID', 'notificationPreference'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -958,6 +971,18 @@ function Policy_Create(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {Array} parameters.emailList
+ * @returns {Promise}
+ */
+function Policy_Employees_Remove(parameters) {
+    const commandName = 'Policy_Employees_Remove';
+    requireParameters(['policyID', 'emailList'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.taskID
  * @param {String} parameters.policyID
  * @param {String} parameters.firstName
@@ -1003,6 +1028,7 @@ export {
     Report_TogglePinned,
     Report_EditComment,
     Report_UpdateLastRead,
+    Report_UpdateNotificationPreference,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,
@@ -1024,4 +1050,5 @@ export {
     GetPreferredCurrency,
     GetCurrencyList,
     Policy_Create,
+    Policy_Employees_Remove,
 };

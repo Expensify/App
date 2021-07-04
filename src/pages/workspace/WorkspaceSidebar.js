@@ -1,5 +1,9 @@
+import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
@@ -18,32 +22,52 @@ import Icon from '../../components/Icon';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
+    /** Policy for the current route */
+    policy: PropTypes.shape({
+        /** ID of the policy */
+        id: PropTypes.string,
+
+        /** Name of the policy */
+        name: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
-const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
+const defaultProps = {
+    policy: {},
+};
+
+const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
     const menuItems = [
         {
             translationKey: 'workspace.common.card',
             icon: ExpensifyCard,
             action: () => {
-                Navigation.navigate(ROUTES.WORKSPACE_CARD);
+                Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id));
             },
-            isActive: Navigation.isActive(ROUTES.WORKSPACE_CARD),
+            isActive: Navigation.isActive(ROUTES.getWorkspaceCardRoute(policy.id)),
         },
         {
             translationKey: 'common.people',
             icon: Users,
-            action: () => {},
-            isActive: false,
+            action: () => {
+                Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policy.id));
+            },
+            isActive: Navigation.isActive(ROUTES.getWorkspacePeopleRoute(policy.id)),
         },
     ];
 
+    if (_.isEmpty(policy)) {
+        return null;
+    }
+
     return (
-        <ScreenWrapper style={[!isSmallScreenWidth ? styles.borderRight : {}]}>
+        <ScreenWrapper>
             <ScrollView
                 bounces={false}
                 contentContainerStyle={[
@@ -86,7 +110,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
                                     styles.mb6,
                                 ]}
                             >
-                                Borton Enterprises
+                                {policy.name}
                             </Text>
                         </View>
                     </View>
@@ -109,9 +133,20 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth}) => {
 };
 
 WorkspaceSidebar.propTypes = propTypes;
+WorkspaceSidebar.defaultProps = defaultProps;
 WorkspaceSidebar.displayName = 'WorkspaceSidebar';
 
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withOnyx({
+        policy: {
+            key: (props) => {
+                const routes = lodashGet(props.navigation.getState(), 'routes', []);
+                const routeWithPolicyIDParam = _.find(routes, route => route.params && route.params.policyID);
+                const policyID = lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
+                return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+            },
+        },
+    }),
 )(WorkspaceSidebar);
