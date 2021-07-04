@@ -61,7 +61,6 @@ class EmojiPickerMenu extends Component {
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
-        this.toggleArrowKeysOnSearchInput = this.toggleArrowKeysOnSearchInput.bind(this);
         this.setupEventHandlers = this.setupEventHandlers.bind(this);
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
@@ -125,7 +124,7 @@ class EmojiPickerMenu extends Component {
      */
     cleanupEventHandlers() {
         if (document) {
-            document.removeEventListener('keydown', this.keyDownHandler);
+            document.removeEventListener('keydown', this.keyDownHandler, true);
             document.removeEventListener('mousemove', this.mouseMoveHandler);
         }
     }
@@ -138,11 +137,17 @@ class EmojiPickerMenu extends Component {
         const firstNonHeaderIndex = this.state.filteredEmojis.length === this.emojis.length ? this.numColumns : 0;
 
         // Arrow Down enable arrow navigation when search is focused
-        if (this.searchInput.isFocused() && this.state.filteredEmojis.length) {
+        if (this.searchInput && this.searchInput.isFocused() && this.state.filteredEmojis.length) {
             if (arrowKey !== 'ArrowDown') {
                 return;
             }
             this.searchInput.blur();
+
+            // We only want to hightlight the Emoji if none was highlighted already
+            // If we already have a highlighted Emoji, lets just skip the first navigation
+            if (this.state.highlightedIndex !== -1) {
+                return;
+            }
         }
 
         // If nothing is highlighted and an arrow key is pressed
@@ -185,6 +190,10 @@ class EmojiPickerMenu extends Component {
                     -this.numColumns,
                     () => this.state.highlightedIndex - this.numColumns < firstNonHeaderIndex,
                     () => {
+                        if (!this.searchInput) {
+                            return;
+                        }
+
                         // Reaching start of the list, arrow up set the focus to searchInput.
                         this.searchInput.focus();
                         newIndex = -1;
