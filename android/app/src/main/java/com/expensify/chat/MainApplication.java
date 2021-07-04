@@ -14,6 +14,8 @@ import com.plaid.PlaidPackage;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
 import java.util.List;
+import com.facebook.react.bridge.JSIModulePackage;
+import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
 public class MainApplication extends MultiDexApplication implements ReactApplication {
 
@@ -37,6 +39,11 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
         @Override
         protected String getJSMainModuleName() {
           return "index";
+        }
+
+        @Override
+        protected JSIModulePackage getJSIModulePackage() {
+          return new ReanimatedJSIModulePackage();
         }
       };
 
