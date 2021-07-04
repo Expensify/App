@@ -255,6 +255,7 @@ class IOUModal extends Component {
      */
     createTransaction(splits) {
         const reportID = this.props.route.params.reportID;
+
         // regex to check if a string contains numbers only
         const isNumRegex = new RegExp('^[0-9]+$');
 

@@ -122,12 +122,10 @@ function createIOUSplit(params) {
  * @param {String} params.currency
  * @param {String} params.reportID
  */
- function createIOUSplitGroup(params) {
+function createIOUSplitGroup(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 
-    const participantEmails = params.splits.map((participant) => {
-        return participant.email;
-    });
+    const participantEmails = params.splits.map(participant => participant.email);
     const emailsWithoutSelf = participantEmails.slice(0, -1);
 
     API.CreateIOUSplit({
