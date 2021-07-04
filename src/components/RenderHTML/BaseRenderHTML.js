@@ -54,10 +54,14 @@ const EXTRA_FONTS = [
  *
  * @param {number} contentWidth - The content width provided to the HTML
  * component.
+ * @param {number} tagName - tagname
  * @returns {number} The minimum between contentWidth and MAX_IMG_DIMENSIONS
  */
-function computeImagesMaxWidth(contentWidth) {
-    return Math.min(MAX_IMG_DIMENSIONS, contentWidth);
+function computeEmbeddedMaxWidth(contentWidth, tagName) {
+    if (tagName === 'img') {
+        return Math.min(MAX_IMG_DIMENSIONS, contentWidth);
+    }
+    return contentWidth;
 }
 
 function AnchorRenderer({tnode, key, style}) {
@@ -218,7 +222,7 @@ const BaseRenderHTML = ({html, debug, textSelectable}) => {
             tagsStyles={webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             contentWidth={containerWidth}
-            computeImagesMaxWidth={computeImagesMaxWidth}
+            computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
             systemFonts={EXTRA_FONTS}
             dangerouslyDisableWhitespaceCollapsing
             renderersProps={{
