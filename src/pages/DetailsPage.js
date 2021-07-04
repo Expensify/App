@@ -60,7 +60,6 @@ const getPhoneNumber = (details) => {
 const DetailsPage = ({
     personalDetails, route, translate, toLocalPhone,
 }) => {
-    console.debug(route);
     const details = personalDetails[route.params.login];
     const isSMSLogin = Str.isSMSLogin(details.login);
 
