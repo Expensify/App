@@ -56,6 +56,7 @@ import {canEditReportAction} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import ExpensiText from '../../../components/Text';
+import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -76,9 +77,11 @@ const propTypes = {
         isVisible: PropTypes.bool,
     }),
 
+    /** The personal details of the person who is logged in */
+    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes).isRequired,
+
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
-
 
     /** The report currently being looked at */
     report: PropTypes.shape({
@@ -403,9 +406,14 @@ class ReportActionCompose extends React.Component {
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasConciergeParticipant = _.contains(reportParticipants, CONST.EMAIL.CONCIERGE);
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const reportRecipientLocalTime = moment().tz(reportRecipient.timezone.selected).format('LT');
-        const isReportRecipientLocalTimeReady = reportRecipient.timezone
-        && reportRecipientLocalTime.toString().match(/(A|P)M/ig);
+        const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', {});
+        const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', {});
+        console.debug(reportRecipientTimezone);
+        const reportRecipientLocalTime = moment().tz(reportRecipientTimezone.selected).format('LT');
+        const shouldShowReportRecipientLocalTime = !hasMultipleParticipants
+            && reportRecipientTimezone
+            && currentUserTimezone.selected !== reportRecipientTimezone.selected;
+        const isReportRecipientLocalTimeReady = reportRecipientLocalTime.toString().match(/(A|P)M/ig);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -422,7 +430,7 @@ class ReportActionCompose extends React.Component {
 
         return (
             <View style={[styles.chatItemCompose]}>
-                {!hasMultipleParticipants
+                {shouldShowReportRecipientLocalTime
                     && (isReportRecipientLocalTimeReady ? (
                         <View style={[styles.chatItemComposeSecondaryRow]}>
                             <ExpensiText style={[
@@ -661,6 +669,9 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
