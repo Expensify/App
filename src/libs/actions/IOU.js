@@ -125,13 +125,9 @@ function createIOUSplit(params) {
 function createIOUSplitGroup(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 
-    const participantEmails = params.splits.map(participant => participant.email);
-    const emailsWithoutSelf = participantEmails.slice(0, -1);
-
     API.CreateIOUSplit({
         ...params,
         splits: JSON.stringify(params.splits),
-        participantEmails: emailsWithoutSelf,
     })
         .then(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}))
         .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}));
