@@ -919,7 +919,7 @@ const styles = {
     },
 
     chatItemCompose: {
-        minHeight: 65,
+        minHeight: 85,
         marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,

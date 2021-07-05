@@ -12,6 +12,7 @@ import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import moment from 'moment';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -53,6 +54,8 @@ import * as User from '../../../libs/actions/User';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
+import {participantPropTypes} from '../sidebar/optionPropTypes';
+import ExpensiText from '../../../components/Text';
 
 const propTypes = {
     /** Beta features list */
@@ -72,6 +75,10 @@ const propTypes = {
         /** Indicates if there is a modal currently visible or not */
         isVisible: PropTypes.bool,
     }),
+
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
+
 
     /** The report currently being looked at */
     report: PropTypes.shape({
@@ -392,8 +399,13 @@ class ReportActionCompose extends React.Component {
 
     render() {
         // eslint-disable-next-line no-unused-vars
-        const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
-        const hasConciergeParticipant = _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE);
+        const reportParticipants = lodashGet(this.props.report, 'participants', []);
+        const hasMultipleParticipants = reportParticipants.length > 1;
+        const hasConciergeParticipant = _.contains(reportParticipants, CONST.EMAIL.CONCIERGE);
+        const reportRecipient = this.props.personalDetails[reportParticipants[0]];
+        const reportRecipientLocalTime = moment().tz(reportRecipient.timezone.selected).format('LT');
+        const isReportRecipientLocalTimeReady = reportRecipient.timezone
+        && reportRecipientLocalTime.toString().match(/(A|P)M/ig);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -410,6 +422,22 @@ class ReportActionCompose extends React.Component {
 
         return (
             <View style={[styles.chatItemCompose]}>
+                {!hasMultipleParticipants
+                    && (isReportRecipientLocalTimeReady ? (
+                        <View style={[styles.chatItemComposeSecondaryRow]}>
+                            <ExpensiText style={[
+                                styles.chatItemComposeSecondaryRowSubText,
+                                styles.chatItemComposeSecondaryRowOffset,
+                            ]}
+                            >
+                                {reportRecipientLocalTime}
+                                {' '}
+                                {this.props.translate('detailsPage.localTime')}
+                            </ExpensiText>
+                        </View>
+                    )
+                        : <View style={[styles.chatItemComposeSecondaryRow]} />
+                    )}
                 <View style={[
                     (this.state.isFocused || this.state.isDraggingOver)
                         ? styles.chatItemComposeBoxFocusedColor
@@ -633,6 +661,9 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
         reportActions: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
