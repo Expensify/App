@@ -51,6 +51,7 @@ export default {
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
         notifications: 'Notificaciones',
+        noResultsFound: 'No se han encontrado resultados',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -143,6 +144,7 @@ export default {
         paid: ({owner, manager}) => `${manager} pagó a ${owner}`,
         split: ({amount}) => `Dividir ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
+        noReimbursableExpenses: 'El monto de este informe es inválido',
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
@@ -220,11 +222,16 @@ export default {
         newPasswordPrompt: 'La nueva contraseña tiene que ser diferente de la antigua, tener al menos 8 letras,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
         confirmNewPassword: 'Confirma la Nueva Contraseña',
     },
-    paymentsPage: {
+    addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar Cuenta de Paypal',
+    },
+    paymentMethodList: {
+        addPaymentMethod: 'Agrega método de pago',
+        accountLastFour: 'Cuenta con terminación',
+        cardLastFour: 'Tarjeta con terminacíon',
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
@@ -258,6 +265,15 @@ export default {
         forgot: '¿Te has olvidado?',
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
+        error: {
+            incorrectLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo',
+            twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor conéctate usando su email o número de teléfono',
+            invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo o resetea tu clave',
+            unableToResetPassword: 'No pudimos cambiar tu clave. Probablemente porque el enlace para resetear la clave ha expirado. Te hemos enviado un nuevo enlace. Chequea tu bandeja de entrada y tu carpeta de Spam',
+            noAccess: 'No tienes acceso a esta aplicación. Por favor agrega tu usuario de GitHub para acceder',
+            accountLocked: 'Tu cuenta ha sido bloqueada tras varios intentos fallidos. Por favor inténtalo otra vez dentro de 1 hora',
+            fallback: 'Ha ocurrido un error. Por favor inténtalo mas tarde',
+        },
     },
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
@@ -312,6 +328,7 @@ export default {
             address: 'Ingrese una dirección válida',
             dob: 'Ingrese una fecha de nacimiento válida',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
         },
     },
     addPersonalBankAccountPage: {
@@ -352,7 +369,7 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',
+        offlineMessage: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
     },
     workspace: {
         common: {

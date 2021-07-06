@@ -8,10 +8,9 @@ inputs:
         description: "Check if deploying to production"
         required: false
         default: "false"
-    IS_CHERRY_PICK:
-        description: "Did this deploy happen as part of a cherry-pick?"
-        required: false
-        default: "false"
+    STAGING_DEPLOY_NUMBER:
+        description: "StagingDeployCash issue number"
+        required: true
     DEPLOY_VERSION:
         description: "The app version in which the pull requests were deployed"
         required: true
