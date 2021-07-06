@@ -1,8 +1,9 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {FlatList} from 'react-native';
+import {FlatList, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import styles from '../../../styles/styles';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -14,6 +15,8 @@ import {
     PayPal,
     Plus,
 } from '../../../components/Icon/Expensicons';
+
+const MENU_ITEM = 'menuItem';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
@@ -77,6 +80,7 @@ class PaymentMethodList extends Component {
             // Add all bank accounts besides the wallet
             if (bankAccount.type !== CONST.BANK_ACCOUNT_TYPES.WALLET) {
                 combinedPaymentMethods.push({
+                    type: MENU_ITEM,
                     title: bankAccount.addressName,
 
                     // eslint-disable-next-line
@@ -92,6 +96,7 @@ class PaymentMethodList extends Component {
             // Add all cards besides the "cash" card
             if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
                 combinedPaymentMethods.push({
+                    type: MENU_ITEM,
                     title: card.cardName,
 
                     // eslint-disable-next-line
@@ -105,6 +110,7 @@ class PaymentMethodList extends Component {
 
         if (this.props.payPalMeUsername) {
             combinedPaymentMethods.push({
+                type: MENU_ITEM,
                 title: 'PayPal.me',
                 description: this.props.payPalMeUsername,
                 icon: PayPal,
@@ -113,7 +119,15 @@ class PaymentMethodList extends Component {
             });
         }
 
+        // If we have not added any payment methods, show a default empty state
+        if (_.isEmpty(combinedPaymentMethods)) {
+            combinedPaymentMethods.push({
+                text: 'Add a payment method to send and receive payments directly in the app',
+            });
+        }
+
         combinedPaymentMethods.push({
+            type: MENU_ITEM,
             title: this.props.translate('paymentMethodList.addPaymentMethod'),
             icon: Plus,
             onPress: e => this.props.onPress(e),
@@ -132,14 +146,24 @@ class PaymentMethodList extends Component {
      * @return {React.Component}
      */
     renderItem({item}) {
+        if (item.type === MENU_ITEM) {
+            return (
+                <MenuItem
+                    onPress={item.onPress}
+                    title={item.title}
+                    description={item.description}
+                    icon={item.icon}
+                    key={item.key}
+                />
+            );
+        }
+
         return (
-            <MenuItem
-                onPress={item.onPress}
-                title={item.title}
-                description={item.description}
-                icon={item.icon}
-                key={item.key}
-            />
+            <Text
+                style={[styles.popoverMenuItem]}
+            >
+                {item.text}
+            </Text>
         );
     }
 
