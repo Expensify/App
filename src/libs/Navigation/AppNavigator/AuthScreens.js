@@ -63,6 +63,7 @@ import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
 import spacing from '../../../styles/utilities/spacing';
+import CardOverlay from '../../../components/CardOverlay';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -223,6 +224,7 @@ class AuthScreens extends React.Component {
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
             cardOverlayEnabled: !this.props.isSmallScreenWidth,
             isFullScreenModal: true,
+            cardOverlay: CardOverlay,
         };
 
         return (
