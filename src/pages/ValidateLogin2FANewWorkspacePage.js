@@ -62,12 +62,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
             Navigation.navigate(ROUTES.WORKSPACE_NEW);
-            return;
         }
-
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        continueSessionFromECom(accountID, validateCode);
     }
 
     validateAndSubmitForm() {
