@@ -12,7 +12,6 @@ import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import moment from 'moment';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -55,8 +54,8 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
-import ExpensiText from '../../../components/Text';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
+import ParticipantLocalTime from './ParticipantLocalTime';
 
 const propTypes = {
     /** Beta features list */
@@ -408,12 +407,10 @@ class ReportActionCompose extends React.Component {
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', {});
         const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', {});
-        console.debug(reportRecipientTimezone);
-        const reportRecipientLocalTime = moment().tz(reportRecipientTimezone.selected).format('LT');
-        const shouldShowReportRecipientLocalTime = !hasMultipleParticipants
+        const shouldShowReportRecipientLocalTime = !hasConciergeParticipant
+            && !hasMultipleParticipants
             && reportRecipientTimezone
             && currentUserTimezone.selected !== reportRecipientTimezone.selected;
-        const isReportRecipientLocalTimeReady = reportRecipientLocalTime.toString().match(/(A|P)M/ig);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -431,21 +428,7 @@ class ReportActionCompose extends React.Component {
         return (
             <View style={[styles.chatItemCompose]}>
                 {shouldShowReportRecipientLocalTime
-                    && (isReportRecipientLocalTimeReady ? (
-                        <View style={[styles.chatItemComposeSecondaryRow]}>
-                            <ExpensiText style={[
-                                styles.chatItemComposeSecondaryRowSubText,
-                                styles.chatItemComposeSecondaryRowOffset,
-                            ]}
-                            >
-                                {reportRecipientLocalTime}
-                                {' '}
-                                {this.props.translate('detailsPage.localTime')}
-                            </ExpensiText>
-                        </View>
-                    )
-                        : <View style={[styles.chatItemComposeSecondaryRow]} />
-                    )}
+                    && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
                     (this.state.isFocused || this.state.isDraggingOver)
                         ? styles.chatItemComposeBoxFocusedColor
