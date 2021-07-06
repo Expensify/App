@@ -92,6 +92,7 @@ class ReportActionItem extends Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.showDeleteConfirmModal = this.showDeleteConfirmModal.bind(this);
+        this.contextMenuHide = this.contextMenuHide.bind(this);
     }
 
     componentDidMount() {
@@ -150,6 +151,13 @@ class ReportActionItem extends Component {
                 },
             });
         });
+    }
+
+    contextMenuHide() {
+        this.onPopoverHide();
+
+        // After we have called the action, reset it.
+        this.onPopoverHide = () => {};
     }
 
     /**
@@ -311,7 +319,7 @@ class ReportActionItem extends Component {
                 <PopoverWithMeasuredContent
                     isVisible={this.state.isPopoverVisible}
                     onClose={this.hidePopover}
-                    onModalHide={this.onPopoverHide}
+                    onModalHide={this.contextMenuHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     animationOutTiming={1}
