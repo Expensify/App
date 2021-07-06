@@ -62,6 +62,7 @@ import {
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
+import spacing from '../../../styles/utilities/spacing';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -215,7 +216,7 @@ class AuthScreens extends React.Component {
         };
         const fullscreenModalScreenOptions = {
             ...commonModalScreenOptions,
-            cardStyle: {...styles.fullscreenCard, padding: this.props.isSmallScreenWidth ? 0 : 20},
+            cardStyle: {...styles.fullscreenCard, padding: this.props.isSmallScreenWidth ? spacing.p0 : spacing.p5},
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
             cardOverlayEnabled: !this.props.isSmallScreenWidth,
             isFullScreenModal: true,
