@@ -7,15 +7,9 @@ import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import SCREENS from '../../../SCREENS';
 import ValidateLoginNewWorkspacePage from '../../../pages/ValidateLoginNewWorkspacePage';
 import ValidateLogin2FANewWorkspacePage from '../../../pages/ValidateLogin2FANewWorkspacePage';
+import defaultScreenOptions from './defaultScreenOptions';
 
 const RootStack = createStackNavigator();
-const defaultScreenOptions = {
-    cardStyle: {
-        overflow: 'visible',
-    },
-    headerShown: false,
-    animationTypeForReplace: 'pop',
-};
 
 export default () => (
     <RootStack.Navigator>
