@@ -71,7 +71,6 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             return;
         }
 
-
         this.setState({
             formError: null,
         });
