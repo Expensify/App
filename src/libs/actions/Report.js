@@ -99,17 +99,17 @@ function getUnreadActionCount(report) {
     // Save the lastReadActionID locally so we can access this later
     lastReadSequenceNumbers[report.reportID] = lastReadSequenceNumber;
 
-    if (report.reportActionList.length === 0) {
+    if (report.reportActionListLength === 0) {
         return 0;
     }
 
     if (!lastReadSequenceNumber) {
-        return report.reportActionList.length;
+        return report.reportActionListLength;
     }
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionList.length - lastReadSequenceNumber;
+    const unreadActionCount = report.reportActionListLength - lastReadSequenceNumber;
     return Math.max(0, unreadActionCount);
 }
 
@@ -154,8 +154,7 @@ function getChatReportName(fullReport, chatType) {
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
-    const reportActionList = lodashGet(report, ['reportActionList'], []);
-    const lastReportAction = !_.isEmpty(reportActionList) ? _.last(reportActionList) : null;
+    const lastReportAction = !_.isEmpty(report.mostRecentReportAction) ? report.mostRecentReportAction : null;
     const createTimestamp = lastReportAction ? lastReportAction.created : 0;
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
     const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lodashGet(lastReportAction, ['message', 'html'], ''));
@@ -179,10 +178,10 @@ function getSimplifiedReportObject(report) {
         reportID: report.reportID,
         reportName,
         chatType,
-        ownerEmail: lodashGet(report, ['ownerEmail'], ''),
+        ownerEmail: lodashGet(report, ['accountEmail'], ''),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
-        maxSequenceNumber: report.reportActionList.length,
+        maxSequenceNumber: report.reportActionListLength,
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
         lastVisitedTimestamp: lodashGet(report, [
@@ -301,22 +300,13 @@ function fetchIOUReportID(debtorEmail) {
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
     const simplifiedReports = {};
-    return API.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: chatList.join(','),
-        shouldLoadOptionalKeys: true,
-        includePinnedReports: true,
-    })
-        .then(({reports}) => {
+    return API.GetReportSummaryList({reportIDList: chatList.join(',')})
+        .then(({reportSummaryList}) => {
             Log.info('[Report] successfully fetched report data', true);
-            fetchedReports = reports;
+            fetchedReports = reportSummaryList;
             return Promise.all(_.map(fetchedReports, (chatReport) => {
-                const reportActionList = chatReport.reportActionList || [];
-                const containsIOUAction = _.any(reportActionList,
-                    reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
-
                 // If there aren't any IOU actions, we don't need to fetch any additional data
-                if (!containsIOUAction) {
+                if (!chatReport.hasIOUAction) {
                     return;
                 }
 

@@ -992,6 +992,12 @@ function Inbox_CallUser(parameters) {
     return Network.post(commandName, parameters);
 }
 
+function GetReportSummaryList(parameters) {
+    const commandName = 'Get';
+    requireParameters(['reportIDList'], parameters, commandName);
+    return Network.post(commandName, {...parameters, returnValueList: 'reportSummaryList'});
+}
+
 export {
     Authenticate,
     BankAccount_Create,
@@ -1007,6 +1013,7 @@ export {
     GetIOUReport,
     GetPolicyList,
     GetPolicySummaryList,
+    GetReportSummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
