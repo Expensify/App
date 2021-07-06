@@ -12,8 +12,6 @@ const platform = (platformIndex > 0) ? process.argv[platformIndex + 1] : 'web';
 const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new RegExp(/\.website\.js$/);
 
 const includeModules = [
-    'expo-constants',
-    'expo-permissions',
     'react-native-animatable',
     'react-native-reanimated',
     'react-native-picker-select',
