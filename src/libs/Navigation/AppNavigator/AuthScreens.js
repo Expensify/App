@@ -64,6 +64,7 @@ import Timers from '../../Timers';
 import ValidateLoginNewWorkspacePage from '../../../pages/ValidateLoginNewWorkspacePage';
 import ValidateLogin2FANewWorkspacePage from '../../../pages/ValidateLogin2FANewWorkspacePage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
+import defaultScreenOptions from './defaultScreenOptions';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -93,14 +94,6 @@ const modalScreenListeners = {
     beforeRemove: () => {
         setModalVisibility(false);
     },
-};
-
-const defaultScreenOptions = {
-    cardStyle: {
-        overflow: 'visible',
-    },
-    headerShown: false,
-    animationTypeForReplace: 'pop',
 };
 
 const propTypes = {
