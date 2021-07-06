@@ -215,5 +215,25 @@
     "jsxBracketSameLine": true,
     "singleQuote": true,
     "trailingComma": "all"
+  },
+  "react-native-unimodules": {
+    "android": {
+      "exclude": [
+        "expo-face-detector",
+        "expo-constants",
+        "expo-file-system",
+        "expo-image-loader",
+        "expo-permissions"
+      ]
+    },
+    "ios": {
+      "exclude": [
+        "expo-face-detector",
+        "expo-constants",
+        "expo-file-system",
+        "expo-image-loader",
+        "expo-permissions"
+      ]
+    }
   }
 }
