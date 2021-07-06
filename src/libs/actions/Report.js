@@ -171,6 +171,9 @@ function getSimplifiedReportObject(report) {
         ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
+    const notificationPreference = isDefaultRoom({chatType})
+        ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
+        : '';
 
     return {
         reportID: report.reportID,
@@ -191,6 +194,7 @@ function getSimplifiedReportObject(report) {
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         hasOutstandingIOU: false,
+        notificationPreference,
     };
 }
 
@@ -1073,6 +1077,7 @@ function addAction(reportID, text, file) {
  */
 function deleteReportComment(reportID, reportAction) {
     // Optimistic Response
+    const sequenceNumber = reportAction.sequenceNumber;
     const reportActionsToMerge = {};
     const oldMessage = {...reportAction.message};
     reportActionsToMerge[reportAction.sequenceNumber] = {
@@ -1093,11 +1098,12 @@ function deleteReportComment(reportID, reportAction) {
         reportID,
         reportActionID: reportAction.reportActionID,
         reportComment: '',
+        sequenceNumber,
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Reverse Optimistic Response
-                reportActionsToMerge[reportAction.sequenceNumber] = {
+                reportActionsToMerge[sequenceNumber] = {
                     ...reportAction,
                     message: oldMessage,
                 };
@@ -1263,6 +1269,17 @@ function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
 
+/**
+ * Updates a user's notification preferences for a chat room
+ *
+ * @param {Number} reportID
+ * @param {String} notificationPreference
+ */
+function updateNotificationPreference(reportID, notificationPreference) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {notificationPreference});
+    API.Report_UpdateNotificationPreference({reportID, notificationPreference});
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1272,6 +1289,7 @@ export {
     fetchIOUReportByIDAndUpdateChatReport,
     addAction,
     updateLastReadActionID,
+    updateNotificationPreference,
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,

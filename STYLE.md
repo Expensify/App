@@ -660,37 +660,6 @@ A common mistake with refs is using them to pass data back to a parent component
 
 There are several ways to use and declare refs and we prefer the [callback method](https://reactjs.org/docs/refs-and-the-dom.html#callback-refs).
 
-In addition, all refs should be declared in the constructor, rather than inline. This makes it easier to quickly see what refs are declared in the component:
-
-```jsx
-class BadRefComponent extends Component {
-    constructor(props) {
-        super(props);
-
-        // Bad: Ref is declared inline instead of in the constructor
-    }
-
-    render() {
-        return <View ref={el => this.myRef = el} />;
-    }
-}
-
-
-class GoodRefComponent extends Component {
-    constructor(props) {
-        super(props);
-
-        // Good: Ref is declared in the constructor
-        this.myRef = undefined;
-    }
-
-    render() {
-        return <View ref={el => this.myRef = el}/>;
-    }
-}
-
-```
-
 ## Are we allowed to use [insert brand new React feature]? Why or why not?
 
 We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to a very strict and stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. Participation in our React driven codebases shouldn't mean everyone is required to keep up to date on the latest and greatest features. So with that in mind, here are a few things we would ask you to not use:

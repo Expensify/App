@@ -22,6 +22,7 @@ import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import CONST from '../../CONST';
 import {isDefaultRoom} from '../../libs/reportUtils';
 
 const propTypes = {
@@ -84,6 +85,8 @@ const HeaderView = (props) => {
 
     const subTitle = isDefaultChatRoom
         && lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'name'], 'Unknown Policy');
+    const isConcierge = participants.length === 1 && participants.includes(CONST.EMAIL.CONCIERGE);
+
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -106,6 +109,9 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
+                                if (isDefaultRoom(props.report)) {
+                                    return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
+                                }
                                 if (participants.length === 1) {
                                     return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
                                 }
@@ -140,7 +146,7 @@ const HeaderView = (props) => {
                             {props.report.hasOutstandingIOU && (
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
-                            <VideoChatButtonAndMenu />
+                            <VideoChatButtonAndMenu isConcierge={isConcierge} />
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}

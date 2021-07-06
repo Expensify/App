@@ -36,7 +36,7 @@ import {
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
-import CreateMenu from '../../../components/CreateMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -49,6 +49,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import * as User from '../../../libs/actions/User';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -97,6 +98,11 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
+    // The NVP describing a user's block status
+    blockedFromConcierge: PropTypes.shape({
+        // The date that the user will be unblocked
+        expiresAt: PropTypes.string,
+    }),
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -107,6 +113,7 @@ const defaultProps = {
     report: {},
     reportActions: {},
     network: {isOffline: false},
+    blockedFromConcierge: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -297,7 +304,7 @@ class ReportActionCompose extends React.Component {
 
                 if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
                     const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).text);
+                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
                 }
             }
         }
@@ -390,6 +397,17 @@ class ReportActionCompose extends React.Component {
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
+        const isConciergeChat = this.props.report.participants
+            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE);
+        let isBlockedFromConcierge = false;
+        if (isConciergeChat && !_.isEmpty(this.props.blockedFromConcierge)) {
+            isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
+        }
+
+        const inputPlaceholder = isBlockedFromConcierge
+            ? this.props.translate('reportActionCompose.blockedFromConcierge')
+            : this.props.translate('reportActionCompose.writeSomething');
+
         return (
             <View style={[styles.chatItemCompose]}>
                 <View style={[
@@ -420,10 +438,11 @@ class ReportActionCompose extends React.Component {
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
+                                                disabled={isBlockedFromConcierge}
                                             >
                                                 <Icon src={Plus} />
                                             </TouchableOpacity>
-                                            <CreateMenu
+                                            <PopoverMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
@@ -478,11 +497,20 @@ class ReportActionCompose extends React.Component {
                                     multiline
                                     ref={this.setTextInputRef}
                                     textAlignVertical="top"
-                                    placeholder={this.props.translate('reportActionCompose.writeSomething')}
+                                    placeholder={inputPlaceholder}
                                     placeholderTextColor={themeColors.placeholderText}
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerHotkeyActions}
-                                    onDragEnter={() => this.setState({isDraggingOver: true})}
+                                    onDragEnter={(e, isOriginComposer) => {
+                                        if (isOriginComposer) {
+                                            this.setState({isDraggingOver: true});
+                                        }
+                                    }}
+                                    onDragOver={(e, isOriginComposer) => {
+                                        if (isOriginComposer) {
+                                            this.setState({isDraggingOver: true});
+                                        }
+                                    }}
                                     onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
                                         e.preventDefault();
@@ -503,7 +531,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={isComposeDisabled}
+                                    isDisabled={isComposeDisabled || isBlockedFromConcierge}
                                     selection={this.state.selection}
                                     onSelectionChange={this.onSelectionChange}
                                 />
@@ -542,6 +570,7 @@ class ReportActionCompose extends React.Component {
                         ref={el => this.emojiPopoverAnchor = el}
                         onLayout={this.measureEmojiPopoverAnchorPosition}
                         onPress={this.showEmojiPicker}
+                        disabled={isBlockedFromConcierge}
                     >
                         {({hovered, pressed}) => (
                             <Icon
@@ -556,7 +585,7 @@ class ReportActionCompose extends React.Component {
                                 ? styles.buttonDisable : styles.buttonSuccess]}
                         onPress={this.submitForm}
                         underlayColor={themeColors.componentBG}
-                        disabled={this.state.isCommentEmpty}
+                        disabled={this.state.isCommentEmpty || isBlockedFromConcierge}
                     >
                         <Icon src={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>
@@ -611,6 +640,9 @@ export default compose(
         },
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        },
+        blockedFromConcierge: {
+            key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
     }),
 )(ReportActionCompose);

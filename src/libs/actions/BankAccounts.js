@@ -325,8 +325,10 @@ function fetchUserWallet() {
 
 /**
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
+ *
+ * @param {String} [stepToOpen]
  */
-function fetchFreePlanVerifiedBankAccount() {
+function fetchFreePlanVerifiedBankAccount(stepToOpen) {
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
@@ -461,6 +463,14 @@ function fetchFreePlanVerifiedBankAccount() {
                         currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
                     }
 
+                    // If we are providing a stepToOpen via a deep link then we will always navigate to that step. This
+                    // should be used with caution as it is possible to drop a user into a flow they can't complete e.g.
+                    // if we drop the user into the CompanyStep, but they have no accountNumber or routing Number in
+                    // their achData.
+                    if (stepToOpen) {
+                        currentStep = stepToOpen;
+                    }
+
                     // 'error' displays any string set as an error encountered during the add Verified BBA flow.
                     // If we are fetching a bank account, clear the error to reset.
                     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
@@ -559,7 +569,16 @@ function setupWithdrawalAccount(data) {
     let nextStep;
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
 
-    const newACHData = {...reimbursementAccountInSetup, ...data};
+    const newACHData = {
+        ...reimbursementAccountInSetup,
+        ...data,
+
+        // This param tells Web-Secure that this bank account is from NewDot so we can modify links back to the correct
+        // app in any communications. It also will be used to provision a customer for the Expensify card automatically
+        // once their bank account is successfully validated.
+        enableCardAfterVerified: true,
+    };
+
     if (data && !_.isUndefined(data.isSavings)) {
         newACHData.isSavings = Boolean(data.isSavings);
     }
