@@ -27,4 +27,8 @@ export default {
     w1: {
         width: 4,
     },
+
+    wAuto: {
+        width: 'auto',
+    },
 };

@@ -220,23 +220,19 @@ function Authenticate(parameters) {
             if (response.jsonCode !== 200) {
                 switch (response.jsonCode) {
                     case 401:
-                        throw new Error('Incorrect login or password. Please try again.');
+                        throw new Error('passwordForm.error.incorrectLoginOrPassword');
                     case 402:
-                        // eslint-disable-next-line max-len
-                        throw new Error('You have 2FA enabled on this account. Please sign in using your email or phone number.');
+                        throw new Error('passwordForm.error.twoFactorAuthenticationEnabled');
                     case 403:
-                        throw new Error('Invalid login or password. Please try again or reset your password.');
+                        throw new Error('passwordForm.error.invalidLoginOrPassword');
                     case 404:
-                        // eslint-disable-next-line max-len
-                        throw new Error('We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.');
+                        throw new Error('passwordForm.error.unableToResetPassword');
                     case 405:
-                        // eslint-disable-next-line max-len
-                        throw new Error('You do not have access to this application. Please add your GitHub username for access.');
+                        throw new Error('passwordForm.error.noAccess');
                     case 413:
-                        // eslint-disable-next-line max-len
-                        throw new Error('Your account has been locked after too many unsuccessful attempts. Please try again after 1 hour.');
+                        throw new Error('passwordForm.error.accountLocked');
                     default:
-                        throw new Error('Something went wrong. Please try again later.');
+                        throw new Error('passwordForm.error.fallback');
                 }
             }
             return response;
@@ -609,6 +605,19 @@ function Report_UpdateLastRead(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.notificationPreference
+ * @returns {Promise}
+ *
+ */
+function Report_UpdateNotificationPreference(parameters) {
+    const commandName = 'Report_UpdateNotificationPreference';
+    requireParameters(['reportID', 'notificationPreference'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -869,7 +878,7 @@ function BankAccount_Validate(parameters) {
 function BankAccount_SetupWithdrawal(parameters) {
     const commandName = 'BankAccount_SetupWithdrawal';
     let allowedParameters = [
-        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount',
+        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
 
         // data from bankAccount step:
         'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
@@ -958,6 +967,18 @@ function Policy_Create(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {Array} parameters.emailList
+ * @returns {Promise}
+ */
+function Policy_Employees_Remove(parameters) {
+    const commandName = 'Policy_Employees_Remove';
+    requireParameters(['policyID', 'emailList'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.taskID
  * @param {String} parameters.policyID
  * @param {String} parameters.firstName
@@ -1003,6 +1024,7 @@ export {
     Report_TogglePinned,
     Report_EditComment,
     Report_UpdateLastRead,
+    Report_UpdateNotificationPreference,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,
@@ -1024,4 +1046,5 @@ export {
     GetPreferredCurrency,
     GetCurrencyList,
     Policy_Create,
+    Policy_Employees_Remove,
 };

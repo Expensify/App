@@ -8,6 +8,7 @@ import SearchPage from '../../../pages/SearchPage';
 import DetailsPage from '../../../pages/DetailsPage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
+import IOUSendPage from '../../../pages/iou/IOUSendPage';
 import IOUDetailsModal from '../../../pages/iou/IOUDetailsModal';
 import SettingsInitialPage from '../../../pages/settings/InitialPage';
 import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
@@ -15,7 +16,8 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsAboutPage from '../../../pages/settings/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
-import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
+import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
+import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
@@ -24,6 +26,8 @@ import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPag
 import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
+import RequestCallPage from '../../../pages/RequestCallPage';
+import ReportDetailsPage from '../../../pages/ReportDetailsPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -74,6 +78,15 @@ const IOURequestModalStackNavigator = createModalStackNavigator([{
     name: 'IOU_Request_Currency',
 }]);
 
+const IOUSendModalStackNavigator = createModalStackNavigator([{
+    Component: IOUSendPage,
+    name: 'IOU_Send_Root',
+},
+{
+    Component: IOUCurrencySelection,
+    name: 'IOU_Send_Currency',
+}]);
+
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{
     Component: IOUDetailsModal,
     name: 'IOU_Details_Root',
@@ -82,6 +95,11 @@ const IOUDetailsModalStackNavigator = createModalStackNavigator([{
 const DetailsModalStackNavigator = createModalStackNavigator([{
     Component: DetailsPage,
     name: 'Details_Root',
+}]);
+
+const ReportDetailsModalStackNavigator = createModalStackNavigator([{
+    Component: ReportDetailsPage,
+    name: 'Report_Details_Root',
 }]);
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
@@ -143,6 +161,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         Component: SettingsPaymentsPage,
         name: 'Settings_Payments',
     },
+    {
+        Component: SettingsAddPayPalMePage,
+        name: 'Settings_Add_Paypal_Me',
+    },
 ]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([{
@@ -170,11 +192,18 @@ const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
     name: 'WorkspaceInvite_Root',
 }]);
 
+const RequestCallModalStackNavigator = createModalStackNavigator([{
+    Component: RequestCallPage,
+    name: 'RequestCall_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
+    IOUSendModalStackNavigator,
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
+    ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
@@ -185,4 +214,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
+    RequestCallModalStackNavigator,
 };
