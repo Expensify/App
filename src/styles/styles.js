@@ -93,6 +93,13 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
+    textXXXLarge: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeXXXLarge,
+        fontWeight: fontWeightBold,
+    },
+
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
