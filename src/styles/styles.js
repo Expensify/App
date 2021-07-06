@@ -1856,12 +1856,10 @@ function getSafeAreaMargins(insets) {
 /**
  * Return navigation menu styles.
  *
- * @param {Number} windowWidth
- * @param {Number} windowHeight
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationDrawerStyle(windowWidth, windowHeight, isSmallScreenWidth) {
+function getNavigationDrawerStyle(isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             width: '100%',
