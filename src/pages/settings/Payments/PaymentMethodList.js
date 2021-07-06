@@ -75,18 +75,22 @@ class PaymentMethodList extends Component {
         const combinedPaymentMethods = [];
 
         _.each(this.props.bankAccountList, (bankAccount) => {
-            combinedPaymentMethods.push({
-                title: bankAccount.addressName,
+            // Add all bank accounts besides the wallet
+            if (bankAccount.type !== CONST.BANK_ACCOUNT_TYPES.WALLET) {
+                combinedPaymentMethods.push({
+                    title: bankAccount.addressName,
 
-                // eslint-disable-next-line
-                description: `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`,
-                icon: bankAccount.type === CONST.BANK_ACCOUNT_TYPES.WALLET ? Wallet : Bank,
-                onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
-                key: `bankAccount-${bankAccount.bankAccountID}`,
-            });
+                    // eslint-disable-next-line
+                    description: `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`,
+                    icon: Bank,
+                    onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
+                    key: `bankAccount-${bankAccount.bankAccountID}`,
+                });
+            }
         });
 
         _.each(this.props.cardList, (card) => {
+            // Add all cards besides the "cash" card
             if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
                 combinedPaymentMethods.push({
                     title: card.cardName,
