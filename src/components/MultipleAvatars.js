@@ -4,6 +4,7 @@ import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
 import Text from './Text';
+import IconAvatar from './IconAvatar';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -15,16 +16,20 @@ const propTypes = {
     /** Style for Second Avatar */
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
+
+    /** Whether we should be using an Icon for the Avatar */
+    useIcon: PropTypes.bool,
 };
 
 const defaultProps = {
     avatarImageURLs: [],
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
+    useIcon: false,
 };
 
 const MultipleAvatars = ({
-    avatarImageURLs, size, secondAvatarStyle,
+    avatarImageURLs, size, secondAvatarStyle, useIcon,
 }) => {
     const avatarContainerStyles = size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
     const singleAvatarStyles = size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
@@ -35,6 +40,14 @@ const MultipleAvatars = ({
 
     if (!avatarImageURLs.length) {
         return null;
+    }
+
+    if (useIcon) {
+        return (
+            <View style={avatarContainerStyles}>
+                <IconAvatar icon={avatarImageURLs[0]} />
+            </View>
+        );
     }
 
     if (avatarImageURLs.length === 1) {

@@ -2,6 +2,7 @@ import React, {PureComponent} from 'react';
 import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import armchair from '../../assets/images/armchair.svg'
 
 const propTypes = {
     /** Url source for the avatar */
