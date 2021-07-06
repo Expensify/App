@@ -13,7 +13,6 @@ import {
     CreditCard,
     PayPal,
     Plus,
-    Wallet,
 } from '../../../components/Icon/Expensicons';
 
 const propTypes = {
