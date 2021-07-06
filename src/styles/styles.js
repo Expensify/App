@@ -1437,7 +1437,7 @@ const styles = {
     },
 
     navigationSceneFullScreenWrapper: {
-        borderRadius: 12,
+        borderRadius: variables.componentBorderRadiusCard,
         overflow: 'hidden',
         height: '100%',
     },
