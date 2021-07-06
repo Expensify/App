@@ -306,7 +306,7 @@ function reauthenticate(command = '') {
  * @param {String} [parameters.twoFactorAuthCode]
  * @returns {Promise<unknown>}
  */
-function authenticateWithAccountID(parameters) {
+function AuthenticateWithAccountID(parameters) {
     const commandName = 'Authenticate';
 
     requireParameters([
@@ -1020,7 +1020,7 @@ function Inbox_CallUser(parameters) {
 
 export {
     Authenticate,
-    authenticateWithAccountID,
+    AuthenticateWithAccountID,
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
