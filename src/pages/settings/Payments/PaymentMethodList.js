@@ -122,7 +122,7 @@ class PaymentMethodList extends Component {
         // If we have not added any payment methods, show a default empty state
         if (_.isEmpty(combinedPaymentMethods)) {
             combinedPaymentMethods.push({
-                text: 'Add a payment method to send and receive payments directly in the app',
+                text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
             });
         }
 

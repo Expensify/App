@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Text} from 'react-native';
 import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -94,6 +94,11 @@ class PaymentsPage extends React.Component {
                     />
                     <View style={[styles.flex1]}>
                         <CurrentWalletBalance />
+                        <Text
+                            style={[styles.ph5, styles.textStrong]}
+                        >
+                            {this.props.translate('paymentsPage.paymentMethodsTitle')}
+                        </Text>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
