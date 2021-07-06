@@ -284,7 +284,7 @@ function setPassword(password, validateCode, accountID) {
  * @param {String} [twoFactorAuthCode]
  */
 function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
-    API.authenticateWithAccountID({
+    API.AuthenticateWithAccountID({
         accountID,
         validateCode,
         twoFactorAuthCode,
