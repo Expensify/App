@@ -102,7 +102,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
                 <View style={[styles.signInPageFormContainer]}>
                     <View style={[styles.mb4]}>
                         <Text style={[styles.formLabel]}>
-                            {this.props.translate('passwordForm.EnterATwoFactorAuthenticationCodeToContinue')}
+                            {this.props.translate('passwordForm.enterATwoFactorAuthenticationCodeToContinue')}
                         </Text>
                         <TextInput
                             style={[styles.textInput]}
