@@ -43,6 +43,7 @@ import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
+    IOUSendModalStackNavigator,
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
@@ -236,6 +237,11 @@ class AuthScreens extends React.Component {
                     options={{
                         headerShown: false,
                         title: 'Expensify.cash',
+
+                        // prevent unnecessary scrolling
+                        cardStyle: {
+                            overflow: 'hidden',
+                        },
                     }}
                     component={MainDrawerNavigator}
                 />
@@ -352,6 +358,12 @@ class AuthScreens extends React.Component {
                     name="RequestCall"
                     options={modalScreenOptions}
                     component={RequestCallModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="IOU_Send"
+                    options={modalScreenOptions}
+                    component={IOUSendModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

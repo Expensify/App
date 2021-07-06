@@ -8,6 +8,8 @@ import {addTrailingForwardSlash} from './libs/Url';
 const REPORT = 'r';
 const IOU_REQUEST = 'iou/request';
 const IOU_BILL = 'iou/split';
+const IOU_SEND = 'iou/send';
+const IOU_DETAILS = 'iou/details';
 
 export default {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
@@ -21,6 +23,7 @@ export default {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_PAYMENTS: 'settings/payments',
+    SETTINGS_ADD_PAYPAL_ME: 'settings/payments/add-paypal-me',
     SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,
     NEW_GROUP: 'new/group',
@@ -28,18 +31,23 @@ export default {
     REPORT,
     REPORT_WITH_ID: 'r/:reportID',
     getReportRoute: reportID => `r/${reportID}`,
-    IOU_BILL_CURRENCY: `${IOU_BILL}/:reportID/currency`,
-    IOU_REQUEST_CURRENCY: `${IOU_REQUEST}/:reportID/currency`,
-    getIouRequestCurrencyRoute: reportID => `${IOU_REQUEST}/${reportID}/currency`,
-    getIouBillCurrencyRoute: reportID => `${IOU_BILL}/${reportID}/currency`,
     IOU_REQUEST,
     IOU_BILL,
+    IOU_SEND,
     IOU_REQUEST_WITH_REPORT_ID: `${IOU_REQUEST}/:reportID?`,
     IOU_BILL_WITH_REPORTID: `${IOU_BILL}/:reportID?`,
+    IOU_SEND_WITH_REPORTID: `${IOU_SEND}/:reportID?`,
     getIouRequestRoute: reportID => `${IOU_REQUEST}/${reportID}`,
     getIouSplitRoute: reportID => `${IOU_BILL}/${reportID}`,
-    IOU_DETAILS: 'iou/details',
-    IOU_DETAILS_WITH_IOU_REPORT_ID: 'iou/details/:chatReportID/:iouReportID/',
+    getIOUSendRoute: reportID => `${IOU_SEND}/${reportID}`,
+    IOU_BILL_CURRENCY: `${IOU_BILL}/:reportID/currency`,
+    IOU_REQUEST_CURRENCY: `${IOU_REQUEST}/:reportID/currency`,
+    IOU_SEND_CURRENCY: `${IOU_SEND}/:reportID/currency`,
+    getIouRequestCurrencyRoute: reportID => `${IOU_REQUEST}/${reportID}/currency`,
+    getIouBillCurrencyRoute: reportID => `${IOU_BILL}/${reportID}/currency`,
+    getIouSendCurrencyRoute: reportID => `${IOU_SEND}/${reportID}/currency`,
+    IOU_DETAILS,
+    IOU_DETAILS_WITH_IOU_REPORT_ID: `${IOU_DETAILS}/:chatReportID/:iouReportID/`,
     getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
