@@ -1436,6 +1436,12 @@ const styles = {
         height: '100%',
     },
 
+    navigationSceneFullScreenWrapper: {
+        borderRadius: 12,
+        overflow: 'hidden',
+        height: '100%',
+    },
+
     invisible: {
         position: 'absolute',
         opacity: 0,
@@ -1858,12 +1864,12 @@ function getSafeAreaMargins(insets) {
 function getNavigationDrawerStyle(windowWidth, windowHeight, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
-            width: windowWidth,
-            height: windowHeight,
+            width: '100%',
+            height: '100%',
             borderColor: themeColors.border,
         }
         : {
-            height: windowHeight,
+            height: '100%',
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
         };

@@ -215,9 +215,9 @@ class AuthScreens extends React.Component {
         };
         const fullscreenModalScreenOptions = {
             ...commonModalScreenOptions,
-            cardStyle: {...styles.fullscreenCard},
+            cardStyle: {...styles.fullscreenCard, padding: this.props.isSmallScreenWidth ? 0 : 20},
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
-            cardOverlayEnabled: false,
+            cardOverlayEnabled: !this.props.isSmallScreenWidth,
             isFullScreenModal: true,
         };
 
