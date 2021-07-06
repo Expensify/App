@@ -25,7 +25,7 @@ class CollapsibleSection extends React.Component {
             <View style={styles.container}>
                 <TouchableOpacity onPress={this.toggleExpanded}>
                     <View style={styles.header}>
-                        <Text style={styles.headerText}>Single Collapsible</Text>
+                        <Text style={styles.headerText}>{this.props.title}</Text>
                     </View>
                 </TouchableOpacity>
                 <Collapsible collapsed={!this.state.isExpanded} align="center">
