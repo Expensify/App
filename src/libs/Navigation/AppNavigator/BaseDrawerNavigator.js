@@ -39,8 +39,6 @@ const BaseDrawerNavigator = (props) => {
                 headerShown: false,
                 drawerType: getNavigationDrawerType(props.isSmallScreenWidth),
                 drawerStyle: getNavigationDrawerStyle(
-                    props.windowWidth,
-                    props.windowHeight,
                     props.isSmallScreenWidth,
                 ),
                 swipeEdgeWidth: 500,
