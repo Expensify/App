@@ -14,6 +14,7 @@ import Popover from '../../../components/Popover';
 import {PayPal} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
+import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 
 const PAYPAL = 'payPalMe';
 
@@ -92,8 +93,10 @@ class PaymentsPage extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <View style={[styles.flex1]}>
+                        <CurrentWalletBalance />
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
+                            style={[styles.flex4]}
                         />
                     </View>
                     <Popover

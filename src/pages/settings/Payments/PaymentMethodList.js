@@ -163,9 +163,6 @@ export default compose(
         cardList: {
             key: ONYXKEYS.CARD_LIST,
         },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
-        },
         payPalMeUsername: {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },

@@ -14,7 +14,7 @@ function getPaymentMethods() {
     })
         .then((response) => {
             Onyx.multiSet({
-                [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', null),
+                [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
                 [ONYXKEYS.BANK_ACCOUNT_LIST]: lodashGet(response, 'bankAccountList', []),
                 [ONYXKEYS.CARD_LIST]: lodashGet(response, 'cardList', []),
                 [ONYXKEYS.NVP_PAYPAL_ME_ADDRESS]:
