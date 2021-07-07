@@ -34,15 +34,6 @@ class ReportScreen extends React.Component {
         this.storeCurrentlyViewedReport();
     }
 
-    componentDidUpdate(prevProps) {
-        const reportChanged = this.props.route.params.reportID !== prevProps.route.params.reportID;
-
-        if (reportChanged) {
-            this.prepareTransition();
-            this.storeCurrentlyViewedReport();
-        }
-    }
-
     componentWillUnmount() {
         clearTimeout(this.loadingTimerId);
     }
@@ -73,7 +64,7 @@ class ReportScreen extends React.Component {
         this.setState({isLoading: true});
 
         clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 300);
+        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 150);
     }
 
     /**
@@ -94,7 +85,7 @@ class ReportScreen extends React.Component {
 
                 <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
 
-                <ReportView reportID={this.getReportID()} />
+                {!this.shouldShowLoader() && <ReportView reportID={this.getReportID()} />}
             </ScreenWrapper>
         );
     }
