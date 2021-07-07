@@ -919,11 +919,15 @@ const styles = {
     },
 
     chatItemCompose: {
-        minHeight: 85,
+        minHeight: 65,
         marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
+    },
+
+    chatItemComposeWithFirstRow: {
+        minHeight: 85,
     },
 
     chatItemComposeBoxColor: {
