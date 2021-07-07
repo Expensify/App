@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
+import TextLink from '../../../components/TextLink';
 
 const ShortTermsForm = () => (
     <>
@@ -83,6 +84,27 @@ const ShortTermsForm = () => (
             <View style={[styles.flex1, styles.p2]}>
                 <Text>1.5% (min. $0.25)</Text>
             </View>
+        </View>
+
+        <View style={[styles.shortTermsRow, styles.pt4]}>
+            <Text style={styles.textStrong}>No overdraft/credit feature.</Text>
+            <Text style={styles.mb3}>Your funds are elligible for FDIC insurance.</Text>
+            <Text style={styles.mb3}>
+                For general information about prepaid accounts, visit
+                {' '}
+                <TextLink href="https://cfpb.gov/prepaid">
+                    cfpb.gov/prepaid
+                </TextLink>
+                {'.'}
+            </Text>
+            <Text>Find details and conditions for all fees and services by visiting
+                {' '}
+                <TextLink href="https://use.expensify.com/fees">
+                    use.expensify.com/fees
+                </TextLink>
+                {' '}
+                or calling +1 833-400-0904.
+            </Text>
         </View>
     </>
 );

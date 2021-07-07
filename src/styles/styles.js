@@ -1749,7 +1749,7 @@ const styles = {
     shortTermsBoldRow: {
         borderTopWidth: 3,
         borderTopColor: themeColors.shadow,
-    }
+    },
 };
 
 const baseCodeTagStyles = {
