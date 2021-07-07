@@ -240,7 +240,15 @@ const mainWindow = (() => {
             // Listen to badge updater event emitted by the render process
             // and update the app badge count (MacOS only)
             ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount) => {
-                app.setBadgeCount(totalCount);
+                if (totalCount === -1) {
+                    // The electron docs say you should be able to update this and pass no parameters to set the badge
+                    // to a single red dot, but in practice it resulted in an error "TypeError: Insufficient number of
+                    // arguments." - Thus, setting to 1 instead.
+                    // See: https://www.electronjs.org/docs/api/app#appsetbadgecountcount-linux-macos
+                    app.setBadgeCount(1);
+                } else {
+                    app.setBadgeCount(totalCount);
+                }
             });
 
             return browserWindow;
