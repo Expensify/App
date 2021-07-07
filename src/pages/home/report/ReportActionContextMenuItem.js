@@ -25,12 +25,16 @@ const propTypes = {
 
     /** Callback to fire when the item is pressed */
     onPress: PropTypes.func.isRequired,
+
+    /** Automatically reset the success status */
+    autoReset: PropTypes.bool,
 };
 
 const defaultProps = {
     isMini: false,
     successIcon: null,
     successText: '',
+    autoReset: false,
 };
 
 class ReportActionContextMenuItem extends Component {
@@ -40,6 +44,12 @@ class ReportActionContextMenuItem extends Component {
             success: false,
         };
         this.triggerPressAndUpdateSuccess = this.triggerPressAndUpdateSuccess.bind(this);
+    }
+
+    componentWillUnmount() {
+        if (this.successResetTimer) {
+            clearTimeout(this.successResetTimer);
+        }
     }
 
     /**
@@ -57,6 +67,9 @@ class ReportActionContextMenuItem extends Component {
             this.setState({
                 success: true,
             });
+            if (this.props.autoReset) {
+                this.successResetTimer = setTimeout(() => this.setState({success: false}), 1800);
+            }
         }
     }
 
