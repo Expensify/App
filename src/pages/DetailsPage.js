@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    View, Pressable, Linking,
-} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -16,6 +14,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
+import TappableCopy from '../components/TappableCopy';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -69,6 +68,7 @@ const DetailsPage = ({
     const timezone = moment().tz(details.timezone.selected);
     const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -91,19 +91,17 @@ const DetailsPage = ({
                                 imageStyles={[styles.avatarLarge]}
                                 source={details.avatar}
                             />
-                            <Pressable
-                                onPress={() => (details.displayName && isSMSLogin
-                                    ? Linking.openURL(`tel:${getPhoneNumber(details)}`)
-                                    : false
-                                )}
+                            <TappableCopy
+                                style={[styles.mt1, styles.mb6]}
+                                type={details.displayName && isSMSLogin ? 'phone' : undefined}
+                                value={getPhoneNumber(details)}
                             >
-
-                                <Text style={[styles.displayName, styles.mt1, styles.mb6]} numberOfLines={1}>
+                                <Text style={[styles.displayName]} numberOfLines={1}>
                                     {details.displayName && isSMSLogin
                                         ? toLocalPhone(details.displayName)
                                         : (details.displayName || null)}
                                 </Text>
-                            </Pressable>
+                            </TappableCopy>
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
@@ -111,20 +109,16 @@ const DetailsPage = ({
                                             ? 'common.phoneNumber'
                                             : 'common.email')}
                                     </Text>
-                                    <Pressable
-                                        onPress={() => Linking.openURL(
-                                            isSMSLogin
-                                                ? `tel:${getPhoneNumber(details)}`
-                                                : `mailto:${details.login}`,
-                                        )}
+                                    <TappableCopy
+                                        type={isSMSLogin ? 'phone' : 'email'}
+                                        value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
                                         <Text style={[styles.textP]} numberOfLines={1}>
                                             {isSMSLogin
                                                 ? toLocalPhone(getPhoneNumber(details))
                                                 : details.login}
                                         </Text>
-                                    </Pressable>
-
+                                    </TappableCopy>
                                 </View>
                             ) : null}
                             {details.pronouns ? (
