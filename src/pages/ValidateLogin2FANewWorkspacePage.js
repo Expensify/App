@@ -73,6 +73,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
 
         this.setState({
             formError: null,
+            loading: true,
         });
 
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
