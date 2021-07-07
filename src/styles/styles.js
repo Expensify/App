@@ -1741,12 +1741,12 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-    shortTermsRow: {
+    termsRow: {
         borderTopColor: themeColors.border,
         borderTopWidth: 1,
     },
 
-    shortTermsBoldRow: {
+    termsRowBold: {
         borderTopWidth: 3,
         borderTopColor: themeColors.shadow,
     },

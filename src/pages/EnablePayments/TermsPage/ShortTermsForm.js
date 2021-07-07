@@ -44,7 +44,7 @@ const ShortTermsForm = () => (
             </View>
         </View>
 
-        <View style={[styles.shortTermsRow, styles.flexRow]}>
+        <View style={[styles.termsRow, styles.flexRow]}>
             <View style={[styles.flex4, styles.p2]}>
                 <Text>ATM balance inquiry</Text>
                 <Text style={[styles.textMicro]}>(in-network or out-of-network)</Text>
@@ -53,7 +53,7 @@ const ShortTermsForm = () => (
                 <Text>N/A</Text>
             </View>
         </View>
-        <View style={[styles.shortTermsRow, styles.flexRow]}>
+        <View style={[styles.termsRow, styles.flexRow]}>
             <View style={[styles.flex4, styles.p2]}>
                 <Text>Customer Service</Text>
                 <Text style={[styles.textMicro]}>(automated or live agent)</Text>
@@ -62,7 +62,7 @@ const ShortTermsForm = () => (
                 <Text>$0</Text>
             </View>
         </View>
-        <View style={[styles.shortTermsRow, styles.flexRow, styles.mb2]}>
+        <View style={[styles.termsRow, styles.flexRow, styles.mb2]}>
             <View style={[styles.flex4, styles.p2]}>
                 <Text>Inactivity</Text>
                 <Text style={[styles.textMicro]}>(after 12 months with no transactions)</Text>
@@ -71,12 +71,12 @@ const ShortTermsForm = () => (
                 <Text>$0</Text>
             </View>
         </View>
-        <View style={[styles.shortTermsBoldRow, styles.flexRow]}>
+        <View style={[styles.termsRowBold, styles.flexRow]}>
             <View style={[styles.flex4, styles.p2]}>
                 <Text style={styles.h3}>We charge 1 type of fee.</Text>
             </View>
         </View>
-        <View style={[styles.shortTermsRow, styles.flexRow]}>
+        <View style={[styles.termsRow, styles.flexRow]}>
             <View style={[styles.flex4, styles.p2]}>
                 <Text>Electronic Funds withdrawal</Text>
                 <Text style={styles.textMicro}>(instant)</Text>
@@ -86,7 +86,7 @@ const ShortTermsForm = () => (
             </View>
         </View>
 
-        <View style={[styles.shortTermsRow, styles.pt4]}>
+        <View style={[styles.termsRow, styles.pt4]}>
             <Text style={styles.textStrong}>No overdraft/credit feature.</Text>
             <Text style={styles.mb3}>Your funds are elligible for FDIC insurance.</Text>
             <Text style={styles.mb3}>
