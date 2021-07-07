@@ -279,13 +279,20 @@ class ProfilePage extends Component {
                             {({openPicker}) => (
                                 <>
                                     <Button
+                                        small
                                         style={[styles.alignSelfCenter, styles.mt3]}
                                         onPress={() => this.setState({isEditPhotoMenuVisible: true})}
                                         ContentComponent={() => (
                                             <View style={[styles.flexRow]}>
                                                 <Icon src={DownArrow} />
                                                 <View style={styles.justifyContentCenter}>
-                                                    <Text style={[styles.headerText, styles.ml2]}>
+                                                    <Text
+                                                        style={[
+                                                            styles.headerText,
+                                                            styles.buttonSmallText,
+                                                            styles.ml2,
+                                                        ]}
+                                                    >
                                                         {this.props.translate('profilePage.editPhoto')}
                                                     </Text>
                                                 </View>
