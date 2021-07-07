@@ -20,7 +20,6 @@ const includeModules = [
     'react-native-modal',
     'react-native-onyx',
     'react-native-gesture-handler',
-    '@unimodules',
 ].join('|');
 
 const webpackConfig = {
