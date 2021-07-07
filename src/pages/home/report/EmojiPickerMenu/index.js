@@ -98,11 +98,23 @@ class EmojiPickerMenu extends Component {
                 if (keyBoardEvent.key.startsWith('Arrow')) {
                     // Move the highlight when arrow keys are pressed
                     this.highlightAdjacentEmoji(keyBoardEvent.key);
+                    return;
                 }
 
                 // Select the currently highlighted emoji if enter is pressed
                 if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
                     this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
+                    return;
+                }
+
+                // We allow typing in the search box if any key is pressed apart from Arrow keys.
+                if (this.searchInput && !this.searchInput.isFocused()) {
+                    this.setState({selectTextOnFocus: false});
+                    this.searchInput.value = '';
+                    this.searchInput.focus();
+
+                    // Re-enable selection on the searchInput
+                    this.setState({selectTextOnFocus: true});
                 }
             };
 
@@ -326,6 +338,7 @@ class EmojiPickerMenu extends Component {
                             defaultValue=""
                             ref={el => this.searchInput = el}
                             autoFocus
+                            selectTextOnFocus={this.state.selectTextOnFocus}
                         />
                     </View>
                 )}
