@@ -194,7 +194,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     ERROR: {
-        API_OFFLINE: 'API is offline',
+        API_OFFLINE: 'session.offlineMessage',
     },
     NETWORK: {
         METHOD: {

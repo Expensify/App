@@ -127,27 +127,35 @@ function getParticipantNames(personalDetailList) {
 }
 
 /**
- * Returns a string with all relevant search terms
+ * Returns a string with all relevant search terms.
+ * Default should be serachable by policy name but not by participants.
  *
  * @param {Object} report
  * @param {Array} personalDetailList
+ * @param {Boolean} isDefaultChatRoom
  * @return {String}
  */
-function getSearchText(report, personalDetailList) {
+function getSearchText(report, personalDetailList, isDefaultChatRoom) {
     const searchTerms = [];
 
-    _.each(personalDetailList, (personalDetail) => {
-        searchTerms.push(personalDetail.displayName);
-        searchTerms.push(personalDetail.login);
-    });
+    if (!isDefaultChatRoom) {
+        _.each(personalDetailList, (personalDetail) => {
+            searchTerms.push(personalDetail.displayName);
+            searchTerms.push(personalDetail.login);
+        });
+    }
     if (report) {
         searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
-        searchTerms.push(...report.participants);
 
-        // Add policy name as a search term for default rooms
-        if (isDefaultRoom(report) && policies[report.policyID]) {
-            searchTerms.push(...policies[report.policyID].name);
+        if (!isDefaultChatRoom) {
+            searchTerms.push(...report.participants);
+        }
+
+        if (isDefaultChatRoom && policies[report.policyID]) {
+            const policyName = policies[report.policyID].name;
+            searchTerms.push(...policyName);
+            searchTerms.push(...policyName.split(',').map(name => name.trim()));
         }
     }
 
@@ -169,9 +177,9 @@ function createOption(personalDetailList, report, draftComments, {
 }) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
-    const hasDraftComment = report
+    const reportDraftComment = report
         && draftComments
-        && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
+        && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
 
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
@@ -215,9 +223,9 @@ function createOption(personalDetailList, report, draftComments, {
         login: !hasMultipleParticipants ? personalDetail.login : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment,
+        hasDraftComment: reportDraftComment && reportDraftComment.length > 0,
         keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, personalDetailList),
+        searchText: getSearchText(report, personalDetailList, isDefaultChatRoom),
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
@@ -261,10 +269,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     excludeConcierge = false,
+    excludeDefaultRooms = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
     prioritizePinnedReports = false,
+    prioritizeDefaultRoomsInSearch = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
     showChatPreviewLine = false,
@@ -297,13 +307,13 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
-        const hasDraftComment = report
+        const reportDraftComment = report
             && draftComments
-            && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
+            && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
 
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
-        const shouldShowReportIfHasDraft = showReportsWithDrafts && hasDraftComment;
+        const shouldShowReportIfHasDraft = showReportsWithDrafts && reportDraftComment && reportDraftComment.length > 0;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
             && !report.isPinned
@@ -312,7 +322,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
-        if (isDefaultRoom(report) && !Permissions.canUseDefaultRooms(betas)) {
+        if (isDefaultRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
             return;
         }
 
@@ -390,6 +400,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
     }
 
+    // If we are prioritizing default rooms in search, do it only once we started something
+    if (prioritizeDefaultRoomsInSearch && searchValue !== '') {
+        const reportsSplitByDefaultChatRoom = _.partition(recentReportOptions, option => option.isDefaultChatRoom);
+        recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
+    }
+
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
@@ -456,6 +472,7 @@ function getSearchOptions(
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: false,
+        prioritizeDefaultRoomsInSearch: true,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
@@ -484,6 +501,7 @@ function getNewChatOptions(
     return getOptions(reports, personalDetails, {}, 0, {
         betas,
         searchValue,
+        excludeDefaultRooms: true,
         includePersonalDetails: true,
         includeRecentReports: true,
         maxRecentReportsToShow: 5,
@@ -545,6 +563,7 @@ function getNewGroupOptions(
         betas,
         searchValue,
         selectedOptions,
+        excludeDefaultRooms: true,
         includeRecentReports: true,
         includePersonalDetails: true,
         includeMultipleParticipantReports: false,

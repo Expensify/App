@@ -108,6 +108,12 @@ export default {
                     IOU_Bill_Currency: ROUTES.IOU_BILL_CURRENCY,
                 },
             },
+            IOU_Send: {
+                screens: {
+                    IOU_Send_Root: ROUTES.IOU_SEND,
+                    IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
+                },
+            },
             IOU_Details: {
                 screens: {
                     IOU_Details_Root: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,

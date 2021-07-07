@@ -55,6 +55,7 @@ export default {
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
         notifications: 'Notifications',
+        noResultsFound: 'No results found',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -136,6 +137,7 @@ export default {
         confirm: 'Confirm',
         splitBill: 'Split Bill',
         requestMoney: 'Request Money',
+        sendMoney: 'Send Money',
         pay: 'Pay',
         viewDetails: 'View Details',
         settleExpensify: 'Pay with Expensify',
@@ -147,6 +149,7 @@ export default {
         owes: ({manager, owner}) => `${manager} owes ${owner}`,
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
         split: ({amount}) => `Split ${amount}`,
+        send: ({amount}) => `Send ${amount}`,
         choosePaymentMethod: 'Choose payment method:',
         noReimbursableExpenses: 'This report has an invalid amount',
     },
@@ -268,6 +271,15 @@ export default {
         forgot: 'Forgot?',
         twoFactorCode: 'Two Factor Code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
+        error: {
+            incorrectLoginOrPassword: 'Incorrect login or password. Please try again.',
+            twoFactorAuthenticationEnabled: 'You have 2FA enabled on this account. Please sign in using your email or phone number.',
+            invalidLoginOrPassword: 'Invalid login or password. Please try again or reset your password.',
+            unableToResetPassword: 'We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.',
+            noAccess: 'You do not have access to this application. Please add your GitHub username for access.',
+            accountLocked: 'Your account has been locked after too many unsuccessful attempts. Please try again after 1 hour.',
+            fallback: 'Something went wrong. Please try again later.',
+        },
     },
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
@@ -427,7 +439,7 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Looks like you\'re not connected to internet. Can you check your connection and try again?',
+        offlineMessage: 'Looks like you\'re offline. Please check your connection and try again.',
     },
     workspace: {
         common: {
