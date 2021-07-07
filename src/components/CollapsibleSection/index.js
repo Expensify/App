@@ -1,7 +1,7 @@
 import React from 'react';
-import Text from '../Text';
 import {View, TouchableOpacity} from 'react-native-web';
 import Collapse from 'react-collapse';
+import Text from '../Text';
 import {propTypes, defaultProps} from './CollapsibleSectionPropTypes';
 
 class CollapsibleSection extends React.Component {
@@ -17,7 +17,9 @@ class CollapsibleSection extends React.Component {
      * Expands/collapses the section
      */
     toggleExpanded() {
-        this.setState({isExpanded: !this.state.isExpanded});
+        this.setState(prevState => ({
+            isExpanded: !prevState.isExpanded,
+        }));
     }
 
     render() {

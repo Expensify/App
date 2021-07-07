@@ -1,7 +1,7 @@
-import {View, TouchableOpacity, StyleSheet} from 'react-native';
-import Text from '../Text';
 import React from 'react';
+import {View, TouchableOpacity, StyleSheet} from 'react-native';
 import Collapsible from 'react-native-collapsible';
+import Text from '../Text';
 import {propTypes, defaultProps} from './CollapsibleSectionPropTypes';
 
 class CollapsibleSection extends React.Component {
