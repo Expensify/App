@@ -354,8 +354,7 @@ jobs:
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
           IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-          # If the StagingDeployCash is still locked, then this was a cherry-pick deploy
-          IS_CHERRY_PICK: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED }}
+          STAGING_DEPLOY_NUMBER: ${{ steps.isStagingDeployLocked.outputs.NUMBER }}
           DEPLOY_VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.android.result }}

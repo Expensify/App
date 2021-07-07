@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -39,11 +40,14 @@ class ReportActionItemMessageEdit extends React.Component {
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
 
+        const parser = new ExpensiMark();
+        const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
+
         this.state = {
-            draft: this.props.draftMessage,
+            draft: draftMessage,
             selection: {
-                start: this.props.draftMessage.length,
-                end: this.props.draftMessage.length,
+                start: draftMessage.length,
+                end: draftMessage.length,
             },
         };
     }
@@ -119,7 +123,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         ref={el => this.textInput = el}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
-                        defaultValue={this.props.draftMessage}
+                        defaultValue={this.state.draft}
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4]}
                         onFocus={() => {

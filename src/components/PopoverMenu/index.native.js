@@ -1,13 +1,13 @@
 import React, {Component} from 'react';
-import BaseCreateMenu from './BaseCreateMenu';
-import {propTypes, defaultProps} from './CreateMenuPropTypes';
+import BasePopoverMenu from './BasePopoverMenu';
+import {propTypes, defaultProps} from './PopoverMenuPropTypes';
 
 /**
- * The mobile native implementation of the CreateMenu needs to trigger actions after the popup closes
+ * The mobile native implementation of the PopoverMenu needs to trigger actions after the popup closes
  * We need to wait for the modal to close otherwise menu actions that trigger another modal
  * would not work
  */
-class CreateMenu extends Component {
+class PopoverMenu extends Component {
     /**
      * Set the item's `onSelected` action to fire after the menu popup closes
      * @param {{onSelected: function}} item
@@ -25,7 +25,7 @@ class CreateMenu extends Component {
 
     render() {
         return (
-            <BaseCreateMenu
+            <BasePopoverMenu
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
                 onMenuHide={this.onMenuHide}
@@ -35,7 +35,7 @@ class CreateMenu extends Component {
     }
 }
 
-CreateMenu.propTypes = propTypes;
-CreateMenu.defaultProps = defaultProps;
+PopoverMenu.propTypes = propTypes;
+PopoverMenu.defaultProps = defaultProps;
 
-export default CreateMenu;
+export default PopoverMenu;

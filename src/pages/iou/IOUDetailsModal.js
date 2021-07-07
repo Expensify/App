@@ -18,10 +18,13 @@ import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
-import CreateMenu from '../../components/CreateMenu';
+import PopoverMenu from '../../components/PopoverMenu';
 import isAppInstalled from '../../libs/isAppInstalled';
 import Button from '../../components/Button';
 import Permissions from '../../libs/Permissions';
+import {
+    Cash, PayPal, Venmo, Wallet,
+} from '../../components/Icon/Expensicons';
 
 const propTypes = {
     /** URL Route params */
@@ -198,13 +201,25 @@ class IOUDetailsModal extends Component {
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
-        const paymentTypeTextOptions = {
-            [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: this.props.translate('iou.settleExpensify'),
-            [CONST.IOU.PAYMENT_TYPE.VENMO]: this.props.translate('iou.settleVenmo'),
-            [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: this.props.translate('iou.settlePaypalMe'),
-            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: this.props.translate('iou.settleElsewhere'),
+        const paymentTypeOptions = {
+            [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
+                text: this.props.translate('iou.settleExpensify'),
+                icon: Wallet,
+            },
+            [CONST.IOU.PAYMENT_TYPE.VENMO]: {
+                text: this.props.translate('iou.settleVenmo'),
+                icon: Venmo,
+            },
+            [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
+                text: this.props.translate('iou.settlePaypalMe'),
+                icon: PayPal,
+            },
+            [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
+                text: this.props.translate('iou.settleElsewhere'),
+                icon: Cash,
+            },
         };
-        const selectedPaymentType = paymentTypeTextOptions[this.state.paymentType];
+        const selectedPaymentType = paymentTypeOptions[this.state.paymentType].text;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -249,7 +264,7 @@ class IOUDetailsModal extends Component {
                                     />
                                 )}
                                 {this.state.paymentOptions.length > 1 && (
-                                    <CreateMenu
+                                    <PopoverMenu
                                         isVisible={this.state.isSettlementMenuVisible}
                                         onClose={() => this.setMenuVisibility(false)}
                                         onItemSelected={() => this.setMenuVisibility(false)}
@@ -258,7 +273,8 @@ class IOUDetailsModal extends Component {
                                         animationOut="fadeOutDown"
                                         headerText={this.props.translate('iou.choosePaymentMethod')}
                                         menuItems={_.map(this.state.paymentOptions, paymentType => ({
-                                            text: paymentTypeTextOptions[paymentType],
+                                            text: paymentTypeOptions[paymentType].text,
+                                            icon: paymentTypeOptions[paymentType].icon,
                                             onSelected: () => {
                                                 this.setState({paymentType});
                                             },
