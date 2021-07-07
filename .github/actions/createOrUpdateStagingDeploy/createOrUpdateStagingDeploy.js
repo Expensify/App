@@ -61,10 +61,8 @@ const run = function () {
             if (shouldCreateNewStagingDeployCash) {
                 // Find the list of PRs merged between the last StagingDeployCash and the new version
                 const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newVersion);
-                console.log(
-                    'The following PRs have been merged between the previous StagingDeployCash and new version:',
-                    mergedPRs,
-                );
+                // eslint-disable-next-line max-len
+                console.log(`The following PRs have been merged between the previous StagingDeployCash (${previousStagingDeployCashData.tag}) and new version (${newVersion}):`, mergedPRs);
 
                 // TODO: if there are open DeployBlockers and we are opening a new checklist,
                 //  then we should close / remove the DeployBlockerCash label from those
@@ -90,10 +88,8 @@ const run = function () {
 
             // Find the list of PRs merged between the last StagingDeployCash and the new version
             const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, tag);
-            console.log(
-                'The following PRs have been merged between the previous StagingDeployCash and new version:',
-                mergedPRs,
-            );
+            // eslint-disable-next-line max-len
+            console.log(`The following PRs have been merged between the previous StagingDeployCash (${previousStagingDeployCashData.tag}) and new version (${tag}):`, mergedPRs);
 
             // Generate the PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.sortBy(
