@@ -16,6 +16,7 @@ const GitUtils = __nccwpck_require__(669);
 
 const run = function () {
     const newVersion = core.getInput('NPM_VERSION');
+    console.log('New version found from action input:', newVersion);
 
     let shouldCreateNewStagingDeployCash = false;
     let currentStagingDeployCashIssueNumber = null;
@@ -36,8 +37,7 @@ const run = function () {
             labels: GithubUtils.DEPLOY_BLOCKER_CASH_LABEL,
         }),
     ])
-        .then((results) => {
-            const [stagingDeployResponse, deployBlockerResponse] = results;
+        .then(([stagingDeployResponse, deployBlockerResponse]) => {
             if (!stagingDeployResponse || !stagingDeployResponse.data || _.isEmpty(stagingDeployResponse.data)) {
                 console.error('Failed fetching StagingDeployCash issues from Github!', stagingDeployResponse);
                 throw new Error('Failed fetching StagingDeployCash issues from Github');
@@ -68,15 +68,14 @@ const run = function () {
 
             console.log('Found tag of previous StagingDeployCash:', previousStagingDeployCashData.tag);
 
-            // Find the list of PRs merged between the last StagingDeployCash and the new version
-            const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newVersion);
-            console.log(
-                'The following PRs have been merged between the previous StagingDeployCash and new version:',
-                mergedPRs,
-            );
-
             if (shouldCreateNewStagingDeployCash) {
-                // We're in the create flow, not update
+                // Find the list of PRs merged between the last StagingDeployCash and the new version
+                const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, newVersion);
+                console.log(
+                    'The following PRs have been merged between the previous StagingDeployCash and new version:',
+                    mergedPRs,
+                );
+
                 // TODO: if there are open DeployBlockers and we are opening a new checklist,
                 //  then we should close / remove the DeployBlockerCash label from those
                 return GithubUtils.generateStagingDeployCashBody(
@@ -98,6 +97,13 @@ const run = function () {
 
             // If we aren't sent a tag, then use the existing tag
             const tag = newVersion || currentStagingDeployCashData.tag;
+
+            // Find the list of PRs merged between the last StagingDeployCash and the new version
+            const mergedPRs = GitUtils.getPullRequestsMergedBetween(previousStagingDeployCashData.tag, tag);
+            console.log(
+                'The following PRs have been merged between the previous StagingDeployCash and new version:',
+                mergedPRs,
+            );
 
             // Generate the PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.sortBy(
@@ -410,26 +416,13 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        return this.octokit.paginate(this.octokit.pulls.list, {
-            owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
-            state: 'all',
-            sort: 'created',
-            direction: 'desc',
-            per_page: 100,
-        }, ({data}, done) => {
-            // PRList is reverse-chronologically ordered
-            const oldestMergedPR = _.last(PRList);
-            if (_.find(data, pr => pr.html_url === oldestMergedPR)) {
-                done();
-            }
-            return data;
-        })
+        return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
             .then((data) => {
                 const automatedPRs = _.pluck(
                     _.filter(data, GithubUtils.isAutomatedPullRequest),
                     'html_url',
                 );
+                console.log('Filtering out the following automated pull requests:', automatedPRs);
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
                     .unique()
