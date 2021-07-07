@@ -140,8 +140,8 @@ class AuthScreens extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
 
         if (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas)) {
-            getPolicySummaries();
             getPolicyList();
+            getPolicySummaries();
         }
 
         // Refresh the personal details, timezone and betas every 30 minutes
