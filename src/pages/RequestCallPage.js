@@ -40,47 +40,57 @@ const propTypes = {
             partnerUserID: PropTypes.string,
         })),
     }).isRequired,
+
+    /** The policies which the user has access to */
+    policies: PropTypes.shape({
+        /** ID of the policy */
+        policyID: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
+    }).isRequired,
 };
 
 class RequestCallPage extends Component {
     constructor(props) {
         super(props);
-
-        // The displayName defaults to the user's login if they haven't set a first and last name,
-        // which we can't use to prefill the input fields
-        const [firstName, lastName] = props.myPersonalDetails.displayName !== props.myPersonalDetails.login
-            ? props.myPersonalDetails.displayName.split(' ')
-            : [];
+        const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
         this.state = {
-            firstName: firstName ?? '',
-            lastName: lastName ?? '',
+            firstName,
+            lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
             isLoading: false,
         };
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
+        this.getFirstAndLastName = this.getFirstAndLastName.bind(this);
     }
 
     onSubmit() {
         this.setState({isLoading: true});
         if (!this.state.firstName.length || !this.state.lastName.length) {
-            Growl.show(this.props.translate('requestCallPage.growlMessageEmptyName'), CONST.GROWL.ERROR);
+            Growl.success(this.props.translate('requestCallPage.growlMessageEmptyName'));
             this.setState({isLoading: false});
             return;
         }
 
-        requestConciergeDMCall('', this.state.firstName, this.state.lastName, this.state.phoneNumber)
+        const personalPolicy = _.find(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.PERSONAL);
+        if (!personalPolicy) {
+            Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
+            return;
+        }
+        requestConciergeDMCall(personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
                 if (result.jsonCode === 200) {
-                    Growl.show(this.props.translate('requestCallPage.growlMessageOnSave'), CONST.GROWL.SUCCESS);
+                    Growl.success(this.props.translate('requestCallPage.growlMessageOnSave'));
                     fetchOrCreateChatReport([this.props.session.email, CONST.EMAIL.CONCIERGE], true);
                     return;
                 }
 
                 // Phone number validation is handled by the API
-                Growl.show(result.message, CONST.GROWL.ERROR, 3000);
+                Growl.error(result.message, 3000);
             });
     }
 
@@ -94,6 +104,38 @@ class RequestCallPage extends Component {
     getPhoneNumber(loginList) {
         const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
         return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : null;
+    }
+
+    /**
+     * Gets the first and last name from the user's personal details.
+     * If the login is the same as the displayName, then they don't exist,
+     * so we return empty strings instead.
+     * @param {String} login
+     * @param {String} displayName
+     *
+     * @returns {Object}
+     */
+    getFirstAndLastName({login, displayName}) {
+        let firstName;
+        let lastName;
+
+        if (login === displayName) {
+            firstName = '';
+            lastName = '';
+        } else {
+            const firstSpaceIndex = displayName.indexOf(' ');
+            const lastSpaceIndex = displayName.lastIndexOf(' ');
+
+            if (firstSpaceIndex === -1) {
+                firstName = displayName;
+                lastName = '';
+            } else {
+                firstName = displayName.substring(0, firstSpaceIndex);
+                lastName = displayName.substring(lastSpaceIndex);
+            }
+        }
+
+        return {firstName, lastName};
     }
 
     render() {
@@ -166,6 +208,9 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(RequestCallPage);

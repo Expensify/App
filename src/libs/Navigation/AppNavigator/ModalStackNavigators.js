@@ -8,6 +8,7 @@ import SearchPage from '../../../pages/SearchPage';
 import DetailsPage from '../../../pages/DetailsPage';
 import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
+import IOUSendPage from '../../../pages/iou/IOUSendPage';
 import IOUDetailsModal from '../../../pages/iou/IOUDetailsModal';
 import SettingsInitialPage from '../../../pages/settings/InitialPage';
 import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
@@ -15,7 +16,8 @@ import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsAboutPage from '../../../pages/settings/AboutPage';
 import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
-import SettingsPaymentsPage from '../../../pages/settings/PaymentsPage';
+import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
+import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
@@ -74,6 +76,15 @@ const IOURequestModalStackNavigator = createModalStackNavigator([{
 {
     Component: IOUCurrencySelection,
     name: 'IOU_Request_Currency',
+}]);
+
+const IOUSendModalStackNavigator = createModalStackNavigator([{
+    Component: IOUSendPage,
+    name: 'IOU_Send_Root',
+},
+{
+    Component: IOUCurrencySelection,
+    name: 'IOU_Send_Currency',
 }]);
 
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{
@@ -150,6 +161,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         Component: SettingsPaymentsPage,
         name: 'Settings_Payments',
     },
+    {
+        Component: SettingsAddPayPalMePage,
+        name: 'Settings_Add_Paypal_Me',
+    },
 ]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([{
@@ -185,6 +200,7 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
+    IOUSendModalStackNavigator,
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,

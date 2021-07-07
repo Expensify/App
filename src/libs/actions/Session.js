@@ -8,7 +8,7 @@ import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import Timing from './Timing';
 import CONST from '../../CONST';
-import {translate} from '../translate';
+import {translateLocal} from '../translate';
 
 let credentials = {};
 Onyx.connect({
@@ -105,7 +105,7 @@ function resendValidationLink(login = credentials.login) {
 function fetchAccountDetails(login) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    API.GetAccountStatus({email: login})
+    API.GetAccountStatus({email: login, forceNetworkRequest: true})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {
@@ -130,7 +130,7 @@ function fetchAccountDetails(login) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .catch(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translate('', 'session.offlineMessage')});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('session.offlineMessage')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -216,7 +216,7 @@ function signIn(password, twoFactorAuthCode) {
             createTemporaryLogin(authToken, encryptedAuthToken, email);
         })
         .catch((error) => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: error.message, loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal(error.message), loading: false});
         });
 }
 
