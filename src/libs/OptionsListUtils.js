@@ -215,7 +215,7 @@ function createOption(personalDetailList, report, draftComments, {
         login: !hasMultipleParticipants ? personalDetail.login : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment: reportDraftComment && reportDraftComment.length > 0,
+        hasDraftComment: !!reportDraftComment && reportDraftComment.length > 0,
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, personalDetailList),
         isPinned: lodashGet(report, 'isPinned', false),
