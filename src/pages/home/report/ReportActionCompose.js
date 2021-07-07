@@ -409,6 +409,7 @@ class ReportActionCompose extends React.Component {
         const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', {});
         const shouldShowReportRecipientLocalTime = !hasConciergeParticipant
             && !hasMultipleParticipants
+            && reportRecipient
             && reportRecipientTimezone
             && currentUserTimezone.selected !== reportRecipientTimezone.selected;
 
