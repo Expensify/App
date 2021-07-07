@@ -1745,6 +1745,11 @@ const styles = {
         borderTopColor: themeColors.border,
         borderTopWidth: 1,
     },
+
+    shortTermsBoldRow: {
+        borderTopWidth: 3,
+        borderTopColor: themeColors.shadow,
+    }
 };
 
 const baseCodeTagStyles = {
