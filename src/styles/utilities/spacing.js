@@ -168,6 +168,10 @@ export default {
         padding: 20,
     },
 
+    p20: {
+        padding: 80,
+    },
+
     pv1: {
         paddingVertical: 4,
     },

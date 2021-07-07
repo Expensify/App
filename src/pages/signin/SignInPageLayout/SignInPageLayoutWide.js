@@ -57,6 +57,7 @@ const SignInPageLayoutWide = props => (
                 styles.justifyContentAround,
                 styles.backgroundBlue,
                 styles.pb10Percentage,
+                styles.p20,
             ]}
             >
                 <View style={[styles.dFlex, styles.flexColumnReverse, styles.alignItemsCenter, styles.w50]}>
