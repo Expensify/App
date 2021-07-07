@@ -1747,6 +1747,10 @@ const styles = {
         lineHeight: 16,
         ...whiteSpace.noWrap,
     },
+
+    defaultOrDeleteButton: {
+        width: variables.sideBarWidth - 70,
+    },
 };
 
 const baseCodeTagStyles = {

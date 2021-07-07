@@ -81,7 +81,7 @@ class PaymentMethodList extends Component {
                 // eslint-disable-next-line
                 description: `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`,
                 icon: bankAccount.type === CONST.BANK_ACCOUNT_TYPES.WALLET ? Wallet : Bank,
-                onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
+                onPress: e => this.props.onPress(e, 'bankAccount', bankAccount),
                 key: `bankAccount-${bankAccount.bankAccountID}`,
             });
         });
@@ -94,7 +94,7 @@ class PaymentMethodList extends Component {
                     // eslint-disable-next-line
                     description: `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`,
                     icon: CreditCard,
-                    onPress: e => this.props.onPress(e, card.cardID),
+                    onPress: e => this.props.onPress(e, 'card', card),
                     key: `card-${card.cardID}`,
                 });
             }
