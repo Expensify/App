@@ -17,7 +17,8 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
-import TermsPage from './TermsPage/TermsPage';
+import ShortTermsForm from './TermsPage/ShortTermsForm';
+import LongTermsForm from './TermsPage/LongTermsForm';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
@@ -66,7 +67,8 @@ class TermsStep extends React.Component {
                 />
                 <View style={[styles.mh5, styles.flex1]}>
                     <ScrollView>
-                        <TermsPage />
+                        <ShortTermsForm />
+                        <LongTermsForm />
                     </ScrollView>
                     <CheckboxWithLabel
                         style={styles.mb4}
