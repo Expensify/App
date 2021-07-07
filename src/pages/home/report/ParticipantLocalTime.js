@@ -50,6 +50,10 @@ class ParticipantLocalTime extends React.Component {
         // Moment.format does not return AM or PM values immediately.
         // So we have to wait until we are ready before showing the time to the user
         const isReportRecipientLocalTimeReady = this.state.localTime.toString().match(/(A|P)M/ig);
+        const reportRecipientDisplayName = this.props.participant.firstName
+            || (Str.isSMSLogin(this.props.participant.login)
+                ? this.props.toLocalPhone(this.props.participant.displayName)
+                : this.props.participant.displayName);
 
         return (
             isReportRecipientLocalTimeReady ? (
@@ -62,10 +66,7 @@ class ParticipantLocalTime extends React.Component {
                         {this.props.translate(
                             'reportActionCompose.localTime',
                             {
-                                user: this.props.participant.firstName
-                                    || (Str.isSMSLogin(this.props.participant.login)
-                                        ? this.props.toLocalPhone(this.props.participant.displayName)
-                                        : this.props.participant.displayName),
+                                user: reportRecipientDisplayName,
                                 time: this.state.localTime,
                             },
                         )}

@@ -427,7 +427,11 @@ class ReportActionCompose extends React.Component {
             : this.props.translate('reportActionCompose.writeSomething');
 
         return (
-            <View style={[styles.chatItemCompose]}>
+            <View style={[
+                styles.chatItemCompose,
+                shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow,
+            ]}
+            >
                 {shouldShowReportRecipientLocalTime
                     && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
