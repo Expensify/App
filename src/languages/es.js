@@ -451,6 +451,6 @@ export default {
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
-        growlMessageNoPersonalPolicy: '[awaiting copy before getting translation]',
+        growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
     },
 };
