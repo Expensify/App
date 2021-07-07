@@ -8,6 +8,7 @@ import Clipboard from '../libs/Clipboard';
 import ReportActionContextMenuItem from '../pages/home/report/ReportActionContextMenuItem';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Children to wrap in TappableCopy. */
@@ -17,7 +18,7 @@ const propTypes = {
     style: PropTypes.arrayOf(PropTypes.object),
 
     /** Decides Tap behaviour. */
-    type: PropTypes.oneOf(['phone', 'email']),
+    type: PropTypes.oneOf([CONST.LOGIN_TYPE.PHONE, CONST.LOGIN_TYPE.EMAIL]),
 
     /** Value to be copied or passed via tap. */
     value: PropTypes.string.isRequired,
@@ -37,7 +38,7 @@ const TappableCopy = props => (
             ? (
                 <Pressable
                     onPress={() => Linking.openURL(
-                        props.type === 'phone'
+                        props.type === CONST.LOGIN_TYPE.PHONE
                             ? `tel:${props.value}`
                             : `mailto:${props.value}`,
                     )}
@@ -67,7 +68,6 @@ const TappableCopy = props => (
             )}
     </View>
 );
-
 
 TappableCopy.propTypes = propTypes;
 TappableCopy.defaultProps = defaultProps;

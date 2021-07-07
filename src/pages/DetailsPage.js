@@ -15,6 +15,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import TappableCopy from '../components/TappableCopy';
+import CONST from '../CONST';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -93,7 +94,7 @@ const DetailsPage = ({
                             />
                             <TappableCopy
                                 style={[styles.mt1, styles.mb6]}
-                                type={details.displayName && isSMSLogin ? 'phone' : undefined}
+                                type={details.displayName && isSMSLogin ? CONST.LOGIN_TYPE.PHONE : undefined}
                                 value={getPhoneNumber(details)}
                             >
                                 <Text style={[styles.displayName]} numberOfLines={1}>
@@ -110,7 +111,7 @@ const DetailsPage = ({
                                             : 'common.email')}
                                     </Text>
                                     <TappableCopy
-                                        type={isSMSLogin ? 'phone' : 'email'}
+                                        type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
                                         <Text style={[styles.textP]} numberOfLines={1}>
