@@ -46,7 +46,8 @@ function sortReportsByLastVisited(reports) {
 }
 
 /**
- * Can only edit if it's a ADDCOMMENT, the author is this user and it's not a optimistic response.
+ * Can only edit if it's an ADDCOMMENT that is not an attachment,
+ * the author is this user and it's not an optimistic response.
  * If it's an optimistic response comment it will not have a reportActionID,
  * and we should wait until it does before we show the actions
  *
@@ -60,6 +61,22 @@ function canEditReportAction(reportAction) {
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
         && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
 }
+
+/**
+ * Can only delete if it's an ADDCOMMENT, the author is this user and it's not an optimistic response.
+ * If it's an optimistic response comment it will not have a reportActionID,
+ * and we should wait until it does before we show the actions
+ *
+ * @param {Object} reportAction
+ * @param {String} sessionEmail
+ * @returns {Boolean}
+ */
+function canDeleteReportAction(reportAction) {
+    return reportAction.actorEmail === sessionEmail
+        && reportAction.reportActionID
+        && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
+}
+
 
 /**
  * Given a collection of reports returns the most recently accessed one
@@ -85,11 +102,34 @@ function isDefaultRoom(report) {
     ], lodashGet(report, ['chatType'], ''));
 }
 
+/**
+ * Get either the policyName or domainName the chat is tied to
+ * @param {Object} report
+ * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getDefaultRoomSubtitle(report, policiesMap) {
+    if (!isDefaultRoom(report)) {
+        return '';
+    }
+    if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
+        // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
+        return report.reportName.substring(1);
+    }
+    return lodashGet(
+        policiesMap,
+        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
+        'Unknown Policy',
+    );
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
+    canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
+    getDefaultRoomSubtitle,
 };
