@@ -43,6 +43,7 @@ import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
+    IOUSendModalStackNavigator,
     IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
@@ -60,7 +61,10 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
+import ValidateLoginNewWorkspacePage from '../../../pages/ValidateLoginNewWorkspacePage';
+import ValidateLogin2FANewWorkspacePage from '../../../pages/ValidateLogin2FANewWorkspacePage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
+import defaultScreenOptions from './defaultScreenOptions';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -139,8 +143,8 @@ class AuthScreens extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
 
         if (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas)) {
-            getPolicySummaries();
             getPolicyList();
+            getPolicySummaries();
         }
 
         // Refresh the personal details, timezone and betas every 30 minutes
@@ -217,6 +221,7 @@ class AuthScreens extends React.Component {
             cardStyle: {...styles.fullscreenCard},
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
             cardOverlayEnabled: false,
+            isFullScreenModal: true,
         };
 
         return (
@@ -235,6 +240,11 @@ class AuthScreens extends React.Component {
                     options={{
                         headerShown: false,
                         title: 'Expensify.cash',
+
+                        // prevent unnecessary scrolling
+                        cardStyle: {
+                            overflow: 'hidden',
+                        },
                     }}
                     component={MainDrawerNavigator}
                 />
@@ -245,6 +255,16 @@ class AuthScreens extends React.Component {
                         title: 'Expensify.cash',
                     }}
                     component={ValidateLoginPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE}
+                    options={defaultScreenOptions}
+                    component={ValidateLoginNewWorkspacePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN_2FA_NEW_WORKSPACE}
+                    options={defaultScreenOptions}
+                    component={ValidateLogin2FANewWorkspacePage}
                 />
 
                 {/* These are the various modal routes */}
@@ -351,6 +371,12 @@ class AuthScreens extends React.Component {
                     name="RequestCall"
                     options={modalScreenOptions}
                     component={RequestCallModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="IOU_Send"
+                    options={modalScreenOptions}
+                    component={IOUSendModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

@@ -35,7 +35,7 @@ import {
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
-import CreateMenu from '../../../components/CreateMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -53,6 +53,9 @@ import ReportActionPropTypes from './ReportActionPropTypes';
 import {canEditReportAction} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
+import {participantPropTypes} from '../sidebar/optionPropTypes';
+import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
+import ParticipantLocalTime from './ParticipantLocalTime';
 
 const propTypes = {
     /** Beta features list */
@@ -72,6 +75,12 @@ const propTypes = {
         /** Indicates if there is a modal currently visible or not */
         isVisible: PropTypes.bool,
     }),
+
+    /** The personal details of the person who is logged in */
+    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes).isRequired,
+
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     /** The report currently being looked at */
     report: PropTypes.shape({
@@ -304,7 +313,7 @@ class ReportActionCompose extends React.Component {
 
                 if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
                     const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).text);
+                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
                 }
             }
         }
@@ -392,8 +401,17 @@ class ReportActionCompose extends React.Component {
 
     render() {
         // eslint-disable-next-line no-unused-vars
-        const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
-        const hasConciergeParticipant = _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE);
+        const reportParticipants = lodashGet(this.props.report, 'participants', []);
+        const hasMultipleParticipants = reportParticipants.length > 1;
+        const hasConciergeParticipant = _.contains(reportParticipants, CONST.EMAIL.CONCIERGE);
+        const reportRecipient = this.props.personalDetails[reportParticipants[0]];
+        const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', {});
+        const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', {});
+        const shouldShowReportRecipientLocalTime = !hasConciergeParticipant
+            && !hasMultipleParticipants
+            && reportRecipient
+            && reportRecipientTimezone
+            && currentUserTimezone.selected !== reportRecipientTimezone.selected;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -409,7 +427,13 @@ class ReportActionCompose extends React.Component {
             : this.props.translate('reportActionCompose.writeSomething');
 
         return (
-            <View style={[styles.chatItemCompose]}>
+            <View style={[
+                styles.chatItemCompose,
+                shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow,
+            ]}
+            >
+                {shouldShowReportRecipientLocalTime
+                    && <ParticipantLocalTime participant={reportRecipient} />}
                 <View style={[
                     (this.state.isFocused || this.state.isDraggingOver)
                         ? styles.chatItemComposeBoxFocusedColor
@@ -442,7 +466,7 @@ class ReportActionCompose extends React.Component {
                                             >
                                                 <Icon src={Plus} />
                                             </TouchableOpacity>
-                                            <CreateMenu
+                                            <PopoverMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
@@ -633,6 +657,12 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
         reportActions: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,

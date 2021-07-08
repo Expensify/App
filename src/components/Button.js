@@ -13,6 +13,9 @@ const propTypes = {
     /** The text for the button label */
     text: PropTypes.string,
 
+    /** Small sized button */
+    small: PropTypes.bool,
+
     /** Large sized button */
     large: PropTypes.bool,
 
@@ -37,6 +40,9 @@ const propTypes = {
     /** Whether we should use the success theme color */
     success: PropTypes.bool,
 
+    /** Whether we should use the danger theme color */
+    danger: PropTypes.bool,
+
     /** Optional content component to replace all inner contents of button */
     ContentComponent: PropTypes.func,
 
@@ -51,11 +57,13 @@ const defaultProps = {
     text: '',
     isLoading: false,
     isDisabled: false,
+    small: false,
     large: false,
     onPress: () => {},
     style: [],
     textStyles: [],
     success: false,
+    danger: false,
     ContentComponent: undefined,
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
@@ -78,8 +86,10 @@ const Button = (props) => {
                     selectable={false}
                     style={[
                         styles.buttonText,
+                        props.small && styles.buttonSmallText,
                         props.large && styles.buttonLargeText,
                         props.success && styles.buttonSuccessText,
+                        props.danger && styles.buttonDangerText,
                         ...props.textStyles,
                     ]}
                 >
@@ -101,10 +111,14 @@ const Button = (props) => {
                     shouldDim={pressed}
                     style={[
                         styles.button,
+                        props.small ? styles.buttonSmall : undefined,
                         props.large ? styles.buttonLarge : undefined,
                         props.success ? styles.buttonSuccess : undefined,
-                        props.isDisabled ? styles.buttonDisable : undefined,
+                        props.danger ? styles.buttonDanger : undefined,
+                        (props.isDisabled && props.danger) ? styles.buttonDangerDisabled : undefined,
+                        (props.isDisabled && !props.danger) ? styles.buttonDisable : undefined,
                         (props.success && hovered) ? styles.buttonSuccessHovered : undefined,
+                        (props.danger && hovered) ? styles.buttonDangerHovered : undefined,
                         props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                         props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ]}

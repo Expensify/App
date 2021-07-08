@@ -71,6 +71,7 @@ const ReportActionItemSingle = ({
                             tooltipText={action.actorEmail}
                             isAttachment={action.isAttachment}
                             isLoading={action.loading}
+                            isSingleLine
                         />
                     ))}
                     <ReportActionItemDate timestamp={action.timestamp} />

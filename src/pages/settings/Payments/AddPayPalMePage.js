@@ -2,22 +2,22 @@ import React from 'react';
 import {TextInput, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import ROUTES from '../../ROUTES';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Text from '../../components/Text';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import NameValuePair from '../../libs/actions/NameValuePair';
-import {getUserDetails} from '../../libs/actions/User';
-import Navigation from '../../libs/Navigation/Navigation';
-import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import Button from '../../components/Button';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import FixedFooter from '../../components/FixedFooter';
-import Growl from '../../libs/Growl';
+import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
+import ROUTES from '../../../ROUTES';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import Text from '../../../components/Text';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import NameValuePair from '../../../libs/actions/NameValuePair';
+import {getUserDetails} from '../../../libs/actions/User';
+import Navigation from '../../../libs/Navigation/Navigation';
+import styles from '../../../styles/styles';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
+import Button from '../../../components/Button';
+import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
+import FixedFooter from '../../../components/FixedFooter';
+import Growl from '../../../libs/Growl';
 
 const propTypes = {
     /** Username for PayPal.Me */
@@ -30,7 +30,7 @@ const defaultProps = {
     payPalMeUsername: '',
 };
 
-class PaymentsPage extends React.Component {
+class AddPayPalMePage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -38,6 +38,7 @@ class PaymentsPage extends React.Component {
             payPalMeUsername: props.payPalMeUsername,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
+        this.paypalUsernameInputRef = null;
     }
 
     componentDidMount() {
@@ -57,35 +58,42 @@ class PaymentsPage extends React.Component {
      */
     setPayPalMeUsername() {
         NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.payPalMeUsername, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
-        Growl.show(this.props.translate('paymentsPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+        Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
     }
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (this.paypalUsernameInputRef) {
+                    this.paypalUsernameInputRef.focus();
+                }
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title={this.props.translate('common.payments')}
+                        title="PayPal.me"
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <View style={[styles.flex1, styles.p5]}>
                         <View style={[styles.flex1]}>
                             <Text style={[styles.mb4]}>
-                                {this.props.translate('paymentsPage.enterYourUsernameToGetPaidViaPayPal')}
+                                {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                             </Text>
                             <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('paymentsPage.payPalMe')}
+                                {this.props.translate('addPayPalMePage.payPalMe')}
                             </Text>
                             <TextInput
+                                ref={el => this.paypalUsernameInputRef = el}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 style={[styles.textInput]}
                                 value={this.state.payPalMeUsername}
-                                placeholder={this.props.translate('paymentsPage.yourPayPalUsername')}
+                                placeholder={this.props.translate('addPayPalMePage.yourPayPalUsername')}
                                 onChangeText={text => this.setState({payPalMeUsername: text})}
                                 editable={!this.props.payPalMeUsername}
+                                returnKeyType="done"
                             />
                         </View>
                     </View>
@@ -95,7 +103,7 @@ class PaymentsPage extends React.Component {
                             isDisabled={Boolean(this.props.payPalMeUsername)}
                             onPress={this.setPayPalMeUsername}
                             style={[styles.mt3]}
-                            text={this.props.translate('paymentsPage.addPayPalAccount')}
+                            text={this.props.translate('addPayPalMePage.addPayPalAccount')}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
@@ -104,9 +112,9 @@ class PaymentsPage extends React.Component {
     }
 }
 
-PaymentsPage.propTypes = propTypes;
-PaymentsPage.defaultProps = defaultProps;
-PaymentsPage.displayName = 'PaymentsPage';
+AddPayPalMePage.propTypes = propTypes;
+AddPayPalMePage.defaultProps = defaultProps;
+AddPayPalMePage.displayName = 'AddPayPalMePage';
 
 export default compose(
     withLocalize,
@@ -115,4 +123,4 @@ export default compose(
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
-)(PaymentsPage);
+)(AddPayPalMePage);

@@ -99,7 +99,7 @@ const MenuItem = ({
             onPress(e);
         }}
         style={({hovered, pressed}) => ([
-            styles.createMenuItem,
+            styles.popoverMenuItem,
             getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled)),
             wrapperStyle,
         ])}
@@ -110,7 +110,7 @@ const MenuItem = ({
                     {icon && (
                         <View
                             style={[
-                                styles.createMenuIcon,
+                                styles.popoverMenuIcon,
                                 ...iconStyles,
                             ]}
                         >
@@ -125,11 +125,16 @@ const MenuItem = ({
                         </View>
                     )}
                     <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
-                        <Text style={[styles.createMenuText, styles.ml3, (disabled ? styles.disabledText : undefined)]}>
+                        <Text style={[
+                            styles.popoverMenuText,
+                            styles.ml3,
+                            (disabled ? styles.disabledText : undefined),
+                        ]}
+                        >
                             {title}
                         </Text>
                         {description && (
-                            <Text style={[styles.createMenuDescription, styles.ml3, styles.mt1]}>
+                            <Text style={[styles.popoverMenuDescription, styles.ml3, styles.mt1]}>
                                 {description}
                             </Text>
                         )}
@@ -139,14 +144,14 @@ const MenuItem = ({
                     {subtitle && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
                             <Text
-                                style={styles.createMenuDescription}
+                                style={styles.popoverMenuDescription}
                             >
                                 {subtitle}
                             </Text>
                         </View>
                     )}
                     {shouldShowRightIcon && (
-                        <View style={styles.createMenuIcon}>
+                        <View style={styles.popoverMenuIcon}>
                             <Icon
                                 src={iconRight}
                                 fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
@@ -154,7 +159,6 @@ const MenuItem = ({
                         </View>
                     )}
                 </View>
-
             </>
         )}
     </Pressable>

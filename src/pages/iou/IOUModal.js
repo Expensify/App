@@ -29,6 +29,9 @@ const propTypes = {
     /** Whether the IOU is for a single request or a group bill split */
     hasMultipleParticipants: PropTypes.bool,
 
+    /** The type of IOU report, i.e. bill, request, send */
+    iouType: PropTypes.string,
+
     /** The report passed via the route */
     report: PropTypes.shape({
         /** Participants associated with current report */
@@ -81,6 +84,7 @@ const defaultProps = {
         preferredCurrencyCode: CONST.CURRENCY.USD,
         preferredCurrencySymbol: '$',
     },
+    iouType: '',
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -99,7 +103,6 @@ class IOUModal extends Component {
         this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
-        this.addParticipants = this.addParticipants.bind(this);
         this.getReady = this.getReady.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
@@ -160,18 +163,27 @@ class IOUModal extends Component {
     getTitleForStep() {
         const currentStepIndex = this.state.currentStepIndex;
         if (currentStepIndex === 1 || currentStepIndex === 2) {
+            const formattedAmount = this.props.numberFormat(
+                this.state.amount, {
+                    style: 'currency',
+                    currency: this.state.selectedCurrency.currencyCode,
+                },
+            );
+            if (this.props.iouType === 'send') {
+                return this.props.translate('iou.send', {
+                    amount: formattedAmount,
+                });
+            }
             return this.props.translate(
                 this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                    amount: this.props.numberFormat(
-                        this.state.amount, {
-                            style: 'currency',
-                            currency: this.state.selectedCurrency.currencyCode,
-                        },
-                    ),
+                    amount: formattedAmount,
                 },
             );
         }
         if (currentStepIndex === 0) {
+            if (this.props.iouType === 'send') {
+                return this.props.translate('iou.sendMoney');
+            }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
         }
 
@@ -266,6 +278,7 @@ class IOUModal extends Component {
 
     render() {
         const currentStep = this.steps[this.state.currentStepIndex];
+        const reportID = lodashGet(this.props, 'route.params.reportID', '');
         return (
             <ScreenWrapper onTransitionEnd={this.getReady}>
                 {({didScreenTransitionEnd}) => (
@@ -315,7 +328,7 @@ class IOUModal extends Component {
                                                 this.navigateToNextStep();
                                             }}
                                             currencySelected={this.currencySelected}
-                                            reportID={this.props.route.params.reportID}
+                                            reportID={reportID}
                                             selectedCurrency={this.state.selectedCurrency}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             selectedAmount={this.state.amount}
@@ -359,7 +372,7 @@ export default compose(
     withLocalize,
     withOnyx({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
         iousReport: {
             key: ONYXKEYS.COLLECTION.REPORT_IOUS,

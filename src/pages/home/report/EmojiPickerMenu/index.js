@@ -13,6 +13,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
+import dynamicEmojiSize from './dynamicEmojiSize';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -21,6 +22,7 @@ const propTypes = {
     /** The ref to the search input (may be null on small screen widths) */
     forwardedRef: PropTypes.func,
 
+    /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -67,6 +69,9 @@ class EmojiPickerMenu extends Component {
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.currentScrollOffset = 0;
+        this.emojiSize = {
+            fontSize: dynamicEmojiSize(this.props.windowWidth),
+        };
 
         this.state = {
             filteredEmojis: this.emojis,
@@ -303,6 +308,7 @@ class EmojiPickerMenu extends Component {
                 onHover={() => this.setState({highlightedIndex: index})}
                 emoji={code}
                 isHighlighted={index === this.state.highlightedIndex}
+                emojiSize={this.emojiSize}
             />
         );
     }
@@ -327,17 +333,34 @@ class EmojiPickerMenu extends Component {
                         />
                     </View>
                 )}
-                <FlatList
-                    ref={el => this.emojiList = el}
-                    data={this.state.filteredEmojis}
-                    renderItem={this.renderItem}
-                    keyExtractor={item => `emoji_picker_${item.code}`}
-                    numColumns={this.numColumns}
-                    style={styles.emojiPickerList}
-                    extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
-                    stickyHeaderIndices={this.state.headerIndices}
-                    onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
-                />
+                {this.state.filteredEmojis.length === 0
+                    ? (
+                        <Text
+                            style={[
+                                styles.textP,
+                                styles.disabledText,
+                                styles.emojiPickerList,
+                                styles.dFlex,
+                                styles.alignItemsCenter,
+                                styles.justifyContentCenter,
+                            ]}
+                        >
+                            {this.props.translate('common.noResultsFound')}
+                        </Text>
+                    )
+                    : (
+                        <FlatList
+                            ref={el => this.emojiList = el}
+                            data={this.state.filteredEmojis}
+                            renderItem={this.renderItem}
+                            keyExtractor={item => `emoji_picker_${item.code}`}
+                            numColumns={this.numColumns}
+                            style={styles.emojiPickerList}
+                            extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
+                            stickyHeaderIndices={this.state.headerIndices}
+                            onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
+                        />
+                    )}
             </View>
         );
     }
