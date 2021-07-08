@@ -11,7 +11,7 @@ import getReportActionContextMenuStyles from '../../../styles/getReportActionCon
 import {
     setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft,
 } from '../../../libs/actions/Report';
-import ReportActionContextMenuItem from './ReportActionContextMenuItem';
+import ContextMenuItem from '../../../components/ContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import compose from '../../../libs/compose';
@@ -179,7 +179,7 @@ class ReportActionContextMenu extends React.Component {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
                 {this.contextActions.map(contextAction => _.result(contextAction, 'shouldShow', false) && (
-                    <ReportActionContextMenuItem
+                    <ContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
                         successIcon={contextAction.successIcon}

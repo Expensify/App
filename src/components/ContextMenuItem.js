@@ -1,11 +1,11 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
-import MenuItem from '../../../components/MenuItem';
-import Tooltip from '../../../components/Tooltip';
-import Icon from '../../../components/Icon';
-import styles, {getIconFillColor, getButtonBackgroundColorStyle} from '../../../styles/styles';
-import getButtonState from '../../../libs/getButtonState';
+import MenuItem from './MenuItem';
+import Tooltip from './Tooltip';
+import Icon from './Icon';
+import styles, {getIconFillColor, getButtonBackgroundColorStyle} from '../styles/styles';
+import getButtonState from '../libs/getButtonState';
 
 const propTypes = {
     /** Icon Component */
@@ -37,7 +37,7 @@ const defaultProps = {
     autoReset: false,
 };
 
-class ReportActionContextMenuItem extends Component {
+class ContextMenuItem extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -112,8 +112,8 @@ class ReportActionContextMenuItem extends Component {
     }
 }
 
-ReportActionContextMenuItem.propTypes = propTypes;
-ReportActionContextMenuItem.defaultProps = defaultProps;
-ReportActionContextMenuItem.displayName = 'ReportActionContextMenuItem';
+ContextMenuItem.propTypes = propTypes;
+ContextMenuItem.defaultProps = defaultProps;
+ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default ReportActionContextMenuItem;
+export default ContextMenuItem;
