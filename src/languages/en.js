@@ -170,7 +170,6 @@ export default {
         uploadPhoto: 'Upload Photo',
         removePhoto: 'Remove Photo',
         profile: 'Profile',
-        editPhoto: 'Edit Photo',
         tellUsAboutYourself: 'Tell us about yourself, we would love to get to know you!',
         john: 'John',
         doe: 'Doe',
