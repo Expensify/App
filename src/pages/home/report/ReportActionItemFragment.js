@@ -83,7 +83,7 @@ class ReportActionItemFragment extends React.PureComponent {
                     );
             case 'TEXT':
                 return (
-                    <Tooltip text={tooltipText} containerStyle={styles.flexShrink1}>
+                    <Tooltip text={tooltipText} containerStyles={[styles.flexShrink1]}>
                         <Text
                             selectable
                             numberOfLines={this.props.isSingleLine ? 1 : undefined}

@@ -7,14 +7,14 @@ import PropTypes from 'prop-types';
 const propTypes = {
     /** Styles to be assigned to the Tooltip wrapper views */
     // eslint-disable-next-line react/forbid-prop-types
-    containerStyle: PropTypes.object,
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Children to wrap with Tooltip. */
     children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {
-    containerStyle: {},
+    containerStyles: [],
 };
 
 /**
@@ -25,7 +25,7 @@ const defaultProps = {
  * @returns {ReactNodeLike}
  */
 const Tooltip = props => (
-    <View style={props.containerStyle}>
+    <View style={[props.containerStyles]}>
         {props.children}
     </View>
 );

@@ -95,7 +95,7 @@ class DisplayNames extends PureComponent {
                             <Tooltip
                                 key={index}
                                 text={tooltip}
-                                containerStyle={styles.dInline}
+                                containerStyles={[styles.dInline]}
                                 shiftHorizontal={() => this.getTooltipShiftX(index)}
                             >
                                 {/*  // We need to get the refs to all the names which will be used to correct
