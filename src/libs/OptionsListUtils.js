@@ -317,9 +317,11 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         const reportDraftComment = report
             && draftComments
             && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
-        const reportContainsUserOwedIOU = lodashGet(report, 'hasOutstandingIOU', false)
-            && lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '') !== currentUserLogin;
+        const iouReportOwner = lodashGet(report, 'hasOutstandingIOU', false)
+            ? lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
+            : '';
 
+        const reportContainsUserOwedIOU = iouReportOwner && iouReportOwner !== currentUserLogin;
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
         const shouldShowReportIfHasDraft = showReportsWithDrafts && reportDraftComment && reportDraftComment.length > 0;
