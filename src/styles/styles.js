@@ -1674,22 +1674,20 @@ const styles = {
         width: '150%',
     },
 
-    workspaceSidebarAvatar: {
-        width: 80,
-        height: 80,
-    },
-
-    workspaceSidebarAvatarPencil: {
-        width: 32,
-        height: 32,
-        position: 'absolute',
-        right: -1,
-        bottom: -1,
+    smallEditIcon: {
+        alignItems: 'center',
         backgroundColor: themeColors.icon,
-        color: themeColors.textReversed,
-        borderRadius: 32,
-        borderWidth: 3,
         borderColor: themeColors.textReversed,
+        borderRadius: 16,
+        borderWidth: 3,
+        bottom: 0,
+        color: themeColors.textReversed,
+        height: 32,
+        justifyContent: 'center',
+        padding: 4,
+        position: 'absolute',
+        right: 0,
+        width: 32,
     },
 
     workspaceCard: {

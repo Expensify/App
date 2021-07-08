@@ -163,7 +163,6 @@ export default {
         uploadPhoto: 'Subir Foto',
         removePhoto: 'Eliminar Foto',
         profile: 'Perfil',
-        editPhoto: 'Editar Foto',
         tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
         firstName: 'Nombre',
         john: 'Juan',

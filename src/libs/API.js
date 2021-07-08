@@ -992,6 +992,18 @@ function Inbox_CallUser(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.value - Must be a JSON stringified object
+ * @returns {Promise}
+ */
+function UpdatePolicy(parameters) {
+    const commandName = 'UpdatePolicy';
+    requireParameters(['policyID', 'value'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     BankAccount_Create,
@@ -1030,6 +1042,7 @@ export {
     SetNameValuePair,
     SetPassword,
     UpdateAccount,
+    UpdatePolicy,
     User_SignUp,
     User_GetBetas,
     User_IsFromPublicDomain,
