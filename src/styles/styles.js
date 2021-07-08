@@ -37,10 +37,6 @@ const styles = {
         color: themeColors.linkHover,
     },
 
-    textBold: {
-        fontWeight: fontWeightBold,
-    },
-
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
