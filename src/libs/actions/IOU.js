@@ -4,7 +4,7 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import * as API from '../API';
-import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
+import {getSimplifiedIOUReport, syncChatAndIOUReports} from './Report';
 import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
@@ -137,14 +137,10 @@ function rejectTransaction({
             if (response.jsonCode !== 200) {
                 throw new Error(`${response.code} ${response.message}`);
             }
-            fetchChatReportsByIDs([chatReportID]);
 
-            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
-            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
-            // components. If we didn't sync the reportIDs, the transaction would still be shown to users as rejectable
-            // The iouReport being fetched here must be open, because only an open iouReoport can be paid. Therefore,
-            // we should also sync the chatReport after fetching the iouReport.
-            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+            const chatReport = response.reports[chatReportID];
+            const iouReport = response.reports[reportID];
+            syncChatAndIOUReports(chatReport, iouReport);
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
@@ -214,14 +210,10 @@ function payIOUReport({
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
-            fetchChatReportsByIDs([chatReportID]);
 
-            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
-            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
-            // components. If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
-            // iouReport being fetched here must be open, because only an open iouReoport can be paid.
-            // Therefore, we should also sync the chatReport after fetching the iouReport.
-            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+            const chatReportStuff = response.reports[chatReportID];
+            const iouReportStuff = response.reports[reportID];
+            syncChatAndIOUReports(chatReportStuff, iouReportStuff);
         })
         .catch((error) => {
             switch (error.message) {
