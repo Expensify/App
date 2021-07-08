@@ -47,7 +47,7 @@ const CurrentWalletBalance = (props) => {
 
 CurrentWalletBalance.propTypes = propTypes;
 CurrentWalletBalance.defaultProps = defaultProps;
-CurrentWalletBalance.displayName = 'ConfirmModal';
+CurrentWalletBalance.displayName = 'CurrentWalletBalance';
 export default compose(
     withLocalize,
     withOnyx({
