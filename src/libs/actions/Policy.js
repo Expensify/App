@@ -46,7 +46,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
  * @param {Object} fullPolicy
  * @returns {Array}
  */
-function getSimplifiedEmployeeListObject(fullPolicy) {
+function getSimplifiedEmployeeList(fullPolicy) {
     const employeeListEmails = _.chain(fullPolicy.value.employeeList)
         .pluck('email')
         .flatten()
@@ -82,7 +82,7 @@ function getPolicyList() {
                 const policyDataToStore = _.reduce(data.policyList, (memo, policy) => ({
                     ...memo,
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: {
-                        employeeList: getSimplifiedEmployeeListObject(policy),
+                        employeeList: getSimplifiedEmployeeList(policy),
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
                     },
                 }), {});
