@@ -6,32 +6,32 @@ export const growlRef = React.createRef();
 /**
  * Show the growl notification
  *
- * @param {String} bodyText
+ * @param {String|JSX.Element} body
  * @param {String} type
  * @param {Number} [duration]
 */
-function show(bodyText, type, duration = CONST.GROWL.DURATION) {
-    growlRef.current.show(bodyText, type, duration);
+function show(body, type, duration = CONST.GROWL.DURATION) {
+    growlRef.current.show(body, type, duration);
 }
 
 /**
  * Show error growl
  *
- * @param {String} bodyText
+ * @param {String|JSX.Element} body
  * @param {Number} [duration]
  */
-function error(bodyText, duration = CONST.GROWL.DURATION) {
-    show(bodyText, CONST.GROWL.ERROR, duration);
+function error(body, duration = CONST.GROWL.DURATION) {
+    show(body, CONST.GROWL.ERROR, duration);
 }
 
 /**
  * Show success growl
  *
- * @param {String} bodyText
+ * @param {String|JSX.Element} body
  * @param {Number} [duration]
  */
-function success(bodyText, duration = CONST.GROWL.DURATION) {
-    show(bodyText, CONST.GROWL.SUCCESS, duration);
+function success(body, duration = CONST.GROWL.DURATION) {
+    show(body, CONST.GROWL.SUCCESS, duration);
 }
 
 export default {

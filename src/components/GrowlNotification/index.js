@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {
     Text, View, Animated,
 } from 'react-native';
+import _ from 'underscore';
 import {
     Directions, FlingGestureHandler, State, TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
@@ -34,7 +35,7 @@ class GrowlNotification extends Component {
         super();
 
         this.state = {
-            bodyText: '',
+            body: '',
             type: 'success',
             translateY: new Animated.Value(INACTIVE_POSITION_Y),
         };
@@ -46,13 +47,13 @@ class GrowlNotification extends Component {
     /**
      * Show the growl notification
      *
-     * @param {String} bodyText
+     * @param {String|JSX.Element} body
      * @param {String} type
      * @param {Number} duration
     */
-    show(bodyText, type, duration) {
+    show(body, type, duration) {
         this.setState({
-            bodyText,
+            body,
             type,
         }, () => {
             this.fling(0);
@@ -89,9 +90,12 @@ class GrowlNotification extends Component {
                     <GrowlNotificationContainer translateY={this.state.translateY}>
                         <TouchableWithoutFeedback onPress={this.fling}>
                             <View style={styles.growlNotificationBox}>
-                                <Text style={styles.growlNotificationText}>
-                                    {this.state.bodyText}
-                                </Text>
+                                {_.isString(this.state.body)
+                                    ? (
+                                        <Text style={styles.growlNotificationText}>
+                                            {this.state.body}
+                                        </Text>
+                                    ) : this.state.body}
                                 <Icon src={types[this.state.type].icon} fill={types[this.state.type].iconColor} />
                             </View>
                         </TouchableWithoutFeedback>

@@ -1,3 +1,4 @@
+import {Text} from 'react-native';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
 import Str from 'expensify-common/lib/str';
@@ -5,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
+import styles from '../../styles/styles';
 import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
@@ -616,8 +618,23 @@ function setupWithdrawalAccount(data) {
 
                 // Show warning if another account already set up this bank account and promote share
                 if (response.existingOwners) {
-                    // @TODO Show better error in UI about existing owners
                     console.error('Cannot set up withdrawal account due to existing owners');
+                    const growlErrorElement = (
+                        <Text style={styles.growlNotificationText}>
+                            <Text>
+                                {this.props.translate('bankAccount.existingOwnersError.alreadyInUse')(response)}
+                            </Text>
+                            <Text
+                                onPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY, achData)}
+                            >
+                                {this.props.translate('bankAccount.existingOwnersError.setUpThisAccountByYourself')}
+                            </Text>
+                            <Text>
+                                {this.props.translate('bankAccount.existingOwnersError.validationProcessAgain')}
+                            </Text>
+                        </Text>
+                    );
+                    Growl.error(growlErrorElement, 8000);
                     return;
                 }
 
