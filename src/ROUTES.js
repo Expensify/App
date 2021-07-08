@@ -10,9 +10,9 @@ const IOU_REQUEST = 'iou/request';
 const IOU_BILL = 'iou/split';
 const IOU_SEND = 'iou/send';
 const IOU_DETAILS = 'iou/details';
-const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/:reportID/currency`;
-const IOU_BILL_CURRENCY = `${IOU_BILL}/:reportID/currency`;
-const IOU_SEND_CURRENCY = `${IOU_SEND}/:reportID/currency`;
+const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
+const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
+const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 
 export default {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
@@ -40,15 +40,15 @@ export default {
     IOU_REQUEST_WITH_REPORT_ID: `${IOU_REQUEST}/:reportID?`,
     IOU_BILL_WITH_REPORT_ID: `${IOU_BILL}/:reportID?`,
     IOU_SEND_WITH_REPORT_ID: `${IOU_SEND}/:reportID?`,
-    getIouRequestRoute: reportID => (reportID ? `${IOU_REQUEST}/${reportID}` : IOU_REQUEST),
-    getIouSplitRoute: reportID => (reportID ? `${IOU_BILL}/${reportID}` : IOU_BILL),
-    getIOUSendRoute: reportID => (reportID ? `${IOU_SEND}/${reportID}` : IOU_SEND),
-    IOU_BILL_CURRENCY,
-    IOU_REQUEST_CURRENCY,
-    IOU_SEND_CURRENCY,
-    getIouRequestCurrencyRoute: reportID => (reportID ? `${IOU_REQUEST}/${reportID}/currency` : IOU_REQUEST_CURRENCY),
-    getIouBillCurrencyRoute: reportID => (reportID ? `${IOU_BILL}/${reportID}/currency` : IOU_BILL_CURRENCY),
-    getIouSendCurrencyRoute: reportID => (reportID ? `${IOU_SEND}/${reportID}/currency` : IOU_SEND_CURRENCY),
+    getIouRequestRoute: reportID => `${IOU_REQUEST}/${reportID}`,
+    getIouSplitRoute: reportID => `${IOU_BILL}/${reportID}`,
+    getIOUSendRoute: reportID => `${IOU_SEND}/${reportID}`,
+    IOU_BILL_CURRENCY: `${IOU_BILL_CURRENCY}/:reportID?`,
+    IOU_REQUEST_CURRENCY: `${IOU_REQUEST_CURRENCY}/:reportID?`,
+    IOU_SEND_CURRENCY: `${IOU_SEND_CURRENCY}/:reportID?`,
+    getIouRequestCurrencyRoute: reportID => `${IOU_REQUEST_CURRENCY}/${reportID}`,
+    getIouBillCurrencyRoute: reportID => `${IOU_BILL_CURRENCY}/${reportID}`,
+    getIouSendCurrencyRoute: reportID => `${IOU_SEND_CURRENCY}/${reportID}`,
     IOU_DETAILS,
     IOU_DETAILS_WITH_IOU_REPORT_ID: `${IOU_DETAILS}/:chatReportID/:iouReportID/`,
     getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
