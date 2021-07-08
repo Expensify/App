@@ -64,7 +64,7 @@ function getLockCashDeploysTimeline() {
             return pair.length > 1 ? pair : undefined;
         }));
         return startEndPairs;
-    });
+    }).catch(err => console.error('Failed to get the 🔐 LockCashDeploys 🔐 label\'s timeline', err));
 }
 
 const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
@@ -124,7 +124,7 @@ function commentPR(pr) {
 const run = function () {
     return Promise.all([
         getLockCashDeploysTimeline(),
-        GithubUtils.fetchAllPullRequests(prList),
+        GithubUtils.fetchAllPullRequests(prList.map(pr => parseInt(pr, 10))),
     ])
         .then(([lockCashDeployLabelTimeSet, PRListWithDetails]) => {
             lockCashDeployLabelTimeline = lockCashDeployLabelTimeSet;
@@ -136,7 +136,8 @@ const run = function () {
              * Create comment on each pull request
              */
             return prList.reduce((promise, pr) => promise.then(() => commentPR(pr)), Promise.resolve());
-        });
+        })
+        .catch(err => console.error('Failed to get neccesary data to comment deployed PRs', err));
 };
 
 if (require.main === module) {
