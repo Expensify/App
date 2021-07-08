@@ -204,17 +204,35 @@ function create(name) {
 }
 
 /**
+ * Sets avatar or removes it if called with no avatarURL
+ *
  * @param {String} policyID
- * @param {String} avatarURL
+ * @param {String} [avatarURL]
  */
-function updateAvatar(policyID, avatarURL) {
+function setAvatarURL(policyID, avatarURL = '') {
     API.UpdatePolicy({policyID, value: JSON.stringify({avatarURL}), lastModified: null})
+        .then((policyResponse) => {
+            if (policyResponse.jsonCode !== 200) {
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL});
+        });
+}
+
+/**
+ * @param {String} policyID
+ * @param {Object} file
+ */
+function updateAvatar(policyID, file) {
+    API.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 return;
             }
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL});
+            // Once we get the s3url back, update the policy with the new avatar URL
+            setAvatarURL(policyID, response.s3url);
         });
 }
 
@@ -225,4 +243,5 @@ export {
     invite,
     create,
     updateAvatar,
+    setAvatarURL,
 };

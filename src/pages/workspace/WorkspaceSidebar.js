@@ -8,21 +8,22 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
+import Icon from '../../components/Icon';
 import {
     Users,
-    Pencil,
     ExpensifyCard,
+    Workspace,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
-import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
 import themedefault from '../../styles/themes/default';
-import Icon from '../../components/Icon';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
+import {updateAvatar, setAvatarURL} from '../../libs/actions/Policy';
 
 const propTypes = {
     /** Policy for the current route */
@@ -86,21 +87,24 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                         )}
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                            <View style={[styles.pRelative, styles.workspaceSidebarAvatar, styles.mb3]}>
-                                <WorkspaceDefaultAvatar height={80} width={80} fill={themedefault.icon} />
-                                <View style={[
-                                    styles.workspaceSidebarAvatarPencil,
-                                    styles.alignItemsCenter,
-                                    styles.justifyContentCenter,
-                                ]}
-                                >
+                            <AvatarWithImagePicker
+                                avatarURL={policy.avatarURL}
+                                DefaultAvatar={() => (
                                     <Icon
-                                        src={Pencil}
-                                        fill={themedefault.textReversed}
-                                        small
+                                        src={Workspace}
+                                        height={80}
+                                        width={80}
+                                        fill={themedefault.icon}
                                     />
-                                </View>
-                            </View>
+                                )}
+                                style={[styles.mb3]}
+                                anchorPosition={{top: 112, left: 20}}
+                                isUsingDefaultAvatar={!policy.avatarURL}
+                                onImageSelected={(image) => {
+                                    updateAvatar(policy.id, image);
+                                }}
+                                onImageRemoved={() => setAvatarURL(policy.id)}
+                            />
                             <Text
                                 numberOfLines={1}
                                 style={[

@@ -16,6 +16,8 @@ const propTypes = {
     /** Avatar URL to display */
     avatarURL: PropTypes.string.isRequired,
 
+    style: PropTypes.arrayOf(PropTypes.object),
+
     onImageSelected: PropTypes.func,
 
     onImageRemoved: PropTypes.func,
@@ -26,6 +28,7 @@ const propTypes = {
 const defaultProps = {
     onImageSelected: () => {},
     onImageRemoved: () => {},
+    style: [],
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -70,14 +73,21 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     render() {
+        const {DefaultAvatar} = this.props;
         return (
-            <View style={[styles.alignItemsCenter]}>
+            <View style={[styles.alignItemsCenter, ...this.props.style]}>
                 <View style={[styles.pRelative, styles.avatarLarge]}>
-                    <Avatar
-                        containerStyles={styles.avatarLarge}
-                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                        source={this.props.avatarURL}
-                    />
+                    {this.props.avatarURL
+                        ? (
+                            <Avatar
+                                containerStyles={styles.avatarLarge}
+                                imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                source={this.props.avatarURL}
+                            />
+                        )
+                        : (
+                            <DefaultAvatar />
+                        )}
                     <AttachmentPicker>
                         {({openPicker}) => (
                             <>
@@ -92,7 +102,7 @@ class AvatarWithImagePicker extends React.Component {
                                     onClose={() => this.setState({isMenuVisible: false})}
                                     onItemSelected={() => this.setState({isMenuVisible: false})}
                                     menuItems={this.createMenuItems(openPicker)}
-                                    anchorPosition={styles.createMenuPositionProfile}
+                                    anchorPosition={this.props.anchorPosition}
                                     animationIn="fadeInRight"
                                     animationOut="fadeOutRight"
                                 />
