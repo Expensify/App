@@ -5,7 +5,7 @@ import styles from '../styles/styles';
 import compose from '../libs/compose';
 import {Checkmark, Clipboard as ClipboardIcon} from './Icon/Expensicons';
 import Clipboard from '../libs/Clipboard';
-import ReportActionContextMenuItem from '../pages/home/report/ReportActionContextMenuItem';
+import ContextMenuItem from './ContextMenuItem';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
@@ -55,7 +55,7 @@ const TappableCopy = props => (
                     styles.justifyContentCenter,
                     {right: -36, top: 0, bottom: 0}]}
                 >
-                    <ReportActionContextMenuItem
+                    <ContextMenuItem
                         icon={ClipboardIcon}
                         text={props.translate('reportActionContextMenu.copyToClipboard')}
                         successIcon={Checkmark}
