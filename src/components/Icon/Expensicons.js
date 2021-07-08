@@ -1,6 +1,5 @@
 import Android from '../../../assets/images/android.svg';
 import Apple from '../../../assets/images/apple.svg';
-import Armchair from '../../../assets/images/armchair.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
 import Bank from '../../../assets/images/bank.svg';
@@ -56,7 +55,6 @@ export {
     Android,
     Apple,
     ArrowRight,
-    Armchair,
     BackArrow,
     Bank,
     Building,
