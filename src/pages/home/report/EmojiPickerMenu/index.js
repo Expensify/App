@@ -119,7 +119,7 @@ class EmojiPickerMenu extends Component {
             };
 
             // Keyboard events are not bubbling on TextInput in RN-Web, Bubbling was needed for this event to trigger
-            // event is attached to document. To fix this attach event in Capture phase.
+            // event handler attached to document root. To fix this, trigger event handler in Capture phase.
             document.addEventListener('keydown', this.keyDownHandler, true);
 
             // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
