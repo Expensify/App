@@ -337,7 +337,6 @@ class EmojiPickerMenu extends Component {
                     ? (
                         <Text
                             style={[
-                                styles.textP,
                                 styles.disabledText,
                                 styles.emojiPickerList,
                                 styles.dFlex,
