@@ -240,8 +240,8 @@ function createOption(personalDetailList, report, draftComments, {
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
-        isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', false),
-        iouReportAmount: lodashGet(iouReport, 'amount', 0),
+        isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
+        iouReportAmount: lodashGet(iouReport, 'total', 0),
         isDefaultChatRoom,
     };
 }
@@ -329,7 +329,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ? lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
             : '';
 
-        const reportContainsUserOwedIOU = iouReportOwner && iouReportOwner !== currentUserLogin;
+        const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
         const shouldShowReportIfHasDraft = showReportsWithDrafts && reportDraftComment && reportDraftComment.length > 0;
@@ -338,7 +338,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             && !report.isPinned
             && !shouldShowReportIfHasDraft
             && shouldFilterReport
-            && !reportContainsUserOwedIOU) {
+            && !reportContainsIOUDebt) {
             return;
         }
 
@@ -403,7 +403,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             // collect the pinned reports so we can sort them alphabetically once they are collected
             if (prioritizePinnedReports && reportOption.isPinned) {
                 pinnedReportOptions.push(reportOption);
-            } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && reportOption.isIOUReportOwner) {
+            } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
                 iouDebtReportOptions.push(reportOption);
             } else {
                 recentReportOptions.push(reportOption);
@@ -418,7 +418,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
     // If we are prioritizing IOUs the user owes, add them before the normal recent report options
     if (prioritizeIOUDebts) {
-        const sortedIOUReports = lodashOrderBy(iouDebtReportOptions, ['amount'], ['desc']);
+        const sortedIOUReports = lodashOrderBy(iouDebtReportOptions, ['iouReportAmount'], ['desc']);
         recentReportOptions = sortedIOUReports.concat(recentReportOptions);
     }
 
@@ -628,6 +628,8 @@ function getSidebarOptions(
             hideReadReports: true,
             sortByAlphaAsc: true,
             showReportsWithDrafts: true,
+            prioritizePinnedReports: true,
+            prioritizeIOUDebts: true,
         };
     }
 
