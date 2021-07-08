@@ -663,9 +663,9 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  * @returns {String}
  */
 function getReportIcons(report, personalDetails) {
-    // Default rooms use icons names for their avatars
+    // Default rooms have a specific avatar so we can return any non-empty array
     if (isDefaultRoom(report)) {
-        return ['armchair'];
+        return [''];
     }
     return _.map(report.participants, dmParticipant => ({
         firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),

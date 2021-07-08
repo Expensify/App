@@ -4,7 +4,6 @@ import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
 import Text from './Text';
-import IconAvatar from './IconAvatar';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -17,19 +16,19 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
-    /** Whether we should be using an Icon for the Avatar */
-    useIcon: PropTypes.bool,
+    /** Whether this avatar is for a default room */
+    isDefaultChatRoom: PropTypes.bool,
 };
 
 const defaultProps = {
     avatarImageURLs: [],
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
-    useIcon: false,
+    isDefaultChatRoom: false,
 };
 
 const MultipleAvatars = ({
-    avatarImageURLs, size, secondAvatarStyle, useIcon,
+    avatarImageURLs, size, secondAvatarStyle, isDefaultChatRoom,
 }) => {
     const avatarContainerStyles = size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
     const singleAvatarStyles = size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
@@ -42,18 +41,10 @@ const MultipleAvatars = ({
         return null;
     }
 
-    if (useIcon) {
-        return (
-            <View style={avatarContainerStyles}>
-                <IconAvatar icon={avatarImageURLs[0]} />
-            </View>
-        );
-    }
-
     if (avatarImageURLs.length === 1) {
         return (
             <View style={avatarContainerStyles}>
-                <Avatar source={avatarImageURLs[0]} size={size} />
+                <Avatar source={avatarImageURLs[0]} size={size} isDefaultChatRoom={isDefaultChatRoom} />
             </View>
         );
     }

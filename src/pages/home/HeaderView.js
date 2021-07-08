@@ -122,7 +122,7 @@ const HeaderView = (props) => {
                             <MultipleAvatars
                                 avatarImageURLs={props.report.icons}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
-                                useIcon={isDefaultChatRoom}
+                                isDefaultChatRoom={isDefaultChatRoom}
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
