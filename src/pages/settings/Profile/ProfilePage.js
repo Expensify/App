@@ -34,37 +34,13 @@ import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
+import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Email/Phone login of the current user from their personal details */
-        login: PropTypes.string,
-
-        /** Display first name of the current user from their personal details */
-        firstName: PropTypes.string,
-
-        /** Display last name of the current user from their personal details */
-        lastName: PropTypes.string,
-
-        /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
-
-        /** Pronouns of the current user from their personal details */
-        pronouns: PropTypes.string,
-
-        /** Timezone of the current user from their personal details */
-        timezone: PropTypes.shape({
-
-            /** Value of selected timezone */
-            selected: PropTypes.string,
-
-            /** Whether timezone is automatically set */
-            automatic: PropTypes.bool,
-        }),
-    }),
+    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
     /** The details about the user that is signed in */
     user: PropTypes.shape({
