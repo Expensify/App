@@ -239,6 +239,7 @@ class ProfilePage extends Component {
                             onImageRemoved={() => deleteAvatar(this.props.myPersonalDetails.login)}
                             // eslint-disable-next-line max-len
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
+                            anchorPosition={styles.createMenuPositionProfile}
                         />
                         <Text style={[styles.mt6, styles.mb6, styles.textP]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
