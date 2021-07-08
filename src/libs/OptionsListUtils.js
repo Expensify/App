@@ -190,6 +190,10 @@ function createOption(personalDetailList, report, draftComments, {
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
 
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
+    const iouReport = hasOutstandingIOU
+        ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
+        : {};
+
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
     const lastMessageText = report
         ? (hasMultipleParticipants && lastActorDetails
@@ -236,6 +240,8 @@ function createOption(personalDetailList, report, draftComments, {
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
+        isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', false),
+        iouReportAmount: lodashGet(iouReport, 'amount', 0),
         isDefaultChatRoom,
     };
 }
@@ -290,10 +296,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     hideReadReports = false,
     sortByAlphaAsc = false,
     forcePolicyNamePreview = false,
+    prioritizeIOUDebts = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const personalDetailsOptions = [];
+    const iouDebtReportOptions = [];
 
     const reportMapForLogins = {};
     let sortProperty = sortByLastMessageTimestamp
@@ -395,6 +403,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             // collect the pinned reports so we can sort them alphabetically once they are collected
             if (prioritizePinnedReports && reportOption.isPinned) {
                 pinnedReportOptions.push(reportOption);
+            } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && reportOption.isIOUReportOwner) {
+                iouDebtReportOptions.push(reportOption);
             } else {
                 recentReportOptions.push(reportOption);
             }
@@ -404,6 +414,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
                 loginOptionsToExclude.push({login: reportOption.login});
             }
         }
+    }
+
+    // If we are prioritizing IOUs the user owes, add them before the normal recent report options
+    if (prioritizeIOUDebts) {
+        const sortedIOUReports = lodashOrderBy(iouDebtReportOptions, ['amount'], ['desc']);
+        recentReportOptions = sortedIOUReports.concat(recentReportOptions);
     }
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
@@ -490,6 +506,7 @@ function getSearchOptions(
         includePersonalDetails: true,
         sortByLastMessageTimestamp: false,
         forcePolicyNamePreview: true,
+        prioritizeIOUDebts: false,
     });
 }
 
@@ -604,6 +621,7 @@ function getSidebarOptions(
 ) {
     let sideBarOptions = {
         prioritizePinnedReports: true,
+        prioritizeIOUDebts: true,
     };
     if (priorityMode === CONST.PRIORITY_MODE.GSD) {
         sideBarOptions = {
