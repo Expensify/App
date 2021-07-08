@@ -98,7 +98,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                                     />
                                 )}
                                 style={[styles.mb3]}
-                                anchorPosition={{top: 112, left: 20}}
+                                anchorPosition={{top: 116, left: 20}}
                                 isUsingDefaultAvatar={!policy.avatarURL}
                                 onImageSelected={(image) => {
                                     updateAvatar(policy.id, image);
