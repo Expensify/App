@@ -286,7 +286,7 @@ class IOUConfirmationList extends Component {
             selectedOption.login === option.login
         ));
 
-        // selected option is self
+        // Selected option is self
         if (!isOptionInSelectedList && !isOptionInUnselectedList) {
             return;
         }
