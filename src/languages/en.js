@@ -105,6 +105,7 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
+        localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
@@ -267,6 +268,7 @@ export default {
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
+        enterYourTwoFactorAuthenticationCodeToContinue: 'Enter your two factor authentication code to continue',
         forgot: 'Forgot?',
         twoFactorCode: 'Two Factor Code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',

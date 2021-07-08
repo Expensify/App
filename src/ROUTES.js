@@ -10,6 +10,9 @@ const IOU_REQUEST = 'iou/request';
 const IOU_BILL = 'iou/split';
 const IOU_SEND = 'iou/send';
 const IOU_DETAILS = 'iou/details';
+const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
+const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
+const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 
 export default {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
@@ -35,17 +38,17 @@ export default {
     IOU_BILL,
     IOU_SEND,
     IOU_REQUEST_WITH_REPORT_ID: `${IOU_REQUEST}/:reportID?`,
-    IOU_BILL_WITH_REPORTID: `${IOU_BILL}/:reportID?`,
-    IOU_SEND_WITH_REPORTID: `${IOU_SEND}/:reportID?`,
+    IOU_BILL_WITH_REPORT_ID: `${IOU_BILL}/:reportID?`,
+    IOU_SEND_WITH_REPORT_ID: `${IOU_SEND}/:reportID?`,
     getIouRequestRoute: reportID => `${IOU_REQUEST}/${reportID}`,
     getIouSplitRoute: reportID => `${IOU_BILL}/${reportID}`,
     getIOUSendRoute: reportID => `${IOU_SEND}/${reportID}`,
-    IOU_BILL_CURRENCY: `${IOU_BILL}/:reportID/currency`,
-    IOU_REQUEST_CURRENCY: `${IOU_REQUEST}/:reportID/currency`,
-    IOU_SEND_CURRENCY: `${IOU_SEND}/:reportID/currency`,
-    getIouRequestCurrencyRoute: reportID => `${IOU_REQUEST}/${reportID}/currency`,
-    getIouBillCurrencyRoute: reportID => `${IOU_BILL}/${reportID}/currency`,
-    getIouSendCurrencyRoute: reportID => `${IOU_SEND}/${reportID}/currency`,
+    IOU_BILL_CURRENCY: `${IOU_BILL_CURRENCY}/:reportID?`,
+    IOU_REQUEST_CURRENCY: `${IOU_REQUEST_CURRENCY}/:reportID?`,
+    IOU_SEND_CURRENCY: `${IOU_SEND_CURRENCY}/:reportID?`,
+    getIouRequestCurrencyRoute: reportID => `${IOU_REQUEST_CURRENCY}/${reportID}`,
+    getIouBillCurrencyRoute: reportID => `${IOU_BILL_CURRENCY}/${reportID}`,
+    getIouSendCurrencyRoute: reportID => `${IOU_SEND_CURRENCY}/${reportID}`,
     IOU_DETAILS,
     IOU_DETAILS_WITH_IOU_REPORT_ID: `${IOU_DETAILS}/:chatReportID/:iouReportID/`,
     getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
@@ -62,6 +65,11 @@ export default {
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
+
+    // This is a special validation URL that will take the user to /workspace/new after validation. This is used
+    // when linking users from e.com in order to share a session in this app.
+    VALIDATE_LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE: 'v/:accountID/:validateCode/new-workspace',
+    VALIDATE_LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE: 'v/:accountID/:validateCode/2fa/new-workspace',
     ENABLE_PAYMENTS: 'enable-payments',
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE: 'workspace',

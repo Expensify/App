@@ -926,6 +926,10 @@ const styles = {
         display: 'flex',
     },
 
+    chatItemComposeWithFirstRow: {
+        minHeight: 85,
+    },
+
     chatItemComposeBoxColor: {
         borderColor: themeColors.border,
     },
