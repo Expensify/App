@@ -1,11 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable} from 'react-native';
-import pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
-
-const defaultProps = {
-    forwardedRef: () => {},
-};
+import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
@@ -42,7 +38,9 @@ class PressableWithSecondaryInteraction extends Component {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
         return (
             <Pressable
+                onPressIn={this.props.onPressIn}
                 onLongPress={e => this.props.onSecondaryInteraction(e)}
+                onPressOut={this.props.onPressOut}
                 ref={el => this.pressableRef = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}
@@ -53,7 +51,7 @@ class PressableWithSecondaryInteraction extends Component {
     }
 }
 
-PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes;
+PressableWithSecondaryInteraction.propTypes = propTypes;
 PressableWithSecondaryInteraction.defaultProps = defaultProps;
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
