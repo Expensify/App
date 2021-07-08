@@ -38,6 +38,10 @@ const defaultProps = {
     wrapperStyles: [styles.chatItem],
 };
 
+const showUserDetails = (email) => {
+    Navigation.navigate(`${ROUTES.DETAILS}/${email}`);
+};
+
 const ReportActionItemSingle = ({
     action,
     personalDetails,
@@ -58,10 +62,6 @@ const ReportActionItemSingle = ({
     const personArray = displayName
         ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName}]
         : action.person;
-
-    const showUserDetails = (email) => {
-        Navigation.navigate(`${ROUTES.DETAILS}/${email}`);
-    };
 
     return (
         <View style={wrapperStyles}>
