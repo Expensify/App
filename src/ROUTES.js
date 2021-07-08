@@ -62,6 +62,11 @@ export default {
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
+
+    // This is a special validation URL that will take the user to /workspace/new after validation. This is used
+    // when linking users from e.com in order to share a session in this app.
+    VALIDATE_LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE: 'v/:accountID/:validateCode/new-workspace',
+    VALIDATE_LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE: 'v/:accountID/:validateCode/2fa/new-workspace',
     ENABLE_PAYMENTS: 'enable-payments',
     WORKSPACE_NEW: 'workspace/new',
     WORKSPACE: 'workspace',

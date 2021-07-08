@@ -27,11 +27,14 @@ function openDrawer() {
 
 /**
  * @private
+ * @param {Boolean} shouldOpenDrawer
  */
-function goBack() {
+function goBack(shouldOpenDrawer = true) {
     if (!navigationRef.current.canGoBack()) {
         console.debug('Unable to go back');
-        openDrawer();
+        if (shouldOpenDrawer) {
+            openDrawer();
+        }
         return;
     }
 
@@ -102,7 +105,7 @@ function dismissModal(shouldOpenDrawer = false) {
     }
 
     // Navigate back to where we were before we launched the modal
-    goBack();
+    goBack(shouldOpenDrawer);
 
     if (!normalizedShouldOpenDrawer) {
         return;

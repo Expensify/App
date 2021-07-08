@@ -268,6 +268,7 @@ export default {
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
+        enterYourTwoFactorAuthenticationCodeToContinue: 'Enter your two factor authentication code to continue',
         forgot: 'Forgot?',
         twoFactorCode: 'Two Factor Code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
