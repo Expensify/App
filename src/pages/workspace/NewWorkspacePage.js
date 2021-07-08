@@ -20,9 +20,12 @@ import defaultTheme from '../../styles/themes/default';
 
 const propTypes = {
     /** List of betas */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
+};
+const defaultProps = {
+    betas: [],
 };
 
 class NewWorkspacePage extends React.Component {
@@ -79,6 +82,7 @@ class NewWorkspacePage extends React.Component {
 }
 
 NewWorkspacePage.propTypes = propTypes;
+NewWorkspacePage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({

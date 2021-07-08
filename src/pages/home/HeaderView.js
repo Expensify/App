@@ -23,7 +23,7 @@ import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
-import {isDefaultRoom} from '../../libs/reportUtils';
+import {getDefaultRoomSubtitle, isDefaultRoom} from '../../libs/reportUtils';
 import Text from '../../components/Text';
 
 const propTypes = {
@@ -66,7 +66,6 @@ const defaultProps = {
 
 const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
-    const policyID = lodashGet(props.report, 'policyID', '');
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),
@@ -84,8 +83,7 @@ const HeaderView = (props) => {
         ? props.report.reportName
         : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
 
-    const subTitle = isDefaultChatRoom
-        && lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'name'], 'Unknown Policy');
+    const subtitle = getDefaultRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && participants.includes(CONST.EMAIL.CONCIERGE);
 
     return (
@@ -133,12 +131,12 @@ const HeaderView = (props) => {
                                     textStyles={[styles.headerText]}
                                     shouldUseFullTitle={isDefaultChatRoom}
                                 />
-                                {subTitle && (
+                                {isDefaultChatRoom && (
                                     <Text
                                         style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mt1]}
                                         numberOfLines={1}
                                     >
-                                        {subTitle}
+                                        {subtitle}
                                     </Text>
                                 )}
                             </View>

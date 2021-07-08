@@ -52,6 +52,7 @@ class PasswordPage extends Component {
         };
 
         this.handleChangePassword = this.handleChangePassword.bind(this);
+        this.currentPasswordInputRef = null;
     }
 
     componentWillUnmount() {
@@ -69,7 +70,12 @@ class PasswordPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (this.currentPasswordInputRef) {
+                    this.currentPasswordInputRef.focus();
+                }
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('passwordPage.changePassword')}
@@ -86,12 +92,14 @@ class PasswordPage extends Component {
                                 {`${this.props.translate('passwordPage.currentPassword')}*`}
                             </Text>
                             <TextInput
+                                ref={el => this.currentPasswordInputRef = el}
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
                                 style={styles.textInput}
                                 value={this.state.currentPassword}
                                 onChangeText={currentPassword => this.setState({currentPassword})}
+                                returnKeyType="done"
                             />
                         </View>
                         <View style={styles.mb6}>

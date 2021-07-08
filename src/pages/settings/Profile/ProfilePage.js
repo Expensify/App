@@ -24,7 +24,7 @@ import themeColors from '../../../styles/themes/default';
 import LoginField from './LoginField';
 import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import CreateMenu from '../../../components/CreateMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
@@ -34,37 +34,13 @@ import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
+import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Email/Phone login of the current user from their personal details */
-        login: PropTypes.string,
-
-        /** Display first name of the current user from their personal details */
-        firstName: PropTypes.string,
-
-        /** Display last name of the current user from their personal details */
-        lastName: PropTypes.string,
-
-        /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
-
-        /** Pronouns of the current user from their personal details */
-        pronouns: PropTypes.string,
-
-        /** Timezone of the current user from their personal details */
-        timezone: PropTypes.shape({
-
-            /** Value of selected timezone */
-            selected: PropTypes.string,
-
-            /** Whether timezone is automatically set */
-            automatic: PropTypes.bool,
-        }),
-    }),
+    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
     /** The details about the user that is signed in */
     user: PropTypes.shape({
@@ -279,20 +255,27 @@ class ProfilePage extends Component {
                             {({openPicker}) => (
                                 <>
                                     <Button
+                                        small
                                         style={[styles.alignSelfCenter, styles.mt3]}
                                         onPress={() => this.setState({isEditPhotoMenuVisible: true})}
                                         ContentComponent={() => (
                                             <View style={[styles.flexRow]}>
                                                 <Icon src={DownArrow} />
                                                 <View style={styles.justifyContentCenter}>
-                                                    <Text style={[styles.headerText, styles.ml2]}>
+                                                    <Text
+                                                        style={[
+                                                            styles.headerText,
+                                                            styles.buttonSmallText,
+                                                            styles.ml2,
+                                                        ]}
+                                                    >
                                                         {this.props.translate('profilePage.editPhoto')}
                                                     </Text>
                                                 </View>
                                             </View>
                                         )}
                                     />
-                                    <CreateMenu
+                                    <PopoverMenu
                                         isVisible={this.state.isEditPhotoMenuVisible}
                                         onClose={() => this.setState({isEditPhotoMenuVisible: false})}
                                         onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}

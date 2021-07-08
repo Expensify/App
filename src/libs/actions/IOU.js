@@ -1,12 +1,14 @@
 import Onyx from 'react-native-onyx';
-import {Linking} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import * as API from '../API';
-import {getSimplifiedIOUReport, fetchChatReportsByIDs, fetchIOUReportByIDAndUpdateChatReport} from './Report';
+import {getSimplifiedIOUReport, syncChatAndIOUReports} from './Report';
 import Navigation from '../Navigation/Navigation';
+import Growl from '../Growl';
+import {translateLocal} from '../translate';
+import asyncOpenURL from '../asyncOpenURL';
 
 /**
  * @param {Object[]} requestParams
@@ -135,14 +137,10 @@ function rejectTransaction({
             if (response.jsonCode !== 200) {
                 throw new Error(`${response.code} ${response.message}`);
             }
-            fetchChatReportsByIDs([chatReportID]);
 
-            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
-            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
-            // components. If we didn't sync the reportIDs, the transaction would still be shown to users as rejectable
-            // The iouReport being fetched here must be open, because only an open iouReoport can be paid. Therefore,
-            // we should also sync the chatReport after fetching the iouReport.
-            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
+            const chatReport = response.reports[chatReportID];
+            const iouReport = response.reports[reportID];
+            syncChatAndIOUReports(chatReport, iouReport);
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
@@ -196,33 +194,43 @@ function payIOUReport({
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? API.PayWithWallet({reportID})
         : API.PayIOU({reportID, paymentMethodType});
-    payIOUPromise
+
+    // Build the url for the user's platform of choice if they have
+    // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
+    let url;
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
+        url = buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency);
+    }
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
+        url = buildVenmoPaymentURL(amount, submitterPhoneNumber);
+    }
+
+    asyncOpenURL(payIOUPromise
         .then((response) => {
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
-            fetchChatReportsByIDs([chatReportID]);
 
-            // If an iouReport is open (has an IOU, but is not yet paid) then we sync the chatReport's 'iouReportID'
-            // field in Onyx, simplifying IOU data retrieval and reducing necessary API calls when displaying IOU
-            // components. If we didn't sync the reportIDs, the paid IOU would still be shown to users as unpaid. The
-            // iouReport being fetched here must be open, because only an open iouReoport can be paid.
-            // Therefore, we should also sync the chatReport after fetching the iouReport.
-            fetchIOUReportByIDAndUpdateChatReport(reportID, chatReportID);
-
-            // Once we have successfully paid the IOU we will transfer the user to their platform of choice if they have
-            // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                Linking.openURL(buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency));
-            } else if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.VENMO) {
-                Linking.openURL(buildVenmoPaymentURL(amount, submitterPhoneNumber));
-            }
+            const chatReportStuff = response.reports[chatReportID];
+            const iouReportStuff = response.reports[reportID];
+            syncChatAndIOUReports(chatReportStuff, iouReportStuff);
         })
         .catch((error) => {
-            console.error(`Error Paying iouReport: ${error}`);
+            switch (error.message) {
+                // eslint-disable-next-line max-len
+                case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
+                    Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
+                    break;
+                case 'This report doesn\'t have reimbursable expenses.':
+                    Growl.error(translateLocal('iou.noReimbursableExpenses'), 5000);
+                    break;
+                default:
+                    Growl.error(error.message, 5000);
+            }
             Onyx.merge(ONYXKEYS.IOU, {error: true});
         })
-        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false}));
+        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})),
+    url);
 }
 
 export {
