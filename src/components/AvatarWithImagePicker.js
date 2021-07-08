@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -14,21 +15,41 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Avatar URL to display */
-    avatarURL: PropTypes.string.isRequired,
+    avatarURL: PropTypes.string,
 
-    style: PropTypes.arrayOf(PropTypes.object),
+    /** Additional style props */
+    style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
 
+    /** Executed once an image has been selected */
     onImageSelected: PropTypes.func,
 
+    /** Execute when the user taps "remove" */
     onImageRemoved: PropTypes.func,
+
+    /** A default avatar component to display when there is no avatarURL */
+    DefaultAvatar: PropTypes.func,
+
+    /** Whether we are using the default avatar */
+    isUsingDefaultAvatar: PropTypes.bool,
+
+    /** The anchor position of the menu */
+    anchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+    }).isRequired,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    avatarURL: '',
     onImageSelected: () => {},
     onImageRemoved: () => {},
     style: [],
+    DefaultAvatar: () => {},
+    isUsingDefaultAvatar: false,
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -50,7 +71,7 @@ class AvatarWithImagePicker extends React.Component {
         const menuItems = [
             {
                 icon: Upload,
-                text: this.props.translate('profilePage.uploadPhoto'),
+                text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     openPicker({
                         onPicked: this.props.onImageSelected,
@@ -63,7 +84,7 @@ class AvatarWithImagePicker extends React.Component {
         if (!this.props.isUsingDefaultAvatar) {
             menuItems.push({
                 icon: Trashcan,
-                text: this.props.translate('profilePage.removePhoto'),
+                text: this.props.translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
                     this.props.onImageRemoved();
                 },
@@ -74,8 +95,9 @@ class AvatarWithImagePicker extends React.Component {
 
     render() {
         const {DefaultAvatar} = this.props;
+        const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
         return (
-            <View style={[styles.alignItemsCenter, ...this.props.style]}>
+            <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                 <View style={[styles.pRelative, styles.avatarLarge]}>
                     {this.props.avatarURL
                         ? (

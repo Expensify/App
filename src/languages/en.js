@@ -167,9 +167,11 @@ export default {
         useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
         emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
     },
-    profilePage: {
+    avatarWithImagePicker: {
         uploadPhoto: 'Upload Photo',
         removePhoto: 'Remove Photo',
+    },
+    profilePage: {
         profile: 'Profile',
         tellUsAboutYourself: 'Tell us about yourself, we would love to get to know you!',
         john: 'John',
