@@ -45,6 +45,16 @@ Onyx.connect({
     },
 });
 
+const iouReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+    callback: (iouReport, key) => {
+        if (iouReport && key && iouReport.ownerEmail) {
+            iouReports[key] = iouReport;
+        }
+    },
+});
+
 /**
  * Helper method to return a default avatar
  *
@@ -307,6 +317,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         const reportDraftComment = report
             && draftComments
             && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
+        const reportContainsUserOwedIOU = lodashGet(report, 'hasOutstandingIOU', false)
+            && lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '') !== currentUserLogin;
 
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
@@ -315,7 +327,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (report.reportID !== activeReportID
             && !report.isPinned
             && !shouldShowReportIfHasDraft
-            && shouldFilterReport) {
+            && shouldFilterReport
+            && !reportContainsUserOwedIOU) {
             return;
         }
 
