@@ -67,9 +67,9 @@ class ReportActionContextMenu extends React.Component {
         this.contextActions = [
             // Copy to clipboard
             {
-                text: this.props.translate('reportActionContextMenu.copyToClipboard'),
+                text: this.props.translate('contextMenuItem.copyToClipboard'),
                 icon: ClipboardIcon,
-                successText: this.props.translate('reportActionContextMenu.copied'),
+                successText: this.props.translate('contextMenuItem.copied'),
                 successIcon: Checkmark,
                 shouldShow: true,
 

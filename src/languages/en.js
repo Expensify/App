@@ -106,9 +106,11 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
     },
-    reportActionContextMenu: {
+    contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
         copied: 'Copied!',
+    },
+    reportActionContextMenu: {
         copyLink: 'Copy Link',
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
