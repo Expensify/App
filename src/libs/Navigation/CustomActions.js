@@ -1,4 +1,5 @@
 import {CommonActions, StackActions, DrawerActions} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
 
 /**
  * In order to create the desired browser navigation behavior on web and mobile web we need to replace any
@@ -17,13 +18,13 @@ function pushDrawerRoute(screenName, params, navigationRef) {
 
 
         // Avoid the navigation and refocus the report if we're trying to navigate to our active report
+        // We use our RootState as the dispatch's state is relative to the active navigator and might
+        // not contain our active report.
         const rootState = navigationRef.current.getRootState();
-        const activeReportID = rootState.routes[0].state.routes[0].params.reportID;
+        const activeReportID = lodashGet(rootState, 'routes[0].state.routes[0].params.reportID', '')
 
-        console.log(`activeReportID: ${activeReportID}, params.reportID: ${params.reportID}`)
-        console.log(params);
         if (activeReportID === params.reportID) {
-            if (state.type != 'drawer') {
+            if (state.type !== 'drawer') {
                 navigationRef.current.dispatch(StackActions.pop());
             }
             return DrawerActions.closeDrawer();
