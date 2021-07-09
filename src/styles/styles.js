@@ -385,6 +385,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     chatItemComposeSecondaryRowOffset: {
@@ -927,7 +928,7 @@ const styles = {
     },
 
     chatItemComposeWithFirstRow: {
-        minHeight: 85,
+        minHeight: 90,
     },
 
     chatItemComposeBoxColor: {
