@@ -42,7 +42,7 @@ function getIOUReportsForNewTransaction(requestParams) {
 
                     // Second, the IOU report needs updated with the new IOU details too
                     const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
-                    iouReportsToUpdate[iouReportKey] = getSimplifiedIOUReport(reportData, reportData.reportID);
+                    iouReportsToUpdate[iouReportKey] = getSimplifiedIOUReport(reportData, paramsForIOUReport.chatReportID);
                 }
             });
 
