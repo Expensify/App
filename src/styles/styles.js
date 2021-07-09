@@ -631,7 +631,7 @@ const styles = {
 
     createMenuPositionProfile: {
         right: 18,
-        top: 100,
+        top: 180,
     },
 
     createMenuPositionReportActionCompose: {
