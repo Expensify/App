@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Image, Text, View,
+    Image, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
@@ -8,6 +8,7 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot-wide.png';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
+import Text from '../../../components/Text';
 import WelcomeText from '../../../components/WelcomeText';
 import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';

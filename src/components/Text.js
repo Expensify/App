@@ -4,6 +4,7 @@ import _ from 'underscore';
 import {Text as RNText} from 'react-native';
 import fontFamily from '../styles/fontFamily';
 import themeColors from '../styles/themes/default';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** The color of the text */
@@ -28,14 +29,14 @@ const propTypes = {
 };
 const defaultProps = {
     color: themeColors.text,
-    fontSize: 15,
+    fontSize: variables.fontSizeNormal,
     family: 'GTA',
     textAlign: null,
     children: null,
     style: {},
 };
 
-const Text = ({
+const Text = React.forwardRef(({
     color,
     fontSize,
     textAlign,
@@ -43,7 +44,7 @@ const Text = ({
     family,
     style,
     ...props
-}) => {
+}, ref) => {
     // If the style prop is an array of styles, we need to mix them all together
     const mergedStyles = !_.isArray(style) ? style : _.reduce(style, (finalStyles, s) => ({
         ...finalStyles,
@@ -61,9 +62,9 @@ const Text = ({
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <RNText style={[componentStyle]} {...props}>{children}</RNText>
+        <RNText ref={ref} style={[componentStyle]} {...props}>{children}</RNText>
     );
-};
+});
 
 Text.propTypes = propTypes;
 Text.defaultProps = defaultProps;

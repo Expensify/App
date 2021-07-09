@@ -100,6 +100,7 @@ export default {
         writeSomething: 'Escribe algo...',
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
+        localTime: ({user, time}) => `Son las ${time} para ${user}`,
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
@@ -159,11 +160,12 @@ export default {
         useYourPhoneToSettleViaVenmo: 'Usa tu número de teléfono para pagar usando Venmo.',
         emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via email.',
     },
-    profilePage: {
+    avatarWithImagePicker: {
         uploadPhoto: 'Subir Foto',
         removePhoto: 'Eliminar Foto',
+    },
+    profilePage: {
         profile: 'Perfil',
-        editPhoto: 'Editar Foto',
         tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
         firstName: 'Nombre',
         john: 'Juan',
