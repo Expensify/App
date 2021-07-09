@@ -163,21 +163,17 @@ class IOUConfirmationList extends Component {
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
-            });
-
-            sections.push({
+            }, {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
                 data: this.state.selectedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
-            });
-
-            sections.push(({
+            }, {
                 title: undefined,
                 data: this.state.unselectedParticipants,
                 shouldShow: !_.isEmpty(this.state.unselectedParticipants),
                 indexOffset: 0,
-            }));
+            });
         } else {
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
                 this.props.numberFormat(this.props.iouAmount, {
