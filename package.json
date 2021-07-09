@@ -80,7 +80,7 @@
     "react-native-image-picker": "^4.0.3",
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-modal": "^11.10.0",
-    "react-native-onyx": "git+https://github.com/kidroca/react-native-onyx.git#064748fdc6ceef7c9ffe8c5fa62a30ef234aae2a",
+    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#84a27cdd03a39baa167058efc3379d9a477849dd",
     "react-native-pdf": "^6.2.2",
     "react-native-permissions": "^3.0.1",
     "react-native-picker-select": "8.0.4",
