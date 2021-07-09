@@ -628,8 +628,6 @@ function getSidebarOptions(
             hideReadReports: true,
             sortByAlphaAsc: true,
             showReportsWithDrafts: true,
-            prioritizePinnedReports: true,
-            prioritizeIOUDebts: true,
         };
     }
 
