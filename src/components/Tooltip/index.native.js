@@ -25,11 +25,10 @@ const defaultProps = {
  * @returns {ReactNodeLike}
  */
 const Tooltip = props => (
-    <View style={[props.containerStyles]}>
+    <View style={props.containerStyles}>
         {props.children}
     </View>
 );
-
 
 Tooltip.propTypes = propTypes;
 Tooltip.defaultProps = defaultProps;
