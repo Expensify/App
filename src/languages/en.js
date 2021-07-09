@@ -322,16 +322,9 @@ export default {
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: ({fromNow}) => `For security reasons, we're taking a break from bank account setup so you can double-check your company information. Please try again ${fromNow}. Sorry!`,
         existingOwnersError: {
-            alreadyInUse: ({existingOwners}) => `The bank account is already in use by ${existingOwners.reduce((ownersStr, owner, i, ownersArr) => {
-                let separator = ', ';
-                if (i === 0) {
-                    separator = '';
-                } else if (i === ownersArr.length - 1) {
-                    separator = ' and';
-                }
-                return `${separator}${owner}`;
-            }, '')
-            }. Please ask them to share it with you.\nAlternatively, you can `,
+            alreadyInUse: 'This bank account is already in use by ',
+            pleaseAskThemToShare: '.\n\nPlease ask them to share it with you.\n\n',
+            alternatively: 'Alternatively, you can ',
             setUpThisAccountByYourself: 'set up this account by yourself',
             validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
         },

@@ -417,6 +417,10 @@ const styles = {
         color: colors.gray3,
     },
 
+    cursorDefault: {
+        cursor: 'default',
+    },
+
     disabledTextInput: {
         backgroundColor: colors.gray1,
         color: colors.gray3,

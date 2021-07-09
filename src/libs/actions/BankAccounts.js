@@ -1,3 +1,4 @@
+import React from 'react';
 import {Text} from 'react-native';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
@@ -618,23 +619,44 @@ function setupWithdrawalAccount(data) {
 
                 // Show warning if another account already set up this bank account and promote share
                 if (response.existingOwners) {
-                    console.error('Cannot set up withdrawal account due to existing owners');
+                    const existingOwnersList = response.existingOwners.reduce((ownersStr, owner, i, ownersArr) => {
+                        let separator = ', ';
+                        if (i === 0) {
+                            separator = '';
+                        } else if (i === ownersArr.length - 1) {
+                            separator = ' and ';
+                        }
+                        return `${ownersStr}${separator}${owner}`;
+                    }, '');
                     const growlErrorElement = (
-                        <Text style={styles.growlNotificationText}>
+                        <Text style={[styles.growlNotificationText, styles.cursorDefault]}>
                             <Text>
-                                {this.props.translate('bankAccount.existingOwnersError.alreadyInUse')(response)}
+                                {translateLocal('bankAccount.existingOwnersError.alreadyInUse')}
                             </Text>
-                            <Text
-                                onPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY, achData)}
-                            >
-                                {this.props.translate('bankAccount.existingOwnersError.setUpThisAccountByYourself')}
+                            <Text style={styles.textStrong}>
+                                {existingOwnersList}
                             </Text>
                             <Text>
-                                {this.props.translate('bankAccount.existingOwnersError.validationProcessAgain')}
+                                {translateLocal('bankAccount.existingOwnersError.pleaseAskThemToShare')}
+                            </Text>
+
+                            <Text style={styles.textItalic}>
+                                <Text>
+                                    {translateLocal('bankAccount.existingOwnersError.alternatively')}
+                                </Text>
+                                <Text
+                                    style={styles.link}
+                                    onPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY, {})}
+                                >
+                                    {translateLocal('bankAccount.existingOwnersError.setUpThisAccountByYourself')}
+                                </Text>
+                                <Text>
+                                    {translateLocal('bankAccount.existingOwnersError.validationProcessAgain')}
+                                </Text>
                             </Text>
                         </Text>
                     );
-                    Growl.error(growlErrorElement, 8000);
+                    Growl.error(growlErrorElement, 10000);
                     return;
                 }
 
