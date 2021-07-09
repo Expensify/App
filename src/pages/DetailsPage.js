@@ -114,7 +114,7 @@ const DetailsPage = ({
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
-                                        <Text style={[styles.textP]} numberOfLines={1}>
+                                        <Text numberOfLines={1}>
                                             {isSMSLogin
                                                 ? toLocalPhone(getPhoneNumber(details))
                                                 : details.login}
@@ -127,7 +127,7 @@ const DetailsPage = ({
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {translate('profilePage.preferredPronouns')}
                                     </Text>
-                                    <Text style={[styles.textP]} numberOfLines={1}>
+                                    <Text numberOfLines={1}>
                                         {details.pronouns}
                                     </Text>
                                 </View>
@@ -137,7 +137,7 @@ const DetailsPage = ({
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {translate('detailsPage.localTime')}
                                     </Text>
-                                    <Text style={[styles.textP]} numberOfLines={1}>
+                                    <Text numberOfLines={1}>
                                         {timezone.format('LT')}
                                         {' '}
                                         {currentTime}

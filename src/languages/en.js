@@ -105,6 +105,7 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
+        localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
     contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
@@ -168,11 +169,12 @@ export default {
         useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
         emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
     },
-    profilePage: {
+    avatarWithImagePicker: {
         uploadPhoto: 'Upload Photo',
         removePhoto: 'Remove Photo',
+    },
+    profilePage: {
         profile: 'Profile',
-        editPhoto: 'Edit Photo',
         tellUsAboutYourself: 'Tell us about yourself, we would love to get to know you!',
         john: 'John',
         doe: 'Doe',
@@ -270,6 +272,7 @@ export default {
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
+        enterYourTwoFactorAuthenticationCodeToContinue: 'Enter your two factor authentication code to continue',
         forgot: 'Forgot?',
         twoFactorCode: 'Two Factor Code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
