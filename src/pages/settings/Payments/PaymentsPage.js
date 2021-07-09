@@ -113,7 +113,6 @@ class PaymentsPage extends React.Component {
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
-                            isLoading={this.state.isLoadingPaymentMethods}
                         />
                     </View>
                     <Popover
