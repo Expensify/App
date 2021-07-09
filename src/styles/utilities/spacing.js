@@ -69,6 +69,10 @@ export default {
         marginRight: 16,
     },
 
+    mr5: {
+        marginRight: 20,
+    },
+
     ml1: {
         marginLeft: 4,
     },
