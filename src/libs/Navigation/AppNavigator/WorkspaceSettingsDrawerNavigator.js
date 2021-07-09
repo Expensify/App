@@ -3,6 +3,7 @@ import React from 'react';
 // Screens
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import WorkspaceCardPage from '../../../pages/workspace/WorkspaceCardPage';
+import WorkspacePeoplePage from '../../../pages/workspace/WorkspacePeoplePage';
 import WorkspaceSidebar from '../../../pages/workspace/WorkspaceSidebar';
 
 const WorkspaceSettingsDrawerNavigator = () => (
@@ -13,6 +14,11 @@ const WorkspaceSettingsDrawerNavigator = () => (
             {
                 name: 'WorkspaceCard',
                 component: WorkspaceCardPage,
+                initialParams: {},
+            },
+            {
+                name: 'WorkspacePeople',
+                component: WorkspacePeoplePage,
                 initialParams: {},
             },
         ]}
