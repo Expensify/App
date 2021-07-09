@@ -62,7 +62,7 @@ function navigate(route = ROUTES.HOME) {
     // have a participants route since those should go through linkTo() as they open a different screen.
     const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
     if (reportID && !isParticipantsRoute) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}));
+        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}, navigationRef));
         return;
     }
 
