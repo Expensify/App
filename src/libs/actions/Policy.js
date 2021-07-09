@@ -41,13 +41,13 @@ function getSimplifiedPolicyObject(fullPolicy) {
 }
 
 /**
- * Simplifies the policyList response into an object containing an array of emails
+ * Simplifies the employeeList response into an object containing an array of emails
  *
- * @param {Object} fullPolicy
+ * @param {Object} employeeList
  * @returns {Array}
  */
-function getSimplifiedEmployeeList(fullPolicy) {
-    const employeeListEmails = _.chain(fullPolicy.value.employeeList)
+function getSimplifiedEmployeeList(employeeList) {
+    const employeeListEmails = _.chain(employeeList)
         .pluck('email')
         .flatten()
         .unique()
@@ -82,7 +82,7 @@ function getPolicyList() {
                 const policyDataToStore = _.reduce(data.policyList, (memo, policy) => ({
                     ...memo,
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: {
-                        employeeList: getSimplifiedEmployeeList(policy),
+                        employeeList: getSimplifiedEmployeeList(policy.value.employeeList),
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
                     },
                 }), {});
@@ -193,6 +193,7 @@ function create(name) {
             }
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+                employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
                 id: response.policyID,
                 type: response.policy.type,
                 name: response.policy.name,
