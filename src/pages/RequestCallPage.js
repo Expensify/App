@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Text, TextInput} from 'react-native';
+import {View, TextInput} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -19,6 +19,7 @@ import Growl from '../libs/Growl';
 import {requestConciergeDMCall} from '../libs/actions/Inbox';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
+import Text from '../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -152,10 +153,10 @@ class RequestCallPage extends Component {
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.p5]}>
-                    <Text style={[styles.mb4, styles.textP]}>
+                    <Text style={[styles.mb4]}>
                         {this.props.translate('requestCallPage.description')}
                     </Text>
-                    <Text style={[styles.mt4, styles.mb4, styles.textP]}>
+                    <Text style={[styles.mt4, styles.mb4]}>
                         {this.props.translate('requestCallPage.instructions')}
                     </Text>
                     <FullNameInputRow
