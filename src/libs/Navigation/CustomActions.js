@@ -11,17 +11,16 @@ import lodashGet from 'lodash/get';
  *
  * @param {String} screenName
  * @param {Object} params
+ * @param {Object} navigationRef
  * @returns {Function}
  */
 function pushDrawerRoute(screenName, params, navigationRef) {
     return (state) => {
-
-
         // Avoid the navigation and refocus the report if we're trying to navigate to our active report
         // We use our RootState as the dispatch's state is relative to the active navigator and might
         // not contain our active report.
         const rootState = navigationRef.current.getRootState();
-        const activeReportID = lodashGet(rootState, 'routes[0].state.routes[0].params.reportID', '')
+        const activeReportID = lodashGet(rootState, 'routes[0].state.routes[0].params.reportID', '');
 
         if (activeReportID === params.reportID) {
             if (state.type !== 'drawer') {
