@@ -312,6 +312,15 @@ export default {
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque para la cuenta.',
         hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrese de que su inicio de sesión principal sea un correo electrónico válido y vuelva a intentarlo. Puede agregar su número de teléfono como inicio de sesión secundario.',
         hasBeenThrottledError: ({fromNow}) => `Por razones de seguridad, nos tomamos un descanso de la configuración de la cuenta bancaria para que pueda verificar la información de su empresa. Inténtalo de nuevo ${fromNow}. ¡Lo siento!`,
+
+        // TODO: Get translations after copy fix
+        existingOwnersError: {
+            alreadyInUse: 'This bank account is already in use by ',
+            pleaseAskThemToShare: '.\n\nPlease ask them to share it with you.\n\n',
+            alternatively: 'Alternatively, you can ',
+            setUpThisAccountByYourself: 'set up this account by yourself',
+            validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
+        },
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             taxID: 'Ingrese un número de identificación fiscal válido',
