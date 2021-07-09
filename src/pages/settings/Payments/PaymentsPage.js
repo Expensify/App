@@ -106,7 +106,7 @@ class PaymentsPage extends React.Component {
                                 {this.props.translate('paymentsPage.paymentMethodsTitle')}
                             </Text>
                             {
-                                !this.state.isLoadingPaymentMethods
+                                this.state.isLoadingPaymentMethods
                                 && <ActivityIndicator color={themeColors.spinner} style={[styles.mr5]} />
                             }
                         </View>
