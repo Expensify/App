@@ -28,7 +28,7 @@ const types = {
     },
 };
 
-const INACTIVE_POSITION_Y = -255;
+const INACTIVE_POSITION_Y = -300;
 
 class GrowlNotification extends Component {
     constructor() {
@@ -93,7 +93,7 @@ class GrowlNotification extends Component {
     fling(val = INACTIVE_POSITION_Y) {
         Animated.spring(this.state.translateY, {
             toValue: val,
-            duration: 80,
+            duration: 100,
             useNativeDriver: true,
         }).start();
     }
