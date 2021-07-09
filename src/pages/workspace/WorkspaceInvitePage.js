@@ -17,7 +17,6 @@ import TextLink from '../../components/TextLink';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import themeColors from '../../styles/themes/default';
 import Growl from '../../libs/Growl';
-import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -72,7 +71,7 @@ class WorkspaceInvitePage extends React.Component {
      */
     inviteUser() {
         if (!Str.isValidEmail(this.state.emailOrPhone) && !Str.isValidPhone(this.state.emailOrPhone)) {
-            Growl.show(this.props.translate('workspace.invite.pleaseEnterValidLogin'), CONST.GROWL.ERROR, 5000);
+            Growl.error(this.props.translate('workspace.invite.pleaseEnterValidLogin'), 5000);
             return;
         }
 
@@ -90,11 +89,11 @@ class WorkspaceInvitePage extends React.Component {
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <View style={styles.flexGrow1}>
-                        <Text style={[styles.mb6, styles.textP]}>
+                        <Text style={[styles.mb6]}>
                             {this.props.translate('workspace.invite.invitePeoplePrompt')}
                         </Text>
                         <View style={styles.mb6}>
-                            <Text style={[styles.textP, styles.mb2]}>
+                            <Text style={[styles.mb2]}>
                                 {this.props.translate('workspace.invite.enterEmailOrPhone')}
                             </Text>
                             <TextInput
@@ -108,7 +107,7 @@ class WorkspaceInvitePage extends React.Component {
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.textP, styles.mb2]}>
+                            <Text style={[styles.mb2]}>
                                 {this.props.translate('workspace.invite.personalMessagePrompt')}
                             </Text>
                             <TextInput

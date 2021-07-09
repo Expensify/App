@@ -3,6 +3,7 @@ import {TextInput} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import themeColors from '../../styles/themes/default';
+import CONST from '../../CONST';
 
 /**
  * On native layers we like to have the Text Input not focused so the user can read new chats without they keyboard in
@@ -73,7 +74,7 @@ class TextInputFocusable extends React.Component {
             <TextInput
                 placeholderTextColor={themeColors.placeholderText}
                 ref={el => this.textInput = el}
-                maxHeight={116}
+                maxHeight={CONST.COMPOSER_MAX_HEIGHT}
                 rejectResponderTermination={false}
                 editable={!this.props.isDisabled}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */

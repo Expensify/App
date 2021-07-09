@@ -33,13 +33,16 @@ const propTypes = {
     /** When the input has cleared whoever owns this input should know about it */
     onClear: PropTypes.func,
 
-    /** Callback to fire when a file has been dragged into the text input */
+    /** Callback to fire when a file has being dragged over the text input & report body */
+    onDragOver: PropTypes.func,
+
+    /** Callback to fire when a file has been dragged into the text input & report body */
     onDragEnter: PropTypes.func,
 
-    /** Callback to fire when the user is no longer dragging over the text input */
+    /** Callback to fire when the user is no longer dragging over the text input & report body */
     onDragLeave: PropTypes.func,
 
-    /** Callback to fire when a file is dropped on the text input */
+    /** Callback to fire when a file is dropped on the text input & report body */
     onDrop: PropTypes.func,
 
     /** Whether or not this TextInput is disabled. */
@@ -70,12 +73,13 @@ const defaultProps = {
     onClear: () => {},
     style: null,
     onDragEnter: () => {},
+    onDragOver: () => {},
     onDragLeave: () => {},
     onDrop: () => {},
     isDisabled: false,
     autoFocus: false,
     forwardedRef: null,
-    onSelectionChange: () => { },
+    onSelectionChange: () => {},
     selection: {
         start: 0,
         end: 0,
@@ -115,6 +119,7 @@ class TextInputFocusable extends React.Component {
             end: initialValue.length,
         };
         this.saveSelection = this.saveSelection.bind(this);
+        this.dragNDropListener = this.dragNDropListener.bind(this);
     }
 
     componentDidMount() {
@@ -132,10 +137,11 @@ class TextInputFocusable extends React.Component {
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
             // Firefox will not allow dropping unless we call preventDefault on the dragover event
-            this.textInput.addEventListener('dragover', e => e.preventDefault());
-            this.textInput.addEventListener('dragenter', this.props.onDragEnter);
-            this.textInput.addEventListener('dragleave', this.props.onDragLeave);
-            this.textInput.addEventListener('drop', this.props.onDrop);
+            // We listen on document to extend the Drop area beyond Composer
+            document.addEventListener('dragover', this.dragNDropListener);
+            document.addEventListener('dragenter', this.dragNDropListener);
+            document.addEventListener('dragleave', this.dragNDropListener);
+            document.addEventListener('drop', this.dragNDropListener);
             this.textInput.addEventListener('paste', this.checkForAttachment.bind(this));
         }
     }
@@ -159,10 +165,10 @@ class TextInputFocusable extends React.Component {
 
     componentWillUnmount() {
         if (this.textInput) {
-            this.textInput.addEventListener('dragover', e => e.preventDefault());
-            this.textInput.removeEventListener('dragenter', this.props.onDragEnter);
-            this.textInput.removeEventListener('dragleave', this.props.onDragLeave);
-            this.textInput.removeEventListener('drop', this.props.onDrop);
+            document.removeEventListener('dragover', this.dragNDropListener);
+            document.removeEventListener('dragenter', this.dragNDropListener);
+            document.removeEventListener('dragleave', this.dragNDropListener);
+            document.removeEventListener('drop', this.dragNDropListener);
             this.textInput.removeEventListener('paste', this.checkForAttachment.bind(this));
         }
     }
@@ -181,6 +187,46 @@ class TextInputFocusable extends React.Component {
         let newNumberOfLines = Math.ceil((scrollHeight - paddingTopAndBottom) / lineHeight);
         newNumberOfLines = maxLines <= 0 ? newNumberOfLines : Math.min(newNumberOfLines, maxLines);
         return newNumberOfLines;
+    }
+
+    /**
+     * Handles all types of drag-N-drop events on the composer
+     *
+     * @param {Object} e native Event
+     * @memberof TextInputFocusable
+     */
+    dragNDropListener(e) {
+        let isOriginComposer = false;
+        const handler = () => {
+            switch (e.type) {
+                case 'dragover':
+                    e.preventDefault();
+                    this.props.onDragOver(e, isOriginComposer);
+                    break;
+                case 'dragenter':
+                    e.dataTransfer.dropEffect = 'copy';
+                    this.props.onDragEnter(e, isOriginComposer);
+                    break;
+                case 'dragleave':
+                    this.props.onDragLeave(e, isOriginComposer);
+                    break;
+                case 'drop':
+                    this.props.onDrop(e, isOriginComposer);
+                    break;
+                default: break;
+            }
+        };
+
+        // We first check if drop target is composer so that it can be highlighted
+        if (this.textInput.contains(e.target)) {
+            isOriginComposer = true;
+            handler();
+            return;
+        }
+
+        if (document.getElementById(CONST.REPORT.DROP_NATIVE_ID).contains(e.target)) {
+            handler();
+        }
     }
 
     /**
@@ -230,7 +276,7 @@ class TextInputFocusable extends React.Component {
                     .then(this.props.onPasteFile)
                     .catch(() => {
                         const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
-                        Growl.show(errorDesc, CONST.GROWL.ERROR);
+                        Growl.error(errorDesc);
 
                         /*
                         * Since we intercepted the user-triggered paste event to check for attachments,

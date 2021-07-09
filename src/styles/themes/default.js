@@ -26,6 +26,9 @@ export default {
     buttonDefaultBG: colors.gray2,
     buttonSuccessBG: colors.green,
     buttonSuccessHoveredBG: colors.greenHover,
+    buttonDangerBG: colors.red,
+    buttonDangerPressedBG: colors.redHover,
+    buttonDangerDisabledBG: colors.redDisabled,
     online: colors.green,
     offline: colors.gray3,
     sidebarButtonBG: 'rgba(198, 201, 202, 0.25)',
@@ -42,4 +45,5 @@ export default {
     spinner: colors.gray4,
     unreadIndicator: colors.green,
     placeholderText: colors.gray3,
+    heroCard: colors.blue,
 };

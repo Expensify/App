@@ -34,7 +34,7 @@ class Onfido extends React.Component {
             .catch((error) => {
                 if (error.message === CONST.ONFIDO.ERROR.USER_CANCELLED) {
                     this.props.onUserExit();
-                    Growl.show(this.props.translate('onfidoStep.genericError'), CONST.GROWL.ERROR);
+                    Growl.error(this.props.translate('onfidoStep.genericError'));
                 }
             });
     }

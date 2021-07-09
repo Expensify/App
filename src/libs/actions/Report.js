@@ -18,11 +18,11 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
+import {isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 import Growl from '../Growl';
-import {translate} from '../translate';
+import {translateLocal} from '../translate';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -55,16 +55,6 @@ Onyx.connect({
     callback: (val) => {
         if (val && val.reportID) {
             allReports[val.reportID] = val;
-        }
-    },
-});
-
-let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: (preferredLocale) => {
-        if (preferredLocale) {
-            translateLocal = (phrase, variables) => translate(preferredLocale, phrase, variables);
         }
     },
 });
@@ -133,12 +123,18 @@ function getParticipantEmailsFromReport({sharedReportList}) {
 }
 
 /**
- * Returns a generated report title based on the participants
+ * Returns the title for a default room or generates one based on the participants
  *
- * @param {Array} sharedReportList
+ * @param {Object} fullReport
+ * @param {String} chatType
  * @return {String}
  */
-function getChatReportName(sharedReportList) {
+function getChatReportName(fullReport, chatType) {
+    if (isDefaultRoom({chatType})) {
+        return `#${fullReport.reportName}`;
+    }
+
+    const {sharedReportList} = fullReport;
     return _.chain(sharedReportList)
         .map(participant => participant.email)
         .filter(participant => participant !== currentUserEmail)
@@ -163,6 +159,7 @@ function getSimplifiedReportObject(report) {
     const createTimestamp = lastReportAction ? lastReportAction.created : 0;
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
     const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lodashGet(lastReportAction, ['message', 'html'], ''));
+    const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
     // We are removing any html tags from the message html since we cannot access the text version of any comments as
     // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
@@ -171,14 +168,17 @@ function getSimplifiedReportObject(report) {
         .replace(/((<br[^>]*>)+)/gi, ' ')
         .replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
-        ? getChatReportName(report.sharedReportList)
+        ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
+    const notificationPreference = isDefaultRoom({chatType})
+        ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
+        : '';
 
     return {
         reportID: report.reportID,
         reportName,
-        chatType: lodashGet(report, ['reportNameValuePairs', 'chatType'], ''),
+        chatType,
         ownerEmail: lodashGet(report, ['ownerEmail'], ''),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
@@ -194,6 +194,7 @@ function getSimplifiedReportObject(report) {
         lastMessageText: isLastMessageAttachment ? '[Attachment]' : lastMessageText,
         lastActorEmail,
         hasOutstandingIOU: false,
+        notificationPreference,
     };
 }
 
@@ -566,8 +567,8 @@ function updateReportWithNewAction(reportID, reportAction, notificationPreferenc
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
 
-    // If chat report receives an action with IOU, update IOU object
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+    // If chat report receives an action with IOU and we have an IOUReportID, update IOU object
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction.originalMessage.IOUReportID) {
         const iouReportID = reportAction.originalMessage.IOUReportID;
 
         // We know this iouReport is open because reportActions of type CONST.REPORT.ACTIONS.TYPE.IOU can only be
@@ -1057,7 +1058,7 @@ function addAction(reportID, text, file) {
     })
         .then((response) => {
             if (response.jsonCode === 408) {
-                Growl.show(translateLocal('reportActionCompose.fileUploadFailed'), CONST.GROWL.ERROR);
+                Growl.error(translateLocal('reportActionCompose.fileUploadFailed'));
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [optimisticReportActionID]: null,
                 });
@@ -1076,9 +1077,10 @@ function addAction(reportID, text, file) {
  */
 function deleteReportComment(reportID, reportAction) {
     // Optimistic Response
+    const sequenceNumber = reportAction.sequenceNumber;
     const reportActionsToMerge = {};
     const oldMessage = {...reportAction.message};
-    reportActionsToMerge[reportAction.sequenceNumber] = {
+    reportActionsToMerge[sequenceNumber] = {
         ...reportAction,
         message: [
             {
@@ -1096,11 +1098,12 @@ function deleteReportComment(reportID, reportAction) {
         reportID,
         reportActionID: reportAction.reportActionID,
         reportComment: '',
+        sequenceNumber,
     })
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Reverse Optimistic Response
-                reportActionsToMerge[reportAction.sequenceNumber] = {
+                reportActionsToMerge[sequenceNumber] = {
                     ...reportAction,
                     message: oldMessage,
                 };
@@ -1266,6 +1269,51 @@ function saveReportActionDraft(reportID, reportActionID, draftMessage) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${reportActionID}`, draftMessage);
 }
 
+/**
+ * Syncs up a chat report and an IOU report in Onyx after an IOU transaction has been made
+ * by setting the iouReportID and hasOutstandingIOU for the chat report.
+ * Even though both reports are updated in the back-end, the API doesn't handle syncing their reportIDs.
+ * If we didn't sync these reportIDs, the paid IOU would still be shown to users as unpaid.
+ * The iouReport being fetched here must be open, because only an open iouReport can be paid.
+ *
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ */
+function syncChatAndIOUReports(chatReport, iouReport) {
+    // Return early in case there's a back-end issue preventing the IOU command from returning the report objects.
+    if (!chatReport || !iouReport) {
+        return;
+    }
+
+    const simplifiedIouReport = {};
+    const simplifiedReport = {};
+    const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`;
+    const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReport.reportID}`;
+
+    // We don't want to sync an iou report that's already been reimbursed with its chat report.
+    if (!iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
+        simplifiedReport[chatReportKey].iouReportID = iouReport.reportID;
+    }
+    simplifiedReport[chatReportKey] = getSimplifiedReportObject(chatReport);
+    simplifiedReport[chatReportKey].hasOutstandingIOU = iouReport.stateNum
+        === (CONST.REPORT.STATE_NUM.PROCESSING && iouReport.total !== 0);
+    simplifiedIouReport[iouReportKey] = getSimplifiedIOUReport(iouReport, chatReport.reportID);
+
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_IOUS, simplifiedIouReport);
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReport);
+}
+
+/**
+ * Updates a user's notification preferences for a chat room
+ *
+ * @param {Number} reportID
+ * @param {String} notificationPreference
+ */
+function updateNotificationPreference(reportID, notificationPreference) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {notificationPreference});
+    API.Report_UpdateNotificationPreference({reportID, notificationPreference});
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1275,6 +1323,7 @@ export {
     fetchIOUReportByIDAndUpdateChatReport,
     addAction,
     updateLastReadActionID,
+    updateNotificationPreference,
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,
@@ -1287,4 +1336,5 @@ export {
     saveReportActionDraft,
     deleteReportComment,
     getSimplifiedIOUReport,
+    syncChatAndIOUReports,
 };

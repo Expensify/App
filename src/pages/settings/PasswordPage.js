@@ -52,6 +52,7 @@ class PasswordPage extends Component {
         };
 
         this.handleChangePassword = this.handleChangePassword.bind(this);
+        this.currentPasswordInputRef = null;
     }
 
     componentWillUnmount() {
@@ -69,7 +70,12 @@ class PasswordPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (this.currentPasswordInputRef) {
+                    this.currentPasswordInputRef.focus();
+                }
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('passwordPage.changePassword')}
@@ -78,7 +84,7 @@ class PasswordPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <Text style={[styles.mb6, styles.textP]}>
+                        <Text style={[styles.mb6]}>
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
                         </Text>
                         <View style={styles.mb6}>
@@ -86,12 +92,14 @@ class PasswordPage extends Component {
                                 {`${this.props.translate('passwordPage.currentPassword')}*`}
                             </Text>
                             <TextInput
+                                ref={el => this.currentPasswordInputRef = el}
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
                                 style={styles.textInput}
                                 value={this.state.currentPassword}
                                 onChangeText={currentPassword => this.setState({currentPassword})}
+                                returnKeyType="done"
                             />
                         </View>
                         <View style={styles.mb6}>

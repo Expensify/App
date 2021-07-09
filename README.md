@@ -46,6 +46,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 
 ## Running the Android app 🤖
 * To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
+* Make sure you have Java installed `java -version`. If not, install it by running `npm install -g openjdk8`.
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
@@ -150,7 +151,7 @@ In most cases, the code written for this repo should be platform-independent. In
 - Web => `index.website.js`
 - Desktop => `index.desktop.js`
 
-Note that `index.js` should be the default. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`, nor should `index.js` be included in the same module as `index.website.js` or `index.desktop.js`.
+Note that `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`. Furthermore, `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
 
 ## API building
 When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always

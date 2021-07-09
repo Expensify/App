@@ -22,6 +22,9 @@ import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import CONST from '../../CONST';
+import {getDefaultRoomSubtitle, isDefaultRoom} from '../../libs/reportUtils';
+import Text from '../../components/Text';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -43,6 +46,12 @@ const propTypes = {
         /** Value indicating if the report is pinned or not */
         isPinned: PropTypes.bool,
     }),
+
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }).isRequired,
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
@@ -69,7 +78,14 @@ const HeaderView = (props) => {
             };
         },
     );
-    const fullTitle = displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+    const isDefaultChatRoom = isDefaultRoom(props.report);
+    const title = isDefaultChatRoom
+        ? props.report.reportName
+        : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+
+    const subtitle = getDefaultRoomSubtitle(props.report, props.policies);
+    const isConcierge = participants.length === 1 && participants.includes(CONST.EMAIL.CONCIERGE);
+
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -92,6 +108,9 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
+                                if (isDefaultRoom(props.report)) {
+                                    return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
+                                }
                                 if (participants.length === 1) {
                                     return Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
                                 }
@@ -103,21 +122,30 @@ const HeaderView = (props) => {
                                 avatarImageURLs={props.report.icons}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                             />
-                            <View style={[styles.flex1, styles.flexRow]}>
+                            <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
-                                    fullTitle={fullTitle}
+                                    fullTitle={title}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText]}
+                                    shouldUseFullTitle={isDefaultChatRoom}
                                 />
+                                {isDefaultChatRoom && (
+                                    <Text
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mt1]}
+                                        numberOfLines={1}
+                                    >
+                                        {subtitle}
+                                    </Text>
+                                )}
                             </View>
                         </Pressable>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                             {props.report.hasOutstandingIOU && (
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
-                            <VideoChatButtonAndMenu />
+                            <VideoChatButtonAndMenu isConcierge={isConcierge} />
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}
@@ -144,6 +172,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(HeaderView);
