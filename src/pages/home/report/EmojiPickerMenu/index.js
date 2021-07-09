@@ -63,7 +63,6 @@ class EmojiPickerMenu extends Component {
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
-        this.toggleArrowKeysOnSearchInput = this.toggleArrowKeysOnSearchInput.bind(this);
         this.setupEventHandlers = this.setupEventHandlers.bind(this);
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
@@ -102,20 +101,31 @@ class EmojiPickerMenu extends Component {
         if (document) {
             this.keyDownHandler = (keyBoardEvent) => {
                 if (keyBoardEvent.key.startsWith('Arrow')) {
-                    // Depending on the position of the highlighted emoji after moving and rendering,
-                    // toggle which arrow keys can affect the cursor position in the search input.
-                    this.toggleArrowKeysOnSearchInput(keyBoardEvent);
-
                     // Move the highlight when arrow keys are pressed
                     this.highlightAdjacentEmoji(keyBoardEvent.key);
+                    return;
                 }
 
                 // Select the currently highlighted emoji if enter is pressed
                 if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
                     this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
+                    return;
+                }
+
+                // We allow typing in the search box if any key is pressed apart from Arrow keys.
+                if (this.searchInput && !this.searchInput.isFocused()) {
+                    this.setState({selectTextOnFocus: false});
+                    this.searchInput.value = '';
+                    this.searchInput.focus();
+
+                    // Re-enable selection on the searchInput
+                    this.setState({selectTextOnFocus: true});
                 }
             };
-            document.addEventListener('keydown', this.keyDownHandler);
+
+            // Keyboard events are not bubbling on TextInput in RN-Web, Bubbling was needed for this event to trigger
+            // event handler attached to document root. To fix this, trigger event handler in Capture phase.
+            document.addEventListener('keydown', this.keyDownHandler, true);
 
             // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
             this.mouseMoveHandler = () => {
@@ -132,7 +142,7 @@ class EmojiPickerMenu extends Component {
      */
     cleanupEventHandlers() {
         if (document) {
-            document.removeEventListener('keydown', this.keyDownHandler);
+            document.removeEventListener('keydown', this.keyDownHandler, true);
             document.removeEventListener('mousemove', this.mouseMoveHandler);
         }
     }
@@ -144,6 +154,20 @@ class EmojiPickerMenu extends Component {
     highlightAdjacentEmoji(arrowKey) {
         const firstNonHeaderIndex = this.state.filteredEmojis.length === this.emojis.length ? this.numColumns : 0;
 
+        // Arrow Down enable arrow navigation when search is focused
+        if (this.searchInput && this.searchInput.isFocused() && this.state.filteredEmojis.length) {
+            if (arrowKey !== 'ArrowDown') {
+                return;
+            }
+            this.searchInput.blur();
+
+            // We only want to hightlight the Emoji if none was highlighted already
+            // If we already have a highlighted Emoji, lets just skip the first navigation
+            if (this.state.highlightedIndex !== -1) {
+                return;
+            }
+        }
+
         // If nothing is highlighted and an arrow key is pressed
         // select the first emoji
         if (this.state.highlightedIndex === -1) {
@@ -153,8 +177,9 @@ class EmojiPickerMenu extends Component {
         }
 
         let newIndex = this.state.highlightedIndex;
-        const move = (steps, boundsCheck) => {
+        const move = (steps, boundsCheck, onBoundReached = () => {}) => {
             if (boundsCheck()) {
+                onBoundReached();
                 return;
             }
 
@@ -179,7 +204,19 @@ class EmojiPickerMenu extends Component {
                 move(1, () => this.state.highlightedIndex + 1 > this.state.filteredEmojis.length - 1);
                 break;
             case 'ArrowUp':
-                move(-this.numColumns, () => this.state.highlightedIndex - this.numColumns < firstNonHeaderIndex);
+                move(
+                    -this.numColumns,
+                    () => this.state.highlightedIndex - this.numColumns < firstNonHeaderIndex,
+                    () => {
+                        if (!this.searchInput) {
+                            return;
+                        }
+
+                        // Reaching start of the list, arrow up set the focus to searchInput.
+                        this.searchInput.focus();
+                        newIndex = -1;
+                    },
+                );
                 break;
             default:
                 break;
@@ -258,27 +295,6 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Toggles which arrow keys can affect the cursor in the search input,
-     * depending on whether the arrow keys will affect the index of the highlighted emoji.
-     *
-     * @param {KeyboardEvent} arrowKeyBoardEvent
-     */
-    toggleArrowKeysOnSearchInput(arrowKeyBoardEvent) {
-        let keysToIgnore = ['ArrowDown', 'ArrowRight', 'ArrowLeft', 'ArrowUp'];
-        if (this.state.highlightedIndex === 0 && this.state.filteredEmojis.length) {
-            keysToIgnore = ['ArrowDown', 'ArrowRight'];
-        } else if (this.state.highlightedIndex === this.state.filteredEmojis.length - 1) {
-            keysToIgnore = ['ArrowLeft', 'ArrowUp'];
-        }
-
-        // Moving the cursor is the default behavior for arrow key presses while an input is focused,
-        // so prevent it
-        if (keysToIgnore.includes(arrowKeyBoardEvent.key)) {
-            arrowKeyBoardEvent.preventDefault();
-        }
-    }
-
-    /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly
@@ -329,6 +345,7 @@ class EmojiPickerMenu extends Component {
                             defaultValue=""
                             ref={el => this.searchInput = el}
                             autoFocus
+                            selectTextOnFocus={this.state.selectTextOnFocus}
                         />
                     </View>
                 )}
