@@ -378,6 +378,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     chatItemComposeSecondaryRowOffset: {
@@ -920,7 +921,7 @@ const styles = {
     },
 
     chatItemComposeWithFirstRow: {
-        minHeight: 85,
+        minHeight: 90,
     },
 
     chatItemComposeBoxColor: {
@@ -1671,22 +1672,20 @@ const styles = {
         width: '150%',
     },
 
-    workspaceSidebarAvatar: {
-        width: 80,
-        height: 80,
-    },
-
-    workspaceSidebarAvatarPencil: {
-        width: 32,
-        height: 32,
-        position: 'absolute',
-        right: -1,
-        bottom: -1,
+    smallEditIcon: {
+        alignItems: 'center',
         backgroundColor: themeColors.icon,
-        color: themeColors.textReversed,
-        borderRadius: 32,
-        borderWidth: 3,
         borderColor: themeColors.textReversed,
+        borderRadius: 16,
+        borderWidth: 3,
+        bottom: -4,
+        color: themeColors.textReversed,
+        height: 32,
+        justifyContent: 'center',
+        padding: 4,
+        position: 'absolute',
+        right: -4,
+        width: 32,
     },
 
     workspaceCard: {
