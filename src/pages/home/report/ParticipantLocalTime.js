@@ -58,10 +58,12 @@ class ParticipantLocalTime extends React.Component {
         return (
             isReportRecipientLocalTimeReady ? (
                 <View style={[styles.chatItemComposeSecondaryRow]}>
-                    <ExpensiText style={[
-                        styles.chatItemComposeSecondaryRowSubText,
-                        styles.chatItemComposeSecondaryRowOffset,
-                    ]}
+                    <ExpensiText
+                        style={[
+                            styles.chatItemComposeSecondaryRowSubText,
+                            styles.chatItemComposeSecondaryRowOffset,
+                        ]}
+                        numberOfLines={1}
                     >
                         {this.props.translate(
                             'reportActionCompose.localTime',
