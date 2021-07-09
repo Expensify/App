@@ -566,17 +566,6 @@ function validateBankAccount(bankAccountID, validateCode) {
  * @param {Object} [data]
  */
 function setupWithdrawalAccount(data) {
-
-    Growl.error(
-        CONST.GROWL.TEMPLATE.BANK_ACCOUNT_EXISTING_OWNERS,
-        10000,
-        {
-            existingOwners: ['jasper@jasper.jasper', 'marc@marc.marc', 'mitch@mitch.mitch'],
-            achData: {},
-        },
-    );
-    return;
-
     let nextStep;
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
 
