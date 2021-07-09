@@ -15,7 +15,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** Styles to be assigned to Container */
-    style: PropTypes.arrayOf(PropTypes.object),
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Decides Tap behaviour. */
     type: PropTypes.oneOf([CONST.LOGIN_TYPE.PHONE, CONST.LOGIN_TYPE.EMAIL]),
@@ -28,12 +28,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-    style: [],
+    containerStyles: [],
     type: undefined,
 };
 
 const CommunicationsLink = props => (
-    <View style={[styles.flexRow, styles.pRelative, ...props.style]}>
+    <View style={[styles.flexRow, styles.pRelative, ...props.containerStyles]}>
         {props.type && props.isSmallScreenWidth
             ? (
                 <Pressable
