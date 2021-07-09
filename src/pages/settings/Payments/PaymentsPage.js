@@ -97,15 +97,18 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <View style={[styles.flex1]}>
+                    <View>
                         <CurrentWalletBalance />
-                        <View>
+                        <View style={[styles.flex1, styles.flexRow, styles.mb5, styles.alignItemsCenter]}>
                             <Text
-                                style={[styles.ph5, styles.textStrong, styles.justifyContentStart]}
+                                style={[styles.ph5, styles.textStrong, styles.justifyContentStart, styles.flex1]}
                             >
                                 {this.props.translate('paymentsPage.paymentMethodsTitle')}
                             </Text>
-                            {!this.state.isLoadingPaymentMethods && <ActivityIndicator color={themeColors.spinner} style={styles.justifyContentEnd} />}
+                            {
+                                !this.state.isLoadingPaymentMethods
+                                && <ActivityIndicator color={themeColors.spinner} style={[styles.mr5]} />
+                            }
                         </View>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
