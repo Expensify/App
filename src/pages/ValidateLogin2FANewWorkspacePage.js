@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Text, TextInput, View} from 'react-native';
+import {TextInput, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -12,6 +12,7 @@ import variables from '../styles/variables';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import Button from '../components/Button';
+import Text from '../components/Text';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';

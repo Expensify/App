@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {
-    View, Text, ScrollView, KeyboardAvoidingView,
+    View, ScrollView, KeyboardAvoidingView,
 } from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -11,6 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
+import Text from '../../components/Text';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import {activateWallet} from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';

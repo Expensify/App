@@ -217,7 +217,7 @@ class ProfilePage extends Component {
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
                             anchorPosition={styles.createMenuPositionProfile}
                         />
-                        <Text style={[styles.mt6, styles.mb6, styles.textP]}>
+                        <Text style={[styles.mt6, styles.mb6]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
                         </Text>
                         <FullNameInputRow
