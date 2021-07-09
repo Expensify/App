@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Popover from '../Popover';
 import styles from '../../styles/styles';
@@ -9,6 +9,7 @@ import {
     propTypes as createMenuPropTypes,
     defaultProps as defaultCreateMenuPropTypes,
 } from './PopoverMenuPropTypes';
+import Text from '../Text';
 
 const propTypes = {
     /** Callback fired when the menu is completely closed */

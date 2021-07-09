@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import {Image, Text, View} from 'react-native';
+import {Image, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -21,6 +21,7 @@ import {updateNotificationPreference} from '../libs/actions/Report';
 import {Users} from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
+import Text from '../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,

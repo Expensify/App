@@ -1,7 +1,8 @@
 import React from 'react';
-import {Linking, StyleSheet, Text} from 'react-native';
+import {Linking, StyleSheet} from 'react-native';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import fileDownload from '../../../libs/fileDownload';
+import Text from '../../Text';
 
 /*
  * This is a default anchor component for regular links.
