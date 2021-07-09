@@ -9,9 +9,10 @@ export const growlRef = React.createRef();
  * @param {String|JSX.Element} body
  * @param {String} type
  * @param {Number} [duration]
+ * @param {Object} additionalProps
 */
-function show(body, type, duration = CONST.GROWL.DURATION) {
-    growlRef.current.show(body, type, duration);
+function show(body, type, duration = CONST.GROWL.DURATION, additionalProps = {}) {
+    growlRef.current.show(body, type, duration, additionalProps);
 }
 
 /**
@@ -19,9 +20,10 @@ function show(body, type, duration = CONST.GROWL.DURATION) {
  *
  * @param {String|JSX.Element} body
  * @param {Number} [duration]
+ * @param {Object} additionalProps
  */
-function error(body, duration = CONST.GROWL.DURATION) {
-    show(body, CONST.GROWL.ERROR, duration);
+function error(body, duration = CONST.GROWL.DURATION, additionalProps = {}) {
+    show(body, CONST.GROWL.ERROR, duration, additionalProps);
 }
 
 /**
@@ -29,9 +31,10 @@ function error(body, duration = CONST.GROWL.DURATION) {
  *
  * @param {String|JSX.Element} body
  * @param {Number} [duration]
+ * @param {Object} additionalProps
  */
-function success(body, duration = CONST.GROWL.DURATION) {
-    show(body, CONST.GROWL.SUCCESS, duration);
+function success(body, duration = CONST.GROWL.DURATION, additionalProps = {}) {
+    show(body, CONST.GROWL.SUCCESS, duration, additionalProps);
 }
 
 export default {

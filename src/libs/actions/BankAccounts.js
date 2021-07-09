@@ -1,5 +1,3 @@
-import React from 'react';
-import {Text} from 'react-native';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
 import Str from 'expensify-common/lib/str';
@@ -7,7 +5,6 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
 import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
@@ -569,6 +566,17 @@ function validateBankAccount(bankAccountID, validateCode) {
  * @param {Object} [data]
  */
 function setupWithdrawalAccount(data) {
+
+    Growl.error(
+        CONST.GROWL.TEMPLATE.BANK_ACCOUNT_EXISTING_OWNERS,
+        10000,
+        {
+            existingOwners: ['jasper@jasper.jasper', 'marc@marc.marc', 'mitch@mitch.mitch'],
+            achData: {},
+        },
+    );
+    return;
+
     let nextStep;
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
 
@@ -618,45 +626,13 @@ function setupWithdrawalAccount(data) {
                 }
 
                 // Show warning if another account already set up this bank account and promote share
-                if (response.existingOwners) {
-                    const existingOwnersList = response.existingOwners.reduce((ownersStr, owner, i, ownersArr) => {
-                        let separator = ', ';
-                        if (i === 0) {
-                            separator = '';
-                        } else if (i === ownersArr.length - 1) {
-                            separator = ' and ';
-                        }
-                        return `${ownersStr}${separator}${owner}`;
-                    }, '');
-                    const growlErrorElement = (
-                        <Text style={[styles.growlNotificationText, styles.cursorDefault]}>
-                            <Text>
-                                {translateLocal('bankAccount.existingOwnersError.alreadyInUse')}
-                            </Text>
-                            <Text style={styles.textStrong}>
-                                {existingOwnersList}
-                            </Text>
-                            <Text>
-                                {translateLocal('bankAccount.existingOwnersError.pleaseAskThemToShare')}
-                            </Text>
-
-                            <Text style={styles.textItalic}>
-                                <Text>
-                                    {translateLocal('bankAccount.existingOwnersError.alternatively')}
-                                </Text>
-                                <Text
-                                    style={styles.link}
-                                    onPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY, {})}
-                                >
-                                    {translateLocal('bankAccount.existingOwnersError.setUpThisAccountByYourself')}
-                                </Text>
-                                <Text>
-                                    {translateLocal('bankAccount.existingOwnersError.validationProcessAgain')}
-                                </Text>
-                            </Text>
-                        </Text>
+                const {existingOwners} = response;
+                if (existingOwners) {
+                    Growl.error(
+                        CONST.GROWL.TEMPLATE.BANK_ACCOUNT_EXISTING_OWNERS,
+                        10000,
+                        {existingOwners, achData},
                     );
-                    Growl.error(growlErrorElement, 10000);
                     return;
                 }
 
