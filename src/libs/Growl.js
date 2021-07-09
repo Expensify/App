@@ -9,7 +9,7 @@ export const growlRef = React.createRef();
  * @param {String} body - The text or name of the template you'd like to display in the growl body.
  * @param {String} type
  * @param {Number} [duration]
- * @param {Object} [additionalProps]
+ * @param {Object} [additionalProps] - Any additional props passed to the growl notification template.
 */
 function show(body, type, duration = CONST.GROWL.DURATION, additionalProps = {}) {
     growlRef.current.show(body, type, duration, additionalProps);
@@ -20,7 +20,7 @@ function show(body, type, duration = CONST.GROWL.DURATION, additionalProps = {})
  *
  * @param {String} body - The text or name of the template you'd like to display in the growl body.
  * @param {Number} [duration]
- * @param {Object} [additionalProps]
+ * @param {Object} [additionalProps] - Any additional props passed to the growl notification template.
  */
 function error(body, duration = CONST.GROWL.DURATION, additionalProps = {}) {
     show(body, CONST.GROWL.ERROR, duration, additionalProps);
@@ -31,7 +31,7 @@ function error(body, duration = CONST.GROWL.DURATION, additionalProps = {}) {
  *
  * @param {String} body - The text or name of the template you'd like to display in the growl body.
  * @param {Number} [duration]
- * @param {Object} [additionalProps]
+ * @param {Object} [additionalProps] - Any additional props passed to the growl notification template.
  */
 function success(body, duration = CONST.GROWL.DURATION, additionalProps = {}) {
     show(body, CONST.GROWL.SUCCESS, duration, additionalProps);
