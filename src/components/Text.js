@@ -54,11 +54,14 @@ const Text = React.forwardRef(({
     const componentStyle = {
         color,
         fontSize,
-        lineHeight: 20,
         textAlign,
         fontFamily: fontFamily[family],
         ...mergedStyles,
     };
+
+    if (fontSize === variables.fontSizeNormal) {
+        componentStyle.lineHeight = 20;
+    }
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
