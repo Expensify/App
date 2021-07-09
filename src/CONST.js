@@ -88,6 +88,13 @@ const CONST = {
         COMPLETE: 'complete',
         DISABLED: 'disabled',
     },
+    CARD_TYPES: {
+        /** This is a default card type that all users have. It is just a placeholder, not an actual card */
+        DEFAULT_CASH: '__CASH__',
+    },
+    BANK_ACCOUNT_TYPES: {
+        WALLET: 'WALLET',
+    },
     COUNTRY: {
         US: 'US',
         MX: 'MX',
@@ -187,7 +194,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     ERROR: {
-        API_OFFLINE: 'API is offline',
+        API_OFFLINE: 'session.offlineMessage',
     },
     NETWORK: {
         METHOD: {
@@ -327,6 +334,7 @@ const CONST = {
     POLICY: {
         TYPE: {
             FREE: 'free',
+            PERSONAL: 'personal',
         },
         ROLE: {
             ADMIN: 'admin',

@@ -12,6 +12,7 @@ export default {
     greenHover: '#03c775',
     red: '#fc3826',
     redHover: '#e13826',
+    redDisabled: '#fea29a',
     yellow: '#fed607',
     transparent: 'transparent',
 };

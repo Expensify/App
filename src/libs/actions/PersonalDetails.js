@@ -199,9 +199,7 @@ function mergeLocalPersonalDetails(details) {
     const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
 
     // displayName is a generated field so we'll use the firstName and lastName + login to update it.
-    if (details.firstName || details.lastName) {
-        mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
-    }
+    mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
 
     // Update the associated Onyx keys
     Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);

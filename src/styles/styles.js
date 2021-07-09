@@ -140,7 +140,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        paddingHorizontal: 12,
+        ...spacing.ph3,
     },
 
     buttonText: {
@@ -170,17 +170,17 @@ const styles = {
         paddingLeft: 12,
     },
 
-    buttonLargeText: {
-        fontSize: variables.fontSizeLarge,
-        lineHeight: 18,
+    buttonSmallText: {
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
-    buttonSmallText: {
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+    buttonLargeText: {
+        fontSize: variables.fontSizeLarge,
+        lineHeight: 18,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -197,6 +197,20 @@ const styles = {
 
     buttonSuccessHovered: {
         backgroundColor: themeColors.buttonSuccessHoveredBG,
+        borderWidth: 0,
+    },
+
+    buttonDanger: {
+        backgroundColor: themeColors.buttonDangerBG,
+        borderWidth: 0,
+    },
+
+    buttonDangerDisabled: {
+        backgroundColor: themeColors.buttonDangerDisabledBG,
+    },
+
+    buttonDangerHovered: {
+        backgroundColor: themeColors.buttonDangerPressedBG,
         borderWidth: 0,
     },
 
@@ -229,6 +243,10 @@ const styles = {
     },
 
     buttonSuccessText: {
+        color: themeColors.textReversed,
+    },
+
+    buttonDangerText: {
         color: themeColors.textReversed,
     },
 
@@ -637,7 +655,7 @@ const styles = {
         color: themeColors.heading,
     },
 
-    createMenuItem: {
+    popoverMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
         paddingHorizontal: 20,
@@ -646,26 +664,26 @@ const styles = {
         width: '100%',
     },
 
-    createMenuIcon: {
+    popoverMenuIcon: {
         width: variables.componentSizeNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
 
-    createMenuIconEmphasized: {
+    popoverMenuIconEmphasized: {
         backgroundColor: themeColors.iconSuccessFill,
         borderRadius: variables.componentSizeLarge / 2,
     },
 
-    createMenuText: {
+    popoverMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
     },
 
-    createMenuDescription: {
+    popoverMenuDescription: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,
@@ -979,15 +997,22 @@ const styles = {
     // Emoji Picker Styles
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.iconSizeLarge,
         textAlign: 'center',
         ...spacing.pv1,
         ...spacing.ph2,
     },
 
+    emojiExtraSmall: {
+        fontSize: variables.iconSizeExtraSmall,
+    },
+
+    emojiLarge: {
+        fontSize: variables.iconSizeLarge,
+    },
+
     emojiItem: {
+        flex: 1,
         width: '12.5%',
-        height: 40,
         textAlign: 'center',
         borderRadius: 8,
     },
@@ -1696,6 +1721,31 @@ const styles = {
 
     workspaceInviteWelcome: {
         minHeight: 150,
+    },
+
+    peopleRow: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        ...spacing.pv2,
+    },
+
+    peopleRowCell: {
+        justifyContent: 'center',
+    },
+
+    peopleBadge: {
+        backgroundColor: themeColors.icon,
+        ...spacing.ph3,
+    },
+
+    peopleBadgeText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        ...whiteSpace.noWrap,
     },
 };
 
