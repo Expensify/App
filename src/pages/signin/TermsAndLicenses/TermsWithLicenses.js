@@ -1,9 +1,10 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Text from '../../../components/Text';
 
 const TermsWithLicenses = ({translate}) => (
     <View style={[styles.mt6, styles.flexRow, styles.flexWrap]}>

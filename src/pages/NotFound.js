@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     View,
-    Text,
     Image,
     TouchableOpacity,
     SafeAreaView,
@@ -11,6 +10,7 @@ import logo from '../../assets/images/expensify-logo_reversed.png';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import Text from '../components/Text';
 
 const NotFound = ({translations: {translate}}) => (
     <>
