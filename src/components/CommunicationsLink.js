@@ -11,7 +11,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import CONST from '../CONST';
 
 const propTypes = {
-    /** Children to wrap in TappableCopy. */
+    /** Children to wrap in CommunicationsLink. */
     children: PropTypes.node.isRequired,
 
     /** Styles to be assigned to Container */
@@ -32,7 +32,7 @@ const defaultProps = {
     type: undefined,
 };
 
-const TappableCopy = props => (
+const CommunicationsLink = props => (
     <View style={[styles.flexRow, styles.pRelative, ...props.style]}>
         {props.type && props.isSmallScreenWidth
             ? (
@@ -53,13 +53,13 @@ const TappableCopy = props => (
                     styles.pAbsolute,
                     styles.alignItemsCenter,
                     styles.justifyContentCenter,
-                    {right: -36, top: 0, bottom: 0}]}
+                    styles.communicationsLinkIcon]}
                 >
                     <ContextMenuItem
                         icon={ClipboardIcon}
-                        text={props.translate('reportActionContextMenu.copyToClipboard')}
+                        text={props.translate('contextMenuItem.copyToClipboard')}
                         successIcon={Checkmark}
-                        successText={props.translate('reportActionContextMenu.copied')}
+                        successText={props.translate('contextMenuItem.copied')}
                         isMini
                         autoReset
                         onPress={() => Clipboard.setString(props.value)}
@@ -69,11 +69,11 @@ const TappableCopy = props => (
     </View>
 );
 
-TappableCopy.propTypes = propTypes;
-TappableCopy.defaultProps = defaultProps;
-TappableCopy.displayName = 'TappableCopy';
+CommunicationsLink.propTypes = propTypes;
+CommunicationsLink.defaultProps = defaultProps;
+CommunicationsLink.displayName = 'CommunicationsLink';
 
 export default compose(
     withWindowDimensions,
     withLocalize,
-)(TappableCopy);
+)(CommunicationsLink);

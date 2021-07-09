@@ -14,7 +14,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import TappableCopy from '../components/TappableCopy';
+import CommunicationsLink from '../components/CommunicationsLink';
 import CONST from '../CONST';
 
 const matchType = PropTypes.shape({
@@ -92,7 +92,7 @@ const DetailsPage = ({
                                 imageStyles={[styles.avatarLarge]}
                                 source={details.avatar}
                             />
-                            <TappableCopy
+                            <CommunicationsLink
                                 style={[styles.mt1, styles.mb6]}
                                 type={details.displayName && isSMSLogin ? CONST.LOGIN_TYPE.PHONE : undefined}
                                 value={getPhoneNumber(details)}
@@ -102,7 +102,7 @@ const DetailsPage = ({
                                         ? toLocalPhone(details.displayName)
                                         : (details.displayName || null)}
                                 </Text>
-                            </TappableCopy>
+                            </CommunicationsLink>
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
@@ -110,7 +110,7 @@ const DetailsPage = ({
                                             ? 'common.phoneNumber'
                                             : 'common.email')}
                                     </Text>
-                                    <TappableCopy
+                                    <CommunicationsLink
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
@@ -119,7 +119,7 @@ const DetailsPage = ({
                                                 ? toLocalPhone(getPhoneNumber(details))
                                                 : details.login}
                                         </Text>
-                                    </TappableCopy>
+                                    </CommunicationsLink>
                                 </View>
                             ) : null}
                             {details.pronouns ? (
