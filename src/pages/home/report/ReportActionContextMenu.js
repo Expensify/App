@@ -74,7 +74,7 @@ class ReportActionContextMenu extends React.Component {
                 shouldShow: true,
 
                 // If return value is true, we switch the `text` and `icon` on
-                // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
+                // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
                 // the `text` and `icon`
                 onPress: () => {
                     const message = _.last(lodashGet(this.props.reportAction, 'message', null));
