@@ -152,7 +152,7 @@ class IOUConfirmationList extends Component {
         if (this.props.hasMultipleParticipants) {
             const formattedMyPersonalDetails = getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
-                this.props.numberFormat(this.calculateAmount(this.state.selectedParticipants) / 100, {
+                this.props.numberFormat(this.calculateAmount(this.state.selectedParticipants, true) / 100, {
                     style: 'currency',
                     currency: this.props.selectedCurrency.currencyCode,
                 }),
