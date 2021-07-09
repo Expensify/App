@@ -54,7 +54,7 @@ const EXTRA_FONTS = [
  *
  * @param {number} contentWidth - The content width provided to the HTML
  * component.
- * @param {number} tagName - tagname of the Element whose maxWidth is need to be set
+ * @param {number} tagName - tagname of the Element whose maxWidth needs to be set
  * @returns {number} The minimum between contentWidth and MAX_IMG_DIMENSIONS
  */
 function computeEmbeddedMaxWidth(contentWidth, tagName) {
