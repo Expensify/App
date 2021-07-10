@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -45,17 +46,26 @@ const defaultProps = {
     },
 };
 
+const publicLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.ADD_SECONDARY_LOGIN_URL;
+const manageCardLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.MANAGE_CARDS_URL;
+
 const WorkspaceCardPage = ({
     user,
     translate,
     isSmallScreenWidth,
+    reimbursementAccount,
 }) => {
-    const publicLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.ADD_SECONDARY_LOGIN_URL;
-    const manageCardLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.MANAGE_CARDS_URL;
-    const buttonTextIfUsingCard = user.isUsingExpensifyCard
-        ? translate('workspace.card.manageCards')
-        : translate('workspace.card.getStarted');
-    const buttonText = user.isFromPublicDomain ? translate('workspace.card.addEmail') : buttonTextIfUsingCard;
+    const isVerifying = lodashGet(reimbursementAccount, 'achData.state', '') === CONST.BANK_ACCOUNT.STATE.VERIFYING;
+    let buttonText;
+    if (user.isFromPublicDomain) {
+        buttonText = translate('workspace.card.addEmail');
+    } else if (user.isUsingExpensifyCard) {
+        buttonText = translate('workspace.card.manageCards');
+    } else if (isVerifying) {
+        buttonText = translate('workspace.card.finishSetup');
+    } else {
+        buttonText = translate('workspace.card.getStarted');
+    }
 
     const onPress = () => {
         if (user.isFromPublicDomain) {
@@ -63,7 +73,7 @@ const WorkspaceCardPage = ({
         } else if (user.isUsingExpensifyCard) {
             Linking.openURL(manageCardLink);
         } else {
-            Navigation.navigate(ROUTES.getBankAccountRoute('new'));
+            Navigation.navigate(ROUTES.getBankAccountRoute());
         }
     };
 
@@ -163,6 +173,9 @@ export default compose(
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(WorkspaceCardPage);
