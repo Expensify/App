@@ -42,7 +42,7 @@ class PressableWithSecondaryInteraction extends Component {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
         return (
             <Pressable
-                onLongPress={e => this.props.onSecondaryInteraction(e)}
+                onLongPress={this.props.onSecondaryInteraction}
                 ref={el => this.pressableRef = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}

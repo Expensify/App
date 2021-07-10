@@ -119,7 +119,6 @@ class BaseModal extends PureComponent {
                 animationIn={this.props.animationIn || animationIn}
                 animationOut={this.props.animationOut || animationOut}
                 useNativeDriver={this.props.useNativeDriver}
-                statusBarTranslucent
                 hideModalContentWhileAnimating={this.props.hideModalContentWhileAnimating}
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}

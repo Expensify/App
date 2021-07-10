@@ -278,6 +278,7 @@ class IOUModal extends Component {
 
     render() {
         const currentStep = this.steps[this.state.currentStepIndex];
+        const reportID = lodashGet(this.props, 'route.params.reportID', '');
         return (
             <ScreenWrapper onTransitionEnd={this.getReady}>
                 {({didScreenTransitionEnd}) => (
@@ -327,7 +328,7 @@ class IOUModal extends Component {
                                                 this.navigateToNextStep();
                                             }}
                                             currencySelected={this.currencySelected}
-                                            reportID={this.props.route.params.reportID}
+                                            reportID={reportID}
                                             selectedCurrency={this.state.selectedCurrency}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             selectedAmount={this.state.amount}
@@ -371,7 +372,7 @@ export default compose(
     withLocalize,
     withOnyx({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
         iousReport: {
             key: ONYXKEYS.COLLECTION.REPORT_IOUS,

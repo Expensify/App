@@ -89,11 +89,11 @@ class WorkspaceInvitePage extends React.Component {
                 />
                 <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
                     <View style={styles.flexGrow1}>
-                        <Text style={[styles.mb6, styles.textP]}>
+                        <Text style={[styles.mb6]}>
                             {this.props.translate('workspace.invite.invitePeoplePrompt')}
                         </Text>
                         <View style={styles.mb6}>
-                            <Text style={[styles.textP, styles.mb2]}>
+                            <Text style={[styles.mb2]}>
                                 {this.props.translate('workspace.invite.enterEmailOrPhone')}
                             </Text>
                             <TextInput
@@ -107,7 +107,7 @@ class WorkspaceInvitePage extends React.Component {
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.textP, styles.mb2]}>
+                            <Text style={[styles.mb2]}>
                                 {this.props.translate('workspace.invite.personalMessagePrompt')}
                             </Text>
                             <TextInput
