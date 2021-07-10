@@ -1753,6 +1753,7 @@ const styles = {
 
     termsTableItem: {
         textAlign: 'center',
+        alignItems: 'center',
     },
 
     termsSection: {
