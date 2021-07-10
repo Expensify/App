@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import {Image, Text, View} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
+import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
@@ -21,6 +22,7 @@ import {updateNotificationPreference} from '../libs/actions/Report';
 import {Users} from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
+import Text from '../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -124,9 +126,11 @@ class ReportDetailsPage extends Component {
                         <View
                             style={styles.reportDetailsTitleContainer}
                         >
-                            <Image
+                            <Avatar
+                                isDefaultChatRoom={isDefaultRoom(this.props.report)}
+                                containerStyles={[styles.singleAvatarLarge, styles.mb4]}
+                                imageStyles={[styles.singleAvatarLarge]}
                                 source={{uri: this.props.report.icons[0]}}
-                                style={[styles.singleAvatarLarge, styles.mb4]}
                             />
                             <View style={styles.reportDetailsRoomInfo}>
                                 <DisplayNames

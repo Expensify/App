@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Header from './Header';
 import Modal from './Modal';
@@ -9,6 +9,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Button from './Button';
+import Text from './Text';
 
 const propTypes = {
     /** Title of the modal */
@@ -61,7 +62,7 @@ const ConfirmModal = props => (
                 <Header title={props.title} />
             </View>
 
-            <Text style={styles.textP}>
+            <Text>
                 {props.prompt}
             </Text>
 

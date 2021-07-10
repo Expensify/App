@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
 import {
-    Text, View, Animated,
+    View, Animated,
 } from 'react-native';
 import {
     Directions, FlingGestureHandler, State, TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
 import colors from '../../styles/colors';
+import Text from '../Text';
 import Icon from '../Icon';
 import {Checkmark, Exclamation} from '../Icon/Expensicons';
 import styles from '../../styles/styles';
