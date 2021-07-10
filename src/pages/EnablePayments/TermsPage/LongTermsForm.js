@@ -6,9 +6,10 @@ import CollapsibleSection from '../../../components/CollapsibleSection';
 
 const LongTermsForm = () => (
     <View style={[styles.mt4, styles.pt4, styles.termsRow]}>
-        <Text style={[styles.pb4, styles.termsSection]}>
+        <Text style={[styles.pb4]}>
             A list of all Expensify Payments Account fees:
         </Text>
+        <View style={styles.termsSection}></View>
         <CollapsibleSection title="Opening An Account">
             <View style={styles.mb4}>
                 <View style={[styles.flex1, styles.flexRow, styles.borderBottom]}>
@@ -22,7 +23,7 @@ const LongTermsForm = () => (
                         <Text>More Details</Text>
                     </View>
                 </View>
-                <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
+                <View style={[styles.flex1, styles.flexRow]}>
                     <View style={[styles.flex1, styles.borderRight, styles.pb1, styles.pt2, styles.termsTableItem]}>
                         <Text>Opening an Account</Text>
                     </View>

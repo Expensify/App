@@ -23,14 +23,12 @@ class CollapsibleSection extends React.Component {
 
     render() {
         return (
-            <View style={styles2.container}>
-                <TouchableOpacity onPress={this.toggleExpanded} style={styles.mb4}>
-                    <View style={styles2.header}>
-                        <Text style={styles2.headerText}>{this.props.title}</Text>
-                    </View>
+            <View style={[styles.mb4, styles.mt4, styles.termsSection]}>
+                <TouchableOpacity onPress={this.toggleExpanded} style={[styles.pb4, styles.pl4]}>
+                    <Text>{this.props.title}</Text>
                 </TouchableOpacity>
-                <Collapsible collapsed={!this.state.isExpanded} align="center">
-                    <View style={styles2.content}>
+                <Collapsible collapsed={!this.state.isExpanded}>
+                    <View>
                         {this.props.children}
                     </View>
                 </Collapsible>
