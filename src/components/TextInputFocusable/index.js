@@ -2,6 +2,7 @@ import React from 'react';
 import {TextInput, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
@@ -120,6 +121,8 @@ class TextInputFocusable extends React.Component {
         };
         this.saveSelection = this.saveSelection.bind(this);
         this.dragNDropListener = this.dragNDropListener.bind(this);
+        this.handlePaste = this.handlePaste.bind(this);
+        this.handlePastedHTML = this.handlePastedHTML.bind(this);
     }
 
     componentDidMount() {
@@ -142,7 +145,7 @@ class TextInputFocusable extends React.Component {
             document.addEventListener('dragenter', this.dragNDropListener);
             document.addEventListener('dragleave', this.dragNDropListener);
             document.addEventListener('drop', this.dragNDropListener);
-            this.textInput.addEventListener('paste', this.checkForAttachment.bind(this));
+            this.textInput.addEventListener('paste', this.handlePaste);
         }
     }
 
@@ -169,7 +172,7 @@ class TextInputFocusable extends React.Component {
             document.removeEventListener('dragenter', this.dragNDropListener);
             document.removeEventListener('dragleave', this.dragNDropListener);
             document.removeEventListener('drop', this.dragNDropListener);
-            this.textInput.removeEventListener('paste', this.checkForAttachment.bind(this));
+            this.textInput.removeEventListener('paste', this.handlePaste);
         }
     }
 
@@ -241,25 +244,50 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
-     * Check the paste event for an attachment, parse the data and
-     * call onPasteFile from props with the selected file
+     * Manually place the pasted HTML into Composer
+     *
+     * @param {String} html - pasted HTML
+     * @memberof TextInputFocusable
+     */
+    handlePastedHTML(html) {
+        const parser = new ExpensiMark();
+        const markdownText = parser.htmlToMarkdown(html);
+        const beforeCursorText = this.textInput.value.substring(0, this.selection.start);
+        const afterCursorText = this.textInput.value.substring(this.selection.end);
+        this.textInput.value = beforeCursorText + markdownText + afterCursorText;
+        const newCursorPosition = beforeCursorText.length + markdownText.length;
+        this.setState({selection: {start: newCursorPosition, end: newCursorPosition}});
+        this.updateNumberOfLines();
+        this.props.onChangeText(this.textInput.value);
+    }
+
+    /**
+     * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
+     * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      *
      * @param {ClipboardEvent} event
      */
-    checkForAttachment(event) {
+    handlePaste(event) {
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
-        const TEXT_PLAIN = 'text/plain';
+        const pastedHTML = event.clipboardData.getData(TEXT_HTML);
+
+        // If paste contains files, then trigger file management
         if (files.length > 0) {
             // Prevent the default so we do not post the file name into the text box
             event.preventDefault();
             this.props.onPasteFile(event.clipboardData.files[0]);
-        } else if (types.includes(TEXT_HTML)) {
+            return;
+        }
+
+        // If paste contains HTML
+        if (types.includes(TEXT_HTML)) {
+            event.preventDefault();
             const domparser = new DOMParser();
-            const embededImages = domparser.parseFromString(event.clipboardData.getData(TEXT_HTML), TEXT_HTML).images;
-            const pastedText = event.clipboardData.getData(TEXT_PLAIN);
+            const embededImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+
+            // If HTML has img tag, then fetch images from it.
             if (embededImages.length > 0) {
-                event.preventDefault();
                 fetch(embededImages[0].src)
                     .then((response) => {
                         if (!response.ok) { throw Error(response.statusText); }
@@ -284,15 +312,11 @@ class TextInputFocusable extends React.Component {
                         * Synthetically-triggered paste events do not affect the document's contents.
                         * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
                         */
-                        const beforeCursorText = this.textInput.value.substring(0, this.selection.start);
-                        const afterCursorText = this.textInput.value.substring(this.selection.end);
-                        this.textInput.value = beforeCursorText + pastedText + afterCursorText;
-                        this.updateNumberOfLines();
-                        this.props.onChangeText(this.textInput.value);
-                        const newCursorPosition = beforeCursorText.length + pastedText.length;
-                        this.setState({selection: {start: newCursorPosition, end: newCursorPosition}});
+                        this.handlePastedHTML(pastedHTML);
                     });
             }
+
+            this.handlePastedHTML(pastedHTML);
         }
     }
 
