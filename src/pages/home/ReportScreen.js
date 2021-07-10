@@ -76,8 +76,8 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        debugger;
-        const test = this.props;
+        // debugger;
+        // const test = this.props;
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView

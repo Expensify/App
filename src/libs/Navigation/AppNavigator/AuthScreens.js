@@ -39,6 +39,7 @@ import MainDrawerNavigator from './MainDrawerNavigator';
 // Validate login page
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 
+// Trigger welcome page when a lounge QR code is scanned
 import TriggerWelcomePage from '../../../pages/TriggerWelcomePage';
 
 // Modal Stack Navigators

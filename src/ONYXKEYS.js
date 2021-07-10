@@ -116,4 +116,6 @@ export default {
 
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
+
+    TRIGGER_WELCOME: 'triggerWelcome',
 };
