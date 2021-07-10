@@ -400,6 +400,7 @@ export default {
             publicCopy: 'Para utilizar la Tarjeta Expensify debe utilizar el dominio privado de su empresa. Continúe y agregue su dirección de correo electrónico privada como inicio de sesión secundario.',
             privateCopy: 'Simplemente deslice su tarjeta Expensify y sus gastos estarán listos, ¡es así de simple!',
             getStarted: 'Empezar',
+            finishSetup: 'Finalizar Configuración',
             manageCards: 'Administrar tarjetas',
             cardReadyTagline: 'Tus tarjetas Expensify están listas para usar!',
         },
