@@ -3,12 +3,12 @@ const codeWordWrapper = {
 };
 
 const codeWordStyle = {
-    top: -1,
-    marginVertical: -2,
+    top: 1,
+    marginVertical: -4,
 };
 
 const codeTextStyle = {
-    lineHeight: 18,
+    lineHeight: 15,
 };
 
 export default {codeWordWrapper, codeWordStyle, codeTextStyle};
