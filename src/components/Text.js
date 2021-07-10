@@ -59,7 +59,7 @@ const Text = React.forwardRef(({
         ...mergedStyles,
     };
 
-    if (fontSize === variables.fontSizeNormal) {
+    if (componentStyle.fontSize === variables.fontSizeNormal) {
         componentStyle.lineHeight = 20;
     }
 
