@@ -78,7 +78,7 @@ class AddPayPalMePage extends React.Component {
                     />
                     <View style={[styles.flex1, styles.p5]}>
                         <View style={[styles.flex1]}>
-                            <Text style={[styles.textP, styles.mb4]}>
+                            <Text style={[styles.mb4]}>
                                 {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                             </Text>
                             <Text style={[styles.formLabel]} numberOfLines={1}>
