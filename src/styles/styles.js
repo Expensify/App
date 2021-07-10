@@ -1750,6 +1750,15 @@ const styles = {
         borderTopWidth: 3,
         borderTopColor: themeColors.shadow,
     },
+
+    termsTableItem: {
+        textAlign: 'center',
+    },
+
+    termsSection: {
+        borderBottomWidth: 4,
+        borderBottomColor: themeColors.border,
+    },
 };
 
 const baseCodeTagStyles = {

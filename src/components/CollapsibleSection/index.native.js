@@ -3,6 +3,7 @@ import {View, TouchableOpacity, StyleSheet} from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import Text from '../Text';
 import {propTypes, defaultProps} from './CollapsibleSectionPropTypes';
+import styles from '../../styles/styles';
 
 class CollapsibleSection extends React.Component {
     constructor(props) {
@@ -22,14 +23,14 @@ class CollapsibleSection extends React.Component {
 
     render() {
         return (
-            <View style={styles.container}>
-                <TouchableOpacity onPress={this.toggleExpanded}>
-                    <View style={styles.header}>
-                        <Text style={styles.headerText}>{this.props.title}</Text>
+            <View style={styles2.container}>
+                <TouchableOpacity onPress={this.toggleExpanded} style={styles.mb4}>
+                    <View style={styles2.header}>
+                        <Text style={styles2.headerText}>{this.props.title}</Text>
                     </View>
                 </TouchableOpacity>
                 <Collapsible collapsed={!this.state.isExpanded} align="center">
-                    <View style={styles.content}>
+                    <View style={styles2.content}>
                         {this.props.children}
                     </View>
                 </Collapsible>
@@ -38,7 +39,7 @@ class CollapsibleSection extends React.Component {
     }
 }
 
-const styles = StyleSheet.create({
+const styles2 = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F5FCFF',

@@ -3,6 +3,7 @@ import {View, TouchableOpacity} from 'react-native-web';
 import Collapse from 'react-collapse';
 import Text from '../Text';
 import {propTypes, defaultProps} from './CollapsibleSectionPropTypes';
+import styles from '../../styles/styles';
 
 class CollapsibleSection extends React.Component {
     constructor(props) {
@@ -24,8 +25,8 @@ class CollapsibleSection extends React.Component {
 
     render() {
         return (
-            <View>
-                <TouchableOpacity onPress={this.toggleExpanded}>
+            <View style={[styles.mb4, styles.mt4, styles.termsSection]}>
+                <TouchableOpacity onPress={this.toggleExpanded} style={styles.pb4}>
                     <Text>{this.props.title}</Text>
                 </TouchableOpacity>
 
