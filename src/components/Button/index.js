@@ -12,6 +12,17 @@ import Text from '../Text';
 const Button = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
+    /**
+     * Call props.onPress when Enter key is pressed
+     *
+     * @param {Object} event
+     */
+     function handleKeydown(event) {
+        if (event.key === 'Enter') {
+            props.onPress();
+        }
+    }
+
     useEffect(() => {
         if (props.pressOnEnter && props.onPress && !props.isDisabled && !props.isLoading) {
             document.addEventListener('keydown', handleKeydown);
