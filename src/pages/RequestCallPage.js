@@ -1,5 +1,5 @@
-import {Component} from 'react';
-import {View, Text} from 'react-native';
+import React, {Component} from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -20,6 +20,7 @@ import {requestConciergeDMCall} from '../libs/actions/Inbox';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
+import Text from '../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -40,6 +41,15 @@ const propTypes = {
             /** Phone/Email associated with user */
             partnerUserID: PropTypes.string,
         })),
+    }).isRequired,
+
+    /** The policies which the user has access to */
+    policies: PropTypes.shape({
+        /** ID of the policy */
+        policyID: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
     }).isRequired,
 };
 
@@ -62,22 +72,27 @@ class RequestCallPage extends Component {
     onSubmit() {
         this.setState({isLoading: true});
         if (!this.state.firstName.length || !this.state.lastName.length) {
-            Growl.show(this.props.translate('requestCallPage.growlMessageEmptyName'), CONST.GROWL.ERROR);
+            Growl.success(this.props.translate('requestCallPage.growlMessageEmptyName'));
             this.setState({isLoading: false});
             return;
         }
 
-        requestConciergeDMCall('', this.state.firstName, this.state.lastName, this.state.phoneNumber)
+        const personalPolicy = _.find(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.PERSONAL);
+        if (!personalPolicy) {
+            Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
+            return;
+        }
+        requestConciergeDMCall(personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
                 if (result.jsonCode === 200) {
-                    Growl.show(this.props.translate('requestCallPage.growlMessageOnSave'), CONST.GROWL.SUCCESS);
+                    Growl.success(this.props.translate('requestCallPage.growlMessageOnSave'));
                     fetchOrCreateChatReport([this.props.session.email, CONST.EMAIL.CONCIERGE], true);
                     return;
                 }
 
                 // Phone number validation is handled by the API
-                Growl.show(result.message, CONST.GROWL.ERROR, 3000);
+                Growl.error(result.message, 3000);
             });
     }
 
@@ -139,10 +154,10 @@ class RequestCallPage extends Component {
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1, styles.p5]}>
-                    <Text style={[styles.mb4, styles.textP]}>
+                    <Text style={[styles.mb4]}>
                         {this.props.translate('requestCallPage.description')}
                     </Text>
-                    <Text style={[styles.mt4, styles.mb4, styles.textP]}>
+                    <Text style={[styles.mt4, styles.mb4]}>
                         {this.props.translate('requestCallPage.instructions')}
                     </Text>
                     <FullNameInputRow
@@ -193,6 +208,9 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(RequestCallPage);

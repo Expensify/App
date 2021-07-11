@@ -6,7 +6,7 @@ import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {getReportParticipantsTitle, isDefaultRoom} from './reportUtils';
+import {getReportParticipantsTitle, isDefaultRoom, getDefaultRoomSubtitle} from './reportUtils';
 import {translate} from './translate';
 import Permissions from './Permissions';
 import md5 from './md5';
@@ -38,9 +38,9 @@ Onyx.connect({
 const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (policy) => {
-        if (policy && policy.id) {
-            policies[policy.id] = policy;
+    callback: (policy, key) => {
+        if (policy && key && policy.name) {
+            policies[key] = policy;
         }
     },
 });
@@ -128,7 +128,7 @@ function getParticipantNames(personalDetailList) {
 
 /**
  * Returns a string with all relevant search terms.
- * Default should be serachable by policy name but not by participants.
+ * Default should be serachable by policy/domain name but not by participants.
  *
  * @param {Object} report
  * @param {Array} personalDetailList
@@ -148,14 +148,12 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
         searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
 
-        if (!isDefaultChatRoom) {
+        if (isDefaultChatRoom) {
+            const defaultRoomSubtitle = getDefaultRoomSubtitle(report, policies);
+            searchTerms.push(...defaultRoomSubtitle);
+            searchTerms.push(...defaultRoomSubtitle.split(',').map(name => name.trim()));
+        } else {
             searchTerms.push(...report.participants);
-        }
-
-        if (isDefaultChatRoom && policies[report.policyID]) {
-            const policyName = policies[report.policyID].name;
-            searchTerms.push(...policyName);
-            searchTerms.push(...policyName.split(',').map(name => name.trim()));
         }
     }
 
@@ -177,9 +175,9 @@ function createOption(personalDetailList, report, draftComments, {
 }) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
-    const hasDraftComment = report
+    const reportDraftComment = report
         && draftComments
-        && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
+        && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
 
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
@@ -191,7 +189,6 @@ function createOption(personalDetailList, report, draftComments, {
         : '';
 
     const isDefaultChatRoom = isDefaultRoom(report);
-    const policyInfo = policies[lodashGet(report, ['policyID'], '')];
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
     let text;
@@ -200,7 +197,7 @@ function createOption(personalDetailList, report, draftComments, {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
-            : lodashGet(policyInfo, ['name'], 'Unknown Policy');
+            : getDefaultRoomSubtitle(report, policies);
     } else {
         text = hasMultipleParticipants
             ? personalDetailList
@@ -223,7 +220,7 @@ function createOption(personalDetailList, report, draftComments, {
         login: !hasMultipleParticipants ? personalDetail.login : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment,
+        hasDraftComment: _.size(reportDraftComment) > 0,
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, personalDetailList, isDefaultChatRoom),
         isPinned: lodashGet(report, 'isPinned', false),
@@ -307,13 +304,13 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
-        const hasDraftComment = report
+        const reportDraftComment = report
             && draftComments
-            && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
+            && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
 
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
-        const shouldShowReportIfHasDraft = showReportsWithDrafts && hasDraftComment;
+        const shouldShowReportIfHasDraft = showReportsWithDrafts && reportDraftComment && reportDraftComment.length > 0;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
             && !report.isPinned
@@ -663,9 +660,9 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  * @returns {String}
  */
 function getReportIcons(report, personalDetails) {
+    // Default rooms have a specific avatar so we can return any non-empty array
     if (isDefaultRoom(report)) {
-        // Placeholder image for default rooms soon to be updated
-        return [`${CONST.CLOUDFRONT_URL}/images/avatars/default_avatar_external.png`];
+        return [''];
     }
     return _.map(report.participants, dmParticipant => ({
         firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),

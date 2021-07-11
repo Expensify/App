@@ -36,7 +36,7 @@ class CompanyStep extends React.Component {
             addressState: lodashGet(props, ['achData', 'addressState']) || 'AK',
             addressZipCode: lodashGet(props, ['achData', 'addressZipCode'], ''),
             companyPhone: lodashGet(props, ['achData', 'companyPhone'], ''),
-            website: lodashGet(props, ['achData', 'website'], ''),
+            website: lodashGet(props, ['achData', 'website'], 'https://'),
             companyTaxID: lodashGet(props, ['achData', 'companyTaxID'], ''),
             incorporationType: lodashGet(props, ['achData', 'incorporationType'], ''),
             incorporationDate: lodashGet(props, ['achData', 'incorporationDate'], ''),

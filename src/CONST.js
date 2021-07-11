@@ -334,6 +334,7 @@ const CONST = {
     POLICY: {
         TYPE: {
             FREE: 'free',
+            PERSONAL: 'personal',
         },
         ROLE: {
             ADMIN: 'admin',

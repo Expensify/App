@@ -389,7 +389,7 @@ class ReportActionsView extends React.Component {
         if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <Text style={[styles.textP]}>
+                    <Text>
                         {this.props.translate('reportActionsView.beFirstPersonToComment')}
                     </Text>
                 </View>
