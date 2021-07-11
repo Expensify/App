@@ -111,7 +111,7 @@ class IOUConfirmationList extends Component {
             ...participant, selected: true,
         }));
 
-        const formattedParticipants = this.getFormattedSelectedParticipants(participants);
+        const formattedParticipants = this.getParticipantsWithAmount(participants);
 
         this.state = {
             participants: formattedParticipants,
@@ -166,9 +166,15 @@ class IOUConfirmationList extends Component {
     getSections() {
         const sections = [];
         if (this.props.hasMultipleParticipants) {
+            const selectedParticipants = this.getSelectedParticipants();
+            const unselectedParticipants = this.getUnselectedParticipants();
+
+            const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
+            const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
+
             const formattedMyPersonalDetails = getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
-                this.props.numberFormat(this.calculateAmount(this.state.selectedParticipants, true) / 100, {
+                this.props.numberFormat(this.calculateAmount(selectedParticipants, true) / 100, {
                     style: 'currency',
                     currency: this.props.selectedCurrency.currencyCode,
                 }),
@@ -181,13 +187,8 @@ class IOUConfirmationList extends Component {
                 indexOffset: 0,
             }, {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
-                data: this.state.selectedParticipants,
+                data: [...formattedSelectedParticipants, ...formattedUnselectedParticipants],
                 shouldShow: true,
-                indexOffset: 0,
-            }, {
-                title: undefined,
-                data: this.state.unselectedParticipants,
-                shouldShow: !_.isEmpty(this.state.unselectedParticipants),
                 indexOffset: 0,
             });
         } else {
@@ -217,13 +218,13 @@ class IOUConfirmationList extends Component {
         if (!this.props.hasMultipleParticipants) {
             return null;
         }
-
-        const splits = this.state.selectedParticipants.map(participant => ({
+        const selectedParticipants = this.getSelectedParticipants();
+        const splits = selectedParticipants.map(participant => ({
             email: participant.login,
 
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(this.state.selectedParticipants),
+            amount: this.calculateAmount(selectedParticipants),
         }));
 
         splits.push({
@@ -231,7 +232,7 @@ class IOUConfirmationList extends Component {
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(this.state.selectedParticipants, true),
+            amount: this.calculateAmount(selectedParticipants, true),
         });
         return splits;
     }
@@ -244,8 +245,9 @@ class IOUConfirmationList extends Component {
         if (!this.props.hasMultipleParticipants) {
             return [];
         }
+        const selectedParticipants = this.getSelectedParticipants();
         return [
-            ...this.state.selectedParticipants,
+            ...selectedParticipants,
             getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails),
         ];
     }
@@ -279,36 +281,25 @@ class IOUConfirmationList extends Component {
     * @param {Object} option
     */
     toggleOption(option) {
-        const isOptionInSelectedList = _.some(this.state.selectedParticipants, selectedOption => (
-            selectedOption.login === option.login
-        ));
-        const isOptionInUnselectedList = _.some(this.state.unselectedParticipants, selectedOption => (
+        const isSelf = !_.some(this.state.participants, selectedOption => (
             selectedOption.login === option.login
         ));
 
-        // Selected option is self
-        if (!isOptionInSelectedList && !isOptionInUnselectedList) {
+        if (isSelf) {
             return;
         }
 
-        let newSelectedParticipants;
-        let newUnselectedParticipants;
-        if (isOptionInSelectedList) {
-            newSelectedParticipants = _.without(this.state.selectedParticipants, option);
-            newUnselectedParticipants = [...this.state.unselectedParticipants, option];
-        } else {
-            newSelectedParticipants = [...this.state.selectedParticipants, option];
-            newUnselectedParticipants = _.reject(this.state.unselectedParticipants, selectedOption => (
-                selectedOption.login === option.login
-            ));
-        }
+        const participants = _.reject(this.state.participants, participant => (
+            participant.login === option.login
+        ));
 
-        const formattedSelectedParticipants = this.getFormattedSelectedParticipants(newSelectedParticipants);
-        const formattedUnselectedParticipants = this.getFormattedUnselectedParticipants(newUnselectedParticipants);
+        participants.push({
+            ...option,
+            selected: !option.selected,
+        });
 
         this.setState({
-            selectedParticipants: formattedSelectedParticipants,
-            unselectedParticipants: formattedUnselectedParticipants,
+            participants,
         });
     }
 
@@ -323,6 +314,7 @@ class IOUConfirmationList extends Component {
         );
         const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
         const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
+        const selectedParticipants = this.getSelectedParticipants();
         return (
             <>
                 <ScrollView style={[styles.flex1, styles.w100]}>
@@ -362,7 +354,7 @@ class IOUConfirmationList extends Component {
                         success
                         style={[styles.w100]}
                         isLoading={this.props.iou.loading}
-                        isDisabled={this.state.selectedParticipants.length === 0}
+                        isDisabled={selectedParticipants.length === 0}
                         text={buttonText}
                         onPress={() => this.props.onConfirm(this.getSplits())}
                     />
