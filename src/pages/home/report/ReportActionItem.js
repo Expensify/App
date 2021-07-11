@@ -258,10 +258,10 @@ class ReportActionItem extends Component {
                 ? <ReportActionItemMessage action={this.props.action} />
                 : (
                     <ReportActionItemMessageEdit
-                        action={this.props.action}
-                        draftMessage={this.props.draftMessage}
-                        reportID={this.props.reportID}
-                        index={this.props.index}
+                            action={this.props.action}
+                            draftMessage={this.props.draftMessage}
+                            reportID={this.props.reportID}
+                            index={this.props.index}
                     />
                 );
         }
