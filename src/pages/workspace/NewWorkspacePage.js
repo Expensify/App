@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -11,6 +11,7 @@ import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
 import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
 import Button from '../../components/Button';
+import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import {create} from '../../libs/actions/Policy';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
@@ -19,9 +20,12 @@ import defaultTheme from '../../styles/themes/default';
 
 const propTypes = {
     /** List of betas */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
+};
+const defaultProps = {
+    betas: [],
 };
 
 class NewWorkspacePage extends React.Component {
@@ -62,7 +66,7 @@ class NewWorkspacePage extends React.Component {
                             value={this.state.name}
                             onChangeText={name => this.setState({name})}
                         />
-                        <Text style={[styles.mt6, styles.textP]}>{this.props.translate('workspace.new.helpText')}</Text>
+                        <Text style={[styles.mt6]}>{this.props.translate('workspace.new.helpText')}</Text>
                     </View>
                     <Button
                         success
@@ -77,6 +81,7 @@ class NewWorkspacePage extends React.Component {
 }
 
 NewWorkspacePage.propTypes = propTypes;
+NewWorkspacePage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({

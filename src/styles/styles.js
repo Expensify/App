@@ -56,13 +56,6 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
-    textP: {
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        lineHeight: 20,
-    },
-
     textLabel: {
         color: themeColors.text,
         fontSize: variables.fontSizeLabel,
@@ -383,6 +376,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     chatItemComposeSecondaryRowOffset: {
@@ -1037,6 +1031,10 @@ const styles = {
         display: 'flex',
     },
 
+    chatItemComposeWithFirstRow: {
+        minHeight: 90,
+    },
+
     chatItemComposeBoxColor: {
         borderColor: themeColors.border,
     },
@@ -1108,15 +1106,22 @@ const styles = {
     // Emoji Picker Styles
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.iconSizeLarge,
         textAlign: 'center',
         ...spacing.pv1,
         ...spacing.ph2,
     },
 
+    emojiExtraSmall: {
+        fontSize: variables.iconSizeExtraSmall,
+    },
+
+    emojiLarge: {
+        fontSize: variables.iconSizeLarge,
+    },
+
     emojiItem: {
+        flex: 1,
         width: '12.5%',
-        height: 40,
         textAlign: 'center',
         borderRadius: 8,
     },
@@ -1778,22 +1783,20 @@ const styles = {
         width: '150%',
     },
 
-    workspaceSidebarAvatar: {
-        width: 80,
-        height: 80,
-    },
-
-    workspaceSidebarAvatarPencil: {
-        width: 32,
-        height: 32,
-        position: 'absolute',
-        right: -1,
-        bottom: -1,
+    smallEditIcon: {
+        alignItems: 'center',
         backgroundColor: themeColors.icon,
-        color: themeColors.textReversed,
-        borderRadius: 32,
-        borderWidth: 3,
         borderColor: themeColors.textReversed,
+        borderRadius: 16,
+        borderWidth: 3,
+        bottom: -4,
+        color: themeColors.textReversed,
+        height: 32,
+        justifyContent: 'center',
+        padding: 4,
+        position: 'absolute',
+        right: -4,
+        width: 32,
     },
 
     workspaceCard: {
