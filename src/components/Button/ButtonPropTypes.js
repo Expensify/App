@@ -19,6 +19,9 @@ const propTypes = {
     /** A function that is called when the button is clicked on */
     onPress: PropTypes.func,
 
+    /** Call the onPress function when Enter key is pressed */
+    pressOnEnter: PropTypes.bool,
+
     /** Additional styles to add after local styles */
     style: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.object),
@@ -51,6 +54,7 @@ const defaultProps = {
     small: false,
     large: false,
     onPress: () => {},
+    pressOnEnter: false,
     style: [],
     textStyles: [],
     success: false,
