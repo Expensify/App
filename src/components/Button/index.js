@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {propTypes, defaultProps} from './ButtonPropTypes';
 import {
     Pressable, ActivityIndicator,
@@ -11,6 +11,15 @@ import Text from '../Text';
 
 const Button = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+
+    useEffect(() => {
+        if (props.pressOnEnter && props.onPress && !props.isDisabled && !props.isLoading) {
+            document.addEventListener('keydown', handleKeydown);
+            return () => {
+                document.removeEventListener('keydown', handleKeydown);
+            }
+        }
+    }, [props.isDisabled, props.isLoading]);
 
     function renderContent() {
         const {ContentComponent} = props;
