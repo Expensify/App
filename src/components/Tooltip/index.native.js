@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 // render the View which is not present on the Mobile.
 const propTypes = {
     /** Styles to be assigned to the Tooltip wrapper views */
-    // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Children to wrap with Tooltip. */
