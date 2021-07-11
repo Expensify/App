@@ -17,7 +17,6 @@ class ExpensiPicker extends PureComponent {
         isOpen: open,
     })
 
-
     render() {
         const {
             label, value, placeholder, useDisabledStyles, ...pickerProps

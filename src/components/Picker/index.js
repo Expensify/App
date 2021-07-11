@@ -17,7 +17,7 @@ const Picker = ({
     <RNPickerSelect
         onValueChange={onChange}
         items={items}
-        style={styles.expensiPicker}
+        style={styles.expensiPicker(disabled)}
         useNativeAndroidPickerStyle={false}
         placeholder={placeholder}
         value={value}
