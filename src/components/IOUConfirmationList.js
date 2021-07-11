@@ -277,7 +277,7 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-    * Toggle selected option between selectedParticipant and unselectedParticipant.
+    * Toggle selected option's selected prop.
     * @param {Object} option
     */
     toggleOption(option) {
@@ -289,17 +289,16 @@ class IOUConfirmationList extends Component {
             return;
         }
 
-        const participants = _.reject(this.state.participants, participant => (
-            participant.login === option.login
-        ));
+        this.setState((prevState) => {
+            const newParticipants = _.reject(prevState.participants, participant => (
+                participant.login === option.login
+            ));
 
-        participants.push({
-            ...option,
-            selected: !option.selected,
-        });
-
-        this.setState({
-            participants,
+            newParticipants.push({
+                ...option,
+                selected: !option.selected,
+            });
+            return {participants: newParticipants};
         });
     }
 
