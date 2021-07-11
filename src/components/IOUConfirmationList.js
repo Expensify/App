@@ -270,6 +270,7 @@ class IOUConfirmationList extends Component {
                             onChangeText={this.props.onUpdateComment}
                             placeholder={this.props.translate('common.optional')}
                             placeholderTextColor={themeColors.placeholderText}
+                            onSubmitEditing={() => this.props.onConfirm(this.getSplits())}
                         />
                     </View>
                 </ScrollView>
@@ -280,6 +281,7 @@ class IOUConfirmationList extends Component {
                         isLoading={this.props.iou.loading}
                         text={buttonText}
                         onPress={() => this.props.onConfirm(this.getSplits())}
+                        pressOnEnter
                     />
                 </FixedFooter>
             </>
