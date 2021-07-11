@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import React, {useEffect} from 'react';
-import {propTypes, defaultProps} from './ButtonPropTypes';
 import {
     Pressable, ActivityIndicator,
 } from 'react-native';
+import {propTypes, defaultProps} from './ButtonPropTypes';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import OpacityView from '../OpacityView';
@@ -17,7 +17,7 @@ const Button = (props) => {
      *
      * @param {Object} event
      */
-     function handleKeydown(event) {
+    function handleKeydown(event) {
         if (event.key === 'Enter') {
             props.onPress();
         }
@@ -28,7 +28,7 @@ const Button = (props) => {
             document.addEventListener('keydown', handleKeydown);
             return () => {
                 document.removeEventListener('keydown', handleKeydown);
-            }
+            };
         }
     }, [props.isDisabled, props.isLoading]);
 

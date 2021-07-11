@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import React from 'react';
-import {propTypes, defaultProps} from './ButtonPropTypes';
 import {
     Pressable, ActivityIndicator,
 } from 'react-native';
+import {propTypes, defaultProps} from './ButtonPropTypes';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import OpacityView from '../OpacityView';
