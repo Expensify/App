@@ -218,16 +218,6 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * Gets participants list for a report
-     * @returns {Array}
-     */
-    getParticipants() {
-        const participants = this.props.participants.map(participant => participant.login);
-        participants.push(this.props.myPersonalDetails.login);
-        return participants;
-    }
-
-    /**
      * Returns selected options -- there is checkmark for every row in List for split flow
      * @returns {Array}
      */
