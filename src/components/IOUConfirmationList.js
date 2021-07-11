@@ -117,7 +117,6 @@ class IOUConfirmationList extends Component {
 
     /**
      * Returns the selectedParticipants with amount
-     *
      * @param {Array} selectedParticipants
      * @returns {Array}
      */
@@ -133,7 +132,6 @@ class IOUConfirmationList extends Component {
 
     /**
      * Returns the unselectedParticipants without amount
-     *
      * @param {Array} unselectedParticipants
      * @returns {Array}
      */
@@ -143,7 +141,6 @@ class IOUConfirmationList extends Component {
 
     /**
      * Returns the sections needed for the OptionsSelector
-     *
      * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
@@ -193,7 +190,6 @@ class IOUConfirmationList extends Component {
 
     /**
      * Gets splits for the transaction
-     *
      * @returns {Array|null}
      */
     getSplits() {
@@ -223,7 +219,6 @@ class IOUConfirmationList extends Component {
 
     /**
      * Gets participants list for a report
-     *
      * @returns {Array}
      */
     getParticipants() {
