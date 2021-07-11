@@ -326,17 +326,34 @@ class EmojiPickerMenu extends Component {
                         />
                     </View>
                 )}
-                <FlatList
-                    ref={el => this.emojiList = el}
-                    data={this.state.filteredEmojis}
-                    renderItem={this.renderItem}
-                    keyExtractor={item => `emoji_picker_${item.code}`}
-                    numColumns={this.numColumns}
-                    style={styles.emojiPickerList}
-                    extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
-                    stickyHeaderIndices={this.state.headerIndices}
-                    onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
-                />
+                {this.state.filteredEmojis.length === 0
+                    ? (
+                        <Text
+                            style={[
+                                styles.textP,
+                                styles.disabledText,
+                                styles.emojiPickerList,
+                                styles.dFlex,
+                                styles.alignItemsCenter,
+                                styles.justifyContentCenter,
+                            ]}
+                        >
+                            {this.props.translate('common.noResultsFound')}
+                        </Text>
+                    )
+                    : (
+                        <FlatList
+                            ref={el => this.emojiList = el}
+                            data={this.state.filteredEmojis}
+                            renderItem={this.renderItem}
+                            keyExtractor={item => `emoji_picker_${item.code}`}
+                            numColumns={this.numColumns}
+                            style={styles.emojiPickerList}
+                            extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
+                            stickyHeaderIndices={this.state.headerIndices}
+                            onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
+                        />
+                    )}
             </View>
         );
     }
