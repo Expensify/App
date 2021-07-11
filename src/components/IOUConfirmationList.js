@@ -107,12 +107,31 @@ class IOUConfirmationList extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
 
-        const formattedSelectedParticipants = this.getFormattedSelectedParticipants(this.props.participants);
+        const participants = this.props.participants.map(participant => ({
+            ...participant, selected: true,
+        }));
+
+        const formattedParticipants = this.getFormattedSelectedParticipants(participants);
 
         this.state = {
-            selectedParticipants: formattedSelectedParticipants,
-            unselectedParticipants: [],
+            participants: formattedParticipants,
         };
+    }
+
+    /**
+     * Get selected participants
+     * @returns {Array}
+     */
+    getSelectedParticipants() {
+        return this.state.participants.filter(participant => participant.selected);
+    }
+
+    /**
+     * Get unselected participants
+     * @returns {Array}
+     */
+    getUnselectedParticipants() {
+        return this.state.participants.filter(participant => !participant.selected);
     }
 
     /**
