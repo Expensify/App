@@ -56,6 +56,7 @@ export default {
         send: 'Send',
         notifications: 'Notifications',
         noResultsFound: 'No results found',
+        deletedCommentMessage: 'Comment deleted',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
