@@ -3,12 +3,76 @@ import React, {Component} from 'react';
 import {
     Pressable, ActivityIndicator, InteractionManager
 } from 'react-native';
-import {propTypes, defaultProps} from './ButtonPropTypes';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import OpacityView from '../OpacityView';
-import Text from '../Text';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
+import PropTypes from 'prop-types';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
+import OpacityView from './OpacityView';
+import Text from './Text';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
+
+const propTypes = {
+    /** The text for the button label */
+    text: PropTypes.string,
+
+    /** Small sized button */
+    small: PropTypes.bool,
+
+    /** Large sized button */
+    large: PropTypes.bool,
+
+    /** Indicates whether the button should be disabled and in the loading state */
+    isLoading: PropTypes.bool,
+
+    /** Indicates whether the button should be disabled */
+    isDisabled: PropTypes.bool,
+
+    /** A function that is called when the button is clicked on */
+    onPress: PropTypes.func,
+
+    /** Call the onPress function when Enter key is pressed */
+    pressOnEnter: PropTypes.bool,
+
+    /** Additional styles to add after local styles */
+    style: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.object),
+        PropTypes.object,
+    ]),
+
+    /** Additional text styles */
+    textStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Whether we should use the success theme color */
+    success: PropTypes.bool,
+
+    /** Whether we should use the danger theme color */
+    danger: PropTypes.bool,
+
+    /** Optional content component to replace all inner contents of button */
+    ContentComponent: PropTypes.func,
+
+    /** Should we remove the right border radius top + bottom? */
+    shouldRemoveRightBorderRadius: PropTypes.bool,
+
+    /** Should we remove the left border radius top + bottom? */
+    shouldRemoveLeftBorderRadius: PropTypes.bool,
+};
+
+const defaultProps = {
+    text: '',
+    isLoading: false,
+    isDisabled: false,
+    small: false,
+    large: false,
+    onPress: () => {},
+    pressOnEnter: false,
+    style: [],
+    textStyles: [],
+    success: false,
+    danger: false,
+    ContentComponent: undefined,
+    shouldRemoveRightBorderRadius: false,
+    shouldRemoveLeftBorderRadius: false,
+};
 
 class Button extends Component {
     constructor(props) {
