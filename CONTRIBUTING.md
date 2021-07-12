@@ -1,13 +1,13 @@
-# Contributing to Expensify.cash
-Welcome! Thanks for checking out Expensify.cash and for taking the time to contribute!
+# Contributing to Expensify
+Welcome! Thanks for checking out Expensify and for taking the time to contribute!
 
 ## Getting Started
-If you would like to become an Expensify.cash contributor, the first step is to read this document in it's entirety. The second step is to review the README guidelines [here](https://github.com/Expensify/Expensify.cash/blob/main/README.md) for a general overview of the code repository (i.e. how to run the app locally, testing, storage, etc). Please read both documents before asking questions, as it may be covered within the documentation.
+If you would like to become an Expensify contributor, the first step is to read this document in its entirety. The second step is to review the README guidelines [here](https://github.com/Expensify/Expensify.cash/blob/main/README.md) for a general overview of the code repository (i.e. how to run the app locally, testing, storage, etc). Please read both documents before asking questions, as it may be covered within the documentation.
 
 #### Test Accounts
-You can create as many accounts as needed in order to test your changes directly from [expensify.cash](https://expensify.cash/). An initial account can be created when logging in for the first time, and additional accounts can be invited by entering a valid email or phone in the "Find or start a chat" input then tapping the avatar.
+You can create as many accounts as needed in order to test your changes directly from [the app](https://expensify.cash/). An initial account can be created when logging in for the first time, and additional accounts can be invited by entering a valid email or phone in the "Find or start a chat" input then tapping the avatar.
 
-**Note**: When testing chat functionality in Expensify Cash please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you. 
+**Note**: When testing chat functionality in the app please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you. 
 
 ## Code of Conduct
 This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/Expensify.cash/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
@@ -24,21 +24,21 @@ If you are hired for an Upwork job and have any job-specific questions, please a
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account and apply for a job in the [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Payment for your contributions will be made no less than 7 days after the pull request is merged to allow for regression testing. We hire one contributor for each Upwork job. New Expensify.cash contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. If you have not received payment after 8 days of the PR being deployed to production, please email contributors@expensify.com referencing the GH issue and your GH handle.
+We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account and apply for a job in the [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Payment for your contributions will be made no less than 7 days after the pull request is merged to allow for regression testing. We hire one contributor for each Upwork job. New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. If you have not received payment after 8 days of the PR being deployed to production, please email contributors@expensify.com referencing the GH issue and your GH handle.
 
-## Finding Expensify.cash Jobs
-There are two ways you can find an Expensify.cash job that you can contribute to:
+## Finding Jobs
+There are two ways you can find a job that you can contribute to:
 
 #### Finding a job that Expensify posted
-This is the most common scenario for contributors. The Expensify team posts Expensify.cash jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow.
+This is the most common scenario for contributors. The Expensify team posts New Expensify jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow.
 
 #### Proposing a job that Expensify hasn’t posted
 
 In this scenario, it’s possible that you found a bug or enhancement that we haven’t posted to the [Upwork job list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) or [Github repository](https://github.com/Expensify/Expensify.cash/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal, we will compensate you for the solution and give an additional bonus of $150 for proactively proposing the job. In this case, please take the following steps:
 
-    1. Check to ensure an issue does not already exist in the Expensify.cash Issue list or Upwork job list. Please use your best judgement to search for similar titles and issue descriptions.
+    1. Check to ensure an issue does not already exist in the New Expensify Issue list or Upwork job list. Please use your best judgement to search for similar titles and issue descriptions.
     2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it’ll help solve a problem.
-    3. If there is no existing issue or Upwork job, create a new GitHub issue in the Expensify.cash repo.
+    3. If there is no existing issue or Upwork job, create a new GitHub issue in the app's repo.
     4. Make sure to fill out all the required information fields in the issue template.
     5. Add the `AutoAssignerTriage` label to your issue.
     6. Before starting your PR to solve the bug or enhancement that you are proposing, please add a comment on your issue with a solution proposal. 
@@ -50,7 +50,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 >
 >**Solution:** Start up time will perceptibly decrease by 1042ms if we prevent the unnecessary re-renders of this component.
 
-## Working on Expensify.cash Jobs
+## Working on Expensify Jobs
 *Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/Expensify.cash/blob/main/README.md)*.
 
 #### Express interest for the job on Upwork.com
