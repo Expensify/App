@@ -83,7 +83,7 @@ class RequestorStep extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('requestorStep.headerTitle')}
                     shouldShowBackButton
-                    onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY_STEP)}
+                    onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {this.props.achData.useOnfido && this.props.achData.sdkToken ? (
@@ -110,7 +110,7 @@ class RequestorStep extends React.Component {
                                         lastName: this.state.lastName,
                                         street: this.state.requestorAddressStreet,
                                         city: this.state.requestorAddressCity,
-                                        state: this.state.requestorAddressCity,
+                                        state: this.state.requestorAddressState,
                                         zipCode: this.state.requestorAddressZipCode,
                                         dob: this.state.dob,
                                         ssnLast4: this.state.ssnLast4,
