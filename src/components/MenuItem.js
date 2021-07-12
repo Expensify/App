@@ -1,8 +1,9 @@
 import React from 'react';
 import {
-    View, Text, Pressable,
+    View, Pressable,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import Text from './Text';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles/styles';
 import Icon from './Icon';
 import {ArrowRight} from './Icon/Expensicons';
