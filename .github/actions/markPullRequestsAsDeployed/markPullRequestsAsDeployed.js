@@ -57,7 +57,6 @@ function fetchAllStagingDeployCash(fromTimestamp) {
         sort: 'created',
         direction: 'desc',
         labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
-        per_page: 30,
     }, ({data}, done) => {
         const lastIssueIndex = _.findIndex(data, issue => moment(issue.created_at).isBefore(moment(fromTimestamp)));
         if (lastIssueIndex !== -1) {

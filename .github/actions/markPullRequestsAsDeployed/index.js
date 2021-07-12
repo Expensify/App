@@ -67,7 +67,6 @@ function fetchAllStagingDeployCash(fromTimestamp) {
         sort: 'created',
         direction: 'desc',
         labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
-        per_page: 30,
     }, ({data}, done) => {
         const lastIssueIndex = _.findIndex(data, issue => moment(issue.created_at).isBefore(moment(fromTimestamp)));
         if (lastIssueIndex !== -1) {
@@ -182,7 +181,7 @@ function commentPR(pr) {
 }
 
 const run = function () {
-    return GithubUtils.fetchAllPullRequests(prList.map(pr => parseInt(pr, 10)))
+    return GithubUtils.fetchAllPullRequests(_.compact(_.map(prList, pr => parseInt(pr, 10))))
         .then((PRListWithDetails) => {
             _.each(PRListWithDetails, (PR) => {
                 PRMap[PR.number] = PR;
