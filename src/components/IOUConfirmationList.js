@@ -107,11 +107,9 @@ class IOUConfirmationList extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
 
-        const participants = this.props.participants.map(participant => ({
+        const formattedParticipants = this.getParticipantsWithAmount(this.props.participants).map(participant => ({
             ...participant, selected: true,
         }));
-
-        const formattedParticipants = this.getParticipantsWithAmount(participants);
 
         this.state = {
             participants: formattedParticipants,
