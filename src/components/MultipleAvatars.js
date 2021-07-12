@@ -1,30 +1,34 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Image, Text, View} from 'react-native';
+import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
+import Text from './Text';
 
 const propTypes = {
-    // Array of avatar URL
+    /** Array of avatar URL */
     avatarImageURLs: PropTypes.arrayOf(PropTypes.string),
 
-    // Set the sie of avatars
+    /** Set the sie of avatars */
     size: PropTypes.oneOf(['default', 'small']),
 
-    // Style for Second Avatar
+    /** Style for Second Avatar */
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
+    /** Whether this avatar is for a default room */
+    isDefaultChatRoom: PropTypes.bool,
 };
 
 const defaultProps = {
     avatarImageURLs: [],
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
+    isDefaultChatRoom: false,
 };
 
 const MultipleAvatars = ({
-    avatarImageURLs, size, secondAvatarStyle,
+    avatarImageURLs, size, secondAvatarStyle, isDefaultChatRoom,
 }) => {
     const avatarContainerStyles = size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
     const singleAvatarStyles = size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
@@ -40,13 +44,13 @@ const MultipleAvatars = ({
     if (avatarImageURLs.length === 1) {
         return (
             <View style={avatarContainerStyles}>
-                <Avatar source={avatarImageURLs[0]} size={size} />
+                <Avatar source={avatarImageURLs[0]} size={size} isDefaultChatRoom={isDefaultChatRoom} />
             </View>
         );
     }
 
     return (
-        <View style={avatarContainerStyles}>
+        <View pointerEvents="none" style={avatarContainerStyles}>
             <View
                 style={singleAvatarStyles}
             >
@@ -64,7 +68,7 @@ const MultipleAvatars = ({
                         />
                     ) : (
                         <View
-                            style={singleAvatarStyles}
+                            style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                         >
                             <Text style={size === 'small'
                                 ? styles.avatarInnerTextSmall

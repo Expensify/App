@@ -12,12 +12,14 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/bumpVersion/bumpVersion.js"
     "$ACTIONS_DIR/checkDeployBlockers/checkDeployBlockers.js"
     "$ACTIONS_DIR/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy.js"
-    "$ACTIONS_DIR/getReleaseBody/getReleaseBody.js"
     "$ACTIONS_DIR/getDeployPullRequestList/getDeployPullRequestList.js"
+    "$ACTIONS_DIR/getMergeCommitForPullRequest/getMergeCommitForPullRequest.js"
+    "$ACTIONS_DIR/getReleaseBody/getReleaseBody.js"
     "$ACTIONS_DIR/isPullRequestMergeable/isPullRequestMergeable.js"
     "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.js"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.js"
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.js"
+    "$ACTIONS_DIR/triggerWorkflowAndWait/triggerWorkflowAndWait.js"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.
@@ -26,12 +28,26 @@ declare -r NOTE_DONT_EDIT='/**
  */
 '
 
-for ACTION in "${GITHUB_ACTIONS[@]}"; do
-    # Build the action
-    ACTION_DIR=$(dirname "$ACTION")
-    ncc build "$ACTION" -o "$ACTION_DIR"
+# This stores all the process IDs of the ncc commands so they can run in parallel
+declare ASYNC_BUILDS
 
-    # Prepend the warning note to the top of the compiled file
-    OUTPUT_FILE="$ACTION_DIR/index.js"
-    echo "$NOTE_DONT_EDIT$(cat "$OUTPUT_FILE")" > "$OUTPUT_FILE"
+for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
+  ACTION=${GITHUB_ACTIONS[$i]}
+  ACTION_DIR=$(dirname "$ACTION")
+
+  # Build the action in the background
+  ncc build "$ACTION" -o "$ACTION_DIR" &
+  ASYNC_BUILDS[$i]=$!
+done
+
+for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
+  ACTION=${GITHUB_ACTIONS[$i]}
+  ACTION_DIR=$(dirname "$ACTION")
+
+  # Wait for the background build to finish
+  wait ${ASYNC_BUILDS[$i]}
+
+  # Prepend the warning note to the top of the compiled file
+  OUTPUT_FILE="$ACTION_DIR/index.js"
+  echo "$NOTE_DONT_EDIT$(cat "$OUTPUT_FILE")" > "$OUTPUT_FILE"
 done

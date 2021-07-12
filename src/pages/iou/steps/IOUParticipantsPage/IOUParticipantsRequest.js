@@ -1,37 +1,45 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import {getNewChatOptions} from '../../../../libs/OptionsListUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import compose from '../../../../libs/compose';
 
 const personalDetailsPropTypes = PropTypes.shape({
-    // The login of the person (either email or phone number)
+    /** The login of the person (either email or phone number) */
     login: PropTypes.string.isRequired,
 
-    // The URL of the person's avatar (there should already be a default avatar if
-    // the person doesn't have their own avatar uploaded yet)
+    /** The URL of the person's avatar (there should already be a default avatar if the person doesn't have
+     * their own avatar uploaded yet) */
     avatar: PropTypes.string.isRequired,
 
-    // This is either the user's full name, or their login if full name is an empty string
+    /** This is either the user's full name, or their login if full name is an empty string */
     displayName: PropTypes.string.isRequired,
 });
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    // Callback to add participants in IOUModal
+    /** Callback to add participants in IOUModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    // All of the personal details for everyone
+    /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
-    // All reports shared with the user
+    /** All reports shared with the user */
     reports: PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
     }).isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 class IOUParticipantsRequest extends Component {
@@ -40,13 +48,20 @@ class IOUParticipantsRequest extends Component {
 
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
 
-        const {personalDetails, userToInvite} = getNewChatOptions(
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = getNewChatOptions(
             props.reports,
             props.personalDetails,
             '',
+            true,
+            props.betas,
         );
 
         this.state = {
+            recentReports,
             personalDetails,
             userToInvite,
             searchValue: '',
@@ -60,10 +75,18 @@ class IOUParticipantsRequest extends Component {
      */
     getSections() {
         const sections = [];
+
         sections.push({
-            title: 'CONTACTS',
+            title: this.props.translate('common.recents'),
+            data: this.state.recentReports,
+            shouldShow: !_.isEmpty(this.state.recentReports),
+            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+        });
+
+        sections.push({
+            title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
-            shouldShow: this.state.personalDetails.length > 0,
+            shouldShow: !_.isEmpty(this.state.personalDetails),
             indexOffset: 0,
         });
 
@@ -97,18 +120,24 @@ class IOUParticipantsRequest extends Component {
                 value={this.state.searchValue}
                 onSelectRow={this.addSingleParticipant}
                 onChangeText={(searchValue = '') => {
-                    const {personalDetails, userToInvite} = getNewChatOptions(
+                    const {
+                        recentReports,
+                        personalDetails,
+                        userToInvite,
+                    } = getNewChatOptions(
                         this.props.reports,
                         this.props.personalDetails,
                         searchValue,
+                        true,
+                        this.props.betas,
                     );
                     this.setState({
                         searchValue,
+                        recentReports,
                         userToInvite,
                         personalDetails,
                     });
                 }}
-                hideSectionHeaders
                 disableArrowKeysActions
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
@@ -120,11 +149,17 @@ class IOUParticipantsRequest extends Component {
 IOUParticipantsRequest.displayName = 'IOUParticipantsRequest';
 IOUParticipantsRequest.propTypes = propTypes;
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(IOUParticipantsRequest);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+)(IOUParticipantsRequest);

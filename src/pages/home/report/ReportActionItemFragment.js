@@ -4,28 +4,37 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
+import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
+import {isSingleEmoji} from '../../../libs/ValidationUtils';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
-    // The message fragment needing to be displayed
+    /** The message fragment needing to be displayed */
     fragment: ReportActionFragmentPropTypes.isRequired,
 
-    // Text to be shown for tooltip When Fragment is report Actor
+    /** Text to be shown for tooltip When Fragment is report Actor */
     tooltipText: PropTypes.string,
 
-    // Is this fragment an attachment?
+    /** Is this fragment an attachment? */
     isAttachment: PropTypes.bool,
 
-    // Does this fragment belong to a reportAction that has not yet loaded?
+    /** Does this fragment belong to a reportAction that has not yet loaded? */
     loading: PropTypes.bool,
+
+    /** Should this fragment be contained in a single line? */
+    isSingleLine: PropTypes.bool,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     isAttachment: false,
     loading: false,
+    isSingleLine: false,
     tooltipText: '',
 };
 
@@ -48,16 +57,36 @@ class ReportActionItemFragment extends React.PureComponent {
                 }
 
                 // Only render HTML if we have html in the fragment
-                return fragment.html !== fragment.text ? (
-                    <RenderHTML html={fragment.html} debug={false} />
-                ) : (
-                    <Text selectable>{Str.htmlDecode(fragment.text)}</Text>
-                );
+                return fragment.html !== fragment.text
+                    ? (
+                        <RenderHTML
+                            html={fragment.html + (fragment.isEdited ? '<edited/>' : '')}
+                            debug={false}
+                        />
+                    ) : (
+                        <Text
+                            selectable={!this.props.isSmallScreenWidth}
+                            style={isSingleEmoji(fragment.text) ? styles.singleEmojiText : undefined}
+                        >
+                            {Str.htmlDecode(fragment.text)}
+                            {fragment.isEdited && (
+                            <Text
+                                fontSize={variables.fontSizeSmall}
+                                color={themeColors.textSupporting}
+                            >
+                                {/* Native devices do not support margin between nested text */}
+                                <Text style={styles.w1}>{' '}</Text>
+                                (edited)
+                            </Text>
+                            )}
+                        </Text>
+                    );
             case 'TEXT':
                 return (
-                    <Tooltip text={tooltipText}>
+                    <Tooltip text={tooltipText} containerStyle={styles.w100}>
                         <Text
                             selectable
+                            numberOfLines={this.props.isSingleLine ? 1 : undefined}
                             style={[styles.chatItemMessageHeaderSender]}
                         >
                             {Str.htmlDecode(fragment.text)}
@@ -88,4 +117,4 @@ ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
 ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
-export default ReportActionItemFragment;
+export default withWindowDimensions(ReportActionItemFragment);

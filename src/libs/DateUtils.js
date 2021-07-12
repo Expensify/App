@@ -1,5 +1,8 @@
-import moment from 'moment';
-import 'moment-timezone';
+import moment from 'moment-timezone';
+
+// IMPORTANT: load any locales (other than english) that might be passed to moment.locale()
+import 'moment/locale/es';
+
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
@@ -89,11 +92,30 @@ function timestampToRelative(locale, timestamp) {
 }
 
 /**
+ * A throttled version of a function that updates the current date in Onyx store
+ */
+const updateCurrentDate = _.throttle(() => {
+    const currentDate = moment().format('YYYY-MM-DD');
+    Onyx.set(ONYXKEYS.CURRENT_DATE, currentDate);
+}, 1000 * 60 * 60 * 3); // 3 hours
+
+/**
+ * Initialises the event listeners that trigger the current date update
+ */
+function startCurrentDateUpdater() {
+    const trackedEvents = ['mousemove', 'touchstart', 'keydown', 'scroll'];
+    trackedEvents.forEach((eventName) => {
+        document.addEventListener(eventName, updateCurrentDate);
+    });
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
     timestampToRelative,
     timestampToDateTime,
+    startCurrentDateUpdater,
 };
 
 export default DateUtils;

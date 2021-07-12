@@ -55,7 +55,7 @@ platform :android do
     upload_to_play_store(
       package_name: "com.expensify.chat",
       json_key: './android/app/android-fastlane-json-key.json',
-      version_code: ENV["VERSION_CODE"].to_i,
+      version_code: ENV["VERSION"].to_i,
       track: 'internal',
       track_promote_to: 'production',
       rollout: '1.0',

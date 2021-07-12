@@ -7,6 +7,16 @@ if (process.env.USE_WEB_PROXY === 'false') {
     process.exit();
 }
 
+let host = 'www.expensify.com';
+
+// If we are testing against the staging API then we must use the correct host here or nothing with work.
+if (/staging/.test(process.env.EXPENSIFY_URL_COM)) {
+    host = 'staging.expensify.com';
+}
+
+// eslint-disable-next-line no-console
+console.log(`Creating proxy with host: ${host}`);
+
 /**
  * Local proxy server that hits the production endpoint
  * to get around CORS issues. We use this so that it's
@@ -15,12 +25,12 @@ if (process.env.USE_WEB_PROXY === 'false') {
  */
 const server = http.createServer((request, response) => {
     const proxyRequest = https.request({
-        hostname: 'www.expensify.com',
+        hostname: host,
         method: 'POST',
         path: request.url,
         headers: {
             ...request.headers,
-            host: 'www.expensify.com',
+            host,
         },
         port: 443,
     });

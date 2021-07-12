@@ -1,9 +1,10 @@
 import _ from 'underscore';
 import React, {Fragment, PureComponent} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import {propTypes, defaultProps} from './displayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
+import Text from '../Text';
 
 class DisplayNames extends PureComponent {
     constructor(props) {
@@ -83,28 +84,30 @@ class DisplayNames extends PureComponent {
 
             // Tokenization of string only support 1 numberOfLines on Web
             <Text
-                style={[this.props.textStyles, styles.pRelative]}
+                style={[...this.props.textStyles, styles.pRelative]}
                 onLayout={this.setContainerLayout}
                 numberOfLines={1}
                 ref={el => this.containerRef = el}
             >
-                {_.map(this.props.displayNamesWithTooltips, ({displayName, tooltip}, index) => (
-                    <Fragment key={index}>
-                        <Tooltip
-                            key={index}
-                            text={tooltip}
-                            containerStyle={styles.dInline}
-                            shiftHorizontal={() => this.getTooltipShiftX(index)}
-                        >
-                            {/*  // We need to get the refs to all the names which will be used to correct
-                                 the horizontal position of the tooltip */}
-                            <Text ref={el => this.childRefs[index] = el}>
-                                {displayName}
-                            </Text>
-                        </Tooltip>
-                        {index < this.props.displayNamesWithTooltips.length - 1 && <Text>,&nbsp;</Text>}
-                    </Fragment>
-                ))}
+                {this.props.shouldUseFullTitle
+                    ? this.props.fullTitle
+                    : _.map(this.props.displayNamesWithTooltips, ({displayName, tooltip}, index) => (
+                        <Fragment key={index}>
+                            <Tooltip
+                                key={index}
+                                text={tooltip}
+                                containerStyle={styles.dInline}
+                                shiftHorizontal={() => this.getTooltipShiftX(index)}
+                            >
+                                {/*  // We need to get the refs to all the names which will be used to correct
+                                    the horizontal position of the tooltip */}
+                                <Text ref={el => this.childRefs[index] = el}>
+                                    {displayName}
+                                </Text>
+                            </Tooltip>
+                            {index < this.props.displayNamesWithTooltips.length - 1 && <Text>,&nbsp;</Text>}
+                        </Fragment>
+                    ))}
                 {this.props.displayNamesWithTooltips.length > 1 && this.state.isEllipsisActive
                     && (
                         <View style={styles.displayNameTooltipEllipsis}>

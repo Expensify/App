@@ -10,11 +10,11 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import {updateCurrentlyViewedReportID} from '../../libs/actions/Report';
 
 const propTypes = {
-    /* Navigation route context info provided by react navigation */
+    /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
-        /* Route specific parameters used on this screen */
+        /** Route specific parameters used on this screen */
         params: PropTypes.shape({
-            /* The ID of the report this screen should display */
+            /** The ID of the report this screen should display */
             reportID: PropTypes.string,
         }).isRequired,
     }).isRequired,
@@ -32,15 +32,6 @@ class ReportScreen extends React.Component {
     componentDidMount() {
         this.prepareTransition();
         this.storeCurrentlyViewedReport();
-    }
-
-    componentDidUpdate(prevProps) {
-        const reportChanged = this.props.route.params.reportID !== prevProps.route.params.reportID;
-
-        if (reportChanged) {
-            this.prepareTransition();
-            this.storeCurrentlyViewedReport();
-        }
     }
 
     componentWillUnmount() {
@@ -73,7 +64,7 @@ class ReportScreen extends React.Component {
         this.setState({isLoading: true});
 
         clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 300);
+        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 150);
     }
 
     /**
@@ -94,7 +85,7 @@ class ReportScreen extends React.Component {
 
                 <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
 
-                <ReportView reportID={this.getReportID()} />
+                {!this.shouldShowLoader() && <ReportView reportID={this.getReportID()} />}
             </ScreenWrapper>
         );
     }

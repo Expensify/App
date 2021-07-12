@@ -4,11 +4,12 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
-import {getDefaultAvatar} from './actions/PersonalDetails';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {getReportParticipantsTitle} from './reportUtils';
+import {getReportParticipantsTitle, isDefaultRoom, getDefaultRoomSubtitle} from './reportUtils';
+import {translate} from './translate';
 import Permissions from './Permissions';
+import md5 from './md5';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -17,11 +18,62 @@ import Permissions from './Permissions';
  */
 
 let currentUserLogin;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => currentUserLogin = val && val.email,
+});
+
 let countryCodeByIP;
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY_CODE,
+    callback: val => countryCodeByIP = val || 1,
+});
+
+let preferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
+});
+
+const policies = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (policy, key) => {
+        if (policy && key && policy.name) {
+            policies[key] = policy;
+        }
+    },
+});
+
+/**
+ * Helper method to return a default avatar
+ *
+ * @param {String} [login]
+ * @returns {String}
+ */
+function getDefaultAvatar(login = '') {
+    // There are 8 possible default avatars, so we choose which one this user has based
+    // on a simple hash of their login (which is converted from HEX to INT)
+    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
+}
 
 // We are initializing a default avatar here so that we use the same default color for each user we are inviting. This
 // will update when the OptionsListUtils re-loads. But will stay the same color for the life of the JS session.
 const defaultAvatarForUserToInvite = getDefaultAvatar();
+
+/**
+ * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
+ *
+ * @param {String} login
+ * @return {String}
+ */
+function addSMSDomainIfPhoneNumber(login) {
+    if (Str.isValidPhone(login) && !Str.isValidEmail(login)) {
+        return login + CONST.SMS.DOMAIN;
+    }
+    return login;
+}
 
 /**
  * Returns the personal details for an array of logins
@@ -36,7 +88,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         if (!personalDetail) {
             personalDetail = {
-                login,
+                login: addSMSDomainIfPhoneNumber(login),
                 displayName: login,
                 avatar: getDefaultAvatar(login),
             };
@@ -47,23 +99,62 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 }
 
 /**
- * Returns a string with all relevant search terms
+ * Constructs a Set with all possible names (displayName, firstName, lastName, email) for all participants in a report,
+ * to be used in isSearchStringMatch.
+ *
+ * @param {Array<Object>} personalDetailList
+ * @return {Set<String>}
+ */
+function getParticipantNames(personalDetailList) {
+    // We use a Set because `Set.has(value)` on a Set of with n entries is up to n (or log(n)) times faster than
+    // `_.contains(Array, value)` for an Array with n members.
+    const participantNames = new Set();
+    _.each(personalDetailList, (participant) => {
+        if (participant.login) {
+            participantNames.add(participant.login.toLowerCase());
+        }
+        if (participant.firstName) {
+            participantNames.add(participant.firstName.toLowerCase());
+        }
+        if (participant.lastName) {
+            participantNames.add(participant.lastName.toLowerCase());
+        }
+        if (participant.displayName) {
+            participantNames.add(participant.displayName.toLowerCase());
+        }
+    });
+    return participantNames;
+}
+
+/**
+ * Returns a string with all relevant search terms.
+ * Default should be serachable by policy/domain name but not by participants.
  *
  * @param {Object} report
  * @param {Array} personalDetailList
+ * @param {Boolean} isDefaultChatRoom
  * @return {String}
  */
-function getSearchText(report, personalDetailList) {
+function getSearchText(report, personalDetailList, isDefaultChatRoom) {
     const searchTerms = [];
 
-    _.each(personalDetailList, (personalDetail) => {
-        searchTerms.push(personalDetail.displayName);
-        searchTerms.push(personalDetail.login);
-    });
-
+    if (!isDefaultChatRoom) {
+        _.each(personalDetailList, (personalDetail) => {
+            searchTerms.push(personalDetail.displayName);
+            searchTerms.push(personalDetail.login);
+        });
+    }
     if (report) {
+        searchTerms.push(...report.reportName);
         searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
-        searchTerms.push(...report.participants);
+
+        if (isDefaultChatRoom) {
+            const defaultRoomSubtitle = getDefaultRoomSubtitle(report, policies);
+            searchTerms.push(...defaultRoomSubtitle);
+            searchTerms.push(...defaultRoomSubtitle.split(',').map(name => name.trim()));
+        } else {
+            searchTerms.push(...report.participants);
+        }
     }
 
     return _.unique(searchTerms).join(' ');
@@ -75,17 +166,18 @@ function getSearchText(report, personalDetailList) {
  * @param {Array<Object>} personalDetailList
  * @param {Object} [report]
  * @param {Object} draftComments
- * @param {Number} activeReportID
  * @param {Boolean} showChatPreviewLine
+ * @param {Boolean} forcePolicyNamePreview
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, activeReportID, {showChatPreviewLine = false}) {
+function createOption(personalDetailList, report, draftComments, {
+    showChatPreviewLine = false, forcePolicyNamePreview = false,
+}) {
     const hasMultipleParticipants = personalDetailList.length > 1;
     const personalDetail = personalDetailList[0];
-    const hasDraftComment = report
-        && (report.reportID !== activeReportID)
+    const reportDraftComment = report
         && draftComments
-        && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '').length > 0;
+        && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
 
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
@@ -95,13 +187,30 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
             : '')
         + _.unescape(report.lastMessageText)
         : '';
+
+    const isDefaultChatRoom = isDefaultRoom(report);
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
-    return {
-        text: report ? report.reportName : personalDetail.displayName,
-        alternateText: (showChatPreviewLine && lastMessageText)
+    let text;
+    let alternateText;
+    if (isDefaultChatRoom) {
+        text = lodashGet(report, ['reportName'], '');
+        alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
-            : Str.removeSMSDomain(personalDetail.login),
+            : getDefaultRoomSubtitle(report, policies);
+    } else {
+        text = hasMultipleParticipants
+            ? personalDetailList
+                .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
+                .join(', ')
+            : lodashGet(report, ['reportName'], personalDetail.displayName);
+        alternateText = (showChatPreviewLine && lastMessageText)
+            ? lastMessageText
+            : Str.removeSMSDomain(personalDetail.login);
+    }
+    return {
+        text,
+        alternateText,
         icons: report ? report.icons : [personalDetail.avatar],
         tooltipText,
         participantsList: personalDetailList,
@@ -111,38 +220,33 @@ function createOption(personalDetailList, report, draftComments, activeReportID,
         login: !hasMultipleParticipants ? personalDetail.login : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment,
+        hasDraftComment: _.size(reportDraftComment) > 0,
         keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, personalDetailList),
+        searchText: getSearchText(report, personalDetailList, isDefaultChatRoom),
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
+        isDefaultChatRoom,
     };
 }
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => currentUserLogin = val && val.email,
-});
-
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY_CODE,
-    callback: val => countryCodeByIP = val || 1,
-});
 
 /**
  * Searches for a match when provided with a value
  *
  * @param {String} searchValue
  * @param {String} searchText
+ * @param {Set<String>} [participantNames]
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText) {
-    const searchWords = searchValue.split(' ');
+function isSearchStringMatch(searchValue, searchText, participantNames = new Set()) {
+    const searchWords = searchValue
+        .replace(/,/g, ' ')
+        .split(' ')
+        .map(word => word.trim());
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch);
+        return matchRegex.test(valueToSearch) || participantNames.has(word);
     });
 }
 
@@ -158,18 +262,24 @@ function isSearchStringMatch(searchValue, searchText) {
  * @private
  */
 function getOptions(reports, personalDetails, draftComments, activeReportID, {
+    betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
+    excludeConcierge = false,
+    excludeDefaultRooms = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
     includeRecentReports = false,
     prioritizePinnedReports = false,
+    prioritizeDefaultRoomsInSearch = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
     showChatPreviewLine = false,
     showReportsWithNoComments = false,
+    showReportsWithDrafts = false,
     hideReadReports = false,
     sortByAlphaAsc = false,
+    forcePolicyNamePreview = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
@@ -194,12 +304,25 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
+        const reportDraftComment = report
+            && draftComments
+            && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
+
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
+        const shouldShowReportIfHasDraft = showReportsWithDrafts && reportDraftComment && reportDraftComment.length > 0;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
-        if (report.reportID !== activeReportID && !report.isPinned && shouldFilterReport) {
+        if (report.reportID !== activeReportID
+            && !report.isPinned
+            && !shouldShowReportIfHasDraft
+            && shouldFilterReport) {
             return;
         }
+
+        if (isDefaultRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
+            return;
+        }
+
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
         // Save the report in the map if this is a single participant so we can associate the reportID with the
@@ -207,19 +330,26 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
-        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, activeReportID, {
+        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, {
             showChatPreviewLine,
+            forcePolicyNamePreview,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, activeReportID, {
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, {
             showChatPreviewLine,
+            forcePolicyNamePreview,
         })
     ));
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+
+    if (excludeConcierge) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.CONCIERGE});
+    }
+
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -239,8 +369,10 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
                 continue;
             }
 
-            // Finally check to see if this options is a match for the provided search string if we have one
-            if (searchValue && !isSearchStringMatch(searchValue, reportOption.searchText)) {
+            // Finally check to see if this option is a match for the provided search string if we have one
+            const {searchText, participantsList} = reportOption;
+            const participantNames = getParticipantNames(participantsList);
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
                 continue;
             }
 
@@ -265,6 +397,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         recentReportOptions = sortedPinnedReports.concat(recentReportOptions);
     }
 
+    // If we are prioritizing default rooms in search, do it only once we started something
+    if (prioritizeDefaultRoomsInSearch && searchValue !== '') {
+        const reportsSplitByDefaultChatRoom = _.partition(recentReportOptions, option => option.isDefaultChatRoom);
+        recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
+    }
+
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
@@ -273,30 +411,30 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ))) {
                 return;
             }
-
-            if (searchValue && !isSearchStringMatch(searchValue, personalDetailOption.searchText)) {
+            const {searchText, participantsList} = personalDetailOption;
+            const participantNames = getParticipantNames(participantsList);
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
                 return;
             }
-
             personalDetailsOptions.push(personalDetailOption);
         });
     }
 
     let userToInvite = null;
     if (searchValue
-            && recentReportOptions.length === 0
-            && personalDetailsOptions.length === 0
-            && _.every(selectedOptions, option => option.login !== searchValue)
-            && (Str.isValidEmail(searchValue) || Str.isValidPhone(searchValue))
-            && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos())
+        && recentReportOptions.length === 0
+        && personalDetailsOptions.length === 0
+        && _.every(selectedOptions, option => option.login !== searchValue)
+        && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
+        && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
-        // current users international code based on their IP address.
+        // current user's international code based on their IP address.
         const login = (Str.isValidPhone(searchValue) && !searchValue.includes('+'))
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
-        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, activeReportID, {
+        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
@@ -315,23 +453,28 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getSearchOptions(
     reports,
     personalDetails,
     searchValue = '',
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
-        prioritizePinnedReports: true,
+        prioritizePinnedReports: false,
+        prioritizeDefaultRoomsInSearch: true,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
-        sortByLastMessageTimestamp: true,
+        sortByLastMessageTimestamp: false,
+        forcePolicyNamePreview: true,
     });
 }
 
@@ -341,16 +484,25 @@ function getSearchOptions(
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
+ * @param {Boolean} excludeConcierge
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getNewChatOptions(
     reports,
     personalDetails,
     searchValue = '',
+    excludeConcierge,
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
+        excludeDefaultRooms: true,
         includePersonalDetails: true,
+        includeRecentReports: true,
+        maxRecentReportsToShow: 5,
+        excludeConcierge,
     });
 }
 
@@ -392,6 +544,8 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
+ * @param {Boolean} excludeConcierge
+ * @param {Array<String>} betas
  * @returns {Object}
  */
 function getNewGroupOptions(
@@ -399,14 +553,19 @@ function getNewGroupOptions(
     personalDetails,
     searchValue = '',
     selectedOptions = [],
+    excludeConcierge,
+    betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
+        betas,
         searchValue,
         selectedOptions,
+        excludeDefaultRooms: true,
         includeRecentReports: true,
         includePersonalDetails: true,
         includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
+        excludeConcierge,
     });
 }
 
@@ -417,9 +576,17 @@ function getNewGroupOptions(
  * @param {Object} draftComments
  * @param {Number} activeReportID
  * @param {String} priorityMode
+ * @param {Array<String>} betas
  * @returns {Object}
  */
-function getSidebarOptions(reports, personalDetails, draftComments, activeReportID, priorityMode) {
+function getSidebarOptions(
+    reports,
+    personalDetails,
+    draftComments,
+    activeReportID,
+    priorityMode,
+    betas,
+) {
     let sideBarOptions = {
         prioritizePinnedReports: true,
     };
@@ -427,10 +594,12 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
         sideBarOptions = {
             hideReadReports: true,
             sortByAlphaAsc: true,
+            showReportsWithDrafts: true,
         };
     }
 
     return getOptions(reports, personalDetails, draftComments, activeReportID, {
+        betas,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
@@ -451,18 +620,57 @@ function getSidebarOptions(reports, personalDetails, draftComments, activeReport
  */
 function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return CONST.MESSAGES.MAXIMUM_PARTICIPANTS_REACHED;
+        return translate(preferredLocale, 'messages.maxParticipantsReached');
     }
 
     if (!hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return CONST.MESSAGES.NO_PHONE_NUMBER;
+            return translate(preferredLocale, 'messages.noPhoneNumber');
         }
 
         return searchValue;
     }
 
     return '';
+}
+
+/**
+ * Returns the currency list for sections display
+ *
+ * @param {Object} currencyOptions
+ * @param {String} searchValue
+ * @param {Object} selectedCurrency
+ * @returns {Array}
+ */
+function getCurrencyListForSections(currencyOptions, searchValue) {
+    const filteredOptions = currencyOptions.filter(currencyOption => (
+        isSearchStringMatch(searchValue, currencyOption.searchText)));
+
+    return {
+        // returns filtered options i.e. options with string match if search text is entered
+        currencyOptions: filteredOptions,
+    };
+}
+
+/**
+ * Returns the appropriate icons for the given chat report using personalDetails if applicable
+ *
+ * @param {Object} report
+ * @param {Object} personalDetails
+ * @returns {String}
+ */
+function getReportIcons(report, personalDetails) {
+    // Default rooms have a specific avatar so we can return any non-empty array
+    if (isDefaultRoom(report)) {
+        return [''];
+    }
+    return _.map(report.participants, dmParticipant => ({
+        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
+            || getDefaultAvatar(dmParticipant),
+    }))
+        .sort((first, second) => first.firstName - second.firstName)
+        .map(item => item.avatar);
 }
 
 export {
@@ -472,6 +680,9 @@ export {
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
+    getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
+    getDefaultAvatar,
+    getReportIcons,
 };

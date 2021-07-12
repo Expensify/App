@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    View,
-} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -14,37 +12,68 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import personalDetailsPropType from './personalDetailsPropType';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
+import CommunicationsLink from '../components/CommunicationsLink';
+import CONST from '../CONST';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
-        // login passed via route /details/:login
+        /** login passed via route /details/:login */
         login: PropTypes.string,
 
-        // report ID passed
+        /** report ID passed */
         reportID: PropTypes.string,
     }),
 });
 
 const propTypes = {
     /* Onyx Props */
-    // The personal details of the person who is logged in
+
+    /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
 
-    // Route params
+    /** Route params */
     route: matchType.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
-const DetailsPage = ({personalDetails, route}) => {
+/**
+ * Gets the phone number to display for SMS logins
+ *
+ * @param {Object} details
+ * @param {String} details.login
+ * @param {String} details.displayName
+ * @returns {String}
+ */
+const getPhoneNumber = (details) => {
+    // If the user hasn't set a displayName, it is set to their phone number, so use that
+    if (Str.isValidPhone(details.displayName)) {
+        return details.displayName;
+    }
+
+    // If the user has set a displayName, get the phone number from the SMS login
+    return Str.removeSMSDomain(details.login);
+};
+
+const DetailsPage = ({
+    personalDetails, route, translate, toLocalPhone,
+}) => {
     const details = personalDetails[route.params.login];
+    const isSMSLogin = Str.isSMSLogin(details.login);
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowBackButton = Boolean(route.params.reportID);
+    const timezone = moment().tz(details.timezone.selected);
+    const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
+    const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title="Details"
+                title={translate('common.details')}
                 shouldShowBackButton={shouldShowBackButton}
                 onBackButtonPress={Navigation.goBack}
                 onCloseButtonPress={() => Navigation.dismissModal()}
@@ -58,37 +87,52 @@ const DetailsPage = ({personalDetails, route}) => {
                 {details ? (
                     <View>
                         <View style={styles.pageWrapper}>
-                            <View
-                                style={[styles.avatarLarge, styles.mb3]}
-                            >
-                                <Avatar
-                                    style={[styles.avatarLarge]}
-                                    source={details.avatar}
-                                />
-                            </View>
-                            <Text style={[styles.displayName, styles.mt1, styles.mb6]} numberOfLines={1}>
-                                {details.displayName
-                                    ? details.displayName
-                                    : null}
-                            </Text>
+                            <Avatar
+                                containerStyles={[styles.avatarLarge, styles.mb3]}
+                                imageStyles={[styles.avatarLarge]}
+                                source={details.avatar}
+                            />
+                            {details.displayName && isSMSLogin
+                                ? (
+                                    <CommunicationsLink
+                                        style={[styles.mt1, styles.mb6]}
+                                        type={CONST.LOGIN_TYPE.PHONE}
+                                        value={getPhoneNumber(details)}
+                                    >
+                                        <Text style={[styles.displayName]} numberOfLines={1}>
+                                            {toLocalPhone(details.displayName)}
+                                        </Text>
+                                    </CommunicationsLink>
+                                ) : (
+                                    <Text style={[styles.displayName]} numberOfLines={1}>
+                                        {details.displayName || null}
+                                    </Text>
+                                )}
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {Str.isSMSLogin(details.login) ? 'Phone Number' : 'Email'}
+                                        {translate(isSMSLogin
+                                            ? 'common.phoneNumber'
+                                            : 'common.email')}
                                     </Text>
-                                    <Text style={[styles.textP]} numberOfLines={1}>
-                                        {Str.isSMSLogin(details.login)
-                                            ? Str.removeSMSDomain(details.login)
-                                            : details.login}
-                                    </Text>
+                                    <CommunicationsLink
+                                        type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
+                                        value={isSMSLogin ? getPhoneNumber(details) : details.login}
+                                    >
+                                        <Text numberOfLines={1}>
+                                            {isSMSLogin
+                                                ? toLocalPhone(getPhoneNumber(details))
+                                                : details.login}
+                                        </Text>
+                                    </CommunicationsLink>
                                 </View>
                             ) : null}
                             {details.pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        Preferred Pronouns
+                                        {translate('profilePage.preferredPronouns')}
                                     </Text>
-                                    <Text style={[styles.textP]} numberOfLines={1}>
+                                    <Text numberOfLines={1}>
                                         {details.pronouns}
                                     </Text>
                                 </View>
@@ -96,12 +140,12 @@ const DetailsPage = ({personalDetails, route}) => {
                             {details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        Local Time
+                                        {translate('detailsPage.localTime')}
                                     </Text>
-                                    <Text style={[styles.textP]} numberOfLines={1}>
-                                        {moment().tz(details.timezone.selected).format('LT')}
+                                    <Text numberOfLines={1}>
+                                        {timezone.format('LT')}
                                         {' '}
-                                        {moment().tz(details.timezone.selected).zoneAbbr()}
+                                        {currentTime}
                                     </Text>
                                 </View>
                             ) : null}
@@ -116,8 +160,11 @@ const DetailsPage = ({personalDetails, route}) => {
 DetailsPage.propTypes = propTypes;
 DetailsPage.displayName = 'DetailsPage';
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-})(DetailsPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+    }),
+)(DetailsPage);

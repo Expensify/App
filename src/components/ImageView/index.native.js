@@ -11,7 +11,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
  * On the native layer, we use a image library to handle zoom functionality
  */
 const propTypes = {
-    // URL to full-sized image
+    /** URL to full-sized image */
     url: PropTypes.string.isRequired,
 
     ...windowDimensionsPropTypes,

@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 
 let isQueuePaused = false;
 
@@ -38,8 +39,8 @@ Onyx.connect({
         // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
         // this once when the app initializes
         networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
-        Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
         didLoadPersistedRequests = true;
+        Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
     },
 });
 
@@ -155,7 +156,7 @@ function processNetworkRequestQueue() {
             return;
         }
 
-        HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type)
+        HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type, queuedRequest.shouldUseSecure)
             .then(response => onResponse(queuedRequest, response))
             .catch(error => onError(queuedRequest, error));
     });
@@ -174,9 +175,10 @@ setInterval(processNetworkRequestQueue, 1000);
  * @param {String} command
  * @param {*} [data]
  * @param {String} [type]
+ * @param {Boolean} shouldUseSecure - Whether we should use the secure API
  * @returns {Promise}
  */
-function post(command, data = {}, type = 'post') {
+function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     return new Promise((resolve, reject) => {
         // Add the write request to a queue of actions to perform
         networkRequestQueue.push({
@@ -185,6 +187,7 @@ function post(command, data = {}, type = 'post') {
             type,
             resolve,
             reject,
+            shouldUseSecure,
         });
 
         // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command

@@ -1,0 +1,41 @@
+name: Explain Cherry-Pick label via OSBotify comment
+
+on:
+  pull_request:
+    types:
+      - labeled
+
+jobs:
+  warnCPLabel:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.label.name == 'CP Staging' }}
+
+    steps:
+      - name: Comment on PR to explain the CP Staging label
+        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
+        with:
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          body: |
+            :warning: :warning: **Heads up! This pull request has the `CP Staging` label.** :warning: :warning:
+            Merging it will cause it to be immediately deployed to staging, _even if the [open `StagingDeployCash` deploy checklist](https://github.com/Expensify/Expensify.cash/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) is locked._
+
+      # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
+      # the other workflows with the same change
+      - uses: 8398a7/action-slack@v3
+        name: Job failed Slack notification
+        if: ${{ failure() }}
+        with:
+          status: custom
+          fields: workflow, repo
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!here>`,
+                text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

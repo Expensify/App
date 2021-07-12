@@ -1,30 +1,29 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import styles from '../styles/styles';
-import CONFIG from '../CONFIG';
 import CONST from '../CONST';
+import Text from './Text';
+import withEnvironment, {environmentPropTypes} from './withEnvironment';
 
-const EnvironmentBadge = () => {
+const EnvironmentBadge = (props) => {
     // If we are on production, don't show any badge
-    if (CONFIG.EXPENSIFY.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION) {
+    if (props.environment === CONST.ENVIRONMENT.PRODUCTION) {
         return null;
     }
 
-    const badgeText = CONFIG.EXPENSIFY.ENVIRONMENT;
-    let backgroundColorStyle = styles.badgeDanger;
-
-    if (CONFIG.EXPENSIFY.ENVIRONMENT === CONST.ENVIRONMENT.STAGING) {
-        backgroundColorStyle = styles.badgeSuccess;
-    }
+    const backgroundColorStyle = props.environment === CONST.ENVIRONMENT.STAGING
+        ? styles.badgeSuccess
+        : styles.badgeDanger;
 
     return (
         <View style={[styles.badge, backgroundColorStyle, styles.ml2]}>
             <Text style={styles.badgeText}>
-                {badgeText}
+                {props.environment}
             </Text>
         </View>
     );
 };
 
 EnvironmentBadge.displayName = 'EnvironmentBadge';
-export default EnvironmentBadge;
+EnvironmentBadge.propTypes = environmentPropTypes;
+export default withEnvironment(EnvironmentBadge);

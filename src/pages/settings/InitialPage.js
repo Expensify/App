@@ -1,79 +1,112 @@
 import React from 'react';
-import {
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
 import {signOut} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
-import {version} from '../../../package.json';
 import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import {
-    Gear, Lock, Profile, Wallet,
+    Building,
+    Gear,
+    Info,
+    Lock,
+    Profile,
+    SignOut,
+    Wallet,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
-import openURLInNewTab from '../../libs/openURLInNewTab';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
-    // The personal details of the person who is logged in
+
+    /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape({
-        // Display name of the current user from their personal details
+        /** Display name of the current user from their personal details */
         displayName: PropTypes.string,
 
-        // Avatar URL of the current user from their personal details
+        /** Avatar URL of the current user from their personal details */
         avatar: PropTypes.string,
     }),
 
-    // Information about the network
+    /** Information about the network */
     network: PropTypes.shape({
-        // Is the network currently offline or not
+        /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 
-    // The session of the logged in person
+    /** The session of the logged in person */
     session: PropTypes.shape({
-        // Email of the logged in person
+        /** Email of the logged in person */
         email: PropTypes.string,
     }),
+
+    /** The list of this user's policies */
+    policies: PropTypes.objectOf(PropTypes.shape({
+        /** The ID of the policy */
+        ID: PropTypes.string,
+
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
+
+        /** The user's role in the policy */
+        role: PropTypes.string,
+    })),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     myPersonalDetails: {},
     network: {},
     session: {},
+    policies: {},
 };
 
-const menuItems = [
+const defaultMenuItems = [
     {
-        title: 'Profile',
+        translationKey: 'common.profile',
         icon: Profile,
-        route: ROUTES.SETTINGS_PROFILE,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PROFILE); },
     },
     {
-        title: 'Preferences',
+        translationKey: 'common.preferences',
         icon: Gear,
-        route: ROUTES.SETTINGS_PREFERENCES,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
     },
     {
-        title: 'Change Password',
+        translationKey: 'initialSettingsPage.changePassword',
         icon: Lock,
-        route: ROUTES.SETTINGS_PASSWORD,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PASSWORD); },
     },
     {
-        title: 'Payments',
+        translationKey: 'common.payments',
         icon: Wallet,
-        route: ROUTES.SETTINGS_PAYMENTS,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
+    },
+    {
+        translationKey: 'initialSettingsPage.about',
+        icon: Info,
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
+    },
+    {
+        translationKey: 'initialSettingsPage.signOut',
+        icon: SignOut,
+        action: signOut,
     },
 ];
 
@@ -81,6 +114,8 @@ const InitialSettingsPage = ({
     myPersonalDetails,
     network,
     session,
+    policies,
+    translate,
 }) => {
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -88,21 +123,29 @@ const InitialSettingsPage = ({
     if (_.isEmpty(myPersonalDetails)) {
         return null;
     }
+
+    // Add free policies (workspaces) to the list of menu items
+    const menuItems = _.chain(policies)
+        .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
+        .map(policy => ({
+            title: policy.name,
+            icon: Building,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
+            iconStyles: [styles.popoverMenuIconEmphasized],
+            iconFill: themeColors.iconReversed,
+        }))
+        .value();
+    menuItems.push(...defaultMenuItems);
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title="Settings"
+                title={translate('common.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <View
-                pointerEvents="box-none"
-                style={[
-                    styles.settingsPageBackground,
-                ]}
-            >
+            <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
-
                         <View style={[styles.mb3]}>
                             <AvatarWithIndicator
                                 size="large"
@@ -116,58 +159,30 @@ const InitialSettingsPage = ({
                                 : Str.removeSMSDomain(session.email)}
                         </Text>
                         {myPersonalDetails.displayName && (
-                        <Text style={[styles.settingsLoginName, styles.mt1]} numberOfLines={1}>
-                            {Str.removeSMSDomain(session.email)}
-                        </Text>
+                            <Text
+                                style={[styles.settingsLoginName, styles.mt1]}
+                                numberOfLines={1}
+                            >
+                                {Str.removeSMSDomain(session.email)}
+                            </Text>
                         )}
                     </View>
-                    {menuItems.map(item => (
-                        <MenuItem
-                            key={item.title}
-                            title={item.title}
-                            icon={item.icon}
-                            onPress={() => Navigation.navigate(item.route)}
-                            shouldShowRightArrow
-                        />
-                    ))}
-                    <View style={[styles.ph5]}>
-                        <TouchableOpacity
-                            onPress={signOut}
-                            style={[styles.button, styles.w100, styles.mt5]}
-                        >
-                            <Text style={[styles.buttonText]}>
-                                Sign Out
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                    {_.map(menuItems, (item, index) => {
+                        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                        return (
+                            <MenuItem
+                                key={`${keyTitle}_${index}`}
+                                title={keyTitle}
+                                icon={item.icon}
+                                onPress={item.action}
+                                iconStyles={item.iconStyles}
+                                iconFill={item.iconFill}
+                                shouldShowRightIcon
+                            />
+                        );
+                    })}
                 </View>
-                <View style={[styles.sidebarFooter]}>
-                    <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        v
-                        {version}
-                    </Text>
-                    <Text style={[styles.chatItemMessageHeaderTimestamp]} numberOfLines={1}>
-                        Read the
-                        {' '}
-                        <Text
-                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => openURLInNewTab(CONST.TERMS_URL)}
-                        >
-                            terms of service
-                        </Text>
-                        {' '}
-                        and
-                        {' '}
-                        <Text
-                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => openURLInNewTab(CONST.PRIVACY_URL)}
-                        >
-                            privacy policy
-                        </Text>
-                        .
-                    </Text>
-                </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 };
@@ -176,14 +191,20 @@ InitialSettingsPage.propTypes = propTypes;
 InitialSettingsPage.defaultProps = defaultProps;
 InitialSettingsPage.displayName = 'InitialSettingsPage';
 
-export default withOnyx({
-    myPersonalDetails: {
-        key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    },
-    network: {
-        key: ONYXKEYS.NETWORK,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(InitialSettingsPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+    }),
+)(InitialSettingsPage);

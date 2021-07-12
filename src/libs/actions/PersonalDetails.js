@@ -4,11 +4,12 @@ import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
-import md5 from '../md5';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
+import {isDefaultRoom} from '../reportUtils';
+import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -21,19 +22,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
 });
-
-/**
- * Helper method to return a default avatar
- *
- * @param {String} [login]
- * @returns {String}
- */
-function getDefaultAvatar(login = '') {
-    // There are 8 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login (which is converted from HEX to INT)
-    const loginHashBucket = (parseInt(md5(login).substring(0, 4), 16) % 8) + 1;
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
-}
 
 /**
  * Returns the URL for a user's avatar and handles someone not having any avatar at all
@@ -61,7 +49,7 @@ function getDisplayName(login, personalDetail) {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
     // so that the option looks cleaner in our UI.
     const userLogin = Str.removeSMSDomain(login);
-    const userDetails = personalDetail || personalDetails[login];
+    const userDetails = personalDetail || lodashGet(personalDetails, login);
 
     if (!userDetails) {
         return userLogin;
@@ -107,9 +95,10 @@ function formatPersonalDetails(personalDetailsList) {
 
 /**
  * Get the personal details for our organization
+ * @returns {Promise}
  */
-function fetch() {
-    API.Get({
+function fetchPersonalDetails() {
+    return API.Get({
         returnValueList: 'personalDetailsList',
     })
         .then((data) => {
@@ -169,26 +158,23 @@ function getFromReportParticipants(reports) {
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
 
             // The personalDetails of the participants contain their avatar images. Here we'll go over each
-            // report and based on the participants we'll link up their avatars to report icons.
+            // report and based on the participants we'll link up their avatars to report icons. This will
+            // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
             _.each(reports, (report) => {
-                if (report.participants.length > 0) {
-                    const avatars = _.map(report.participants, dmParticipant => ({
-                        firstName: lodashGet(details, [dmParticipant, 'firstName'], ''),
-                        avatar: lodashGet(details, [dmParticipant, 'avatarThumbnail'], '')
-                            || getDefaultAvatar(dmParticipant),
-                    }))
-                        .sort((first, second) => first.firstName - second.firstName)
-                        .map(item => item.avatar);
-                    const reportName = _.chain(report.participants)
-                        .filter(participant => participant !== currentUserEmail)
-                        .map(participant => lodashGet(
-                            formattedPersonalDetails,
-                            [participant, 'displayName'],
-                            participant,
-                        ))
-                        .value()
-                        .join(', ');
+                if (report.participants.length > 0 || isDefaultRoom(report)) {
+                    const avatars = getReportIcons(report, details);
+                    const reportName = isDefaultRoom(report)
+                        ? report.reportName
+                        : _.chain(report.participants)
+                            .filter(participant => participant !== currentUserEmail)
+                            .map(participant => lodashGet(
+                                formattedPersonalDetails,
+                                [participant, 'displayName'],
+                                participant,
+                            ))
+                            .value()
+                            .join(', ');
 
                     reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
                 }
@@ -213,9 +199,7 @@ function mergeLocalPersonalDetails(details) {
     const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
 
     // displayName is a generated field so we'll use the firstName and lastName + login to update it.
-    if (details.firstName || details.lastName) {
-        mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
-    }
+    mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
 
     // Update the associated Onyx keys
     Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
@@ -233,6 +217,51 @@ function setPersonalDetails(details) {
         NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
     }
     mergeLocalPersonalDetails(details);
+}
+
+/**
+ * Sets the onyx with the currency list from the network
+ * @returns {Object}
+ */
+function getCurrencyList() {
+    return API.GetCurrencyList()
+        .then((data) => {
+            const currencyListObject = JSON.parse(data.currencyList);
+            Onyx.merge(ONYXKEYS.CURRENCY_LIST, currencyListObject);
+            return currencyListObject;
+        });
+}
+
+/**
+ * Fetches the Currency preferences based on location and sets currency code/symbol to local storage
+ */
+function fetchCurrencyPreferences() {
+    const coords = {};
+    let currency = '';
+
+    Onyx.merge(ONYXKEYS.IOU, {
+        isRetrievingCurrency: true,
+    });
+
+    API.GetPreferredCurrency({...coords})
+        .then((data) => {
+            currency = data.currency;
+        })
+        .then(API.GetCurrencyList)
+        .then(getCurrencyList)
+        .then((currencyList) => {
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
+                {
+                    preferredCurrencyCode: currency,
+                    preferredCurrencySymbol: currencyList[currency].symbol,
+                });
+        })
+        .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.IOU, {
+                isRetrievingCurrency: false,
+            });
+        });
 }
 
 /**
@@ -262,14 +291,17 @@ function deleteAvatar(login) {
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
-NetworkConnection.onReconnect(fetch);
+NetworkConnection.onReconnect(fetchPersonalDetails);
 
 export {
-    fetch,
+    fetchPersonalDetails,
+    formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
+    fetchCurrencyPreferences,
+    getCurrencyList,
 };

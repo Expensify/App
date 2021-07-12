@@ -23,7 +23,7 @@ export default function linkTo(navigation, path) {
 
     // Traverse up to get the root navigation
     // eslint-disable-next-line no-cond-assign
-    while ((current = root.dangerouslyGetParent())) {
+    while ((current = root.getParent())) {
         root = current;
     }
 

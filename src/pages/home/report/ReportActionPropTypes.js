@@ -17,4 +17,10 @@ export default {
 
     // report action message
     message: PropTypes.arrayOf(ReportActionFragmentPropTypes),
+
+    // Original message associated with this action
+    originalMessage: PropTypes.shape({
+        // The ID of the iou transaction
+        IOUTransactionID: PropTypes.string,
+    }),
 };

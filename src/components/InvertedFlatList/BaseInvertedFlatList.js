@@ -6,28 +6,25 @@ import {FlatList, View} from 'react-native';
 import {lastItem} from '../../libs/CollectionUtils';
 
 const propTypes = {
-    // Same as FlatList can be any array of anything
+    /** Same as FlatList can be any array of anything */
     data: PropTypes.arrayOf(PropTypes.any),
 
-    // Same as FlatList although we wrap it in a measuring helper
-    // before passing to the actual FlatList component
+    /** Same as FlatList although we wrap it in a measuring helper before passing to the actual FlatList component */
     renderItem: PropTypes.func.isRequired,
 
-    // This must be set to the minimum size of one of the
-    // renderItem rows. Web will have issues with FlatList
-    // if this is inaccurate.
+    /** This must be set to the minimum size of one of the renderItem rows. Web experiences issues when inaccurate. */
     initialRowHeight: PropTypes.number.isRequired,
 
-    // Passed via forwardRef so we can access the FlatList ref
+    /** Passed via forwardRef so we can access the FlatList ref */
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(FlatList)}),
     ]).isRequired,
 
-    // Should we measure these items and call getItemLayout?
+    /** Should we measure these items and call getItemLayout? */
     shouldMeasureItems: PropTypes.bool,
 
-    // Should we remove the clipped sub views?
+    /** Should we remove the clipped sub views? */
     shouldRemoveClippedSubviews: PropTypes.bool,
 };
 

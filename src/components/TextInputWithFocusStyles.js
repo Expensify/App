@@ -4,25 +4,25 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 
 const propTypes = {
-    // A ref to forward to the text input
+    /** A ref to forward to the text input */
     forwardedRef: PropTypes.func.isRequired,
 
-    // Styles to apply to the text input when it has focus
+    /** Styles to apply to the text input when it has focus */
     // eslint-disable-next-line react/forbid-prop-types
     styleFocusIn: PropTypes.any,
 
-    // Styles to apply to the text input when it does not have focus
+    /** Styles to apply to the text input when it does not have focus */
     // eslint-disable-next-line react/forbid-prop-types
     styleFocusOut: PropTypes.any,
 
-    // General styles to apply to the text input
+    /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    // A function to call when the input has been blurred
+    /** A function to call when the input has been blurred */
     onBlur: PropTypes.func,
 
-    // A function to call when the input has gotten focus
+    /** A function to call when the input has gotten focus */
     onFocus: PropTypes.func,
 };
 const defaultProps = {

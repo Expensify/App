@@ -1,36 +1,41 @@
+import _ from 'underscore';
 import React from 'react';
-import {StyleSheet} from 'react-native';
-import anchorForCommentsOnlyPropTypes from './anchorForCommentsOnlyPropTypes';
+import PropTypes from 'prop-types';
+import {
+    propTypes as anchorForCommentsOnlyPropTypes,
+    defaultProps as anchorForCommentsOnlyDefaultProps,
+} from './anchorForCommentsOnlyPropTypes';
+import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
+import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 
-const defaultProps = {
-    href: '',
-    rel: '',
-    target: '',
-    children: null,
-    style: {},
+const propTypes = {
+    /** Do we need an auth token to view this link or download the remote resource? */
+    isAuthTokenRequired: PropTypes.bool,
+
+    ...anchorForCommentsOnlyPropTypes,
 };
 
-const AnchorForCommentsOnly = ({
-    href,
-    rel,
-    target,
-    children,
-    style,
-    ...props
-}) => (
-    <a
-        style={StyleSheet.flatten(style)}
-        href={href}
-        rel={rel}
-        target={target}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-    >
-        {children}
-    </a>
-);
+const defaultProps = {
+    isAuthTokenRequired: false,
+    ...anchorForCommentsOnlyDefaultProps,
+};
 
-AnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes;
+/*
+ * This component acts as a switch between AnchorWithAuthToken and default BaseAnchorForCommentsOnly.
+ * It is an optimization so that we can attach an auth token to a URL when one is required,
+ * without using Onyx.connect on links that don't need an authToken.
+ */
+const AnchorForCommentsOnly = (props) => {
+    const propsToPass = _.omit(props, 'isAuthTokenRequired');
+    if (props.isAuthTokenRequired) {
+        propsToPass.href = addEncryptedAuthTokenToURL(props.href);
+        propsToPass.shouldDownloadFile = true;
+    }
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <BaseAnchorForCommentsOnly {...propsToPass} />;
+};
+
+AnchorForCommentsOnly.propTypes = propTypes;
 AnchorForCommentsOnly.defaultProps = defaultProps;
 AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
 

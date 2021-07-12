@@ -1,26 +1,25 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    // The full title of the DisplayNames component (not split up)
+    /** The full title of the DisplayNames component (not split up) */
     fullTitle: PropTypes.string,
 
-    // Array of objects that map display names to their corresponding tooltip
+    /** Array of objects that map display names to their corresponding tooltip */
     displayNamesWithTooltips: PropTypes.arrayOf(PropTypes.shape({
-        // The name to display in bold
+        /** The name to display in bold */
         displayName: PropTypes.string,
 
-        // The tooltip to show when the associated name is hovered
+        /** The tooltip to show when the associated name is hovered */
         tooltip: PropTypes.string,
     })),
 
-    // Number of lines before wrapping
+    /** Number of lines before wrapping */
     numberOfLines: PropTypes.number,
 
-    // Is tooltip needed?
-    // When true, triggers complex title rendering
+    /** Is tooltip needed? When true, triggers complex title rendering */
     tooltipEnabled: PropTypes.bool,
 
-    // Arbitrary styles of the displayName text
+    /** Arbitrary styles of the displayName text */
     textStyles: PropTypes.arrayOf(PropTypes.any),
 };
 

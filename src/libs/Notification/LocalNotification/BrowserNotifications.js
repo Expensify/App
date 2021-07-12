@@ -2,7 +2,7 @@
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import focusApp from './focusApp';
-import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round.png';
+import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const DEFAULT_DELAY = 4000;

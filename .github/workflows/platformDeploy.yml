@@ -24,11 +24,27 @@ jobs:
         with:
           ruby-version: '2.7'
 
+      - uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+
       - name: Install bundler
-        run: gem install bundler
+        run: |
+          bundle config path vendor/bundle
+          gem install bundler
 
       - name: Install gems
         run: bundle install
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install node packages
         uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
@@ -48,7 +64,7 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Set version in ENV
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+\d\+' android/app/build.gradle | awk '{ print $2 }')" >> $GITHUB_ENV
+        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> $GITHUB_ENV
 
       - name: Run Fastlane beta
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
@@ -71,6 +87,15 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '14.x'
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install node packages
         uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
@@ -122,11 +147,27 @@ jobs:
         with:
           ruby-version: '2.7'
 
+      - uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+
       - name: Install bundler
-        run: gem install bundler
+        run: |
+          bundle config path vendor/bundle
+          gem install bundler
 
       - name: Install gems
         run: bundle install
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install node packages
         uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
@@ -134,6 +175,11 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           command: npm ci
+
+      - uses: actions/cache@v2
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
 
       - name: Install cocoapods
         run: cd ios && pod install
@@ -200,6 +246,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install node packages
         uses: nick-invision/retry@7c68161adf97a48beb850a595b8784ec57a98cbb
         with:
@@ -211,13 +266,16 @@ jobs:
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
         run: npm run build
 
-      - name: Deploy production to S3
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-        run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://expensify-cash/
-
       - name: Build web for staging
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
         run: npm run build-staging
+
+      - name: Build docs
+        run: npm run storybook-build
+
+      - name: Deploy production to S3
+        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://expensify-cash/
 
       - name: Deploy staging to S3
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
@@ -274,7 +332,11 @@ jobs:
         with:
           node-version: '14.x'
 
-      - run: echo "Status android = ${{ needs.android.result }}, desktop = ${{ needs.desktop.result }}, iOS = ${{ needs.iOS.result }}, web = ${{ needs.web.result }}"
+      - name: Determine if this was a cherry-pick
+        id: isStagingDeployLocked
+        uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
@@ -292,6 +354,7 @@ jobs:
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
           IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+          STAGING_DEPLOY_NUMBER: ${{ steps.isStagingDeployLocked.outputs.NUMBER }}
           DEPLOY_VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.android.result }}

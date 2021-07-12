@@ -1,0 +1,16 @@
+name: 'Trigger workflow and wait'
+description: 'This action triggers a workflow in another repository and waits for the result.'
+inputs:
+  GITHUB_TOKEN:
+    description: 'Auth token for Expensify.cash Github; necessary for accessing Octokit.'
+    required: true
+  WORKFLOW:
+    description: 'The reference point. For example, you could use main.yml.'
+    required: true
+  INPUTS:
+    description: 'Inputs to pass to the workflow, must be a JSON string'
+    required: false
+
+runs:
+  using: 'node12'
+  main: './index.js'

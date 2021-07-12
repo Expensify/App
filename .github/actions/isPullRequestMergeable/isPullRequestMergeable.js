@@ -1,11 +1,9 @@
 const _ = require('underscore');
 const core = require('@actions/core');
-const github = require('@actions/github');
-const {GITHUB_OWNER, EXPENSIFY_CASH_REPO} = require('../../libs/GithubUtils');
+const GithubUtils = require('../../libs/GithubUtils');
 const promiseWhile = require('../../libs/promiseWhile');
 
 const run = function () {
-    const octokit = github.getOctokit(core.getInput('GITHUB_TOKEN', {required: true}));
     const pullRequestNumber = Number(core.getInput('PULL_REQUEST_NUMBER', {required: true}));
 
     const MAX_RETRIES = 30;
@@ -15,9 +13,9 @@ const run = function () {
     console.log(`Checking the mergeability of PR #${pullRequestNumber}`);
     return promiseWhile(
         () => !mergeabilityResolved && retryCount < MAX_RETRIES,
-        _.throttle(() => octokit.pulls.get({
-            owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
+        _.throttle(() => GithubUtils.octokit.pulls.get({
+            owner: GithubUtils.GITHUB_OWNER,
+            repo: GithubUtils.EXPENSIFY_CASH_REPO,
             pull_number: pullRequestNumber,
         })
             .then(({data}) => {

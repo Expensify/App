@@ -6,10 +6,10 @@ import styles, {getWidthAndHeightStyle} from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
-    // URL to full-sized image
+    /** URL to full-sized image */
     sourceURL: PropTypes.string,
 
-    // Any additional styles to apply
+    /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 

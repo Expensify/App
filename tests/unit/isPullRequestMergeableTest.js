@@ -1,6 +1,6 @@
 
 const core = require('@actions/core');
-const github = require('@actions/github');
+const GithubUtils = require('../../.github/libs/GithubUtils');
 const run = require('../../.github/actions/isPullRequestMergeable/isPullRequestMergeable');
 
 // Static mock function for core.getInput
@@ -31,7 +31,7 @@ beforeAll(() => {
             get: mockGetPullRequest,
         },
     };
-    github.getOctokit = jest.fn().mockImplementation(() => mocktokit);
+    GithubUtils.octokitInternal = mocktokit;
 });
 
 afterEach(() => {

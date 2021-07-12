@@ -3,7 +3,9 @@
  * a website.
  */
 const KeyboardShortcut = {
-    subscribe() {},
+    subscribe() {
+        return () => {};
+    },
     unsubscribe() {},
 };
 

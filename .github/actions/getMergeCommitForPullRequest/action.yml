@@ -1,0 +1,21 @@
+name: 'Get merge commit for a pull request'
+description: 'Get the merge_commit_sha for a pull request'
+inputs:
+  GITHUB_TOKEN:
+    description: Auth token for Expensify.cash Github
+    required: true
+  PULL_REQUEST_NUMBER:
+    description: The number of the pull request
+    required: false
+  TITLE_REGEX:
+    description: Regex to match PR titles for
+    required: false
+  USER:
+    description: The creator of the pull request
+    required: false
+outputs:
+  MERGE_COMMIT_SHA:
+    description: 'The merge_commit_sha of the given pull request'
+runs:
+  using: 'node12'
+  main: './index.js'

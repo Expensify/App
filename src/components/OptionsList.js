@@ -1,79 +1,83 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
 import SectionList from './SectionList';
+import Text from './Text';
 
 const propTypes = {
-    // option Background Color
+    /** option Background Color */
     optionBackgroundColor: PropTypes.string,
 
-    // option flexStyle for the options list container
+    /** option flexStyle for the options list container */
     listContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    // Style for hovered state
+    /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     optionHoveredStyle: PropTypes.object,
 
-    // Extra styles for the section list container
+    /** Extra styles for the section list container */
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    // Sections for the section list
+    /** Sections for the section list */
     sections: PropTypes.arrayOf(PropTypes.shape({
-        // Title of the section
+        /** Title of the section */
         title: PropTypes.string,
 
-        // The initial index of this section given the total number of options in each section's data array
+        /** The initial index of this section given the total number of options in each section's data array */
         indexOffset: PropTypes.number,
 
-        // Array of options
+        /** Array of options */
         data: PropTypes.arrayOf(optionPropTypes),
 
-        // Whether this section should show or not
+        /** Whether this section should show or not */
         shouldShow: PropTypes.bool,
     })),
 
-    // Index for option to focus on
+    /** Index for option to focus on */
     focusedIndex: PropTypes.number,
 
-    // Array of already selected options
+    /** Array of already selected options */
     selectedOptions: PropTypes.arrayOf(optionPropTypes),
 
-    // Whether we can select multiple options or not
+    /** Whether we can select multiple options or not */
     canSelectMultipleOptions: PropTypes.bool,
 
-    // Whether to show headers above each section or not
+    /** Whether to show headers above each section or not */
     hideSectionHeaders: PropTypes.bool,
 
-    // Whether to allow option focus or not
+    /** Whether to allow option focus or not */
     disableFocusOptions: PropTypes.bool,
 
-    // A flag to indicate whether to show additional optional states, such as pin and draft icons
+    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
     hideAdditionalOptionStates: PropTypes.bool,
 
-    // Force the text style to be the unread style on all rows
+    /** Force the text style to be the unread style on all rows */
     forceTextUnreadStyle: PropTypes.bool,
 
-    // Callback to fire when a row is selected
+    /** Callback to fire when a row is selected */
     onSelectRow: PropTypes.func,
 
-    // Optional header message
+    /** Optional header message */
     headerMessage: PropTypes.string,
 
-    // Passed via forwardRef so we can access the SectionList ref
+    /** Passed via forwardRef so we can access the SectionList ref */
     innerRef: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.shape({current: PropTypes.instanceOf(SectionList)}),
     ]),
 
-    // Whether to show the title tooltip
+    /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    // Toggle between compact and default view of the option
+    /** Toggle between compact and default view of the option */
     optionMode: PropTypes.oneOf(['compact', 'default']),
+
+    /** Whether to disable the interactivity of the list's option row(s) */
+    disableRowInteractivity: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -94,6 +98,7 @@ const defaultProps = {
     innerRef: null,
     showTitleTooltip: false,
     optionMode: undefined,
+    disableRowInteractivity: false,
 };
 
 class OptionsList extends Component {
@@ -170,6 +175,7 @@ class OptionsList extends Component {
                 showSelectedState={this.props.canSelectMultipleOptions}
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                disableRowInteractivity={this.props.disableRowInteractivity}
             />
         );
     }
@@ -188,7 +194,7 @@ class OptionsList extends Component {
         if (title && shouldShow && !this.props.hideSectionHeaders) {
             return (
                 <View>
-                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
                         {title}
                     </Text>
                 </View>

@@ -4,14 +4,14 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 
 const propTypes = {
-    // Url for image to display
+    /** Url for image to display */
     url: PropTypes.string.isRequired,
 
-    // Any additional styles to apply
+    /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    // Callback fired when the image has been measured.
+    /** Callback fired when the image has been measured. */
     onMeasure: PropTypes.func,
 };
 

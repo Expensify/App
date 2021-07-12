@@ -1,6 +1,9 @@
 const core = require('@actions/core');
 const run = require('../../.github/actions/isStagingDeployLocked/isStagingDeployLocked');
+const GithubUtils = require('../../.github/libs/GithubUtils');
 
+// Mock the entire GitHubUtils module
+jest.mock('../../.github/libs/GithubUtils');
 beforeAll(() => {
     // Mock required GITHUB_TOKEN
     process.env.INPUT_GITHUB_TOKEN = 'fake_token';
@@ -16,19 +19,11 @@ afterAll(() => {
     delete process.env.INPUT_GITHUB_TOKEN;
 });
 
-// Our mock function that we can adjust in each test
-let mockGetStagingDeployCash = jest.fn();
-
-// Mock the entire GitHubUtils module
-jest.mock('../../.github/libs/GithubUtils', () => jest.fn().mockImplementation(() => ({
-    getStagingDeployCash: mockGetStagingDeployCash,
-})));
-
 describe('isStagingDeployLockedTest', () => {
     describe('GitHub action run function', () => {
         test('Test returning empty result', () => {
             // Mock the return value of GitHubUtils.getStagingDeployCash() to return an empty object
-            mockGetStagingDeployCash = jest.fn().mockResolvedValue({});
+            GithubUtils.getStagingDeployCash = jest.fn().mockResolvedValue({});
             const setOutputMock = jest.spyOn(core, 'setOutput');
             const isStagingDeployLocked = run();
             return isStagingDeployLocked.then(() => {
@@ -43,7 +38,7 @@ describe('isStagingDeployLockedTest', () => {
             };
 
             // Mock the return value of GitHubUtils.getStagingDeployCash() to return the correct label
-            mockGetStagingDeployCash = jest.fn().mockResolvedValue(mockData);
+            GithubUtils.getStagingDeployCash = jest.fn().mockResolvedValue(mockData);
             const setOutputMock = jest.spyOn(core, 'setOutput');
             const isStagingDeployLocked = run();
             return isStagingDeployLocked.then(() => {

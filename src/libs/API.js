@@ -5,6 +5,7 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
+import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 
 let isAuthenticating;
 let credentials;
@@ -35,6 +36,7 @@ function isAuthTokenRequired(command) {
         'User_SignUp',
         'ResendValidateCode',
         'ResetPassword',
+        'User_ReopenAccount',
         'ValidateEmail',
     ], command);
 }
@@ -172,15 +174,6 @@ Network.registerErrorHandler((queuedRequest, error) => {
 });
 
 /**
- * Access the current authToken
- *
- * @returns {String}
- */
-function getAuthToken() {
-    return authToken;
-}
-
-/**
  * @param {Object} parameters
  * @param {String} [parameters.useExpensifyLogin]
  * @param {String} parameters.partnerName
@@ -201,7 +194,6 @@ function Authenticate(parameters) {
         'partnerUserSecret',
     ], parameters, commandName);
 
-    // eslint-disable-next-line no-use-before-define
     return Network.post(commandName, {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check
         // for credentials for the expensify partnerID to let users Authenticate with their expensify user
@@ -227,23 +219,19 @@ function Authenticate(parameters) {
             if (response.jsonCode !== 200) {
                 switch (response.jsonCode) {
                     case 401:
-                        throw new Error('Incorrect login or password. Please try again.');
+                        throw new Error('passwordForm.error.incorrectLoginOrPassword');
                     case 402:
-                        // eslint-disable-next-line max-len
-                        throw new Error('You have 2FA enabled on this account. Please sign in using your email or phone number.');
+                        throw new Error('passwordForm.error.twoFactorAuthenticationEnabled');
                     case 403:
-                        throw new Error('Invalid login or password. Please try again or reset your password.');
+                        throw new Error('passwordForm.error.invalidLoginOrPassword');
                     case 404:
-                        // eslint-disable-next-line max-len
-                        throw new Error('We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.');
+                        throw new Error('passwordForm.error.unableToResetPassword');
                     case 405:
-                        // eslint-disable-next-line max-len
-                        throw new Error('You do not have access to this application. Please add your GitHub username for access.');
+                        throw new Error('passwordForm.error.noAccess');
                     case 413:
-                        // eslint-disable-next-line max-len
-                        throw new Error('Your account has been locked after too many unsuccessful attempts. Please try again after 1 hour.');
+                        throw new Error('passwordForm.error.accountLocked');
                     default:
-                        throw new Error('Something went wrong. Please try again later.');
+                        throw new Error('passwordForm.error.fallback');
                 }
             }
             return response;
@@ -273,7 +261,10 @@ function reauthenticate(command = '') {
 
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
-            Onyx.merge(ONYXKEYS.SESSION, {authToken: response.authToken});
+            Onyx.merge(ONYXKEYS.SESSION, {
+                authToken: response.authToken,
+                encryptedAuthToken: response.encryptedAuthToken,
+            });
             authToken = response.authToken;
 
             // The authentication process is finished so the network can be unpaused to continue
@@ -302,6 +293,33 @@ function reauthenticate(command = '') {
                 error: error.message,
             });
         });
+}
+
+/**
+ * Calls the command=Authenticate API with an accountID, validateCode, and optional 2FA code. This is used specifically
+ * for sharing sessions between e.com and this app. It will return an authToken that is used for initiating a session
+ * in this app. This API call doesn't have any special handling (like retries or special error handling).
+ *
+ * @param {Object} parameters
+ * @param {String} parameters.accountID
+ * @param {String} parameters.validateCode
+ * @param {String} [parameters.twoFactorAuthCode]
+ * @returns {Promise<unknown>}
+ */
+function AuthenticateWithAccountID(parameters) {
+    const commandName = 'Authenticate';
+
+    requireParameters([
+        'accountID',
+        'validateCode',
+    ], parameters, commandName);
+
+    return Network.post(commandName, {
+        accountID: parameters.accountID,
+        validateCode: parameters.validateCode,
+        twoFactorAuthCode: parameters.twoFactorAuthCode,
+        doNotRetry: true,
+    });
 }
 
 /**
@@ -382,12 +400,13 @@ function DeleteLogin(parameters) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.returnValueList
+ * @param {Boolean} shouldUseSecure
  * @returns {Promise}
  */
-function Get(parameters) {
+function Get(parameters, shouldUseSecure = false) {
     const commandName = 'Get';
     requireParameters(['returnValueList'], parameters, commandName);
-    return Network.post(commandName, parameters);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, shouldUseSecure);
 }
 
 /**
@@ -409,6 +428,28 @@ function GetAccountStatus(parameters) {
 function GetIOUReport(parameters) {
     const commandName = 'GetIOUReport';
     requireParameters(['debtorEmail'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
+function GetPolicyList() {
+    const commandName = 'Get';
+    const parameters = {
+        returnValueList: 'policyList',
+    };
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
+function GetPolicySummaryList() {
+    const commandName = 'Get';
+    const parameters = {
+        returnValueList: 'policySummaryList',
+    };
     return Network.post(commandName, parameters);
 }
 
@@ -439,22 +480,6 @@ function Log(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String[]} data
- * @returns {Promise}
- */
-function Mobile_GetConstants(parameters) {
-    const commandName = 'Mobile_GetConstants';
-    requireParameters(['data'], parameters, commandName);
-
-    // For some reason, the Mobile_GetConstants endpoint requires a JSON string, so we need to stringify the data param
-    const finalParameters = parameters;
-    finalParameters.data = JSON.stringify(parameters.data);
-
-    return Network.post(commandName, finalParameters);
-}
-
-/**
- * @param {Object} parameters
  * @param {String} parameters.name
  * @param {Number} parameters.value
  * @returns {Promise}
@@ -463,6 +488,29 @@ function Graphite_Timer(parameters) {
     const commandName = 'Graphite_Timer';
     requireParameters(['name', 'value'],
         parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.paymentMethodType
+ * @returns {Promise}
+ */
+function PayIOU(parameters) {
+    const commandName = 'PayIOU';
+    requireParameters(['reportID', 'paymentMethodType'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @returns {Promise}
+ */
+function PayWithWallet(parameters) {
+    const commandName = 'PayWithWallet';
+    requireParameters(['reportID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -500,6 +548,18 @@ function Push_Authenticate(parameters) {
     const commandName = 'Push_Authenticate';
     requireParameters(['socket_id', 'channel_name'],
         parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.transactionID
+ * @returns {Promise}
+ */
+function RejectTransaction(parameters) {
+    const commandName = 'RejectTransaction';
+    requireParameters(['reportID', 'transactionID'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -545,6 +605,19 @@ function Report_TogglePinned(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {Number} parameters.reportActionID
+ * @param {String} parameters.reportComment
+ * @returns {Promise}
+ */
+function Report_EditComment(parameters) {
+    const commandName = 'Report_EditComment';
+    requireParameters(['reportID', 'reportActionID', 'reportComment'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {Number} parameters.accountID
  * @param {Number} parameters.reportID
  * @param {Number} parameters.sequenceNumber
@@ -553,6 +626,19 @@ function Report_TogglePinned(parameters) {
 function Report_UpdateLastRead(parameters) {
     const commandName = 'Report_UpdateLastRead';
     requireParameters(['accountID', 'reportID', 'sequenceNumber'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} parameters.reportID
+ * @param {String} parameters.notificationPreference
+ * @returns {Promise}
+ *
+ */
+function Report_UpdateNotificationPreference(parameters) {
+    const commandName = 'Report_UpdateNotificationPreference';
+    requireParameters(['reportID', 'notificationPreference'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -624,6 +710,32 @@ function User_GetBetas() {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @param {Boolean} [parameters.requireCertainty]
+ * @returns {Promise}
+ */
+function User_IsFromPublicDomain(parameters) {
+    const commandName = 'User_IsFromPublicDomain';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, {
+        ...{requireCertainty: true},
+        ...parameters,
+    });
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
+ * @returns {Promise}
+ */
+function User_ReopenAccount(parameters) {
+    const commandName = 'User_ReopenAccount';
+    requireParameters(['email'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.email
  * @param {String} parameters.password
  * @returns {Promise}
  */
@@ -689,9 +801,242 @@ function CreateIOUSplit(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @returns {Promise}
+ */
+function Wallet_GetOnfidoSDKToken() {
+    return Network.post('Wallet_GetOnfidoSDKToken', {
+        // We need to pass this so we can request a token with the correct referrer
+        // This value comes from a cross-platform module which returns true for native
+        // platforms and false for non-native platforms.
+        isViaExpensifyCashNative,
+    }, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @returns {Promise}
+ */
+function Plaid_GetLinkToken() {
+    return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.currentStep
+ * @param {String} [parameters.onfidoData] - JSON string
+ * @param {String} [parameters.personalDetails] - JSON string
+ * @param {Boolean} [parameters.hasAcceptedTerms]
+ * @returns {Promise}
+ */
+function Wallet_Activate(parameters) {
+    const commandName = 'Wallet_Activate';
+    requireParameters(['currentStep'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.publicToken
+ * @param {Boolean} parameters.allowDebit
+ * @param {String} parameters.bank
+ * @returns {Promise}
+ */
+function BankAccount_Get(parameters) {
+    const commandName = 'BankAccount_Get';
+    requireParameters(['publicToken', 'allowDebit', 'bank'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Object[]} parameters.employees
+ * @param {String} parameters.welcomeNote
+ * @param {String} parameters.policyID
+ * @returns {Promise}
+ */
+function Policy_Employees_Merge(parameters) {
+    const commandName = 'Policy_Employees_Merge';
+    requireParameters(['employees', 'welcomeNote', 'policyID'], parameters, commandName);
+
+    // Always include returnPersonalDetails to ensure we get the employee's personal details in the response
+    return Network.post(commandName, {...parameters, returnPersonalDetails: true});
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.accountNumber
+ * @param {String} parameters.addressName
+ * @param {Boolean} parameters.allowDebit
+ * @param {Boolean} parameters.confirm
+ * @param {Boolean} parameters.isSavings
+ * @param {String} parameters.password
+ * @param {String} parameters.routingNumber
+ * @param {String} parameters.setupType
+ * @param {String} parameters.additionalData additional JSON data
+ * @returns {Promise}
+ */
+function BankAccount_Create(parameters) {
+    const commandName = 'BankAccount_Create';
+    requireParameters([
+        'accountNumber',
+        'addressName',
+        'allowDebit',
+        'confirm',
+        'isSavings',
+        'password',
+        'routingNumber',
+        'setupType',
+        'additionalData',
+    ], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+function BankAccount_Validate(parameters) {
+    const commandName = 'ValidateBankAccount';
+    requireParameters(['bankAccountID', 'validateCode'], parameters, commandName);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST);
+}
+
+/**
+ * @param {*} parameters
+ * @returns {Promise}
+ */
+function BankAccount_SetupWithdrawal(parameters) {
+    const commandName = 'BankAccount_SetupWithdrawal';
+    let allowedParameters = [
+        'currentStep', 'policyID', 'bankAccountID', 'useOnfido', 'errorAttemptsCount', 'enableCardAfterVerified',
+
+        // data from bankAccount step:
+        'setupType', 'routingNumber', 'accountNumber', 'addressName', 'plaidAccountID', 'ownershipType', 'isSavings',
+        'acceptTerms', 'bankName', 'plaidAccessToken', 'alternateRoutingNumber',
+
+        // data from company step:
+        'companyName', 'companyTaxID', 'addressStreet', 'addressCity', 'addressState', 'addressZipCode',
+        'hasNoConnectionToCannabis', 'incorporationType', 'incorporationState', 'incorporationDate', 'industryCode',
+        'website', 'companyPhone', 'ficticiousBusinessName',
+
+        // data from requestor step:
+        'firstName', 'lastName', 'dob', 'requestorAddressStreet', 'requestorAddressCity', 'requestorAddressState',
+        'requestorAddressZipCode', 'isOnfidoSetupComplete', 'onfidoData', 'isControllingOfficer', 'ssnLast4',
+
+        // data from ACHContract step (which became the "Beneficial Owners" step, but the key is still ACHContract as
+        // it's used in several logic:
+        'ownsMoreThan25Percent', 'beneficialOwners', 'acceptTermsAndConditions', 'certifyTrueInformation',
+    ];
+
+    if (!parameters.useOnfido) {
+        allowedParameters = allowedParameters.concat(['passport', 'answers']);
+    }
+
+    // Only keep allowed parameters in the additionalData object
+    const additionalData = _.pick(parameters, allowedParameters);
+
+    requireParameters(['currentStep'], parameters, commandName);
+    return Network.post(
+        commandName, {additionalData: JSON.stringify(additionalData), password: parameters.password},
+        CONST.NETWORK.METHOD.POST,
+        true,
+    );
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String[]} data
+ * @returns {Promise}
+ */
+function Mobile_GetConstants(parameters) {
+    const commandName = 'Mobile_GetConstants';
+    requireParameters(['data'], parameters, commandName);
+
+    // Stringinfy the parameters object as we cannot send an object via FormData
+    const finalParameters = parameters;
+    finalParameters.data = JSON.stringify(parameters.data);
+
+    return Network.post(commandName, finalParameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Number} [parameters.latitude]
+ * @param {Number} [parameters.longitude]
+ * @returns {Promise}
+ */
+function GetPreferredCurrency(parameters) {
+    const commandName = 'GetPreferredCurrency';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @returns {Promise}
+ */
+function GetCurrencyList() {
+    return Mobile_GetConstants({data: ['currencyList']});
+}
+
+/**
+ * @returns {Promise}
+ */
+function User_IsUsingExpensifyCard() {
+    return Network.post('User_IsUsingExpensifyCard', {});
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} [parameters.type]
+ * @param {String} [parameters.policyName]
+ * @returns {Promise}
+ */
+function Policy_Create(parameters) {
+    const commandName = 'Policy_Create';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {Array} parameters.emailList
+ * @returns {Promise}
+ */
+function Policy_Employees_Remove(parameters) {
+    const commandName = 'Policy_Employees_Remove';
+    requireParameters(['policyID', 'emailList'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.taskID
+ * @param {String} parameters.policyID
+ * @param {String} parameters.firstName
+ * @param {String} parameters.lastName
+ * @param {String} parameters.phoneNumber
+ * @returns {Promise}
+ */
+function Inbox_CallUser(parameters) {
+    const commandName = 'Inbox_CallUser';
+    requireParameters(['taskID', 'policyID', 'firstName', 'lastName', 'phoneNumber'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.value - Must be a JSON stringified object
+ * @returns {Promise}
+ */
+function UpdatePolicy(parameters) {
+    const commandName = 'UpdatePolicy';
+    requireParameters(['policyID', 'value'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
-    getAuthToken,
     Authenticate,
+    AuthenticateWithAccountID,
+    BankAccount_Create,
+    BankAccount_Get,
+    BankAccount_SetupWithdrawal,
+    BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
     CreateLogin,
@@ -699,28 +1044,47 @@ export {
     Get,
     GetAccountStatus,
     GetIOUReport,
+    GetPolicyList,
+    GetPolicySummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
+    Inbox_CallUser,
     Log,
-    Mobile_GetConstants,
+    PayIOU,
+    PayWithWallet,
     PersonalDetails_GetForEmails,
     PersonalDetails_Update,
+    Plaid_GetLinkToken,
+    Policy_Employees_Merge,
     Push_Authenticate,
+    RejectTransaction,
     Report_AddComment,
     Report_GetHistory,
     Report_TogglePinned,
+    Report_EditComment,
     Report_UpdateLastRead,
+    Report_UpdateNotificationPreference,
     ResendValidateCode,
     ResetPassword,
     SetNameValuePair,
     SetPassword,
     UpdateAccount,
+    UpdatePolicy,
     User_SignUp,
     User_GetBetas,
+    User_IsFromPublicDomain,
+    User_IsUsingExpensifyCard,
+    User_ReopenAccount,
     User_SecondaryLogin_Send,
     User_UploadAvatar,
     reauthenticate,
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
+    Wallet_Activate,
+    Wallet_GetOnfidoSDKToken,
+    GetPreferredCurrency,
+    GetCurrencyList,
+    Policy_Create,
+    Policy_Employees_Remove,
 };

@@ -4,6 +4,7 @@ import NetInfo from './NetInfo';
 import ONYXKEYS from '../ONYXKEYS';
 import SleepTimer from './SleepTimer';
 import AppStateMonitor from './AppStateMonitor';
+import promiseAllSettled from './promiseAllSettled';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
@@ -21,7 +22,9 @@ const reconnectionCallbacks = [];
  */
 const triggerReconnectionCallbacks = _.throttle((reason) => {
     logInfo(`[NetworkConnection] Firing reconnection callbacks because ${reason}`, true);
-    _.each(reconnectionCallbacks, callback => callback());
+    Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, true);
+    promiseAllSettled(_.map(reconnectionCallbacks, callback => callback()))
+        .then(() => Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, false));
 }, 5000, {trailing: false});
 
 /**
@@ -92,7 +95,7 @@ function stopListeningForReconnect() {
 /**
  * Register callback to fire when we reconnect
  *
- * @param {Function} callback
+ * @param {Function} callback - must return a Promise
  */
 function onReconnect(callback) {
     reconnectionCallbacks.push(callback);

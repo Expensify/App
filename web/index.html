@@ -25,9 +25,20 @@
         #drag-area {
             -webkit-app-region: drag;
         }
+        input[type=text] {
+            -webkit-user-select: text !important;
+        }
+        .disable-select * {
+            -webkit-user-select: none !important;
+            -webkit-touch-callout: none !important;
+        }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
+    <% if (htmlWebpackPlugin.options.usePolyfillIO) { %>
+        <!-- polyfill.io is only needed on Web to support older browsers. It should not be loaded for desktop -->
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=default%2CResizeObserver&flags=gated"></script>
+    <% } %>
 </head>
 <body>
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" id="drag-area"></div>
