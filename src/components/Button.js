@@ -103,6 +103,7 @@ const Button = (props) => {
             onPress={props.onPress}
             disabled={props.isLoading || props.isDisabled}
             style={[
+                props.isDisabled ? styles.cursorDisabled : {},
                 ...additionalStyles,
             ]}
         >
