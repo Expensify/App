@@ -77,31 +77,14 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         // Component is not initialized yet due to navigation transitions
-        // Wait until interactions are complete before trying to focus or attach listener
+        // Wait until interactions are complete before trying to focus
         InteractionManager.runAfterInteractions(() => {
-            // Setup and attach keypress handler for navigating to the next screen
-            this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
-                if (this.state.amount !== '') {
-                    this.props.onStepComplete(this.state.amount);
-                }
-            }, [], true);
-
             // Focus text input
             if (this.textInput) {
                 this.textInput.focus();
             }
         });
     }
-
-    componentWillUnmount() {
-        // Cleanup all keydown event listeners that we've set up
-        if (!this.unsubscribe) {
-            return;
-        }
-
-        this.unsubscribe();
-    }
-
     /**
      * Check if amount is a decimal upto 3 digits
      *
@@ -197,6 +180,7 @@ class IOUAmountPage extends React.Component {
                         success
                         style={[styles.w100, styles.mt5]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}
+                        pressOnEnter
                         isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
                         text={this.props.translate('common.next')}
                     />
