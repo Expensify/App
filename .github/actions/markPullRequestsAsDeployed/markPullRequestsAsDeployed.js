@@ -172,7 +172,7 @@ function commentPR(pr) {
 }
 
 const run = function () {
-    return GithubUtils.fetchAllPullRequests(prList.map(pr => parseInt(pr, 10)))
+    return GithubUtils.fetchAllPullRequests(_.compact(_.map(prList, pr => parseInt(pr, 10))))
         .then((PRListWithDetails) => {
             _.each(PRListWithDetails, (PR) => {
                 PRMap[PR.number] = PR;
