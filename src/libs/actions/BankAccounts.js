@@ -329,7 +329,9 @@ function fetchUserWallet() {
  * @param {String} [stepToOpen]
  */
 function fetchFreePlanVerifiedBankAccount(stepToOpen) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
+    // and determine which step to navigate to.
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
     let bankAccountID;
 
     API.Get({
