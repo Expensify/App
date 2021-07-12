@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    Pressable, ActivityIndicator, InteractionManager
+    Pressable, ActivityIndicator, InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -86,6 +86,7 @@ class Button extends Component {
         if (!this.props.pressOnEnter) {
             return;
         }
+
         // Component is not initialized yet due to navigation transitions
         // Wait until interactions are complete before trying to attach listener
         InteractionManager.runAfterInteractions(() => {

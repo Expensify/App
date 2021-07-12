@@ -17,7 +17,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
     // Whether or not this IOU has multiple participants
@@ -85,6 +84,7 @@ class IOUAmountPage extends React.Component {
             }
         });
     }
+
     /**
      * Check if amount is a decimal upto 3 digits
      *
