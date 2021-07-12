@@ -17,9 +17,6 @@ const defaultProps = {
 };
 
 /**
- * There is no native support for the Hover on the Mobile platform, but as we use the Tooltip as a
- * container we must past pass that containerStyle to a simple View in order to avoid different
- * styles across platforms.
  * @param {propTypes} props
  * @returns {ReactNodeLike}
  */
