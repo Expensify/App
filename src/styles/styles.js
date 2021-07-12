@@ -625,7 +625,7 @@ const styles = {
 
     createMenuPositionProfile: {
         right: 18,
-        top: 100,
+        top: 180,
     },
 
     createMenuPositionReportActionCompose: {
@@ -1742,6 +1742,12 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    communicationsLinkIcon: {
+        right: -36,
+        top: 0,
+        bottom: 0,
     },
 };
 
