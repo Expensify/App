@@ -32,6 +32,7 @@ build/
 .gradle
 local.properties
 *.iml
+android/*.hprof
 
 # Vscode
 .vscode
@@ -69,3 +70,6 @@ fastlane/screenshots
 
 # Local DEV config
 /.env
+
+# Storybook build files
+storybook-static

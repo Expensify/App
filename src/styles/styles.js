@@ -1,5 +1,4 @@
 import fontFamily from './fontFamily';
-import italic from './italic';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
 import fontWeightBold from './fontWeight/bold';
@@ -15,6 +14,7 @@ import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
 import positioning from './utilities/positioning';
+import codeStyles from './codeStyles';
 
 const styles = {
     // Add all of our utility and helper styles
@@ -31,6 +31,10 @@ const styles = {
         color: themeColors.link,
         textDecorationColor: themeColors.link,
         fontFamily: fontFamily.GTA,
+    },
+
+    linkHovered: {
+        color: themeColors.linkHover,
     },
 
     h1: {
@@ -52,13 +56,6 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
-    textP: {
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        lineHeight: 20,
-    },
-
     textLabel: {
         color: themeColors.text,
         fontSize: variables.fontSizeLabel,
@@ -66,7 +63,9 @@ const styles = {
     },
 
     textMicro: {
+        fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textMicroBold: {
@@ -74,6 +73,13 @@ const styles = {
         fontWeight: fontWeightBold,
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
+    },
+
+    textMicroSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     textLarge: {
@@ -85,8 +91,17 @@ const styles = {
         fontWeight: fontWeightBold,
     },
 
+    textItalic: {
+        fontFamily: fontFamily.GTA_ITALIC,
+        fontStyle: 'italic',
+    },
+
     textDecorationNoLine: {
         textDecorationLine: 'none',
+    },
+
+    textUppercase: {
+        textTransform: 'uppercase',
     },
 
     colorReversed: {
@@ -105,12 +120,20 @@ const styles = {
         color: themeColors.heading,
     },
 
+    bgTransparent: {
+        backgroundColor: 'transparent',
+    },
+
+    textDanger: {
+        color: colors.red,
+    },
+
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
         height: variables.componentSizeNormal,
         justifyContent: 'center',
-        paddingHorizontal: 12,
+        ...spacing.ph3,
     },
 
     buttonText: {
@@ -128,11 +151,29 @@ const styles = {
         paddingRight: 10,
         paddingBottom: 6,
         paddingLeft: 10,
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
+    buttonLarge: {
+        borderRadius: variables.componentBorderRadius,
+        height: variables.componentSizeLarge,
+        paddingTop: 8,
+        paddingRight: 12,
+        paddingBottom: 8,
+        paddingLeft: 12,
     },
 
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        textAlign: 'center',
+    },
+
+    buttonLargeText: {
+        fontSize: variables.fontSizeLarge,
+        lineHeight: 18,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -152,9 +193,37 @@ const styles = {
         borderWidth: 0,
     },
 
+    buttonDanger: {
+        backgroundColor: themeColors.buttonDangerBG,
+        borderWidth: 0,
+    },
+
+    buttonDangerDisabled: {
+        backgroundColor: themeColors.buttonDangerDisabledBG,
+    },
+
+    buttonDangerHovered: {
+        backgroundColor: themeColors.buttonDangerPressedBG,
+        borderWidth: 0,
+    },
+
     buttonDisable: {
         backgroundColor: themeColors.buttonDisabledBG,
         borderWidth: 0,
+    },
+
+    buttonDropdown: {
+        marginLeft: 1,
+    },
+
+    noRightBorderRadius: {
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+    },
+
+    noLeftBorderRadius: {
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
     },
 
     buttonConfirm: {
@@ -170,8 +239,16 @@ const styles = {
         color: themeColors.textReversed,
     },
 
+    buttonDangerText: {
+        color: themeColors.textReversed,
+    },
+
     hoveredComponentBG: {
         backgroundColor: themeColors.hoverComponentBG,
+    },
+
+    activeComponentBG: {
+        backgroundColor: themeColors.activeComponentBG,
     },
 
     touchableButtonImage: {
@@ -194,7 +271,7 @@ const styles = {
             borderWidth: 1,
             borderColor: themeColors.border,
             color: themeColors.text,
-            height: variables.componentSizeNormal,
+            height: variables.inputComponentSizeNormal,
             opacity: 1,
         },
         inputWeb: {
@@ -209,8 +286,9 @@ const styles = {
             borderColor: themeColors.border,
             color: themeColors.text,
             appearance: 'none',
-            height: variables.componentSizeNormal,
+            height: variables.inputComponentSizeNormal,
             opacity: 1,
+            cursor: 'pointer',
         },
         inputAndroid: {
             fontFamily: fontFamily.GTA,
@@ -223,7 +301,7 @@ const styles = {
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
             color: themeColors.text,
-            height: variables.componentSizeNormal,
+            height: variables.inputComponentSizeNormal,
             opacity: 1,
         },
         iconContainer: {
@@ -246,8 +324,16 @@ const styles = {
         backgroundColor: themeColors.badgeSuccessBG,
     },
 
+    badgeSuccessPressed: {
+        backgroundColor: themeColors.badgeSuccessPressedBG,
+    },
+
     badgeDanger: {
         backgroundColor: themeColors.badgeDangerBG,
+    },
+
+    badgeDangerPressed: {
+        backgroundColor: themeColors.badgeDangerPressedBG,
     },
 
     badgeText: {
@@ -255,6 +341,12 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    border: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
     },
 
     headerText: {
@@ -286,6 +378,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     chatItemComposeSecondaryRowOffset: {
@@ -301,7 +394,7 @@ const styles = {
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeNormal,
+        height: variables.inputComponentSizeNormal,
         borderColor: themeColors.border,
         borderWidth: 1,
         color: themeColors.text,
@@ -312,6 +405,10 @@ const styles = {
         paddingTop: 10,
         paddingBottom: 10,
         textAlignVertical: 'center',
+    },
+
+    disabledText: {
+        color: colors.gray3,
     },
 
     disabledTextInput: {
@@ -432,10 +529,8 @@ const styles = {
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
-        flexDirection: 'column',
-        height: 84,
-        justifyContent: 'flex-start',
-        paddingHorizontal: 20,
+        justifyContent: 'center',
+        paddingVertical: 20,
         width: '100%',
     },
 
@@ -457,6 +552,19 @@ const styles = {
         width: 12,
         zIndex: 10,
     },
+
+    statusIndicatorLarge: {
+        borderColor: themeColors.componentBG,
+        borderRadius: 8,
+        borderWidth: 2,
+        position: 'absolute',
+        right: 4,
+        bottom: 4,
+        height: 16,
+        width: 16,
+        zIndex: 10,
+    },
+
     statusIndicatorOnline: {
         backgroundColor: themeColors.online,
     },
@@ -505,6 +613,11 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    singleEmojiText: {
+        fontSize: variables.fontSizeSingleEmoji,
+        lineHeight: variables.fontSizeSingleEmojiHeight,
+    },
+
     createMenuPositionSidebar: {
         left: 18,
         bottom: 100,
@@ -512,11 +625,16 @@ const styles = {
 
     createMenuPositionProfile: {
         right: 18,
-        top: 100,
+        top: 180,
     },
 
     createMenuPositionReportActionCompose: {
         left: 18 + variables.sideBarWidth,
+        bottom: 75,
+    },
+
+    createMenuPositionRightSidepane: {
+        right: 18,
         bottom: 75,
     },
 
@@ -525,7 +643,13 @@ const styles = {
         paddingVertical: 12,
     },
 
-    createMenuItem: {
+    createMenuHeaderText: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.heading,
+    },
+
+    popoverMenuItem: {
         flexDirection: 'row',
         borderRadius: 0,
         paddingHorizontal: 20,
@@ -534,18 +658,33 @@ const styles = {
         width: '100%',
     },
 
-    createMenuIcon: {
-        width: 40,
-        height: 40,
+    popoverMenuIcon: {
+        width: variables.componentSizeNormal,
+        height: variables.componentSizeNormal,
         justifyContent: 'center',
         alignItems: 'center',
     },
 
-    createMenuText: {
+    popoverMenuIconEmphasized: {
+        backgroundColor: themeColors.iconSuccessFill,
+        borderRadius: variables.componentSizeLarge / 2,
+    },
+
+    popoverMenuText: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+    },
+
+    popoverMenuDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+    },
+
+    menuItemTextContainer: {
+        minHeight: variables.componentSizeNormal,
     },
 
     chatLinkRowPressable: {
@@ -766,12 +905,23 @@ const styles = {
         opacity: 0.6,
     },
 
+    chatItemMessageLink: {
+        color: colors.blue,
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        lineHeight: 20,
+    },
+
     chatItemCompose: {
         minHeight: 65,
         marginBottom: 5,
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
+    },
+
+    chatItemComposeWithFirstRow: {
+        minHeight: 90,
     },
 
     chatItemComposeBoxColor: {
@@ -824,7 +974,6 @@ const styles = {
 
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
-        minWidth: CONST.EMOJI_PICKER_SIZE,
     },
 
     emojiPickerList: {
@@ -846,15 +995,29 @@ const styles = {
     // Emoji Picker Styles
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.iconSizeLarge,
         textAlign: 'center',
         ...spacing.pv1,
         ...spacing.ph2,
     },
 
+    emojiExtraSmall: {
+        fontSize: variables.iconSizeExtraSmall,
+    },
+
+    emojiLarge: {
+        fontSize: variables.iconSizeLarge,
+    },
+
     emojiItem: {
+        flex: 1,
         width: '12.5%',
         textAlign: 'center',
+        borderRadius: 8,
+    },
+
+    emojiItemHighlighted: {
+        transition: '0.2s ease',
+        backgroundColor: themeColors.buttonDefaultBG,
     },
 
     chatItemEmojiButton: {
@@ -915,6 +1078,14 @@ const styles = {
         borderRightWidth: 0,
     },
 
+    exampleCheckImage: {
+        width: '100%',
+        height: 80,
+        borderColor: themeColors.border,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+    },
+
     singleAvatar: {
         height: 24,
         width: 24,
@@ -927,6 +1098,13 @@ const styles = {
         width: 18,
         backgroundColor: themeColors.icon,
         borderRadius: 18,
+    },
+
+    singleAvatarLarge: {
+        height: 64,
+        width: 64,
+        backgroundColor: themeColors.icon,
+        borderRadius: 64,
     },
 
     secondAvatar: {
@@ -977,7 +1155,7 @@ const styles = {
     avatarInnerText: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeSmall,
-        lineHeight: 24,
+        lineHeight: undefined,
         marginLeft: -3,
         textAlign: 'center',
     },
@@ -985,7 +1163,7 @@ const styles = {
     avatarInnerTextSmall: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeExtraSmall,
-        lineHeight: 18,
+        lineHeight: undefined,
         marginLeft: -2,
         textAlign: 'center',
     },
@@ -1024,6 +1202,11 @@ const styles = {
 
     borderBottom: {
         borderBottomWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderRight: {
+        borderRightWidth: 1,
         borderColor: themeColors.border,
     },
 
@@ -1138,12 +1321,31 @@ const styles = {
         ...{borderRadius: variables.componentBorderRadiusSmall},
     },
 
+    reportDetailsTitleContainer: {
+        ...flex.dFlex,
+        ...flex.flexColumn,
+        ...flex.alignItemsCenter,
+        ...spacing.mt4,
+        height: 150,
+    },
+
+    reportDetailsRoomInfo: {
+        ...flex.flex1,
+        ...flex.dFlex,
+        ...flex.flexColumn,
+        ...flex.alignItemsCenter,
+    },
+
+    reportTransactionWrapper: {
+        paddingVertical: 8,
+        display: 'flex',
+        flexDirection: 'row',
+    },
+
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
         flexGrow: 1,
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
 
     settingsPageBody: {
@@ -1166,18 +1368,6 @@ const styles = {
     avatarLarge: {
         width: 80,
         height: 80,
-    },
-
-    statusIndicatorLarge: {
-        borderColor: themeColors.componentBG,
-        borderRadius: 8,
-        borderWidth: 2,
-        position: 'absolute',
-        right: 4,
-        bottom: 4,
-        height: 16,
-        width: 16,
-        zIndex: 10,
     },
 
     displayName: {
@@ -1326,21 +1516,71 @@ const styles = {
     }, 0),
 
     iouPreviewBox: {
+        backgroundColor: themeColors.componentBG,
         borderColor: themeColors.border,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
         marginTop: 16,
-        maxWidth: 300,
+        maxWidth: variables.sideBarWidth,
+        width: '100%',
+        cursor: 'pointer',
+    },
+
+    iouPreviewBoxLoading: {
+        minHeight: 47,
         width: '100%',
     },
 
     iouPreviewBoxAvatar: {
         marginRight: -10,
+        marginBottom: -10,
+    },
+
+    iouPreviewBoxCheckmark: {
+        marginLeft: 4,
+        alignSelf: 'center',
+    },
+
+    iouDetailsContainer: {
+        flexGrow: 1,
+        paddingStart: 20,
+        paddingEnd: 20,
     },
 
     noScrollbars: {
         scrollbarWidth: 'none',
+    },
+
+    codeWordWrapper: {
+        ...codeStyles.codeWordWrapper,
+    },
+
+    codeWordStyle: {
+        borderLeftWidth: 0,
+        borderRightWidth: 0,
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        justifyContent: 'center',
+        ...codeStyles.codeWordStyle,
+    },
+
+    codeFirstWordStyle: {
+        borderLeftWidth: 1,
+        borderTopLeftRadius: 4,
+        borderBottomLeftRadius: 4,
+        paddingLeft: 5,
+    },
+
+    codeLastWordStyle: {
+        borderRightWidth: 1,
+        borderTopRightRadius: 4,
+        borderBottomRightRadius: 4,
+        paddingRight: 5,
     },
 
     fullScreenLoading: {
@@ -1358,13 +1598,162 @@ const styles = {
         opacity: 0,
         transform: 'translateX(-100%)',
     },
+
+    growlNotificationWrapper: {
+        zIndex: 2,
+    },
+
+    growlNotificationContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        position: 'absolute',
+        width: '100%',
+        top: 20,
+        ...spacing.ph5,
+    },
+
+    growlNotificationDesktopContainer: {
+        maxWidth: 380,
+        right: 0,
+        position: 'fixed',
+    },
+
+    growlNotificationTranslateY: y => ({
+        transform: [{translateY: y}],
+    }),
+
+    growlNotificationBox: {
+        backgroundColor: colors.dark,
+        borderRadius: variables.componentBorderRadiusNormal,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        shadowColor: '#000',
+        ...spacing.p5,
+    },
+
+    growlNotificationText: {
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        width: '90%',
+        lineHeight: variables.fontSizeNormalHeight,
+        color: themeColors.textReversed,
+    },
+
+    blockquote: {
+        borderLeftColor: themeColors.border,
+        borderLeftWidth: 4,
+        paddingLeft: 12,
+        marginVertical: 4,
+    },
+
+    cursorDisabled: {
+        cursor: 'not-allowed',
+    },
+
+    fullscreenCard: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: '100%',
+        height: '100%',
+    },
+
+    fullscreenCardWeb: {
+        left: 'auto',
+        right: '-24%',
+        top: '-18%',
+        height: '120%',
+    },
+
+    fullscreenCardMobile: {
+        left: '-20%',
+        top: '-30%',
+        width: '150%',
+    },
+
+    smallEditIcon: {
+        alignItems: 'center',
+        backgroundColor: themeColors.icon,
+        borderColor: themeColors.textReversed,
+        borderRadius: 16,
+        borderWidth: 3,
+        bottom: -4,
+        color: themeColors.textReversed,
+        height: 32,
+        justifyContent: 'center',
+        padding: 4,
+        position: 'absolute',
+        right: -4,
+        width: 32,
+    },
+
+    workspaceCard: {
+        width: '100%',
+        height: 400,
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        backgroundColor: themeColors.heroCard,
+    },
+
+    workspaceCardMobile: {
+        height: 475,
+    },
+
+    workspaceCardMainText: {
+        fontSize: variables.fontSizeXXXLarge,
+        fontWeight: 'bold',
+        lineHeight: variables.fontSizeXXXLarge,
+    },
+
+    workspaceCardContent: {
+        zIndex: 1,
+        padding: 50,
+    },
+
+    workspaceCardCTA: {
+        width: 250,
+    },
+
+    workspaceInviteWelcome: {
+        minHeight: 150,
+    },
+
+    peopleRow: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        ...spacing.pv2,
+    },
+
+    peopleRowCell: {
+        justifyContent: 'center',
+    },
+
+    peopleBadge: {
+        backgroundColor: themeColors.icon,
+        ...spacing.ph3,
+    },
+
+    peopleBadgeText: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 16,
+        ...whiteSpace.noWrap,
+    },
+
+    communicationsLinkIcon: {
+        right: -36,
+        top: 0,
+        bottom: 0,
+    },
 };
 
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
-    marginTop: 4,
-    marginBottom: 4,
     borderColor: themeColors.border,
     backgroundColor: themeColors.textBackground,
 };
@@ -1378,7 +1767,7 @@ const webViewStyles = {
     tagStyles: {
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
-            fontStyle: italic,
+            fontStyle: 'italic',
         },
 
         del: {
@@ -1388,7 +1777,7 @@ const webViewStyles = {
 
         strong: {
             fontFamily: fontFamily.GTA_BOLD,
-            fontWeight: fontWeightBold,
+            fontWeight: 'bold',
         },
 
         a: styles.link,
@@ -1415,15 +1804,17 @@ const webViewStyles = {
             paddingRight: 8,
             paddingLeft: 8,
             fontFamily: fontFamily.MONOSPACE,
+            marginTop: 0,
+            marginBottom: 0,
         },
 
         code: {
             ...baseCodeTagStyles,
+            ...codeStyles.codeTextStyle,
             paddingLeft: 5,
             paddingRight: 5,
-            paddingBottom: 2,
-            alignSelf: 'flex-start',
             fontFamily: fontFamily.MONOSPACE,
+            fontSize: 13,
         },
 
         img: {
@@ -1436,7 +1827,9 @@ const webViewStyles = {
     baseFontStyle: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
+        flex: 1,
     },
 };
 
@@ -1467,18 +1860,19 @@ function getSafeAreaMargins(insets) {
  * Return navigation menu styles.
  *
  * @param {Number} windowWidth
+ * @param {Number} windowHeight
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationDrawerStyle(windowWidth, isSmallScreenWidth) {
+function getNavigationDrawerStyle(windowWidth, windowHeight, isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
             width: windowWidth,
-            height: '100%',
+            height: windowHeight,
             borderColor: themeColors.border,
         }
         : {
-            height: '100%',
+            height: windowHeight,
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
         };
@@ -1564,6 +1958,20 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Generate a style for the background color of the IOU badge
+ *
+ * @param {Boolean} isOwner
+ * @param {Boolean} [isPressed]
+ * @returns {Object}
+ */
+function getBadgeColorStyle(isOwner, isPressed = false) {
+    if (isOwner) {
+        return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
+    }
+    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+}
+
+/**
  * Generate a style for the background color of the button, based on its current state.
  *
  * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
@@ -1571,10 +1979,11 @@ function getBackgroundColorStyle(backgroundColor) {
  */
 function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
+        case CONST.BUTTON_STATES.ACTIVE:
             return {backgroundColor: themeColors.buttonHoveredBG};
         case CONST.BUTTON_STATES.PRESSED:
             return {backgroundColor: themeColors.buttonPressedBG};
+        case CONST.BUTTON_STATES.DISABLED:
         case CONST.BUTTON_STATES.DEFAULT:
         default:
             return {};
@@ -1589,13 +1998,14 @@ function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT
  */
 function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
     switch (buttonState) {
-        case CONST.BUTTON_STATES.HOVERED:
+        case CONST.BUTTON_STATES.ACTIVE:
             return themeColors.text;
         case CONST.BUTTON_STATES.PRESSED:
             return themeColors.heading;
         case CONST.BUTTON_STATES.COMPLETE:
             return themeColors.iconSuccessFill;
         case CONST.BUTTON_STATES.DEFAULT:
+        case CONST.BUTTON_STATES.DISABLED:
         default:
             return themeColors.icon;
     }
@@ -1647,6 +2057,32 @@ function getModalPaddingStyles({
     };
 }
 
+/**
+ * Takes fontStyle and fontWeight and returns the correct fontFamily
+ *
+ * @param {Object} params
+ * @returns {String}
+ */
+function getFontFamilyMonospace({fontStyle, fontWeight}) {
+    const italic = fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
+    const bold = fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
+    const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
+
+    return italicBold || bold || italic || fontFamily.MONOSPACE;
+}
+
+/**
+ * Gives the width for Emoji picker Widget
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {String}
+ */
+function getEmojiPickerStyle(isSmallScreenWidth) {
+    return {
+        width: isSmallScreenWidth ? '100%' : CONST.EMOJI_PICKER_SIZE,
+    };
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -1660,9 +2096,12 @@ export {
     getAutoGrowTextInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBadgeColorStyle,
     getButtonBackgroundColorStyle,
     getIconFillColor,
     getAnimatedFABStyle,
     getWidthAndHeightStyle,
     getModalPaddingStyles,
+    getFontFamilyMonospace,
+    getEmojiPickerStyle,
 };

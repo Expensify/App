@@ -233,26 +233,6 @@ function subscribe(
 }
 
 /**
- * Waits for the subscription_succeeded event to fire before returning members or
- * returns the current members if the subscription has already succeeded.
- *
- * @param {String} channelName
- *
- * @return {Promise}
- */
-function getChannelMembersAsync(channelName) {
-    return new Promise((resolve, reject) => subscribe(channelName)
-        .done(() => {
-            const channel = getChannel(channelName);
-            resolve(channel.members.members);
-        })
-        .fail(() => {
-            console.debug('[Pusher] Unable to subscribe to presence channel while getting channel members async');
-            reject();
-        }));
-}
-
-/**
  * Unsubscribe from a channel and optionally a specific event
  *
  * @param {String} channelName
@@ -335,27 +315,6 @@ function sendEvent(channelName, eventName, payload) {
 }
 
 /**
- * Sends an event across multiple pieces over a channel.
- *
- * @param {String} channelName
- * @param {String} eventName
- * @param {Object} payload
- */
-function sendChunkedEvent(channelName, eventName, payload) {
-    const chunkSize = 9000;
-    const payloadString = JSON.stringify(payload);
-    const msgId = Math.random().toString();
-    for (let i = 0; i * chunkSize < payloadString.length; i++) {
-        socket.send_event(eventName, {
-            id: msgId,
-            index: i,
-            chunk: payloadString.substr(i * chunkSize, chunkSize),
-            final: chunkSize * (i + 1) >= payloadString.length,
-        }, channelName);
-    }
-}
-
-/**
  * Register a method that will be triggered when a socket event happens (like disconnecting)
  *
  * @param {Function} cb
@@ -415,12 +374,10 @@ export {
     init,
     subscribe,
     unsubscribe,
-    getChannelMembersAsync,
     getChannel,
     isSubscribed,
     isAlreadySubscribing,
     sendEvent,
-    sendChunkedEvent,
     disconnect,
     reconnect,
     registerSocketEventCallback,

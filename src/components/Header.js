@@ -9,20 +9,16 @@ const propTypes = {
     /** Title of the Header */
     title: PropTypes.string.isRequired,
 
-    // Should we show the environment badge (dev/stg)?
+    /** Should we show the environment badge (dev/stg)?  */
     shouldShowEnvironmentBadge: PropTypes.bool,
-
-    // Fontsize
-    textSize: PropTypes.oneOf(['default', 'large']),
 };
 
 const defaultProps = {
-    textSize: 'default',
     shouldShowEnvironmentBadge: false,
 };
 const Header = props => (
     <View style={[styles.flex1, styles.flexRow]}>
-        <Text numberOfLines={2} style={[styles.headerText, props.textSize === 'large' && styles.textLarge]}>
+        <Text numberOfLines={2} style={[styles.headerText, styles.textLarge]}>
             {props.title}
         </Text>
         {props.shouldShowEnvironmentBadge && (

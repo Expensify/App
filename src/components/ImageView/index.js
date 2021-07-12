@@ -5,7 +5,7 @@ import styles, {getZoomCursorStyle, getZoomSizingStyle} from '../../styles/style
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 
 const propTypes = {
-    // URL to full-sized image
+    /** URL to full-sized image */
     url: PropTypes.string.isRequired,
 };
 

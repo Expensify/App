@@ -2,6 +2,7 @@ import {AppRegistry} from 'react-native';
 import {ipcRenderer} from 'electron';
 import Config from '../CONFIG';
 import LocalNotification from '../libs/Notification/LocalNotification';
+import DateUtils from '../libs/DateUtils';
 
 
 export default function () {
@@ -12,4 +13,7 @@ export default function () {
     ipcRenderer.on('update-downloaded', () => {
         LocalNotification.showUpdateAvailableNotification();
     });
+
+    // Start current date updater
+    DateUtils.startCurrentDateUpdater();
 }

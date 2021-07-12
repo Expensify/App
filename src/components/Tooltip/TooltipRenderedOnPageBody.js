@@ -1,54 +1,89 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Animated, Text, View} from 'react-native';
+import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
+import getTooltipStyles from '../../styles/getTooltipStyles';
+import Text from '../Text';
 
 const propTypes = {
-    // Style for Animation
-    // eslint-disable-next-line react/forbid-prop-types
-    animationStyle: PropTypes.object.isRequired,
+    /** Window width */
+    windowWidth: PropTypes.number.isRequired,
 
-    // Syle for Tooltip wrapper
+    /** Tooltip Animation value */
     // eslint-disable-next-line react/forbid-prop-types
-    tooltipWrapperStyle: PropTypes.object.isRequired,
+    animation: PropTypes.object.isRequired,
 
-    // Style for the text rendered inside tooltip
-    // eslint-disable-next-line react/forbid-prop-types
-    tooltipTextStyle: PropTypes.object.isRequired,
+    /** The distance between the left side of the wrapper view and the left side of the window */
+    xOffset: PropTypes.number.isRequired,
 
-    // Style for the Tooltip pointer Wrapper
-    // eslint-disable-next-line react/forbid-prop-types
-    pointerWrapperStyle: PropTypes.object.isRequired,
+    /** The distance between the top of the wrapper view and the top of the window */
+    yOffset: PropTypes.number.isRequired,
 
-    // Style for the Tooltip pointer
-    // eslint-disable-next-line react/forbid-prop-types
-    pointerStyle: PropTypes.object.isRequired,
+    /** The width of the tooltip wrapper */
+    wrapperWidth: PropTypes.number.isRequired,
 
-    // Callback to set the Ref to the Tooltip
+    /** The Height of the tooltip wrapper */
+    wrapperHeight: PropTypes.number.isRequired,
+
+    /** The width of the tooltip itself */
+    tooltipWidth: PropTypes.number.isRequired,
+
+    /** The Height of the tooltip itself */
+    tooltipHeight: PropTypes.number.isRequired,
+
+    /** Any additional amount to manually adjust the horizontal position of the tooltip.
+    A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
+    shiftHorizontal: PropTypes.number.isRequired,
+
+    /** Any additional amount to manually adjust the vertical position of the tooltip.
+    A positive value shifts the tooltip down, and a negative value shifts it up. */
+    shiftVertical: PropTypes.number.isRequired,
+
+    /** Callback to set the Ref to the Tooltip */
     setTooltipRef: PropTypes.func.isRequired,
 
-    // Text to be shown in the tooltip
+    /** Text to be shown in the tooltip */
     text: PropTypes.string.isRequired,
 
-    // Callback to be used to calulate the width and height of tooltip
+    /** Callback to be used to calulate the width and height of tooltip */
     measureTooltip: PropTypes.func.isRequired,
 };
 
 const defaultProps = {};
 
-const TooltipRenderedOnPageBody = props => ReactDOM.createPortal(
-    <Animated.View
-        ref={props.setTooltipRef}
-        onLayout={props.measureTooltip}
-        style={[props.tooltipWrapperStyle, props.animationStyle]}
-    >
-        <Text style={props.tooltipTextStyle} numberOfLines={1}>{props.text}</Text>
-        <View style={props.pointerWrapperStyle}>
-            <View style={props.pointerStyle} />
-        </View>
-    </Animated.View>,
-    document.querySelector('body'),
-);
+const TooltipRenderedOnPageBody = (props) => {
+    const {
+        animationStyle,
+        tooltipWrapperStyle,
+        tooltipTextStyle,
+        pointerWrapperStyle,
+        pointerStyle,
+    } = getTooltipStyles(
+        props.animation,
+        props.windowWidth,
+        props.xOffset,
+        props.yOffset,
+        props.wrapperWidth,
+        props.wrapperHeight,
+        props.tooltipWidth,
+        props.tooltipHeight,
+        props.shiftHorizontal,
+        props.shiftVertical,
+    );
+    return ReactDOM.createPortal(
+        <Animated.View
+            ref={props.setTooltipRef}
+            onLayout={props.measureTooltip}
+            style={[tooltipWrapperStyle, animationStyle]}
+        >
+            <Text style={tooltipTextStyle} numberOfLines={1}>{props.text}</Text>
+            <View style={pointerWrapperStyle}>
+                <View style={pointerStyle} />
+            </View>
+        </Animated.View>,
+        document.querySelector('body'),
+    );
+};
 
 TooltipRenderedOnPageBody.propTypes = propTypes;
 TooltipRenderedOnPageBody.defaultProps = defaultProps;

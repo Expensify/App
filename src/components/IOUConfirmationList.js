@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {TextInput} from 'react-native-gesture-handler';
+import {ScrollView, TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
@@ -11,31 +12,43 @@ import {
     getIOUConfirmationOptionsFromParticipants,
 } from '../libs/OptionsListUtils';
 import OptionsList from './OptionsList';
-import ButtonWithLoader from './ButtonWithLoader';
+import Button from './Button';
 import ONYXKEYS from '../ONYXKEYS';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import compose from '../libs/compose';
+import FixedFooter from './FixedFooter';
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
+
+    // User's currency preference
+    selectedCurrency: PropTypes.shape({
+        // Currency code for the selected currency
+        currencyCode: PropTypes.string,
+
+        // Currency symbol for the selected currency
+        currencySymbol: PropTypes.string,
+    }).isRequired,
 
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
 
-    // Comment value from IOUModal
+    /** Comment value from IOUModal */
     comment: PropTypes.string,
 
-    // Should we request a single or multiple participant selection from user
+    /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    // IOU amount
+    /** Safe area insets required for mobile devices margins */
+    insets: SafeAreaInsetPropTypes.isRequired,
+
+    /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
-    // Selected currency from the user
-    // Remove eslint disable after currency symbol is available
-    // eslint-disable-next-line react/no-unused-prop-types
-    selectedCurrency: PropTypes.string.isRequired,
-
-    // Selected participants from IOUMOdal with login
+    // Selected participants from IOUModal with login
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -50,25 +63,29 @@ const propTypes = {
         participantsList: PropTypes.arrayOf(PropTypes.object),
     })).isRequired,
 
+    ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
+
     /* Onyx Props */
 
-    // The personal details of the person who is logged in
+    /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape({
 
-        // Display name of the current user from their personal details
+        /** Display name of the current user from their personal details */
         displayName: PropTypes.string,
 
-        // Avatar URL of the current user from their personal details
+        /** Avatar URL of the current user from their personal details */
         avatar: PropTypes.string,
 
-        // Primary login of the user
+        /** Primary login of the user */
         login: PropTypes.string,
     }).isRequired,
 
-    // Holds data related to IOU view state, rather than the underlying IOU data.
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
 
-        // Whether or not the IOU step is loading (creating the IOU Report)
+        /** Whether or not the IOU step is loading (creating the IOU Report) */
         loading: PropTypes.bool,
     }),
 };
@@ -78,6 +95,10 @@ const defaultProps = {
     onUpdateComment: null,
     comment: '',
 };
+
+// Gives minimum height to offset the height of
+// button and comment box
+const MINIMUM_BOTTOM_OFFSET = 240;
 
 class IOUConfirmationList extends Component {
     /**
@@ -92,35 +113,39 @@ class IOUConfirmationList extends Component {
         if (this.props.hasMultipleParticipants) {
             const formattedMyPersonalDetails = getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
-
-                // Convert from cent to bigger form
-                // USD is temporary and there must be support for other currencies in the future
-                `$${this.calculateAmount(true) / 100}`,
+                this.props.numberFormat(this.calculateAmount() / 100, {
+                    style: 'currency',
+                    currency: this.props.selectedCurrency.currencyCode,
+                }),
             );
 
-            // Cents is temporary and there must be support for other currencies in the future
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                `$${this.calculateAmount() / 100}`);
+                this.props.numberFormat(this.calculateAmount() / 100, {
+                    style: 'currency',
+                    currency: this.props.selectedCurrency.currencyCode,
+                }));
 
             sections.push({
-                title: 'WHO PAID?',
+                title: this.props.translate('iOUConfirmationList.whoPaid'),
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
             });
             sections.push({
-                title: 'WHO WAS THERE?',
+                title: this.props.translate('iOUConfirmationList.whoWasThere'),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
             });
         } else {
-        // $ Should be replaced by currency symbol once available
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                `$${this.props.iouAmount}`);
+                this.props.numberFormat(this.props.iouAmount, {
+                    style: 'currency',
+                    currency: this.props.selectedCurrency.currencyCode,
+                }));
 
             sections.push({
-                title: 'TO',
+                title: this.props.translate('common.to').toUpperCase(),
                 data: formattedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
@@ -208,42 +233,56 @@ class IOUConfirmationList extends Component {
     }
 
     render() {
+        const buttonText = this.props.translate(
+            this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                amount: this.props.numberFormat(
+                    this.props.iouAmount,
+                    {style: 'currency', currency: this.props.selectedCurrency.currencyCode},
+                ),
+            },
+        );
         return (
-            <View style={[styles.flex1, styles.w100, styles.justifyContentBetween]}>
-                <View style={[styles.flex1]}>
+            <>
+                <ScrollView style={[styles.flex1, styles.w100]}>
                     <OptionsList
-                        listContainerStyles={[styles.flexGrow0]}
+                        listContainerStyles={[{
+                            // Give max height to the list container so that it does not extend
+                            // beyond the comment view as well as button
+                            maxHeight: this.props.windowHeight - MINIMUM_BOTTOM_OFFSET
+                                - this.props.insets.top - this.props.insets.bottom,
+                        }]}
                         sections={this.getSections()}
                         disableArrowKeysActions
+                        disableRowInteractivity
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         disableFocusOptions
                         selectedOptions={this.getAllOptionsAsSelected()}
                     />
-                    <View>
-                        <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                            WHAT&apos;S IT FOR?
-                        </Text>
-                    </View>
-                    <View style={[styles.ph5]}>
+                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                        {this.props.translate('iOUConfirmationList.whatsItFor')}
+                    </Text>
+                    <View style={[styles.ph5, styles.pb5]}>
                         <TextInput
                             style={[styles.textInput]}
                             value={this.props.comment}
                             onChangeText={this.props.onUpdateComment}
-                            placeholder="Optional"
+                            placeholder={this.props.translate('common.optional')}
                             placeholderTextColor={themeColors.placeholderText}
                         />
                     </View>
-                </View>
-                <View style={[styles.ph5, styles.pb3]}>
-                    <ButtonWithLoader
+                </ScrollView>
+                <FixedFooter>
+                    <Button
+                        success
+                        style={[styles.w100]}
                         isLoading={this.props.iou.loading}
-                        text={this.props.hasMultipleParticipants ? 'Split' : `Request $${this.props.iouAmount}`}
-                        onClick={() => this.props.onConfirm(this.getSplits())}
+                        text={buttonText}
+                        onPress={() => this.props.onConfirm(this.getSplits())}
                     />
-                </View>
-            </View>
+                </FixedFooter>
+            </>
         );
     }
 }
@@ -252,9 +291,14 @@ IOUConfirmationList.displayName = 'IOUConfirmPage';
 IOUConfirmationList.propTypes = propTypes;
 IOUConfirmationList.defaultProps = defaultProps;
 
-export default withOnyx({
-    iou: {key: ONYXKEYS.IOU},
-    myPersonalDetails: {
-        key: ONYXKEYS.MY_PERSONAL_DETAILS,
-    },
-})(IOUConfirmationList);
+export default compose(
+    withLocalize,
+    withSafeAreaInsets,
+    withWindowDimensions,
+    withOnyx({
+        iou: {key: ONYXKEYS.IOU},
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+    }),
+)(IOUConfirmationList);

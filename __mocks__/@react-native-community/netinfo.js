@@ -1,1 +1,6 @@
-export {default} from '@react-native-community/netinfo/jest/netinfo-mock';
+export default {
+    configure: () => {},
+    fetch: () => {},
+    addEventListener: () => {},
+    useNetInfo: () => {},
+};

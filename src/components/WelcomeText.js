@@ -1,33 +1,39 @@
 import React from 'react';
-import {Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Text from './Text';
 
 const propTypes = {
 
-    // Fontsize
-    textSize: PropTypes.oneOf(['default', 'large']),
+    /** Fontsize */
+    smallFontSize: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    textSize: 'default',
+    smallFontSize: false,
 };
 
-const WelcomeText = props => (
-    <>
-        <Text style={[props.textSize === 'large' ? styles.textP : styles.textLabel, styles.textStrong, styles.mb1]}>
-            With Expensify.cash, chat and payments are the same thing.
-        </Text>
-        <Text style={[props.textSize === 'large' ? styles.textP : styles.textLabel]}>
-            Money talks. And now that chat and payments are in one place, it&apos;s also easy.
-            {' '}
-            Your payments get to you as fast as you can get your point across.
-        </Text>
-    </>
-);
+const WelcomeText = (props) => {
+    const textSize = props.smallFontSize ? styles.textLabel : undefined;
+    return (
+        <>
+            <Text style={[textSize, styles.textStrong, styles.mb1]}>
+                {props.translate('welcomeText.phrase1')}
+            </Text>
+            <Text style={[textSize]}>
+                {props.translate('welcomeText.phrase2')}
+                {' '}
+                {props.translate('welcomeText.phrase3')}
+            </Text>
+        </>
+    );
+};
 
 WelcomeText.displayName = 'WelcomeText';
 WelcomeText.propTypes = propTypes;
 WelcomeText.defaultProps = defaultProps;
 
-export default WelcomeText;
+export default withLocalize(WelcomeText);

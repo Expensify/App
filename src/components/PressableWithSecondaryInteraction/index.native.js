@@ -1,34 +1,38 @@
 import _ from 'underscore';
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, {forwardRef} from 'react';
+import * as Haptics from 'expo-haptics';
 import {Pressable} from 'react-native';
-
-const propTypes = {
-    // The function that should be called when this pressable is LongPressed or right-clicked.
-    onSecondaryInteraction: PropTypes.func.isRequired,
-
-    // The children which should be contained in this wrapper component.
-    children: PropTypes.node.isRequired,
-};
+import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed.
+ *
+ * @param {Object} props
  * @returns {React.Component}
  */
-const PressableWithSecondaryInteraction = ({onSecondaryInteraction, children, ...props}) => (
+const PressableWithSecondaryInteraction = props => (
     <Pressable
+        ref={props.forwardedRef}
+        onPressIn={props.onPressIn}
         onLongPress={(e) => {
             e.preventDefault();
-            onSecondaryInteraction(e);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(() => {
+                props.onSecondaryInteraction(e);
+            });
         }}
+        onPressOut={props.onPressOut}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...(_.omit(props, 'onLongPress'))}
     >
-        {children}
+        {props.children}
     </Pressable>
 );
 
 PressableWithSecondaryInteraction.propTypes = propTypes;
+PressableWithSecondaryInteraction.defaultProps = defaultProps;
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
-export default PressableWithSecondaryInteraction;
+export default forwardRef((props, ref) => (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />
+));

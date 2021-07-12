@@ -14,63 +14,69 @@ import Header from '../../../components/Header';
 import OptionsList from '../../../components/OptionsList';
 import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import {getSidebarOptions} from '../../../libs/OptionsListUtils';
-import {getDefaultAvatar} from '../../../libs/actions/PersonalDetails';
+import {getSidebarOptions, getDefaultAvatar} from '../../../libs/OptionsListUtils';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import CONST from '../../../CONST';
 import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+
 
 const propTypes = {
-    // Toggles the navigation menu open and closed
+    /** Toggles the navigation menu open and closed */
     onLinkClick: PropTypes.func.isRequired,
 
-    // navigates to settings and hides sidebar
+    /** Navigates to settings and hides sidebar */
     onAvatarClick: PropTypes.func.isRequired,
 
-    // Safe area insets required for mobile devices margins
+    /** Safe area insets required for mobile devices margins */
     insets: SafeAreaInsetPropTypes.isRequired,
 
     /* Onyx Props */
-    // List of reports
+    /** List of reports */
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
         reportName: PropTypes.string,
         unreadActionCount: PropTypes.number,
     })),
 
-    // List of draft comments. We don't know the shape, since the keys include the report numbers
+    /** List of draft comments. We don't know the shape, since the keys include the report numbers */
     draftComments: PropTypes.objectOf(PropTypes.string),
 
-    // List of users' personal details
+    /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
-    // The personal details of the person who is logged in
+    /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape({
-        // Display name of the current user from their personal details
+        /** Display name of the current user from their personal details */
         displayName: PropTypes.string,
 
-        // Avatar URL of the current user from their personal details
+        /** Avatar URL of the current user from their personal details */
         avatar: PropTypes.string,
     }),
 
-    // Information about the network
+    /** Information about the network */
     network: PropTypes.shape({
-        // Is the network currently offline or not
+        /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
 
-    // Currently viewed reportID
+    /** Currently viewed reportID */
     currentlyViewedReportID: PropTypes.string,
 
-    // Whether we are viewing below the responsive breakpoint
+    /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
-    // The chat priority mode
+    /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    // Whether we have the necessary report data to load the sidebar
+    /** Whether we have the necessary report data to load the sidebar */
     initialReportDataLoaded: PropTypes.bool,
+
+    // Whether we are syncing app data
+    isSyncingData: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -84,6 +90,7 @@ const defaultProps = {
     currentlyViewedReportID: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     initialReportDataLoaded: false,
+    isSyncingData: false,
 };
 
 class SidebarLinks extends React.Component {
@@ -105,6 +112,7 @@ class SidebarLinks extends React.Component {
             this.props.draftComments,
             activeReportID,
             this.props.priorityMode,
+            this.props.betas,
         );
 
         const sections = [{
@@ -128,21 +136,28 @@ class SidebarLinks extends React.Component {
                 >
                     <Header
                         textSize="large"
-                        title="Chats"
+                        title={this.props.translate('sidebarScreen.headerChat')}
+                        accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
+                        accessibilityRole="text"
                         shouldShowEnvironmentBadge
                     />
                     <TouchableOpacity
+                        accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
+                        accessibilityRole="button"
                         style={[styles.flexRow, styles.ph5]}
                         onPress={this.showSearchPage}
                     >
                         <Icon src={MagnifyingGlass} />
                     </TouchableOpacity>
                     <TouchableOpacity
+                        accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
+                        accessibilityRole="button"
                         onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator
                             source={this.props.myPersonalDetails.avatar}
                             isActive={this.props.network && !this.props.network.isOffline}
+                            isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
                         />
                     </TouchableOpacity>
                 </View>
@@ -175,6 +190,7 @@ SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
 export default compose(
+    withLocalize,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -199,6 +215,12 @@ export default compose(
         },
         initialReportDataLoaded: {
             key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
+        },
+        isSyncingData: {
+            key: ONYXKEYS.IS_LOADING_AFTER_RECONNECT,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(SidebarLinks);

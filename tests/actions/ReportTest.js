@@ -4,6 +4,7 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import CONFIG from '../../src/CONFIG';
+import CONST from '../../src/CONST';
 import {addAction, togglePinnedState, subscribeToUserEvents} from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import PushNotification from '../../src/libs/Notification/PushNotification';
@@ -42,7 +43,7 @@ describe('actions/Report', () => {
         const REPORT_ID = 1;
         const ACTION_ID = 1;
         const REPORT_ACTION = {
-            actionName: 'ADDCOMMENT',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
             actorEmail: TEST_USER_LOGIN,
             automatic: false,

@@ -6,7 +6,7 @@ import {validateLogin} from '../libs/actions/User';
 const propTypes = {
     /* Onyx Props */
 
-    // The accountID and validateCode are passed via the URL
+    /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 };
 
@@ -19,6 +19,7 @@ class ValidateLoginPage extends Component {
     componentDidMount() {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+
         validateLogin(accountID, validateCode);
     }
 
@@ -30,4 +31,5 @@ class ValidateLoginPage extends Component {
 
 ValidateLoginPage.propTypes = propTypes;
 ValidateLoginPage.defaultProps = defaultProps;
+
 export default ValidateLoginPage;

@@ -1,6 +1,7 @@
 import React, {PureComponent} from 'react';
 import {propTypes, defaultProps} from './UpdateAppModalPropTypes';
 import ConfirmModal from '../ConfirmModal';
+import withLocalize from '../withLocalize';
 
 class BaseUpdateAppModal extends PureComponent {
     constructor(props) {
@@ -25,14 +26,13 @@ class BaseUpdateAppModal extends PureComponent {
         return (
             <>
                 <ConfirmModal
-                    title="Update App"
+                    title={this.props.translate('baseUpdateAppModal.updateApp')}
                     isVisible={this.state.isModalOpen}
                     onConfirm={this.submitAndClose}
                     onCancel={() => this.setState({isModalOpen: false})}
-                    prompt="A new version of Expensify.cash is available.
-                    Update now or restart the app at a later time to download the latest changes."
-                    confirmText="Update App"
-                    cancelText="Cancel"
+                    prompt={this.props.translate('baseUpdateAppModal.updatePrompt')}
+                    confirmText={this.props.translate('baseUpdateAppModal.updateApp')}
+                    cancelText={this.props.translate('common.cancel')}
                 />
             </>
         );
@@ -41,4 +41,4 @@ class BaseUpdateAppModal extends PureComponent {
 
 BaseUpdateAppModal.propTypes = propTypes;
 BaseUpdateAppModal.defaultProps = defaultProps;
-export default BaseUpdateAppModal;
+export default withLocalize(BaseUpdateAppModal);

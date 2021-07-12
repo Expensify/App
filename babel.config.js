@@ -26,12 +26,15 @@ const webpack = {
 
 const metro = {
     presets: [require('metro-react-native-babel-preset')],
-    plugins: [],
+    plugins: [
+        'react-native-reanimated/plugin',
+    ],
 };
 
 module.exports = ({caller}) => {
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
-    const runningIn = caller(({name}) => name);
+    // For `storybook` there won't be any config at all so we must give default argument of an empty object
+    const runningIn = caller((args = {}) => args.name);
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };

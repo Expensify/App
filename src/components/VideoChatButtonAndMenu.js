@@ -1,16 +1,32 @@
 import React, {Component} from 'react';
-import {View, Pressable} from 'react-native';
+import {
+    View, Pressable, Dimensions, Linking,
+} from 'react-native';
+import PropTypes from 'prop-types';
 import Icon from './Icon';
 import {Phone} from './Icon/Expensicons';
 import Popover from './Popover';
 import MenuItem from './MenuItem';
-import openURLInNewTab from '../libs/openURLInNewTab';
 import ZoomIcon from '../../assets/images/zoom-icon.svg';
 import GoogleMeetIcon from '../../assets/images/google-meet.svg';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import withWindowDimensions from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+
+const propTypes = {
+    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
+    isConcierge: PropTypes.bool,
+};
+
+const defaultProps = {
+    isConcierge: false,
+};
 
 class VideoChatButtonAndMenu extends Component {
     constructor(props) {
@@ -22,13 +38,13 @@ class VideoChatButtonAndMenu extends Component {
         this.menuItemData = [
             {
                 icon: ZoomIcon,
-                text: 'Zoom',
-                onPress: () => openURLInNewTab(CONST.NEW_ZOOM_MEETING_URL),
+                text: props.translate('videoChatButtonAndMenu.zoom'),
+                onPress: () => Linking.openURL(CONST.NEW_ZOOM_MEETING_URL),
             },
             {
                 icon: GoogleMeetIcon,
-                text: 'Google Meet',
-                onPress: () => openURLInNewTab(CONST.NEW_GOOGLE_MEET_MEETING_URL),
+                text: props.translate('videoChatButtonAndMenu.googleMeet'),
+                onPress: () => Linking.openURL(CONST.NEW_GOOGLE_MEET_MEETING_URL),
             },
         ].map(item => ({
             ...item,
@@ -42,6 +58,14 @@ class VideoChatButtonAndMenu extends Component {
             isVideoChatMenuActive: false,
             videoChatIconPosition: {x: 0, y: 0},
         };
+    }
+
+    componentDidMount() {
+        Dimensions.addEventListener('change', this.measureVideoChatIconPosition);
+    }
+
+    componentWillUnmount() {
+        Dimensions.removeEventListener('change', this.measureVideoChatIconPosition);
     }
 
     /**
@@ -73,13 +97,18 @@ class VideoChatButtonAndMenu extends Component {
                 >
                     <Pressable
                         onPress={() => {
+                            // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
+                            if (this.props.isConcierge) {
+                                Navigation.navigate(ROUTES.REQUEST_CALL);
+                                return;
+                            }
                             this.toggleVideoChatMenu();
                         }}
                         style={[styles.touchableButtonImage, styles.mr0]}
                     >
                         <Icon
                             src={Phone}
-                            fill={this.state.isVideoChatMenuActive
+                            fill={(this.props.isConcierge || this.state.isVideoChatMenuActive)
                                 ? themeColors.heading
                                 : themeColors.icon}
                         />
@@ -110,5 +139,10 @@ class VideoChatButtonAndMenu extends Component {
     }
 }
 
+VideoChatButtonAndMenu.propTypes = propTypes;
+VideoChatButtonAndMenu.defaultProps = defaultProps;
 VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
-export default withWindowDimensions(VideoChatButtonAndMenu);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(VideoChatButtonAndMenu);

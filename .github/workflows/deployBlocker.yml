@@ -14,19 +14,63 @@ jobs:
     if: ${{ github.event.label.name == 'DeployBlockerCash' }}
 
     steps:
-      - name: Update StagingDeployCash with issue
-        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
-        if: ${{ github.event_name == 'issues' }}
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NEW_DEPLOY_BLOCKERS: ${{ github.event.issue.html_url }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update StagingDeployCash with pull request
-        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
+      - name: Get URL, title, & number of new deploy blocker (issue)
+        if: ${{ github.event_name == 'issues' }}
+        run: |
+          echo "DEPLOY_BLOCKER_URL=${{ github.event.issue.html_url }}" >> $GITHUB_ENV
+          echo "DEPLOY_BLOCKER_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
+          echo "DEPLOY_BLOCKER_TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
+
+      - name: Get URL, title, & number of new deploy blocker (pull request)
         if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          echo "DEPLOY_BLOCKER_URL=${{ github.event.pull_request.html_url }}" >> $GITHUB_ENV
+          echo "DEPLOY_BLOCKER_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          echo "DEPLOY_BLOCKER_TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_ENV
+
+      - name: Update StagingDeployCash with new deploy blocker
+        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NEW_DEPLOY_BLOCKERS: ${{ github.event.pull_request.html_url }}
+
+      - name: Give the issue/PR the Hourly, Engineering labels
+        uses: andymckay/labeler@978f846c4ca6299fd136f465b42c5e87aca28cac
+        with:
+          add-labels: 'Hourly, Engineering'
+          remove-labels: 'Daily, Weekly, Monthly'
+
+      - name: 'Post the issue in the #deployer slack room'
+        if: ${{ success() }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                text: '💥 New E.cash Deploy Blocker: <${{ env.DEPLOY_BLOCKER_URL }}|${{ env.DEPLOY_BLOCKER_TITLE }}>',
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Comment on deferred PR
+        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
+        with:
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          number: ${{ env.DEPLOY_BLOCKER_NUMBER }}
+          body: |
+            :wave: Friendly reminder that deploy blockers are time-sensitive ⏱ issues! [Check out the open `StagingDeployCash` deploy checklist](https://github.com/Expensify/Expensify.cash/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) to see the list of PRs included in this release, then work quickly to do one of the following:
+              1. Identify the pull request that introduced this issue and revert it.
+              2. Find someone who can quickly fix the issue.
+              3. Fix the issue yourself.
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change

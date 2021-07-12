@@ -1,5 +1,8 @@
 const _ = require('underscore');
 const lodashGet = require('lodash/get');
+const core = require('@actions/core');
+const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
+const {throttling} = require('@octokit/plugin-throttling');
 
 const GITHUB_OWNER = 'Expensify';
 const EXPENSIFY_CASH_REPO = 'Expensify.cash';
@@ -12,21 +15,53 @@ const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/
 
 const APPLAUSE_BOT = 'applausebot';
 const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
+const DEPLOY_BLOCKER_CASH_LABEL = 'DeployBlockerCash';
 
 class GithubUtils {
     /**
-     * @param {Octokit} octokit - Authenticated Octokit object https://octokit.github.io/rest.js
+     * Either give an existing instance of Octokit or create a new one
+     *
+     * @readonly
+     * @static
+     * @memberof GithubUtils
      */
-    constructor(octokit) {
-        this.octokit = octokit;
+    static get octokit() {
+        if (this.octokitInternal) {
+            return this.octokitInternal;
+        }
+        const OctokitThrottled = GitHub.plugin(throttling);
+        const token = core.getInput('GITHUB_TOKEN', {required: true});
+        this.octokitInternal = new OctokitThrottled(getOctokitOptions(token, {
+            throttle: {
+                onRateLimit: (retryAfter, options) => {
+                    console.warn(
+                        `Request quota exhausted for request ${options.method} ${options.url}`,
+                    );
+
+                    // Retry once after hitting a rate limit error, then give up
+                    if (options.request.retryCount <= 1) {
+                        console.log(`Retrying after ${retryAfter} seconds!`);
+                        return true;
+                    }
+                },
+                onAbuseLimit: (retryAfter, options) => {
+                    // does not retry, only logs a warning
+                    console.warn(
+                        `Abuse detected for request ${options.method} ${options.url}`,
+                    );
+                },
+            },
+        }));
+        return this.octokitInternal;
     }
+
 
     /**
      * Finds one open `StagingDeployCash` issue via GitHub octokit library.
      *
      * @returns {Promise}
      */
-    getStagingDeployCash() {
+    static getStagingDeployCash() {
         return this.octokit.issues.listForRepo({
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
@@ -56,13 +91,14 @@ class GithubUtils {
      * @param {Object} issue
      * @returns {Object}
      */
-    getStagingDeployCashData(issue) {
+    static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
             const tag = issue.body.match(versionRegex)[0].replace(/`/g, '');
             return {
                 title: issue.title,
                 url: issue.url,
+                number: this.getIssueOrPullRequestNumberFromURL(issue.url),
                 labels: issue.labels,
                 PRList: this.getStagingDeployCashPRList(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
@@ -81,8 +117,14 @@ class GithubUtils {
      * @param {Object} issue
      * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
-    getStagingDeployCashPRList(issue) {
-        const PRListSection = issue.body.match(/pull requests:\*\*\r\n((?:.*\r\n)+)\r\n/)[1];
+    static getStagingDeployCashPRList(issue) {
+        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:.*\r?\n)+)\r?\n/) || [];
+        if (PRListSection.length !== 2) {
+            // No PRs, return an empty array
+            console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
+            return [];
+        }
+        PRListSection = PRListSection[1];
         const unverifiedPRs = _.map(
             [...PRListSection.matchAll(new RegExp(`- \\[ ] (${PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
@@ -113,8 +155,8 @@ class GithubUtils {
      * @param {Object} issue
      * @returns {Array<Object>} - [{URL: String, number: Number, isResolved: Boolean}]
      */
-    getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r\n((?:.*\r\n)+)/) || [];
+    static getStagingDeployCashDeployBlockers(issue) {
+        let deployBlockerSection = issue.body.match(/Deploy Blockers:\*\*\r?\n((?:.*\r?\n)+)/) || [];
         if (deployBlockerSection.length !== 2) {
             return [];
         }
@@ -142,85 +184,7 @@ class GithubUtils {
     }
 
     /**
-     * Creates a new StagingDeployCash issue.
-     *
-     * @param {String} title
-     * @param {String} tag
-     * @param {Array} PRList
-     * @returns {Promise}
-     */
-    createNewStagingDeployCash(title, tag, PRList) {
-        return this.generateStagingDeployCashBody(tag, PRList)
-            .then(body => this.octokit.issues.create({
-                owner: GITHUB_OWNER,
-                repo: EXPENSIFY_CASH_REPO,
-                labels: [STAGING_DEPLOY_CASH_LABEL],
-                assignees: [APPLAUSE_BOT],
-                title,
-                body,
-            }));
-    }
-
-    /**
-     * Updates the existing open StagingDeployCash issue.
-     *
-     * @param {String} [newTag]
-     * @param {Array} newPRs
-     * @param {Array} newDeployBlockers
-     * @returns {Promise}
-     * @throws {Error} If the StagingDeployCash could not be found or updated.
-     */
-    updateStagingDeployCash(newTag = '', newPRs, newDeployBlockers) {
-        let issueNumber;
-        return this.getStagingDeployCash()
-            .then(({
-                url,
-                tag: oldTag,
-                PRList: oldPRs,
-                deployBlockers: oldDeployBlockers,
-            }) => {
-                issueNumber = GithubUtils.getIssueNumberFromURL(url);
-
-                // If we aren't sent a tag, then use the existing tag
-                const tag = _.isEmpty(newTag) ? oldTag : newTag;
-
-                const PRList = _.sortBy(
-                    _.union(oldPRs, _.map(newPRs, URL => ({
-                        url: URL,
-                        number: GithubUtils.getPullRequestNumberFromURL(URL),
-                        isVerified: false,
-                    }))),
-                    'number',
-                );
-                const deployBlockers = _.sortBy(
-                    _.union(oldDeployBlockers, _.map(newDeployBlockers, URL => ({
-                        url: URL,
-                        number: GithubUtils.getIssueOrPullRequestNumberFromURL(URL),
-                        isResolved: false,
-                    }))),
-                    'number',
-                );
-
-                return this.generateStagingDeployCashBody(
-                    tag,
-                    _.pluck(PRList, 'url'),
-                    _.pluck(_.where(PRList, {isVerified: true}), 'url'),
-                    _.pluck(deployBlockers, 'url'),
-                    _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
-                );
-            })
-            .then(updatedBody => this.octokit.issues.update({
-                owner: GITHUB_OWNER,
-                repo: EXPENSIFY_CASH_REPO,
-                issue_number: issueNumber,
-                body: updatedBody,
-            }));
-    }
-
-    /**
      * Generate the issue body for a StagingDeployCash.
-     *
-     * @private
      *
      * @param {String} tag
      * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
@@ -229,25 +193,22 @@ class GithubUtils {
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
      * @returns {Promise}
      */
-    generateStagingDeployCashBody(
+    static generateStagingDeployCashBody(
         tag,
         PRList,
         verifiedPRList = [],
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        return this.octokit.pulls.list({
-            owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
-            per_page: 100,
-        })
-            .then(({data}) => {
-                const automergePRs = _.pluck(
-                    _.filter(data, GithubUtils.isAutomergePullRequest),
+        return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
+            .then((data) => {
+                const automatedPRs = _.pluck(
+                    _.filter(data, GithubUtils.isAutomatedPullRequest),
                     'html_url',
                 );
+                console.log('Filtering out the following automated pull requests:', automatedPRs);
                 const sortedPRList = _.chain(PRList)
-                    .difference(automergePRs)
+                    .difference(automatedPRs)
                     .unique()
                     .sortBy(GithubUtils.getPullRequestNumberFromURL)
                     .value();
@@ -261,7 +222,7 @@ class GithubUtils {
                 let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n`;
 
                 // PR list
-                if (!_.isEmpty(PRList)) {
+                if (!_.isEmpty(sortedPRList)) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
                     _.each(sortedPRList, (URL) => {
                         issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';
@@ -283,9 +244,34 @@ class GithubUtils {
             })
             .catch(err => console.warn(
                 'Error generating StagingDeployCash issue body!',
-                'Automerge PRs may not be properly filtered out. Continuing...',
+                'Automated PRs may not be properly filtered out. Continuing...',
                 err,
             ));
+    }
+
+    /**
+     * Fetch all pull requests given a list of PR numbers.
+     *
+     * @param {Array<Number>} pullRequestNumbers
+     * @returns {Promise}
+     */
+    static fetchAllPullRequests(pullRequestNumbers) {
+        const oldestPR = _.first(_.sortBy(pullRequestNumbers));
+        return this.octokit.paginate(this.octokit.pulls.list, {
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            state: 'all',
+            sort: 'created',
+            direction: 'desc',
+            per_page: 100,
+        }, ({data}, done) => {
+            if (_.find(data, pr => pr.number === oldestPR)) {
+                done();
+            }
+            return data;
+        })
+            .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)))
+            .catch(err => console.error('Failed to get PR list', err));
     }
 
     /**
@@ -296,7 +282,7 @@ class GithubUtils {
      * @param {String} messageBody - The comment message
      * @returns {Promise}
      */
-    createComment(repo, number, messageBody) {
+    static createComment(repo, number, messageBody) {
         console.log(`Writing comment on #${number}`);
         return this.octokit.issues.createComment({
             owner: GITHUB_OWNER,
@@ -304,6 +290,22 @@ class GithubUtils {
             issue_number: number,
             body: messageBody,
         });
+    }
+
+    /**
+     * Get the most recent workflow run for the given Expensify.cash workflow.
+     *
+     * @param {String} workflow
+     * @returns {Promise}
+     */
+    static getLatestWorkflowRunID(workflow) {
+        console.log(`Fetching Expensify.cash workflow runs for ${workflow}...`);
+        return this.octokit.actions.listWorkflowRuns({
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            workflow_id: workflow,
+        })
+            .then(response => lodashGet(response, 'data.workflow_runs[0].id'));
     }
 
     /**
@@ -375,14 +377,13 @@ class GithubUtils {
     }
 
     /**
-     * Determine if a given pull request is an automerge PR.
+     * Determine if a given pull request is an automated PR.
      *
      * @param {Object} pullRequest
      * @returns {Boolean}
      */
-    static isAutomergePullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify')
-            && _.contains(_.pluck(pullRequest.labels, 'name'), 'automerge');
+    static isAutomatedPullRequest(pullRequest) {
+        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
     }
 }
 
@@ -390,3 +391,5 @@ module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.EXPENSIFY_CASH_REPO = EXPENSIFY_CASH_REPO;
 module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
+module.exports.DEPLOY_BLOCKER_CASH_LABEL = DEPLOY_BLOCKER_CASH_LABEL;
+module.exports.APPLAUSE_BOT = APPLAUSE_BOT;

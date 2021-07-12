@@ -9,16 +9,16 @@ import themeColors from '../../../../styles/themes/default';
 import styles from '../../../../styles/styles';
 
 const propTypes = {
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    // Should we request a single or multiple participant selection from user
+    /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    // Callback to add participants in IOUModal
+    /** Callback to add participants in IOUModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    // Selected participants from IOUModal with login
+    /** Selected participants from IOUModal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
         alternateText: PropTypes.string,
@@ -34,10 +34,10 @@ const propTypes = {
 
     /* Onyx Props */
 
-    // Holds data related to IOU view state, rather than the underlying IOU data.
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
 
-        // Whether or not the IOU step is loading (retrieving participants)
+        /** Whether or not the IOU step is loading (retrieving participants) */
         loading: PropTypes.bool,
     }),
 };
@@ -78,5 +78,5 @@ IOUParticipantsPage.propTypes = propTypes;
 IOUParticipantsPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    appStaiouteIOU: {key: ONYXKEYS.IOU},
+    iou: {key: ONYXKEYS.IOU},
 })(IOUParticipantsPage);

@@ -7,12 +7,12 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import variables from '../../styles/variables';
 
 const propTypes = {
-    // URL to full-sized image
+    /** URL to full-sized image */
     sourceURL: PropTypes.string,
 
     ...windowDimensionsPropTypes,
 
-    // Any additional styles to apply
+    /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 };

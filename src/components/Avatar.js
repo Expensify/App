@@ -1,39 +1,50 @@
 import React, {PureComponent} from 'react';
-import {Image} from 'react-native';
+import {Image, View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import RoomAvatar from '../../assets/images/avatars/room.svg';
 
 const propTypes = {
-    // Url source for the avatar
+    /** Url source for the avatar */
     source: PropTypes.string,
 
-    // Extra styles to pass
-    style: PropTypes.arrayOf(PropTypes.any),
+    /** Extra styles to pass to Image */
+    imageStyles: PropTypes.arrayOf(PropTypes.object),
 
-    // Set the size of Avatar
+    /** Extra styles to pass to View wrapper */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Set the size of Avatar */
     size: PropTypes.oneOf(['default', 'small']),
+
+    /** Whether this avatar is for a default room */
+    isDefaultChatRoom: PropTypes.bool,
 };
 
 const defaultProps = {
     source: '',
-    style: [],
+    imageStyles: [],
+    containerStyles: [],
     size: 'default',
+    isDefaultChatRoom: false,
 };
 
 class Avatar extends PureComponent {
     render() {
-        if (!this.props.source) {
+        if (!this.props.source && !this.props.isDefaultChatRoom) {
             return null;
         }
 
+        const imageStyle = [
+            this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
+            ...this.props.imageStyles,
+        ];
         return (
-            <Image
-                source={{uri: this.props.source}}
-                style={[
-                    this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
-                    ...this.props.style,
-                ]}
-            />
+            <View pointerEvents="none" style={this.props.containerStyles}>
+                {this.props.isDefaultChatRoom
+                    ? <RoomAvatar style={StyleSheet.flatten(imageStyle)} />
+                    : <Image source={{uri: this.props.source}} style={imageStyle} />}
+            </View>
         );
     }
 }

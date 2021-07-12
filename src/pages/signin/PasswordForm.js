@@ -1,31 +1,36 @@
 import React from 'react';
 import {
-    Text, TextInput, TouchableOpacity, View,
+    TextInput, TouchableOpacity, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
-import ButtonWithLoader from '../../components/ButtonWithLoader';
+import Button from '../../components/Button';
+import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
 import {signIn, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /* Onyx Props */
 
-    // The details about the account that the user is signing in with
+    /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        // Whether or not the account already exists
+        /** Whether or not the account already exists */
         accountExists: PropTypes.bool,
 
-        // Whether or not two factor authentication is required
+        /** Whether or not two factor authentication is required */
         requiresTwoFactorAuth: PropTypes.bool,
 
-        // Whether or not a sign on form is loading (being submitted)
+        /** Whether or not a sign on form is loading (being submitted) */
         loading: PropTypes.bool,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -52,7 +57,7 @@ class PasswordForm extends React.Component {
         if (!this.state.password.trim()
             || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim())
         ) {
-            this.setState({formError: 'Please fill out all fields'});
+            this.setState({formError: this.props.translate('passwordForm.pleaseFillOutAllFields')});
             return;
         }
 
@@ -67,7 +72,7 @@ class PasswordForm extends React.Component {
         return (
             <>
                 <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>Password</Text>
+                    <Text style={[styles.formLabel]}>{this.props.translate('common.password')}</Text>
                     <TextInput
                         style={[styles.textInput]}
                         secureTextEntry
@@ -85,16 +90,16 @@ class PasswordForm extends React.Component {
                     underlayColor={themeColors.componentBG}
                 >
                     <Text style={[styles.link]}>
-                        Forgot?
+                        {this.props.translate('passwordForm.forgot')}
                     </Text>
                 </TouchableOpacity>
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mb4]}>
-                        <Text style={[styles.formLabel]}>Two Factor Code</Text>
+                        <Text style={[styles.formLabel]}>{this.props.translate('passwordForm.twoFactorCode')}</Text>
                         <TextInput
                             style={[styles.textInput]}
                             value={this.state.twoFactorAuthCode}
-                            placeholder="Required when 2FA is enabled"
+                            placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
@@ -103,10 +108,12 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
                 <View>
-                    <ButtonWithLoader
-                        text="Sign In"
+                    <Button
+                        success
+                        style={[styles.mb2]}
+                        text={this.props.translate('common.signIn')}
                         isLoading={this.props.account.loading}
-                        onClick={this.validateAndSubmitForm}
+                        onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink />
                 </View>
@@ -123,6 +130,9 @@ class PasswordForm extends React.Component {
 PasswordForm.propTypes = propTypes;
 PasswordForm.defaultProps = defaultProps;
 
-export default withOnyx({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(PasswordForm);
+export default compose(
+    withLocalize,
+    withOnyx({
+        account: {key: ONYXKEYS.ACCOUNT},
+    }),
+)(PasswordForm);

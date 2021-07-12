@@ -1,3 +1,5 @@
+import CONST from '../../CONST';
+
 export default function getPlatform() {
-    return 'android';
+    return CONST.PLATFORM.ANDROID;
 }

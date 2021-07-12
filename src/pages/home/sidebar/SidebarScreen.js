@@ -1,8 +1,10 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import SidebarLinks from './SidebarLinks';
-import CreateMenu from '../../../components/CreateMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import FAB from '../../../components/FAB';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -10,17 +12,25 @@ import ROUTES from '../../../ROUTES';
 import Timing from '../../../libs/actions/Timing';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
 import {
     ChatBubble,
     Users,
     MoneyCircle,
     Receipt,
+    NewWorkspace,
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
-    // propTypes for withWindowDimensions
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
     ...windowDimensionsPropTypes,
+
+    ...withLocalizePropTypes,
 };
 
 class SidebarScreen extends Component {
@@ -77,7 +87,7 @@ class SidebarScreen extends Component {
                 includePaddingBottom={false}
                 style={[styles.sidebar]}
             >
-                {insets => (
+                {({insets}) => (
                     <>
                         <View style={[styles.flex1]}>
                             <SidebarLinks
@@ -87,11 +97,13 @@ class SidebarScreen extends Component {
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                             />
                             <FAB
+                                accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
+                                accessibilityRole="button"
                                 isActive={this.state.isCreateMenuActive}
                                 onPress={this.toggleCreateMenu}
                             />
                         </View>
-                        <CreateMenu
+                        <PopoverMenu
                             onClose={this.toggleCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
@@ -101,26 +113,36 @@ class SidebarScreen extends Component {
                             menuItems={[
                                 {
                                     icon: ChatBubble,
-                                    text: 'New Chat',
+                                    text: this.props.translate('sidebarScreen.newChat'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
-                                ...(Permissions.canUseIOU() ? [
+                                {
+                                    icon: Users,
+                                    text: this.props.translate('sidebarScreen.newGroup'),
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
+                                },
+                                ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: MoneyCircle,
-                                        text: 'Request Money',
+                                        text: this.props.translate('iou.requestMoney'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
                                     },
                                 ] : []),
-                                {
-                                    icon: Users,
-                                    text: 'New Group',
-                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
-                                },
-                                ...(Permissions.canUseIOU() ? [
+                                ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: Receipt,
-                                        text: 'Split Bill',
+                                        text: this.props.translate('iou.splitBill'),
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                    },
+                                ] : []),
+                                ...(Permissions.canUseFreePlan(this.props.betas) ? [
+                                    {
+                                        icon: NewWorkspace,
+                                        iconWidth: 46,
+                                        iconHeight: 40,
+                                        text: this.props.translate('workspace.new.newWorkspace'),
+                                        description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
+                                        onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW),
                                     },
                                 ] : []),
                             ]}
@@ -133,4 +155,12 @@ class SidebarScreen extends Component {
 }
 
 SidebarScreen.propTypes = propTypes;
-export default withWindowDimensions(SidebarScreen);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
+)(SidebarScreen);

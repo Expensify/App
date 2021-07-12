@@ -8,7 +8,7 @@ import {setCurrentURL} from '../actions/App';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
-    // Whether the current user is logged in with an authToken
+    /** Whether the current user is logged in with an authToken */
     authenticated: PropTypes.bool.isRequired,
 };
 
@@ -40,7 +40,7 @@ class NavigationRoot extends Component {
                 ref={navigationRef}
                 linking={linkingConfig}
                 documentTitle={{
-                    formatter: () => 'Expensify.cash',
+                    enabled: false,
                 }}
             >
                 <AppNavigator authenticated={this.props.authenticated} />

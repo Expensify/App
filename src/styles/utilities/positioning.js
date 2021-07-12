@@ -6,6 +6,9 @@ export default {
     pRelative: {
         position: 'relative',
     },
+    pAbsolute: {
+        position: 'absolute',
+    },
     tn4: {
         top: -16,
     },
@@ -14,5 +17,8 @@ export default {
     },
     r4: {
         right: 16,
+    },
+    b0: {
+        bottom: 0,
     },
 };

@@ -85,6 +85,37 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
             animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
             shouldAddTopSafeAreaPadding = true;
             break;
+        case CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE:
+            // A centered modal that cannot be dismissed with a swipe.
+            modalStyle = {
+                ...modalStyle,
+                ...{
+                    alignItems: 'center',
+                },
+            };
+            modalContainerStyle = {
+                // Shadow Styles
+                shadowColor: colors.black,
+                shadowOffset: {
+                    width: 0,
+                    height: 0,
+                },
+                shadowOpacity: 0.1,
+                shadowRadius: 5,
+
+                flex: 1,
+                marginTop: isSmallScreenWidth ? 0 : 20,
+                marginBottom: isSmallScreenWidth ? 0 : 20,
+                borderRadius: isSmallScreenWidth ? 0 : 12,
+                borderWidth: isSmallScreenWidth ? 1 : 0,
+                overflow: 'hidden',
+                width: isSmallScreenWidth ? '100%' : windowWidth - 40,
+            };
+            swipeDirection = undefined;
+            animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
+            animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+            shouldAddTopSafeAreaPadding = true;
+            break;
         case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
             modalStyle = {
                 ...modalStyle,

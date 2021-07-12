@@ -9,6 +9,9 @@ const participantPropTypes = PropTypes.shape({
 
     // Avatar url of participant
     avatar: PropTypes.string,
+
+    /** First Name of the participant */
+    firstName: PropTypes.string,
 });
 
 const optionPropTypes = PropTypes.shape({
@@ -16,13 +19,13 @@ const optionPropTypes = PropTypes.shape({
     text: PropTypes.string.isRequired,
 
     // Subtitle to show under report displayName, mostly lastMessageText of the report
-    alternateText: PropTypes.string.isRequired,
+    alternateText: PropTypes.string,
 
     // List of participants of the report
     participantsList: PropTypes.arrayOf(participantPropTypes),
 
     // The array URLs of the person's avatar
-    icon: PropTypes.arrayOf(PropTypes.string),
+    icons: PropTypes.arrayOf(PropTypes.string),
 
     // Descriptive text to be displayed besides selection element
     descriptiveText: PropTypes.string,
