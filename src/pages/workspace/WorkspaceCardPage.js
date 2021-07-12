@@ -35,6 +35,18 @@ const propTypes = {
         isUsingExpensifyCard: PropTypes.bool,
     }),
 
+    /** Bank account currently in setup */
+    reimbursementAccount: PropTypes.shape({
+        /** Additional data */
+        achData: PropTypes.shape({
+            /** Bank account state */
+            state: PropTypes.string,
+        }),
+
+        /** Whether we are loading this bank account */
+        loading: PropTypes.bool,
+    }),
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -43,6 +55,9 @@ const defaultProps = {
     user: {
         isFromPublicDomain: false,
         isUsingExpensifyCard: false,
+    },
+    reimbursementAccount: {
+        loading: false,
     },
 };
 
@@ -153,6 +168,7 @@ const WorkspaceCardPage = ({
                                     success
                                     large
                                     text={buttonText}
+                                    isLoading={reimbursementAccount.loading}
                                 />
                             </View>
                         </View>
