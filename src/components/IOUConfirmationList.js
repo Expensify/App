@@ -107,7 +107,7 @@ class IOUConfirmationList extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
 
-        const formattedParticipants = this.getParticipantsWithAmount(this.props.participants).map(participant => ({
+        const formattedParticipants = _.map(this.getParticipantsWithAmount(this.props.participants), participant => ({
             ...participant, selected: true,
         }));
 
@@ -121,7 +121,7 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getSelectedParticipants() {
-        return this.state.participants.filter(participant => participant.selected);
+        return _.filter(this.state.participants, participant => participant.selected);
     }
 
     /**
@@ -129,7 +129,7 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getUnselectedParticipants() {
-        return this.state.participants.filter(participant => !participant.selected);
+        return _.filter(this.state.participants, participant => !participant.selected);
     }
 
     /**
@@ -153,7 +153,7 @@ class IOUConfirmationList extends Component {
      * @returns {Array}
      */
     getParticipantsWithoutAmount(participants) {
-        return participants.map(option => _.omit(option, 'descriptiveText'));
+        return _.map(participants, option => _.omit(option, 'descriptiveText'));
     }
 
     /**
@@ -222,7 +222,7 @@ class IOUConfirmationList extends Component {
             return null;
         }
         const selectedParticipants = this.getSelectedParticipants();
-        const splits = selectedParticipants.map(participant => ({
+        const splits = _.map(selectedParticipants, participant => ({
             email: participant.login,
 
             // We should send in cents to API
