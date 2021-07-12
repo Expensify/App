@@ -279,8 +279,8 @@ class IOUConfirmationList extends Component {
     * @param {Object} option
     */
     toggleOption(option) {
-        const isSelf = !_.some(this.state.participants, selectedOption => (
-            selectedOption.login === option.login
+        const isSelf = _.every(this.state.participants, selectedOption => (
+            selectedOption.login !== option.login
         ));
 
         if (isSelf) {
