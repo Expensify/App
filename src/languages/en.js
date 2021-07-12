@@ -108,9 +108,11 @@ export default {
         fileUploadFailed: 'Upload Failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
-    reportActionContextMenu: {
+    contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
         copied: 'Copied!',
+    },
+    reportActionContextMenu: {
         copyLink: 'Copy Link',
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
