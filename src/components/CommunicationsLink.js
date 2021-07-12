@@ -18,7 +18,7 @@ const propTypes = {
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Decides Tap behaviour. */
-    type: PropTypes.oneOf([CONST.LOGIN_TYPE.PHONE, CONST.LOGIN_TYPE.EMAIL]),
+    type: PropTypes.oneOf([CONST.LOGIN_TYPE.PHONE, CONST.LOGIN_TYPE.EMAIL]).isRequired,
 
     /** Value to be copied or passed via tap. */
     value: PropTypes.string.isRequired,
@@ -29,12 +29,11 @@ const propTypes = {
 
 const defaultProps = {
     containerStyles: [],
-    type: undefined,
 };
 
 const CommunicationsLink = props => (
     <View style={[styles.flexRow, styles.pRelative, ...props.containerStyles]}>
-        {props.type && props.isSmallScreenWidth
+        {props.isSmallScreenWidth
             ? (
                 <Pressable
                     onPress={() => Linking.openURL(
@@ -47,7 +46,7 @@ const CommunicationsLink = props => (
                 </Pressable>
             )
             : props.children}
-        {props.type && !props.isSmallScreenWidth
+        {!props.isSmallScreenWidth
             && (
                 <View style={[
                     styles.pAbsolute,

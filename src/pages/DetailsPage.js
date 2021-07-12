@@ -92,17 +92,22 @@ const DetailsPage = ({
                                 imageStyles={[styles.avatarLarge]}
                                 source={details.avatar}
                             />
-                            <CommunicationsLink
-                                style={[styles.mt1, styles.mb6]}
-                                type={details.displayName && isSMSLogin ? CONST.LOGIN_TYPE.PHONE : undefined}
-                                value={getPhoneNumber(details)}
-                            >
-                                <Text style={[styles.displayName]} numberOfLines={1}>
-                                    {details.displayName && isSMSLogin
-                                        ? toLocalPhone(details.displayName)
-                                        : (details.displayName || null)}
-                                </Text>
-                            </CommunicationsLink>
+                            {details.displayName && isSMSLogin
+                                ? (
+                                    <CommunicationsLink
+                                        style={[styles.mt1, styles.mb6]}
+                                        type={CONST.LOGIN_TYPE.PHONE}
+                                        value={getPhoneNumber(details)}
+                                    >
+                                        <Text style={[styles.displayName]} numberOfLines={1}>
+                                            {toLocalPhone(details.displayName)}
+                                        </Text>
+                                    </CommunicationsLink>
+                                ) : (
+                                    <Text style={[styles.displayName]} numberOfLines={1}>
+                                        {details.displayName || null}
+                                    </Text>
+                                )}
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
