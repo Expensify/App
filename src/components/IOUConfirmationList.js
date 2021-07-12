@@ -185,8 +185,13 @@ class IOUConfirmationList extends Component {
                 indexOffset: 0,
             }, {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
-                data: [...formattedSelectedParticipants, ...formattedUnselectedParticipants],
+                data: formattedSelectedParticipants,
                 shouldShow: true,
+                indexOffset: 0,
+            }, {
+                title: undefined,
+                data: formattedUnselectedParticipants,
+                shouldShow: !_.isEmpty(formattedUnselectedParticipants),
                 indexOffset: 0,
             });
         } else {
