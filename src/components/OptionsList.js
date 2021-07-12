@@ -99,6 +99,7 @@ const defaultProps = {
     showTitleTooltip: false,
     optionMode: undefined,
     disableRowInteractivity: false,
+    toggleParticipants: ()=>{}
 };
 
 class OptionsList extends Component {
@@ -127,7 +128,9 @@ class OptionsList extends Component {
         if (!_.isEqual(nextProps.sections, this.props.sections)) {
             return true;
         }
-
+        if (!_.isEqual(nextProps.sections.data, this.props.sections.data)) {
+            return true;
+        }
         return false;
     }
 
@@ -169,13 +172,14 @@ class OptionsList extends Component {
                 backgroundColor={this.props.optionBackgroundColor}
                 hoverStyle={this.props.optionHoveredStyle}
                 optionIsFocused={!this.props.disableFocusOptions
-                        && this.props.focusedIndex === (index + section.indexOffset)}
+                && this.props.focusedIndex === (index + section.indexOffset)}
                 onSelectRow={this.props.onSelectRow}
                 isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
                 showSelectedState={this.props.canSelectMultipleOptions}
                 hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
                 forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                 disableRowInteractivity={this.props.disableRowInteractivity}
+                toggleParticipants={this.props.toggleParticipants}
             />
         );
     }

@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import {View} from 'react-native';
+import {Image, View} from 'react-native';
 import lodashGet from 'lodash/get';
-import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
@@ -126,11 +125,9 @@ class ReportDetailsPage extends Component {
                         <View
                             style={styles.reportDetailsTitleContainer}
                         >
-                            <Avatar
-                                isDefaultChatRoom={isDefaultRoom(this.props.report)}
-                                containerStyles={[styles.singleAvatarLarge, styles.mb4]}
-                                imageStyles={[styles.singleAvatarLarge]}
+                            <Image
                                 source={{uri: this.props.report.icons[0]}}
+                                style={[styles.singleAvatarLarge, styles.mb4]}
                             />
                             <View style={styles.reportDetailsRoomInfo}>
                                 <DisplayNames

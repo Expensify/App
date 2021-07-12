@@ -10,6 +10,7 @@ import themeColors from '../styles/themes/default';
 import {
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
+    getIOUConfirmationOptionsFromParticipantsWOAmount
 } from '../libs/OptionsListUtils';
 import OptionsList from './OptionsList';
 import Button from './Button';
@@ -101,26 +102,28 @@ const defaultProps = {
 const MINIMUM_BOTTOM_OFFSET = 240;
 
 class IOUConfirmationList extends Component {
+    state = {
+        pageSections: this.getSections(),
+    }
     /**
      * Returns the sections needed for the OptionsSelector
      *
      * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
-    getSections() {
+    getSections(newParticipants = null) {
         const sections = [];
-
+        let isNotSelectedUsers = newParticipants && newParticipants.filter(pt=>pt.isSelected === false).length;
         if (this.props.hasMultipleParticipants) {
             const formattedMyPersonalDetails = getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
-                this.props.numberFormat(this.calculateAmount() / 100, {
+                this.props.numberFormat(this.calculateAmount(false,isNotSelectedUsers) / 100, {
                     style: 'currency',
                     currency: this.props.selectedCurrency.currencyCode,
                 }),
             );
-
-            const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                this.props.numberFormat(this.calculateAmount() / 100, {
+            const formattedParticipants = getIOUConfirmationOptionsFromParticipants(getIOUConfirmationOptionsFromParticipantsWOAmount(newParticipants || this.props.participants),
+                this.props.numberFormat(this.calculateAmount(false,isNotSelectedUsers) / 100, {
                     style: 'currency',
                     currency: this.props.selectedCurrency.currencyCode,
                 }));
@@ -153,7 +156,16 @@ class IOUConfirmationList extends Component {
         }
         return sections;
     }
+    toggleParticipants = (option) => {
+        if (option.login !== this.props.myPersonalDetails.login) {
+            let updatedParticipants = this.state.pageSections[1].data;
+            if (updatedParticipants.filter(pt => pt.isSelected).length > 1 || !option.isSelected) {
+                let newParticipants = updatedParticipants.map(pt => pt.login === option.login ? { ...option, isSelected: !option.isSelected } : pt);
+                this.setState({ pageSections: this.getSections(newParticipants) });
+            }
 
+        }
+    }
     /**
      * Gets splits for the transaction
      *
@@ -165,13 +177,17 @@ class IOUConfirmationList extends Component {
         if (!this.props.hasMultipleParticipants) {
             return null;
         }
+        //array of who was there data
+        let newParticipants = this.state.pageSections[1].data;
 
-        const splits = this.props.participants.map(participant => ({
+        let isNotSelectedUsers = newParticipants && newParticipants.filter(pt=>pt.isSelected === false).length;
+
+        const splits = newParticipants.map(participant => ({
             email: participant.login,
 
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(),
+            amount: participant.isSelected ? this.calculateAmount(false,isNotSelectedUsers) : 0,
         }));
 
         splits.push({
@@ -179,7 +195,7 @@ class IOUConfirmationList extends Component {
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(true),
+            amount: this.calculateAmount(true,isNotSelectedUsers),
         });
         return splits;
     }
@@ -214,14 +230,15 @@ class IOUConfirmationList extends Component {
      * @param {Boolean} isDefaultUser
      * @returns {Number}
      */
-    calculateAmount(isDefaultUser = false) {
+    calculateAmount(isDefaultUser = false, isNotSelectedUsers= 0) {
         // Convert to cents before working with iouAmount to avoid
         // javascript subtraction with decimal problem -- when dealing with decimals,
         // because they are encoded as IEEE 754 floating point numbers, some of the decimal
         // numbers cannot be represented with perfect accuracy.
         // Cents is temporary and there must be support for other currencies in the future
         const iouAmount = Math.round(parseFloat(this.props.iouAmount * 100));
-        const totalParticipants = this.props.participants.length + 1;
+        let totalParticipants = !this.props.hasMultipleParticipants ? this.props.participants.length + 1 : this.props.participants.length + 1 - isNotSelectedUsers;
+
         const amountPerPerson = Math.round(iouAmount / totalParticipants);
 
         if (!isDefaultUser) { return amountPerPerson; }
@@ -251,7 +268,7 @@ class IOUConfirmationList extends Component {
                             maxHeight: this.props.windowHeight - MINIMUM_BOTTOM_OFFSET
                                 - this.props.insets.top - this.props.insets.bottom,
                         }]}
-                        sections={this.getSections()}
+                        sections={this.state && this.state.pageSections}
                         disableArrowKeysActions
                         disableRowInteractivity
                         hideAdditionalOptionStates
@@ -259,6 +276,7 @@ class IOUConfirmationList extends Component {
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         disableFocusOptions
                         selectedOptions={this.getAllOptionsAsSelected()}
+                        toggleParticipants={this.toggleParticipants}
                     />
                     <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
                         {this.props.translate('iOUConfirmationList.whatsItFor')}

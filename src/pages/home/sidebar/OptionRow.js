@@ -73,6 +73,7 @@ const defaultProps = {
     isSelected: false,
     forceTextUnreadStyle: false,
     showTitleTooltip: false,
+    toggleParticipants:()=> {},
     mode: 'default',
     onSelectRow: null,
     isDisabled: false,
@@ -81,21 +82,22 @@ const defaultProps = {
 };
 
 const OptionRow = ({
-    backgroundColor,
-    hoverStyle,
-    option,
-    optionIsFocused,
-    onSelectRow,
-    hideAdditionalOptionStates,
-    showSelectedState,
-    isSelected,
-    forceTextUnreadStyle,
-    showTitleTooltip,
-    isDisabled,
-    mode,
-    disableRowInteractivity,
-    toLocalPhone,
-}) => {
+                       backgroundColor,
+                       hoverStyle,
+                       option,
+                       optionIsFocused,
+                       onSelectRow,
+                       hideAdditionalOptionStates,
+                       showSelectedState,
+                       isSelected,
+                       forceTextUnreadStyle,
+                       showTitleTooltip,
+                       isDisabled,
+                       mode,
+                       disableRowInteractivity,
+                       toLocalPhone,
+                       toggleParticipants
+                   }) => {
     const textStyle = optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
@@ -183,7 +185,6 @@ const OptionRow = ({
                                                 ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                 : undefined,
                                         ]}
-                                        isDefaultChatRoom={option.isDefaultChatRoom}
                                     />
                                 )
                             }
@@ -213,11 +214,11 @@ const OptionRow = ({
                                 </View>
                             ) : null}
                             {showSelectedState && (
-                                <View style={[styles.selectCircle]}>
-                                    {isSelected && (
-                                        <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
-                                    )}
-                                </View>
+                                <TouchableOpacity  onPress={() => toggleParticipants(option)}>
+                                    <View style={[styles.selectCircle]}>
+                                        {option && option.isSelected === true && <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />}
+                                    </View>
+                                </TouchableOpacity>
                             )}
                         </View>
                     </View>
@@ -289,6 +290,8 @@ export default withLocalize(memo(OptionRow, (prevProps, nextProps) => {
     if (!_.isEqual(prevProps.option.icons, nextProps.option.icons)) {
         return false;
     }
-
+    if (!_.isEqual(prevProps.option, nextProps.option)) {
+        return false;
+    }
     return true;
 }));

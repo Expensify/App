@@ -40,6 +40,7 @@ const propTypes = {
         isUnread: PropTypes.bool,
         reportID: PropTypes.number,
         participantsList: PropTypes.arrayOf(PropTypes.object),
+        isSelected:PropTypes.bool
     })).isRequired,
 
 };

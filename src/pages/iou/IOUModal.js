@@ -112,6 +112,7 @@ class IOUModal extends Component {
                 alternateText: personalDetails.login,
                 icons: [personalDetails.avatar],
                 keyForList: personalDetails.login,
+                isSelected:true
             }));
 
         this.state = {
@@ -294,14 +295,14 @@ class IOUModal extends Component {
                             ]}
                             >
                                 {this.state.currentStepIndex > 0
-                                    && (
-                                        <TouchableOpacity
-                                            onPress={this.navigateToPreviousStep}
-                                            style={[styles.touchableButtonImage]}
-                                        >
-                                            <Icon src={BackArrow} />
-                                        </TouchableOpacity>
-                                    )}
+                                && (
+                                    <TouchableOpacity
+                                        onPress={this.navigateToPreviousStep}
+                                        style={[styles.touchableButtonImage]}
+                                    >
+                                        <Icon src={BackArrow} />
+                                    </TouchableOpacity>
+                                )}
                                 <Header title={this.getTitleForStep()} />
                                 <View style={[styles.reportOptions, styles.flexRow]}>
                                     <TouchableOpacity

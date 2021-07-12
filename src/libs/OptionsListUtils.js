@@ -183,8 +183,8 @@ function createOption(personalDetailList, report, draftComments, {
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
     const lastMessageText = report
         ? (hasMultipleParticipants && lastActorDetails
-            ? `${lastActorDetails.displayName}: `
-            : '')
+        ? `${lastActorDetails.displayName}: `
+        : '')
         + _.unescape(report.lastMessageText)
         : '';
 
@@ -519,6 +519,8 @@ function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountT
         alternateText: myPersonalDetail.login,
         icons: [myPersonalDetail.avatar],
         descriptiveText: amountText,
+        isSelected:true,
+        login:myPersonalDetail.login
     };
 }
 
@@ -533,7 +535,16 @@ function getIOUConfirmationOptionsFromParticipants(
     participants, amountText,
 ) {
     return participants.map(participant => ({
-        ...participant, descriptiveText: amountText,
+        ...participant,
+        descriptiveText:participant.isSelected ? amountText : 0
+    }));
+}
+
+function getIOUConfirmationOptionsFromParticipantsWOAmount(
+    participants
+) {
+    return participants.map(participant => ({
+        ...participant
     }));
 }
 
@@ -660,9 +671,9 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  * @returns {String}
  */
 function getReportIcons(report, personalDetails) {
-    // Default rooms have a specific avatar so we can return any non-empty array
     if (isDefaultRoom(report)) {
-        return [''];
+        // Placeholder image for default rooms soon to be updated
+        return [`${CONST.CLOUDFRONT_URL}/images/avatars/default_avatar_external.png`];
     }
     return _.map(report.participants, dmParticipant => ({
         firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
@@ -683,6 +694,7 @@ export {
     getCurrencyListForSections,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
+    getIOUConfirmationOptionsFromParticipantsWOAmount,
     getDefaultAvatar,
     getReportIcons,
 };

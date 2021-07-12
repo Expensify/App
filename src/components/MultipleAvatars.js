@@ -15,21 +15,17 @@ const propTypes = {
     /** Style for Second Avatar */
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
-
-    /** Whether this avatar is for a default room */
-    isDefaultChatRoom: PropTypes.bool,
 };
 
 const defaultProps = {
     avatarImageURLs: [],
     size: 'default',
     secondAvatarStyle: [styles.secondAvatarHovered],
-    isDefaultChatRoom: false,
 };
 
 const MultipleAvatars = ({
-    avatarImageURLs, size, secondAvatarStyle, isDefaultChatRoom,
-}) => {
+                             avatarImageURLs, size, secondAvatarStyle,
+                         }) => {
     const avatarContainerStyles = size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
     const singleAvatarStyles = size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [
@@ -44,7 +40,7 @@ const MultipleAvatars = ({
     if (avatarImageURLs.length === 1) {
         return (
             <View style={avatarContainerStyles}>
-                <Avatar source={avatarImageURLs[0]} size={size} isDefaultChatRoom={isDefaultChatRoom} />
+                <Avatar source={avatarImageURLs[0]} size={size} />
             </View>
         );
     }

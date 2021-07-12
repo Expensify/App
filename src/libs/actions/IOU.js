@@ -84,10 +84,12 @@ function createIOUSplit(params) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
 
     let chatReportID;
+    let whoPaidEmails = params.splits.map(participant => participant.email).join(',')
     API.CreateChatReport({
-        emailList: params.splits.map(participant => participant.email).join(','),
+        emailList: whoPaidEmails,
     })
         .then((data) => {
+            console.log('CreateChatReport',data)
             chatReportID = data.reportID;
             return API.CreateIOUSplit({
                 ...params,
@@ -96,6 +98,7 @@ function createIOUSplit(params) {
             });
         })
         .then((data) => {
+            console.log("CreateChatReport1",data);
             // This data needs to go from this:
             // {reportIDList: [1, 2], chatReportIDList: [3, 4]}
             // to this:
@@ -124,8 +127,8 @@ function createIOUSplit(params) {
  * @param {String} params.comment
  */
 function rejectTransaction({
-    reportID, chatReportID, transactionID, comment,
-}) {
+                               reportID, chatReportID, transactionID, comment,
+                           }) {
     Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
         [transactionID]: true,
     });
@@ -189,8 +192,8 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {String} [params.submitterPayPalMeAddress]
  */
 function payIOUReport({
-    chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress,
-}) {
+                          chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress,
+                      }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? API.PayWithWallet({reportID})
@@ -207,31 +210,31 @@ function payIOUReport({
     }
 
     asyncOpenURL(payIOUPromise
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                throw new Error(response.message);
-            }
+            .then((response) => {
+                if (response.jsonCode !== 200) {
+                    throw new Error(response.message);
+                }
 
-            const chatReportStuff = response.reports[chatReportID];
-            const iouReportStuff = response.reports[reportID];
-            syncChatAndIOUReports(chatReportStuff, iouReportStuff);
-        })
-        .catch((error) => {
-            switch (error.message) {
-                // eslint-disable-next-line max-len
-                case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
-                    Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
-                    break;
-                case 'This report doesn\'t have reimbursable expenses.':
-                    Growl.error(translateLocal('iou.noReimbursableExpenses'), 5000);
-                    break;
-                default:
-                    Growl.error(error.message, 5000);
-            }
-            Onyx.merge(ONYXKEYS.IOU, {error: true});
-        })
-        .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})),
-    url);
+                const chatReportStuff = response.reports[chatReportID];
+                const iouReportStuff = response.reports[reportID];
+                syncChatAndIOUReports(chatReportStuff, iouReportStuff);
+            })
+            .catch((error) => {
+                switch (error.message) {
+                    // eslint-disable-next-line max-len
+                    case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
+                        Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
+                        break;
+                    case 'This report doesn\'t have reimbursable expenses.':
+                        Growl.error(translateLocal('iou.noReimbursableExpenses'), 5000);
+                        break;
+                    default:
+                        Growl.error(error.message, 5000);
+                }
+                Onyx.merge(ONYXKEYS.IOU, {error: true});
+            })
+            .finally(() => Onyx.merge(ONYXKEYS.IOU, {loading: false})),
+        url);
 }
 
 export {
