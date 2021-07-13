@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import SidebarLinks from './SidebarLinks';
-import CreateMenu from '../../../components/CreateMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import FAB from '../../../components/FAB';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -103,7 +103,7 @@ class SidebarScreen extends Component {
                                 onPress={this.toggleCreateMenu}
                             />
                         </View>
-                        <CreateMenu
+                        <PopoverMenu
                             onClose={this.toggleCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
@@ -116,6 +116,11 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newChat'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
+                                {
+                                    icon: Users,
+                                    text: this.props.translate('sidebarScreen.newGroup'),
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
+                                },
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: MoneyCircle,
@@ -123,11 +128,6 @@ class SidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
                                     },
                                 ] : []),
-                                {
-                                    icon: Users,
-                                    text: this.props.translate('sidebarScreen.newGroup'),
-                                    onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
-                                },
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: Receipt,

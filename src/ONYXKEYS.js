@@ -70,6 +70,9 @@ export default {
     // Contains the user preference for the LHN priority mode
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
+    // Contains the users's block expiration (if they have one)
+    NVP_BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
+
     // SDK token used to communicate with Plaid API
     PLAID_LINK_TOKEN: 'plaidLinkToken',
 

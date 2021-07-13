@@ -9,15 +9,14 @@ import {
 } from '../../../components/Icon/Expensicons';
 import getReportActionContextMenuStyles from '../../../styles/getReportActionContextMenuStyles';
 import {
-    setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft, deleteReportComment,
+    setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft,
 } from '../../../libs/actions/Report';
-import ReportActionContextMenuItem from './ReportActionContextMenuItem';
+import ContextMenuItem from '../../../components/ContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
 import compose from '../../../libs/compose';
-import {isReportMessageAttachment, canEditReportAction} from '../../../libs/reportUtils';
+import {isReportMessageAttachment, canEditReportAction, canDeleteReportAction} from '../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ConfirmModal from '../../../components/ConfirmModal';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
@@ -44,6 +43,9 @@ const propTypes = {
     /** Function to dismiss the popover containing this menu */
     hidePopover: PropTypes.func.isRequired,
 
+    /** Function to show the delete Action confirmation modal */
+    showDeleteConfirmModal: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -58,8 +60,6 @@ class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
 
-        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
-        this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.getActionText = this.getActionText.bind(this);
         this.hidePopover = this.hidePopover.bind(this);
 
@@ -67,14 +67,14 @@ class ReportActionContextMenu extends React.Component {
         this.contextActions = [
             // Copy to clipboard
             {
-                text: this.props.translate('reportActionContextMenu.copyToClipboard'),
+                text: this.props.translate('contextMenuItem.copyToClipboard'),
                 icon: ClipboardIcon,
-                successText: this.props.translate('reportActionContextMenu.copied'),
+                successText: this.props.translate('contextMenuItem.copied'),
                 successIcon: Checkmark,
                 shouldShow: true,
 
                 // If return value is true, we switch the `text` and `icon` on
-                // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
+                // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
                 // the `text` and `icon`
                 onPress: () => {
                     const message = _.last(lodashGet(this.props.reportAction, 'message', null));
@@ -134,37 +134,30 @@ class ReportActionContextMenu extends React.Component {
             {
                 text: this.props.translate('reportActionContextMenu.deleteComment'),
                 icon: Trashcan,
-                shouldShow: () => canEditReportAction(this.props.reportAction),
-                onPress: () => this.setState({isDeleteCommentConfirmModalVisible: true}),
+                shouldShow: () => canDeleteReportAction(this.props.reportAction),
+                onPress: () => {
+                    if (this.props.isMini) {
+                        // No popover to hide, call showDeleteConfirmModal immediately
+                        this.props.showDeleteConfirmModal();
+                    } else {
+                        // Hide popover, then call showDeleteConfirmModal
+                        this.hidePopover(false, this.props.showDeleteConfirmModal);
+                    }
+                },
             },
         ];
 
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
-
-        this.state = {
-            isDeleteCommentConfirmModalVisible: false,
-        };
     }
 
     /**
-     * Gets the text (not HTML) portion of the message in an action.
+     * Gets the markdown version of the message in an action.
      *
      * @return {String}
      */
     getActionText() {
         const message = _.last(lodashGet(this.props.reportAction, 'message', null));
-        return lodashGet(message, 'text', '');
-    }
-
-    confirmDeleteAndHideModal() {
-        deleteReportComment(this.props.reportID, this.props.reportAction);
-        this.setState({isDeleteCommentConfirmModalVisible: false});
-        this.hidePopover();
-    }
-
-    hideDeleteConfirmModal() {
-        this.setState({isDeleteCommentConfirmModalVisible: false});
-        this.hidePopover();
+        return lodashGet(message, 'html', '');
     }
 
     /**
@@ -186,7 +179,7 @@ class ReportActionContextMenu extends React.Component {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
                 {this.contextActions.map(contextAction => _.result(contextAction, 'shouldShow', false) && (
-                    <ReportActionContextMenuItem
+                    <ContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
                         successIcon={contextAction.successIcon}
@@ -196,15 +189,6 @@ class ReportActionContextMenu extends React.Component {
                         onPress={() => contextAction.onPress(this.props.reportAction)}
                     />
                 ))}
-                <ConfirmModal
-                    title={this.props.translate('reportActionContextMenu.deleteComment')}
-                    isVisible={this.state.isDeleteCommentConfirmModalVisible}
-                    onConfirm={this.confirmDeleteAndHideModal}
-                    onCancel={this.hideDeleteConfirmModal}
-                    prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
-                    confirmText={this.props.translate('common.delete')}
-                    cancelText={this.props.translate('common.cancel')}
-                />
             </View>
         );
     }
