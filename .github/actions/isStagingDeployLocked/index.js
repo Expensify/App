@@ -14,13 +14,15 @@ const GithubUtils = __nccwpck_require__(7999);
 
 const run = function () {
     return GithubUtils.getStagingDeployCash()
-        .then(({labels}) => {
+        .then(({labels, number}) => {
             console.log(`Found StagingDeployCash with labels: ${_.pluck(labels, 'name')}`);
             core.setOutput('IS_LOCKED', _.contains(_.pluck(labels, 'name'), '🔐 LockCashDeploys 🔐'));
+            core.setOutput('NUMBER', number);
         })
         .catch((err) => {
             console.warn('No open StagingDeployCash found, continuing...', err);
             core.setOutput('IS_LOCKED', false);
+            core.setOutput('NUMBER', 0);
         });
 };
 
@@ -238,17 +240,13 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        return this.octokit.pulls.list({
-            owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
-            state: 'all',
-            per_page: 100,
-        })
-            .then(({data}) => {
+        return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
+            .then((data) => {
                 const automatedPRs = _.pluck(
                     _.filter(data, GithubUtils.isAutomatedPullRequest),
                     'html_url',
                 );
+                console.log('Filtering out the following automated pull requests:', automatedPRs);
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
                     .unique()
@@ -289,6 +287,31 @@ class GithubUtils {
                 'Automated PRs may not be properly filtered out. Continuing...',
                 err,
             ));
+    }
+
+    /**
+     * Fetch all pull requests given a list of PR numbers.
+     *
+     * @param {Array<Number>} pullRequestNumbers
+     * @returns {Promise}
+     */
+    static fetchAllPullRequests(pullRequestNumbers) {
+        const oldestPR = _.first(_.sortBy(pullRequestNumbers));
+        return this.octokit.paginate(this.octokit.pulls.list, {
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            state: 'all',
+            sort: 'created',
+            direction: 'desc',
+            per_page: 100,
+        }, ({data}, done) => {
+            if (_.find(data, pr => pr.number === oldestPR)) {
+                done();
+            }
+            return data;
+        })
+            .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)))
+            .catch(err => console.error('Failed to get PR list', err));
     }
 
     /**

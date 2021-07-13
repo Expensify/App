@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
-    Text,
     TouchableOpacity,
     View,
     StyleSheet,
@@ -20,6 +19,7 @@ import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -102,8 +102,8 @@ const OptionRow = ({
     const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
     const displayNameStyle = mode === 'compact'
-        ? [styles.optionDisplayName, textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
-        : [styles.optionDisplayName, textUnreadStyle];
+        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
+        : [styles.optionDisplayName, ...textUnreadStyle];
     const alternateTextStyle = mode === 'compact'
         ? [textStyle, styles.optionAlternateText, styles.optionAlternateTextCompact]
         : [textStyle, styles.optionAlternateText, styles.mt1];
@@ -183,6 +183,7 @@ const OptionRow = ({
                                                 ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                 : undefined,
                                         ]}
+                                        isDefaultChatRoom={option.isDefaultChatRoom}
                                     />
                                 )
                             }

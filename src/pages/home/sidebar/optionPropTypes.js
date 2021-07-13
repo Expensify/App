@@ -9,6 +9,9 @@ const participantPropTypes = PropTypes.shape({
 
     // Avatar url of participant
     avatar: PropTypes.string,
+
+    /** First Name of the participant */
+    firstName: PropTypes.string,
 });
 
 const optionPropTypes = PropTypes.shape({
@@ -22,7 +25,7 @@ const optionPropTypes = PropTypes.shape({
     participantsList: PropTypes.arrayOf(participantPropTypes),
 
     // The array URLs of the person's avatar
-    icon: PropTypes.arrayOf(PropTypes.string),
+    icons: PropTypes.arrayOf(PropTypes.string),
 
     // Descriptive text to be displayed besides selection element
     descriptiveText: PropTypes.string,

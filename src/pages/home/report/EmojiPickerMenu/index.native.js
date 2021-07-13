@@ -1,14 +1,21 @@
 import React, {Component} from 'react';
-import {View, FlatList, Text} from 'react-native';
+import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
+import compose from '../../../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import CONST from '../../../../CONST';
 import styles from '../../../../styles/styles';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
+import Text from '../../../../components/Text';
+import dynamicEmojiSize from './dynamicEmojiSize';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: PropTypes.func.isRequired,
+
+    /** Props related to the dimensions of the window */
+    ...windowDimensionsPropTypes,
 };
 
 class EmojiPickerMenu extends Component {
@@ -29,6 +36,10 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.renderItem = this.renderItem.bind(this);
+
+        this.emojiSize = {
+            fontSize: dynamicEmojiSize(this.props.windowWidth),
+        };
     }
 
     /**
@@ -56,6 +67,7 @@ class EmojiPickerMenu extends Component {
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
                 emoji={item.code}
+                emojiSize={this.emojiSize}
             />
         );
     }
@@ -78,8 +90,9 @@ class EmojiPickerMenu extends Component {
 
 EmojiPickerMenu.propTypes = propTypes;
 
-// eslint-disable-next-line no-unused-vars
-export default React.forwardRef((props, _ref) => (
+export default compose(
+    withWindowDimensions,
+)(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <EmojiPickerMenu {...props} />
-));
+    <EmojiPickerMenu {...props} forwardedRef={ref} />
+)));

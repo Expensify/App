@@ -36,7 +36,7 @@ export default {
         invite: 'Invitación',
         here: 'aquí',
         dob: 'Fecha de Nacimiento',
-        ssn: 'Número de Seguridad Social',
+        ssnLast4: 'Últimos 4 dígitos de su SSN',
         addressNoPO: 'Dirección (sin Apartado Postal)',
         companyAddressNoPO: 'Dirección de la Empresa (sin Apartado Postal)',
         city: 'Ciudad',
@@ -46,8 +46,13 @@ export default {
         whatThis: '¿Qué es esto?',
         iAcceptThe: 'Acepto los ',
         passwordCannotBeBlank: 'La contraseña no puede estar vacía',
+        remove: 'Eliminar',
+        admin: 'Administrador',
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
+        notifications: 'Notificaciones',
+        noResultsFound: 'No se han encontrado resultados',
+        deletedCommentMessage: 'Comentario borrado',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -96,6 +101,7 @@ export default {
         writeSomething: 'Escribe algo...',
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
+        localTime: ({user, time}) => `Son las ${time} para ${user}`,
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
@@ -140,6 +146,14 @@ export default {
         paid: ({owner, manager}) => `${manager} pagó a ${owner}`,
         split: ({amount}) => `Dividir ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
+        noReimbursableExpenses: 'El monto de este informe es inválido',
+    },
+    reportDetailsPage: {
+        notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
+        always: 'Siempre',
+        daily: 'Cada día',
+        mute: 'Nunca',
+        members: 'Miembros',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
@@ -147,11 +161,12 @@ export default {
         useYourPhoneToSettleViaVenmo: 'Usa tu número de teléfono para pagar usando Venmo.',
         emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via email.',
     },
-    profilePage: {
+    avatarWithImagePicker: {
         uploadPhoto: 'Subir Foto',
         removePhoto: 'Eliminar Foto',
+    },
+    profilePage: {
         profile: 'Perfil',
-        editPhoto: 'Editar Foto',
         tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
         firstName: 'Nombre',
         john: 'Juan',
@@ -210,18 +225,22 @@ export default {
         newPasswordPrompt: 'La nueva contraseña tiene que ser diferente de la antigua, tener al menos 8 letras,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
         confirmNewPassword: 'Confirma la Nueva Contraseña',
     },
-    paymentsPage: {
+    addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar Cuenta de Paypal',
+    },
+    paymentMethodList: {
+        addPaymentMethod: 'Agrega método de pago',
+        accountLastFour: 'Cuenta con terminación',
+        cardLastFour: 'Tarjeta con terminacíon',
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
         mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo',
         focus: '#concentración',
         focusModeDescription: '#concentración – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
-        notifications: 'Notificaciones',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
         priorityMode: 'Modo Prioridad',
         language: 'Idioma',
@@ -249,6 +268,15 @@ export default {
         forgot: '¿Te has olvidado?',
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
+        error: {
+            incorrectLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo',
+            twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor conéctate usando su email o número de teléfono',
+            invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo o resetea tu clave',
+            unableToResetPassword: 'No pudimos cambiar tu clave. Probablemente porque el enlace para resetear la clave ha expirado. Te hemos enviado un nuevo enlace. Chequea tu bandeja de entrada y tu carpeta de Spam',
+            noAccess: 'No tienes acceso a esta aplicación. Por favor agrega tu usuario de GitHub para acceder',
+            accountLocked: 'Tu cuenta ha sido bloqueada tras varios intentos fallidos. Por favor inténtalo otra vez dentro de 1 hora',
+            fallback: 'Ha ocurrido un error. Por favor inténtalo mas tarde',
+        },
     },
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
@@ -303,6 +331,7 @@ export default {
             address: 'Ingrese una dirección válida',
             dob: 'Ingrese una fecha de nacimiento válida',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
         },
     },
     addPersonalBankAccountPage: {
@@ -343,7 +372,7 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',
+        offlineMessage: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
     },
     workspace: {
         common: {
@@ -358,6 +387,12 @@ export default {
             helpText: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
             getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
+        },
+        people: {
+            assignee: 'Persona asignada',
+            genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor inténtalo más tarde.',
+            removeMembersPrompt: '¿Estás seguro que quieres eliminar a las personas seleccionadas de tu espacio de trabajo?',
+            removeMembersTitle: 'Eliminar miembros',
         },
         card: {
             addEmail: 'Agregar correo electrónico',
@@ -407,7 +442,6 @@ export default {
         isMyDataSafe: '¿Están seguros mis datos?',
         onFidoConditions: 'Al continuar con la solicitud de añadir esta cuenta bancaria, confirma que ha leído, entiende y acepta ',
         facialScan: 'la política de reconocimiento facial y la exención de Onfido',
-        ssnLast4: 'Últimos 4 dígitos de su SSN',
         isControllingOfficer: 'Estoy autorizado a utilizar la cuenta bancaria de mi compañía para gastos de empresa',
         isControllingOfficerError: 'Debe ser un oficial controlador con autorización para operar la cuenta bancaria de la compañía',
     },
@@ -420,5 +454,6 @@ export default {
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
+        growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
     },
 };
