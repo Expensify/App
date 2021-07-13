@@ -869,7 +869,7 @@ const styles = {
         alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
-        flexWrap: 'wrap',
+        flexWrap: 'nowrap',
     },
 
     chatItemMessageHeaderSender: {
@@ -884,6 +884,7 @@ const styles = {
     },
 
     chatItemMessageHeaderTimestamp: {
+        flexShrink: 0,
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
         height: 24,
