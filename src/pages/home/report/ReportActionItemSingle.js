@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Pressable, TouchableWithoutFeedback} from 'react-native';
+import {View, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -85,7 +85,6 @@ const ReportActionItemSingle = ({
                             />
                         ))}
                     </Pressable>
-                    
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
                 {children}
