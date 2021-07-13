@@ -89,6 +89,11 @@ const propTypes = {
         /** Whether or not the IOU step is loading (creating the IOU Report) */
         loading: PropTypes.bool,
     }),
+
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -284,11 +289,8 @@ class IOUConfirmationList extends Component {
     * @param {Object} option
     */
     toggleOption(option) {
-        const isSelf = _.every(this.state.participants, selectedOption => (
-            selectedOption.login !== option.login
-        ));
-
-        if (isSelf) {
+        // Return early if selected option is currently logged in user.
+        if (option.login === this.props.session.email) {
             return;
         }
 
@@ -378,6 +380,9 @@ export default compose(
         iou: {key: ONYXKEYS.IOU},
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(IOUConfirmationList);
