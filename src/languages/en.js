@@ -95,7 +95,7 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        phrase1: 'Welcome to new Expensify! Enter your phone or email to continue.',
+        phrase1: 'Welcome to the new Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
@@ -259,13 +259,13 @@ export default {
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',
-        expensifyIsOpenSource: 'New Expensify is open source',
+        expensifyIsOpenSource: 'The new Expensify is open source',
         theCode: 'the code',
         openJobs: 'open jobs',
         heroHeading: 'Split bills\nand chat with friends.',
         heroDescription: {
             phrase1: 'Money talks. And now that chat and payments are in one place, it\'s also easy. Your payments get to you as fast as you can get your point across.',
-            phrase2: 'New Expensify is open source. View',
+            phrase2: 'The new Expensify is open source. View',
             phrase3: 'the code',
             phrase4: 'View',
             phrase5: 'open jobs',
