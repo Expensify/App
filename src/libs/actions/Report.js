@@ -1332,6 +1332,7 @@ function navigateToConciergeChat() {
     }
 
     Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
+    Navigation.closeDrawer();
 }
 
 export {
