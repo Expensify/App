@@ -36,7 +36,6 @@ class ReportScreen extends React.Component {
 
     componentDidUpdate(prevProps) {
         const reportChanged = this.props.route.params.reportID !== prevProps.route.params.reportID;
-
         if (reportChanged) {
             this.prepareTransition();
             this.storeCurrentlyViewedReport();
