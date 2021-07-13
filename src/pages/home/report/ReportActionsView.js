@@ -12,6 +12,7 @@ import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import {
     fetchActions,
+    fetchChatReportsByIDs,
     updateLastReadActionID,
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
@@ -107,6 +108,7 @@ class ReportActionsView extends React.Component {
 
     componentDidMount() {
         AppState.addEventListener('change', this.onVisibilityChange);
+        fetchChatReportsByIDs([this.props.reportID], () => console.log('calling callback'));
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (ReportActionComposeFocusManager.isFocused()) {
