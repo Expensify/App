@@ -256,10 +256,9 @@ class IOUModal extends Component {
     createTransaction(splits) {
         const reportID = this.props.route.params.reportID;
 
-        // regex to check if a string contains numbers only
-        const isNumRegex = new RegExp('^[0-9]+$');
-
-        if (splits && isNumRegex.test(reportID)) {
+        // Only splits from a group DM has a reportID
+        // Check if reportID is a number
+        if (splits && CONST.REGEX.NUMBER.test(reportID)) {
             createIOUSplitGroup({
                 comment: this.state.comment,
 
