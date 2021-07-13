@@ -197,7 +197,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'New Expensify is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
             appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
@@ -259,13 +259,13 @@ export default {
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',
-        expensifyIsOpenSource: 'Expensify.cash is open source',
+        expensifyIsOpenSource: 'New Expensify is open source',
         theCode: 'the code',
         openJobs: 'open jobs',
         heroHeading: 'Split bills\nand chat with friends.',
         heroDescription: {
             phrase1: 'Money talks. And now that chat and payments are in one place, it\'s also easy. Your payments get to you as fast as you can get your point across.',
-            phrase2: 'Expensify.cash is open source. View',
+            phrase2: 'New Expensify is open source. View',
             phrase3: 'the code',
             phrase4: 'View',
             phrase5: 'open jobs',
