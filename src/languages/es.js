@@ -374,7 +374,7 @@ export default {
 
     // TODO: Waiting translations
     existingOwnersStep: {
-        existingOwners: 'Existing owners',
+        existingOwners: 'Existing Owners',
         alreadyInUse: 'This bank account is already in use by ',
         pleaseAskThemToShare: '.Please ask them to share it with you.',
         alternatively: 'Alternatively, you can ',

@@ -445,7 +445,7 @@ export default {
         },
     },
     existingOwnersStep: {
-        headerTitle: 'Existing owners',
+        headerTitle: 'Existing Owners',
         alreadyInUse: 'This bank account is already in use by ',
         pleaseAskThemToShare: 'Please ask them to share it with you.',
         alternatively: 'Alternatively, you can ',
