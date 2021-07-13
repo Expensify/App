@@ -52,6 +52,7 @@ export default {
         send: 'Enviar',
         notifications: 'Notificaciones',
         noResultsFound: 'No se han encontrado resultados',
+        deletedCommentMessage: 'Comentario borrado',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -399,6 +400,7 @@ export default {
             publicCopy: 'Para utilizar la Tarjeta Expensify debe utilizar el dominio privado de su empresa. Continúe y agregue su dirección de correo electrónico privada como inicio de sesión secundario.',
             privateCopy: 'Simplemente deslice su tarjeta Expensify y sus gastos estarán listos, ¡es así de simple!',
             getStarted: 'Empezar',
+            finishSetup: 'Finalizar Configuración',
             manageCards: 'Administrar tarjetas',
             cardReadyTagline: 'Tus tarjetas Expensify están listas para usar!',
         },
@@ -432,7 +434,8 @@ export default {
         maxAttemptError: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos. Por favor contáctenos.',
         description: 'Uno o dos días después de agregar su cuenta a Expensify, enviamos tres (3) transacciones a su cuenta. Tienen una línea comercial como "Expensify, Inc. Validation"',
         descriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación. Ejemplo: 1.51',
-        verifyingDescription: 'Estamos revisando su información y lo llevaremos a los siguientes pasos en solo unos segundos.',
+        reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',
+        forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
     },
     requestorStep: {
         headerTitle: 'Información del solicitante',
