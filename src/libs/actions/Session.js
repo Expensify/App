@@ -8,6 +8,8 @@ import CONFIG from '../../CONFIG';
 import PushNotification from '../Notification/PushNotification';
 import Timing from './Timing';
 import CONST from '../../CONST';
+import Navigation from '../Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 import {translateLocal} from '../translate';
 
 let credentials = {};
@@ -20,6 +22,9 @@ Onyx.connect({
  * Sets API data in the store when we make a successful "Authenticate"/"CreateLogin" request
  *
  * @param {Object} data
+ * @param {String} data.accountID
+ * @param {String} data.authToken
+ * @param {String} data.email
  */
 function setSuccessfulSignInData(data) {
     PushNotification.register(data.accountID);
@@ -105,7 +110,7 @@ function resendValidationLink(login = credentials.login) {
 function fetchAccountDetails(login) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    API.GetAccountStatus({email: login})
+    API.GetAccountStatus({email: login, forceNetworkRequest: true})
         .then((response) => {
             if (response.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {
@@ -269,7 +274,33 @@ function setPassword(password, validateCode, accountID) {
         });
 }
 
+/**
+ * This is used when a user clicks on a link from e.com that goes to this application. We want the user to be able to
+ * be automatically logged into this app. If the user is not already logged into this app, then this method is called
+ * in order to retrieve an authToken from e.com and be signed in.
+ *
+ * @param {String} accountID
+ * @param {String} validateCode
+ * @param {String} [twoFactorAuthCode]
+ */
+function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
+    API.AuthenticateWithAccountID({
+        accountID,
+        validateCode,
+        twoFactorAuthCode,
+    }).then((data) => {
+        // If something failed, it doesn't really matter what, send the user to the sign in form to log in normally
+        if (data.jsonCode !== 200) {
+            Navigation.navigate(ROUTES.HOME);
+            return;
+        }
+
+        setSuccessfulSignInData(data);
+    });
+}
+
 export {
+    continueSessionFromECom,
     fetchAccountDetails,
     setPassword,
     signIn,

@@ -24,7 +24,18 @@ function error(bodyText, duration = CONST.GROWL.DURATION) {
     show(bodyText, CONST.GROWL.ERROR, duration);
 }
 
+/**
+ * Show success growl
+ *
+ * @param {String} bodyText
+ * @param {Number} [duration]
+ */
+function success(bodyText, duration = CONST.GROWL.DURATION) {
+    show(bodyText, CONST.GROWL.SUCCESS, duration);
+}
+
 export default {
     show,
     error,
+    success,
 };

@@ -101,7 +101,7 @@ const AboutPage = ({translate, session}) => {
                                 v
                                 {version}
                             </Text>
-                            <Text style={[styles.textLabel, styles.textP, styles.mv5]}>
+                            <Text style={[styles.textLabel, styles.mv5]}>
                                 {translate('initialSettingsPage.aboutPage.description')}
                             </Text>
                         </View>

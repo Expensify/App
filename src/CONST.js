@@ -64,6 +64,9 @@ const CONST = {
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
+        STATE: {
+            VERIFYING: 'VERIFYING',
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -334,6 +337,7 @@ const CONST = {
     POLICY: {
         TYPE: {
             FREE: 'free',
+            PERSONAL: 'personal',
         },
         ROLE: {
             ADMIN: 'admin',
