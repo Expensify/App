@@ -318,7 +318,7 @@ function fetchChatReportsByIDs(chatList, callbackIfInacessible) {
             Log.info('[Report] successfully fetched report data', true);
             fetchedReports = res.reports;
 
-            // If we're 
+            // If we receive a 404 responde while fetching a single report, treat that report as inacessible
             if (res.jsonCode === 404 && chatList.length === 1) {
                 throw new Error('inacessible');
             }
