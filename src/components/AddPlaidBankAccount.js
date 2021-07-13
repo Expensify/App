@@ -34,8 +34,35 @@ const propTypes = {
         /** Whether we are fetching the bank accounts from the API */
         loading: PropTypes.bool,
 
+        /** Error object */
+        error: PropTypes.shape({
+            /** Error message */
+            message: PropTypes.string,
+
+            /** Error title */
+            title: PropTypes.string,
+        }),
+
         /** List of accounts */
-        accounts: PropTypes.arrayOf(PropTypes.object),
+        accounts: PropTypes.arrayOf(PropTypes.shape({
+            /** Masked account number */
+            accountNumber: PropTypes.string,
+
+            /** Name of account */
+            addressName: PropTypes.string,
+
+            /** Has this account has already been added? */
+            alreadyExists: PropTypes.bool,
+
+            /** Is the account a savings account? */
+            isSavings: PropTypes.bool,
+
+            /** Unique identifier for this account in Plaid */
+            plaidAccountID: PropTypes.string,
+
+            /** Routing number for the account */
+            routingNumber: PropTypes.string,
+        })),
     }),
 
     /** Fired when the user exits the Plaid flow */
@@ -96,12 +123,9 @@ class AddPlaidBankAccount extends React.Component {
 
     render() {
         const accounts = this.getAccounts();
-        const options = _.chain(accounts)
-            .filter(account => !account.alreadyExists)
-            .map((account, index) => ({
-                value: index, label: `${account.addressName} ${account.accountNumber}`,
-            }))
-            .value();
+        const options = _.map(accounts, (account, index) => ({
+            value: index, label: `${account.addressName} ${account.accountNumber}`,
+        }));
 
         return (
             <>

@@ -1,13 +1,12 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import {
-    GetPolicySummaryList, GetPolicyList, Policy_Employees_Merge, Policy_Create,
-} from '../API';
+import lodashGet from 'lodash/get';
+import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import {formatPersonalDetails} from './PersonalDetails';
 import Growl from '../Growl';
 import CONST from '../../CONST';
-import {translate} from '../translate';
+import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
@@ -17,16 +16,6 @@ Onyx.connect({
     callback: (val, key) => {
         if (val && key) {
             allPolicies[key] = {...allPolicies[key], ...val};
-        }
-    },
-});
-
-let translateLocal = (phrase, variables) => translate(CONST.DEFAULT_LOCALE, phrase, variables);
-Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
-    callback: (preferredLocale) => {
-        if (preferredLocale) {
-            translateLocal = (phrase, variables) => translate(preferredLocale, phrase, variables);
         }
     },
 });
@@ -52,28 +41,26 @@ function getSimplifiedPolicyObject(fullPolicy) {
 }
 
 /**
- * Simplifies the policyList response into an object containing an array of emails
+ * Simplifies the employeeList response into an object containing an array of emails
  *
- * @param {Object} fullPolicy
- * @returns {Object}
+ * @param {Object} employeeList
+ * @returns {Array}
  */
-function getSimplifiedEmployeeListObject(fullPolicy) {
-    const employeeListEmails = _.chain(fullPolicy.value.employeeList)
+function getSimplifiedEmployeeList(employeeList) {
+    const employeeListEmails = _.chain(employeeList)
         .pluck('email')
         .flatten()
         .unique()
         .value();
 
-    return {
-        employeeList: employeeListEmails,
-    };
+    return employeeListEmails;
 }
 
 /**
  * Fetches the policySummaryList from the API and saves a simplified version in Onyx
  */
 function getPolicySummaries() {
-    GetPolicySummaryList()
+    API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode === 200) {
                 const policyDataToStore = _.reduce(data.policySummaryList, (memo, policy) => ({
@@ -89,15 +76,59 @@ function getPolicySummaries() {
  * Fetches the policyList from the API and saves a simplified version in Onyx
  */
 function getPolicyList() {
-    GetPolicyList()
+    API.GetPolicyList()
         .then((data) => {
             if (data.jsonCode === 200) {
                 const policyDataToStore = _.reduce(data.policyList, (memo, policy) => ({
                     ...memo,
-                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedEmployeeListObject(policy),
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: {
+                        employeeList: getSimplifiedEmployeeList(policy.value.employeeList),
+                        avatarURL: lodashGet(policy, 'value.avatarURL', ''),
+                    },
                 }), {});
                 Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
             }
+        });
+}
+
+/**
+ * Remove the passed members from the policy employeeList
+ *
+ * @param {Array} members
+ * @param {String} policyID
+ */
+function removeMembers(members, policyID) {
+    // In case user selects only themselves (admin), their email will be filtered out and the members
+    // array passed will be empty, prevent the funtion from proceeding in that case as there is noone to remove
+    if (members.length === 0) {
+        return;
+    }
+
+    const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+
+    // Make a shallow copy to preserve original data and remove the members
+    const policy = _.clone(allPolicies[key]);
+    policy.employeeList = _.without(policy.employeeList, ...members);
+
+    // Optimistically remove the members from the policy
+    Onyx.set(key, policy);
+
+    // Make the API call to merge the login into the policy
+    API.Policy_Employees_Remove({
+        emailList: members,
+        policyID,
+    })
+        .then((data) => {
+            if (data.jsonCode === 200) {
+                return;
+            }
+            const policyDataWithMembersRemoved = _.clone(allPolicies[key]);
+            policyDataWithMembersRemoved.employeeList = [...policyDataWithMembersRemoved.employeeList, ...members];
+            Onyx.set(key, policyDataWithMembersRemoved);
+
+            // Show the user feedback that the removal failed
+            console.error(data.message);
+            Growl.show(translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
         });
 }
 
@@ -119,7 +150,7 @@ function invite(login, welcomeNote, policyID) {
     Onyx.set(key, policy);
 
     // Make the API call to merge the login into the policy
-    Policy_Employees_Merge({
+    API.Policy_Employees_Merge({
         employees: JSON.stringify([{email: login}]),
         welcomeNote,
         policyID,
@@ -142,7 +173,7 @@ function invite(login, welcomeNote, policyID) {
                 errorMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
 
-            Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+            Growl.error(errorMessage, 5000);
         });
 }
 
@@ -152,27 +183,66 @@ function invite(login, welcomeNote, policyID) {
  * @param {String} name
  */
 function create(name) {
-    Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
+    API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.new.genericFailureMessage');
-                Growl.show(errorMessage, CONST.GROWL.ERROR, 5000);
+                Growl.error(errorMessage, 5000);
                 return;
             }
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+                employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
                 id: response.policyID,
                 type: response.policy.type,
                 name: response.policy.name,
+                role: CONST.POLICY.ROLE.ADMIN,
             });
-            Navigation.navigate(ROUTES.getWorkspaceRoute(response.policyID));
+            Navigation.dismissModal();
+            Navigation.navigate(ROUTES.getWorkspaceCardRoute(response.policyID));
+        });
+}
+
+/**
+ * Sets avatar or removes it if called with no avatarURL
+ *
+ * @param {String} policyID
+ * @param {String} [avatarURL]
+ */
+function setAvatarURL(policyID, avatarURL = '') {
+    API.UpdatePolicy({policyID, value: JSON.stringify({avatarURL}), lastModified: null})
+        .then((policyResponse) => {
+            if (policyResponse.jsonCode !== 200) {
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL});
+        });
+}
+
+/**
+ * @param {String} policyID
+ * @param {Object} file
+ */
+function updateAvatar(policyID, file) {
+    API.User_UploadAvatar({file})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                return;
+            }
+
+            // Once we get the s3url back, update the policy with the new avatar URL
+            setAvatarURL(policyID, response.s3url);
         });
 }
 
 export {
     getPolicySummaries,
     getPolicyList,
+    removeMembers,
     invite,
     create,
+    updateAvatar,
+    setAvatarURL,
 };

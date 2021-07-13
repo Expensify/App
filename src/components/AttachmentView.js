@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
@@ -9,6 +9,7 @@ import Icon from './Icon';
 import {Paperclip} from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
+import Text from './Text';
 
 const propTypes = {
     /** URL to full-sized attachment */
@@ -56,7 +57,7 @@ const AttachmentView = (props) => {
             <View style={styles.mr2}>
                 <Icon src={Paperclip} />
             </View>
-            <Text style={[styles.textP, styles.textStrong]}>{props.file && props.file.name}</Text>
+            <Text style={[styles.textStrong]}>{props.file && props.file.name}</Text>
         </View>
     );
 };

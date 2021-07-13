@@ -60,6 +60,14 @@ export default {
         alignSelf: 'center',
     },
 
+    alignSelfStart: {
+        alignSelf: 'flex-start',
+    },
+
+    alignItemsStart: {
+        alignItems: 'flex-start',
+    },
+
     alignItemsCenter: {
         alignItems: 'center',
     },

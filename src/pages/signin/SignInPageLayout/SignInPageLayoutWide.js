@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View} from 'react-native';
+import { Image, View } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
@@ -8,7 +8,7 @@ import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png'
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import CONST from '../../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '../../../components/withLocalize';
 import TextLink from '../../../components/TextLink';
 
 const propTypes = {

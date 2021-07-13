@@ -72,6 +72,8 @@ class AddSecondaryLoginPage extends Component {
         this.formType = props.route.params.type;
         this.submitForm = this.submitForm.bind(this);
         this.validateForm = this.validateForm.bind(this);
+
+        this.phoneNumberInputRef = null;
     }
 
     componentWillUnmount() {
@@ -102,7 +104,12 @@ class AddSecondaryLoginPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (this.phoneNumberInputRef) {
+                    this.phoneNumberInputRef.focus();
+                }
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
@@ -113,7 +120,7 @@ class AddSecondaryLoginPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <Text style={[styles.mb6, styles.textP]}>
+                        <Text style={[styles.mb6]}>
                             {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                 ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
                                 : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
@@ -125,10 +132,10 @@ class AddSecondaryLoginPage extends Component {
                                     : 'profilePage.emailAddress')}
                             </Text>
                             <TextInput
+                                ref={el => this.phoneNumberInputRef = el}
                                 style={styles.textInput}
                                 value={this.state.login}
                                 onChangeText={login => this.setState({login})}
-                                autoFocus
                                 keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
                                     ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
                                 returnKeyType="done"

@@ -26,12 +26,23 @@ function openDrawer() {
 }
 
 /**
+ * Close the LHN drawer.
  * @private
  */
-function goBack() {
+function closeDrawer() {
+    navigationRef.current.dispatch(DrawerActions.closeDrawer());
+}
+
+/**
+ * @private
+ * @param {Boolean} shouldOpenDrawer
+ */
+function goBack(shouldOpenDrawer = true) {
     if (!navigationRef.current.canGoBack()) {
         console.debug('Unable to go back');
-        openDrawer();
+        if (shouldOpenDrawer) {
+            openDrawer();
+        }
         return;
     }
 
@@ -59,7 +70,7 @@ function navigate(route = ROUTES.HOME) {
     // have a participants route since those should go through linkTo() as they open a different screen.
     const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
     if (reportID && !isParticipantsRoute) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}));
+        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}, navigationRef));
         return;
     }
 
@@ -76,8 +87,17 @@ function dismissModal(shouldOpenDrawer = false) {
         ? shouldOpenDrawer
         : false;
 
+    let isLeavingDrawerNavigator;
+
     // This should take us to the first view of the modal's stack navigator
     navigationRef.current.dispatch((state) => {
+        // If this is a nested drawer navigator then we pop the screen and
+        // prevent calling goBack() as it's default behavior is to toggle open the active drawer
+        if (state.type === 'drawer') {
+            isLeavingDrawerNavigator = true;
+            return StackActions.pop();
+        }
+
         // If there are multiple routes then we can pop back to the first route
         if (state.routes.length > 1) {
             return StackActions.popToTop();
@@ -88,14 +108,32 @@ function dismissModal(shouldOpenDrawer = false) {
         return StackActions.pop(0);
     });
 
+    if (isLeavingDrawerNavigator) {
+        return;
+    }
+
     // Navigate back to where we were before we launched the modal
-    goBack();
+    goBack(shouldOpenDrawer);
 
     if (!normalizedShouldOpenDrawer) {
         return;
     }
 
     openDrawer();
+}
+
+/**
+ * Check whether the passed route is currently Active or not.
+ *
+ * @param {String} routePath Path to check
+ * @return {Boolean} is active
+ */
+function isActive(routePath) {
+    // We remove First forward slash from the URL before matching
+    const path = navigationRef.current && navigationRef.current.getCurrentRoute().path
+        ? navigationRef.current.getCurrentRoute().path.substring(1)
+        : '';
+    return path === routePath;
 }
 
 /**
@@ -129,6 +167,8 @@ DismissModal.defaultProps = {
 export default {
     navigate,
     dismissModal,
+    isActive,
     goBack,
     DismissModal,
+    closeDrawer,
 };

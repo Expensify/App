@@ -1,11 +1,11 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** UTC timestamp for when the action was created */
