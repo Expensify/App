@@ -561,10 +561,6 @@ const styles = {
         margin: 0,
     },
 
-    termsLinkIos: {
-        marginTop: -1,
-    },
-
     // Sidebar Styles
     sidebar: {
         backgroundColor: themeColors.sidebar,

@@ -28,7 +28,7 @@ const TermsWithLicenses = ({translate}) => (
                     {translate('termsOfUse.phrase1')}
                 </Text>
                 <TextLink
-                    style={[styles.loginTermsText, styles.termsLinkNative, styles.termsLinkIos]}
+                    style={[styles.loginTermsText, styles.termsLinkNative]}
                     href={CONST.TERMS_URL}
                 >
                     {' '}
@@ -39,7 +39,7 @@ const TermsWithLicenses = ({translate}) => (
                     {translate('termsOfUse.phrase3')}
                 </Text>
                 <TextLink
-                    style={[styles.loginTermsText, styles.termsLinkNative, styles.termsLinkIos]}
+                    style={[styles.loginTermsText, styles.termsLinkNative]}
                     href={CONST.PRIVACY_URL}
                 >
                     {' '}
