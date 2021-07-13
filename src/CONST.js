@@ -327,9 +327,6 @@ const CONST = {
         ERROR: 'error',
         WARNING: 'warning',
         DURATION: 2000,
-        TEMPLATE: {
-            BANK_ACCOUNT_EXISTING_OWNERS: 'bankAccountExistingOwners',
-        },
     },
 
     DEFAULT_LOCALE: 'en',

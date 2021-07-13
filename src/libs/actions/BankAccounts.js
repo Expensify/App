@@ -615,13 +615,9 @@ function setupWithdrawalAccount(data) {
                 }
 
                 // Show warning if another account already set up this bank account and promote share
-                const {existingOwners} = response;
-                if (existingOwners) {
-                    Growl.error(
-                        CONST.GROWL.TEMPLATE.BANK_ACCOUNT_EXISTING_OWNERS,
-                        10000,
-                        {existingOwners, achData},
-                    );
+                if (response.existingOwners) {
+                    // @TODO Show better error in UI about existing owners
+                    console.error('Cannot set up withdrawal account due to existing owners');
                     return;
                 }
 

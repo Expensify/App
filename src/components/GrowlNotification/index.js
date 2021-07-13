@@ -1,17 +1,17 @@
 import React, {Component} from 'react';
 import {
-    Text, View, Animated,
+    View, Animated,
 } from 'react-native';
 import {
     Directions, FlingGestureHandler, State, TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
 import colors from '../../styles/colors';
+import Text from '../Text';
 import Icon from '../Icon';
 import {Checkmark, Exclamation} from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 import CONST from '../../CONST';
-import BankAccountExistingOwners from './templates/BankAccountExistingOwners';
 
 const types = {
     [CONST.GROWL.SUCCESS]: {
@@ -28,17 +28,16 @@ const types = {
     },
 };
 
-const INACTIVE_POSITION_Y = -300;
+const INACTIVE_POSITION_Y = -255;
 
 class GrowlNotification extends Component {
     constructor() {
         super();
 
         this.state = {
-            body: '',
+            bodyText: '',
             type: 'success',
             translateY: new Animated.Value(INACTIVE_POSITION_Y),
-            additionalProps: {},
         };
 
         this.show = this.show.bind(this);
@@ -46,37 +45,16 @@ class GrowlNotification extends Component {
     }
 
     /**
-     * Gets the growl template component with its template name.
-     * @param {String} body
-     * @return {JSX.Element|null}
-     */
-    getGrowlBodyComponent(body) {
-        switch (body) {
-            case CONST.GROWL.TEMPLATE.BANK_ACCOUNT_EXISTING_OWNERS:
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                return <BankAccountExistingOwners {...this.state.additionalProps} />;
-            default:
-                return (
-                    <Text style={styles.growlNotificationText}>
-                        {body}
-                    </Text>
-                );
-        }
-    }
-
-    /**
      * Show the growl notification
      *
-     * @param {String} body
+     * @param {String} bodyText
      * @param {String} type
      * @param {Number} duration
-     * @param {Object} additionalProps
     */
-    show(body, type, duration, additionalProps) {
+    show(bodyText, type, duration) {
         this.setState({
-            body,
+            bodyText,
             type,
-            additionalProps,
         }, () => {
             this.fling(0);
             setTimeout(() => {
@@ -93,7 +71,7 @@ class GrowlNotification extends Component {
     fling(val = INACTIVE_POSITION_Y) {
         Animated.spring(this.state.translateY, {
             toValue: val,
-            duration: 100,
+            duration: 80,
             useNativeDriver: true,
         }).start();
     }
@@ -112,7 +90,9 @@ class GrowlNotification extends Component {
                     <GrowlNotificationContainer translateY={this.state.translateY}>
                         <TouchableWithoutFeedback onPress={this.fling}>
                             <View style={styles.growlNotificationBox}>
-                                {this.getGrowlBodyComponent(this.state.body)}
+                                <Text style={styles.growlNotificationText}>
+                                    {this.state.bodyText}
+                                </Text>
                                 <Icon src={types[this.state.type].icon} fill={types[this.state.type].iconColor} />
                             </View>
                         </TouchableWithoutFeedback>

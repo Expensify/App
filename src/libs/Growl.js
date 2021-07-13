@@ -6,35 +6,32 @@ export const growlRef = React.createRef();
 /**
  * Show the growl notification
  *
- * @param {String} body - The text or name of the template you'd like to display in the growl body.
+ * @param {String} bodyText
  * @param {String} type
  * @param {Number} [duration]
- * @param {Object} [additionalProps] - Any additional props passed to the growl notification template.
 */
-function show(body, type, duration = CONST.GROWL.DURATION, additionalProps = {}) {
-    growlRef.current.show(body, type, duration, additionalProps);
+function show(bodyText, type, duration = CONST.GROWL.DURATION) {
+    growlRef.current.show(bodyText, type, duration);
 }
 
 /**
  * Show error growl
  *
- * @param {String} body - The text or name of the template you'd like to display in the growl body.
+ * @param {String} bodyText
  * @param {Number} [duration]
- * @param {Object} [additionalProps] - Any additional props passed to the growl notification template.
  */
-function error(body, duration = CONST.GROWL.DURATION, additionalProps = {}) {
-    show(body, CONST.GROWL.ERROR, duration, additionalProps);
+function error(bodyText, duration = CONST.GROWL.DURATION) {
+    show(bodyText, CONST.GROWL.ERROR, duration);
 }
 
 /**
  * Show success growl
  *
- * @param {String} body - The text or name of the template you'd like to display in the growl body.
+ * @param {String} bodyText
  * @param {Number} [duration]
- * @param {Object} [additionalProps] - Any additional props passed to the growl notification template.
  */
-function success(body, duration = CONST.GROWL.DURATION, additionalProps = {}) {
-    show(body, CONST.GROWL.SUCCESS, duration, additionalProps);
+function success(bodyText, duration = CONST.GROWL.DURATION) {
+    show(bodyText, CONST.GROWL.SUCCESS, duration);
 }
 
 export default {
