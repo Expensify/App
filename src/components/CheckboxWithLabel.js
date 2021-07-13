@@ -58,7 +58,7 @@ const CheckboxWithLabel = ({
                 ]}
             >
                 {label && (
-                    <Text style={[styles.ml2, styles.textP]}>
+                    <Text style={[styles.ml2]}>
                         {label}
                     </Text>
                 )}

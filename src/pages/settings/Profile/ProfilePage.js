@@ -16,15 +16,10 @@ import {setPersonalDetails, setAvatar, deleteAvatar} from '../../../libs/actions
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
-import Avatar from '../../../components/Avatar';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
-import Icon from '../../../components/Icon';
 import themeColors from '../../../styles/themes/default';
 import LoginField from './LoginField';
-import {DownArrow, Upload, Trashcan} from '../../../components/Icon/Expensicons';
-import AttachmentPicker from '../../../components/AttachmentPicker';
-import PopoverMenu from '../../../components/PopoverMenu';
 import Picker from '../../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
@@ -34,37 +29,14 @@ import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import FullNameInputRow from '../../../components/FullNameInputRow';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
+import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
+import currentUserPersonalDetailsPropsTypes from './currentUserPersonalDetailsPropsTypes';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape({
-        /** Email/Phone login of the current user from their personal details */
-        login: PropTypes.string,
-
-        /** Display first name of the current user from their personal details */
-        firstName: PropTypes.string,
-
-        /** Display last name of the current user from their personal details */
-        lastName: PropTypes.string,
-
-        /** Avatar URL of the current user from their personal details */
-        avatar: PropTypes.string,
-
-        /** Pronouns of the current user from their personal details */
-        pronouns: PropTypes.string,
-
-        /** Timezone of the current user from their personal details */
-        timezone: PropTypes.shape({
-
-            /** Value of selected timezone */
-            selected: PropTypes.string,
-
-            /** Whether timezone is automatically set */
-            automatic: PropTypes.bool,
-        }),
-    }),
+    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
     /** The details about the user that is signed in */
     user: PropTypes.shape({
@@ -126,14 +98,12 @@ class ProfilePage extends Component {
             selectedTimezone: timezone.selected || CONST.DEFAULT_TIME_ZONE.selected,
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
             logins: this.getLogins(props.user.loginList),
-            isEditPhotoMenuVisible: false,
         };
 
         this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.getLogins = this.getLogins.bind(this);
-        this.createMenuItems = this.createMenuItems.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -216,38 +186,6 @@ class ProfilePage extends Component {
         Growl.show(this.props.translate('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
     }
 
-    /**
-     * Create menu items list for avatar menu
-     *
-     * @param {Function} openPicker
-     * @returns {Array}
-     */
-    createMenuItems(openPicker) {
-        const menuItems = [
-            {
-                icon: Upload,
-                text: this.props.translate('profilePage.uploadPhoto'),
-                onSelected: () => {
-                    openPicker({
-                        onPicked: setAvatar,
-                    });
-                },
-            },
-        ];
-
-        // If current avatar isn't a default avatar, allow Remove Photo option
-        if (!this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')) {
-            menuItems.push({
-                icon: Trashcan,
-                text: this.props.translate('profilePage.removePhoto'),
-                onSelected: () => {
-                    deleteAvatar(this.props.myPersonalDetails.login);
-                },
-            });
-        }
-        return menuItems;
-    }
-
     render() {
         // Determines if the pronouns/selected pronouns have changed
         const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns
@@ -271,47 +209,15 @@ class ProfilePage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <Avatar
-                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                            source={this.props.myPersonalDetails.avatar}
+                        <AvatarWithImagePicker
+                            avatarURL={this.props.myPersonalDetails.avatar}
+                            onImageSelected={setAvatar}
+                            onImageRemoved={() => deleteAvatar(this.props.myPersonalDetails.login)}
+                            // eslint-disable-next-line max-len
+                            isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
+                            anchorPosition={styles.createMenuPositionProfile}
                         />
-                        <AttachmentPicker>
-                            {({openPicker}) => (
-                                <>
-                                    <Button
-                                        small
-                                        style={[styles.alignSelfCenter, styles.mt3]}
-                                        onPress={() => this.setState({isEditPhotoMenuVisible: true})}
-                                        ContentComponent={() => (
-                                            <View style={[styles.flexRow]}>
-                                                <Icon src={DownArrow} />
-                                                <View style={styles.justifyContentCenter}>
-                                                    <Text
-                                                        style={[
-                                                            styles.headerText,
-                                                            styles.buttonSmallText,
-                                                            styles.ml2,
-                                                        ]}
-                                                    >
-                                                        {this.props.translate('profilePage.editPhoto')}
-                                                    </Text>
-                                                </View>
-                                            </View>
-                                        )}
-                                    />
-                                    <PopoverMenu
-                                        isVisible={this.state.isEditPhotoMenuVisible}
-                                        onClose={() => this.setState({isEditPhotoMenuVisible: false})}
-                                        onItemSelected={() => this.setState({isEditPhotoMenuVisible: false})}
-                                        menuItems={this.createMenuItems(openPicker)}
-                                        anchorPosition={styles.createMenuPositionProfile}
-                                        animationIn="fadeInRight"
-                                        animationOut="fadeOutRight"
-                                    />
-                                </>
-                            )}
-                        </AttachmentPicker>
-                        <Text style={[styles.mt6, styles.mb6, styles.textP]}>
+                        <Text style={[styles.mt6, styles.mb6]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
                         </Text>
                         <FullNameInputRow
