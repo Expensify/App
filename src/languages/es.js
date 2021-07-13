@@ -393,6 +393,48 @@ export default {
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
     },
+    termsStep: {
+        headerTitle: 'Términos y tarifas',
+        haveReadAndAgree: 'He leído y acepto recibir',
+        electronicDisclosures: 'divulgaciones electrónicas',
+        agreeToThe: 'Estoy de acuerdo con',
+        walletAgreement: 'Acuerdo de billetera',
+        enablePayments: 'Habilitar pagos',
+        termsMustBeAccepted: 'Se deben aceptar los términos',
+        longTermsForm: {
+            typeOfFeeHeader: 'Tipo de tarifa',
+            feeAmountHeader: 'Importe de la tarifa',
+            moreDetailsHeader: 'Más detalles',
+            openingAccountTitle: 'Abrir una cuenta',
+            feeAmountZero: '$0',
+            openingAccountDetails: 'No hay tarifa para crear una cuenta.',
+            monthlyFeeTitle: 'Cuota mensual',
+            monthlyFeeDetails: 'No hay tarifa mensual',
+            customerServiceAutomatedTitle: 'Servicio al cliente (automatizado)',
+            customerServiceLiveTitle: 'Servicio al cliente (agente en vivo)',
+            customerServiceDetails: 'No hay tarifas de servicio al cliente.',
+            inactivityTitle: 'Inactividad',
+            inactivityDetails: 'No hay tarifa de inactividad.',
+            sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
+            sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando su '
+            + 'saldo cuenta bancaria o tarjeta de débito',
+            electronicFundsStandardTitle: 'Retiro electrónico de fondos (estándar)',
+            electronicFundsStandardDetails: 'No hay cargo por transferir fondos desde su cuenta Expensify Payments'
+                + 'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en'
+                + '1-3 negocios días.',
+            electronicFundsInstantTitle: 'Retiro electrónico de fondos (instantáneo)',
+            electronicFundsInstantFee: '1.5% (mínimo de $ 0.25)',
+            electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su cuenta Expensify Payments a '
+                + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia'
+                + ' generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
+                + 'transferencia (con una tarifa mínima de $ 0.25). ',
+        },
+    },
+    activateStep: {
+        headerTitle: 'Habilitar pagos',
+        activated: 'Su billetera Expensify está lista para usar',
+        checkBackLater: 'Todavía estamos revisando su información. Por favor, vuelva más tarde.',
+    },
     companyStep: {
         headerTitle: 'Información de la Empresa',
         subtitle: 'Dé más información sobre su empresa.',
