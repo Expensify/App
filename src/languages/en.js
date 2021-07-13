@@ -364,6 +364,33 @@ export default {
         walletAgreement: 'Wallet Agreement',
         enablePayments: 'Enable Payments',
         termsMustBeAccepted: 'Terms must be accepted',
+        longTermsForm: {
+            typeOfFeeHeader: 'Type of Fee',
+            feeAmountHeader: 'Fee Amount',
+            moreDetailsHeader: 'More Details',
+            openingAccountTitle: 'Opening An Account',
+            feeAmountZero: '$0',
+            openingAccountDetails: 'There is no fee to create an account.',
+            monthlyFeeTitle: 'Monthly Fee',
+            monthlyFeeDetails: 'There is no monthly fee',
+            customerServiceAutomatedTitle: 'Customer service (automated)',
+            customerServiceLiveTitle: 'Customer service (live agent)',
+            customerServiceDetails: 'There are no customer service fees.',
+            inactivityTitle: 'Inactivity',
+            inactivityDetails: 'There is no inactivity fee.',
+            sendingFundsTitle: 'Sending funds to another account holder',
+            sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, '
+                + 'bank account, or debit card.',
+            electronicFundsStandardTitle: 'Electronic funds withdrawal (standard)',
+            electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Payments Account '
+                + 'to your bank account using the standard option. This transfer usually completes within 1-3 business'
+                + ' days.',
+            electronicFundsInstantTitle: 'Electronic funds withdrawal (instant)',
+            electronicFundsInstantFee: '1.5% (min. of $0.25)',
+            electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Payments Account to '
+                + 'your linked debit card using the instant transfer option. This transfer usually completes within'
+                + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
+        },
     },
     activateStep: {
         headerTitle: 'Enable Payments',
