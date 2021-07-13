@@ -56,6 +56,7 @@ export default {
         send: 'Send',
         notifications: 'Notifications',
         noResultsFound: 'No results found',
+        deletedCommentMessage: 'Comment deleted',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -105,10 +106,13 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
+        localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
-    reportActionContextMenu: {
+    contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
         copied: 'Copied!',
+    },
+    reportActionContextMenu: {
         copyLink: 'Copy Link',
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
@@ -166,11 +170,12 @@ export default {
         useYourPhoneToSettleViaVenmo: 'Use your phone number to settle up via Venmo.',
         emailHasNotBeenValidated: 'The email has not yet been validated. Click the button to resend the validation link via text.',
     },
-    profilePage: {
+    avatarWithImagePicker: {
         uploadPhoto: 'Upload Photo',
         removePhoto: 'Remove Photo',
+    },
+    profilePage: {
         profile: 'Profile',
-        editPhoto: 'Edit Photo',
         tellUsAboutYourself: 'Tell us about yourself, we would love to get to know you!',
         john: 'John',
         doe: 'Doe',
@@ -268,6 +273,7 @@ export default {
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
+        enterYourTwoFactorAuthenticationCodeToContinue: 'Enter your two factor authentication code to continue',
         forgot: 'Forgot?',
         twoFactorCode: 'Two Factor Code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
@@ -419,7 +425,8 @@ export default {
         maxAttemptError: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation"',
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
-        verifyingDescription: 'We\'re taking a look at your information and will have you onto next steps in just a few seconds.',
+        reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
+        forNextSteps: ' for next steps to finish setting up your bank account.',
     },
     beneficialOwnersStep: {
         beneficialOwners: 'Beneficial Owners',
@@ -467,6 +474,7 @@ export default {
             publicCopy: 'In order to use the Expensify Card you must use your company\'s private domain. Go ahead and add your private email address as a secondary login.',
             privateCopy: 'Just swipe your Expensify card and your expenses are done, its that simple!',
             getStarted: 'Get Started',
+            finishSetup: 'Finish Setup',
             manageCards: 'Manage Cards',
             cardReadyTagline: 'Your Expensify Cards are ready to go!',
         },
@@ -489,5 +497,6 @@ export default {
         growlMessageOnSave: 'Call requested.',
         growlMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code.\ne.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our Guides know how to address you!',
+        growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
     },
 };
