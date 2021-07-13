@@ -9,6 +9,7 @@ export default {
         'https://staging.expensify.cash',
         'http://localhost',
         'https://new.expensify.com',
+        'https://staging.new.expensify.com',
     ],
     config: {
         initialRouteName: SCREENS.HOME,
