@@ -15,7 +15,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
-import {getDefaultRoomSubtitle, isDefaultRoom} from '../libs/reportUtils';
+import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../libs/reportUtils';
 import {participantPropTypes} from './home/sidebar/optionPropTypes';
 import Picker from '../components/Picker';
 import {updateNotificationPreference} from '../libs/actions/Report';
@@ -128,6 +128,7 @@ class ReportDetailsPage extends Component {
                         >
                             <Avatar
                                 isDefaultChatRoom={isDefaultRoom(this.props.report)}
+                                isArchivedRoom={isArchivedRoom(this.props.report)}
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}
                                 source={{uri: this.props.report.icons[0]}}

@@ -123,6 +123,19 @@ function getDefaultRoomSubtitle(report, policiesMap) {
     );
 }
 
+/**
+ * Whether the provided report is an archived room
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isArchivedRoom(report) {
+    if (!isDefaultRoom(report)) {
+        return false;
+    }
+
+    return report.statusNum === 2 && report.stateNum === 2;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -132,4 +145,5 @@ export {
     sortReportsByLastVisited,
     isDefaultRoom,
     getDefaultRoomSubtitle,
+    isArchivedRoom,
 };
