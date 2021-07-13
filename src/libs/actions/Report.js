@@ -18,7 +18,7 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
+import {isArchivedRoom, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 import Growl from '../Growl';
@@ -131,7 +131,13 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  */
 function getChatReportName(fullReport, chatType) {
     if (isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}`;
+        return `#${fullReport.reportName}${(isArchivedRoom({
+            chatType,
+            stateNum: fullReport.stateNum,
+            statusNum: fullReport.reportStatus,
+        })
+            ? ` (${translateLocal('common.deleted')})`
+            : '')}`;
     }
 
     const {sharedReportList} = fullReport;

@@ -30,6 +30,7 @@ export default {
         privacy: 'Privacy',
         privacyPolicy: 'Privacy Policy',
         delete: 'Delete',
+        deleted: 'Deleted',
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
@@ -107,6 +108,7 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
+        roomIsArchived: 'This chat room has been deleted',
     },
     contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',

@@ -126,6 +126,8 @@ function getDefaultRoomSubtitle(report, policiesMap) {
 /**
  * Whether the provided report is an archived room
  * @param {Object} report
+ * @param {Number} report.stateNum
+ * @param {Number} report.statusNum
  * @returns {Boolean}
  */
 function isArchivedRoom(report) {
