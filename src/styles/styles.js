@@ -1717,7 +1717,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 150,
+        height: 150,
     },
 
     peopleRow: {
