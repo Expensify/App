@@ -26,7 +26,7 @@ export default {
         and: 'y',
         details: 'Detalles',
         delete: 'Eliminar',
-        deleted: 'Eliminado',
+        deleted: 'eliminado',
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
@@ -103,7 +103,7 @@ export default {
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
-        roomIsArchived: 'Esta sala de chat ha sido eliminado',
+        roomIsArchived: 'Esta sala de chat ha sido eliminada',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',

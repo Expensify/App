@@ -30,7 +30,7 @@ export default {
         privacy: 'Privacy',
         privacyPolicy: 'Privacy Policy',
         delete: 'Delete',
-        deleted: 'Deleted',
+        deleted: 'deleted',
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
