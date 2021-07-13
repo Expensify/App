@@ -26,6 +26,7 @@ class CollapsibleSection extends React.Component {
     }
 
     render() {
+        // TODO: Get an UpArrow SVG
         const src = this.state.isExpanded ? Close : DownArrow;
 
         return (

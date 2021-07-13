@@ -4,6 +4,9 @@ import Collapsible from 'react-native-collapsible';
 import Text from '../Text';
 import {propTypes, defaultProps} from './CollapsibleSectionPropTypes';
 import styles from '../../styles/styles';
+import Icon from '../Icon';
+import {Close, DownArrow} from '../Icon/Expensicons';
+
 
 class CollapsibleSection extends React.Component {
     constructor(props) {
@@ -22,10 +25,16 @@ class CollapsibleSection extends React.Component {
     };
 
     render() {
+        // TODO: Get an UpArrow SVG
+        const src = this.state.isExpanded ? Close : DownArrow;
+
         return (
             <View style={[styles.mt4, styles.termsSection]}>
-                <TouchableOpacity onPress={this.toggleExpanded} style={[styles.pb4, styles.pl4]}>
-                    <Text>{this.props.title}</Text>
+                <TouchableOpacity onPress={this.toggleExpanded} style={[styles.pb4, styles.pl4, styles.flexRow]}>
+                    <Text style={styles.flex1}>{this.props.title}</Text>
+                    <View style={[styles.mr4]}>
+                        <Icon src={src} />
+                    </View>
                 </TouchableOpacity>
                 <Collapsible collapsed={!this.state.isExpanded}>
                     <View>
@@ -36,32 +45,6 @@ class CollapsibleSection extends React.Component {
         );
     }
 }
-
-const styles2 = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5FCFF',
-        paddingTop: 10,
-    },
-    title: {
-        textAlign: 'center',
-        fontSize: 22,
-        fontWeight: '300',
-        marginBottom: 20,
-    },
-    header: {
-        backgroundColor: '#F5FCFF',
-        padding: 10,
-    },
-    headerText: {
-        textAlign: 'center',
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    content: {
-        backgroundColor: '#fff',
-    },
-});
 
 CollapsibleSection.propTypes = propTypes;
 CollapsibleSection.defaultProps = defaultProps;
