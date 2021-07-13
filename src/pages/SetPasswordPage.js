@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {
     SafeAreaView,
-    Text,
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -17,6 +16,7 @@ import SignInPageLayout from './signin/SignInPageLayout';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
+import Text from '../components/Text';
 
 const propTypes = {
     /* Onyx Props */
