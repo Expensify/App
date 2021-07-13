@@ -305,7 +305,7 @@ function fetchIOUReportID(debtorEmail) {
  * @param {Array} chatList
  * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
  */
-function fetchChatReportsByIDs(chatList) {
+function fetchChatReportsByIDs(chatList, callbackIfInacessible) {
     let fetchedReports;
     const simplifiedReports = {};
     return API.Get({
@@ -314,9 +314,15 @@ function fetchChatReportsByIDs(chatList) {
         shouldLoadOptionalKeys: true,
         includePinnedReports: true,
     })
-        .then(({reports}) => {
+        .then((res) => {
             Log.info('[Report] successfully fetched report data', true);
-            fetchedReports = reports;
+            fetchedReports = res.reports;
+
+            // If we're 
+            if (res.jsonCode === 404 && chatList.length === 1) {
+                throw new Error('inacessible');
+            }
+
             return Promise.all(_.map(fetchedReports, (chatReport) => {
                 const reportActionList = chatReport.reportActionList || [];
                 const containsIOUAction = _.any(reportActionList,
@@ -378,6 +384,12 @@ function fetchChatReportsByIDs(chatList) {
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
 
             return _.map(fetchedReports, report => report.reportID);
+        })
+        .catch(err => {
+            if(err.message === 'inacessible' && callbackIfInacessible) {
+                Log.info('[Report] Report data is inacessible.', true);
+                callbackIfInacessible();
+            };
         });
 }
 
