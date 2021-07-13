@@ -56,6 +56,7 @@ export default {
         send: 'Send',
         notifications: 'Notifications',
         noResultsFound: 'No results found',
+        deletedCommentMessage: 'Comment deleted',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -107,9 +108,11 @@ export default {
         fileUploadFailed: 'Upload Failed. File is not supported.',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
-    reportActionContextMenu: {
+    contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
         copied: 'Copied!',
+    },
+    reportActionContextMenu: {
         copyLink: 'Copy Link',
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
@@ -422,7 +425,8 @@ export default {
         maxAttemptError: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation"',
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
-        verifyingDescription: 'We\'re taking a look at your information and will have you onto next steps in just a few seconds.',
+        reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
+        forNextSteps: ' for next steps to finish setting up your bank account.',
     },
     beneficialOwnersStep: {
         beneficialOwners: 'Beneficial Owners',
@@ -470,6 +474,7 @@ export default {
             publicCopy: 'In order to use the Expensify Card you must use your company\'s private domain. Go ahead and add your private email address as a secondary login.',
             privateCopy: 'Just swipe your Expensify card and your expenses are done, its that simple!',
             getStarted: 'Get Started',
+            finishSetup: 'Finish Setup',
             manageCards: 'Manage Cards',
             cardReadyTagline: 'Your Expensify Cards are ready to go!',
         },

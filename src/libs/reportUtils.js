@@ -123,6 +123,17 @@ function getDefaultRoomSubtitle(report, policiesMap) {
     );
 }
 
+/**
+ * Only returns true if this is our main 1:1 DM report with Concierge
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isConciergeChatReport(report) {
+    return lodashGet(report, 'participants', []).length === 1
+        && report.participants[0] === CONST.EMAIL.CONCIERGE;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -132,4 +143,5 @@ export {
     sortReportsByLastVisited,
     isDefaultRoom,
     getDefaultRoomSubtitle,
+    isConciergeChatReport,
 };
