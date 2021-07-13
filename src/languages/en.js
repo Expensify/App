@@ -365,6 +365,7 @@ export default {
         enablePayments: 'Enable Payments',
         termsMustBeAccepted: 'Terms must be accepted',
         longTermsForm: {
+            listOfAllFees: 'A list of all Expensify Payments Account fees:',
             typeOfFeeHeader: 'Type of Fee',
             feeAmountHeader: 'Fee Amount',
             moreDetailsHeader: 'More Details',
