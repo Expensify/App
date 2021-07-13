@@ -1,33 +1,36 @@
 import React from 'react';
-import {Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Text from './Text';
 
 const propTypes = {
 
     /** Fontsize */
-    textSize: PropTypes.oneOf(['default', 'large']),
+    smallFontSize: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    textSize: 'default',
+    smallFontSize: false,
 };
 
-const WelcomeText = props => (
-    <>
-        <Text style={[props.textSize === 'large' ? styles.textP : styles.textLabel, styles.textStrong, styles.mb1]}>
-            {props.translate('welcomeText.phrase1')}
-        </Text>
-        <Text style={[props.textSize === 'large' ? styles.textP : styles.textLabel]}>
-            {props.translate('welcomeText.phrase2')}
-            {' '}
-            {props.translate('welcomeText.phrase3')}
-        </Text>
-    </>
-);
+const WelcomeText = (props) => {
+    const textSize = props.smallFontSize ? styles.textLabel : undefined;
+    return (
+        <>
+            <Text style={[textSize, styles.textStrong, styles.mb1]}>
+                {props.translate('welcomeText.phrase1')}
+            </Text>
+            <Text style={[textSize]}>
+                {props.translate('welcomeText.phrase2')}
+                {' '}
+                {props.translate('welcomeText.phrase3')}
+            </Text>
+        </>
+    );
+};
 
 WelcomeText.displayName = 'WelcomeText';
 WelcomeText.propTypes = propTypes;
