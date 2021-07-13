@@ -18,7 +18,9 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
+import {
+    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited,
+} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 import Growl from '../Growl';
@@ -50,11 +52,16 @@ Onyx.connect({
 });
 
 const allReports = {};
+let conciergeChatReportID;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (val) => {
         if (val && val.reportID) {
             allReports[val.reportID] = val;
+
+            if (isConciergeChatReport(val)) {
+                conciergeChatReportID = val.reportID;
+            }
         }
     },
 });
@@ -1314,6 +1321,20 @@ function updateNotificationPreference(reportID, notificationPreference) {
     API.Report_UpdateNotificationPreference({reportID, notificationPreference});
 }
 
+/**
+ * Navigates to the 1:1 report with Concierge
+ */
+function navigateToConciergeChat() {
+    // If we don't have a chat with Concierge then create it
+    if (!conciergeChatReportID) {
+        fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], true);
+        return;
+    }
+
+    Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
+    Navigation.closeDrawer();
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1337,4 +1358,5 @@ export {
     deleteReportComment,
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
+    navigateToConciergeChat,
 };
