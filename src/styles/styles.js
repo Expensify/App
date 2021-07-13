@@ -443,9 +443,9 @@ const styles = {
 
     signInWelcomeScreenshotWide: {
         aspectRatio: 1,
-        width: '80%',
-        height: '80%',
-        maxHeight: 1000,
+        width: '100%',
+        height: '100%',
+        maxHeight: 551,
         minHeight: 300,
     },
 
