@@ -3,94 +3,111 @@ import {View} from 'react-native';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
+import {translateLocal} from '../../../libs/translate';
 
 const ShortTermsForm = () => (
     <>
         <View style={styles.mb5}>
             <View style={[styles.flex1, styles.flexRow, styles.mb3]}>
                 <View style={styles.flex1}>
-                    <Text>Monthly Fee</Text>
+                    <Text>{translateLocal('termsStep.monthlyFee')}</Text>
                 </View>
                 <View style={styles.flex1}>
-                    <Text>Per Purchase</Text>
+                    <Text>{translateLocal('termsStep.shortTermsForm.perPurchase')}</Text>
                 </View>
                 <View style={styles.flex1}>
-                    <Text>ATM Withdrawal</Text>
+                    <Text>{translateLocal('termsStep.shortTermsForm.atmWithdrawal')}</Text>
                 </View>
                 <View style={styles.flex1}>
-                    <Text>Cash Reload</Text>
+                    <Text>{translateLocal('termsStep.shortTermsForm.cashReload')}</Text>
                 </View>
             </View>
             <View style={[styles.flex1, styles.flexRow]}>
                 <View style={styles.flex1}>
-                    <Text>$0</Text>
+                    <Text>{translateLocal('termsStep.feeAmountZero')}</Text>
                 </View>
                 <View style={styles.flex1}>
-                    <Text>$0</Text>
+                    <Text>{translateLocal('termsStep.feeAmountZero')}</Text>
                 </View>
                 <View style={styles.flex1}>
                     <View style={styles.flex1}>
-                        <Text>N/A</Text>
-                        <Text style={styles.textMicro}>in-network</Text>
+                        <Text>{translateLocal('common.na')}</Text>
+                        <Text style={styles.textMicro}>
+                            {translateLocal('termsStep.shortTermsForm.inNetwork')}
+                        </Text>
                     </View>
                     <View style={styles.flex1}>
-                        <Text>N/A</Text>
-                        <Text style={styles.textMicro}>out-of-network</Text>
+                        <Text>{translateLocal('common.na')}</Text>
+                        <Text style={styles.textMicro}>
+                            {translateLocal('termsStep.shortTermsForm.outOfNetwork')}
+                        </Text>
                     </View>
                 </View>
                 <View style={styles.flex1}>
-                    <Text>N/A</Text>
+                    <Text>{translateLocal('common.na')}</Text>
                 </View>
             </View>
         </View>
 
         <View style={[styles.termsRow, styles.flexRow]}>
             <View style={[styles.flex4, styles.p2]}>
-                <Text>ATM balance inquiry</Text>
-                <Text style={[styles.textMicro]}>(in-network or out-of-network)</Text>
+                <Text>{translateLocal('termsStep.shortTermsForm.atmBalanceInquiry')}</Text>
+                <Text style={[styles.textMicro]}>
+                    {translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork')}
+                </Text>
             </View>
             <View style={[styles.flex1, styles.p2]}>
-                <Text>N/A</Text>
+                <Text>{translateLocal('common.na')}</Text>
             </View>
         </View>
         <View style={[styles.termsRow, styles.flexRow]}>
             <View style={[styles.flex4, styles.p2]}>
-                <Text>Customer Service</Text>
-                <Text style={[styles.textMicro]}>(automated or live agent)</Text>
+                <Text>{translateLocal('termsStep.shortTermsForm.customerService')}</Text>
+                <Text style={[styles.textMicro]}>
+                    {translateLocal('termsStep.shortTermsForm.automatedOrLive')}
+                </Text>
             </View>
             <View style={[styles.flex1, styles.p2]}>
-                <Text>$0</Text>
+                <Text>{translateLocal('termsStep.feeAmountZero')}</Text>
             </View>
         </View>
         <View style={[styles.termsRow, styles.flexRow, styles.mb2]}>
             <View style={[styles.flex4, styles.p2]}>
-                <Text>Inactivity</Text>
-                <Text style={[styles.textMicro]}>(after 12 months with no transactions)</Text>
+                <Text>{translateLocal('termsStep.inactivity')}</Text>
+                <Text style={[styles.textMicro]}>
+                    {translateLocal('termsStep.shortTermsForm.afterTwelveMonths')}
+                </Text>
             </View>
             <View style={[styles.flex1, styles.p2]}>
-                <Text>$0</Text>
+                <Text>{translateLocal('termsStep.feeAmountZero')}</Text>
             </View>
         </View>
         <View style={[styles.termsRowBold, styles.flexRow]}>
             <View style={[styles.flex4, styles.p2]}>
-                <Text style={styles.h3}>We charge 1 type of fee.</Text>
+                <Text style={styles.h3}>
+                    {translateLocal('termsStep.shortTermsForm.weChargeOneFee')}
+                </Text>
             </View>
         </View>
         <View style={[styles.termsRow, styles.flexRow]}>
             <View style={[styles.flex4, styles.p2]}>
-                <Text>Electronic Funds withdrawal</Text>
-                <Text style={styles.textMicro}>(instant)</Text>
+                <Text>{translateLocal('termsStep.shortTermsForm.electronicFundsWithdrawal')}</Text>
+                <Text style={styles.textMicro}>{translateLocal('termsStep.shortTermsForm.instant')}</Text>
             </View>
             <View style={[styles.flex1, styles.p2]}>
-                <Text>1.5% (min. $0.25)</Text>
+                <Text>{translateLocal('termsStep.electronicFundsInstantFee')}</Text>
             </View>
         </View>
 
         <View style={[styles.termsRow, styles.pt4]}>
-            <Text style={styles.textStrong}>No overdraft/credit feature.</Text>
-            <Text style={styles.mb3}>Your funds are elligible for FDIC insurance.</Text>
+            <Text style={styles.textStrong}>
+                {translateLocal('termsStep.shortTermsForm.noOverdraftOrCredit')}
+            </Text>
             <Text style={styles.mb3}>
-                For general information about prepaid accounts, visit
+                {translateLocal('termsStep.shortTermsForm.fdicInsurance')}
+            </Text>
+            <Text style={styles.mb3}>
+                {translateLocal('termsStep.shortTermsForm.generalInfo')}
                 {' '}
                 <TextLink href="https://cfpb.gov/prepaid">
                     cfpb.gov/prepaid
@@ -98,13 +115,13 @@ const ShortTermsForm = () => (
                 .
             </Text>
             <Text>
-                Find details and conditions for all fees and services by visiting
+                {translateLocal('termsStep.shortTermsForm.conditionsDetails')}
                 {' '}
                 <TextLink href="https://use.expensify.com/fees">
                     use.expensify.com/fees
                 </TextLink>
                 {' '}
-                or calling +1 833-400-0904.
+                {translateLocal('termsStep.shortTermsForm.conditionsPhone')}
             </Text>
         </View>
     </>

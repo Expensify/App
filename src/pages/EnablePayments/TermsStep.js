@@ -66,7 +66,7 @@ class TermsStep extends React.Component {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={[styles.mh5, styles.flex1]}>
-                    <ScrollView>
+                    <ScrollView style={styles.mb4}>
                         <ShortTermsForm />
                         <LongTermsForm />
                     </ScrollView>
