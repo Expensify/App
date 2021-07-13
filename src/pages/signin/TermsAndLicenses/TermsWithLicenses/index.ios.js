@@ -59,7 +59,7 @@ const TermsWithLicenses = ({translate}) => (
                     {' '}
                 </Text>
                 <TextLink
-                    style={[styles.loginTermsText, styles.termsLinkNative, styles.termsLinkIos]}
+                    style={[styles.loginTermsText, styles.termsLinkNative]}
                     href={CONST.LICENSES_URL}
                 >
                     {translate('termsOfUse.phrase7')}
