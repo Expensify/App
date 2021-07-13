@@ -6,7 +6,7 @@ import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {getReportParticipantsTitle, isDefaultRoom, getDefaultRoomSubtitle} from './reportUtils';
+import {getReportParticipantsTitle, isDefaultRoom, getDefaultRoomSubtitle, isArchivedRoom} from './reportUtils';
 import {translate} from './translate';
 import Permissions from './Permissions';
 import md5 from './md5';
@@ -227,6 +227,7 @@ function createOption(personalDetailList, report, draftComments, {
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
         isDefaultChatRoom,
+        isArchivedRoom: isArchivedRoom(report),
     };
 }
 
