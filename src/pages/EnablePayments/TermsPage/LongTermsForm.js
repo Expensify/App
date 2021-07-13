@@ -88,7 +88,7 @@ const getTermsSection = () => termsData.map(data => (
 const LongTermsForm = () => (
     <View style={[styles.mt4, styles.pt4, styles.termsRow]}>
         <Text style={[styles.pb4]}>
-            A list of all Expensify Payments Account fees:
+            {translateLocal('termsStep.longTermsForm.listOfAllFees')}
         </Text>
         <View style={styles.termsSection} />
         {getTermsSection()}

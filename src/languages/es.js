@@ -402,6 +402,7 @@ export default {
         enablePayments: 'Habilitar pagos',
         termsMustBeAccepted: 'Se deben aceptar los términos',
         longTermsForm: {
+            listOfAllFees: 'Una lista de todas las tarifas de la cuenta Expensify Payments:',
             typeOfFeeHeader: 'Tipo de tarifa',
             feeAmountHeader: 'Importe de la tarifa',
             moreDetailsHeader: 'Más detalles',
