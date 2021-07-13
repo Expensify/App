@@ -24,9 +24,9 @@ import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import BeneficialOwnersStep from './BeneficialOwnersStep';
+import ExistingOwnersStep from './ExistingOwnersStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import ExistingOwnersStep from './ExistingOwnersStep';
 
 const propTypes = {
     /** List of betas */
