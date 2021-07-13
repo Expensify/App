@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View, Pressable, TouchableWithoutFeedback} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -73,7 +73,7 @@ const ReportActionItemSingle = ({
             </Pressable>
             <View style={[styles.chatItemRight]}>
                 <View style={[styles.chatItemMessageHeader]}>
-                    <Pressable onPress={() => showUserDetails(action.actorEmail)}>
+                    <Pressable style={[styles.flexShrink1]} onPress={() => showUserDetails(action.actorEmail)}>
                         {_.map(personArray, (fragment, index) => (
                             <ReportActionItemFragment
                                 key={`person-${action.sequenceNumber}-${index}`}
@@ -85,6 +85,7 @@ const ReportActionItemSingle = ({
                             />
                         ))}
                     </Pressable>
+                    
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
                 {children}
