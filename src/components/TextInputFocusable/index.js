@@ -314,6 +314,7 @@ class TextInputFocusable extends React.Component {
                         */
                         this.handlePastedHTML(pastedHTML);
                     });
+                return;
             }
 
             this.handlePastedHTML(pastedHTML);
