@@ -1,6 +1,6 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native-web';
-import Collapse from 'react-collapse';
+import {View, TouchableOpacity} from 'react-native';
+import Collapsible from './Collapsible';
 import Text from '../Text';
 import {propTypes, defaultProps} from './CollapsibleSectionPropTypes';
 import styles from '../../styles/styles';
@@ -38,11 +38,11 @@ class CollapsibleSection extends React.Component {
                     </View>
                 </TouchableOpacity>
 
-                <Collapse isOpened={this.state.isExpanded}>
+                <Collapsible isOpened={this.state.isExpanded}>
                     <View>
                         {this.props.children}
                     </View>
-                </Collapse>
+                </Collapsible>
             </View>
         );
     }
