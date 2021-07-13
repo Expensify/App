@@ -34,6 +34,15 @@ class ReportScreen extends React.Component {
         this.storeCurrentlyViewedReport();
     }
 
+    componentDidUpdate(prevProps) {
+        const reportChanged = this.props.route.params.reportID !== prevProps.route.params.reportID;
+
+        if (reportChanged) {
+            this.prepareTransition();
+            this.storeCurrentlyViewedReport();
+        }
+    }
+
     componentWillUnmount() {
         clearTimeout(this.loadingTimerId);
     }
