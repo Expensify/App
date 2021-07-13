@@ -681,28 +681,28 @@ function getReportIcons(report, personalDetails) {
 }
 
 /**
- * Returns the given userToInvite is currentUser or not.
- * @param {Object} userToInvite
+ * Returns the given userDetails is currentUser or not.
+ * @param {Object} userDetails
  * @returns {Bool}
  */
 
- function isCurrentUser(userToInvite) {
-    if (!userToInvite) {
-        // If userToInvite is null or undefined
+function isCurrentUser(userDetails) {
+    if (!userDetails) {
+        // If userDetails is null or undefined
         return false;
     }
 
     // If user login is mobile number, append sms domain if not appended already just a fail safe.
-    const userToInviteLogin = addSMSDomainIfPhoneNumber(userToInvite.login);
+    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
 
     // Initial check with currentUserLogin
-    let result = currentUserLogin.toLowerCase() === userToInviteLogin.toLowerCase();
+    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
     const {loginList} = currentUser;
     let index = 0;
 
-    // Checking userToInviteLogin against to current user login options.
+    // Checking userDetailsLogin against to current user login options.
     while (index < loginList.length && !result) {
-        if (loginList[index].partnerUserID.toLowerCase() === userToInviteLogin.toLowerCase()) {
+        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
             result = true;
         }
         index++;
