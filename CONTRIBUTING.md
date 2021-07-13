@@ -1,11 +1,11 @@
 # Contributing to Expensify
-Welcome! Thanks for checking out Expensify and for taking the time to contribute!
+Welcome! Thanks for checking out the new Expensify app and for taking the time to contribute!
 
 ## Getting Started
 If you would like to become an Expensify contributor, the first step is to read this document in its entirety. The second step is to review the README guidelines [here](https://github.com/Expensify/Expensify.cash/blob/main/README.md) for a general overview of the code repository (i.e. how to run the app locally, testing, storage, etc). Please read both documents before asking questions, as it may be covered within the documentation.
 
 #### Test Accounts
-You can create as many accounts as needed in order to test your changes directly from [the app](https://expensify.cash/). An initial account can be created when logging in for the first time, and additional accounts can be invited by entering a valid email or phone in the "Find or start a chat" input then tapping the avatar.
+You can create as many accounts as needed in order to test your changes directly from [the app](https://new.expensify.com/). An initial account can be created when logging in for the first time, and additional accounts can be invited by entering a valid email or phone in the "Find or start a chat" input then tapping the avatar.
 
 **Note**: When testing chat functionality in the app please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you. 
 
@@ -30,7 +30,7 @@ We hire and pay external contributors via Upwork.com. If you'd like to be paid f
 There are two ways you can find a job that you can contribute to:
 
 #### Finding a job that Expensify posted
-This is the most common scenario for contributors. The Expensify team posts New Expensify jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow.
+This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow.
 
 #### Proposing a job that Expensify hasn’t posted
 
@@ -38,7 +38,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 
     1. Check to ensure an issue does not already exist in the New Expensify Issue list or Upwork job list. Please use your best judgement to search for similar titles and issue descriptions.
     2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it’ll help solve a problem.
-    3. If there is no existing issue or Upwork job, create a new GitHub issue in the app's repo.
+    3. If there is no existing issue or Upwork job, create a new GitHub issue in the Expensify/App repo.
     4. Make sure to fill out all the required information fields in the issue template.
     5. Add the `AutoAssignerTriage` label to your issue.
     6. Before starting your PR to solve the bug or enhancement that you are proposing, please add a comment on your issue with a solution proposal. 
