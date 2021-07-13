@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {
-    Pressable, ActivityIndicator, InteractionManager,
-} from 'react-native';
+import {Pressable, ActivityIndicator} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -87,16 +85,12 @@ class Button extends Component {
             return;
         }
 
-        // Component is not initialized yet due to navigation transitions
-        // Wait until interactions are complete before trying to attach listener
-        InteractionManager.runAfterInteractions(() => {
-            // Setup and attach keypress handler for pressing the button with Enter key
-            this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
-                if (this.props.pressOnEnter && !this.props.isDisabled && !this.props.isLoading) {
-                    this.props.onPress();
-                }
-            }, [], true);
-        });
+        // Setup and attach keypress handler for pressing the button with Enter key
+        this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
+            if (!this.props.isDisabled && !this.props.isLoading) {
+                this.props.onPress();
+            }
+        }, [], true);
     }
 
     componentWillUnmount() {
