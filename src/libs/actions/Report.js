@@ -161,22 +161,22 @@ function getChatReportName(fullReport, chatType) {
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
-    const lastReportAction = !_.isEmpty(report.mostRecentReportAction) ? report.mostRecentReportAction : null;
-    const createTimestamp = lastReportAction ? lastReportAction.created : 0;
+    const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
-    const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lodashGet(lastReportAction, ['message', 'html'], ''));
+    const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
+    const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
     // We are removing any html tags from the message html since we cannot access the text version of any comments as
     // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
     // We convert the line-breaks in html to space ' ' before striping the tags
-    const lastMessageText = lodashGet(lastReportAction, ['message', 'html'], '')
+    const lastMessageText = lastActionMessage
         .replace(/((<br[^>]*>)+)/gi, ' ')
         .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
-    const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
+    const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
     const notificationPreference = isDefaultRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
@@ -188,7 +188,7 @@ function getSimplifiedReportObject(report) {
         ownerEmail: lodashGet(report, ['ownerEmail'], ''),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
-        maxSequenceNumber: report.reportActionListLength,
+        maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
         lastVisitedTimestamp: lodashGet(report, [
