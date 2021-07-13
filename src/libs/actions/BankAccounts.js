@@ -49,8 +49,9 @@ function fetchPlaidLinkToken() {
  *
  * @param {String} stepID
  * @param {Object} achData
+ * @param {Object} additionalProps
  */
-function goToWithdrawalAccountSetupStep(stepID, achData) {
+function goToWithdrawalAccountSetupStep(stepID, achData, additionalProps = {}) {
     const newACHData = {...reimbursementAccountInSetup};
 
     // If we go back to Requestor Step, reset any validation and previously answered questions from expectID.
@@ -68,7 +69,17 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
         newACHData.subStep = 'manual';
     }
 
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
+    Onyx.merge(
+        ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        {
+            achData: {
+                ...additionalProps,
+                ...newACHData,
+                ...achData,
+                currentStep: stepID,
+            },
+        },
+    );
 }
 
 /**
@@ -616,8 +627,11 @@ function setupWithdrawalAccount(data) {
 
                 // Show warning if another account already set up this bank account and promote share
                 if (response.existingOwners) {
-                    // @TODO Show better error in UI about existing owners
-                    console.error('Cannot set up withdrawal account due to existing owners');
+                    goToWithdrawalAccountSetupStep(
+                        CONST.BANK_ACCOUNT.STEP.EXISTING_OWNERS,
+                        achData,
+                        {existingOwners: response.existingOwners},
+                    );
                     return;
                 }
 

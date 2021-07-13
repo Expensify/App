@@ -327,13 +327,6 @@ export default {
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: ({fromNow}) => `For security reasons, we're taking a break from bank account setup so you can double-check your company information. Please try again ${fromNow}. Sorry!`,
-        existingOwnersError: {
-            alreadyInUse: 'This bank account is already in use by ',
-            pleaseAskThemToShare: '.\n\nPlease ask them to share it with you.\n\n',
-            alternatively: 'Alternatively, you can ',
-            setUpThisAccountByYourself: 'set up this account by yourself',
-            validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
-        },
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             taxID: 'Please enter a valid Tax ID Number',
@@ -450,6 +443,14 @@ export default {
             termsAndConditions: 'Must accept terms and conditions',
             certify: 'Must certify information is true and accurate',
         },
+    },
+    existingOwnersStep: {
+        headerTitle: 'Existing owners',
+        alreadyInUse: 'This bank account is already in use by ',
+        pleaseAskThemToShare: 'Please ask them to share it with you.',
+        alternatively: 'Alternatively, you can ',
+        setUpThisAccountByYourself: 'set up this account by yourself',
+        validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
     },
     session: {
         offlineMessage: 'Looks like you\'re offline. Please check your connection and try again.',

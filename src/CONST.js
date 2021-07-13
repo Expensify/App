@@ -33,6 +33,7 @@ const CONST = {
             ACH_CONTRACT: 'ACHContractStep',
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
+            EXISTING_OWNERS: 'ExistingOwnersStep',
         },
         SUBSTEP: {
             MANUAL: 'manual',

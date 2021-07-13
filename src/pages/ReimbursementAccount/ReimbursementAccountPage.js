@@ -26,6 +26,7 @@ import ValidationStep from './ValidationStep';
 import BeneficialOwnersStep from './BeneficialOwnersStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import ExistingOwnersStep from './ExistingOwnersStep';
 
 const propTypes = {
     /** List of betas */
@@ -231,6 +232,16 @@ class ReimbursementAccountPage extends React.Component {
                             maxAttemptsReached={maxAttemptsReached}
                             error={error}
                         />
+                    )}
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
+                        <ValidationStep
+                            achData={this.props.reimbursementAccount.achData}
+                            maxAttemptsReached={maxAttemptsReached}
+                            error={error}
+                        />
+                    )}
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.EXISTING_OWNERS && (
+                        <ExistingOwnersStep achData={achData} />
                     )}
                 </KeyboardAvoidingView>
             </ScreenWrapper>
