@@ -95,7 +95,7 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        phrase1: 'Welcome to Expensify.cash! Enter your phone or email to continue.',
+        phrase1: 'Welcome to new Expensify! Enter your phone or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
@@ -197,7 +197,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            description: 'New Expensify is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
             appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
