@@ -1,5 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -18,7 +21,14 @@ import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 const PAYPAL = 'payPalMe';
 
 const propTypes = {
+    /** User's paypal.me username if they have one */
+    payPalMeUsername: PropTypes.string,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    payPalMeUsername: '',
 };
 
 class PaymentsPage extends React.Component {
@@ -104,11 +114,13 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                     >
-                        <MenuItem
-                            title="PayPal.me"
-                            icon={PayPal}
-                            onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
-                        />
+                        {!this.props.payPalMeUsername && (
+                            <MenuItem
+                                title="PayPal.me"
+                                icon={PayPal}
+                                onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                            />
+                        )}
                     </Popover>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
@@ -117,8 +129,14 @@ class PaymentsPage extends React.Component {
 }
 
 PaymentsPage.propTypes = propTypes;
+PaymentsPage.defaultProps = defaultProps;
 PaymentsPage.displayName = 'PaymentsPage';
 
 export default compose(
     withLocalize,
+    withOnyx({
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+        },
+    }),
 )(PaymentsPage);
