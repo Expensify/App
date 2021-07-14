@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, Pressable, Text} from 'react-native';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -24,6 +24,7 @@ import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import {getDefaultRoomSubtitle, isDefaultRoom} from '../../libs/reportUtils';
+import Text from '../../components/Text';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
