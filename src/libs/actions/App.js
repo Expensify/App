@@ -8,14 +8,6 @@ function setCurrentURL(url) {
     Onyx.set(ONYXKEYS.CURRENT_URL, url);
 }
 
-/**
- * @param {String} locale
- */
-function setLocale(locale) {
-    Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
-}
-
 export {
     setCurrentURL,
-    setLocale,
 };
