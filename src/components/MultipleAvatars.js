@@ -32,7 +32,7 @@ const defaultProps = {
 };
 
 const MultipleAvatars = ({
-    avatarImageURLs, size, secondAvatarStyle, isDefaultChatRoom, isArchivedRoom
+    avatarImageURLs, size, secondAvatarStyle, isDefaultChatRoom, isArchivedRoom,
 }) => {
     const avatarContainerStyles = size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
     const singleAvatarStyles = size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
