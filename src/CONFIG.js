@@ -7,7 +7,7 @@ import CONST from './CONST';
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-const expensifyCashURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://expensify.cash/'));
+const expensifyCashURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com/'));
 const expensifyURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
 const ngrokURL = addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
 const secureNgrokURL = addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
