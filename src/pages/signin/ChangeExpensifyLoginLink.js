@@ -1,8 +1,9 @@
 import React from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import {restartSignin} from '../../libs/actions/Session';
 import themeColors from '../../styles/themes/default';
@@ -27,7 +28,7 @@ const ChangeExpensifyLoginLink = ({credentials, translate, toLocalPhone}) => (
             onPress={restartSignin}
             underlayColor={themeColors.componentBG}
         >
-            <Text style={[styles.link]}>
+            <Text style={[styles.link, styles.mt3]}>
                 {translate('common.not')}
                 &nbsp;
                 {Str.isSMSLogin(credentials.login)

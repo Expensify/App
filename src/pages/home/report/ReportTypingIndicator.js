@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -8,6 +8,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Text from '../../../components/Text';
 
 const propTypes = {
     /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */
@@ -58,7 +59,9 @@ class ReportTypingIndicator extends React.Component {
                             styles.chatItemComposeSecondaryRowOffset,
                         ]}
                         >
-                            <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
+                            <Text style={[styles.textMicroSupportingBold]}>
+                                {getDisplayName(this.state.usersTyping[0])}
+                            </Text>
                             {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
                         </Text>
                     </View>
@@ -71,9 +74,13 @@ class ReportTypingIndicator extends React.Component {
                             styles.chatItemComposeSecondaryRowOffset,
                         ]}
                         >
-                            <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[0])}</Text>
+                            <Text style={[styles.textMicroSupportingBold]}>
+                                {getDisplayName(this.state.usersTyping[0])}
+                            </Text>
                             {` ${this.props.translate('common.and')} `}
-                            <Text style={[styles.textStrong]}>{getDisplayName(this.state.usersTyping[1])}</Text>
+                            <Text style={[styles.textMicroSupportingBold]}>
+                                {getDisplayName(this.state.usersTyping[1])}
+                            </Text>
                             {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
                         </Text>
                     </View>
@@ -86,7 +93,7 @@ class ReportTypingIndicator extends React.Component {
                             styles.chatItemComposeSecondaryRowOffset,
                         ]}
                         >
-                            <Text style={[styles.textStrong]}>
+                            <Text style={[styles.textMicroSupportingBold]}>
                                 {this.props.translate('reportTypingIndicator.multipleUsers')}
                             </Text>
                             {` ${this.props.translate('reportTypingIndicator.areTyping')}`}

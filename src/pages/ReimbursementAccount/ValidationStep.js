@@ -5,9 +5,8 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-
 import {validateBankAccount} from '../../libs/actions/BankAccounts';
-
+import {navigateToConciergeChat} from '../../libs/actions/Report';
 import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -15,6 +14,7 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
 import CONST from '../../CONST';
+import TextLink from '../../components/TextLink';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -46,7 +46,6 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-
         this.verifyingUrl = `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`;
 
         this.state = {
@@ -166,7 +165,19 @@ class ValidationStep extends React.Component {
                             resizeMode="center"
                         />
                         <Text style={[styles.mh5, styles.mb5]}>
-                            {this.props.translate('validationStep.verifyingDescription')}
+                            {this.props.translate('validationStep.reviewingInfo')}
+                            <TextLink
+                                onPress={() => {
+                                    // There are two modals that must be dismissed before we can reveal the Concierge
+                                    // chat underneath these screens
+                                    Navigation.dismissModal();
+                                    Navigation.dismissModal();
+                                    navigateToConciergeChat();
+                                }}
+                            >
+                                {this.props.translate('common.here')}
+                            </TextLink>
+                            {this.props.translate('validationStep.forNextSteps')}
                         </Text>
                     </View>
                 )}

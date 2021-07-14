@@ -61,7 +61,10 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
+import ValidateLoginNewWorkspacePage from '../../../pages/ValidateLoginNewWorkspacePage';
+import ValidateLogin2FANewWorkspacePage from '../../../pages/ValidateLogin2FANewWorkspacePage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
+import defaultScreenOptions from './defaultScreenOptions';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -140,8 +143,8 @@ class AuthScreens extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
 
         if (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas)) {
-            getPolicySummaries();
             getPolicyList();
+            getPolicySummaries();
         }
 
         // Refresh the personal details, timezone and betas every 30 minutes
@@ -252,6 +255,16 @@ class AuthScreens extends React.Component {
                         title: 'Expensify.cash',
                     }}
                     component={ValidateLoginPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE}
+                    options={defaultScreenOptions}
+                    component={ValidateLoginNewWorkspacePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN_2FA_NEW_WORKSPACE}
+                    options={defaultScreenOptions}
+                    component={ValidateLogin2FANewWorkspacePage}
                 />
 
                 {/* These are the various modal routes */}
