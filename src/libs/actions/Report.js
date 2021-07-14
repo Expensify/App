@@ -317,7 +317,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
             if (jsonCode === 404 && chatList.length === 1) {
                 throw new Error('inacessible');
             }
-            
+
             return Promise.all(_.map(fetchedReports, (chatReport) => {
                 // If there aren't any IOU actions, we don't need to fetch any additional data
                 if (!chatReport.hasIOUAction) {
