@@ -61,6 +61,11 @@ class CompanyStep extends React.Component {
             return false;
         }
 
+        if (this.state.addressState === '') {
+            Growl.error(this.props.translate('bankAccount.error.addressState'));
+            return false;
+        }
+
         if (!isValidZipCode(this.state.addressZipCode)) {
             Growl.error(this.props.translate('bankAccount.error.zipCode'));
             return false;
