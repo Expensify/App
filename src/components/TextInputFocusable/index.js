@@ -270,7 +270,6 @@ class TextInputFocusable extends React.Component {
     handlePaste(event) {
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
-        const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
         // If paste contains files, then trigger file management
         if (files.length > 0) {
@@ -282,13 +281,15 @@ class TextInputFocusable extends React.Component {
 
         // If paste contains HTML
         if (types.includes(TEXT_HTML)) {
+            const pastedHTML = event.clipboardData.getData(TEXT_HTML);
+
             event.preventDefault();
             const domparser = new DOMParser();
-            const embededImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+            const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
             // If HTML has img tag, then fetch images from it.
-            if (embededImages.length > 0) {
-                fetch(embededImages[0].src)
+            if (embeddedImages.length > 0) {
+                fetch(embeddedImages[0].src)
                     .then((response) => {
                         if (!response.ok) { throw Error(response.statusText); }
                         return response.blob();
