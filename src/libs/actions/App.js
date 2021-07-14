@@ -8,6 +8,4 @@ function setCurrentURL(url) {
     Onyx.set(ONYXKEYS.CURRENT_URL, url);
 }
 
-export {
-    setCurrentURL,
-};
+export default setCurrentURL;
