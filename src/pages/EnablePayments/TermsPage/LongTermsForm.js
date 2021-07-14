@@ -58,28 +58,26 @@ const termsData = [
 
 const getTermsSection = () => termsData.map(data => (
     <CollapsibleSection title={data.sectionTitle} key={data.sectionTitle}>
-        <View>
-            <View style={[styles.flex1, styles.flexRow, styles.borderBottom]}>
-                <View style={[styles.flex1, styles.borderRight, styles.alignItemsCenter, styles.pb2, styles.pt1]}>
-                    <Text>{translateLocal('termsStep.longTermsForm.typeOfFeeHeader')}</Text>
-                </View>
-                <View style={[styles.flex1, styles.borderRight, styles.alignItemsCenter, styles.pb2, styles.pt1]}>
-                    <Text>{translateLocal('termsStep.longTermsForm.feeAmountHeader')}</Text>
-                </View>
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.pb2, styles.pt1]}>
-                    <Text>{translateLocal('termsStep.longTermsForm.moreDetailsHeader')}</Text>
-                </View>
+        <View style={[styles.flex1, styles.flexRow, styles.borderBottom]}>
+            <View style={[styles.flex1, styles.borderRight, styles.alignItemsCenter, styles.pb2, styles.pt1]}>
+                <Text>{translateLocal('termsStep.longTermsForm.typeOfFeeHeader')}</Text>
             </View>
-            <View style={[styles.flex1, styles.flexRow, styles.mb4]}>
-                <View style={[styles.flex1, styles.borderRight, styles.pb1, styles.pt2, styles.termsTableItem]}>
-                    <Text>{data.typeOfFee}</Text>
-                </View>
-                <View style={[styles.flex1, styles.borderRight, styles.pb1, styles.pt2, styles.termsTableItem]}>
-                    <Text>{data.feeAmount}</Text>
-                </View>
-                <View style={[styles.flex1, styles.pb1, styles.pt2, styles.termsTableItem]}>
-                    <Text>{data.moreDetails}</Text>
-                </View>
+            <View style={[styles.flex1, styles.borderRight, styles.alignItemsCenter, styles.pb2, styles.pt1]}>
+                <Text>{translateLocal('termsStep.longTermsForm.feeAmountHeader')}</Text>
+            </View>
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.pb2, styles.pt1]}>
+                <Text>{translateLocal('termsStep.longTermsForm.moreDetailsHeader')}</Text>
+            </View>
+        </View>
+        <View style={[styles.flex1, styles.flexRow, styles.mb4]}>
+            <View style={[styles.flex1, styles.borderRight, styles.pb1, styles.pt2, styles.termsTableItem]}>
+                <Text>{data.typeOfFee}</Text>
+            </View>
+            <View style={[styles.flex1, styles.borderRight, styles.pb1, styles.pt2, styles.termsTableItem]}>
+                <Text>{data.feeAmount}</Text>
+            </View>
+            <View style={[styles.flex1, styles.pb1, styles.pt2, styles.termsTableItem]}>
+                <Text>{data.moreDetails}</Text>
             </View>
         </View>
     </CollapsibleSection>
