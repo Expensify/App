@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Text, TextInput} from 'react-native';
+import {ScrollView, TextInput} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -19,6 +19,8 @@ import Growl from '../libs/Growl';
 import {requestConciergeDMCall} from '../libs/actions/Inbox';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
+import Text from '../components/Text';
+import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -142,54 +144,56 @@ class RequestCallPage extends Component {
         const isButtonDisabled = false;
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('requestCallPage.requestACall')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => fetchOrCreateChatReport([
-                        this.props.session.email,
-                        CONST.EMAIL.CONCIERGE,
-                    ], true)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.p5]}>
-                    <Text style={[styles.mb4, styles.textP]}>
-                        {this.props.translate('requestCallPage.description')}
-                    </Text>
-                    <Text style={[styles.mt4, styles.mb4, styles.textP]}>
-                        {this.props.translate('requestCallPage.instructions')}
-                    </Text>
-                    <FullNameInputRow
-                        firstName={this.state.firstName}
-                        lastName={this.state.lastName}
-                        onChangeFirstName={firstName => this.setState({firstName})}
-                        onChangeLastName={lastName => this.setState({lastName})}
-                        style={[styles.mt4, styles.mb4]}
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('requestCallPage.requestACall')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => fetchOrCreateChatReport([
+                            this.props.session.email,
+                            CONST.EMAIL.CONCIERGE,
+                        ], true)}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <Text style={[styles.mt4, styles.formLabel]} numberOfLines={1}>
-                        {this.props.translate('common.phoneNumber')}
-                    </Text>
-                    <TextInput
-                        autoCompleteType="off"
-                        autoCorrect={false}
-                        style={[styles.textInput]}
-                        value={this.state.phoneNumber}
-                        placeholder="+14158675309"
-                        onChangeText={phoneNumber => this.setState({phoneNumber})}
-                    />
-                    <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
-                        {this.props.translate('requestCallPage.availabilityText')}
-                    </Text>
-                </View>
-                <FixedFooter>
-                    <Button
-                        success
-                        isDisabled={isButtonDisabled}
-                        onPress={this.onSubmit}
-                        style={[styles.w100]}
-                        text={this.props.translate('requestCallPage.callMe')}
-                        isLoading={this.state.isLoading}
-                    />
-                </FixedFooter>
+                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                        <Text style={[styles.mb4]}>
+                            {this.props.translate('requestCallPage.description')}
+                        </Text>
+                        <Text style={[styles.mt4, styles.mb4]}>
+                            {this.props.translate('requestCallPage.instructions')}
+                        </Text>
+                        <FullNameInputRow
+                            firstName={this.state.firstName}
+                            lastName={this.state.lastName}
+                            onChangeFirstName={firstName => this.setState({firstName})}
+                            onChangeLastName={lastName => this.setState({lastName})}
+                            style={[styles.mt4, styles.mb4]}
+                        />
+                        <Text style={[styles.mt4, styles.formLabel]} numberOfLines={1}>
+                            {this.props.translate('common.phoneNumber')}
+                        </Text>
+                        <TextInput
+                            autoCompleteType="off"
+                            autoCorrect={false}
+                            style={[styles.textInput]}
+                            value={this.state.phoneNumber}
+                            placeholder="+14158675309"
+                            onChangeText={phoneNumber => this.setState({phoneNumber})}
+                        />
+                        <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
+                            {this.props.translate('requestCallPage.availabilityText')}
+                        </Text>
+                    </ScrollView>
+                    <FixedFooter>
+                        <Button
+                            success
+                            isDisabled={isButtonDisabled}
+                            onPress={this.onSubmit}
+                            style={[styles.w100]}
+                            text={this.props.translate('requestCallPage.callMe')}
+                            isLoading={this.state.isLoading}
+                        />
+                    </FixedFooter>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }

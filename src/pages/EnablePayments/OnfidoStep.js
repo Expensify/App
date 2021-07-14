@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Onfido from '../../components/Onfido';
@@ -14,6 +14,7 @@ import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import Text from '../../components/Text';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
@@ -120,7 +121,7 @@ class OnfidoStep extends React.Component {
                                 && this.props.walletOnfidoData.loading && <FullscreenLoadingIndicator />}
                             {!this.props.walletOnfidoData.loading && this.props.walletOnfidoData.error && (
                                 <>
-                                    <Text style={[styles.h3, styles.mb2]}>
+                                    <Text style={[styles.h3, styles.textStrong, styles.mb2]}>
                                         {this.props.walletOnfidoData.error}
                                     </Text>
                                     <Button

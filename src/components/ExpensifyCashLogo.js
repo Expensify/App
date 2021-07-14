@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ProductionLogo from '../../assets/images/expensify-cash.svg';
-import DevLogo from '../../assets/images/expensify-cash-dev.svg';
-import StagingLogo from '../../assets/images/expensify-cash-stg.svg';
+import ProductionLogo from '../../assets/images/new-expensify.svg';
+import DevLogo from '../../assets/images/new-expensify-dev.svg';
+import StagingLogo from '../../assets/images/new-expensify-stg.svg';
 import CONST from '../CONST';
 import withEnvironment, {environmentPropTypes} from './withEnvironment';
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     View,
-    Text,
     TouchableOpacity,
     InteractionManager,
 } from 'react-native';
@@ -17,6 +16,7 @@ import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
+import Text from '../../../components/Text';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
