@@ -88,12 +88,19 @@ const propTypes = {
         /** Whether or not the IOU step is loading (creating the IOU Report) */
         loading: PropTypes.bool,
     }),
+
+    /** Information about the network */
+    network: PropTypes.shape({
+        /** Is the network currently offline or not */
+        isOffline: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
     iou: {},
     onUpdateComment: null,
     comment: '',
+    network: {},
 };
 
 // Gives minimum height to offset the height of
@@ -274,8 +281,14 @@ class IOUConfirmationList extends Component {
                     </View>
                 </ScrollView>
                 <FixedFooter>
+                    {this.props.network.isOffline && (
+                        <Text style={[styles.formError, styles.pb2]}>
+                            {this.props.translate('session.offlineMessage')}
+                        </Text>
+                    )}
                     <Button
                         success
+                        isDisabled={this.props.network.isOffline}
                         style={[styles.w100]}
                         isLoading={this.props.iou.loading}
                         text={buttonText}
@@ -300,6 +313,9 @@ export default compose(
         iou: {key: ONYXKEYS.IOU},
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
         },
     }),
 )(IOUConfirmationList);

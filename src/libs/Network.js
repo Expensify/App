@@ -109,9 +109,13 @@ function processNetworkRequestQueue() {
         }
 
         // If we have a request then we need to check if it can be persisted in case we close the tab while offline
-        const retryableRequests = _.filter(networkRequestQueue, request => (
-            !request.data.doNotRetry && request.data.persist
-        ));
+        const retryableRequests = [];
+        _.each(networkRequestQueue, (request) => {
+            if ((request.data.doNotRetry || request.data.forceNetworkRequest) && !request.data.persist) {
+                return request.resolve();
+            }
+            retryableRequests.push(request);
+        });
         Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, retryableRequests);
         return;
     }
