@@ -56,12 +56,9 @@ export default {
         send: 'Send',
         notifications: 'Notifications',
         noResultsFound: 'No results found',
-<<<<<<< HEAD
-=======
         deletedCommentMessage: 'Comment deleted',
         timePrefix: 'It\'s',
         conjunctionFor: 'for',
->>>>>>> 0639c6771 (Merge pull request #4020 from Expensify/Rory-FixUserTypingIndicator)
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',

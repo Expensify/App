@@ -52,12 +52,9 @@ export default {
         send: 'Enviar',
         notifications: 'Notificaciones',
         noResultsFound: 'No se han encontrado resultados',
-<<<<<<< HEAD
-=======
         deletedCommentMessage: 'Comentario borrado',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
->>>>>>> 0639c6771 (Merge pull request #4020 from Expensify/Rory-FixUserTypingIndicator)
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
