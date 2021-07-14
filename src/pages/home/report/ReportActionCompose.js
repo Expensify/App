@@ -147,7 +147,7 @@ class ReportActionCompose extends React.Component {
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
         this.setTextInputRef = this.setTextInputRef.bind(this);
-        this.getInputPlaceholder = this.getInputPlaceholder.bind(this)
+        this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -232,6 +232,26 @@ class ReportActionCompose extends React.Component {
     setTextInputRef(el) {
         ReportActionComposeFocusManager.composerRef.current = el;
         this.textInput = el;
+    }
+
+    /**
+     * Get the placeholder to display in the chat input.
+     *
+     * @return {String}
+     */
+    getInputPlaceholder() {
+        if (isArchivedRoom(this.props.report)) {
+            return this.props.translate('reportActionCompose.roomIsArchived');
+        }
+
+        if (this.props.report.participants
+            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE)
+            && !_.isEmpty(this.props.blockedFromConcierge)
+            && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt)) {
+            return this.props.translate('reportActionCompose.blockedFromConcierge');
+        }
+
+        return this.props.translate('reportActionCompose.writeSomething');
     }
 
     /**
@@ -376,26 +396,6 @@ class ReportActionCompose extends React.Component {
         if (this.emojiSearchInput) {
             this.emojiSearchInput.focus();
         }
-    }
-
-    /**
-     * Get the placeholder to display in the chat input.
-     *
-     * @return {String}
-     */
-    getInputPlaceholder() {
-        if (isArchivedRoom(this.props.report)) {
-            return this.props.translate('reportActionCompose.roomIsArchived');
-        }
-
-        if (this.props.report.participants
-            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE)
-            && !_.isEmpty(this.props.blockedFromConcierge)
-            && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt)) {
-            return this.props.translate('reportActionCompose.blockedFromConcierge');
-        }
-
-        return this.props.translate('reportActionCompose.writeSomething');
     }
 
     /**
