@@ -4,7 +4,7 @@ import {getPathFromState, NavigationContainer} from '@react-navigation/native';
 import {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
-import {setCurrentURL} from '../actions/App';
+import setCurrentURL from '../actions/App';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
