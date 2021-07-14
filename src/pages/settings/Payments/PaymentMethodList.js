@@ -22,6 +22,9 @@ const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
 
+    /** Are we loading payments from the server? */
+    isLoadingPayments: PropTypes.bool,
+
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
 
@@ -59,6 +62,7 @@ const defaultProps = {
     payPalMeUsername: '',
     bankAccountList: [],
     cardList: [],
+    isLoadingPayments: false,
 };
 
 class PaymentMethodList extends Component {
@@ -132,6 +136,7 @@ class PaymentMethodList extends Component {
             icon: Plus,
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
+            disabled: this.props.isLoadingPayments,
         });
 
         return combinedPaymentMethods;
@@ -154,6 +159,7 @@ class PaymentMethodList extends Component {
                     description={item.description}
                     icon={item.icon}
                     key={item.key}
+                    disabled={item.disabled}
                 />
             );
         }
