@@ -138,6 +138,17 @@ function isArchivedRoom(report) {
     return report.statusNum === 2 && report.stateNum === 2;
 }
 
+/**
+ * Only returns true if this is our main 1:1 DM report with Concierge
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isConciergeChatReport(report) {
+    return lodashGet(report, 'participants', []).length === 1
+        && report.participants[0] === CONST.EMAIL.CONCIERGE;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -148,4 +159,5 @@ export {
     isDefaultRoom,
     getDefaultRoomSubtitle,
     isArchivedRoom,
+    isConciergeChatReport,
 };

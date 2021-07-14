@@ -86,6 +86,19 @@ describe('OptionsListUtils', () => {
             reportName: 'Silver Surfer',
             unreadActionCount: 0,
         },
+
+        // Note: This report has an IOU
+        9: {
+            lastVisitedTimestamp: 1610666739302,
+            lastMessageTimestamp: 1611282168,
+            isPinned: false,
+            reportID: 9,
+            participants: ['mistersinister@marauders.com'],
+            reportName: 'Mister Sinister',
+            unreadActionCount: 0,
+            iouReportID: 100,
+            hasOutstandingIOU: true,
+        },
     };
 
     // And a set of personalDetails some with existing reports and some without
@@ -119,6 +132,10 @@ describe('OptionsListUtils', () => {
             displayName: 'Captain America',
             login: 'steverogers@expensify.com',
         },
+        'mistersinister@marauders.com': {
+            displayName: 'Mr Sinister',
+            login: 'mistersinister@marauders.com',
+        },
 
         // These do not exist in reports at all
         'natasharomanoff@expensify.com': {
@@ -134,11 +151,11 @@ describe('OptionsListUtils', () => {
     const REPORTS_WITH_CONCIERGE = {
         ...REPORTS,
 
-        9: {
+        10: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
-            reportID: 9,
+            reportID: 10,
             participants: ['concierge@expensify.com'],
             reportName: 'Concierge',
             unreadActionCount: 1,
@@ -160,6 +177,10 @@ describe('OptionsListUtils', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {email: 'tonystark@expensify.com'},
+                [`${ONYXKEYS.COLLECTION.REPORT_IOUS}100`]: {
+                    ownerEmail: 'mistersinister@marauders.com',
+                    total: '1000',
+                },
             },
             registerStorageEventListener: () => {},
         });
@@ -404,11 +425,11 @@ describe('OptionsListUtils', () => {
             ...REPORTS,
 
             // Note: This report has no lastMessageTimestamp but is also pinned
-            9: {
+            10: {
                 lastVisitedTimestamp: 1610666739300,
                 lastMessageTimestamp: 0,
                 isPinned: true,
-                reportID: 9,
+                reportID: 10,
                 participants: ['captain_britain@expensify.com'],
                 reportName: 'Captain Britain',
             },
@@ -436,8 +457,11 @@ describe('OptionsListUtils', () => {
         // And the most recent pinned report is first in the list of reports
         expect(results.recentReports[0].login).toBe('captain_britain@expensify.com');
 
-        // And the third report is the report with a lastMessageTimestamp
-        expect(results.recentReports[2].login).toBe('steverogers@expensify.com');
+        // And the third report is the report with an IOU debt
+        expect(results.recentReports[2].login).toBe('mistersinister@marauders.com');
+
+        // And the fourth report is the report with the lastMessage timestamp
+        expect(results.recentReports[3].login).toBe('steverogers@expensify.com');
     });
 
     it('getSidebarOptions() with GSD priority mode', () => {
@@ -457,5 +481,8 @@ describe('OptionsListUtils', () => {
 
         // And Black Panther is alphabetically the first report and has an unread message
         expect(results.recentReports[0].login).toBe('tchalla@expensify.com');
+
+        // And Mister Sinister is alphabetically the fifth report and has an IOU debt despite not being pinned
+        expect(results.recentReports[5].login).toBe('mistersinister@marauders.com');
     });
 });
