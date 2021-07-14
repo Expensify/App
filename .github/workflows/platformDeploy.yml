@@ -289,7 +289,7 @@ jobs:
 
       - name: Purge staging Cloudflare cache
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
-        run: /home/runner/.local/bin/cli4 --delete hosts=["new.staging.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --delete hosts=["staging.new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
