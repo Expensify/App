@@ -9,7 +9,7 @@ import ONYXKEYS from '../ONYXKEYS';
 
 let preferredLocale = CONST.DEFAULT_LOCALE;
 Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
         if (val) {
             preferredLocale = val;

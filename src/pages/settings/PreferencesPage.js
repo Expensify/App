@@ -12,7 +12,6 @@ import Text from '../../components/Text';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
-import {setLocale} from '../../libs/actions/App';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import Picker from '../../components/Picker';
@@ -116,7 +115,7 @@ const PreferencesPage = ({
                         <Picker
                             onChange={(locale) => {
                                 if (locale !== preferredLocale) {
-                                    setLocale(locale);
+                                    NameValuePair.set(CONST.NVP.PREFERRED_LOCALE, locale, ONYXKEYS.NVP_PREFERRED_LOCALE)
                                 }
                             }}
                             items={Object.values(localesToLanguages)}
@@ -143,7 +142,7 @@ export default compose(
             key: ONYXKEYS.USER,
         },
         preferredLocale: {
-            key: ONYXKEYS.PREFERRED_LOCALE,
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     }),
 )(PreferencesPage);
