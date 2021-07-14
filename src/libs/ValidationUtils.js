@@ -73,7 +73,7 @@ function isValidSSNLastFour(ssnLast4) {
  * @returns {Boolean}
  */
 function isValidIdentity(identity) {
-    if (!isValidAddress(identity.street)) {
+    if (!isValidAddress(identity.street) || identity.state === '') {
         Growl.error(translateLocal('bankAccount.error.address'));
         return false;
     }
