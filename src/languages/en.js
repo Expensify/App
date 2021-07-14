@@ -56,6 +56,9 @@ export default {
         send: 'Send',
         notifications: 'Notifications',
         noResultsFound: 'No results found',
+        deletedCommentMessage: 'Comment deleted',
+        timePrefix: 'It\'s',
+        conjunctionFor: 'for',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -105,7 +108,6 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
-        localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
