@@ -261,6 +261,7 @@ function reauthenticate(command = '') {
 
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
+            debugger;
             Onyx.merge(ONYXKEYS.SESSION, {
                 authToken: response.authToken,
                 encryptedAuthToken: response.encryptedAuthToken,

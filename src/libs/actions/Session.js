@@ -28,6 +28,7 @@ Onyx.connect({
  */
 function setSuccessfulSignInData(data) {
     PushNotification.register(data.accountID);
+    debugger;
     Onyx.merge(ONYXKEYS.SESSION, {
         shouldShowComposeInput: true,
         ..._.pick(data, 'authToken', 'accountID', 'email', 'encryptedAuthToken'),

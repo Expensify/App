@@ -88,6 +88,10 @@ function findLastAccessedReport(reports) {
     return _.last(sortReportsByLastVisited(reports));
 }
 
+function findConciergeDMReport(reports) {
+    return _.find(reports, report => report.participants && report.participants.length === 1 && report.participants[0] === 'concierge@expensify.com');
+}
+
 /**
  * Whether the provided report is a default room
  * @param {Object} report
@@ -132,4 +136,5 @@ export {
     sortReportsByLastVisited,
     isDefaultRoom,
     getDefaultRoomSubtitle,
+    findConciergeDMReport,
 };

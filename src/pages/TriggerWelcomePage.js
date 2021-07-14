@@ -9,6 +9,8 @@ import compose from '../libs/compose';
 import * as API from '../libs/API';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import {navigateToConciergeDMReport} from "../libs/actions/Report";
+import FullScreenLoadingIndicator from "../components/FullscreenLoadingIndicator";
 
 const propTypes = {
     /* Onyx Props */
@@ -26,15 +28,18 @@ const propTypes = {
 
 class TriggerWelcomePage extends React.Component {
     componentDidMount() {
+        debugger;
         const location = lodashGet(this.props.route.params, 'location', '');
 
         if (this.props.session.authToken) {
             if (_.contains(['sfo', 'pdx'], location)) {
+                // navigateToConciergeDMReport();
                 API.TriggerWelcome({location})
                     .then(data => Navigation.navigate(ROUTES.getReportRoute(data.chatReportID)));
+                //
             }
         } else {
-            Onyx.merge(ONYXKEYS.TRIGGER_WELCOME, {location});
+            Onyx.merge(ONYXKEYS.TRIGGER_WELCOME_LOCATION, location);
             Navigation.navigate(ROUTES.HOME);
         }
     }
@@ -46,7 +51,7 @@ class TriggerWelcomePage extends React.Component {
 
     render() {
         // Don't render anything here since we will redirect the user once we've attempted to validate their login
-        return '';
+        return <FullScreenLoadingIndicator visible />;
     }
 }
 
@@ -58,6 +63,6 @@ export default compose(
         credentials: {key: ONYXKEYS.CREDENTIALS},
         account: {key: ONYXKEYS.ACCOUNT},
         session: {key: ONYXKEYS.SESSION},
-        triggerWelcome: {key: ONYXKEYS.TRIGGER_WELCOME},
+        triggerWelcome: {key: ONYXKEYS.TRIGGER_WELCOME_LOCATION},
     }),
 )(TriggerWelcomePage);

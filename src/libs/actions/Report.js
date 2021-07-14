@@ -18,7 +18,7 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
+import {isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited, findConciergeDMReport} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 import Growl from '../Growl';
@@ -1314,6 +1314,12 @@ function updateNotificationPreference(reportID, notificationPreference) {
     API.Report_UpdateNotificationPreference({reportID, notificationPreference});
 }
 
+function navigateToConciergeDMReport() {
+    debugger;
+    const reportID = lodashGet(findConciergeDMReport(allReports), 'reportID');
+    Navigation.navigate(ROUTES.getReportRoute(9));
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1337,4 +1343,5 @@ export {
     deleteReportComment,
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
+    navigateToConciergeDMReport,
 };
