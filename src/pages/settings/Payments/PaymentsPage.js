@@ -58,7 +58,9 @@ class PaymentsPage extends React.Component {
      */
     paymentMethodPressed(nativeEvent, account) {
         if (account) {
-            // TODO: Show the make default/delete popover
+            if (account === PAYPAL) {
+                Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
+            }
         } else {
             const position = getClickedElementLocation(nativeEvent);
             this.setState({
