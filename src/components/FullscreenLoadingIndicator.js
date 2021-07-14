@@ -7,10 +7,16 @@ import themeColors from '../styles/themes/default';
 const propTypes = {
     /** Controls whether the loader is mounted and displayed */
     visible: PropTypes.bool,
+
+    /** Controls whether the loader is loaded fast or not
+     * This is experimental yet.
+    */
+    fastLoad: PropTypes.bool,
 };
 
 const defaultProps = {
     visible: true,
+    fastLoad: false,
 };
 
 /**
@@ -18,8 +24,14 @@ const defaultProps = {
  *
  * @returns {JSX.Element}
  */
-const FullScreenLoadingIndicator = ({visible}) => visible && (
-    <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading]}>
+const FullScreenLoadingIndicator = ({visible, fastLoad}) => visible && (
+    <View
+        style={
+            fastLoad
+                ? styles.fullScreenLoadingFast
+                : [StyleSheet.absoluteFillObject, styles.fullScreenLoading]
+        }
+    >
         <ActivityIndicator color={themeColors.spinner} size="large" />
     </View>
 );

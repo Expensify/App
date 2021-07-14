@@ -1591,6 +1591,12 @@ const styles = {
         zIndex: 10,
     },
 
+    fullScreenLoadingFast: {
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     hiddenElementOutsideOfWindow: {
         position: 'fixed',
         top: 0,
