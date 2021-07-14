@@ -115,7 +115,11 @@ const PreferencesPage = ({
                         <Picker
                             onChange={(locale) => {
                                 if (locale !== preferredLocale) {
-                                    NameValuePair.set(CONST.NVP.PREFERRED_LOCALE, locale, ONYXKEYS.NVP_PREFERRED_LOCALE);
+                                    NameValuePair.set(
+                                        CONST.NVP.PREFERRED_LOCALE,
+                                        locale,
+                                        ONYXKEYS.NVP_PREFERRED_LOCALE,
+                                    );
                                 }
                             }}
                             items={Object.values(localesToLanguages)}
