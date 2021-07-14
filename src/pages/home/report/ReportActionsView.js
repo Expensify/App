@@ -26,7 +26,6 @@ import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
 import Timing from '../../../libs/actions/Timing';
-import Growl from '../../../libs/Growl'
 import CONST from '../../../CONST';
 import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
@@ -320,7 +319,6 @@ class ReportActionsView extends React.Component {
         scrollToBottom();
         updateLastReadActionID(this.props.reportID);
     }
-
 
     /**
      * Runs each time a ReportActionItem is laid out. This method is debounced so we wait until the component has

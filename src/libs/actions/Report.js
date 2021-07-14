@@ -299,14 +299,14 @@ function fetchIOUReportID(debtorEmail) {
 }
 
 /**
- * Fetches chat reports when provided a list of chat report IDs. 
- * If the shouldRedirectIfInacessible flag is set, we redirect to the Concierge chat 
+ * Fetches chat reports when provided a list of chat report IDs.
+ * If the shouldRedirectIfInacessible flag is set, we redirect to the Concierge chat
  * when fetching a single chat that is inacessible.
  * @param {Array} chatList
  * @param {Boolean} shouldRedirectIfInacessible
  * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
  */
-function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible) {
+function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
     return API.Get({
@@ -315,12 +315,12 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible) {
         shouldLoadOptionalKeys: true,
         includePinnedReports: true,
     })
-        .then((res) => {
+        .then(({reports, jsonCode}) => {
             Log.info('[Report] successfully fetched report data', true);
-            fetchedReports = res.reports;
+            fetchedReports = reports;
 
             // If we receive a 404 response while fetching a single report, treat that report as inacessible.
-            if (res.jsonCode === 404 && chatList.length === 1) {
+            if (jsonCode === 404 && chatList.length === 1) {
                 throw new Error('inacessible');
             }
 
@@ -386,12 +386,13 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible) {
 
             return _.map(fetchedReports, report => report.reportID);
         })
-        .catch(err => {
-            if(err.message === 'inacessible' && shouldRedirectIfInacessible) {
+        .catch((err) => {
+            if (err.message === 'inacessible' && shouldRedirectIfInacessible) {
                 Log.info('[Report] Report data is inacessible.', true);
                 Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
+                // eslint-disable-next-line no-use-before-define
                 navigateToConciergeChat();
-            };
+            }
         });
 }
 
