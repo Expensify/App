@@ -108,7 +108,9 @@ class ReportActionsView extends React.Component {
 
     componentDidMount() {
         AppState.addEventListener('change', this.onVisibilityChange);
-        fetchChatReportsByIDs([this.props.reportID], true);
+        if (!this.props.report.reportID) { 
+            fetchChatReportsByIDs([this.props.reportID], true)
+        };
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (ReportActionComposeFocusManager.isFocused()) {
