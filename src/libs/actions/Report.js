@@ -18,7 +18,9 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {isArchivedRoom, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited} from '../reportUtils';
+import {
+    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited,
+} from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
 import Growl from '../Growl';
@@ -50,11 +52,16 @@ Onyx.connect({
 });
 
 const allReports = {};
+let conciergeChatReportID;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (val) => {
         if (val && val.reportID) {
             allReports[val.reportID] = val;
+
+            if (isConciergeChatReport(val)) {
+                conciergeChatReportID = val.reportID;
+            }
         }
     },
 });
@@ -99,17 +106,17 @@ function getUnreadActionCount(report) {
     // Save the lastReadActionID locally so we can access this later
     lastReadSequenceNumbers[report.reportID] = lastReadSequenceNumber;
 
-    if (report.reportActionList.length === 0) {
+    if (report.reportActionListLength === 0) {
         return 0;
     }
 
     if (!lastReadSequenceNumber) {
-        return report.reportActionList.length;
+        return report.reportActionListLength;
     }
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionList.length - lastReadSequenceNumber;
+    const unreadActionCount = report.reportActionListLength - lastReadSequenceNumber;
     return Math.max(0, unreadActionCount);
 }
 
@@ -160,23 +167,22 @@ function getChatReportName(fullReport, chatType) {
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
-    const reportActionList = lodashGet(report, ['reportActionList'], []);
-    const lastReportAction = !_.isEmpty(reportActionList) ? _.last(reportActionList) : null;
-    const createTimestamp = lastReportAction ? lastReportAction.created : 0;
+    const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
-    const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lodashGet(lastReportAction, ['message', 'html'], ''));
+    const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
+    const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
     // We are removing any html tags from the message html since we cannot access the text version of any comments as
     // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
     // We convert the line-breaks in html to space ' ' before striping the tags
-    const lastMessageText = lodashGet(lastReportAction, ['message', 'html'], '')
+    const lastMessageText = lastActionMessage
         .replace(/((<br[^>]*>)+)/gi, ' ')
         .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
-    const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
+    const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
     const notificationPreference = isDefaultRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
@@ -188,7 +194,7 @@ function getSimplifiedReportObject(report) {
         ownerEmail: lodashGet(report, ['ownerEmail'], ''),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
-        maxSequenceNumber: report.reportActionList.length,
+        maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
         lastVisitedTimestamp: lodashGet(report, [
@@ -309,22 +315,13 @@ function fetchIOUReportID(debtorEmail) {
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
     const simplifiedReports = {};
-    return API.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: chatList.join(','),
-        shouldLoadOptionalKeys: true,
-        includePinnedReports: true,
-    })
-        .then(({reports}) => {
+    return API.GetReportSummaryList({reportIDList: chatList.join(',')})
+        .then(({reportSummaryList}) => {
             Log.info('[Report] successfully fetched report data', true);
-            fetchedReports = reports;
+            fetchedReports = reportSummaryList;
             return Promise.all(_.map(fetchedReports, (chatReport) => {
-                const reportActionList = chatReport.reportActionList || [];
-                const containsIOUAction = _.any(reportActionList,
-                    reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
-
                 // If there aren't any IOU actions, we don't need to fetch any additional data
-                if (!containsIOUAction) {
+                if (!chatReport.hasIOUAction) {
                     return;
                 }
 
@@ -1234,9 +1231,12 @@ NetworkConnection.onReconnect(fetchAllReports);
  *
  * @param {Number} reportID
  * @param {Object} originalReportAction
- * @param {String} htmlForNewComment
+ * @param {String} textForNewComment
  */
-function editReportComment(reportID, originalReportAction, htmlForNewComment) {
+function editReportComment(reportID, originalReportAction, textForNewComment) {
+    const parser = new ExpensiMark();
+    const htmlForNewComment = parser.replace(textForNewComment);
+
     // Skip the Edit if message is not changed
     if (originalReportAction.message[0].html === htmlForNewComment.trim()) {
         return;
@@ -1322,6 +1322,20 @@ function updateNotificationPreference(reportID, notificationPreference) {
     API.Report_UpdateNotificationPreference({reportID, notificationPreference});
 }
 
+/**
+ * Navigates to the 1:1 report with Concierge
+ */
+function navigateToConciergeChat() {
+    // If we don't have a chat with Concierge then create it
+    if (!conciergeChatReportID) {
+        fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], true);
+        return;
+    }
+
+    Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
+    Navigation.closeDrawer();
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1345,4 +1359,5 @@ export {
     deleteReportComment,
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
+    navigateToConciergeChat,
 };

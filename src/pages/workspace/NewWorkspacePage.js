@@ -17,7 +17,6 @@ import compose from '../../libs/compose';
 import {create} from '../../libs/actions/Policy';
 import defaultTheme from '../../styles/themes/default';
 
-
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string),
