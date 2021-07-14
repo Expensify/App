@@ -310,7 +310,7 @@ function activateWallet(currentStep, parameters) {
  * @property {Number} availableBalance
  * @property {Number} currentBalance
  * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
- * @property {('SILVER'|'GOLD')} status - will be GOLD when fully activated. SILVER is able to recieve funds only.
+ * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
  */
 function fetchUserWallet() {
     API.Get({returnValueList: 'userWallet'})

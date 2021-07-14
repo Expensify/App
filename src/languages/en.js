@@ -57,6 +57,8 @@ export default {
         notifications: 'Notifications',
         noResultsFound: 'No results found',
         deletedCommentMessage: 'Comment deleted',
+        timePrefix: 'It\'s',
+        conjunctionFor: 'for',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -95,7 +97,7 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        phrase1: 'With Expensify.cash, chat and payments are the same thing.',
+        phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
@@ -106,7 +108,6 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
-        localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
     contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
@@ -259,17 +260,26 @@ export default {
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',
-        expensifyIsOpenSource: 'Expensify.cash is open source',
+        expensifyIsOpenSource: 'The New Expensify is open source',
         theCode: 'the code',
         openJobs: 'open jobs',
+        heroHeading: 'Split bills\nand chat with friends.',
+        heroDescription: {
+            phrase1: 'Money talks. And now that chat and payments are in one place, it\'s also easy. Your payments get to you as fast as you can get your point across.',
+            phrase2: 'The New Expensify is open source. View',
+            phrase3: 'the code',
+            phrase4: 'View',
+            phrase5: 'open jobs',
+        },
     },
     termsOfUse: {
         phrase1: 'By logging in, you agree to the',
         phrase2: 'terms of service',
         phrase3: 'and',
         phrase4: 'privacy policy',
-        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
-        phrase6: 'licenses',
+        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS',
+        phrase6: 'ID:2017010) pursuant to its',
+        phrase7: 'licenses',
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',

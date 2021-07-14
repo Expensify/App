@@ -6,7 +6,7 @@ const propTypes = {
     text: PropTypes.string.isRequired,
 
     /** Styles to be assigned to the Tooltip wrapper views */
-    containerStyle: PropTypes.object,
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Children to wrap with Tooltip. */
     children: PropTypes.node.isRequired,
@@ -26,6 +26,7 @@ const propTypes = {
 const defaultProps = {
     shiftHorizontal: 0,
     shiftVertical: 0,
+    containerStyles: [],
 };
 
 export {

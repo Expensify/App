@@ -175,13 +175,13 @@ class Tooltip extends PureComponent {
                 />
                 )}
                 <Hoverable
-                    containerStyle={this.props.containerStyle}
+                    containerStyles={this.props.containerStyles}
                     onHoverIn={this.showTooltip}
                     onHoverOut={this.hideTooltip}
                 >
                     <View
                         ref={el => this.wrapperView = el}
-                        style={this.props.containerStyle}
+                        style={this.props.containerStyles}
                     >
                         {this.props.children}
                     </View>
