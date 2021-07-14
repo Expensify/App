@@ -50,6 +50,7 @@ import Users from '../../../assets/images/users.svg';
 import Upload from '../../../assets/images/upload.svg';
 import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
+import Workspace from '../../../assets/images/workspace-default-avatar.svg';
 
 export {
     Android,
@@ -104,4 +105,5 @@ export {
     Users,
     Venmo,
     Wallet,
+    Workspace,
 };

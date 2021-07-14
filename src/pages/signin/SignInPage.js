@@ -1,10 +1,11 @@
 import React, {Component} from 'react';
 import {
-    SafeAreaView, Text, View,
+    SafeAreaView, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import Text from '../../components/Text';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';

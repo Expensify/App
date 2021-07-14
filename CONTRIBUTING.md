@@ -5,7 +5,7 @@ Welcome! Thanks for checking out Expensify.cash and for taking the time to contr
 If you would like to become an Expensify.cash contributor, the first step is to read this document in it's entirety. The second step is to review the README guidelines [here](https://github.com/Expensify/Expensify.cash/blob/main/README.md) for a general overview of the code repository (i.e. how to run the app locally, testing, storage, etc). Please read both documents before asking questions, as it may be covered within the documentation.
 
 #### Test Accounts
-You can create as many accounts as needed in order to test your changes directly from [expensify.cash](https://expensify.cash/). An initial account can be created when logging in for the first time, and additional accounts can be invited by entering a valid email or phone in the "Find or start a chat" input then tapping the avatar.
+You can create as many accounts as needed in order to test your changes directly from [new.expensify.com](https://new.expensify.com/). An initial account can be created when logging in for the first time, and additional accounts can be invited by entering a valid email or phone in the "Find or start a chat" input then tapping the avatar.
 
 **Note**: When testing chat functionality in Expensify Cash please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you. 
 

@@ -9,6 +9,7 @@ buildscript {
         androidXCore = "1.0.2"
         multiDexEnabled = true
         googlePlayServicesVersion = "17.0.0"
+        kotlinVersion = '1.4.21'
     }
     repositories {
         google()
@@ -20,6 +21,7 @@ buildscript {
         classpath("com.google.firebase:firebase-crashlytics-gradle:2.3.0")
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
     }
 }
 
