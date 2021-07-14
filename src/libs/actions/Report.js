@@ -1233,9 +1233,12 @@ NetworkConnection.onReconnect(fetchAllReports);
  *
  * @param {Number} reportID
  * @param {Object} originalReportAction
- * @param {String} htmlForNewComment
+ * @param {String} textForNewComment
  */
-function editReportComment(reportID, originalReportAction, htmlForNewComment) {
+function editReportComment(reportID, originalReportAction, textForNewComment) {
+    const parser = new ExpensiMark();
+    const htmlForNewComment = parser.replace(textForNewComment);
+
     // Skip the Edit if message is not changed
     if (originalReportAction.message[0].html === htmlForNewComment.trim()) {
         return;
