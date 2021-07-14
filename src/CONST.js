@@ -64,6 +64,9 @@ const CONST = {
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
+        STATE: {
+            VERIFYING: 'VERIFYING',
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -87,6 +90,13 @@ const CONST = {
         PRESSED: 'pressed',
         COMPLETE: 'complete',
         DISABLED: 'disabled',
+    },
+    CARD_TYPES: {
+        /** This is a default card type that all users have. It is just a placeholder, not an actual card */
+        DEFAULT_CASH: '__CASH__',
+    },
+    BANK_ACCOUNT_TYPES: {
+        WALLET: 'WALLET',
     },
     COUNTRY: {
         US: 'US',
@@ -187,7 +197,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     ERROR: {
-        API_OFFLINE: 'API is offline',
+        API_OFFLINE: 'session.offlineMessage',
     },
     NETWORK: {
         METHOD: {
@@ -327,6 +337,7 @@ const CONST = {
     POLICY: {
         TYPE: {
             FREE: 'free',
+            PERSONAL: 'personal',
         },
         ROLE: {
             ADMIN: 'admin',

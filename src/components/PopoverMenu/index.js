@@ -1,6 +1,6 @@
 import React from 'react';
-import BaseCreateMenu from './BaseCreateMenu';
-import {propTypes, defaultProps} from './CreateMenuPropTypes';
+import BasePopoverMenu from './BasePopoverMenu';
+import {propTypes, defaultProps} from './PopoverMenuPropTypes';
 
 /**
  * The web implementation of the menu needs to trigger actions before the popup closes
@@ -12,7 +12,7 @@ import {propTypes, defaultProps} from './CreateMenuPropTypes';
  * @param {Object} props
  * @returns {React.ReactElement}
  */
-const CreateMenu = (props) => {
+const PopoverMenu = (props) => {
     // Trigger the item's `onSelect` action as soon as clicked
     const selectItem = (item) => {
         item.onSelected();
@@ -20,11 +20,11 @@ const CreateMenu = (props) => {
     };
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <BaseCreateMenu {...props} onItemSelected={selectItem} />;
+    return <BasePopoverMenu {...props} onItemSelected={selectItem} />;
 };
 
-CreateMenu.propTypes = propTypes;
-CreateMenu.defaultProps = defaultProps;
-CreateMenu.displayName = 'CreateMenu';
+PopoverMenu.propTypes = propTypes;
+PopoverMenu.defaultProps = defaultProps;
+PopoverMenu.displayName = 'PopoverMenu';
 
-export default CreateMenu;
+export default PopoverMenu;

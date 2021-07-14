@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import {Image, Text, View} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
+import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
@@ -14,13 +15,14 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
-import {isDefaultRoom} from '../libs/reportUtils';
+import {getDefaultRoomSubtitle, isDefaultRoom} from '../libs/reportUtils';
 import {participantPropTypes} from './home/sidebar/optionPropTypes';
 import Picker from '../components/Picker';
 import {updateNotificationPreference} from '../libs/actions/Report';
 import {Users} from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
+import Text from '../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -97,12 +99,7 @@ class ReportDetailsPage extends Component {
     }
 
     render() {
-        const policyID = lodashGet(this.props.report, 'policyID', '');
-        const policyName = lodashGet(
-            this.props.policies,
-            [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'name'],
-            'Unknown Policy',
-        );
+        const defaultRoomSubtitle = getDefaultRoomSubtitle(this.props.report, this.props.policies);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = _.map(
@@ -129,9 +126,11 @@ class ReportDetailsPage extends Component {
                         <View
                             style={styles.reportDetailsTitleContainer}
                         >
-                            <Image
+                            <Avatar
+                                isDefaultChatRoom={isDefaultRoom(this.props.report)}
+                                containerStyles={[styles.singleAvatarLarge, styles.mb4]}
+                                imageStyles={[styles.singleAvatarLarge]}
                                 source={{uri: this.props.report.icons[0]}}
-                                style={[styles.singleAvatarLarge, styles.mb4]}
                             />
                             <View style={styles.reportDetailsRoomInfo}>
                                 <DisplayNames
@@ -146,7 +145,7 @@ class ReportDetailsPage extends Component {
                                     style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mb6]}
                                     numberOfLines={1}
                                 >
-                                    {policyName}
+                                    {defaultRoomSubtitle}
                                 </Text>
                             </View>
                         </View>
