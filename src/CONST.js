@@ -277,7 +277,7 @@ const CONST = {
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
-        STATUS: {
+        TIER_NAME: {
             GOLD: 'GOLD',
             SILVER: 'SILVER',
         },
