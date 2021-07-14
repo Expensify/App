@@ -94,7 +94,6 @@ class AddPayPalMePage extends React.Component {
                                 onChangeText={text => this.setState({payPalMeUsername: text})}
                                 editable={!this.props.payPalMeUsername}
                                 returnKeyType="done"
-                                onSubmitEditing={this.setPayPalMeUsername}
                             />
                         </View>
                     </View>
