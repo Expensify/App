@@ -97,7 +97,7 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        phrase1: 'With Expensify.cash, chat and payments are the same thing.',
+        phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
@@ -109,9 +109,11 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
     },
-    reportActionContextMenu: {
+    contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
         copied: 'Copied!',
+    },
+    reportActionContextMenu: {
         copyLink: 'Copy Link',
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
@@ -258,17 +260,26 @@ export default {
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',
-        expensifyIsOpenSource: 'Expensify.cash is open source',
+        expensifyIsOpenSource: 'The New Expensify is open source',
         theCode: 'the code',
         openJobs: 'open jobs',
+        heroHeading: 'Split bills\nand chat with friends.',
+        heroDescription: {
+            phrase1: 'Money talks. And now that chat and payments are in one place, it\'s also easy. Your payments get to you as fast as you can get your point across.',
+            phrase2: 'The New Expensify is open source. View',
+            phrase3: 'the code',
+            phrase4: 'View',
+            phrase5: 'open jobs',
+        },
     },
     termsOfUse: {
         phrase1: 'By logging in, you agree to the',
         phrase2: 'terms of service',
         phrase3: 'and',
         phrase4: 'privacy policy',
-        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
-        phrase6: 'licenses',
+        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS',
+        phrase6: 'ID:2017010) pursuant to its',
+        phrase7: 'licenses',
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
@@ -424,7 +435,8 @@ export default {
         maxAttemptError: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation"',
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
-        verifyingDescription: 'We\'re taking a look at your information and will have you onto next steps in just a few seconds.',
+        reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
+        forNextSteps: ' for next steps to finish setting up your bank account.',
     },
     beneficialOwnersStep: {
         beneficialOwners: 'Beneficial Owners',
@@ -472,6 +484,7 @@ export default {
             publicCopy: 'In order to use the Expensify Card you must use your company\'s private domain. Go ahead and add your private email address as a secondary login.',
             privateCopy: 'Just swipe your Expensify card and your expenses are done, its that simple!',
             getStarted: 'Get Started',
+            finishSetup: 'Finish Setup',
             manageCards: 'Manage Cards',
             cardReadyTagline: 'Your Expensify Cards are ready to go!',
         },

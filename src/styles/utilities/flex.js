@@ -28,6 +28,10 @@ export default {
         flexDirection: 'column',
     },
 
+    flexColumnReverse: {
+        flexDirection: 'column-reverse',
+    },
+
     justifyContentCenter: {
         justifyContent: 'center',
     },
@@ -42,6 +46,10 @@ export default {
 
     justifyContentBetween: {
         justifyContent: 'space-between',
+    },
+
+    justifyContentAround: {
+        justifyContent: 'space-around',
     },
 
     alignSelfStretch: {
@@ -86,5 +94,9 @@ export default {
 
     flexGrow4: {
         flexGrow: 4,
+    },
+
+    flexShrink1: {
+        flexShrink: 1,
     },
 };
