@@ -1,10 +1,10 @@
 <div align="center">
-    <a href="https://Expensify.cash">
+    <a href="https://new.expensify.com">
         <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/main/web/favicon.png" width="64" height="64" alt="Expensify.cash Icon">
     </a>
     <h1>
-        <a href="https://Expensify.cash">
-            Expensify.cash
+        <a href="https://new.expensify.com">
+            new.expensify.com
         </a>
     </h1>
 </div>
