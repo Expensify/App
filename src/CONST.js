@@ -34,6 +34,17 @@ const CONST = {
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
+
+        // This array is only necessary because plain JS objects are not ordered,
+        // and we need to loop through these steps in order.
+        STEPS_ORDERED: [
+            'BankAccountStep',
+            'CompanyStep',
+            'RequestorStep',
+            'ACHContractStep',
+            'ValidationStep',
+            'EnableStep',
+        ],
         SUBSTEP: {
             MANUAL: 'manual',
         },

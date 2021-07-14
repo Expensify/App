@@ -463,10 +463,63 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                         currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
                     }
 
-                    // If we are providing a stepToOpen via a deep link then we will always navigate to that step. This
-                    // should be used with caution as it is possible to drop a user into a flow they can't complete e.g.
-                    // if we drop the user into the CompanyStep, but they have no accountNumber or routing Number in
-                    // their achData.
+                    // If we are providing a stepToOpen via a deep link then we will navigate to that step,
+                    // only if we have the necessary data to complete that step
+                    if (_.contains(CONST.BANK_ACCOUNT.STEPS_ORDERED, stepToOpen)) {
+                        currentStep = _.reduce(CONST.BANK_ACCOUNT.STEPS_ORDERED, (stepToValidate) => {
+                            switch (stepToValidate) {
+
+                            }
+                        })
+
+
+                        for (const stepToValidate of CONST.BANK_ACCOUNT.STEPS_ORDERED) {
+                            switch (stepToValidate) {
+                                case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                                    if (bankAccount && bankAccount.isOpen()) {
+                                        Navigation.navigate();
+                                        return;
+                                    }
+                                case CONST.BANK_ACCOUNT.STEP.COMPANY:
+                                    // If there is no account or routing number, go back to bank account step
+                                    if (!bankAccount
+                                        || _.isEmpty(bankAccount.getMaskedAccountNumber())
+                                        || _.isEmpty(bankAccount.getRoutingNumber())) {
+                                        currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+                                    }
+                                    currentStep = stepToOpen;
+                                    break;
+                                default:
+
+                            }
+                        }
+
+                        if (stepToOpen === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
+                            // Only create another withdrawal account if there is not one already open
+                            if (bankAccount && bankAccount.isOpen()) {
+                                Navigation.navigate();
+                            } else {
+                                currentStep = stepToOpen;
+                            }
+                        } else {
+                            const stepsToValidate = CONST.BANK_ACCOUNT.STEPS_ORDERED.slice(
+                                0,
+                                _.indexOf(CONST.BANK_ACCOUNT.STEPS_ORDERED, stepToOpen),
+                            );
+
+                            currentStep = _.find(stepsToValidate, (step) => {
+                                switch (step) {
+                                    case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                                        // Only advance beyond BANK_ACCOUNT step
+                                        // if there is not already an open bank account
+                                        if (bankAccount && bankAccount.isOpen()) {
+                                            Navigation.navigate();
+                                        }
+                                }
+                            })
+                        }
+                    }
+
                     switch (stepToOpen) {
                         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                             // Only create another withdrawal account if there is not one already open
