@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Text, TextInput} from 'react-native';
+import {ScrollView, TextInput} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -19,6 +19,8 @@ import Growl from '../libs/Growl';
 import {requestConciergeDMCall} from '../libs/actions/Inbox';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
+import Text from '../components/Text';
+import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -39,6 +41,15 @@ const propTypes = {
             /** Phone/Email associated with user */
             partnerUserID: PropTypes.string,
         })),
+    }).isRequired,
+
+    /** The policies which the user has access to */
+    policies: PropTypes.shape({
+        /** ID of the policy */
+        policyID: PropTypes.string,
+
+        /** The type of the policy */
+        type: PropTypes.string,
     }).isRequired,
 };
 
@@ -61,22 +72,27 @@ class RequestCallPage extends Component {
     onSubmit() {
         this.setState({isLoading: true});
         if (!this.state.firstName.length || !this.state.lastName.length) {
-            Growl.show(this.props.translate('requestCallPage.growlMessageEmptyName'), CONST.GROWL.ERROR);
+            Growl.success(this.props.translate('requestCallPage.growlMessageEmptyName'));
             this.setState({isLoading: false});
             return;
         }
 
-        requestConciergeDMCall('', this.state.firstName, this.state.lastName, this.state.phoneNumber)
+        const personalPolicy = _.find(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.PERSONAL);
+        if (!personalPolicy) {
+            Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
+            return;
+        }
+        requestConciergeDMCall(personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
                 if (result.jsonCode === 200) {
-                    Growl.show(this.props.translate('requestCallPage.growlMessageOnSave'), CONST.GROWL.SUCCESS);
+                    Growl.success(this.props.translate('requestCallPage.growlMessageOnSave'));
                     fetchOrCreateChatReport([this.props.session.email, CONST.EMAIL.CONCIERGE], true);
                     return;
                 }
 
                 // Phone number validation is handled by the API
-                Growl.show(result.message, CONST.GROWL.ERROR, 3000);
+                Growl.error(result.message, 3000);
             });
     }
 
@@ -128,54 +144,56 @@ class RequestCallPage extends Component {
         const isButtonDisabled = false;
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('requestCallPage.requestACall')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => fetchOrCreateChatReport([
-                        this.props.session.email,
-                        CONST.EMAIL.CONCIERGE,
-                    ], true)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <View style={[styles.flex1, styles.p5]}>
-                    <Text style={[styles.mb4, styles.textP]}>
-                        {this.props.translate('requestCallPage.description')}
-                    </Text>
-                    <Text style={[styles.mt4, styles.mb4, styles.textP]}>
-                        {this.props.translate('requestCallPage.instructions')}
-                    </Text>
-                    <FullNameInputRow
-                        firstName={this.state.firstName}
-                        lastName={this.state.lastName}
-                        onChangeFirstName={firstName => this.setState({firstName})}
-                        onChangeLastName={lastName => this.setState({lastName})}
-                        style={[styles.mt4, styles.mb4]}
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('requestCallPage.requestACall')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => fetchOrCreateChatReport([
+                            this.props.session.email,
+                            CONST.EMAIL.CONCIERGE,
+                        ], true)}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <Text style={[styles.mt4, styles.formLabel]} numberOfLines={1}>
-                        {this.props.translate('common.phoneNumber')}
-                    </Text>
-                    <TextInput
-                        autoCompleteType="off"
-                        autoCorrect={false}
-                        style={[styles.textInput]}
-                        value={this.state.phoneNumber}
-                        placeholder="+14158675309"
-                        onChangeText={phoneNumber => this.setState({phoneNumber})}
-                    />
-                    <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
-                        {this.props.translate('requestCallPage.availabilityText')}
-                    </Text>
-                </View>
-                <FixedFooter>
-                    <Button
-                        success
-                        isDisabled={isButtonDisabled}
-                        onPress={this.onSubmit}
-                        style={[styles.w100]}
-                        text={this.props.translate('requestCallPage.callMe')}
-                        isLoading={this.state.isLoading}
-                    />
-                </FixedFooter>
+                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                        <Text style={[styles.mb4]}>
+                            {this.props.translate('requestCallPage.description')}
+                        </Text>
+                        <Text style={[styles.mt4, styles.mb4]}>
+                            {this.props.translate('requestCallPage.instructions')}
+                        </Text>
+                        <FullNameInputRow
+                            firstName={this.state.firstName}
+                            lastName={this.state.lastName}
+                            onChangeFirstName={firstName => this.setState({firstName})}
+                            onChangeLastName={lastName => this.setState({lastName})}
+                            style={[styles.mt4, styles.mb4]}
+                        />
+                        <Text style={[styles.mt4, styles.formLabel]} numberOfLines={1}>
+                            {this.props.translate('common.phoneNumber')}
+                        </Text>
+                        <TextInput
+                            autoCompleteType="off"
+                            autoCorrect={false}
+                            style={[styles.textInput]}
+                            value={this.state.phoneNumber}
+                            placeholder="+14158675309"
+                            onChangeText={phoneNumber => this.setState({phoneNumber})}
+                        />
+                        <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
+                            {this.props.translate('requestCallPage.availabilityText')}
+                        </Text>
+                    </ScrollView>
+                    <FixedFooter>
+                        <Button
+                            success
+                            isDisabled={isButtonDisabled}
+                            onPress={this.onSubmit}
+                            style={[styles.w100]}
+                            text={this.props.translate('requestCallPage.callMe')}
+                            isLoading={this.state.isLoading}
+                        />
+                    </FixedFooter>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
@@ -194,6 +212,9 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(RequestCallPage);

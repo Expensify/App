@@ -1,8 +1,9 @@
 import _ from 'underscore';
 import React, {Fragment} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
+import Text from '../Text';
 
 /**
  * Breaks the text into matrix

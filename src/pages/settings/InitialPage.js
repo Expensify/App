@@ -131,7 +131,7 @@ const InitialSettingsPage = ({
             title: policy.name,
             icon: Building,
             action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
-            iconStyles: [styles.createMenuIconEmphasized],
+            iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
         }))
         .value();
@@ -167,11 +167,11 @@ const InitialSettingsPage = ({
                             </Text>
                         )}
                     </View>
-                    {menuItems.map((item) => {
+                    {_.map(menuItems, (item, index) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
                         return (
                             <MenuItem
-                                key={keyTitle}
+                                key={`${keyTitle}_${index}`}
                                 title={keyTitle}
                                 icon={item.icon}
                                 onPress={item.action}

@@ -9,7 +9,7 @@ const propTypes = {
 
     /** Styles to be assigned to the Hoverable Container */
     // eslint-disable-next-line react/forbid-prop-types
-    containerStyle: PropTypes.object,
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Function that executes when the mouse moves over the children. */
     onHoverIn: PropTypes.func,
@@ -22,7 +22,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    containerStyle: {},
+    containerStyles: [],
     onHoverIn: () => {},
     onHoverOut: () => {},
     resetsOnClickOutside: false,

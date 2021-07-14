@@ -52,6 +52,8 @@ export default {
         send: 'Enviar',
         notifications: 'Notificaciones',
         na: 'N/A',
+        noResultsFound: 'No se han encontrado resultados',
+        deletedCommentMessage: 'Comentario borrado',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -100,6 +102,7 @@ export default {
         writeSomething: 'Escribe algo...',
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
+        localTime: ({user, time}) => `Son las ${time} para ${user}`,
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
@@ -144,6 +147,7 @@ export default {
         paid: ({owner, manager}) => `${manager} pagó a ${owner}`,
         split: ({amount}) => `Dividir ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
+        noReimbursableExpenses: 'El monto de este informe es inválido',
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
@@ -158,11 +162,12 @@ export default {
         useYourPhoneToSettleViaVenmo: 'Usa tu número de teléfono para pagar usando Venmo.',
         emailHasNotBeenValidated: 'El email no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via email.',
     },
-    profilePage: {
+    avatarWithImagePicker: {
         uploadPhoto: 'Subir Foto',
         removePhoto: 'Eliminar Foto',
+    },
+    profilePage: {
         profile: 'Perfil',
-        editPhoto: 'Editar Foto',
         tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
         firstName: 'Nombre',
         john: 'Juan',
@@ -221,11 +226,16 @@ export default {
         newPasswordPrompt: 'La nueva contraseña tiene que ser diferente de la antigua, tener al menos 8 letras,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
         confirmNewPassword: 'Confirma la Nueva Contraseña',
     },
-    paymentsPage: {
+    addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar Cuenta de Paypal',
+    },
+    paymentMethodList: {
+        addPaymentMethod: 'Agrega método de pago',
+        accountLastFour: 'Cuenta con terminación',
+        cardLastFour: 'Tarjeta con terminacíon',
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
@@ -259,6 +269,15 @@ export default {
         forgot: '¿Te has olvidado?',
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
+        error: {
+            incorrectLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo',
+            twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor conéctate usando su email o número de teléfono',
+            invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo o resetea tu clave',
+            unableToResetPassword: 'No pudimos cambiar tu clave. Probablemente porque el enlace para resetear la clave ha expirado. Te hemos enviado un nuevo enlace. Chequea tu bandeja de entrada y tu carpeta de Spam',
+            noAccess: 'No tienes acceso a esta aplicación. Por favor agrega tu usuario de GitHub para acceder',
+            accountLocked: 'Tu cuenta ha sido bloqueada tras varios intentos fallidos. Por favor inténtalo otra vez dentro de 1 hora',
+            fallback: 'Ha ocurrido un error. Por favor inténtalo mas tarde',
+        },
     },
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
@@ -313,6 +332,7 @@ export default {
             address: 'Ingrese una dirección válida',
             dob: 'Ingrese una fecha de nacimiento válida',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
         },
     },
     addPersonalBankAccountPage: {
@@ -353,7 +373,7 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Parece que no estás conectado a internet. Comprueba tu conexión e inténtalo de nuevo.',
+        offlineMessage: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
     },
     workspace: {
         common: {
@@ -381,6 +401,7 @@ export default {
             publicCopy: 'Para utilizar la Tarjeta Expensify debe utilizar el dominio privado de su empresa. Continúe y agregue su dirección de correo electrónico privada como inicio de sesión secundario.',
             privateCopy: 'Simplemente deslice su tarjeta Expensify y sus gastos estarán listos, ¡es así de simple!',
             getStarted: 'Empezar',
+            finishSetup: 'Finalizar Configuración',
             manageCards: 'Administrar tarjetas',
             cardReadyTagline: 'Tus tarjetas Expensify están listas para usar!',
         },
@@ -477,7 +498,8 @@ export default {
         maxAttemptError: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos. Por favor contáctenos.',
         description: 'Uno o dos días después de agregar su cuenta a Expensify, enviamos tres (3) transacciones a su cuenta. Tienen una línea comercial como "Expensify, Inc. Validation"',
         descriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación. Ejemplo: 1.51',
-        verifyingDescription: 'Estamos revisando su información y lo llevaremos a los siguientes pasos en solo unos segundos.',
+        reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',
+        forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
     },
     requestorStep: {
         headerTitle: 'Información del solicitante',
@@ -498,5 +520,6 @@ export default {
         growlMessageOnSave: 'Llamada solicitada.',
         growlMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
+        growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
     },
 };

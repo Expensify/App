@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     View,
-    Text,
     TouchableOpacity,
     InteractionManager,
 } from 'react-native';
@@ -17,6 +16,7 @@ import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
+import Text from '../../../components/Text';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
@@ -68,7 +68,8 @@ class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updateAmountIfValidInput = this.updateAmountIfValidInput.bind(this);
+        this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
+        this.updateAmount = this.updateAmount.bind(this);
         this.state = {
             amount: props.selectedAmount,
         };
@@ -102,34 +103,49 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Update amount with number or Backspace pressed.
+     * Check if amount is a decimal upto 3 digits
+     *
+     * @param {String} amount
+     * @returns {Boolean}
+     */
+    validateAmount(amount) {
+        const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
+        return amount === '' || decimalNumberRegex.test(amount);
+    }
+
+    /**
+     * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      *
      * @param {String} key
      */
-    updateAmountIfValidInput(key) {
+    updateAmountNumberPad(key) {
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
                 this.setState(prevState => ({
-                    amount: prevState.amount.substring(0, prevState.amount.length - 1),
+                    amount: prevState.amount.slice(0, -1),
                 }));
             }
             return;
         }
 
         this.setState((prevState) => {
-            const newValue = `${prevState.amount}${key}`;
-
-            // Regex to validate decimal number with up to 3 decimal numbers
-            const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
-            if (!decimalNumberRegex.test(newValue)) {
-                return prevState;
-            }
-            return {
-                amount: newValue,
-            };
+            const amount = `${prevState.amount}${key}`;
+            return this.validateAmount(amount) ? {amount} : prevState;
         });
+    }
+
+    /**
+     * Update amount on amount change
+     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
+     *
+     * @param {String} amount
+     */
+    updateAmount(amount) {
+        if (this.validateAmount(amount)) {
+            this.setState({amount});
+        }
     }
 
     render() {
@@ -162,10 +178,7 @@ class IOUAmountPage extends React.Component {
                             <TextInputAutoWidth
                                 inputStyle={styles.iouAmountTextInput}
                                 textStyle={styles.iouAmountText}
-                                onKeyPress={(event) => {
-                                    this.updateAmountIfValidInput(event.key);
-                                    event.preventDefault();
-                                }}
+                                onChangeText={this.updateAmount}
                                 ref={el => this.textInput = el}
                                 value={this.state.amount}
                                 placeholder="0"
@@ -176,7 +189,7 @@ class IOUAmountPage extends React.Component {
                     {this.props.isSmallScreenWidth
                         ? (
                             <BigNumberPad
-                                numberPressed={this.updateAmountIfValidInput}
+                                numberPressed={this.updateAmountNumberPad}
                             />
                         ) : <View />}
 
