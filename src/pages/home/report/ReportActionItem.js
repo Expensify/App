@@ -26,6 +26,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import {deleteReportComment} from '../../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -272,7 +273,7 @@ class ReportActionItem extends Component {
             <>
                 <PressableWithSecondaryInteraction
                     ref={el => this.popoverAnchor = el}
-                    onPressIn={() => this.props.isSmallScreenWidth && ControlSelection.block()}
+                    onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onSecondaryInteraction={this.showPopover}
                 >
