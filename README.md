@@ -1,10 +1,10 @@
 <div align="center">
     <a href="https://new.expensify.com">
-        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/main/web/favicon.png" width="64" height="64" alt="Expensify.cash Icon">
+        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/main/web/favicon.png" width="64" height="64" alt="New Expensify Icon">
     </a>
     <h1>
         <a href="https://new.expensify.com">
-            new.expensify.com
+            New Expensify
         </a>
     </h1>
 </div>
@@ -19,14 +19,14 @@
 * [Deploying](#deploying)
 
 #### Additional Reading
-* [Contributing to Expensify.cash](./CONTRIBUTING.md)
+* [Contributing to Expensify](./CONTRIBUTING.md)
 * [Expensify Code of Conduct](./CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](./CLA.md)
 
 ----
 
 # Local development
-These instructions should get you set up ready to work on Expensify.cash 🙌
+These instructions should get you set up ready to work on New Expensify 🙌
 
 ## Getting Started
 1. Install `node` & `npm`: `brew install node`
