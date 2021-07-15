@@ -96,6 +96,8 @@ const modalScreenListeners = {
     },
 };
 
+let hasLoadedPolicies = false;
+
 const propTypes = {
     /** Information about the network */
     network: PropTypes.shape({
@@ -142,9 +144,11 @@ class AuthScreens extends React.Component {
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 
+        // When removing the free plan beta, this whole check and the logic in componentDidUpdate can be removed
         if (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas)) {
             getPolicyList();
             getPolicySummaries();
+            hasLoadedPolicies = true;
         }
 
         // Refresh the personal details, timezone and betas every 30 minutes
@@ -186,7 +190,19 @@ class AuthScreens extends React.Component {
             return true;
         }
 
+        if (nextProps.betas !== this.props.betas) {
+            return true;
+        }
+
         return false;
+    }
+
+    componentDidUpdate() {
+        if (!hasLoadedPolicies && (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas))) {
+            getPolicyList();
+            getPolicySummaries();
+            hasLoadedPolicies = true;
+        }
     }
 
     componentWillUnmount() {
