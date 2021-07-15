@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, LogBox} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {ScrollView, TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
@@ -21,8 +21,10 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
 
-LogBox.ignoreAllLogs();
 const propTypes = {
+    /** String containing the animation type */
+    animation: PropTypes.string,
+
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
@@ -93,6 +95,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    animation: undefined,
     iou: {},
     onUpdateComment: null,
     comment: '',
