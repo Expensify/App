@@ -133,7 +133,7 @@ class Button extends Component {
                 onPress={this.props.onPress}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
-                    this.props.isDisabled ? this.styles.cursorDisabled : {},
+                    this.props.isDisabled ? styles.cursorDisabled : {},
                     ...this.additionalStyles,
                 ]}
             >
