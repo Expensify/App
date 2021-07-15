@@ -172,7 +172,7 @@ function getSimplifiedReportObject(report) {
     // We convert the line-breaks in html to space ' ' before striping the tags
     const lastMessageText = lastActionMessage
         .replace(/((<br[^>]*>)+)/gi, ' ')
-        .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
+        .replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
@@ -501,7 +501,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.html || `[${translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: message.html,
         });
     }
 }
