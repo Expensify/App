@@ -98,40 +98,15 @@ class WorkspaceInvitePage extends React.Component {
                             <Text style={[styles.mb2]}>
                                 {this.props.translate('workspace.invite.enterEmailOrPhone')}
                             </Text>
-                            <View style={styles.mb6}>
-                                <Text style={[styles.mb2]}>
-                                    {this.props.translate('workspace.invite.enterEmailOrPhone')}
-                                </Text>
-                                <TextInput
-                                    autoCompleteType="email"
-                                    autoCorrect={false}
-                                    autoCapitalize="none"
-                                    style={[styles.textInput]}
-                                    value={this.state.emailOrPhone}
-                                    keyboardType={getEmailKeyboardType()}
-                                    onChangeText={text => this.setState({emailOrPhone: text})}
-                                />
-                            </View>
-                            <View style={styles.mb6}>
-                                <Text style={[styles.mb2]}>
-                                    {this.props.translate('workspace.invite.personalMessagePrompt')}
-                                </Text>
-                                <TextInput
-                                    autoCompleteType="off"
-                                    autoCorrect={false}
-                                    style={[styles.textInput, styles.workspaceInviteWelcome, styles.mb6]}
-                                    numberOfLines={10}
-                                    textAlignVertical="top"
-                                    multiline
-                                    value={this.state.welcomeNote}
-                                    placeholder={this.getWelcomeNotePlaceholder()}
-                                    placeholderTextColor={themeColors.placeholderText}
-                                    onChangeText={text => this.setState({welcomeNote: text})}
-                                />
-                                <TextLink href="https://use.expensify.com/privacy">
-                                    {this.props.translate('common.privacy')}
-                                </TextLink>
-                            </View>
+                            <TextInput
+                                autoCompleteType="email"
+                                autoCorrect={false}
+                                autoCapitalize="none"
+                                style={[styles.textInput]}
+                                value={this.state.emailOrPhone}
+                                keyboardType={getEmailKeyboardType()}
+                                onChangeText={text => this.setState({emailOrPhone: text})}
+                            />
                         </View>
                         <View style={styles.mb6}>
                             <Text style={[styles.mb2]}>
