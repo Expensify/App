@@ -110,12 +110,17 @@ class PaymentMethodList extends Component {
             });
         }
 
-        combinedPaymentMethods.push({
-            title: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Plus,
-            onPress: e => this.props.onPress(e),
-            key: 'addPaymentMethodButton',
-        });
+        // Don't show Add Payment Method button if user provided details for all possible payment methods.
+        // Right now only available method is Paypal.me
+        // When there is a new payment method, it needs to be added to following if condition.
+        if (!this.props.payPalMeUsername) {
+            combinedPaymentMethods.push({
+                title: this.props.translate('paymentMethodList.addPaymentMethod'),
+                icon: Plus,
+                onPress: e => this.props.onPress(e),
+                key: 'addPaymentMethodButton',
+            });
+        }
 
         return combinedPaymentMethods;
     }
