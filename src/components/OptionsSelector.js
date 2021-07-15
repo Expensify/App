@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import * as Animatable from 'react-native-animatable'
 import TextInputWithFocusStyles from './TextInputWithFocusStyles';
 import OptionsList from './OptionsList';
 import styles from '../styles/styles';
@@ -95,7 +96,7 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        this.textInput.focus();
+        // this.textInput.focus();
     }
 
     /**
@@ -203,8 +204,10 @@ class OptionsSelector extends Component {
                         placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
+
                 <OptionsList
                     ref={el => this.list = el}
+                    animation={this.props.animation}
                     optionHoveredStyle={styles.hoveredComponentBG}
                     onSelectRow={this.selectRow}
                     sections={this.props.sections}

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {ActivityIndicator, View} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import IOUParticipantsSplit from './IOUParticipantsSplit';
 import IOUParticipantsRequest from './IOUParticipantsRequest';
@@ -56,19 +57,24 @@ const IOUParticipantsPage = (props) => {
         );
     }
 
-    return (props.hasMultipleParticipants
+    return (
+        props.hasMultipleParticipants
         ? (
             <IOUParticipantsSplit
+                animation={props.animation}
                 onStepComplete={props.onStepComplete}
                 participants={props.participants}
                 onAddParticipants={props.onAddParticipants}
             />
         )
         : (
+
             <IOUParticipantsRequest
+                animation={props.animation}
                 onStepComplete={props.onStepComplete}
                 onAddParticipants={props.onAddParticipants}
             />
+
         )
     );
 };

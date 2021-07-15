@@ -116,6 +116,7 @@ class IOUParticipantsRequest extends Component {
         const sections = this.getSections();
         return (
             <OptionsSelector
+                animation={this.props.animation}
                 sections={sections}
                 value={this.state.searchValue}
                 onSelectRow={this.addSingleParticipant}

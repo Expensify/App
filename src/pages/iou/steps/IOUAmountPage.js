@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import * as Animatable from 'react-native-animatable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
@@ -150,7 +151,7 @@ class IOUAmountPage extends React.Component {
 
     render() {
         return (
-            <View style={[styles.flex1, styles.pageWrapper]}>
+            <Animatable.View duration={300} animation={this.props.animation} useNativeDriver={true} style={[styles.flex1, styles.pageWrapper]}>
                 <View style={[
                     styles.flex1,
                     styles.flexRow,
@@ -201,7 +202,7 @@ class IOUAmountPage extends React.Component {
                         text={this.props.translate('common.next')}
                     />
                 </View>
-            </View>
+            </Animatable.View>
         );
     }
 }

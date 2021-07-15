@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import {View} from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
@@ -205,8 +206,9 @@ class OptionsList extends Component {
     }
 
     render() {
+        console.log(`Animation in OptionsList: ${this.props.animation}`)
         return (
-            <View style={this.props.listContainerStyles}>
+            <Animatable.View animation={this.props.animation} duration={300} useNativeDriver={true} style={this.props.listContainerStyles}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>
@@ -229,7 +231,7 @@ class OptionsList extends Component {
                     renderSectionHeader={this.renderSectionHeader}
                     extraData={this.props.focusedIndex}
                 />
-            </View>
+            </Animatable.View>
         );
     }
 }

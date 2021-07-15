@@ -3,6 +3,7 @@ import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import * as Animatable from 'react-native-animatable';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
@@ -104,6 +105,8 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.getReady = this.getReady.bind(this);
+        this.myRef = React.createRef();
+
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
@@ -115,6 +118,7 @@ class IOUModal extends Component {
             }));
 
         this.state = {
+            previousStepIndex: 0,
             currentStepIndex: 0,
             participants: participantsWithDetails,
 
@@ -153,6 +157,14 @@ class IOUModal extends Component {
 
     getReady() {
         PersonalDetails.fetchCurrencyPreferences();
+    }
+
+    getAnimation(isFirstScreen) {
+        if (this.state.previousStepIndex <= this.state.currentStepIndex && !isFirstScreen) {
+            return 'slideInRight'
+        } else {
+            return 'slideInLeft'
+        }
     }
 
     /**
@@ -214,6 +226,7 @@ class IOUModal extends Component {
             return;
         }
         this.setState(prevState => ({
+            previousStepIndex: prevState.currentStepIndex,
             currentStepIndex: prevState.currentStepIndex - 1,
         }));
     }
@@ -226,6 +239,7 @@ class IOUModal extends Component {
             return;
         }
         this.setState(prevState => ({
+            previousStepIndex: prevState.currentStepIndex,
             currentStepIndex: prevState.currentStepIndex + 1,
         }));
     }
@@ -323,6 +337,7 @@ class IOUModal extends Component {
                                 <>
                                     {currentStep === Steps.IOUAmount && (
                                         <IOUAmountPage
+                                            animation={this.getAnimation(true)}
                                             onStepComplete={(amount) => {
                                                 this.setState({amount});
                                                 this.navigateToNextStep();
@@ -337,6 +352,7 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
                                         <IOUParticipantsPage
+                                            animation={this.getAnimation()}
                                             participants={this.state.participants}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             onAddParticipants={this.addParticipants}
@@ -345,6 +361,7 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <IOUConfirmPage
+                                            animation={this.getAnimation()}
                                             onConfirm={this.createTransaction}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             participants={this.state.participants}
