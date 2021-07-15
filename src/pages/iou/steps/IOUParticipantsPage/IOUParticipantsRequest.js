@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {getNewChatOptions} from '../../../../libs/OptionsListUtils';
+import {getNewChatOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -90,7 +90,7 @@ class IOUParticipantsRequest extends Component {
             indexOffset: 0,
         });
 
-        if (this.state.userToInvite) {
+        if (this.state.userToInvite && !isCurrentUser(this.state.userToInvite)) {
             sections.push({
                 undefined,
                 data: [this.state.userToInvite],
