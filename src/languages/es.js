@@ -471,16 +471,17 @@ export default {
                 + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia'
                 + ' generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
                 + 'transferencia (con una tarifa mínima de $ 0.25). ',
-            fdicInsuranceBancorp: 'Your funds are eligible for FDIC insurance. Your funds will be held at or '
-                + 'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up '
-                + 'to $250,000 by the FDIC in the event The Bancorp Bank fails. See',
-            fdicInsuranceBancorp2: 'for details.',
-            contactExpensifyPayments: 'Contact Expensify Payments by calling +1 833-400-0904, by email at',
-            contactExpensifyPayments2: 'or sign in at',
-            generalInformation: 'For general information about prepaid accounts, visit',
-            generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial '
-                + 'Protection Bureau at 1-855-411-2372 or visit',
-            printerFriendlyView: 'Printer Friendly View',
+            fdicInsuranceBancorp: 'Sus fondos son elegibles para el seguro de la FDIC. Sus fondos se mantendrán en o '
+                + 'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos '
+                + 'están asegurados a $ 250,000 por la FDIC en caso de que The Bancorp Bank quiebre. Ver',
+            fdicInsuranceBancorp2: 'para detalles.',
+            contactExpensifyPayments: 'Comuníquese con Expensify Payments llamando al + 1833-400-0904, por correo'
+            + 'electrónico a',
+            contactExpensifyPayments2: 'o inicie sesión en',
+            generalInformation: 'Para obtener información general sobre cuentas prepagas, visite',
+            generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de '
+                + 'Protección al 1-855-411-2372 o visite',
+            printerFriendlyView: 'Vista fácil de imprimir',
         },
     },
     activateStep: {
