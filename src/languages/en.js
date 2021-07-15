@@ -57,7 +57,6 @@ export default {
         send: 'Send',
         notifications: 'Notifications',
         noResultsFound: 'No results found',
-        deletedCommentMessage: 'Comment deleted',
         timePrefix: 'It\'s',
         conjunctionFor: 'for',
     },
@@ -201,7 +200,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            description: 'The New Expensify is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
             appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
@@ -346,6 +345,7 @@ export default {
             website: 'Please enter a valid website',
             zipCode: 'Please enter a valid zip code',
             addressStreet: 'Please enter a valid address street that is not a PO Box',
+            addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid incorporation date',
             incorporationState: 'Please enter a valid Incorporation State',
             industryCode: 'Please enter a valid industry classification code',

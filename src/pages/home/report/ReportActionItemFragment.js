@@ -11,6 +11,7 @@ import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import {isSingleEmoji} from '../../../libs/ValidationUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -65,7 +66,7 @@ class ReportActionItemFragment extends React.PureComponent {
                         />
                     ) : (
                         <Text
-                            selectable={!this.props.isSmallScreenWidth}
+                            selectable={!canUseTouchScreen() || !this.props.isSmallScreenWidth}
                             style={isSingleEmoji(fragment.text) ? styles.singleEmojiText : undefined}
                         >
                             {Str.htmlDecode(fragment.text)}
