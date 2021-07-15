@@ -450,7 +450,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                                     ? CONST.BANK_ACCOUNT.STEP.VALIDATION : CONST.BANK_ACCOUNT.STEP.COMPANY;
                                 achData.bankAccountInReview = hasTriedToUpgrade;
                             } else {
-                                // In Expensify.cash we do not show a specific view for the EnableStep since we
+                                // We do not show a specific view for the EnableStep since we
                                 // will enable the Expensify card automatically. However, we will still handle
                                 // that step and show the Validate view.
                                 currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;

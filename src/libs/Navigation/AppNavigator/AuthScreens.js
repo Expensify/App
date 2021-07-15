@@ -260,7 +260,7 @@ class AuthScreens extends React.Component {
                     name={SCREENS.HOME}
                     options={{
                         headerShown: false,
-                        title: 'Expensify.cash',
+                        title: 'new.expensify.com',
 
                         // prevent unnecessary scrolling
                         cardStyle: {
@@ -273,7 +273,7 @@ class AuthScreens extends React.Component {
                     name="ValidateLogin"
                     options={{
                         headerShown: false,
-                        title: 'Expensify.cash',
+                        title: 'new.expensify.com',
                     }}
                     component={ValidateLoginPage}
                 />
