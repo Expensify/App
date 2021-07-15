@@ -104,8 +104,6 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.getReady = this.getReady.bind(this);
-        this.myRef = React.createRef();
-
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
@@ -158,6 +156,10 @@ class IOUModal extends Component {
         PersonalDetails.fetchCurrencyPreferences();
     }
 
+    /**
+     * Decides our animation type based on whether we're increasing or decreasing
+     * our step index.
+    */
     getAnimation() {
         if (this.state.previousStepIndex < this.state.currentStepIndex) {
             return 'slideInRight';

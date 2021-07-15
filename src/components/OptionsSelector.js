@@ -95,7 +95,7 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        // this.textInput.focus();
+        this.textInput.focus();
     }
 
     /**
@@ -203,7 +203,6 @@ class OptionsSelector extends Component {
                         placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
-
                 <OptionsList
                     ref={el => this.list = el}
                     animation={this.props.animation}
