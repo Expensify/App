@@ -26,6 +26,14 @@ function openDrawer() {
 }
 
 /**
+ * Close the LHN drawer.
+ * @private
+ */
+function closeDrawer() {
+    navigationRef.current.dispatch(DrawerActions.closeDrawer());
+}
+
+/**
  * @private
  * @param {Boolean} shouldOpenDrawer
  */
@@ -162,4 +170,5 @@ export default {
     isActive,
     goBack,
     DismissModal,
+    closeDrawer,
 };

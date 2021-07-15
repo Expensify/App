@@ -483,7 +483,8 @@ class GithubUtils {
             }
             return data;
         })
-            .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)));
+            .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)))
+            .catch(err => console.error('Failed to get PR list', err));
     }
 
     /**

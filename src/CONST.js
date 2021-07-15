@@ -4,7 +4,7 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
+        DESKTOP: 'https://new.expensify.com/Expensify.cash.dmg',
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -64,6 +64,9 @@ const CONST = {
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
+        STATE: {
+            VERIFYING: 'VERIFYING',
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -274,7 +277,7 @@ const CONST = {
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
-        STATUS: {
+        TIER_NAME: {
             GOLD: 'GOLD',
             SILVER: 'SILVER',
         },
