@@ -78,8 +78,10 @@ class RequestCallPage extends Component {
         }
 
         const personalPolicy = _.find(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.PERSONAL);
-        if (!personalPolicy) {
-            Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
+        if (!_.isObject(personalPolicy)) {
+            this.setState({isLoading: false}, () => {
+                Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
+            });
             return;
         }
         requestConciergeDMCall(personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
