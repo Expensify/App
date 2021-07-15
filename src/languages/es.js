@@ -52,7 +52,6 @@ export default {
         send: 'Enviar',
         notifications: 'Notificaciones',
         noResultsFound: 'No se han encontrado resultados',
-        deletedCommentMessage: 'Comentario borrado',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
     },
