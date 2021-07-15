@@ -315,7 +315,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
 
             // If we receive a 404 response while fetching a single report, treat that report as inacessible.
             if (jsonCode === 404 && chatList.length === 1) {
-                throw new Error('inacessible');
+                throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
             }
 
             return Promise.all(_.map(fetchedReports, (chatReport) => {
@@ -377,8 +377,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
             return _.map(fetchedReports, report => report.reportID);
         })
         .catch((err) => {
-            if (err.message === 'inacessible' && shouldRedirectIfInacessible) {
-                Log.info('[Report] Report data is inacessible.', true);
+            if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT && shouldRedirectIfInacessible) {
                 Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
                 // eslint-disable-next-line no-use-before-define
                 navigateToConciergeChat();
