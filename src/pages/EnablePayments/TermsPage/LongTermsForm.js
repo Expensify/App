@@ -4,6 +4,8 @@ import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import CollapsibleSection from '../../../components/CollapsibleSection';
 import {translateLocal} from '../../../libs/translate';
+import TextLink from '../../../components/TextLink';
+import CONST from '../../../CONST';
 
 const termsData = [
     {
@@ -84,13 +86,61 @@ const getTermsSection = () => termsData.map(data => (
 ));
 
 const LongTermsForm = () => (
-    <View style={[styles.mt4, styles.pt4, styles.termsRow]}>
-        <Text style={[styles.pb4]}>
-            {translateLocal('termsStep.longTermsForm.listOfAllFees')}
-        </Text>
-        <View style={styles.termsSection} />
-        {getTermsSection()}
-    </View>
+    <>
+        <View style={[styles.mt4, styles.pt4, styles.termsRow]}>
+            <Text style={styles.pb4}>
+                {translateLocal('termsStep.longTermsForm.listOfAllFees')}
+            </Text>
+            <View style={styles.termsSection} />
+            {getTermsSection()}
+        </View>
+        <CollapsibleSection title="More Information">
+            <View style={[styles.pl4, styles.pr4, styles.mb4]}>
+                <Text style={styles.mb4}>
+                    {translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')}
+                    {' '}
+                    <TextLink href="https://fdic.gov/deposit/deposits/prepaid.html">
+                        fdic.gov/deposit/deposits/prepaid.html
+                    </TextLink>
+                    {' '}
+                    {translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp2')}
+                </Text>
+                <Text style={[styles.mb4, styles.textStrong]}>
+                    {translateLocal('termsStep.noOverdraftOrCredit')}
+                </Text>
+                <Text style={styles.mb4}>
+                    {translateLocal('termsStep.longTermsForm.contactExpensifyPayments')}
+                    {' '}
+                    <TextLink href="mailto:concierge@expensify.com">
+                        {CONST.EMAIL.CONCIERGE}
+                    </TextLink>
+                    {' '}
+                    {translateLocal('termsStep.longTermsForm.contactExpensifyPayments2')}
+                    {' '}
+                    <TextLink href="https://new.expensify.com">
+                        new.expensify.com
+                    </TextLink>
+                    .
+                </Text>
+                <Text style={styles.mb4}>
+                    {translateLocal('termsStep.longTermsForm.generalInformation')}
+                    {' '}
+                    <TextLink href="https://cfpb.gov/prepaid">
+                        cfpb.gov/prepaid
+                    </TextLink>
+                    {' '}
+                    {translateLocal('termsStep.longTermsForm.generalInformation2')}
+                    {' '}
+                    <TextLink href="https://cfpb.gov/complaint">
+                        cfpb.gov/complaint.
+                    </TextLink>
+                </Text>
+                <TextLink href="https://expensify-use2.squarespace.com/fees">
+                    {translateLocal('termsStep.longTermsForm.printerFriendlyView')}
+                </TextLink>
+            </View>
+        </CollapsibleSection>
+    </>
 );
 
 LongTermsForm.displayName = 'LongTermsForm';
