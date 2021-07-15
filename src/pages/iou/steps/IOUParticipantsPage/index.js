@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {ActivityIndicator, View} from 'react-native';
-import * as Animatable from 'react-native-animatable';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import IOUParticipantsSplit from './IOUParticipantsSplit';
 import IOUParticipantsRequest from './IOUParticipantsRequest';
@@ -10,6 +9,9 @@ import themeColors from '../../../../styles/themes/default';
 import styles from '../../../../styles/styles';
 
 const propTypes = {
+    /** String containing the animation type */
+    animation: PropTypes.string,
+
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
@@ -44,6 +46,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    animation: undefined,
     iou: {},
     participants: [],
 };
@@ -57,8 +60,7 @@ const IOUParticipantsPage = (props) => {
         );
     }
 
-    return (
-        props.hasMultipleParticipants
+    return (props.hasMultipleParticipants
         ? (
             <IOUParticipantsSplit
                 animation={props.animation}

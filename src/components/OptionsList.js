@@ -10,6 +10,9 @@ import SectionList from './SectionList';
 import Text from './Text';
 
 const propTypes = {
+    /** String containing the animation type */
+    animation: PropTypes.string,
+
     /** option Background Color */
     optionBackgroundColor: PropTypes.string,
 
@@ -82,6 +85,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    animation: undefined,
     optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
@@ -206,9 +210,13 @@ class OptionsList extends Component {
     }
 
     render() {
-        console.log(`Animation in OptionsList: ${this.props.animation}`)
         return (
-            <Animatable.View animation={this.props.animation} duration={300} useNativeDriver={true} style={this.props.listContainerStyles}>
+            <Animatable.View
+                animation={this.props.animation}
+                duration={300}
+                useNativeDriver
+                style={this.props.listContainerStyles}
+            >
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>

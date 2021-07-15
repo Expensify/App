@@ -4,6 +4,9 @@ import * as Animatable from 'react-native-animatable';
 import IOUConfirmationList from '../../../components/IOUConfirmationList';
 
 const propTypes = {
+    /** String containing the animation type */
+    animation: PropTypes.string,
+
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
@@ -46,22 +49,23 @@ const propTypes = {
 };
 
 const defaultProps = {
+    animation: undefined,
     onUpdateComment: null,
     comment: '',
 };
 
 const IOUConfirmPage = props => (
     <Animatable.View animation={props.animation} duration={300}>
-    <IOUConfirmationList
-        hasMultipleParticipants={props.hasMultipleParticipants}
-        participants={props.participants}
-        comment={props.comment}
-        onUpdateComment={props.onUpdateComment}
-        selectedCurrency={props.selectedCurrency}
-        iouAmount={props.iouAmount}
-        onConfirm={props.onConfirm}
-    />
-                                            </Animatable.View>
+        <IOUConfirmationList
+            hasMultipleParticipants={props.hasMultipleParticipants}
+            participants={props.participants}
+            comment={props.comment}
+            onUpdateComment={props.onUpdateComment}
+            selectedCurrency={props.selectedCurrency}
+            iouAmount={props.iouAmount}
+            onConfirm={props.onConfirm}
+        />
+    </Animatable.View>
 
 );
 

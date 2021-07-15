@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import * as Animatable from 'react-native-animatable'
 import TextInputWithFocusStyles from './TextInputWithFocusStyles';
 import OptionsList from './OptionsList';
 import styles from '../styles/styles';

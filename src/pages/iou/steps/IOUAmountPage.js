@@ -151,7 +151,12 @@ class IOUAmountPage extends React.Component {
 
     render() {
         return (
-            <Animatable.View duration={300} animation={this.props.animation} useNativeDriver={true} style={[styles.flex1, styles.pageWrapper]}>
+            <Animatable.View
+                duration={300}
+                animation={this.props.animation}
+                useNativeDriver
+                style={[styles.flex1, styles.pageWrapper]}
+            >
                 <View style={[
                     styles.flex1,
                     styles.flexRow,
