@@ -229,6 +229,10 @@ export default {
         paddingRight: 8,
     },
 
+    pr4: {
+        paddingRight: 16,
+    },
+
     pr5: {
         paddingRight: 20,
     },

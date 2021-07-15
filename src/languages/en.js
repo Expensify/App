@@ -403,6 +403,7 @@ export default {
         monthlyFee: 'Monthly Fee',
         inactivity: 'Inactivity',
         electronicFundsInstantFee: '1.5% (min. of $0.25)',
+        noOverdraftOrCredit: 'No overdraft/credit feature.',
         shortTermsForm: {
             perPurchase: 'Per Purchase',
             atmWithdrawal: 'ATM Withdrawal',
@@ -417,11 +418,10 @@ export default {
             weChargeOneFee: 'We charge 1 type of fee.',
             electronicFundsWithdrawal: 'Electronic Funds Withdrawal',
             instant: '(instant)',
-            noOverdraftOrCredit: 'No overdraft/credit feature.',
-            fdicInsurance: 'Your funds are elligible for FDIC insurance.',
-            generalInfo: 'For general information about prepaid accoutns, visit',
+            fdicInsurance: 'Your funds are eligible for FDIC insurance.',
+            generalInfo: 'For general information about prepaid accounts, visit',
             conditionsDetails: 'Find details and conditions for all fees and services by visiting',
-            conditionsPhone: 'or calling +1 833-400-0904',
+            conditionsPhone: 'or calling +1 833-400-0904.',
         },
         longTermsForm: {
             listOfAllFees: 'A list of all Expensify Payments Account fees:',
@@ -446,6 +446,16 @@ export default {
             electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Payments Account to '
                 + 'your linked debit card using the instant transfer option. This transfer usually completes within'
                 + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
+            fdicInsuranceBancorp: 'Your funds are eligible for FDIC insurance. Your funds will be held at or '
+                + 'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up '
+                + 'to $250,000 by the FDIC in the event The Bancorp Bank fails. See',
+            fdicInsuranceBancorp2: 'for details.',
+            contactExpensifyPayments: 'Contact Expensify Payments by calling +1 833-400-0904, by email at',
+            contactExpensifyPayments2: 'or sign in at',
+            generalInformation: 'For general information about prepaid accounts, visit',
+            generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial '
+                + 'Protection Bureau at 1-855-411-2372 or visit',
+            printerFriendlyView: 'Printer Friendly View',
         },
     },
     activateStep: {

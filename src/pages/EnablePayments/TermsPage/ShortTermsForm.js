@@ -101,7 +101,7 @@ const ShortTermsForm = () => (
 
         <View style={[styles.termsRow, styles.pt4]}>
             <Text style={styles.textStrong}>
-                {translateLocal('termsStep.shortTermsForm.noOverdraftOrCredit')}
+                {translateLocal('termsStep.noOverdraftOrCredit')}
             </Text>
             <Text style={styles.mb3}>
                 {translateLocal('termsStep.shortTermsForm.fdicInsurance')}
