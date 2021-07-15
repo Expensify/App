@@ -1,7 +1,9 @@
+const _ = require('underscore');
 const translate = require('../../src/libs/translate');
-const translations = require('../../src/languages/translations');
 const CONFIG = require('../../src/CONFIG');
+const translations = require('../../src/languages/translations');
 
+const originalTranslations = _.clone(translations);
 translations.default = {
     en: {
         testKey1: 'English',
@@ -50,5 +52,40 @@ describe('translate', () => {
         const testVariable = 'Test Variable';
         expect(translate.translate('en', 'testKeyGroup.testFunction', {testVariable})).toBe(expectedValue);
         expect(translate.translate('en', ['testKeyGroup', 'testFunction'], {testVariable})).toBe(expectedValue);
+    });
+});
+
+describe('Translation Keys', () => {
+    let activeLanguage;
+    let path = '';
+    function matchKeys(source, target, key) {
+        path += key ? `${key}.` : '';
+        const pathLevel = path;
+        if (key && !_.has(target, key)) {
+            console.debug(`🏹 ${path.slice(0, -1)} is missing from ${activeLanguage}.js`);
+            return;
+        }
+        const sourceOBJ = key ? source[key] : source;
+        const targetOBJ = key ? target[key] : target;
+        if (_.isObject(sourceOBJ) && !_.isFunction(sourceOBJ)) {
+            return _.every(_.keys(sourceOBJ), (subKey) => {
+                path = pathLevel;
+                return matchKeys(sourceOBJ, targetOBJ, subKey);
+            });
+        }
+        if (key) {
+            path = path.slice(0, -(key.length - 1));
+        }
+        return true;
+    }
+    it('Does each locale has all the keys', () => {
+        const excludeLanguages = ['en', 'es-ES'];
+        const languages = _.without(_.keys(originalTranslations.default), ...excludeLanguages);
+        const parentLanguage = originalTranslations.default.en;
+        const hasAllKeys = _.every(languages, (ln) => {
+            activeLanguage = ln;
+            return matchKeys(parentLanguage, originalTranslations.default[ln]);
+        });
+        expect(hasAllKeys).toBeTruthy();
     });
 });
