@@ -343,6 +343,7 @@ export default {
             website: 'Please enter a valid website',
             zipCode: 'Please enter a valid zip code',
             addressStreet: 'Please enter a valid address street that is not a PO Box',
+            addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid incorporation date',
             incorporationState: 'Please enter a valid Incorporation State',
             industryCode: 'Please enter a valid industry classification code',

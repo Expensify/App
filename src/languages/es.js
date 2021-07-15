@@ -322,6 +322,7 @@ export default {
             website: 'Ingrese un sitio web válido',
             zipCode: 'Ingrese un código postal válido',
             addressStreet: 'Ingrese una calle de dirección válida que no sea un apartado postal',
+            addressState: 'Por favor, selecciona un estado',
             incorporationDate: 'Ingrese una fecha de incorporación válida',
             incorporationState: 'Ingrese un estado de incorporación válido',
             industryCode: 'Ingrese un código de clasificación de industria válido',
