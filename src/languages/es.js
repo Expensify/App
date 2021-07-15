@@ -191,7 +191,7 @@ export default {
     initialSettingsPage: {
         about: 'Acerca de',
         aboutPage: {
-            description: 'Expensify.cash está desarrollado por una comunidad de desarrolladores open source de todo el mundo. Ayúdanos a construir la próxima generación de Expensify.',
+            description: 'El nuevo Expensify está creado por una comunidad de desarrolladores de código abierto de todo el mundo. Ven y ayúdanos a construir la próxima generación de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
