@@ -205,6 +205,7 @@ class IOUParticipantsSplit extends Component {
                         {this.props.translate('common.to')}
                     </Text>
                     <OptionsSelector
+                        animation={this.props.animation}
                         canSelectMultipleOptions
                         sections={sections}
                         selectedOptions={this.props.participants}

@@ -3,7 +3,6 @@ import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import * as Animatable from 'react-native-animatable';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
@@ -159,10 +158,10 @@ class IOUModal extends Component {
         PersonalDetails.fetchCurrencyPreferences();
     }
 
-    getAnimation(isFirstScreen) {
-        if (this.state.previousStepIndex <= this.state.currentStepIndex && !isFirstScreen) {
+    getAnimation() {
+        if (this.state.previousStepIndex < this.state.currentStepIndex) {
             return 'slideInRight'
-        } else {
+        } else if (this.state.previousStepIndex > this.state.currentStepIndex) {
             return 'slideInLeft'
         }
     }
@@ -337,7 +336,7 @@ class IOUModal extends Component {
                                 <>
                                     {currentStep === Steps.IOUAmount && (
                                         <IOUAmountPage
-                                            animation={this.getAnimation(true)}
+                                            animation={this.getAnimation()}
                                             onStepComplete={(amount) => {
                                                 this.setState({amount});
                                                 this.navigateToNextStep();
