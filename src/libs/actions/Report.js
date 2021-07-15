@@ -106,17 +106,17 @@ function getUnreadActionCount(report) {
     // Save the lastReadActionID locally so we can access this later
     lastReadSequenceNumbers[report.reportID] = lastReadSequenceNumber;
 
-    if (report.reportActionListLength === 0) {
+    if (report.reportActionCount === 0) {
         return 0;
     }
 
     if (!lastReadSequenceNumber) {
-        return report.reportActionListLength;
+        return report.reportActionCount;
     }
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionListLength - lastReadSequenceNumber;
+    const unreadActionCount = report.reportActionCount - lastReadSequenceNumber;
     return Math.max(0, unreadActionCount);
 }
 
