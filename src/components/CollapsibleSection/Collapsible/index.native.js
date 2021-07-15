@@ -1,5 +1,5 @@
 import CollapsibleRN from 'react-native-collapsible';
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 import React from 'react';
 
 const propTypes = {
@@ -8,13 +8,13 @@ const propTypes = {
 
     /** Children to display inside the Collapsible component */
     children: PropTypes.node.isRequired,
-}
+};
 
 const defaultProps = {
     isOpened: false,
 };
 
-const Collapsible = (props) => (
+const Collapsible = props => (
     <CollapsibleRN collapsed={!props.isOpened}>
         {props.children}
     </CollapsibleRN>
