@@ -71,6 +71,7 @@ const ConfirmModal = props => (
                 danger={props.danger}
                 style={[styles.mt4]}
                 onPress={props.onConfirm}
+                pressOnEnter
                 text={props.confirmText || props.translate('common.yes')}
             />
             <Button
