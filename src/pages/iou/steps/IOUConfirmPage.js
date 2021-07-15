@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import * as Animatable from 'react-native-animatable';
 import IOUConfirmationList from '../../../components/IOUConfirmationList';
 
 const propTypes = {
@@ -55,18 +54,16 @@ const defaultProps = {
 };
 
 const IOUConfirmPage = props => (
-    <Animatable.View animation={props.animation} duration={300}>
-        <IOUConfirmationList
-            hasMultipleParticipants={props.hasMultipleParticipants}
-            participants={props.participants}
-            comment={props.comment}
-            onUpdateComment={props.onUpdateComment}
-            selectedCurrency={props.selectedCurrency}
-            iouAmount={props.iouAmount}
-            onConfirm={props.onConfirm}
-        />
-    </Animatable.View>
-
+    <IOUConfirmationList
+        animation={props.animation}
+        hasMultipleParticipants={props.hasMultipleParticipants}
+        participants={props.participants}
+        comment={props.comment}
+        onUpdateComment={props.onUpdateComment}
+        selectedCurrency={props.selectedCurrency}
+        iouAmount={props.iouAmount}
+        onConfirm={props.onConfirm}
+    />
 );
 
 
