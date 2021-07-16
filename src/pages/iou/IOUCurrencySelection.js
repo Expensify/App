@@ -34,6 +34,12 @@ const propTypes = {
 
         // Currency Symbol of the Preferred Currency
         preferredCurrencySymbol: PropTypes.string,
+
+        // Preferred Currency Code of the current user
+        selectedCurrencyCode: PropTypes.string,
+
+        // Currency Symbol of the Preferred Currency
+        selectedCurrencySymbol: PropTypes.string,
     }),
 
     // The currency list constant object from Onyx
@@ -51,7 +57,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-    myPersonalDetails: {preferredCurrencyCode: CONST.CURRENCY.USD, preferredCurrencySymbol: '$'},
+    myPersonalDetails: {
+        preferredCurrencyCode: CONST.CURRENCY.USD,
+        preferredCurrencySymbol: '$',
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+        selectedCurrencySymbol: '$',
+    },
     currencyList: {},
 };
 
@@ -151,8 +162,8 @@ class IOUCurrencySelection extends Component {
      */
     confirmCurrencySelection() {
         Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
-            preferredCurrencyCode: this.state.selectedCurrency.currencyCode,
-            preferredCurrencySymbol: this.state.selectedCurrency.currencySymbol,
+            selectedCurrencyCode: this.state.selectedCurrency.currencyCode,
+            selectedCurrencySymbol: this.state.selectedCurrency.currencySymbol,
         });
         Navigation.goBack();
     }

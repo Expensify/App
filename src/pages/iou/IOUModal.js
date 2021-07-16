@@ -2,14 +2,13 @@ import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import {createIOUSplit, createIOUTransaction} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -46,6 +45,12 @@ const propTypes = {
 
         // Currency Symbol of the Preferred Currency
         preferredCurrencySymbol: PropTypes.string,
+
+        // Selected Currency Code of the current IOU
+        selectedCurrencyCode: PropTypes.string,
+
+        // Currency Symbol of the Selected Currency
+        selectedCurrencySymbol: PropTypes.string,
     }),
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
@@ -83,6 +88,8 @@ const defaultProps = {
     myPersonalDetails: {
         preferredCurrencyCode: CONST.CURRENCY.USD,
         preferredCurrencySymbol: '$',
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+        selectedCurrencySymbol: '$',
     },
     iouType: '',
 };
@@ -103,7 +110,6 @@ class IOUModal extends Component {
         this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
-        this.getReady = this.getReady.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
@@ -142,17 +148,20 @@ class IOUModal extends Component {
             Navigation.dismissModal();
         }
 
-        if (prevProps.myPersonalDetails.preferredCurrencyCode
-            !== this.props.myPersonalDetails.preferredCurrencyCode) {
+        if (prevProps.myPersonalDetails.selectedCurrencyCode
+            !== this.props.myPersonalDetails.selectedCurrencyCode) {
             this.updateSelectedCurrency({
-                currencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
-                currencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
+                currencyCode: this.props.myPersonalDetails.selectedCurrencyCode,
+                currencySymbol: this.props.myPersonalDetails.selectedCurrencySymbol,
             });
         }
     }
 
-    getReady() {
-        PersonalDetails.fetchCurrencyPreferences();
+    componentWillUnmount() {
+        Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+            selectedCurrencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
+            selectedCurrencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
+        });
     }
 
     /**
@@ -280,7 +289,7 @@ class IOUModal extends Component {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
         return (
-            <ScreenWrapper onTransitionEnd={this.getReady}>
+            <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     <KeyboardAvoidingView>
                         <View style={[styles.headerBar]}>
@@ -317,9 +326,9 @@ class IOUModal extends Component {
                         </View>
                         <View style={[styles.pRelative, styles.flex1]}>
                             <FullScreenLoadingIndicator
-                                visible={!didScreenTransitionEnd || this.props.iou.isRetrievingCurrency}
+                                visible={!didScreenTransitionEnd}
                             />
-                            {didScreenTransitionEnd && !this.props.iou.isRetrievingCurrency && (
+                            {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
                                         <IOUAmountPage
