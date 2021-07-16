@@ -19,19 +19,11 @@ import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
-
-    // User's currency preference
-    selectedCurrency: PropTypes.shape({
-        // Currency code for the selected currency
-        currencyCode: PropTypes.string,
-
-        // Currency symbol for the selected currency
-        currencySymbol: PropTypes.string,
-    }).isRequired,
 
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
@@ -80,7 +72,13 @@ const propTypes = {
 
         /** Primary login of the user */
         login: PropTypes.string,
-    }).isRequired,
+
+        // Selected Currency Code of the current IOU
+        selectedCurrencyCode: PropTypes.string,
+
+        // Currency Symbol of the Selected Currency
+        selectedCurrencySymbol: PropTypes.string,
+    }),
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
@@ -101,6 +99,10 @@ const defaultProps = {
     onUpdateComment: null,
     comment: '',
     network: {},
+    myPersonalDetails: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+        selectedCurrencySymbol: '$',
+    },
 };
 
 // Gives minimum height to offset the height of
@@ -122,14 +124,14 @@ class IOUConfirmationList extends Component {
                 this.props.myPersonalDetails,
                 this.props.numberFormat(this.calculateAmount() / 100, {
                     style: 'currency',
-                    currency: this.props.selectedCurrency.currencyCode,
+                    currency: this.props.myPersonalDetails.selectedCurrencyCode,
                 }),
             );
 
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
                 this.props.numberFormat(this.calculateAmount() / 100, {
                     style: 'currency',
-                    currency: this.props.selectedCurrency.currencyCode,
+                    currency: this.props.myPersonalDetails.selectedCurrencyCode,
                 }));
 
             sections.push({
@@ -148,7 +150,7 @@ class IOUConfirmationList extends Component {
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
                 this.props.numberFormat(this.props.iouAmount, {
                     style: 'currency',
-                    currency: this.props.selectedCurrency.currencyCode,
+                    currency: this.props.myPersonalDetails.selectedCurrencyCode,
                 }));
 
             sections.push({
@@ -244,7 +246,7 @@ class IOUConfirmationList extends Component {
             this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
                 amount: this.props.numberFormat(
                     this.props.iouAmount,
-                    {style: 'currency', currency: this.props.selectedCurrency.currencyCode},
+                    {style: 'currency', currency: this.props.myPersonalDetails.selectedCurrencyCode},
                 ),
             },
         );

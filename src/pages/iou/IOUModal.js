@@ -2,14 +2,14 @@ import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {createIOUSplit, createIOUTransaction} from '../../libs/actions/IOU';
+import {createIOUSplit, createIOUTransaction, resetSelectedCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -126,10 +126,6 @@ class IOUModal extends Component {
 
             // amount is currency in decimal format
             amount: '',
-            selectedCurrency: {
-                currencyCode: props.myPersonalDetails.preferredCurrencyCode,
-                currencySymbol: props.myPersonalDetails.preferredCurrencySymbol,
-            },
             comment: '',
         };
 
@@ -158,7 +154,7 @@ class IOUModal extends Component {
     }
 
     componentWillUnmount() {
-        Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
+        resetSelectedCurrency({
             selectedCurrencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
             selectedCurrencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
         });
@@ -175,7 +171,7 @@ class IOUModal extends Component {
             const formattedAmount = this.props.numberFormat(
                 this.state.amount, {
                     style: 'currency',
-                    currency: this.state.selectedCurrency.currencyCode,
+                    currency: this.props.myPersonalDetails.selectedCurrencyCode,
                 },
             );
             if (this.props.iouType === 'send') {
@@ -269,7 +265,7 @@ class IOUModal extends Component {
 
                 // should send in cents to API
                 amount: Math.round(this.state.amount * 100),
-                currency: this.state.selectedCurrency.currencyCode,
+                currency: this.props.myPersonalDetails.selectedCurrencyCode,
                 splits,
             });
             return;
@@ -280,7 +276,7 @@ class IOUModal extends Component {
 
             // should send in cents to API
             amount: Math.round(this.state.amount * 100),
-            currency: this.state.selectedCurrency.currencyCode,
+            currency: this.props.myPersonalDetails.selectedCurrencyCode,
             debtorEmail: this.state.participants[0].login,
         });
     }
@@ -338,7 +334,7 @@ class IOUModal extends Component {
                                             }}
                                             currencySelected={this.currencySelected}
                                             reportID={reportID}
-                                            selectedCurrency={this.state.selectedCurrency}
+                                            selectedCurrencySymbol={this.props.myPersonalDetails.selectedCurrencySymbol}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             selectedAmount={this.state.amount}
                                             navigation={this.props.navigation}

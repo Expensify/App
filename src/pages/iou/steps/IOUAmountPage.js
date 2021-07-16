@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
+import CONST from '../../../CONST';
 
 const propTypes = {
     // Whether or not this IOU has multiple participants
@@ -32,14 +33,15 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     currencySelected: PropTypes.func.isRequired,
 
-    // User's currency preference
-    selectedCurrency: PropTypes.shape({
-        // Currency code for the selected currency
-        currencyCode: PropTypes.string,
+    // The personal details of the person who is logged in
+    myPersonalDetails: PropTypes.shape({
 
-        // Currency symbol for the selected currency
-        currencySymbol: PropTypes.string,
-    }).isRequired,
+        // Selected Currency Code of the current IOU
+        selectedCurrencyCode: PropTypes.string,
+
+        // Currency Symbol of the Selected Currency
+        selectedCurrencySymbol: PropTypes.string,
+    }),
 
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
@@ -61,6 +63,10 @@ const propTypes = {
 
 const defaultProps = {
     iou: {},
+    myPersonalDetails: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+        selectedCurrencySymbol: '$',
+    },
 };
 
 class IOUAmountPage extends React.Component {
@@ -147,7 +153,7 @@ class IOUAmountPage extends React.Component {
                         : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
                         <Text style={styles.iouAmountText}>
-                            {this.props.selectedCurrency.currencySymbol}
+                            {this.props.myPersonalDetails.selectedCurrencySymbol}
                         </Text>
                     </TouchableOpacity>
                     {this.props.isSmallScreenWidth
@@ -198,6 +204,9 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
         iou: {key: ONYXKEYS.IOU},
     }),
 )(IOUAmountPage);
