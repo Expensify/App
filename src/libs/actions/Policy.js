@@ -9,6 +9,7 @@ import CONST from '../../CONST';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import {addSMSDomainIfPhoneNumber} from '../OptionsListUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -144,7 +145,7 @@ function invite(logins, welcomeNote, policyID) {
 
     // Make a shallow copy to preserve original data, and concat the login
     const policy = _.clone(allPolicies[key]);
-    policy.employeeList = [...policy.employeeList, ...logins];
+    policy.employeeList = [...policy.employeeList, ..._.map(logins, login => addSMSDomainIfPhoneNumber(login))];
 
     // Optimistically add the user to the policy
     Onyx.set(key, policy);
