@@ -138,6 +138,7 @@ class WorkspaceInvitePage extends React.Component {
                             isDisabled={!this.state.userLogins}
                             text={this.props.translate('common.invite')}
                             onPress={this.inviteUser}
+                            pressOnEnter
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>

@@ -106,17 +106,17 @@ function getUnreadActionCount(report) {
     // Save the lastReadActionID locally so we can access this later
     lastReadSequenceNumbers[report.reportID] = lastReadSequenceNumber;
 
-    if (report.reportActionList.length === 0) {
+    if (report.reportActionCount === 0) {
         return 0;
     }
 
     if (!lastReadSequenceNumber) {
-        return report.reportActionList.length;
+        return report.reportActionCount;
     }
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionList.length - lastReadSequenceNumber;
+    const unreadActionCount = report.reportActionCount - lastReadSequenceNumber;
     return Math.max(0, unreadActionCount);
 }
 
@@ -161,23 +161,22 @@ function getChatReportName(fullReport, chatType) {
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
-    const reportActionList = lodashGet(report, ['reportActionList'], []);
-    const lastReportAction = !_.isEmpty(reportActionList) ? _.last(reportActionList) : null;
-    const createTimestamp = lastReportAction ? lastReportAction.created : 0;
+    const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
-    const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lodashGet(lastReportAction, ['message', 'html'], ''));
+    const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
+    const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
     // We are removing any html tags from the message html since we cannot access the text version of any comments as
     // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
     // We convert the line-breaks in html to space ' ' before striping the tags
-    const lastMessageText = lodashGet(lastReportAction, ['message', 'html'], '')
+    const lastMessageText = lastActionMessage
         .replace(/((<br[^>]*>)+)/gi, ' ')
-        .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
+        .replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
-    const lastActorEmail = lodashGet(lastReportAction, 'accountEmail', '');
+    const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
     const notificationPreference = isDefaultRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
@@ -189,7 +188,7 @@ function getSimplifiedReportObject(report) {
         ownerEmail: lodashGet(report, ['ownerEmail'], ''),
         policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
-        maxSequenceNumber: report.reportActionList.length,
+        maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
         lastVisitedTimestamp: lodashGet(report, [
@@ -308,22 +307,13 @@ function fetchIOUReportID(debtorEmail) {
 function fetchChatReportsByIDs(chatList) {
     let fetchedReports;
     const simplifiedReports = {};
-    return API.Get({
-        returnValueList: 'reportStuff',
-        reportIDList: chatList.join(','),
-        shouldLoadOptionalKeys: true,
-        includePinnedReports: true,
-    })
-        .then(({reports}) => {
+    return API.GetReportSummaryList({reportIDList: chatList.join(',')})
+        .then(({reportSummaryList}) => {
             Log.info('[Report] successfully fetched report data', true);
-            fetchedReports = reports;
+            fetchedReports = reportSummaryList;
             return Promise.all(_.map(fetchedReports, (chatReport) => {
-                const reportActionList = chatReport.reportActionList || [];
-                const containsIOUAction = _.any(reportActionList,
-                    reportAction => reportAction.action === CONST.REPORT.ACTIONS.TYPE.IOU);
-
                 // If there aren't any IOU actions, we don't need to fetch any additional data
-                if (!containsIOUAction) {
+                if (!chatReport.hasIOUAction) {
                     return;
                 }
 
@@ -511,7 +501,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.html || `[${translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: message.html,
         });
     }
 }
@@ -1142,6 +1132,11 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     // action). If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action)
     const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
 
+    // We call this method in many cases where there's nothing to update because we already updated it, so we avoid
+    // doing an unnecessary server call if the last read is the same one we had already
+    if (lastReadSequenceNumbers[reportID] === lastReadSequenceNumber) {
+        return;
+    }
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items

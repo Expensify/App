@@ -5,10 +5,11 @@ import {
     propTypes,
     defaultProps,
 } from './renderHTMLPropTypes';
+import canUseTouchScreen from '../../libs/canUseTouchscreen';
 
 const RenderHTML = ({html, debug, isSmallScreenWidth}) => (
     <BaseRenderHTML
-        textSelectable={!isSmallScreenWidth}
+        textSelectable={!canUseTouchScreen() || !isSmallScreenWidth}
         html={html}
         debug={debug}
     />

@@ -28,7 +28,7 @@ class RequestorStep extends React.Component {
             lastName: lodashGet(props, ['achData', 'lastName'], ''),
             requestorAddressStreet: lodashGet(props, ['achData', 'requestorAddressStreet'], ''),
             requestorAddressCity: lodashGet(props, ['achData', 'requestorAddressCity'], ''),
-            requestorAddressState: lodashGet(props, ['achData', 'requestorAddressState']) || 'AK',
+            requestorAddressState: lodashGet(props, ['achData', 'requestorAddressState']) || '',
             requestorAddressZipCode: lodashGet(props, ['achData', 'requestorAddressZipCode'], ''),
             dob: lodashGet(props, ['achData', 'dob'], ''),
             ssnLast4: lodashGet(props, ['achData', 'ssnLast4'], ''),
@@ -60,6 +60,7 @@ class RequestorStep extends React.Component {
 
         if (!isValidIdentity({
             street: this.state.requestorAddressStreet,
+            state: this.state.requestorAddressState,
             zipCode: this.state.requestorAddressZipCode,
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
