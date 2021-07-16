@@ -103,7 +103,6 @@ export default {
         writeSomething: 'Escribe algo...',
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
-        localTime: ({user, time}) => `Son las ${time} para ${user}`,
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
     },
     reportActionContextMenu: {
