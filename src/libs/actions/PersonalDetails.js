@@ -211,6 +211,16 @@ function mergeLocalPersonalDetails(details) {
 /**
  * Sets the personal details object for the current user
  *
+ * @param {String} preferredLocale
+ */
+function updatePreferredLocale(preferredLocale) {
+    API.PreferredLocale_Update({preferredLocale});
+    Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
+}
+
+/**
+ * Sets the personal details object for the current user
+ *
  * @param {Object} details
  */
 function setPersonalDetails(details) {
@@ -306,10 +316,6 @@ function subscribeToPersonalDetails() {
         });
 }
 
-function broadcastPreferredLocaleChange(preferredLocale) {
-    Pusher.sendEvent('private-user-accountID-2', Pusher.TYPE.PERSONAL_DETAILS_PREFERRED_LOCALE, {preferredLocale});
-}
-
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetchPersonalDetails);
 
@@ -325,5 +331,5 @@ export {
     fetchCurrencyPreferences,
     getCurrencyList,
     subscribeToPersonalDetails,
-    broadcastPreferredLocaleChange,
+    updatePreferredLocale,
 };

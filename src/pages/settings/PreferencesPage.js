@@ -17,7 +17,7 @@ import Switch from '../../components/Switch';
 import Picker from '../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {broadcastPreferredLocaleChange} from '../../libs/actions/PersonalDetails';
+import {updatePreferredLocale} from '../../libs/actions/PersonalDetails';
 
 const propTypes = {
     /** The chat priority mode */
@@ -116,12 +116,7 @@ const PreferencesPage = ({
                         <Picker
                             onChange={(locale) => {
                                 if (locale !== preferredLocale) {
-                                    NameValuePair.set(
-                                        CONST.NVP.PREFERRED_LOCALE,
-                                        locale,
-                                        ONYXKEYS.NVP_PREFERRED_LOCALE,
-                                    );
-                                    broadcastPreferredLocaleChange(locale);
+                                    updatePreferredLocale(locale);
                                 }
                             }}
                             items={Object.values(localesToLanguages)}
