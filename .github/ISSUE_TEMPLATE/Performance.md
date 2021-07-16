@@ -1,0 +1,39 @@
+---
+name: Report a performance issue
+about: Use to report an issue or propose a solution related to app performance
+title: "[Performance] "
+labels: Engineering
+---
+
+If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/CONTRIBUTING.md) for onboarding and email contributors@expensify.com to request to join our Slack channel!
+___
+
+## What performance issue do we need to solve?
+e.g. memory consumption, storage read/write times, React native bridge concerns, inefficient React component rendering, etc.
+
+## Is there a specific app feature that will be improved by solving this problem?
+e.g. app boot time, time to for some interaction to complete
+
+## List any benchmarks that show the severity of the issue
+Please also provide exact steps taken to collect metrics above if any so we can independently verify the results
+
+## Proposed solution (if any)
+Please list out the steps you think we should take to solve this issue
+
+## List any benchmarks after implementing the changes to show impacts of the proposed solution (if any)
+
+## Platform:
+Where is this issue occurring?
+
+ Web
+ iOS
+ Android
+ Desktop App
+ Mobile Web
+
+**Version Number:**
+**Logs:** https://stackoverflow.com/c/expensify/questions/4856
+**Notes/Photos/Videos:** Any additional supporting documentation
+**Expensify/Expensify Issue URL:**
+
+[View all open jobs on Upwork](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2)
