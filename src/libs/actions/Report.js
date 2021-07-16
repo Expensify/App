@@ -210,8 +210,8 @@ function getSimplifiedReportObject(report) {
         lastActorEmail,
         hasOutstandingIOU: false,
         notificationPreference,
-        stateNum: report.stateNum,
-        statusNum: report.reportStatus,
+        stateNum: report.state,
+        statusNum: report.status,
         oldPolicyName,
     };
 }
