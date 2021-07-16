@@ -130,6 +130,7 @@ class AttachmentModal extends PureComponent {
                             textStyles={[styles.buttonConfirmText]}
                             text={this.props.translate('common.send')}
                             onPress={this.submitAndClose}
+                            pressOnEnter
                         />
                     )}
                 </Modal>
