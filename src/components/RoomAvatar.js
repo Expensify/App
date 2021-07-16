@@ -1,4 +1,5 @@
 import React, {PureComponent} from 'react';
+import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import ActiveRoomAvatar from '../../assets/images/avatars/room.svg';
 import DeletedRoomAvatar from '../../assets/images/avatars/deleted-room.svg';
@@ -19,8 +20,8 @@ const defaultProps = {
 class RoomAvatar extends PureComponent {
     render() {
         return (this.props.isArchived
-            ? <DeletedRoomAvatar style={this.props.avatarStyle} />
-            : <ActiveRoomAvatar style={this.props.avatarStyle} />
+            ? <DeletedRoomAvatar style={StyleSheet.flatten(this.props.avatarStyle)} />
+            : <ActiveRoomAvatar style={StyleSheet.flatten(this.props.avatarStyle)} />
         );
     }
 }
