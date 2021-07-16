@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {SectionList, View} from 'react-native';
 import PropTypes from 'prop-types';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import {getCurrencyList} from '../../libs/actions/PersonalDetails';
@@ -20,6 +20,7 @@ import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
+import {setSelectedCurrency} from '../../libs/actions/IOU';
 
 /**
  * IOU Currency selection for selecting currency
@@ -76,10 +77,6 @@ class IOUCurrencySelection extends Component {
         this.state = {
             searchValue: '',
             currencyData: currencyOptions,
-            selectedCurrency: {
-                currencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
-                currencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
-            },
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
@@ -128,15 +125,13 @@ class IOUCurrencySelection extends Component {
     /**
      * Function which renders a row in the list
      *
-     * @param {String} currencyCode
+     * @param {String} selectedCurrencyCode
      *
      */
-    toggleOption(currencyCode) {
-        this.setState({
-            selectedCurrency: {
-                currencyCode,
-                currencySymbol: this.props.currencyList[currencyCode].symbol,
-            },
+    toggleOption(selectedCurrencyCode) {
+        setSelectedCurrency({
+            selectedCurrencyCode,
+            selectedCurrencySymbol: this.props.currencyList[selectedCurrencyCode].symbol,
         });
     }
 
@@ -161,9 +156,9 @@ class IOUCurrencySelection extends Component {
      * @return {void}
      */
     confirmCurrencySelection() {
-        Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
-            selectedCurrencyCode: this.state.selectedCurrency.currencyCode,
-            selectedCurrencySymbol: this.state.selectedCurrency.currencySymbol,
+        setSelectedCurrency({
+            selectedCurrencyCode: this.props.myPersonalDetails.selectedCurrencyCode,
+            selectedCurrencySymbol: this.props.myPersonalDetails.selectedCurrencySymbol,
         });
         Navigation.goBack();
     }
@@ -204,7 +199,9 @@ class IOUCurrencySelection extends Component {
                                             mode="compact"
                                             option={item}
                                             onSelectRow={() => this.toggleOption(item.currencyCode)}
-                                            isSelected={item.currencyCode === this.state.selectedCurrency.currencyCode}
+                                            isSelected={
+                                                item.currencyCode === this.props.myPersonalDetails.selectedCurrencyCode
+                                            }
                                             showSelectedState
                                             hideAdditionalOptionStates
                                         />
@@ -223,7 +220,7 @@ class IOUCurrencySelection extends Component {
                     <FixedFooter>
                         <Button
                             success
-                            isDisabled={!this.state.selectedCurrency?.currencyCode}
+                            isDisabled={!this.props.myPersonalDetails.selectedCurrencyCode}
                             style={[styles.w100]}
                             text={this.props.translate('iou.confirm')}
                             onPress={this.confirmCurrencySelection}
