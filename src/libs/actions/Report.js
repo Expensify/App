@@ -187,6 +187,9 @@ function getSimplifiedReportObject(report) {
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 
+    // Used for archived rooms, will store the policy name that the room used to belong to.
+    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
+
     return {
         reportID: report.reportID,
         reportName,
@@ -209,6 +212,7 @@ function getSimplifiedReportObject(report) {
         notificationPreference,
         stateNum: report.stateNum,
         statusNum: report.reportStatus,
+        oldPolicyName,
     };
 }
 
