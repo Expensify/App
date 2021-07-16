@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {Image, View, StyleSheet} from 'react-native';
+import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import RoomAvatar from './RoomAvatar';
@@ -46,7 +46,7 @@ class Avatar extends PureComponent {
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {this.props.isDefaultChatRoom
-                    ? <RoomAvatar avatarStyle={StyleSheet.flatten(imageStyle)} isArchived={this.props.isArchivedRoom} />
+                    ? <RoomAvatar avatarStyle={imageStyle} isArchived={this.props.isArchivedRoom} />
                     : <Image source={{uri: this.props.source}} style={imageStyle} />}
             </View>
         );
