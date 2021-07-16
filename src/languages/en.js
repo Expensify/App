@@ -108,7 +108,6 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
-        localTime: ({user, time}) => `It's ${time} for ${user}`,
         roomIsArchived: 'This chat room has been deleted',
     },
     contextMenuItem: {
