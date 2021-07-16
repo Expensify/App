@@ -57,7 +57,7 @@ export default {
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
-        expensifyDoesntHaveAccessToCamera: 'new.expensify.com no tiene acceso a tu cámara, por favor activa el permiso y vuelve a intentarlo.',
+        expensifyDoesntHaveAccessToCamera: 'Esta aplicación no tiene acceso a tu cámara, por favor activa el permiso y vuelve a intentarlo.',
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto, por favor inténtalo de nuevo',
         errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor intentalo con otro archivo',
@@ -71,7 +71,7 @@ export default {
     },
     baseUpdateAppModal: {
         updateApp: 'Actualizar App',
-        updatePrompt: 'Existe una nueva versión de new.expensify.com.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
+        updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
     },
     iOUConfirmationList: {
         whoPaid: '¿QUIÉN PAGO?',
@@ -250,8 +250,8 @@ export default {
         },
     },
     signInPage: {
-        expensifyDotCash: 'new.expensify.com',
-        expensifyIsOpenSource: 'new.expensify.com es open source',
+        expensifyDotCash: 'New Expensify',
+        expensifyIsOpenSource: 'New Expensify es open source',
         theCode: 'el código',
         openJobs: 'trabajos disponibles',
     },

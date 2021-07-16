@@ -86,7 +86,7 @@ const quitAndInstallWithUpdate = () => {
 
 // Defines the system-level menu item for manually triggering an update after
 const updateAppMenuItem = new MenuItem({
-    label: 'Update new.expensify.com',
+    label: 'Update New Expensify',
     enabled: false,
     click: quitAndInstallWithUpdate,
 });
@@ -120,7 +120,7 @@ const mainWindow = (() => {
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (isDev) {
         app.dock.setIcon(`${__dirname}/icon-dev.png`);
-        app.setName('new.expensify.com');
+        app.setName('New Expensify');
     }
 
     return app.whenReady()
@@ -137,7 +137,7 @@ const mainWindow = (() => {
 
             // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
             if (isDev) {
-                browserWindow.setTitle('new.expensify.com');
+                browserWindow.setTitle('New Expensify');
             }
 
             // List the Expensify Chat instance under the Window menu, even when it's hidden
@@ -172,7 +172,7 @@ const mainWindow = (() => {
             const windowMenu = systemMenu.items.find(item => item.role === 'windowmenu');
             windowMenu.submenu.append(new MenuItem({type: 'separator'}));
             windowMenu.submenu.append(new MenuItem({
-                label: 'new.expensify.com',
+                label: 'New Expensify',
                 accelerator: 'CmdOrCtrl+1',
                 click: () => browserWindow.show(),
             }));
