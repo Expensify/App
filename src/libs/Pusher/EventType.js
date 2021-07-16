@@ -6,4 +6,5 @@ export default {
     REPORT_COMMENT: 'reportComment',
     REPORT_COMMENT_EDIT: 'reportCommentEdit',
     REPORT_TOGGLE_PINNED: 'reportTogglePinned',
+    PERSONAL_DETAILS_PREFERRED_LOCALE: 'personalDetailsPreferredLocale',
 };

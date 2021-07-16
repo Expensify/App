@@ -10,6 +10,8 @@ import * as API from '../API';
 import NameValuePair from './NameValuePair';
 import {isDefaultRoom} from '../reportUtils';
 import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
+import * as Pusher from '../Pusher/pusher';
+import Log from '../Log';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -290,6 +292,24 @@ function deleteAvatar(login) {
     mergeLocalPersonalDetails({avatar: getDefaultAvatar(login)});
 }
 
+function subscribeToPersonalDetails() {
+    const pusherChannelName = 'private-user-accountID-2';
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.PERSONAL_DETAILS_PREFERRED_LOCALE, () => {
+        console.log('over here');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Personal Details] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.PERSONAL_DETAILS_PREFERRED_LOCALE},
+            );
+        });
+}
+
+function broadcastPreferredLocaleChange(preferredLocale) {
+    Pusher.sendEvent('private-user-accountID-2', Pusher.TYPE.PERSONAL_DETAILS_PREFERRED_LOCALE, {preferredLocale});
+}
+
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetchPersonalDetails);
 
@@ -304,4 +324,6 @@ export {
     deleteAvatar,
     fetchCurrencyPreferences,
     getCurrencyList,
+    subscribeToPersonalDetails,
+    broadcastPreferredLocaleChange,
 };
