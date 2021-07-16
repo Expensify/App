@@ -707,6 +707,7 @@ function getReportIcons(report, personalDetails) {
 }
 
 export {
+    addSMSDomainIfPhoneNumber,
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,
