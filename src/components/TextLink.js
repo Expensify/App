@@ -13,6 +13,7 @@ const propTypes = {
     children: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.array,
+        PropTypes.object,
     ]).isRequired,
 
     /** Additional style props */

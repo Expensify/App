@@ -72,7 +72,7 @@ class PasswordForm extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.mb4]}>
+                <View style={[styles.mv3]}>
                     <ExpensiTextInput
                         label={this.props.translate('common.password')}
                         secureTextEntry
@@ -83,18 +83,19 @@ class PasswordForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
                     />
+                    <TouchableOpacity
+                        style={[styles.mt2]}
+                        onPress={resetPassword}
+                        underlayColor={themeColors.componentBG}
+                    >
+                        <Text style={[styles.link, styles.h4]}>
+                            {this.props.translate('passwordForm.forgot')}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                    style={[styles.link, styles.mb4]}
-                    onPress={resetPassword}
-                    underlayColor={themeColors.componentBG}
-                >
-                    <Text style={[styles.link]}>
-                        {this.props.translate('passwordForm.forgot')}
-                    </Text>
-                </TouchableOpacity>
+
                 {this.props.account.requiresTwoFactorAuth && (
-                    <View style={[styles.mb4]}>
+                    <View style={[styles.mv3]}>
                         <ExpensiTextInput
                             label={this.props.translate('passwordForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
@@ -109,7 +110,7 @@ class PasswordForm extends React.Component {
                 <View>
                     <Button
                         success
-                        style={[styles.mb2]}
+                        style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}

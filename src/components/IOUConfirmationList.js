@@ -281,6 +281,7 @@ class IOUConfirmationList extends Component {
                         isLoading={this.props.iou.loading}
                         text={buttonText}
                         onPress={() => this.props.onConfirm(this.getSplits())}
+                        pressOnEnter
                     />
                 </FixedFooter>
             </>

@@ -24,6 +24,9 @@ import ConfirmModal from '../../../components/ConfirmModal';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {deleteReportComment} from '../../../libs/actions/Report';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import ControlSelection from '../../../libs/ControlSelection';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -56,6 +59,7 @@ const propTypes = {
     onLayout: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -269,6 +273,8 @@ class ReportActionItem extends Component {
             <>
                 <PressableWithSecondaryInteraction
                     ref={el => this.popoverAnchor = el}
+                    onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
                     onSecondaryInteraction={this.showPopover}
                 >
                     <Hoverable resetsOnClickOutside={false}>
@@ -354,6 +360,7 @@ ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
+    withWindowDimensions,
     withLocalize,
     withOnyx({
         draftMessage: {

@@ -23,6 +23,12 @@ Onyx.connect({
     callback: val => currentUserLogin = val && val.email,
 });
 
+let currentUser;
+Onyx.connect({
+    key: ONYXKEYS.USER,
+    callback: val => currentUser = val,
+});
+
 let countryCodeByIP;
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
@@ -41,6 +47,16 @@ Onyx.connect({
     callback: (policy, key) => {
         if (policy && key && policy.name) {
             policies[key] = policy;
+        }
+    },
+});
+
+const iouReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_IOUS,
+    callback: (iouReport, key) => {
+        if (iouReport && key && iouReport.ownerEmail) {
+            iouReports[key] = iouReport;
         }
     },
 });
@@ -180,6 +196,10 @@ function createOption(personalDetailList, report, draftComments, {
         && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
 
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
+    const iouReport = hasOutstandingIOU
+        ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
+        : {};
+
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
     const lastMessageText = report
         ? (hasMultipleParticipants && lastActorDetails
@@ -217,7 +237,8 @@ function createOption(personalDetailList, report, draftComments, {
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
-        login: !hasMultipleParticipants ? personalDetail.login : null,
+        // If single login is a mobile number, appending SMS domain
+        login: !hasMultipleParticipants ? addSMSDomainIfPhoneNumber(personalDetail.login) : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment: _.size(reportDraftComment) > 0,
@@ -226,6 +247,8 @@ function createOption(personalDetailList, report, draftComments, {
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
+        isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
+        iouReportAmount: lodashGet(iouReport, 'total', 0),
         isDefaultChatRoom,
     };
 }
@@ -280,10 +303,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     hideReadReports = false,
     sortByAlphaAsc = false,
     forcePolicyNamePreview = false,
+    prioritizeIOUDebts = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const personalDetailsOptions = [];
+    const iouDebtReportOptions = [];
 
     const reportMapForLogins = {};
     let sortProperty = sortByLastMessageTimestamp
@@ -307,7 +332,11 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         const reportDraftComment = report
             && draftComments
             && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
+        const iouReportOwner = lodashGet(report, 'hasOutstandingIOU', false)
+            ? lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
+            : '';
 
+        const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
         const shouldShowReportIfHasDraft = showReportsWithDrafts && reportDraftComment && reportDraftComment.length > 0;
@@ -315,7 +344,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (report.reportID !== activeReportID
             && !report.isPinned
             && !shouldShowReportIfHasDraft
-            && shouldFilterReport) {
+            && shouldFilterReport
+            && !reportContainsIOUDebt) {
             return;
         }
 
@@ -380,6 +410,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             // collect the pinned reports so we can sort them alphabetically once they are collected
             if (prioritizePinnedReports && reportOption.isPinned) {
                 pinnedReportOptions.push(reportOption);
+            } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
+                iouDebtReportOptions.push(reportOption);
             } else {
                 recentReportOptions.push(reportOption);
             }
@@ -389,6 +421,12 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
                 loginOptionsToExclude.push({login: reportOption.login});
             }
         }
+    }
+
+    // If we are prioritizing IOUs the user owes, add them before the normal recent report options
+    if (prioritizeIOUDebts) {
+        const sortedIOUReports = lodashOrderBy(iouDebtReportOptions, ['iouReportAmount'], ['desc']);
+        recentReportOptions = sortedIOUReports.concat(recentReportOptions);
     }
 
     // If we are prioritizing our pinned reports then shift them to the front and sort them by report name
@@ -475,6 +513,7 @@ function getSearchOptions(
         includePersonalDetails: true,
         sortByLastMessageTimestamp: false,
         forcePolicyNamePreview: true,
+        prioritizeIOUDebts: false,
     });
 }
 
@@ -589,6 +628,7 @@ function getSidebarOptions(
 ) {
     let sideBarOptions = {
         prioritizePinnedReports: true,
+        prioritizeIOUDebts: true,
     };
     if (priorityMode === CONST.PRIORITY_MODE.GSD) {
         sideBarOptions = {
@@ -673,6 +713,36 @@ function getReportIcons(report, personalDetails) {
         .map(item => item.avatar);
 }
 
+/**
+ * Returns the given userDetails is currentUser or not.
+ * @param {Object} userDetails
+ * @returns {Bool}
+ */
+
+function isCurrentUser(userDetails) {
+    if (!userDetails) {
+        // If userDetails is null or undefined
+        return false;
+    }
+
+    // If user login is mobile number, append sms domain if not appended already just a fail safe.
+    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
+
+    // Initial check with currentUserLogin
+    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
+    const {loginList} = currentUser;
+    let index = 0;
+
+    // Checking userDetailsLogin against to current user login options.
+    while (index < loginList.length && !result) {
+        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
+            result = true;
+        }
+        index++;
+    }
+    return result;
+}
+
 export {
     getSearchOptions,
     getNewChatOptions,
@@ -685,4 +755,5 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getDefaultAvatar,
     getReportIcons,
+    isCurrentUser,
 };

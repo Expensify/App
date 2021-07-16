@@ -72,7 +72,7 @@ class LoginForm extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.mb4]}>
+                <View style={[styles.mt3]}>
                     <ExpensiTextInput
                         label={this.props.translate('loginForm.enterYourPhoneOrEmail')}
                         value={this.state.login}
@@ -88,10 +88,9 @@ class LoginForm extends React.Component {
                         autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
-                <View>
+                <View style={[styles.mt5]}>
                     <Button
                         success
-                        style={[styles.mb2]}
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
