@@ -29,10 +29,6 @@ const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
-    /** Currency selection will be implemented later */
-    // eslint-disable-next-line react/no-unused-prop-types
-    currencySelected: PropTypes.func.isRequired,
-
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
 
