@@ -142,10 +142,11 @@ function removeMembers(members, policyID) {
  */
 function invite(logins, welcomeNote, policyID) {
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+    const newEmployeeList = _.map(logins, login => addSMSDomainIfPhoneNumber(login));
 
     // Make a shallow copy to preserve original data, and concat the login
     const policy = _.clone(allPolicies[key]);
-    policy.employeeList = [...policy.employeeList, ..._.map(logins, login => addSMSDomainIfPhoneNumber(login))];
+    policy.employeeList = [...policy.employeeList, ...newEmployeeList];
 
     // Optimistically add the user to the policy
     Onyx.set(key, policy);
@@ -165,7 +166,7 @@ function invite(logins, welcomeNote, policyID) {
 
             // If the operation failed, undo the optimistic addition
             const policyDataWithoutLogin = _.clone(allPolicies[key]);
-            policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...logins);
+            policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...newEmployeeList);
             Onyx.set(key, policyDataWithoutLogin);
 
             // Show the user feedback that the addition failed
