@@ -73,8 +73,8 @@ class WorkspaceInvitePage extends React.Component {
      * Handle the invite button click
      */
     inviteUser() {
-        const logins = _.compact(this.state.userLogins.split(','));
-        const isEnteredLoginsvalid = _.every(logins, login => (Str.isValidEmail(login) || Str.isValidPhone(login)));
+        const logins = _.map(_.compact(this.state.userLogins.split(',')), login => login.trim());
+        const isEnteredLoginsvalid = _.every(logins, login => Str.isValidEmail(login) || Str.isValidPhone(login));
         if (!isEnteredLoginsvalid) {
             Growl.error(this.props.translate('workspace.invite.pleaseEnterValidLogin'), 5000);
             return;
@@ -135,7 +135,7 @@ class WorkspaceInvitePage extends React.Component {
                     <FixedFooter style={[styles.flexGrow0]}>
                         <Button
                             success
-                            isDisabled={!this.state.userLogins}
+                            isDisabled={!this.state.userLogins.trim()}
                             text={this.props.translate('common.invite')}
                             onPress={this.inviteUser}
                             pressOnEnter
