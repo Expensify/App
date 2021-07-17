@@ -252,13 +252,11 @@ class TextInputFocusable extends React.Component {
     handlePastedHTML(html) {
         const parser = new ExpensiMark();
         const markdownText = parser.htmlToMarkdown(html);
-        const beforeCursorText = this.textInput.value.substring(0, this.selection.start);
-        const afterCursorText = this.textInput.value.substring(this.selection.end);
-        this.textInput.value = beforeCursorText + markdownText + afterCursorText;
-        const newCursorPosition = beforeCursorText.length + markdownText.length;
-        this.setState({selection: {start: newCursorPosition, end: newCursorPosition}});
-        this.updateNumberOfLines();
-        this.props.onChangeText(this.textInput.value);
+        try {
+            document.execCommand('insertText', false, markdownText);
+            this.updateNumberOfLines();
+        // eslint-disable-next-line no-empty
+        } catch (e) { }
     }
 
     /**
