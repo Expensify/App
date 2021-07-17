@@ -1799,6 +1799,16 @@ const styles = {
         top: 0,
         bottom: 0,
     },
+
+    transferBalancePayment: {
+        borderWidth: 2,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+    },
+
+    transferBalanceSelectedPayment: {
+        borderColor: themeColors.iconSuccessFill,
+    },
 };
 
 const baseCodeTagStyles = {

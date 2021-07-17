@@ -264,6 +264,10 @@ const CONST = {
     },
 
     WALLET: {
+        PAYMENT_TYPE: {
+            INSTANT: 'instant',
+            BANK: 'bank',
+        },
         ERROR: {
             IDENTITY_NOT_FOUND: 'Identity not found',
             INVALID_SSN: 'Invalid SSN',

@@ -28,6 +28,7 @@ import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/Reimbu
 import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
 import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
+import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -160,6 +161,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsPaymentsPage,
         name: 'Settings_Payments',
+    },
+    {
+        Component: TransferBalancePage,
+        name: 'Settings_Transfer_Balance',
     },
     {
         Component: SettingsAddPayPalMePage,

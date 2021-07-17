@@ -3,6 +3,7 @@ import Apple from '../../../assets/images/apple.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
 import Bank from '../../../assets/images/bank.svg';
+import Bolt from '../../../assets/images/bolt.svg';
 import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
 import Camera from '../../../assets/images/camera.svg';
@@ -45,6 +46,7 @@ import Receipt from '../../../assets/images/receipt.svg';
 import Send from '../../../assets/images/send.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
 import Sync from '../../../assets/images/sync.svg';
+import Transfer from '../../../assets/images/transfer.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
 import Users from '../../../assets/images/users.svg';
 import Upload from '../../../assets/images/upload.svg';
@@ -58,6 +60,7 @@ export {
     ArrowRight,
     BackArrow,
     Bank,
+    Bolt,
     Building,
     Bug,
     Camera,
@@ -100,6 +103,7 @@ export {
     Send,
     SignOut,
     Sync,
+    Transfer,
     Trashcan,
     Upload,
     Users,

@@ -14,7 +14,7 @@ import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import getPaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
-import {PayPal} from '../../../components/Icon/Expensicons';
+import {PayPal, Transfer} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 
@@ -44,6 +44,7 @@ class PaymentsPage extends React.Component {
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
         this.addPaymentMethodTypePressed = this.addPaymentMethodTypePressed.bind(this);
         this.hideAddPaymentMenu = this.hideAddPaymentMenu.bind(this);
+        this.transferBalance = this.transferBalance.bind(this);
     }
 
     componentDidMount() {
@@ -93,6 +94,14 @@ class PaymentsPage extends React.Component {
         this.setState({shouldShowAddPaymentMenu: false});
     }
 
+    /**
+     * Transfer Wallet balance
+     *
+     */
+    transferBalance() {
+        Navigation.navigate(ROUTES.SETTINGS_TRANSFER_BALANCE);
+    }
+
     render() {
         return (
             <ScreenWrapper>
@@ -102,6 +111,12 @@ class PaymentsPage extends React.Component {
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    />
+                    <MenuItem
+                        title="Transfer Balance"
+                        icon={Transfer}
+                        onPress={this.transferBalance}
+                        shouldShowRightIcon
                     />
                     <View style={[styles.flex1]}>
                         <PaymentMethodList

@@ -149,6 +149,10 @@ export default {
         marginBottom: -4,
     },
 
+    mrn3: {
+        marginRight: -12,
+    },
+
     p0: {
         padding: 0,
     },
