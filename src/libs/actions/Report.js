@@ -172,7 +172,7 @@ function getSimplifiedReportObject(report) {
     // We convert the line-breaks in html to space ' ' before striping the tags
     const lastMessageText = lastActionMessage
         .replace(/((<br[^>]*>)+)/gi, ' ')
-        .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
+        .replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
@@ -501,7 +501,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.html || `[${translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: message.html,
         });
     }
 }
@@ -1132,6 +1132,11 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     // action). If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action)
     const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
 
+    // We call this method in many cases where there's nothing to update because we already updated it, so we avoid
+    // doing an unnecessary server call if the last read is the same one we had already
+    if (lastReadSequenceNumbers[reportID] === lastReadSequenceNumber) {
+        return;
+    }
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items

@@ -92,7 +92,6 @@ class AddPayPalMePage extends React.Component {
                                 value={this.state.payPalMeUsername}
                                 placeholder={this.props.translate('addPayPalMePage.yourPayPalUsername')}
                                 onChangeText={text => this.setState({payPalMeUsername: text})}
-                                editable={!this.props.payPalMeUsername}
                                 returnKeyType="done"
                             />
                         </View>
@@ -100,8 +99,8 @@ class AddPayPalMePage extends React.Component {
                     <FixedFooter>
                         <Button
                             success
-                            isDisabled={Boolean(this.props.payPalMeUsername)}
                             onPress={this.setPayPalMeUsername}
+                            pressOnEnter
                             style={[styles.mt3]}
                             text={this.props.translate('addPayPalMePage.addPayPalAccount')}
                         />
