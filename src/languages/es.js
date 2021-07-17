@@ -52,7 +52,6 @@ export default {
         send: 'Enviar',
         notifications: 'Notificaciones',
         noResultsFound: 'No se han encontrado resultados',
-        deletedCommentMessage: 'Comentario borrado',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
     },
@@ -191,7 +190,7 @@ export default {
     initialSettingsPage: {
         about: 'Acerca de',
         aboutPage: {
-            description: 'Expensify.cash está desarrollado por una comunidad de desarrolladores open source de todo el mundo. Ayúdanos a construir la próxima generación de Expensify.',
+            description: 'El nuevo Expensify está creado por una comunidad de desarrolladores de código abierto de todo el mundo. Ven y ayúdanos a construir la próxima generación de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
@@ -322,6 +321,7 @@ export default {
             website: 'Ingrese un sitio web válido',
             zipCode: 'Ingrese un código postal válido',
             addressStreet: 'Ingrese una calle de dirección válida que no sea un apartado postal',
+            addressState: 'Por favor, selecciona un estado',
             incorporationDate: 'Ingrese una fecha de incorporación válida',
             incorporationState: 'Ingrese un estado de incorporación válido',
             industryCode: 'Ingrese un código de clasificación de industria válido',
