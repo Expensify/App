@@ -7,6 +7,7 @@ import Text from '../../../components/Text';
 import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
+import LocalePicker from '../../../components/LocalePicker';
 import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import TextLink from '../../../components/TextLink';
@@ -48,6 +49,7 @@ const SignInPageLayoutWide = props => (
                     <View style={[styles.mv5]}>
                         <TermsAndLicenses />
                     </View>
+                    <LocalePicker />
                 </View>
             </View>
             <View style={[
