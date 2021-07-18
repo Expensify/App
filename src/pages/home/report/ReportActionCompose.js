@@ -511,6 +511,13 @@ class ReportActionCompose extends React.Component {
                                                             });
                                                         },
                                                     },
+                                                    ...(Permissions.canUseIOUSend(this.props.betas) ? [
+                                                        {
+                                                            icon: Send,
+                                                            text: this.props.translate('iou.sendMoney'),
+                                                            onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
+                                                        },
+                                                    ] : []),
                                                 ]}
                                             />
                                         </>
