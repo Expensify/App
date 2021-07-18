@@ -94,9 +94,6 @@ const PreferencesPage = ({
                     <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
                         {priorityModes[priorityMode].description}
                     </Text>
-                    <Text style={[styles.formLabel]} numberOfLines={1}>
-                        {translate('preferencesPage.language')}
-                    </Text>
                     <LocalePicker />
                 </View>
             </View>
