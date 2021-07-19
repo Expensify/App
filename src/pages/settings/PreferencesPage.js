@@ -17,7 +17,7 @@ import Switch from '../../components/Switch';
 import Picker from '../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {updatePreferredLocale} from '../../libs/actions/PersonalDetails';
+import {setLocale} from '../../libs/actions/App';
 
 const propTypes = {
     /** The chat priority mode */
@@ -116,7 +116,7 @@ const PreferencesPage = ({
                         <Picker
                             onChange={(locale) => {
                                 if (locale !== preferredLocale) {
-                                    updatePreferredLocale(locale);
+                                    setLocale(locale);
                                 }
                             }}
                             items={Object.values(localesToLanguages)}

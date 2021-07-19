@@ -540,12 +540,13 @@ function PersonalDetails_Update(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {Object} parameters.preferredLocale
+ * @param {Object} parameters.name
+ * @param {Object} parameters.value
  * @returns {Promise}
  */
 function PreferredLocale_Update(parameters) {
     const commandName = 'PreferredLocale_Update';
-    requireParameters(['preferredLocale'],
+    requireParameters(['name', 'value'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
