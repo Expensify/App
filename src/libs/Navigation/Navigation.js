@@ -26,12 +26,23 @@ function openDrawer() {
 }
 
 /**
+ * Close the LHN drawer.
  * @private
  */
-function goBack() {
+function closeDrawer() {
+    navigationRef.current.dispatch(DrawerActions.closeDrawer());
+}
+
+/**
+ * @private
+ * @param {Boolean} shouldOpenDrawer
+ */
+function goBack(shouldOpenDrawer = true) {
     if (!navigationRef.current.canGoBack()) {
         console.debug('Unable to go back');
-        openDrawer();
+        if (shouldOpenDrawer) {
+            openDrawer();
+        }
         return;
     }
 
@@ -59,7 +70,7 @@ function navigate(route = ROUTES.HOME) {
     // have a participants route since those should go through linkTo() as they open a different screen.
     const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
     if (reportID && !isParticipantsRoute) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}));
+        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}, navigationRef));
         return;
     }
 
@@ -102,7 +113,7 @@ function dismissModal(shouldOpenDrawer = false) {
     }
 
     // Navigate back to where we were before we launched the modal
-    goBack();
+    goBack(shouldOpenDrawer);
 
     if (!normalizedShouldOpenDrawer) {
         return;
@@ -159,4 +170,5 @@ export default {
     isActive,
     goBack,
     DismissModal,
+    closeDrawer,
 };

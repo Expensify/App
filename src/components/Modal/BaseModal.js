@@ -3,8 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import styles, {getModalPaddingStyles, getSafeAreaPadding} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './ModalPropTypes';
@@ -27,42 +25,25 @@ class BaseModal extends PureComponent {
     constructor(props) {
         super(props);
 
-        this.hideModalAndRemoveEventListeners = this.hideModalAndRemoveEventListeners.bind(this);
-        this.subscribeToKeyEvents = this.subscribeToKeyEvents.bind(this);
-        this.unsubscribeFromKeyEvents = this.unsubscribeFromKeyEvents.bind(this);
+        this.hideModal = this.hideModal.bind(this);
     }
 
     componentWillUnmount() {
         // we don't want to call the onModalHide on unmount
-        this.hideModalAndRemoveEventListeners(this.props.isVisible);
+        this.hideModal(this.props.isVisible);
     }
 
     /**
-     * Hides modal and unsubscribes from key event listeners
+     * Hides modal
      * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
      */
-    hideModalAndRemoveEventListeners(callHideCallback = true) {
-        this.unsubscribeFromKeyEvents();
+    hideModal(callHideCallback = true) {
         if (this.props.shouldSetModalVisibility) {
             setModalVisibility(false);
         }
         if (callHideCallback) {
             this.props.onModalHide();
         }
-    }
-
-    /**
-     * Listens to specific keyboard keys when the modal has been opened
-     */
-    subscribeToKeyEvents() {
-        KeyboardShortcut.subscribe('Enter', this.props.onSubmit, [], true);
-    }
-
-    /**
-     * Stops listening to keyboard keys when modal has been closed
-     */
-    unsubscribeFromKeyEvents() {
-        KeyboardShortcut.unsubscribe('Enter');
     }
 
     render() {
@@ -97,14 +78,13 @@ class BaseModal extends PureComponent {
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 onBackButtonPress={this.props.onClose}
                 onModalShow={() => {
-                    this.subscribeToKeyEvents();
                     if (this.props.shouldSetModalVisibility) {
                         setModalVisibility(true);
                     }
                     this.props.onModalShow();
                 }}
                 propagateSwipe={this.props.propagateSwipe}
-                onModalHide={this.hideModalAndRemoveEventListeners}
+                onModalHide={this.hideModal}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
                 isVisible={this.props.isVisible}
@@ -119,7 +99,6 @@ class BaseModal extends PureComponent {
                 animationIn={this.props.animationIn || animationIn}
                 animationOut={this.props.animationOut || animationOut}
                 useNativeDriver={this.props.useNativeDriver}
-                statusBarTranslucent
                 hideModalContentWhileAnimating={this.props.hideModalContentWhileAnimating}
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}

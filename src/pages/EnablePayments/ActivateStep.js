@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -7,6 +7,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import styles from '../../styles/styles';
 import userWalletPropTypes from './userWalletPropTypes';
 import CONST from '../../CONST';
+import Text from '../../components/Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -24,10 +25,10 @@ const ActivateStep = props => (
             onCloseButtonPress={() => Navigation.dismissModal()}
         />
         <View style={[styles.mh5, styles.flex1]}>
-            {props.userWallet.status === CONST.WALLET.STATUS.GOLD && (
+            {props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD && (
                 <Text>{props.translate('activateStep.activated')}</Text>
             )}
-            {props.userWallet.status === CONST.WALLET.STATUS.SILVER && (
+            {props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER && (
                 <Text>{props.translate('activateStep.checkBackLater')}</Text>
             )}
         </View>
