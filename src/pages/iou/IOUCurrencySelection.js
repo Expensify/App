@@ -32,8 +32,12 @@ const propTypes = {
 
         // Local Currency Code of the current user
         localCurrencyCode: PropTypes.string,
+    }),
 
-        // Selected Currency Code of the current user
+    /** Holds data related to IOU */
+    iou: PropTypes.shape({
+
+        // Selected Currency Code of the current IOU
         selectedCurrencyCode: PropTypes.string,
     }),
 
@@ -54,6 +58,8 @@ const propTypes = {
 const defaultProps = {
     myPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
+    },
+    ios: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
     currencyList: {},
@@ -146,7 +152,7 @@ class IOUCurrencySelection extends Component {
      */
     confirmCurrencySelection() {
         setSelectedCurrency({
-            selectedCurrencyCode: this.props.myPersonalDetails.selectedCurrencyCode,
+            selectedCurrencyCode: this.props.iou.selectedCurrencyCode,
         });
         Navigation.goBack();
     }
@@ -188,7 +194,7 @@ class IOUCurrencySelection extends Component {
                                             option={item}
                                             onSelectRow={() => this.toggleOption(item.currencyCode)}
                                             isSelected={
-                                                item.currencyCode === this.props.myPersonalDetails.selectedCurrencyCode
+                                                item.currencyCode === this.props.iou.selectedCurrencyCode
                                             }
                                             showSelectedState
                                             hideAdditionalOptionStates
@@ -208,7 +214,7 @@ class IOUCurrencySelection extends Component {
                     <FixedFooter>
                         <Button
                             success
-                            isDisabled={!this.props.myPersonalDetails.selectedCurrencyCode}
+                            isDisabled={!this.props.iou.selectedCurrencyCode}
                             style={[styles.w100]}
                             text={this.props.translate('iou.confirm')}
                             onPress={this.confirmCurrencySelection}
@@ -229,5 +235,6 @@ export default compose(
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         myPersonalDetails: {key: ONYXKEYS.MY_PERSONAL_DETAILS},
+        iou: {key: ONYXKEYS.IOU},
     }),
 )(IOUCurrencySelection);

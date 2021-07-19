@@ -42,9 +42,6 @@ const propTypes = {
 
         // Local Currency Code of the current user
         localCurrencyCode: PropTypes.string,
-
-        // Selected Currency Code of the current IOU
-        selectedCurrencyCode: PropTypes.string,
     }),
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
@@ -57,6 +54,9 @@ const propTypes = {
 
         /** Flag to show a loading indicator and avoid showing a previously selected currency */
         isRetrievingCurrency: PropTypes.bool,
+
+        // Selected Currency Code of the current IOU
+        selectedCurrencyCode: PropTypes.string,
     }).isRequired,
 
     /** Personal details of all the users */
@@ -81,9 +81,11 @@ const defaultProps = {
     },
     myPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
-        selectedCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: '',
+    iou: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    }
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -141,10 +143,10 @@ class IOUModal extends Component {
             Navigation.dismissModal();
         }
 
-        if (prevProps.myPersonalDetails.selectedCurrencyCode
-            !== this.props.myPersonalDetails.selectedCurrencyCode) {
+        if (prevProps.iou.selectedCurrencyCode
+            !== this.props.iou.selectedCurrencyCode) {
             setSelectedCurrency({
-                selectedCurrencyCode: this.props.myPersonalDetails.selectedCurrencyCode,
+                selectedCurrencyCode: this.props.iou.selectedCurrencyCode,
             });
         }
     }
@@ -160,7 +162,7 @@ class IOUModal extends Component {
             const formattedAmount = this.props.numberFormat(
                 this.state.amount, {
                     style: 'currency',
-                    currency: this.props.myPersonalDetails.selectedCurrencyCode,
+                    currency: this.props.iou.selectedCurrencyCode,
                 },
             );
             if (this.props.iouType === 'send') {
@@ -235,7 +237,7 @@ class IOUModal extends Component {
 
                 // should send in cents to API
                 amount: Math.round(this.state.amount * 100),
-                currency: this.props.myPersonalDetails.selectedCurrencyCode,
+                currency: this.props.iou.selectedCurrencyCode,
                 splits,
             });
             return;
@@ -246,7 +248,7 @@ class IOUModal extends Component {
 
             // should send in cents to API
             amount: Math.round(this.state.amount * 100),
-            currency: this.props.myPersonalDetails.selectedCurrencyCode,
+            currency: this.props.iou.selectedCurrencyCode,
             debtorEmail: this.state.participants[0].login,
         });
     }
