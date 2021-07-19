@@ -12,6 +12,7 @@ import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import {
     fetchActions,
+    fetchChatReportsByIDs,
     updateLastReadActionID,
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
@@ -107,6 +108,12 @@ class ReportActionsView extends React.Component {
 
     componentDidMount() {
         AppState.addEventListener('change', this.onVisibilityChange);
+
+        // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
+        // We will attempt to fetch it and redirect if still not accessible.
+        if (!this.props.report.reportID) {
+            fetchChatReportsByIDs([this.props.reportID], true);
+        }
         subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (ReportActionComposeFocusManager.isFocused()) {

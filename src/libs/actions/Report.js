@@ -106,17 +106,17 @@ function getUnreadActionCount(report) {
     // Save the lastReadActionID locally so we can access this later
     lastReadSequenceNumbers[report.reportID] = lastReadSequenceNumber;
 
-    if (report.reportActionListLength === 0) {
+    if (report.reportActionCount === 0) {
         return 0;
     }
 
     if (!lastReadSequenceNumber) {
-        return report.reportActionListLength;
+        return report.reportActionCount;
     }
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionListLength - lastReadSequenceNumber;
+    const unreadActionCount = report.reportActionCount - lastReadSequenceNumber;
     return Math.max(0, unreadActionCount);
 }
 
@@ -172,7 +172,7 @@ function getSimplifiedReportObject(report) {
     // We convert the line-breaks in html to space ' ' before striping the tags
     const lastMessageText = lastActionMessage
         .replace(/((<br[^>]*>)+)/gi, ' ')
-        .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
+        .replace(/(<([^>]+)>)/gi, '');
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
@@ -298,19 +298,26 @@ function fetchIOUReportID(debtorEmail) {
 }
 
 /**
- * Fetches chat reports when provided a list of
- * chat report IDs
- *
+ * Fetches chat reports when provided a list of chat report IDs.
+ * If the shouldRedirectIfInacessible flag is set, we redirect to the Concierge chat
+ * when we find an inaccessible chat
  * @param {Array} chatList
+ * @param {Boolean} shouldRedirectIfInacessible
  * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
  */
-function fetchChatReportsByIDs(chatList) {
+function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
     return API.GetReportSummaryList({reportIDList: chatList.join(',')})
-        .then(({reportSummaryList}) => {
+        .then(({reportSummaryList, jsonCode}) => {
             Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reportSummaryList;
+
+            // If we receive a 404 response while fetching a single report, treat that report as inacessible.
+            if (jsonCode === 404 && shouldRedirectIfInacessible) {
+                throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
+            }
+
             return Promise.all(_.map(fetchedReports, (chatReport) => {
                 // If there aren't any IOU actions, we don't need to fetch any additional data
                 if (!chatReport.hasIOUAction) {
@@ -368,6 +375,13 @@ function fetchChatReportsByIDs(chatList) {
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
 
             return _.map(fetchedReports, report => report.reportID);
+        })
+        .catch((err) => {
+            if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
+                Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
+                // eslint-disable-next-line no-use-before-define
+                navigateToConciergeChat();
+            }
         });
 }
 
@@ -501,7 +515,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.html || `[${translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: message.html,
         });
     }
 }
@@ -1132,6 +1146,11 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     // action). If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action)
     const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
 
+    // We call this method in many cases where there's nothing to update because we already updated it, so we avoid
+    // doing an unnecessary server call if the last read is the same one we had already
+    if (lastReadSequenceNumbers[reportID] === lastReadSequenceNumber) {
+        return;
+    }
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
     // Mark the report as not having any unread items
