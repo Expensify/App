@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
-import {setSelectedCurrency} from '../../libs/actions/IOU';
+import {setIOUSelectedCurrency} from '../../libs/actions/IOU';
 
 /**
  * IOU Currency selection for selecting currency
@@ -59,7 +59,7 @@ const defaultProps = {
     myPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
-    ios: {
+    iou: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
     currencyList: {},
@@ -127,7 +127,7 @@ class IOUCurrencySelection extends Component {
      *
      */
     toggleOption(selectedCurrencyCode) {
-        setSelectedCurrency({selectedCurrencyCode});
+        setIOUSelectedCurrency({selectedCurrencyCode});
     }
 
     /**
@@ -151,7 +151,7 @@ class IOUCurrencySelection extends Component {
      * @return {void}
      */
     confirmCurrencySelection() {
-        setSelectedCurrency({
+        setIOUSelectedCurrency({
             selectedCurrencyCode: this.props.iou.selectedCurrencyCode,
         });
         Navigation.goBack();
