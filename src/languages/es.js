@@ -92,7 +92,7 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
-        phrase1: 'Al iniciar sesión, estás accediendo a los',
+        phrase1: 'Con Nuevo Expensify, chat y pagos son lo mismo.',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
     },
@@ -256,7 +256,7 @@ export default {
         openJobs: 'trabajos disponibles',
     },
     termsOfUse: {
-        phrase1: 'Al usar Nuevo Expensify, estás aceptando los',
+        phrase1: 'Al iniciar sesión, estás accediendo a los',
         phrase2: 'términos de servicio',
         phrase3: 'y',
         phrase4: 'política de privacidad',
