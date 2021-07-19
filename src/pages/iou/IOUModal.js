@@ -9,7 +9,7 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {createIOUSplit, createIOUTransaction, resetSelectedCurrency} from '../../libs/actions/IOU';
+import {createIOUSplit, createIOUTransaction, setSelectedCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -106,7 +106,6 @@ class IOUModal extends Component {
         super(props);
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
-        this.currencySelected = this.currencySelected.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
@@ -138,6 +137,13 @@ class IOUModal extends Component {
         }
     }
 
+    componentDidMount() {
+        setSelectedCurrency({
+            selectedCurrencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
+            selectedCurrencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
+        });
+    }
+
     componentDidUpdate(prevProps) {
         // Successfully close the modal if transaction creation has ended and there is no error
         if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
@@ -146,18 +152,11 @@ class IOUModal extends Component {
 
         if (prevProps.myPersonalDetails.selectedCurrencyCode
             !== this.props.myPersonalDetails.selectedCurrencyCode) {
-            this.updateSelectedCurrency({
-                currencyCode: this.props.myPersonalDetails.selectedCurrencyCode,
-                currencySymbol: this.props.myPersonalDetails.selectedCurrencySymbol,
+            setSelectedCurrency({
+                selectedCurrencyCode: this.props.myPersonalDetails.selectedCurrencyCode,
+                selectedCurrencySymbol: this.props.myPersonalDetails.selectedCurrencySymbol,
             });
         }
-    }
-
-    componentWillUnmount() {
-        resetSelectedCurrency({
-            selectedCurrencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
-            selectedCurrencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
-        });
     }
 
     /**
@@ -202,16 +201,6 @@ class IOUModal extends Component {
     }
 
     /**
-     * Update the selected currency
-     * @param {Object} selectedCurrency
-     */
-    updateSelectedCurrency(selectedCurrency) {
-        this.setState({
-            selectedCurrency,
-        });
-    }
-
-    /**
      * Navigate to the next IOU step if possible
      */
     navigateToPreviousStep() {
@@ -244,15 +233,6 @@ class IOUModal extends Component {
         this.setState({
             comment,
         });
-    }
-
-    /**
-     * Update the currency state
-     *
-     * @param {String} selectedCurrency
-     */
-    currencySelected(selectedCurrency) {
-        this.setState({selectedCurrency});
     }
 
     /**
@@ -332,9 +312,7 @@ class IOUModal extends Component {
                                                 this.setState({amount});
                                                 this.navigateToNextStep();
                                             }}
-                                            currencySelected={this.currencySelected}
                                             reportID={reportID}
-                                            selectedCurrencySymbol={this.props.myPersonalDetails.selectedCurrencySymbol}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             selectedAmount={this.state.amount}
                                             navigation={this.props.navigation}
@@ -355,7 +333,6 @@ class IOUModal extends Component {
                                             participants={this.state.participants}
                                             iouAmount={this.state.amount}
                                             comment={this.state.comment}
-                                            selectedCurrency={this.state.selectedCurrency}
                                             onUpdateComment={this.updateComment}
                                         />
                                     )}

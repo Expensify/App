@@ -36,10 +36,10 @@ const propTypes = {
         // Currency Symbol of the Preferred Currency
         preferredCurrencySymbol: PropTypes.string,
 
-        // Preferred Currency Code of the current user
+        // Selected Currency Code of the current user
         selectedCurrencyCode: PropTypes.string,
 
-        // Currency Symbol of the Preferred Currency
+        // Currency Symbol of the Selected Currency
         selectedCurrencySymbol: PropTypes.string,
     }),
 
