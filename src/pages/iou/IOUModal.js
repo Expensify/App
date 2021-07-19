@@ -9,7 +9,7 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {createIOUSplit, createIOUTransaction, setSelectedCurrency} from '../../libs/actions/IOU';
+import {createIOUSplit, createIOUTransaction, setIOUSelectedCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -83,9 +83,6 @@ const defaultProps = {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: '',
-    iou: {
-        selectedCurrencyCode: CONST.CURRENCY.USD,
-    }
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -132,7 +129,7 @@ class IOUModal extends Component {
     }
 
     componentDidMount() {
-        setSelectedCurrency({
+        setIOUSelectedCurrency({
             selectedCurrencyCode: this.props.myPersonalDetails.localCurrencyCode,
         });
     }
@@ -145,7 +142,7 @@ class IOUModal extends Component {
 
         if (prevProps.iou.selectedCurrencyCode
             !== this.props.iou.selectedCurrencyCode) {
-            setSelectedCurrency({
+            setIOUSelectedCurrency({
                 selectedCurrencyCode: this.props.iou.selectedCurrencyCode,
             });
         }
