@@ -29,13 +29,6 @@ const propTypes = {
     // Callback to inform parent modal of success
     onStepComplete: PropTypes.func.isRequired,
 
-    // The personal details of the person who is logged in
-    myPersonalDetails: PropTypes.shape({
-
-        // Selected Currency Code of the current IOU
-        selectedCurrencyCode: PropTypes.string,
-    }),
-
     // The currency list constant object from Onyx
     currencyList: PropTypes.objectOf(PropTypes.shape({
         // Symbol for the currency
@@ -61,14 +54,16 @@ const propTypes = {
 
         /** Whether or not the IOU step is loading (retrieving users preferred currency) */
         loading: PropTypes.bool,
+
+        // Selected Currency Code of the current IOU
+        selectedCurrencyCode: PropTypes.string,
     }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    iou: {},
-    myPersonalDetails: {
+    iou: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
     currencyList: {},
@@ -158,7 +153,7 @@ class IOUAmountPage extends React.Component {
                         : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
                         <Text style={styles.iouAmountText}>
-                            {this.props.currencyList[this.props.myPersonalDetails.selectedCurrencyCode].symbol}
+                            {this.props.currencyList[this.props.iou.selectedCurrencyCode].symbol}
                         </Text>
                     </TouchableOpacity>
                     {this.props.isSmallScreenWidth
@@ -210,9 +205,6 @@ export default compose(
     withLocalize,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
-        myPersonalDetails: {
-            key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
         iou: {key: ONYXKEYS.IOU},
     }),
 )(IOUAmountPage);

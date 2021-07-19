@@ -158,7 +158,7 @@ function rejectTransaction({
  * @param {Object} params.selectedCurrencyCode
  */
 function setSelectedCurrency({selectedCurrencyCode}) {
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {selectedCurrencyCode});
+    Onyx.merge(ONYXKEYS.IOU, {selectedCurrencyCode});
 }
 
 /**
