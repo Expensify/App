@@ -300,7 +300,7 @@ function fetchIOUReportID(debtorEmail) {
 /**
  * Fetches chat reports when provided a list of chat report IDs.
  * If the shouldRedirectIfInacessible flag is set, we redirect to the Concierge chat
- * when fetching a single chat that is inacessible.
+ * when we find an inaccessible chat
  * @param {Array} chatList
  * @param {Boolean} shouldRedirectIfInacessible
  * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
@@ -314,7 +314,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
             fetchedReports = reportSummaryList;
 
             // If we receive a 404 response while fetching a single report, treat that report as inacessible.
-            if (jsonCode === 404 && chatList.length === 1) {
+            if (jsonCode === 404 && shouldRedirectIfInacessible) {
                 throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
             }
 
@@ -377,7 +377,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
             return _.map(fetchedReports, report => report.reportID);
         })
         .catch((err) => {
-            if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT && shouldRedirectIfInacessible) {
+            if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
                 Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
                 // eslint-disable-next-line no-use-before-define
                 navigateToConciergeChat();
