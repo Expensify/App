@@ -87,15 +87,11 @@ class ReportActionsView extends React.Component {
         this.renderCell = this.renderCell.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
+        this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
 
-        // We are debouncing this call with a specific delay so that when all items in the list layout we can measure
-        // the total time it took to complete.
-        this.recordTimeToMeasureItemLayout = _.debounce(
-            this.recordTimeToMeasureItemLayout.bind(this),
-            CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME,
-        );
+        this.didLayout = false;
 
         this.state = {
             isLoadingMoreChats: false,
@@ -198,10 +194,6 @@ class ReportActionsView extends React.Component {
         if (this.keyboardEvent) {
             this.keyboardEvent.remove();
         }
-
-        // We must cancel the debounce function so that we do not call the function when switching to a new chat before
-        // the previous one has finished loading completely.
-        this.recordTimeToMeasureItemLayout.cancel();
 
         AppState.removeEventListener('change', this.onVisibilityChange);
 
@@ -319,13 +311,15 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Runs each time a ReportActionItem is laid out. This method is debounced so we wait until the component has
-     * finished laying out items before recording the chat as switched.
+     * Runs when the FlatList finishes laying out
      */
     recordTimeToMeasureItemLayout() {
-        // We are offsetting the time measurement here so that we can subtract our debounce time from the initial time
-        // and get the actual time it took to load the report
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD, CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME);
+        if (this.didLayout) {
+            return;
+        }
+
+        this.didLayout = true;
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
     /**
@@ -374,7 +368,6 @@ class ReportActionsView extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
-                onLayout={this.recordTimeToMeasureItemLayout}
             />
         );
     }
@@ -415,6 +408,7 @@ class ReportActionsView extends React.Component {
                     ? <ActivityIndicator size="small" color={themeColors.spinner} />
                     : null}
                 keyboardShouldPersistTaps="handled"
+                onLayout={this.recordTimeToMeasureItemLayout}
             />
         );
     }
