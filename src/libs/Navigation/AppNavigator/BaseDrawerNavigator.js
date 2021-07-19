@@ -23,6 +23,9 @@ const propTypes = {
     /** Drawer content Component */
     drawerContent: PropTypes.elementType.isRequired,
 
+    /** If it's the main screen, don't wrap the content even if it's a full screen modal. */
+    isMainScreen: PropTypes.bool,
+
     /** Window Dimensions props */
     ...windowDimensionsPropTypes,
 };
@@ -55,7 +58,7 @@ const BaseDrawerNavigator = (props) => {
         </Drawer.Navigator>
     );
 
-    if (!props.isSmallScreenWidth) {
+    if (!props.isMainScreen && !props.isSmallScreenWidth) {
         return (
             <View style={styles.navigationSceneFullScreenWrapper}>
                 {content}
