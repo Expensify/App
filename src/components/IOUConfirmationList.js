@@ -75,9 +75,6 @@ const propTypes = {
 
         // Selected Currency Code of the current IOU
         selectedCurrencyCode: PropTypes.string,
-
-        // Currency Symbol of the Selected Currency
-        selectedCurrencySymbol: PropTypes.string,
     }),
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
@@ -101,7 +98,6 @@ const defaultProps = {
     network: {},
     myPersonalDetails: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
-        selectedCurrencySymbol: '$',
     },
 };
 

@@ -43,14 +43,8 @@ const propTypes = {
         // Local Currency Code of the current user
         localCurrencyCode: PropTypes.string,
 
-        // Currency Symbol of the Local Currency
-        localCurrencySymbol: PropTypes.string,
-
         // Selected Currency Code of the current IOU
         selectedCurrencyCode: PropTypes.string,
-
-        // Currency Symbol of the Selected Currency
-        selectedCurrencySymbol: PropTypes.string,
     }),
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
@@ -87,9 +81,7 @@ const defaultProps = {
     },
     myPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
-        localCurrencySymbol: '$',
         selectedCurrencyCode: CONST.CURRENCY.USD,
-        selectedCurrencySymbol: '$',
     },
     iouType: '',
 };
@@ -140,7 +132,6 @@ class IOUModal extends Component {
     componentDidMount() {
         setSelectedCurrency({
             selectedCurrencyCode: this.props.myPersonalDetails.localCurrencyCode,
-            selectedCurrencySymbol: this.props.myPersonalDetails.localCurrencySymbol,
         });
     }
 
@@ -154,7 +145,6 @@ class IOUModal extends Component {
             !== this.props.myPersonalDetails.selectedCurrencyCode) {
             setSelectedCurrency({
                 selectedCurrencyCode: this.props.myPersonalDetails.selectedCurrencyCode,
-                selectedCurrencySymbol: this.props.myPersonalDetails.selectedCurrencySymbol,
             });
         }
     }

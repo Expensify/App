@@ -34,10 +34,19 @@ const propTypes = {
 
         // Selected Currency Code of the current IOU
         selectedCurrencyCode: PropTypes.string,
-
-        // Currency Symbol of the Selected Currency
-        selectedCurrencySymbol: PropTypes.string,
     }),
+
+    // The currency list constant object from Onyx
+    currencyList: PropTypes.objectOf(PropTypes.shape({
+        // Symbol for the currency
+        symbol: PropTypes.string,
+
+        // Name of the currency
+        name: PropTypes.string,
+
+        // ISO4217 Code for the currency
+        ISO4217: PropTypes.string,
+    })),
 
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
@@ -61,8 +70,8 @@ const defaultProps = {
     iou: {},
     myPersonalDetails: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
-        selectedCurrencySymbol: '$',
     },
+    currencyList: {},
 };
 
 class IOUAmountPage extends React.Component {
@@ -149,7 +158,7 @@ class IOUAmountPage extends React.Component {
                         : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
                         <Text style={styles.iouAmountText}>
-                            {this.props.myPersonalDetails.selectedCurrencySymbol}
+                            {this.props.currencyList[this.props.myPersonalDetails.selectedCurrencyCode].symbol}
                         </Text>
                     </TouchableOpacity>
                     {this.props.isSmallScreenWidth
@@ -200,6 +209,7 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
+        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
