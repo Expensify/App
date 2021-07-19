@@ -40,11 +40,11 @@ const propTypes = {
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
 
-        // Preferred Currency Code of the current user
-        preferredCurrencyCode: PropTypes.string,
+        // Local Currency Code of the current user
+        localCurrencyCode: PropTypes.string,
 
-        // Currency Symbol of the Preferred Currency
-        preferredCurrencySymbol: PropTypes.string,
+        // Currency Symbol of the Local Currency
+        localCurrencySymbol: PropTypes.string,
 
         // Selected Currency Code of the current IOU
         selectedCurrencyCode: PropTypes.string,
@@ -86,8 +86,8 @@ const defaultProps = {
         participants: [],
     },
     myPersonalDetails: {
-        preferredCurrencyCode: CONST.CURRENCY.USD,
-        preferredCurrencySymbol: '$',
+        localCurrencyCode: CONST.CURRENCY.USD,
+        localCurrencySymbol: '$',
         selectedCurrencyCode: CONST.CURRENCY.USD,
         selectedCurrencySymbol: '$',
     },
@@ -139,8 +139,8 @@ class IOUModal extends Component {
 
     componentDidMount() {
         setSelectedCurrency({
-            selectedCurrencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
-            selectedCurrencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
+            selectedCurrencyCode: this.props.myPersonalDetails.localCurrencyCode,
+            selectedCurrencySymbol: this.props.myPersonalDetails.localCurrencySymbol,
         });
     }
 
