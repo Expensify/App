@@ -61,9 +61,12 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
+import ValidateLoginNewWorkspacePage from '../../../pages/ValidateLoginNewWorkspacePage';
+import ValidateLogin2FANewWorkspacePage from '../../../pages/ValidateLogin2FANewWorkspacePage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
 import spacing from '../../../styles/utilities/spacing';
 import CardOverlay from '../../../components/CardOverlay';
+import defaultScreenOptions from './defaultScreenOptions';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -94,6 +97,22 @@ const modalScreenListeners = {
         setModalVisibility(false);
     },
 };
+
+let hasLoadedPolicies = false;
+
+/**
+ * We want to only load policy info if you are in the freePlan beta.
+ * @param {Array} betas
+ */
+function loadPoliciesBehindBeta(betas) {
+    // When removing the freePlan beta, simply load the policyList and the policySummaries in componentDidMount().
+    // Policy info loading should not be blocked behind the defaultRooms beta alone.
+    if (!hasLoadedPolicies && (Permissions.canUseFreePlan(betas) || Permissions.canUseDefaultRooms(betas))) {
+        getPolicyList();
+        getPolicySummaries();
+        hasLoadedPolicies = true;
+    }
+}
 
 const propTypes = {
     /** Information about the network */
@@ -141,10 +160,7 @@ class AuthScreens extends React.Component {
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 
-        if (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas)) {
-            getPolicySummaries();
-            getPolicyList();
-        }
+        loadPoliciesBehindBeta(this.props.betas);
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -185,7 +201,15 @@ class AuthScreens extends React.Component {
             return true;
         }
 
+        if (nextProps.betas !== this.props.betas) {
+            return true;
+        }
+
         return false;
+    }
+
+    componentDidUpdate() {
+        loadPoliciesBehindBeta(this.props.betas);
     }
 
     componentWillUnmount() {
@@ -258,6 +282,16 @@ class AuthScreens extends React.Component {
                         title: 'Expensify.cash',
                     }}
                     component={ValidateLoginPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE}
+                    options={defaultScreenOptions}
+                    component={ValidateLoginNewWorkspacePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN_2FA_NEW_WORKSPACE}
+                    options={defaultScreenOptions}
+                    component={ValidateLogin2FANewWorkspacePage}
                 />
 
                 {/* These are the various modal routes */}
