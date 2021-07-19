@@ -92,7 +92,7 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
-        phrase1: 'Con new.expensify.com, chat y pagos son lo mismo.',
+        phrase1: 'Con Nuevo Expensify, chat y pagos son lo mismo.',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
     },
@@ -219,7 +219,7 @@ export default {
     },
     passwordPage: {
         changePassword: 'Cambiar Contraseña',
-        changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com\ncomo la de new.expensify.com.',
+        changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com\ncomo la de Nuevo Expensify.',
         currentPassword: 'Contraseña Actual',
         newPassword: 'Nueva contraseña',
         newPasswordPrompt: 'La nueva contraseña tiene que ser diferente de la antigua, tener al menos 8 letras,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
@@ -256,12 +256,13 @@ export default {
         openJobs: 'trabajos disponibles',
     },
     termsOfUse: {
-        phrase1: 'Al usar new.expensify.com, estás aceptando los',
+        phrase1: 'Al usar Nuevo Expensify, estás aceptando los',
         phrase2: 'términos de servicio',
         phrase3: 'y',
         phrase4: 'política de privacidad',
-        phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS ID:2017010) de conformidad con sus',
-        phrase6: 'licencias',
+        phrase5: 'El envío de dinero es brindado por Expensify Payments LLC (NMLS',
+        phrase6: 'ID:2017010) de conformidad con sus',
+        phrase7: 'licencias',
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Por favor completa todos los campos',
