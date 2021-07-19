@@ -147,7 +147,7 @@ class AuthScreens extends React.Component {
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         }).then(() => {
             subscribeToUserEvents();
-            PersonalDetails.subscribeToPersonalDetails();
+            User.subscribeToUserEvents();
         });
 
         // Fetch some data we need on initialization
