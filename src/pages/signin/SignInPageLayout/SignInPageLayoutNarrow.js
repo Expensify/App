@@ -1,89 +1,56 @@
 import React from 'react';
-import {
-    Image,
-    ScrollView, Text, View,
-} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
-import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
+import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
-import WelcomeText from '../../../components/WelcomeText';
-import TextLink from '../../../components/TextLink';
-import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
-
     /** The children to show inside the layout */
     children: PropTypes.node.isRequired,
 
-    /** Whether we should show the welcome elements */
-    shouldShowWelcomeText: PropTypes.bool,
-    shouldShowWelcomeScreenshot: PropTypes.bool,
-
+    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    shouldShowWelcomeText: true,
-    shouldShowWelcomeScreenshot: true,
-};
-
 const SignInPageLayoutNarrow = props => (
-    <ScrollView keyboardShouldPersistTaps="handled">
-        <View>
-            <View style={[styles.signInPageInnerNative]}>
-                <View style={[styles.signInPageLogoNative]}>
-                    <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
+    <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[
+            styles.flexGrow1,
+            styles.pb5,
+            styles.mh5,
+            styles.signInPageNarrowContentContainer,
+            styles.alignSelfCenter,
+        ]}
+    >
+        <View style={[styles.flexGrow1]}>
+            <View
+                style={[
+                    styles.signInPageInnerNative,
+                    styles.flex1,
+                    styles.dFlex,
+                    styles.flexColumn,
+                    props.windowHeight > props.windowWidth ? styles.mt40Percentage : null,
+                ]}
+            >
+                <View style={[styles.signInPageLogoNative, styles.mb2]}>
+                    <ExpensifyCashLogo
+                        width={variables.componentSizeLarge}
+                        height={variables.componentSizeLarge}
+                    />
                 </View>
-
-                <View style={[styles.mb6, styles.alignItemsCenter]}>
-                    <Text style={[styles.h1]}>
-                        {props.translate('signInPage.expensifyDotCash')}
-                    </Text>
-                </View>
-
-                <View style={[styles.signInPageFormContainer]}>
-                    {props.children}
-
-                    {props.shouldShowWelcomeScreenshot
-                        && (
-                        <View style={[styles.mt5, styles.mb5]}>
-                            <Image
-                                resizeMode="contain"
-                                style={[styles.signinWelcomeScreenshot]}
-                                source={welcomeScreenshot}
-                            />
-                        </View>
-                        )}
-
-                    {props.shouldShowWelcomeText && <WelcomeText />}
-                    <View style={[styles.flexRow, styles.flexWrap, styles.mt6]}>
-                        <Text style={[styles.textLabel]}>
-                            {`${props.translate('signInPage.expensifyIsOpenSource')}. ${
-                                props.translate('common.view')}`}
-                            {' '}
-                        </Text>
-                        <TextLink style={[styles.textLabel]} href={CONST.GITHUB_URL}>
-                            {props.translate('signInPage.theCode')}
-                        </TextLink>
-                        <Text style={[styles.textLabel]}>
-                            .
-                        </Text>
-                        <Text style={[styles.textLabel]}>
-                            {`${props.translate('common.view')}`}
-                            {' '}
-                        </Text>
-                        <TextLink style={[styles.textLabel]} href={CONST.UPWORK_URL}>
-                            {props.translate('signInPage.openJobs')}
-                        </TextLink>
-                        <Text style={[styles.textLabel]}>
-                            .
-                        </Text>
-                    </View>
-                </View>
+                <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                    {props.translate('welcomeText.phrase1')}
+                </Text>
+                {props.children}
+            </View>
+            <View style={[styles.mt3]}>
                 <TermsAndLicenses />
             </View>
         </View>
@@ -91,8 +58,9 @@ const SignInPageLayoutNarrow = props => (
 );
 
 SignInPageLayoutNarrow.propTypes = propTypes;
-SignInPageLayoutNarrow.defaultProps = defaultProps;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
-
-export default withLocalize(SignInPageLayoutNarrow);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(SignInPageLayoutNarrow);

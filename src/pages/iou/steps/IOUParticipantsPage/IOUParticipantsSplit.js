@@ -1,16 +1,17 @@
 import React, {Component} from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
-import {getNewGroupOptions} from '../../../../libs/OptionsListUtils';
+import {getNewGroupOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import Button from '../../../../components/Button';
+import Text from '../../../../components/Text';
 import FixedFooter from '../../../../components/FixedFooter';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -132,7 +133,7 @@ class IOUParticipantsSplit extends Component {
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
 
-        if (this.state.userToInvite) {
+        if (this.state.userToInvite && !isCurrentUser(this.state.userToInvite)) {
             sections.push(({
                 undefined,
                 data: [this.state.userToInvite],

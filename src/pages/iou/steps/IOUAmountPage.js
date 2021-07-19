@@ -1,7 +1,6 @@
 import React from 'react';
 import {
     View,
-    Text,
     TouchableOpacity,
     InteractionManager,
 } from 'react-native';
@@ -17,7 +16,7 @@ import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import Text from '../../../components/Text';
 
 const propTypes = {
     // Whether or not this IOU has multiple participants
@@ -77,29 +76,13 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         // Component is not initialized yet due to navigation transitions
-        // Wait until interactions are complete before trying to focus or attach listener
+        // Wait until interactions are complete before trying to focus
         InteractionManager.runAfterInteractions(() => {
-            // Setup and attach keypress handler for navigating to the next screen
-            this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
-                if (this.state.amount !== '') {
-                    this.props.onStepComplete(this.state.amount);
-                }
-            }, [], true);
-
             // Focus text input
             if (this.textInput) {
                 this.textInput.focus();
             }
         });
-    }
-
-    componentWillUnmount() {
-        // Cleanup all keydown event listeners that we've set up
-        if (!this.unsubscribe) {
-            return;
-        }
-
-        this.unsubscribe();
     }
 
     /**
@@ -197,6 +180,7 @@ class IOUAmountPage extends React.Component {
                         success
                         style={[styles.w100, styles.mt5]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}
+                        pressOnEnter
                         isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
                         text={this.props.translate('common.next')}
                     />
