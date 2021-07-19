@@ -11,25 +11,26 @@ ___
 ## What performance issue do we need to solve?
 e.g. memory consumption, storage read/write times, React native bridge concerns, inefficient React component rendering, etc.
 
-## Is there a specific app feature that will be improved by solving this problem?
-e.g. app boot time, time to for some interaction to complete
+## What is the impact of this on end-users?
+List specific user experiences that will be improved by solving this problem e.g. app boot time, time to for some interaction to complete, etc.
 
 ## List any benchmarks that show the severity of the issue
-Please also provide exact steps taken to collect metrics above if any so we can independently verify the results
+Please also provide exact steps taken to collect metrics above if any so we can independently verify the results.
 
 ## Proposed solution (if any)
-Please list out the steps you think we should take to solve this issue
+Please list out the steps you think we should take to solve this issue.
 
 ## List any benchmarks after implementing the changes to show impacts of the proposed solution (if any)
+Note: These should be the same as the benchmarks collected before any changes.
 
 ## Platform:
 Where is this issue occurring?
 
- Web
- iOS
- Android
- Desktop App
- Mobile Web
+- [ ] Web
+- [ ] iOS
+- [ ] Android
+- [ ] Desktop App
+- [ ] Mobile Web
 
 **Version Number:**
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
