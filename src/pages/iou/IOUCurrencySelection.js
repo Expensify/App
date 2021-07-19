@@ -30,11 +30,11 @@ const propTypes = {
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
 
-        // Preferred Currency Code of the current user
-        preferredCurrencyCode: PropTypes.string,
+        // Local Currency Code of the current user
+        localCurrencyCode: PropTypes.string,
 
-        // Currency Symbol of the Preferred Currency
-        preferredCurrencySymbol: PropTypes.string,
+        // Currency Symbol of the Local Currency
+        localCurrencySymbol: PropTypes.string,
 
         // Selected Currency Code of the current user
         selectedCurrencyCode: PropTypes.string,
@@ -59,8 +59,8 @@ const propTypes = {
 
 const defaultProps = {
     myPersonalDetails: {
-        preferredCurrencyCode: CONST.CURRENCY.USD,
-        preferredCurrencySymbol: '$',
+        localCurrencyCode: CONST.CURRENCY.USD,
+        localCurrencySymbol: '$',
         selectedCurrencyCode: CONST.CURRENCY.USD,
         selectedCurrencySymbol: '$',
     },
