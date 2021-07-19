@@ -92,7 +92,7 @@ export default {
     hello: 'Hola',
     phoneCountryCode: '34',
     welcomeText: {
-        phrase1: 'Con Nuevo Expensify, chat y pagos son lo mismo.',
+        phrase1: 'Al iniciar sesión, estás accediendo a los',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
     },
