@@ -96,7 +96,7 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
+        phrase1: 'Welcome to New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
