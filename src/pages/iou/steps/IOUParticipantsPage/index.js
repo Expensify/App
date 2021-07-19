@@ -70,13 +70,11 @@ const IOUParticipantsPage = (props) => {
             />
         )
         : (
-
             <IOUParticipantsRequest
                 animation={props.animation}
                 onStepComplete={props.onStepComplete}
                 onAddParticipants={props.onAddParticipants}
             />
-
         )
     );
 };

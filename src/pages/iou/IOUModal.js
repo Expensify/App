@@ -164,7 +164,8 @@ class IOUModal extends Component {
     getAnimation() {
         if (this.state.previousStepIndex < this.state.currentStepIndex) {
             return 'slideInRight';
-        } if (this.state.previousStepIndex > this.state.currentStepIndex) {
+        }
+        if (this.state.previousStepIndex > this.state.currentStepIndex) {
             return 'slideInLeft';
         }
     }
