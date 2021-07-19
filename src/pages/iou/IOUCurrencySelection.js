@@ -33,14 +33,8 @@ const propTypes = {
         // Local Currency Code of the current user
         localCurrencyCode: PropTypes.string,
 
-        // Currency Symbol of the Local Currency
-        localCurrencySymbol: PropTypes.string,
-
         // Selected Currency Code of the current user
         selectedCurrencyCode: PropTypes.string,
-
-        // Currency Symbol of the Selected Currency
-        selectedCurrencySymbol: PropTypes.string,
     }),
 
     // The currency list constant object from Onyx
@@ -60,9 +54,7 @@ const propTypes = {
 const defaultProps = {
     myPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
-        localCurrencySymbol: '$',
         selectedCurrencyCode: CONST.CURRENCY.USD,
-        selectedCurrencySymbol: '$',
     },
     currencyList: {},
 };
@@ -129,10 +121,7 @@ class IOUCurrencySelection extends Component {
      *
      */
     toggleOption(selectedCurrencyCode) {
-        setSelectedCurrency({
-            selectedCurrencyCode,
-            selectedCurrencySymbol: this.props.currencyList[selectedCurrencyCode].symbol,
-        });
+        setSelectedCurrency({selectedCurrencyCode});
     }
 
     /**
@@ -158,7 +147,6 @@ class IOUCurrencySelection extends Component {
     confirmCurrencySelection() {
         setSelectedCurrency({
             selectedCurrencyCode: this.props.myPersonalDetails.selectedCurrencyCode,
-            selectedCurrencySymbol: this.props.myPersonalDetails.selectedCurrencySymbol,
         });
         Navigation.goBack();
     }

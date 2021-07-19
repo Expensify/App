@@ -249,12 +249,8 @@ function fetchLocalCurrency() {
         })
         .then(API.GetCurrencyList)
         .then(getCurrencyList)
-        .then((currencyList) => {
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
-                {
-                    localCurrencyCode: currency,
-                    localCurrencySymbol: currencyList[currency].symbol,
-                });
+        .then(() => {
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
         })
         .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
         .finally(() => {
