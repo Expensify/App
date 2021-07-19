@@ -52,6 +52,10 @@ export default {
                         path: ROUTES.SETTINGS_TRANSFER_BALANCE,
                         exact: true,
                     },
+                    Settings_Choose_Transfer_Account: {
+                        path: ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT,
+                        exact: true,
+                    },
                     Settings_Add_Paypal_Me: {
                         path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
                         exact: true,

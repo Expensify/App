@@ -35,7 +35,7 @@ const defaultProps = {
     },
 };
 
-class TransferBalancePage extends React.Component {
+class ChooseTransferAccountPage extends React.Component {
     constructor(props) {
         super(props);
         console.debug(props);
@@ -65,6 +65,7 @@ class TransferBalancePage extends React.Component {
      *
      */
     transferBalance() {
+        Navigation.navigate(ROUTES.SETTINGS_TRANSFER_BALANCE);
     }
 
     render() {
@@ -111,7 +112,7 @@ class TransferBalancePage extends React.Component {
                                 ...styles.mrn5,
                                 ...styles.ph0,
                             }}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT)}
+                            onPress={() => {}}
                         />
                         <Text
                             style={[styles.mt5, styles.mb3, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
@@ -137,9 +138,9 @@ class TransferBalancePage extends React.Component {
     }
 }
 
-TransferBalancePage.propTypes = propTypes;
-TransferBalancePage.defaultProps = defaultProps;
-TransferBalancePage.displayName = 'TransferBalancePage';
+ChooseTransferAccountPage.propTypes = propTypes;
+ChooseTransferAccountPage.defaultProps = defaultProps;
+ChooseTransferAccountPage.displayName = 'ChooseTransferAccountPage';
 
 export default compose(
     withLocalize,
@@ -148,4 +149,4 @@ export default compose(
             key: ONYXKEYS.USER_WALLET,
         },
     }),
-)(TransferBalancePage);
+)(ChooseTransferAccountPage);

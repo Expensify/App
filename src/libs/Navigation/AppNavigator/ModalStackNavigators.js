@@ -29,6 +29,7 @@ import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
 import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
 import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
+import ChooseTransferAccountPage from '../../../pages/settings/Payments/ChooseTransferAccountPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -165,6 +166,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: TransferBalancePage,
         name: 'Settings_Transfer_Balance',
+    },
+    {
+        Component: ChooseTransferAccountPage,
+        name: 'Settings_Choose_Transfer_Account',
     },
     {
         Component: SettingsAddPayPalMePage,

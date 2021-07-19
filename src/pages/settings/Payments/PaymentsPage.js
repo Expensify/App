@@ -99,7 +99,7 @@ class PaymentsPage extends React.Component {
      *
      */
     transferBalance() {
-        Navigation.navigate(ROUTES.SETTINGS_TRANSFER_BALANCE);
+        Navigation.navigate(`${ROUTES.SETTINGS_TRANSFER_BALANCE}?account=${2}`);
     }
 
     render() {
