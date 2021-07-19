@@ -1,11 +1,8 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
+import * as Haptics from 'expo-haptics';
 import {Pressable} from 'react-native';
-import pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
-
-const defaultProps = {
-    forwardedRef: () => {},
-};
+import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed.
@@ -16,10 +13,14 @@ const defaultProps = {
 const PressableWithSecondaryInteraction = props => (
     <Pressable
         ref={props.forwardedRef}
+        onPressIn={props.onPressIn}
         onLongPress={(e) => {
             e.preventDefault();
-            props.onSecondaryInteraction(e);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(() => {
+                props.onSecondaryInteraction(e);
+            });
         }}
+        onPressOut={props.onPressOut}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...(_.omit(props, 'onLongPress'))}
     >
@@ -27,7 +28,7 @@ const PressableWithSecondaryInteraction = props => (
     </Pressable>
 );
 
-PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes;
+PressableWithSecondaryInteraction.propTypes = propTypes;
 PressableWithSecondaryInteraction.defaultProps = defaultProps;
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 

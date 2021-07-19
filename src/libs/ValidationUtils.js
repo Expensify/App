@@ -78,6 +78,11 @@ function isValidIdentity(identity) {
         return false;
     }
 
+    if (identity.state === '') {
+        Growl.error(translateLocal('bankAccount.error.addressState'));
+        return false;
+    }
+
     if (!isValidZipCode(identity.zipCode)) {
         Growl.error(translateLocal('bankAccount.error.zipCode'));
         return false;

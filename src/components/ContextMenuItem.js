@@ -1,11 +1,11 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
-import MenuItem from '../../../components/MenuItem';
-import Tooltip from '../../../components/Tooltip';
-import Icon from '../../../components/Icon';
-import styles, {getIconFillColor, getButtonBackgroundColorStyle} from '../../../styles/styles';
-import getButtonState from '../../../libs/getButtonState';
+import MenuItem from './MenuItem';
+import Tooltip from './Tooltip';
+import Icon from './Icon';
+import styles, {getIconFillColor, getButtonBackgroundColorStyle} from '../styles/styles';
+import getButtonState from '../libs/getButtonState';
 
 const propTypes = {
     /** Icon Component */
@@ -25,21 +25,31 @@ const propTypes = {
 
     /** Callback to fire when the item is pressed */
     onPress: PropTypes.func.isRequired,
+
+    /** Automatically reset the success status */
+    autoReset: PropTypes.bool,
 };
 
 const defaultProps = {
     isMini: false,
     successIcon: null,
     successText: '',
+    autoReset: false,
 };
 
-class ReportActionContextMenuItem extends Component {
+class ContextMenuItem extends Component {
     constructor(props) {
         super(props);
         this.state = {
             success: false,
         };
         this.triggerPressAndUpdateSuccess = this.triggerPressAndUpdateSuccess.bind(this);
+    }
+
+    componentWillUnmount() {
+        if (this.successResetTimer) {
+            clearTimeout(this.successResetTimer);
+        }
     }
 
     /**
@@ -57,6 +67,9 @@ class ReportActionContextMenuItem extends Component {
             this.setState({
                 success: true,
             });
+            if (this.props.autoReset) {
+                this.successResetTimer = setTimeout(() => this.setState({success: false}), 1800);
+            }
         }
     }
 
@@ -99,8 +112,8 @@ class ReportActionContextMenuItem extends Component {
     }
 }
 
-ReportActionContextMenuItem.propTypes = propTypes;
-ReportActionContextMenuItem.defaultProps = defaultProps;
-ReportActionContextMenuItem.displayName = 'ReportActionContextMenuItem';
+ContextMenuItem.propTypes = propTypes;
+ContextMenuItem.defaultProps = defaultProps;
+ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default ReportActionContextMenuItem;
+export default ContextMenuItem;
