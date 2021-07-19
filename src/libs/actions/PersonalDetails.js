@@ -290,7 +290,6 @@ function deleteAvatar(login) {
     mergeLocalPersonalDetails({avatar: getDefaultAvatar(login)});
 }
 
-
 // When the app reconnects from being offline, fetch all of the personal details
 NetworkConnection.onReconnect(fetchPersonalDetails);
 
