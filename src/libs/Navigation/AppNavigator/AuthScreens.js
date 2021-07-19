@@ -271,6 +271,7 @@ class AuthScreens extends React.Component {
                         // prevent unnecessary scrolling
                         cardStyle: {
                             overflow: 'hidden',
+                            height: '100%',
                         },
                     }}
                     component={MainDrawerNavigator}
