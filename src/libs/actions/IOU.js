@@ -153,25 +153,12 @@ function rejectTransaction({
 }
 
 /**
- * Resets IOU currency to preferredCurrency
+ * Sets IOU'S selected currency
  *
  * @param {Object} params.selectedCurrencyCode
  * @param {Object} params.selectedCurrencySymbol
  */
 function setSelectedCurrency({selectedCurrencyCode, selectedCurrencySymbol}) {
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
-        selectedCurrencyCode,
-        selectedCurrencySymbol,
-    });
-}
-
-/**
- * Resets IOU currency to preferredCurrency
- *
- * @param {Object} params.selectedCurrencyCode
- * @param {Object} params.selectedCurrencySymbol
- */
-function resetSelectedCurrency({selectedCurrencyCode, selectedCurrencySymbol}) {
     Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {
         selectedCurrencyCode,
         selectedCurrencySymbol,
@@ -265,6 +252,5 @@ export {
     createIOUSplit,
     rejectTransaction,
     payIOUReport,
-    resetSelectedCurrency,
     setSelectedCurrency,
 };
