@@ -1191,7 +1191,6 @@ const styles = {
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
-        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
