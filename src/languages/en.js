@@ -464,6 +464,14 @@ export default {
             certify: 'Must certify information is true and accurate',
         },
     },
+    existingOwnersStep: {
+        headerTitle: 'Existing Owners',
+        alreadyInUse: 'This bank account is already in use by ',
+        pleaseAskThemToShare: 'Please ask them to share it with you.',
+        alternatively: 'Alternatively, you can ',
+        setUpThisAccountByYourself: 'set up this account by yourself',
+        validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
+    },
     session: {
         offlineMessage: 'Looks like you\'re offline. Please check your connection and try again.',
     },

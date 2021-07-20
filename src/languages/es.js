@@ -372,6 +372,16 @@ export default {
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },
+
+    // TODO: Waiting translations
+    existingOwnersStep: {
+        existingOwners: 'Existing Owners',
+        alreadyInUse: 'This bank account is already in use by ',
+        pleaseAskThemToShare: '.Please ask them to share it with you.',
+        alternatively: 'Alternatively, you can ',
+        setUpThisAccountByYourself: 'set up this account by yourself',
+        validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
+    },
     session: {
         offlineMessage: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
     },

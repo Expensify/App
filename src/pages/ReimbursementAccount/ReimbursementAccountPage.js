@@ -24,6 +24,7 @@ import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import BeneficialOwnersStep from './BeneficialOwnersStep';
+import ExistingOwnersStep from './ExistingOwnersStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 
@@ -231,6 +232,16 @@ class ReimbursementAccountPage extends React.Component {
                             maxAttemptsReached={maxAttemptsReached}
                             error={error}
                         />
+                    )}
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
+                        <ValidationStep
+                            achData={this.props.reimbursementAccount.achData}
+                            maxAttemptsReached={maxAttemptsReached}
+                            error={error}
+                        />
+                    )}
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.EXISTING_OWNERS && (
+                        <ExistingOwnersStep achData={achData} />
                     )}
                 </KeyboardAvoidingView>
             </ScreenWrapper>
