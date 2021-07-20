@@ -1197,7 +1197,6 @@ const styles = {
     avatarSmall: {
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
-        backgroundColor: themeColors.icon,
         borderRadius: variables.avatarSizeSmall,
     },
 
