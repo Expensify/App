@@ -4,6 +4,7 @@ export default {
         cancel: 'Cancel',
         yes: 'Yes',
         no: 'No',
+        ok: 'OK',
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
@@ -354,6 +355,14 @@ export default {
             dob: 'Please enter a valid date of birth',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
+            existingOwners: {
+                unableToAddBankAccount: 'Unable to add bank account',
+                alreadyInUse: 'This bank account is already in use by ',
+                pleaseAskThemToShare: 'Please ask them to share it with you.',
+                alternatively: 'Alternatively, you can ',
+                setUpThisAccountByYourself: 'set up this account by yourself',
+                validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
+            },
         },
     },
     addPersonalBankAccountPage: {
