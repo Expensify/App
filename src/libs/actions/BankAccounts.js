@@ -598,20 +598,7 @@ function setupWithdrawalAccount(data) {
         newACHData.accountNumber = unmaskedAccount.accountNumber;
     }
 
-    return new Promise(resolve => resolve({existingOwners: ['patrick@expensify.com', 'spongebob@expensify.com', 'sandy@expensify.com']})).then((response) => {
-        const existingOwnersList = response.existingOwners.reduce((ownersStr, owner, i, ownersArr) => {
-            let separator = ',\n';
-            if (i === 0) {
-                separator = '\n';
-            } else if (i === ownersArr.length - 1) {
-                separator = ' and\n';
-            }
-            return `${ownersStr}${separator}${owner}`;
-        }, '');
-        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, existingOwnersList, error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS});
-    });
-
-    return API.BankAccount_SetupWithdrawal(newACHData)
+    API.BankAccount_SetupWithdrawal(newACHData)
         .then((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
 
