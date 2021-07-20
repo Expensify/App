@@ -243,7 +243,7 @@ function fetchCurrencyPreferences() {
         isRetrievingCurrency: true,
     });
 
-    API.GetPreferredCurrency({...coords})
+    API.GetLocalCurrency({...coords})
         .then((data) => {
             currency = data.currency;
         })
