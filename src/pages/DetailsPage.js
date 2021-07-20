@@ -94,7 +94,7 @@ const DetailsPage = ({
                             />
                             {details.displayName && (
                                 <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
-                                    {isSMSLogin ? toLocalPhone(details.displayName) : details.displayName || null}
+                                    {isSMSLogin ? toLocalPhone(details.displayName) : details.displayName}
                                 </Text>
                             )}
                             {details.login ? (
