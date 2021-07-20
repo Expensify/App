@@ -111,13 +111,11 @@ class PaymentsPage extends React.Component {
                     />
                     <View>
                         <CurrentWalletBalance />
-                        <View style={[styles.flex1, styles.flexRow, styles.mb5, styles.alignItemsCenter]}>
-                            <Text
-                                style={[styles.ph5, styles.textStrong, styles.justifyContentStart, styles.flex1]}
-                            >
-                                {this.props.translate('paymentsPage.paymentMethodsTitle')}
-                            </Text>
-                        </View>
+                        <Text
+                            style={[styles.ph5, styles.textStrong]}
+                        >
+                            {this.props.translate('paymentsPage.paymentMethodsTitle')}
+                        </Text>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
