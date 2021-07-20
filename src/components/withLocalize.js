@@ -31,7 +31,10 @@ const withLocalizePropTypes = {
 
 export default (WrappedComponent) => {
     const propTypes = {
+        /** The user's preferred locale e.g. en or es */
         preferredLocale: PropTypes.string,
+
+        /** Passed ref from whatever component is wrapped in the HOC */
         forwardedRef: PropTypes.oneOfType([
             PropTypes.func,
             PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
