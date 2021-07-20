@@ -259,9 +259,10 @@ function createOption(personalDetailList, report, draftComments, {
  * @param {String} searchValue
  * @param {String} searchText
  * @param {Set<String>} [participantNames]
+ * @param {Boolean} isDefaultChatRoom
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText, participantNames = new Set()) {
+function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isDefaultChatRoom = false) {
     const searchWords = searchValue
         .replace(/,/g, ' ')
         .split(' ')
@@ -269,7 +270,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch) || participantNames.has(word);
+        return matchRegex.test(valueToSearch) || (!isDefaultChatRoom && participantNames.has(word));
     });
 }
 
@@ -400,9 +401,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             }
 
             // Finally check to see if this option is a match for the provided search string if we have one
-            const {searchText, participantsList} = reportOption;
+            const {searchText, participantsList, isDefaultChatRoom} = reportOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isDefaultChatRoom)) {
                 continue;
             }
 
@@ -449,9 +450,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ))) {
                 return;
             }
-            const {searchText, participantsList} = personalDetailOption;
+            const {searchText, participantsList, isDefaultChatRoom} = personalDetailOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isDefaultChatRoom)) {
                 return;
             }
             personalDetailsOptions.push(personalDetailOption);
