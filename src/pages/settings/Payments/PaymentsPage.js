@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ActivityIndicator} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -19,7 +19,6 @@ import {PayPal} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
-import themeColors from '../../../styles/themes/default';
 
 const PAYPAL = 'payPalMe';
 
