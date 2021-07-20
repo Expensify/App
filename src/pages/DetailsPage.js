@@ -98,7 +98,7 @@ const DetailsPage = ({
                                 </Text>
                             )}
                             {details.login ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
+                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {translate(isSMSLogin
                                             ? 'common.phoneNumber'
