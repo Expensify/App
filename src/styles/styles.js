@@ -800,8 +800,8 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.GTA,
-        height: 18,
-        lineHeight: 18,
+        height: 20,
+        lineHeight: 20,
         ...whiteSpace.noWrap,
     },
 
