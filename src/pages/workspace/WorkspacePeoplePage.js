@@ -19,7 +19,7 @@ import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
-import ConfirmModal from '../../components/ConfirmModal';
+import ConfirmModal from '../../components/AlertModal/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OptionRow from '../home/sidebar/OptionRow';

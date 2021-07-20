@@ -20,7 +20,7 @@ import IOUAction from '../../../components/ReportActionItem/IOUAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
-import ConfirmModal from '../../../components/ConfirmModal';
+import ConfirmModal from '../../../components/AlertModal/ConfirmModal';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {deleteReportComment} from '../../../libs/actions/Report';
@@ -339,7 +339,7 @@ class ReportActionItem extends Component {
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal
-                    title={this.props.translate('reportActionContextMenu.deleteComment')}
+                    title={this.props.translate('bankAccount.error.existingOwners.title')}
                     isVisible={this.state.isDeleteCommentConfirmModalVisible}
                     onConfirm={this.confirmDeleteAndHideModal}
                     onCancel={this.hideDeleteConfirmModal}

@@ -598,7 +598,20 @@ function setupWithdrawalAccount(data) {
         newACHData.accountNumber = unmaskedAccount.accountNumber;
     }
 
-    API.BankAccount_SetupWithdrawal(newACHData)
+    return new Promise(resolve => resolve({existingOwners: ['patrick@expensify.com', 'spongebob@expensify.com', 'sandy@expensify.com']})).then((response) => {
+        const existingOwnersList = response.existingOwners.reduce((ownersStr, owner, i, ownersArr) => {
+            let separator = ',\n';
+            if (i === 0) {
+                separator = '\n';
+            } else if (i === ownersArr.length - 1) {
+                separator = ' and\n';
+            }
+            return `${ownersStr}${separator}${owner}`;
+        }, '');
+        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, existingOwnersList, error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS});
+    });
+
+    return API.BankAccount_SetupWithdrawal(newACHData)
         .then((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
 
@@ -615,9 +628,18 @@ function setupWithdrawalAccount(data) {
                 }
 
                 // Show warning if another account already set up this bank account and promote share
-                if (response.existingOwners) {
-                    // @TODO Show better error in UI about existing owners
-                    console.error('Cannot set up withdrawal account due to existing owners');
+                if (response.existingOwners || true) {
+                    console.error('Cannot set up withdrawal account due to existing owners', response);
+                    const existingOwnersList = response.existingOwners.reduce((ownersStr, owner, i, ownersArr) => {
+                        let separator = ',\n';
+                        if (i === 0) {
+                            separator = '\n';
+                        } else if (i === ownersArr.length - 1) {
+                            separator = ' and\n';
+                        }
+                        return `${ownersStr}${separator}${owner}`;
+                    }, '');
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {existingOwnersList, error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS});
                     return;
                 }
 
@@ -721,6 +743,10 @@ function setupWithdrawalAccount(data) {
         });
 }
 
+function hideExistingOwnersError() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: ''});
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -733,4 +759,5 @@ export {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     validateBankAccount,
+    hideExistingOwnersError,
 };

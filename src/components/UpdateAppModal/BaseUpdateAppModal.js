@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import {propTypes, defaultProps} from './UpdateAppModalPropTypes';
-import ConfirmModal from '../ConfirmModal';
+import ConfirmModal from '../AlertModal/ConfirmModal';
 import withLocalize from '../withLocalize';
 
 class BaseUpdateAppModal extends PureComponent {
