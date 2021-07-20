@@ -197,6 +197,4 @@ class ReportActionContextMenu extends React.Component {
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-)(ReportActionContextMenu);
+export default withLocalize(ReportActionContextMenu);
