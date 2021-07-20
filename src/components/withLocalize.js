@@ -55,18 +55,37 @@ export default (WrappedComponent) => {
             this.toLocalPhone = this.toLocalPhone.bind(this);
         }
 
+        /**
+         * @param {String} phrase
+         * @param {Object} [variables]
+         * @returns {String}
+         */
         translate(phrase, variables) {
             return translate(this.props.preferredLocale, phrase, variables);
         }
 
+        /**
+         * @param {Number} number
+         * @param {Intl.NumberFormatOptions} options
+         * @returns {String}
+         */
         numberFormat(number, options) {
             return numberFormat(this.props.preferredLocale, number, options);
         }
 
+        /**
+         * @param {Number} timestamp
+         * @returns {String}
+         */
         timestampToRelative(timestamp) {
             return DateUtils.timestampToRelative(this.props.preferredLocale, timestamp);
         }
 
+        /**
+         * @param {Number} timestamp
+         * @param {Boolean} [includeTimezone]
+         * @returns {String}
+         */
         timestampToDateTime(timestamp, includeTimezone) {
             return DateUtils.timestampToDateTime(
                 this.props.preferredLocale,
@@ -75,10 +94,18 @@ export default (WrappedComponent) => {
             );
         }
 
+        /**
+         * @param {Number} number
+         * @returns {String}
+         */
         toLocalPhone(number) {
             return toLocalPhone(this.props.preferredLocale, number);
         }
 
+        /**
+         * @param {Number} number
+         * @returns {String}
+         */
         fromLocalPhone(number) {
             return fromLocalPhone(this.props.preferredLocale, number);
         }
@@ -101,7 +128,6 @@ export default (WrappedComponent) => {
     }
 
     WithLocalize.propTypes = propTypes;
-
     WithLocalize.defaultProps = defaultProps;
 
     const withForwardedRef = React.forwardRef((props, ref) => (
