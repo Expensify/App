@@ -39,7 +39,7 @@ const propTypes = {
 
         // ISO4217 Code for the currency
         ISO4217: PropTypes.string,
-    })),
+    })).isRequired,
 
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
