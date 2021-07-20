@@ -10,7 +10,7 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -10;
-const ACTIVE_LABEL_TRANSLATE_X = (fullWidth = true) => (fullWidth ? -22 : -10);
+const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
 const ACTIVE_LABEL_SCALE = 0.8668;
 
 const INACTIVE_LABEL_TRANSLATE_Y = 0;
@@ -27,7 +27,7 @@ class ExpensiTextInput extends Component {
             isFocused: false,
             labelTranslateY: new Animated.Value(hasValue ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
             labelTranslateX: new Animated.Value(hasValue
-                ? ACTIVE_LABEL_TRANSLATE_X(props.fullWidth) : INACTIVE_LABEL_TRANSLATE_X),
+                ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
             labelScale: new Animated.Value(hasValue ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
         };
 
@@ -60,7 +60,7 @@ class ExpensiTextInput extends Component {
         if (this.props.value.length === 0) {
             this.animateLabel(
                 ACTIVE_LABEL_TRANSLATE_Y,
-                ACTIVE_LABEL_TRANSLATE_X(this.props.fullWidth),
+                ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
                 ACTIVE_LABEL_SCALE,
             );
         }

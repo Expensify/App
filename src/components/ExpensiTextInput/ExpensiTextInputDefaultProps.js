@@ -5,7 +5,7 @@ const expensiTextInputDefaultProps = {
     onFocusExtra: null,
     onBlurExtra: null,
     containerStyles: [],
-    fullWidth: true,
+    translateX: -10,
 };
 
 export default expensiTextInputDefaultProps;
