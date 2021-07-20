@@ -22,11 +22,11 @@ Can the user still use Expensify without this being fixed? Have you informed the
 ## Platform:
 Where is this issue occurring?
 
- Web
- iOS
- Android
- Desktop App
- Mobile Web
+- [ ] Web
+- [ ] iOS
+- [ ] Android
+- [ ] Desktop App
+- [ ] Mobile Web
 
 **Version Number:**
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
