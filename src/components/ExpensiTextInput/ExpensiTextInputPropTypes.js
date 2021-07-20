@@ -22,8 +22,8 @@ const expensiTextInputPropTypes = {
     /** Styles for the outermost container for this component. */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Input width */
-    fullWidth: PropTypes.bool,
+    /** label translate x */
+    translateX: PropTypes.string,
 };
 
 export default expensiTextInputPropTypes;

@@ -48,7 +48,7 @@ const FullNameInputRow = ({
                     value={firstName}
                     onChangeText={onChangeFirstName}
                     placeholder={translate('profilePage.john')}
-                    fullWidth={false}
+                    translateX={-10}
                 />
             </View>
             <View style={[styles.flex1, styles.ml2]}>
@@ -57,7 +57,7 @@ const FullNameInputRow = ({
                     value={lastName}
                     onChangeText={onChangeLastName}
                     placeholder={translate('profilePage.doe')}
-                    fullWidth={false}
+                    translateX={-10}
                 />
             </View>
         </View>

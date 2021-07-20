@@ -74,7 +74,7 @@ class LoginForm extends React.Component {
             <>
                 <View style={[styles.mt3]}>
                     <ExpensiTextInput
-                        label={this.props.translate('loginForm.enterYourPhoneOrEmail')}
+                        label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
                         autoCompleteType="email"
                         textContentType="username"
@@ -83,9 +83,10 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
-                        placeholder={this.props.translate('loginForm.phoneOrEmail')}
+                        placeholder={this.props.translate('loginForm.enterYourPhoneOrEmail')}
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
+                        translateX={-18}
                     />
                 </View>
                 <View style={[styles.mt5]}>

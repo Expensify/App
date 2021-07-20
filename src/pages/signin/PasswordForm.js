@@ -82,6 +82,7 @@ class PasswordForm extends React.Component {
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
+                        translateX={-18}
                     />
                     <TouchableOpacity
                         style={[styles.mt2]}
@@ -104,6 +105,7 @@ class PasswordForm extends React.Component {
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                            translateX={-18}
                         />
                     </View>
                 )}
