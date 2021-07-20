@@ -140,6 +140,9 @@ const CONST = {
                 ADDCOMMENT: 'ADDCOMMENT',
             },
         },
+        ERROR: {
+            INACCESSIBLE_REPORT: 'Report not found',
+        },
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',

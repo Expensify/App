@@ -298,19 +298,26 @@ function fetchIOUReportID(debtorEmail) {
 }
 
 /**
- * Fetches chat reports when provided a list of
- * chat report IDs
- *
+ * Fetches chat reports when provided a list of chat report IDs.
+ * If the shouldRedirectIfInacessible flag is set, we redirect to the Concierge chat
+ * when we find an inaccessible chat
  * @param {Array} chatList
+ * @param {Boolean} shouldRedirectIfInacessible
  * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
  */
-function fetchChatReportsByIDs(chatList) {
+function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
     return API.GetReportSummaryList({reportIDList: chatList.join(',')})
-        .then(({reportSummaryList}) => {
+        .then(({reportSummaryList, jsonCode}) => {
             Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reportSummaryList;
+
+            // If we receive a 404 response while fetching a single report, treat that report as inacessible.
+            if (jsonCode === 404 && shouldRedirectIfInacessible) {
+                throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
+            }
+
             return Promise.all(_.map(fetchedReports, (chatReport) => {
                 // If there aren't any IOU actions, we don't need to fetch any additional data
                 if (!chatReport.hasIOUAction) {
@@ -331,7 +338,13 @@ function fetchChatReportsByIDs(chatList) {
                 }
 
                 return fetchIOUReportID(participants[0])
-                    .then(iouReportID => fetchIOUReport(iouReportID, chatReport.reportID));
+                    .then((iouReportID) => {
+                        if (!iouReportID) {
+                            return Promise.resolve();
+                        }
+
+                        return fetchIOUReport(iouReportID, chatReport.reportID);
+                    });
             }));
         })
         .then((iouReportObjects) => {
@@ -368,6 +381,13 @@ function fetchChatReportsByIDs(chatList) {
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
 
             return _.map(fetchedReports, report => report.reportID);
+        })
+        .catch((err) => {
+            if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
+                Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
+                // eslint-disable-next-line no-use-before-define
+                navigateToConciergeChat();
+            }
         });
 }
 
