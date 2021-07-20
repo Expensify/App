@@ -75,6 +75,7 @@ class IOUCurrencySelection extends Component {
         this.state = {
             searchValue: '',
             currencyData: currencyOptions,
+            toggledCurrencyCode: '',
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
@@ -121,13 +122,13 @@ class IOUCurrencySelection extends Component {
     }
 
     /**
-     * Function which renders a row in the list
+     * Function which toggles a currency in the list
      *
-     * @param {String} selectedCurrencyCode
+     * @param {String} toggledCurrencyCode
      *
      */
-    toggleOption(selectedCurrencyCode) {
-        setIOUSelectedCurrency({selectedCurrencyCode});
+    toggleOption(toggledCurrencyCode) {
+        this.setState({toggledCurrencyCode});
     }
 
     /**
@@ -151,9 +152,7 @@ class IOUCurrencySelection extends Component {
      * @return {void}
      */
     confirmCurrencySelection() {
-        setIOUSelectedCurrency({
-            selectedCurrencyCode: this.props.iou.selectedCurrencyCode,
-        });
+        setIOUSelectedCurrency(this.state.toggledCurrencyCode);
         Navigation.goBack();
     }
 
@@ -194,7 +193,7 @@ class IOUCurrencySelection extends Component {
                                             option={item}
                                             onSelectRow={() => this.toggleOption(item.currencyCode)}
                                             isSelected={
-                                                item.currencyCode === this.props.iou.selectedCurrencyCode
+                                                item.currencyCode === this.state.toggledCurrencyCode
                                             }
                                             showSelectedState
                                             hideAdditionalOptionStates

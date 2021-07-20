@@ -155,9 +155,9 @@ function rejectTransaction({
 /**
  * Sets IOU'S selected currency
  *
- * @param {Object} params.selectedCurrencyCode
+ * @param {String} selectedCurrencyCode
  */
-function setIOUSelectedCurrency({selectedCurrencyCode}) {
+function setIOUSelectedCurrency(selectedCurrencyCode) {
     Onyx.merge(ONYXKEYS.IOU, {selectedCurrencyCode});
 }
 

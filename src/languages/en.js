@@ -456,7 +456,8 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Looks like you\'re offline. Please check your connection and try again.',
+        offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
+        offlineMessage: 'Looks like you\'re offline.',
     },
     workspace: {
         common: {

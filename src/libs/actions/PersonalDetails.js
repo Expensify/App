@@ -247,7 +247,6 @@ function fetchLocalCurrency() {
         .then((data) => {
             currency = data.currency;
         })
-        .then(API.GetCurrencyList)
         .then(getCurrencyList)
         .then(() => {
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
