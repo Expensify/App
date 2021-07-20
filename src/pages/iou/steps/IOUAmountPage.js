@@ -66,7 +66,6 @@ const defaultProps = {
     iou: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
-    currencyList: {},
 };
 
 class IOUAmountPage extends React.Component {

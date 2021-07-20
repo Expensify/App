@@ -129,9 +129,7 @@ class IOUModal extends Component {
     }
 
     componentDidMount() {
-        setIOUSelectedCurrency({
-            selectedCurrencyCode: this.props.myPersonalDetails.localCurrencyCode,
-        });
+        setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
     }
 
     componentDidUpdate(prevProps) {
@@ -142,9 +140,7 @@ class IOUModal extends Component {
 
         if (prevProps.iou.selectedCurrencyCode
             !== this.props.iou.selectedCurrencyCode) {
-            setIOUSelectedCurrency({
-                selectedCurrencyCode: this.props.iou.selectedCurrencyCode,
-            });
+            setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
         }
     }
 
@@ -291,9 +287,9 @@ class IOUModal extends Component {
                         </View>
                         <View style={[styles.pRelative, styles.flex1]}>
                             <FullScreenLoadingIndicator
-                                visible={!didScreenTransitionEnd}
+                                visible={!didScreenTransitionEnd || this.props.iou.isRetrievingCurrency}
                             />
-                            {didScreenTransitionEnd && (
+                            {didScreenTransitionEnd && !this.props.iou.isRetrievingCurrency && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
                                         <IOUAmountPage
