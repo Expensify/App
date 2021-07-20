@@ -31,7 +31,7 @@ const withLocalizePropTypes = {
 
 export default (WrappedComponent) => {
     const propTypes = {
-        /** The user's preferred locale e.g. en or es */
+        /** The user's preferred locale e.g. 'en', 'es-ES' */
         preferredLocale: PropTypes.string,
 
         /** Passed ref from whatever component is wrapped in the HOC */
