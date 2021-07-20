@@ -1793,10 +1793,8 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-    communicationsLinkIcon: {
-        right: -36,
-        top: 0,
-        bottom: 0,
+    communicationsLinkHeight: {
+        height: 20,
     },
 };
 
