@@ -11,9 +11,6 @@ import LocalePicker from '../../../../components/LocalePicker';
 
 const TermsWithLicenses = ({translate}) => (
     <View>
-        <View style={[styles.mt1, styles.alignItemsCenter, styles.mb3]}>
-            <LogoWordmark height={30} width={80} />
-        </View>
         <View
             style={[
                 styles.dFlex,
