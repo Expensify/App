@@ -18,7 +18,6 @@ const TermsWithLicenses = ({translate}) => (
                 styles.flexWrap,
                 styles.textAlignCenter,
                 styles.alignItemsCenter,
-                styles.justifyContentCenter,
             ]}
         >
             <Text style={[styles.textAlignCenter, styles.loginTermsText]}>
