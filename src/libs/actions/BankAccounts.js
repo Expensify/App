@@ -626,7 +626,10 @@ function setupWithdrawalAccount(data) {
                         }
                         return `${ownersStr}${separator}${owner}`;
                     }, '');
-                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {existingOwnersList, error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS});
+                    Onyx.merge(
+                        ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                        {existingOwnersList, error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS},
+                    );
                     return;
                 }
 
