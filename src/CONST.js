@@ -217,6 +217,7 @@ const CONST = {
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
         FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
         BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
+        PREFERRED_LOCALE: 'preferredLocale',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
