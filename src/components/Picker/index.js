@@ -30,7 +30,7 @@ const Picker = ({
             useNativeAndroidPickerStyle={false}
             placeholder={placeholder}
             value={value}
-            Icon={icon}
+            Icon={() => icon(size)}
             disabled={disabled}
             fixAndroidTouchableBug
         />

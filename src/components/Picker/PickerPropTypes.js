@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
-import {DownArrow} from '../Icon/Expensicons';
+import {DownArrow, DownArrowSmall} from '../Icon/Expensicons';
 
 const propTypes = {
     /** A callback method that is called when the value changes and it received the selected value as an argument */
@@ -45,8 +45,23 @@ const defaultProps = {
     disabled: false,
     placeholder: {},
     value: null,
-    icon: () => <Icon src={DownArrow} />,
-    size: 'normal',
+    icon: size => (
+        <>
+            {size === 'small'
+                ? (
+                    <Icon
+                        width={12}
+                        height={12}
+                        src={DownArrowSmall}
+                    />
+                )
+                : (
+                    <Icon
+                        src={DownArrow}
+                    />
+                )}
+        </>
+    ),
 };
 
 export {
