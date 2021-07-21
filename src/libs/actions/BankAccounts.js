@@ -553,6 +553,8 @@ function validateBankAccount(bankAccountID, validateCode) {
             if (response.jsonCode === 200) {
                 Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 3000);
                 Navigation.dismissModal();
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: ''});
+                return;
             }
 
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: response.message});
