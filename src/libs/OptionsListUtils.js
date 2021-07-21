@@ -748,6 +748,7 @@ function isCurrentUser(userDetails) {
 }
 
 export {
+    addSMSDomainIfPhoneNumber,
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,
