@@ -11,7 +11,7 @@ import LocalePicker from '../../../../components/LocalePicker';
 
 const TermsWithLicenses = ({translate}) => (
     <View>
-        <Text style={[styles.textAlignCenter, styles.loginTermsText]}>
+        <Text style={[styles.loginTermsText]}>
             {translate('termsOfUse.phrase1')}
             {' '}
             <TextLink
