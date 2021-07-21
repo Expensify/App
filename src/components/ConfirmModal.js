@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Header from './Header';
-import Modal from './Modal/index';
+import Modal from './Modal';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
