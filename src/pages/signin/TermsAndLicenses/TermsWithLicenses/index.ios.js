@@ -17,7 +17,7 @@ const TermsWithLicenses = ({translate}) => (
                 styles.flexColumn,
                 styles.flexWrap,
                 styles.textAlignCenter,
-                styles.alignItemsCenter,
+                styles.justifyContentCenter,
             ]}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
