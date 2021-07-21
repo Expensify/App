@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
-import {DownArrow, DownArrowSmall} from '../Icon/Expensicons';
+import {DownArrow} from '../Icon/Expensicons';
 
 const propTypes = {
     /** A callback method that is called when the value changes and it received the selected value as an argument */
@@ -52,7 +52,7 @@ const defaultProps = {
                     <Icon
                         width={12}
                         height={12}
-                        src={DownArrowSmall}
+                        src={DownArrow}
                     />
                 )
                 : (
