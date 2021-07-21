@@ -239,10 +239,14 @@ export default {
         addPayPalAccount: 'Add PayPal Account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
     },
+    paymentsPage: {
+        paymentMethodsTitle: 'Payment Methods',
+    },
     paymentMethodList: {
         addPaymentMethod: 'Add Payment Method',
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
+        addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app',
     },
     preferencesPage: {
         mostRecent: 'Most Recent',
