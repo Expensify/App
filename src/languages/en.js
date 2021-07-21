@@ -164,7 +164,6 @@ export default {
         daily: 'Daily',
         mute: 'Mute',
         members: 'Members',
-        notificationPreferenceUpdateFailed: '',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',

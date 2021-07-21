@@ -154,9 +154,6 @@ export default {
         daily: 'Cada día',
         mute: 'Nunca',
         members: 'Miembros',
-
-        // TODO
-        notificationPreferenceUpdateFailed: '',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',

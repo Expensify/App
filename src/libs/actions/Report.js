@@ -1335,14 +1335,8 @@ function syncChatAndIOUReports(chatReport, iouReport) {
  * @param {String} notificationPreference
  */
 function updateNotificationPreference(reportID, notificationPreference) {
-    API.Report_UpdateNotificationPreference({reportID, notificationPreference})
-        .then(({jsonCode}) => {
-            if (jsonCode !== 200) {
-                Growl.error(translateLocal('reportDetailsPage.notificationPreferenceUpdateFailed'));
-                return;
-            }
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {notificationPreference});
-        });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {notificationPreference});
+    API.Report_UpdateNotificationPreference({reportID, notificationPreference});
 }
 
 /**
