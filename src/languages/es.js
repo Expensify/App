@@ -26,6 +26,7 @@ export default {
         and: 'y',
         details: 'Detalles',
         delete: 'Eliminar',
+        deleted: 'eliminado',
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
@@ -102,6 +103,7 @@ export default {
         writeSomething: 'Escribe algo...',
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
+        roomIsArchived: 'Esta sala de chat ha sido eliminada',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
