@@ -7,6 +7,7 @@ import withLocalize, {
     withLocalizePropTypes,
 } from '../../../../components/withLocalize';
 import LogoWordmark from '../../../../../assets/images/expensify-wordmark.svg';
+import LocalePicker from '../../../../components/LocalePicker';
 
 const TermsWithLicenses = ({translate}) => (
     <View>
@@ -60,6 +61,12 @@ const TermsWithLicenses = ({translate}) => (
                 {translate('termsOfUse.phrase7')}
             </TextLink>
             <Text style={[styles.textAlignCenter, styles.loginTermsText]}>.</Text>
+        </View>
+        <View style={[
+            styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}
+        >
+            <LogoWordmark height={30} width={80} />
+            <LocalePicker size="small" />
         </View>
     </View>
 );

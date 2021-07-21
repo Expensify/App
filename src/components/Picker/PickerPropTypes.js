@@ -36,6 +36,9 @@ const propTypes = {
 
     /** An icon to display with the picker */
     icon: PropTypes.func,
+
+    /** Size of a picker component */
+    size: PropTypes.oneOf(['normal', 'small']),
 };
 const defaultProps = {
     useDisabledStyles: false,
@@ -43,6 +46,7 @@ const defaultProps = {
     placeholder: {},
     value: null,
     icon: () => <Icon src={DownArrow} />,
+    size: 'normal',
 };
 
 export {
