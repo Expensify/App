@@ -231,10 +231,14 @@ export default {
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar Cuenta de Paypal',
     },
+    paymentsPage: {
+        paymentMethodsTitle: 'Métodos de pago',
+    },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
+        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación',
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
