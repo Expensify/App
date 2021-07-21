@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -16,6 +15,9 @@ const propTypes = {
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
 
+    /** Indicates size of a picker component and whether to render the label or not */
+    size: PropTypes.oneOf(['normal', 'small']),
+
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
@@ -24,9 +26,12 @@ const propTypes = {
 
 const defaultProps = {
     preferredLocale: CONST.DEFAULT_LOCALE,
+    size: 'normal',
 };
 
-const LocalePicker = ({preferredLocale, translate, betas}) => {
+const LocalePicker = ({
+    preferredLocale, translate, betas, size,
+}) => {
     if (!Permissions.canUseInternationalization(betas)) {
         return null;
     }
@@ -44,24 +49,24 @@ const LocalePicker = ({preferredLocale, translate, betas}) => {
 
     return (
         <>
+            {size === 'normal' && (
             <Text style={[styles.formLabel]} numberOfLines={1}>
                 {translate('preferencesPage.language')}
             </Text>
-            <View style={[styles.mb2]}>
-                <Picker
-                    onChange={(locale) => {
-                        if (locale !== preferredLocale) {
-                            setLocale(locale);
-                        }
-                    }}
-                    items={Object.values(localesToLanguages)}
-                    value={preferredLocale}
-                />
-            </View>
+            )}
+            <Picker
+                onChange={(locale) => {
+                    if (locale !== preferredLocale) {
+                        setLocale(locale);
+                    }
+                }}
+                items={Object.values(localesToLanguages)}
+                size={size}
+                value={preferredLocale}
+            />
         </>
     );
 };
-
 
 LocalePicker.defaultProps = defaultProps;
 LocalePicker.propTypes = propTypes;

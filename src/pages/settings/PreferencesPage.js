@@ -94,7 +94,9 @@ const PreferencesPage = ({
                     <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
                         {priorityModes[priorityMode].description}
                     </Text>
-                    <LocalePicker />
+                    <View style={[styles.mb2]}>
+                        <LocalePicker />
+                    </View>
                 </View>
             </View>
         </ScreenWrapper>

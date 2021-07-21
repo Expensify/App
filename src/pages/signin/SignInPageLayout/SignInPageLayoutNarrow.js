@@ -7,7 +7,6 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import LocalePicker from '../../../components/LocalePicker';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
@@ -54,7 +53,6 @@ const SignInPageLayoutNarrow = props => (
             <View style={[styles.mt3]}>
                 <TermsAndLicenses />
             </View>
-            <LocalePicker />
         </View>
     </ScrollView>
 );
