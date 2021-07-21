@@ -126,7 +126,7 @@ const KeyboardShortcut = {
      */
     unsubscribe(key) {
         const keyCode = this.getKeyCode(key);
-        delete events[keyCode];
+        events[keyCode].pop();
     },
 };
 
