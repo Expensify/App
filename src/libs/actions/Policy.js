@@ -9,6 +9,7 @@ import CONST from '../../CONST';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import {addSMSDomainIfPhoneNumber} from '../OptionsListUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -135,23 +136,24 @@ function removeMembers(members, policyID) {
 /**
  * Merges the passed in login into the specified policy
  *
- * @param {String} login
+ * @param {Array<String>} logins
  * @param {String} welcomeNote
  * @param {String} policyID
  */
-function invite(login, welcomeNote, policyID) {
+function invite(logins, welcomeNote, policyID) {
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+    const newEmployeeList = _.map(logins, login => addSMSDomainIfPhoneNumber(login));
 
     // Make a shallow copy to preserve original data, and concat the login
     const policy = _.clone(allPolicies[key]);
-    policy.employeeList = [...policy.employeeList, login];
+    policy.employeeList = [...policy.employeeList, ...newEmployeeList];
 
     // Optimistically add the user to the policy
     Onyx.set(key, policy);
 
     // Make the API call to merge the login into the policy
     API.Policy_Employees_Merge({
-        employees: JSON.stringify([{email: login}]),
+        employees: JSON.stringify(_.map(logins, login => ({email: login}))),
         welcomeNote,
         policyID,
     })
@@ -164,7 +166,7 @@ function invite(login, welcomeNote, policyID) {
 
             // If the operation failed, undo the optimistic addition
             const policyDataWithoutLogin = _.clone(allPolicies[key]);
-            policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, login);
+            policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...newEmployeeList);
             Onyx.set(key, policyDataWithoutLogin);
 
             // Show the user feedback that the addition failed
