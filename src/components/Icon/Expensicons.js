@@ -13,6 +13,7 @@ import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import DownArrow from '../../../assets/images/down.svg';
+import DownArrowSmall from '../../../assets/images/down-small.svg';
 import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
@@ -68,6 +69,7 @@ export {
     Close,
     CreditCard,
     DownArrow,
+    DownArrowSmall,
     Download,
     Emoji,
     Exclamation,

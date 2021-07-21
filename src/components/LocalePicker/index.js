@@ -19,7 +19,7 @@ const propTypes = {
     size: PropTypes.oneOf(['normal', 'small']),
 
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
 };
@@ -27,6 +27,7 @@ const propTypes = {
 const defaultProps = {
     preferredLocale: CONST.DEFAULT_LOCALE,
     size: 'normal',
+    betas: [],
 };
 
 const LocalePicker = ({
