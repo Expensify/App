@@ -252,7 +252,7 @@ class BankAccountStep extends React.Component {
                     onConfirm={hideExistingOwnersError}
                     shouldShowCancelButton={false}
                     prompt={(
-                        <View style={[styles.flex1, styles.m5]}>
+                        <View style={[styles.flex1]}>
                             <Text style={[styles.mb4]}>
                                 <Text>
                                     {this.props.translate('bankAccount.error.existingOwners.alreadyInUse')}
