@@ -334,7 +334,7 @@ export default {
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
             existingOwners: {
-                unableToAddBankAccount: 'No se pudo agregar la cuenta bancaria',
+                unableToAddBankAccount: 'No hay sido posible añadir la cuenta bancaria',
                 alreadyInUse: 'La cuenta bancaria ya se encuentra en uso por ',
                 pleaseAskThemToShare: 'Por favor, solicita que la compartan contigo.',
                 alternatively: 'En su defecto, puedes ',
