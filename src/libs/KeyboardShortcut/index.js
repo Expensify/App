@@ -12,9 +12,10 @@ function bindHandlerToKeyupEvent(event) {
     }
 
     const eventCallbacks = events[event.keyCode];
+    const reversedEventCallbacks = [...eventCallbacks].reverse();
 
     // Loop over all the callbacks
-    eventCallbacks.forEach((callback) => {
+    _.every(reversedEventCallbacks, (callback) => {
         const pressedModifiers = _.all(callback.modifiers, (modifier) => {
             if (modifier === 'shift' && !event.shiftKey) {
                 return false;
@@ -50,7 +51,7 @@ function bindHandlerToKeyupEvent(event) {
             return false;
         });
         if (!pressedModifiers || pressedExtraModifiers) {
-            return;
+            return true;
         }
 
         // If configured to do so, prevent input text control to trigger this event
@@ -59,13 +60,16 @@ function bindHandlerToKeyupEvent(event) {
             || event.target.nodeName === 'TEXTAREA'
             || event.target.contentEditable === 'true'
         )) {
-            return;
+            return true;
         }
 
         if (_.isFunction(callback.callback)) {
             callback.callback(event);
         }
         event.preventDefault();
+
+        // Short circuit the loop because the event is triggered
+        return false;
     });
 }
 
