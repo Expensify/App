@@ -270,9 +270,14 @@ class BankAccountStep extends React.Component {
                                 </Text>
                                 <Text
                                     style={styles.link}
-                                    onPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY, this.props.achData)}
+                                    onPress={() => goToWithdrawalAccountSetupStep(
+                                        CONST.BANK_ACCOUNT.STEP.COMPANY,
+                                        this.props.achData,
+                                    )}
                                 >
-                                    {this.props.translate('bankAccount.error.existingOwners.setUpThisAccountByYourself')}
+                                    {this.props.translate(
+                                        'bankAccount.error.existingOwners.setUpThisAccountByYourself',
+                                    )}
                                 </Text>
                                 <Text>
                                     {this.props.translate('bankAccount.error.existingOwners.validationProcessAgain')}
