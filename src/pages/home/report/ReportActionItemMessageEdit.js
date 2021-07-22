@@ -68,9 +68,8 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     updateDraft(newDraft) {
         this.textInput.setNativeProps({text: newDraft});
-        const trimmedNewDraft = newDraft.trim();
-        this.setState({draft: trimmedNewDraft});
-        this.debouncedSaveDraft(trimmedNewDraft);
+        this.setState({draft: newDraft});
+        this.debouncedSaveDraft(newDraft);
     }
 
     /**
