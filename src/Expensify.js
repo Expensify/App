@@ -101,6 +101,9 @@ class Expensify extends PureComponent {
                 // boot screen right away
                 if (!this.getAuthToken()) {
                     this.hideSplash();
+
+                    // In case of a crash that led to disconnection, we want to remove all the push notifications.
+                    PushNotification.clearNotifications();
                 }
 
                 this.setState({isOnyxMigrated: true});

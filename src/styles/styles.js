@@ -100,6 +100,13 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
+    textXXXLarge: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeXXXLarge,
+        fontWeight: fontWeightBold,
+    },
+
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
@@ -800,8 +807,8 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.GTA,
-        height: 18,
-        lineHeight: 18,
+        height: 20,
+        lineHeight: 20,
         ...whiteSpace.noWrap,
     },
 
@@ -1191,14 +1198,12 @@ const styles = {
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
-        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
     avatarSmall: {
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
-        backgroundColor: themeColors.icon,
         borderRadius: variables.avatarSizeSmall,
     },
 
