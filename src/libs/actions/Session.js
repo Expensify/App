@@ -135,7 +135,7 @@ function fetchAccountDetails(login) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .catch(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('session.offlineMessage')});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('session.offlineMessageRetry')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});

@@ -9,14 +9,19 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import * as Pusher from '../Pusher/pusher';
+import Log from '../Log';
+import NetworkConnection from '../NetworkConnection';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
+let currentUserAccountID = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionAuthToken = lodashGet(val, 'authToken', '');
         sessionEmail = lodashGet(val, 'email', '');
+        currentUserAccountID = lodashGet(val, 'accountID', '');
     },
 });
 
@@ -236,6 +241,33 @@ function getDomainInfo() {
         });
 }
 
+/**
+ * Initialize our pusher subscription to listen for user changes
+ */
+function subscribeToUserEvents() {
+    // If we don't have the user's accountID yet we can't subscribe so return early
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+
+    // Live-update an user's preferred locale
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.PREFERRED_LOCALE, (pushJSON) => {
+        Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, pushJSON.preferredLocale);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[User] Failed to subscribe to Pusher channel',
+                true,
+                {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
+            );
+        });
+}
+
 export {
     changePassword,
     getBetas,
@@ -246,4 +278,5 @@ export {
     validateLogin,
     isBlockedFromConcierge,
     getDomainInfo,
+    subscribeToUserEvents,
 };

@@ -12,11 +12,13 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
+import Text from '../../../components/Text';
 import getPaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
 import {PayPal} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
+import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 
 const PAYPAL = 'payPalMe';
 
@@ -39,6 +41,7 @@ class PaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: false,
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
+            isLoadingPaymentMethods: true,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -47,7 +50,9 @@ class PaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        getPaymentMethods();
+        getPaymentMethods().then(() => {
+            this.setState({isLoadingPaymentMethods: false});
+        });
     }
 
     /**
@@ -103,9 +108,17 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <View style={[styles.flex1]}>
+                    <View>
+                        <CurrentWalletBalance />
+                        <Text
+                            style={[styles.ph5, styles.textStrong]}
+                        >
+                            {this.props.translate('paymentsPage.paymentMethodsTitle')}
+                        </Text>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
+                            style={[styles.flex4]}
+                            isLoadingPayments={this.state.isLoadingPaymentMethods}
                         />
                     </View>
                     <Popover
