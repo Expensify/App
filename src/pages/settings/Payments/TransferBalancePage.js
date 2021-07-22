@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {ScrollView} from 'react-native-gesture-handler';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -23,26 +24,35 @@ import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
+import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
 
 
 const propTypes = {
-    userWallet: PropTypes.any,
+    /** Route params */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** Selected Account for transferring amount */
+            account: PropTypes.string,
+        }),
+    }).isRequired,
+
+    ...userWalletPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    userWallet: {
-        linkedBankAccount: {},
-    },
+    // eslint-disable-next-line react/default-props-match-prop-types
+    userWallet: {},
 };
 
 class TransferBalancePage extends React.Component {
     constructor(props) {
         super(props);
-        console.debug(props);
         this.state = {
             selectedPaymentType: CONST.WALLET.PAYMENT_TYPE.INSTANT,
+            selectedBankAccount: props.userWallet.linkedBankAccount,
         };
+
         this.paymentTypes = [
             {
                 key: CONST.WALLET.PAYMENT_TYPE.INSTANT,
@@ -59,6 +69,16 @@ class TransferBalancePage extends React.Component {
         ];
 
         this.transferBalance = this.transferBalance.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (lodashGet(prevProps, 'route.params.account', '') !== lodashGet(this.props, 'route.params.account', '')) {
+            console.debug(lodashGet(this.props, 'route.params.account'));
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({
+                selectedBankAccount: lodashGet(this.props, 'route.params.account'),
+            });
+        }
     }
 
     /**
