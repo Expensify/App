@@ -26,6 +26,7 @@ export default {
         and: 'y',
         details: 'Detalles',
         delete: 'Eliminar',
+        deleted: 'eliminado',
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
@@ -102,6 +103,7 @@ export default {
         writeSomething: 'Escribe algo...',
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
+        roomIsArchived: 'Esta sala de chat ha sido eliminada',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
@@ -231,10 +233,14 @@ export default {
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar Cuenta de Paypal',
     },
+    paymentsPage: {
+        paymentMethodsTitle: 'Métodos de pago',
+    },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
+        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación',
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
@@ -333,6 +339,14 @@ export default {
             dob: 'Ingrese una fecha de nacimiento válida',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
+            existingOwners: {
+                unableToAddBankAccount: 'No ha sido posible añadir la cuenta bancaria',
+                alreadyInUse: 'La cuenta bancaria ya se encuentra en uso por ',
+                pleaseAskThemToShare: 'Por favor, solicita que la compartan contigo.',
+                alternatively: 'En su defecto, puedes ',
+                setUpThisAccountByYourself: 'añadir la cuenta tú mismo',
+                validationProcessAgain: ' y completar el proceso de validación de nuevo (lo cual puede tardar hasta una semana).',
+            },
         },
     },
     addPersonalBankAccountPage: {
@@ -373,7 +387,8 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
+        offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
+        offlineMessage: 'Parece que estás desconectado.',
     },
     workspace: {
         common: {

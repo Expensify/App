@@ -6,7 +6,9 @@ import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {getReportParticipantsTitle, isDefaultRoom, getDefaultRoomSubtitle} from './reportUtils';
+import {
+    getReportParticipantsTitle, isDefaultRoom, getDefaultRoomSubtitle, isArchivedRoom,
+} from './reportUtils';
 import {translate} from './translate';
 import Permissions from './Permissions';
 import md5 from './md5';
@@ -37,7 +39,7 @@ Onyx.connect({
 
 let preferredLocale;
 Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
@@ -250,6 +252,7 @@ function createOption(personalDetailList, report, draftComments, {
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isDefaultChatRoom,
+        isArchivedRoom: isArchivedRoom(report),
     };
 }
 
@@ -259,9 +262,10 @@ function createOption(personalDetailList, report, draftComments, {
  * @param {String} searchValue
  * @param {String} searchText
  * @param {Set<String>} [participantNames]
+ * @param {Boolean} isDefaultChatRoom
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText, participantNames = new Set()) {
+function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isDefaultChatRoom = false) {
     const searchWords = searchValue
         .replace(/,/g, ' ')
         .split(' ')
@@ -269,7 +273,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch) || participantNames.has(word);
+        return matchRegex.test(valueToSearch) || (!isDefaultChatRoom && participantNames.has(word));
     });
 }
 
@@ -400,9 +404,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             }
 
             // Finally check to see if this option is a match for the provided search string if we have one
-            const {searchText, participantsList} = reportOption;
+            const {searchText, participantsList, isDefaultChatRoom} = reportOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isDefaultChatRoom)) {
                 continue;
             }
 
@@ -449,9 +453,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ))) {
                 return;
             }
-            const {searchText, participantsList} = personalDetailOption;
+            const {searchText, participantsList, isDefaultChatRoom} = personalDetailOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isDefaultChatRoom)) {
                 return;
             }
             personalDetailsOptions.push(personalDetailOption);
@@ -679,7 +683,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  *
  * @param {Object} currencyOptions
  * @param {String} searchValue
- * @param {Object} selectedCurrency
  * @returns {Array}
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
@@ -744,6 +747,7 @@ function isCurrentUser(userDetails) {
 }
 
 export {
+    addSMSDomainIfPhoneNumber,
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,
