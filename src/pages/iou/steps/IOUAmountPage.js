@@ -27,18 +27,18 @@ const propTypes = {
     /** The ID of the report this screen should display */
     reportID: PropTypes.string.isRequired,
 
-    /** Callback to inform parent modal of success */ 
+    /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    /** The currency list constant object from Onyx */ 
+    /** The currency list constant object from Onyx */
     currencyList: PropTypes.objectOf(PropTypes.shape({
-        /** Symbol for the currency */ 
+        /** Symbol for the currency */
         symbol: PropTypes.string,
 
-        /** Name of the currency */ 
+        /** Name of the currency */
         name: PropTypes.string,
 
-        /** ISO4217 Code for the currency */ 
+        /** ISO4217 Code for the currency */
         ISO4217: PropTypes.string,
     })).isRequired,
 
