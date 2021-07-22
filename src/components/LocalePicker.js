@@ -10,6 +10,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import Permissions from '../libs/Permissions';
+import {translate} from '../libs/translate';
 
 const propTypes = {
     /** Indicates which locale the user currently has selected */
@@ -30,23 +31,24 @@ const defaultProps = {
     betas: [],
 };
 
+const localesToLanguages = {
+    default: {
+        value: 'en',
+        label: translate('en', 'preferencesPage.languages.english'),
+    },
+    es: {
+        value: 'es',
+        label: translate('es', 'preferencesPage.languages.spanish'),
+    },
+};
+
 const LocalePicker = ({
+    // eslint-disable-next-line no-shadow
     preferredLocale, translate, betas, size,
 }) => {
     if (!Permissions.canUseInternationalization(betas)) {
         return null;
     }
-
-    const localesToLanguages = {
-        default: {
-            value: 'en',
-            label: translate('preferencesPage.languages.english'),
-        },
-        es: {
-            value: 'es',
-            label: translate('preferencesPage.languages.spanish'),
-        },
-    };
 
     return (
         <>
