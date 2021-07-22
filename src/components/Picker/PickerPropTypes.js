@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
+import styles from '../../styles/styles';
 import {DownArrow} from '../Icon/Expensicons';
 
 const propTypes = {
@@ -50,8 +51,8 @@ const defaultProps = {
             {size === 'small'
                 ? (
                     <Icon
-                        width={12}
-                        height={12}
+                        width={styles.pickerSmall.icon.width}
+                        height={styles.pickerSmall.icon.height}
                         src={DownArrow}
                     />
                 )

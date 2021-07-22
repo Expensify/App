@@ -385,6 +385,10 @@ const styles = {
             right: 9,
             pointerEvents: 'none',
         },
+        icon: {
+            width: variables.iconSizeExtraSmall,
+            height: variables.iconSizeExtraSmall,
+        },
     },
 
     badge: {
