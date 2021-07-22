@@ -95,6 +95,8 @@ class Expensify extends PureComponent {
     }
 
     componentDidMount() {
+        // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
+        // it took for the main app itself to load.
         StartupTimer.stop();
 
         // Run any Onyx schema migrations and then continue loading the main app
