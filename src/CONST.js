@@ -197,7 +197,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     ERROR: {
-        API_OFFLINE: 'session.offlineMessage',
+        API_OFFLINE: 'session.offlineMessageRetry',
     },
     NETWORK: {
         METHOD: {

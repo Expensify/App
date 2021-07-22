@@ -233,9 +233,9 @@ function getCurrencyList() {
 }
 
 /**
- * Fetches the Currency preferences based on location and sets currency code/symbol to local storage
+ * Fetches the local currency based on location and sets currency code/symbol to local storage
  */
-function fetchCurrencyPreferences() {
+function fetchLocalCurrency() {
     const coords = {};
     let currency = '';
 
@@ -247,14 +247,9 @@ function fetchCurrencyPreferences() {
         .then((data) => {
             currency = data.currency;
         })
-        .then(API.GetCurrencyList)
         .then(getCurrencyList)
-        .then((currencyList) => {
-            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS,
-                {
-                    preferredCurrencyCode: currency,
-                    preferredCurrencySymbol: currencyList[currency].symbol,
-                });
+        .then(() => {
+            Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
         })
         .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
         .finally(() => {
@@ -302,6 +297,6 @@ export {
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
-    fetchCurrencyPreferences,
+    fetchLocalCurrency,
     getCurrencyList,
 };
