@@ -1,11 +1,9 @@
 import React, {Component} from 'react';
 import {
-    SafeAreaView, View,
+    SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import Text from '../../components/Text';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
@@ -94,17 +92,6 @@ class SignInPage extends Component {
                         {showPasswordForm && <PasswordForm />}
 
                         {showResendValidationLinkForm && <ResendValidationForm />}
-
-                        {/* Because of the custom layout of the login form, session errors are displayed differently */}
-                        {!showLoginForm && (
-                            <View>
-                                {this.props.account && !_.isEmpty(this.props.account.error) && (
-                                    <Text style={[styles.formError]}>
-                                        {this.props.account.error}
-                                    </Text>
-                                )}
-                            </View>
-                        )}
                     </SignInPageLayout>
                 </SafeAreaView>
             </>
