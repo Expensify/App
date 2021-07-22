@@ -101,32 +101,30 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             isLoadingMoreChats: false,
-            contextMenu: {
-                reportID: 0,
-                reportAction: {},
-                isPopoverVisible: false,
-                reportActionDraftMessage: '',
-                isDeleteCommentConfirmModalVisible: false,
-                cursorPosition: {
-                    horizontal: 0,
-                    vertical: 0,
-                },
-
-                // The horizontal and vertical position (relative to the screen) where the popover will display.
-                popoverAnchorPosition: {
-                    horizontal: 0,
-                    vertical: 0,
-                },
-                selection: '',
+            reportID: 0,
+            reportAction: {},
+            isPopoverVisible: false,
+            reportActionDraftMessage: '',
+            isDeleteCommentConfirmModalVisible: false,
+            cursorPosition: {
+                horizontal: 0,
+                vertical: 0,
             },
+
+            // The horizontal and vertical position (relative to the screen) where the popover will display.
+            popoverAnchorPosition: {
+                horizontal: 0,
+                vertical: 0,
+            },
+            selection: '',
         };
         this.updateSortedReportActions(props.reportActions);
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
 
         this.onPopoverHide = () => {};
-        this.popoverAnchor = undefined;
+        this.contextMenuAchor = undefined;
         this.showContextMenu = this.showContextMenu.bind(this);
-        this.hidePhideContentMenuopover = this.hideContentMenu.bind(this);
+        this.hideContentMenu = this.hideContentMenu.bind(this);
         this.measureContent = this.measureContent.bind(this);
         this.measureContextMenuAnchorPosition = this.measureContextMenuAnchorPosition.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
@@ -195,9 +193,9 @@ class ReportActionsView extends React.Component {
         }
 
         // ContextMenu props check
-        return this.state.contextMenu.isPopoverVisible !== nextState.contextMenu.isPopoverVisible
-            || this.state.contextMenu.popoverAnchorPosition !== nextState.contextMenu.popoverAnchorPosition
-            || this.state.contextMenu.isDeleteCommentConfirmModalVisible !== nextState.contextMenu.isDeleteCommentConfirmModalVisible;
+        return this.state.isPopoverVisible !== nextState.isPopoverVisible
+            || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
+            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible;
     }
 
     componentDidUpdate(prevProps) {
@@ -262,8 +260,8 @@ class ReportActionsView extends React.Component {
      */
     getMeasureLocation() {
         return new Promise((res) => {
-            if (this.popoverAnchor) {
-                this.popoverAnchor.measureInWindow((x, y) => res({x, y}));
+            if (this.contextMenuAchor) {
+                this.contextMenuAchor.measureInWindow((x, y) => res({x, y}));
             } else {
                 res({x: 0, y: 0});
             }
@@ -275,19 +273,22 @@ class ReportActionsView extends React.Component {
      *
      * @param {Object} [event] - A press event.
      * @param {string} [selection] - A copy text.
+     * @param {Element} contextMenuAnchor - popoverAnchor
+     * @param {Number} reportID - Active Report Id
+     * @param {Object} reportAction - ReportAction for ContextMenu
+     * @param {String} draftMessage - ReportAction Draftmessage
+     * @memberof ReportActionsView
      */
-    showContextMenu(event, selection, popoverAnchor, reportID, reportAction, draftMessage) {
+    showContextMenu(event, selection, contextMenuAnchor, reportID, reportAction, draftMessage) {
         const nativeEvent = event.nativeEvent || {};
-        this.popoverAnchor = popoverAnchor;
+        this.contextMenuAchor = contextMenuAnchor;
         this.capturePressLocation(nativeEvent).then(() => {
             this.setState({
-                contextMenu: {
-                    reportID,
-                    reportAction,
-                    selection,
-                    isPopoverVisible: true,
-                    reportActionDraftMessage: draftMessage,
-                },
+                reportID,
+                reportAction,
+                selection,
+                isPopoverVisible: true,
+                reportActionDraftMessage: draftMessage,
             });
         });
     }
@@ -296,16 +297,14 @@ class ReportActionsView extends React.Component {
      * This gets called on Dimensions change to find the anchor coordinates for the action context menu.
      */
     measureContextMenuAnchorPosition() {
-        if (!this.state.contextMenu.isPopoverVisible) {
+        if (!this.state.isPopoverVisible) {
             return;
         }
         this.getMeasureLocation().then(({x, y}) => {
             this.setState(prev => ({
-                contextMenu: {
-                    popoverAnchorPosition: {
-                        horizontal: prev.cursorPosition.horizontal + x,
-                        vertical: prev.cursorPosition.vertical + y,
-                    },
+                popoverAnchorPosition: {
+                    horizontal: prev.cursorPosition.horizontal + x,
+                    vertical: prev.cursorPosition.vertical + y,
                 },
             }));
         });
@@ -327,15 +326,13 @@ class ReportActionsView extends React.Component {
     capturePressLocation(nativeEvent) {
         return this.getMeasureLocation().then(({x, y}) => {
             this.setState({
-                contextMenu: {
-                    cursorPosition: {
-                        horizontal: nativeEvent.pageX - x,
-                        vertical: nativeEvent.pageY - y,
-                    },
-                    popoverAnchorPosition: {
-                        horizontal: nativeEvent.pageX,
-                        vertical: nativeEvent.pageY,
-                    },
+                cursorPosition: {
+                    horizontal: nativeEvent.pageX - x,
+                    vertical: nativeEvent.pageY - y,
+                },
+                popoverAnchorPosition: {
+                    horizontal: nativeEvent.pageX,
+                    vertical: nativeEvent.pageY,
                 },
             });
         });
@@ -350,11 +347,7 @@ class ReportActionsView extends React.Component {
         if (_.isFunction(onHideCallback)) {
             this.onPopoverHide = onHideCallback;
         }
-        this.setState({
-            contextMenu: {
-                isPopoverVisible: false,
-            },
-        });
+        this.setState({isPopoverVisible: false});
     }
 
     /**
@@ -367,9 +360,9 @@ class ReportActionsView extends React.Component {
         return (
             <ReportActionContextMenu
                 isVisible
-                selection={this.state.contextMenu.selection}
-                reportID={this.state.contextMenu.reportID}
-                reportAction={this.state.contextMenu.reportAction}
+                selection={this.state.selection}
+                reportID={this.state.reportID}
+                reportAction={this.state.reportAction}
                 hidePopover={this.hideContentMenu}
                 showDeleteConfirmModal={this.showDeleteConfirmModal}
             />
@@ -377,20 +370,12 @@ class ReportActionsView extends React.Component {
     }
 
     confirmDeleteAndHideModal() {
-        deleteReportComment(this.state.contextMenu.reportID, this.state.contextMenu.reportAction);
-        this.setState({
-            contextMenu: {
-                isDeleteCommentConfirmModalVisible: false,
-            },
-        });
+        deleteReportComment(this.state.reportID, this.state.reportAction);
+        this.setState({isDeleteCommentConfirmModalVisible: false});
     }
 
     hideDeleteConfirmModal() {
-        this.setState({
-            contextMenu: {
-                isDeleteCommentConfirmModalVisible: false,
-            },
-        });
+        this.setState({isDeleteCommentConfirmModalVisible: false});
     }
 
     /**
@@ -399,11 +384,7 @@ class ReportActionsView extends React.Component {
      * @memberof ReportActionItem
      */
     showDeleteConfirmModal() {
-        this.setState({
-            contextMenu: {
-                isDeleteCommentConfirmModalVisible: true,
-            },
-        });
+        this.setState({isDeleteCommentConfirmModalVisible: true});
     }
 
 
@@ -613,28 +594,28 @@ class ReportActionsView extends React.Component {
                     onLayout={this.recordTimeToMeasureItemLayout}
                 />
                 <PopoverWithMeasuredContent
-                    isVisible={this.state.contextMenu.isPopoverVisible}
-                    onClose={this.hideContentMenu}
-                    onModalHide={this.contextMenuHidden}
-                    anchorPosition={this.state.contextMenu.popoverAnchorPosition}
-                    animationIn="fadeIn"
-                    animationOutTiming={1}
-                    measureContent={this.measureContent}
-                    shouldSetModalVisibility={false}
-                    fullscreen={false}
+                        isVisible={this.state.isPopoverVisible}
+                        onClose={this.hideContentMenu}
+                        onModalHide={this.contextMenuHidden}
+                        anchorPosition={this.state.popoverAnchorPosition}
+                        animationIn="fadeIn"
+                        animationOutTiming={1}
+                        measureContent={this.measureContent}
+                        shouldSetModalVisibility={false}
+                        fullscreen={false}
                 >
                     <ReportActionContextMenu
                         isVisible
-                        reportID={this.state.contextMenu.reportID}
-                        reportAction={this.state.contextMenu.reportAction}
-                        draftMessage={this.state.contextMenu.reportActionDraftMessage}
+                        reportID={this.state.reportID}
+                        reportAction={this.state.reportAction}
+                        draftMessage={this.state.reportActionDraftMessage}
                         hidePopover={this.hideContentMenu}
                         showDeleteConfirmModal={this.showDeleteConfirmModal}
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal
                     title={this.props.translate('reportActionContextMenu.deleteComment')}
-                    isVisible={this.state.contextMenu.isDeleteCommentConfirmModalVisible}
+                    isVisible={this.state.isDeleteCommentConfirmModalVisible}
                     onConfirm={this.confirmDeleteAndHideModal}
                     onCancel={this.hideDeleteConfirmModal}
                     prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
