@@ -12,12 +12,12 @@ import Text from '../../components/Text';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
-import {setLocale} from '../../libs/actions/App';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import ExpensiPicker from '../../components/ExpensiPicker';
+import {setLocale} from '../../libs/actions/App';
 
 const propTypes = {
     /** The chat priority mode */
@@ -139,7 +139,7 @@ export default compose(
             key: ONYXKEYS.USER,
         },
         preferredLocale: {
-            key: ONYXKEYS.PREFERRED_LOCALE,
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     }),
 )(PreferencesPage);

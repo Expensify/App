@@ -50,7 +50,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import {canEditReportAction} from '../../../libs/reportUtils';
+import {canEditReportAction, isArchivedRoom} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
@@ -147,6 +147,7 @@ class ReportActionCompose extends React.Component {
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
         this.setTextInputRef = this.setTextInputRef.bind(this);
+        this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -231,6 +232,26 @@ class ReportActionCompose extends React.Component {
     setTextInputRef(el) {
         ReportActionComposeFocusManager.composerRef.current = el;
         this.textInput = el;
+    }
+
+    /**
+     * Get the placeholder to display in the chat input.
+     *
+     * @return {String}
+     */
+    getInputPlaceholder() {
+        if (isArchivedRoom(this.props.report)) {
+            return this.props.translate('reportActionCompose.roomIsArchived');
+        }
+
+        if (this.props.report.participants
+            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE)
+            && !_.isEmpty(this.props.blockedFromConcierge)
+            && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt)) {
+            return this.props.translate('reportActionCompose.blockedFromConcierge');
+        }
+
+        return this.props.translate('reportActionCompose.writeSomething');
     }
 
     /**
@@ -421,10 +442,8 @@ class ReportActionCompose extends React.Component {
         if (isConciergeChat && !_.isEmpty(this.props.blockedFromConcierge)) {
             isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
         }
-
-        const inputPlaceholder = isBlockedFromConcierge
-            ? this.props.translate('reportActionCompose.blockedFromConcierge')
-            : this.props.translate('reportActionCompose.writeSomething');
+        const inputPlaceholder = this.getInputPlaceholder();
+        const isArchivedChatRoom = isArchivedRoom(this.props.report);
 
         return (
             <View style={[
@@ -462,7 +481,7 @@ class ReportActionCompose extends React.Component {
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
-                                                disabled={isBlockedFromConcierge}
+                                                disabled={isBlockedFromConcierge || isArchivedChatRoom}
                                             >
                                                 <Icon src={Plus} />
                                             </TouchableOpacity>
@@ -555,7 +574,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={isComposeDisabled || isBlockedFromConcierge}
+                                    isDisabled={isComposeDisabled || isBlockedFromConcierge || isArchivedChatRoom}
                                     selection={this.state.selection}
                                     onSelectionChange={this.onSelectionChange}
                                 />
@@ -594,7 +613,7 @@ class ReportActionCompose extends React.Component {
                         ref={el => this.emojiPopoverAnchor = el}
                         onLayout={this.measureEmojiPopoverAnchorPosition}
                         onPress={this.showEmojiPicker}
-                        disabled={isBlockedFromConcierge}
+                        disabled={isBlockedFromConcierge || isArchivedChatRoom}
                     >
                         {({hovered, pressed}) => (
                             <Icon
@@ -609,7 +628,7 @@ class ReportActionCompose extends React.Component {
                                 ? styles.buttonDisable : styles.buttonSuccess]}
                         onPress={this.submitForm}
                         underlayColor={themeColors.componentBG}
-                        disabled={this.state.isCommentEmpty || isBlockedFromConcierge}
+                        disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
                     >
                         <Icon src={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>

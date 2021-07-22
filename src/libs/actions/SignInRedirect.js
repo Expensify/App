@@ -28,6 +28,7 @@ Onyx.connect({
 function redirectToSignIn(errorMessage) {
     UnreadIndicatorUpdater.stopListeningForReportChanges();
     PushNotification.deregister();
+    PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
 
