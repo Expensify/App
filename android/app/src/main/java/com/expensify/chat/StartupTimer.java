@@ -1,4 +1,6 @@
 package com.expensify.chat;
+import android.util.Log;
+
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -27,7 +29,11 @@ public class StartupTimer extends ReactContextBaseJavaModule {
     }
 
     public static void start() {
-        trace = FirebasePerformance.getInstance().newTrace("js_loaded");
-        trace.start();
+        if (BuildConfig.DEBUG) {
+            Log.d("StartupTimer", "Metric tracing disabled in DEBUG");
+        } else {
+            trace = FirebasePerformance.getInstance().newTrace("js_loaded");
+            trace.start();
+        }
     }
 }
