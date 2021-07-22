@@ -76,7 +76,7 @@ class NewPasswordForm extends React.Component {
         return Boolean(
             !this.doPasswordsMatch()
             && this.state.shouldShowPasswordConfirmError
-            && this.state.confirmNewPassword
+            && this.state.confirmNewPassword,
         );
     }
 
