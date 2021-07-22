@@ -288,7 +288,7 @@ class IOUConfirmationList extends Component {
                         success
                         isDisabled={this.props.network.isOffline}
                         style={[styles.w100]}
-                        isLoading={this.props.iou.loading}
+                        isLoading={this.props.iou.loading && !this.props.network.isOffline}
                         text={buttonText}
                         onPress={() => this.props.onConfirm(this.getSplits())}
                         pressOnEnter
