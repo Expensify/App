@@ -234,6 +234,9 @@ dependencies {
         implementation jscFlavor
     }
 
+    implementation platform("com.google.firebase:firebase-bom:20.0.2")
+    implementation "com.google.firebase:firebase-perf"
+
     // GIF support
     implementation 'com.facebook.fresco:fresco:2.3.0'
     implementation 'com.facebook.fresco:animated-gif:2.3.0'
