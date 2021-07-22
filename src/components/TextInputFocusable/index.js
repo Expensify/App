@@ -115,11 +115,6 @@ class TextInputFocusable extends React.Component {
                 end: initialValue.length,
             },
         };
-        this.selection = {
-            start: initialValue.length,
-            end: initialValue.length,
-        };
-        this.saveSelection = this.saveSelection.bind(this);
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
@@ -233,17 +228,6 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
-     * Keeps track of user cursor position on the Composer
-     *
-     * @param {{nativeEvent: {selection: any}}} event
-     * @memberof TextInputFocusable
-     */
-    saveSelection(event) {
-        this.selection = event.nativeEvent.selection;
-        this.props.onSelectionChange(event);
-    }
-
-    /**
      * Manually place the pasted HTML into Composer
      *
      * @param {String} html - pasted HTML
@@ -252,13 +236,11 @@ class TextInputFocusable extends React.Component {
     handlePastedHTML(html) {
         const parser = new ExpensiMark();
         const markdownText = parser.htmlToMarkdown(html);
-        const beforeCursorText = this.textInput.value.substring(0, this.selection.start);
-        const afterCursorText = this.textInput.value.substring(this.selection.end);
-        this.textInput.value = beforeCursorText + markdownText + afterCursorText;
-        const newCursorPosition = beforeCursorText.length + markdownText.length;
-        this.setState({selection: {start: newCursorPosition, end: newCursorPosition}});
-        this.updateNumberOfLines();
-        this.props.onChangeText(this.textInput.value);
+        try {
+            document.execCommand('insertText', false, markdownText);
+            this.updateNumberOfLines();
+        // eslint-disable-next-line no-empty
+        } catch (e) {}
     }
 
     /**
@@ -353,7 +335,7 @@ class TextInputFocusable extends React.Component {
                 onChange={() => {
                     this.updateNumberOfLines();
                 }}
-                onSelectionChange={this.saveSelection}
+                onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */

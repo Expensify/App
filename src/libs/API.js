@@ -540,6 +540,19 @@ function PersonalDetails_Update(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Object} parameters.name
+ * @param {Object} parameters.value
+ * @returns {Promise}
+ */
+function PreferredLocale_Update(parameters) {
+    const commandName = 'PreferredLocale_Update';
+    requireParameters(['name', 'value'],
+        parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.socket_id
  * @param {String} parameters.channel_name
  * @returns {Promise}
@@ -961,8 +974,8 @@ function Mobile_GetConstants(parameters) {
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
  */
-function GetPreferredCurrency(parameters) {
-    const commandName = 'GetPreferredCurrency';
+function GetLocalCurrency(parameters) {
+    const commandName = 'GetLocalCurrency';
     return Network.post(commandName, parameters);
 }
 
@@ -1095,8 +1108,9 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
-    GetPreferredCurrency,
+    GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,
     Policy_Employees_Remove,
+    PreferredLocale_Update,
 };

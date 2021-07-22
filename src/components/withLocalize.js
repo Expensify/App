@@ -78,7 +78,7 @@ function withLocalizeHOC(WrappedComponent) {
 export default compose(
     withOnyx({
         preferredLocale: {
-            key: ONYXKEYS.PREFERRED_LOCALE,
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     }),
     withLocalizeHOC,
