@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
@@ -20,24 +21,24 @@ import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 
 const propTypes = {
-    // Whether or not this IOU has multiple participants
+    /** Whether or not this IOU has multiple participants */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    /* The ID of the report this screen should display */
+    /** The ID of the report this screen should display */
     reportID: PropTypes.string.isRequired,
 
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */ 
     onStepComplete: PropTypes.func.isRequired,
 
-    // The currency list constant object from Onyx
+    /** The currency list constant object from Onyx */ 
     currencyList: PropTypes.objectOf(PropTypes.shape({
-        // Symbol for the currency
+        /** Symbol for the currency */ 
         symbol: PropTypes.string,
 
-        // Name of the currency
+        /** Name of the currency */ 
         name: PropTypes.string,
 
-        // ISO4217 Code for the currency
+        /** ISO4217 Code for the currency */ 
         ISO4217: PropTypes.string,
     })).isRequired,
 
@@ -55,7 +56,7 @@ const propTypes = {
         /** Whether or not the IOU step is loading (retrieving users preferred currency) */
         loading: PropTypes.bool,
 
-        // Selected Currency Code of the current IOU
+        /** Selected Currency Code of the current IOU */
         selectedCurrencyCode: PropTypes.string,
     }),
 
@@ -152,7 +153,7 @@ class IOUAmountPage extends React.Component {
                         : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
                         <Text style={styles.iouAmountText}>
-                            {this.props.currencyList[this.props.iou.selectedCurrencyCode].symbol}
+                            {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
                         </Text>
                     </TouchableOpacity>
                     {this.props.isSmallScreenWidth
