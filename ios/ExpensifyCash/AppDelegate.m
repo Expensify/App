@@ -5,6 +5,7 @@
 #import <React/RCTLinkingManager.h>
 #import <React/RCTRootView.h>
 #import <Firebase.h>
+#import "RCTStartupTimer.h"
 
 #import "RNBootSplash.h"
 
@@ -73,7 +74,7 @@ static void InitializeFlipper(UIApplication *application) {
   center.delegate = self;
 
   [RNBootSplash initWithStoryboard:@"BootSplash" rootView:rootView]; // <- initialization using the storyboard file name
-
+  [RCTStartupTimer start];
   return YES;
 }
 

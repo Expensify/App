@@ -20,6 +20,7 @@ import GrowlNotification from './components/GrowlNotification';
 import {growlRef} from './libs/Growl';
 import Navigation from './libs/Navigation/Navigation';
 import ROUTES from './ROUTES';
+import StartupTrace from './libs/StartupTrace';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -94,6 +95,8 @@ class Expensify extends PureComponent {
     }
 
     componentDidMount() {
+        StartupTrace.stop();
+
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx()
             .then(() => {
