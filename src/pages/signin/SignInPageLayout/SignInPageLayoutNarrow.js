@@ -20,6 +20,7 @@ const propTypes = {
 
 const SignInPageLayoutNarrow = props => (
     <ScrollView
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         style={[
             styles.flexGrow1,
