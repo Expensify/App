@@ -1,4 +1,5 @@
 apply plugin: "com.android.application"
+apply plugin: "com.google.firebase.firebase-perf"
 apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
