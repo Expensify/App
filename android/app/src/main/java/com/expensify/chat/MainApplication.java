@@ -42,6 +42,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
           packages.add(new PlaidPackage());
+          packages.add(new ExpensifyAppPackage());
 
           // Add unimodules
           List<ReactPackage> unimodules = Arrays.<ReactPackage>asList(
@@ -75,6 +76,9 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
       if (BuildConfig.DEBUG) {
           FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
       }
+
+      // Start the startup timer
+      StartupTimer.start();
 
       // Increase SQLite DB write size
       try {
