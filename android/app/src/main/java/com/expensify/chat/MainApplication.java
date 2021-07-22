@@ -77,7 +77,9 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
           FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
       }
 
-      // Start the startup timer
+      // Start the "js_load" custom performance tracing metric. This timer is stopped by a native
+      // module in the JS so we can measure total time starting in the native layer and ending in
+      // the JS layer.
       StartupTimer.start();
 
       // Increase SQLite DB write size
