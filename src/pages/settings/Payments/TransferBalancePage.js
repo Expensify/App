@@ -22,6 +22,7 @@ import variables from '../../../styles/variables';
 import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
+import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 
 
 const propTypes = {
@@ -75,7 +76,10 @@ class TransferBalancePage extends React.Component {
                         title="Transfer Balance"
                         onCloseButtonPress={() => Navigation.goBack()}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <View style={[styles.flex1, styles.flexBasisAuto, styles.justifyContentCenter]}>
+                        <CurrentWalletBalance />
+                    </View>
+                    <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.p5}>
                         {_.map(this.paymentTypes, type => (
                             <MenuItem
                                 key={type.key}
@@ -89,7 +93,8 @@ class TransferBalancePage extends React.Component {
                                     ...styles.mt3,
                                     ...styles.pv4,
                                     ...styles.transferBalancePayment,
-                                    ...(this.state.selectedPaymentType === type.key && styles.transferBalanceSelectedPayment),
+                                    ...(this.state.selectedPaymentType === type.key
+                                        && styles.transferBalanceSelectedPayment),
                                 }}
                                 // eslint-disable-next-line react/no-unused-state
                                 onPress={() => this.setState({selectedPaymentType: type.key})}
@@ -127,7 +132,6 @@ class TransferBalancePage extends React.Component {
                     <FixedFooter style={[styles.flexGrow0]}>
                         <Button
                             success
-                            style={[styles.mb2]}
                             text={this.props.translate('addSecondaryLoginPage.sendValidation')}
                         />
                     </FixedFooter>
