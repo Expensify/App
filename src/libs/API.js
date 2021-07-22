@@ -1054,6 +1054,14 @@ function UpdatePolicy(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @returns {Promise}
+ */
+function TransferWalletBalance() {
+    const commandName = 'TransferWalletBalance';
+    return Network.post(commandName);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1113,4 +1121,5 @@ export {
     Policy_Create,
     Policy_Employees_Remove,
     PreferredLocale_Update,
+    TransferWalletBalance,
 };

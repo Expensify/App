@@ -236,6 +236,17 @@ export default {
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
     },
+    transferAmountPage: {
+        transfer: ({amount}) => `Transferir${amount ? (` ${amount}`) : ''}`,
+        transferBalance: 'Transferencia de saldo',
+        instant: 'Instante',
+        instantSummary: 'Tarifa del 1.5% ($ 0.25 mínimo)',
+        ach: '1-3 días laborales',
+        achSummary: 'Sin cargo',
+        whichAccount: '¿Que cuenta?',
+        fee: 'Tarifa',
+        failedTransfer: 'No se pudo transferir el saldo',
+    },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',
         accountLastFour: 'Cuenta con terminación',

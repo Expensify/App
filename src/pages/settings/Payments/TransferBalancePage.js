@@ -25,6 +25,7 @@ import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
+import {transferWalletBalance} from '../../../libs/actions/PaymentMethods';
 
 
 const propTypes = {
@@ -44,6 +45,7 @@ const defaultProps = {
     // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
 };
+const Fee = 0.30;
 
 class TransferBalancePage extends React.Component {
     constructor(props) {
@@ -51,19 +53,22 @@ class TransferBalancePage extends React.Component {
         this.state = {
             selectedPaymentType: CONST.WALLET.PAYMENT_TYPE.INSTANT,
             selectedBankAccount: props.userWallet.linkedBankAccount,
+
+            // Show loader while tranfer is in-transit
+            loading: false,
         };
 
         this.paymentTypes = [
             {
                 key: CONST.WALLET.PAYMENT_TYPE.INSTANT,
-                title: 'Instant',
-                description: '1.5% fee ($0.25 minimum)',
+                title: this.props.translate('transferAmountPage.instant'),
+                description: this.props.translate('transferAmountPage.instantSummary'),
                 icon: Bolt,
             },
             {
-                key: CONST.WALLET.PAYMENT_TYPE.BANK,
-                title: '1-3 Business Days',
-                description: 'No fee',
+                key: CONST.WALLET.PAYMENT_TYPE.ACH,
+                title: this.props.translate('transferAmountPage.ach'),
+                description: this.props.translate('transferAmountPage.achSummary'),
                 icon: Bank,
             },
         ];
@@ -86,18 +91,22 @@ class TransferBalancePage extends React.Component {
      *
      */
     transferBalance() {
+        this.setState({loading: true});
+        transferWalletBalance().then(() => this.setState({loading: false}));
     }
 
     render() {
+        const transferAmount = (this.props.userWallet.availableBalance - Fee).toFixed(2);
+        const canTransfer = transferAmount > Fee;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title="Transfer Balance"
+                        title={this.props.translate('transferAmountPage.transferBalance')}
                         onCloseButtonPress={() => Navigation.goBack()}
                     />
                     <View style={[styles.flex1, styles.flexBasisAuto, styles.justifyContentCenter]}>
-                        <CurrentWalletBalance />
+                        <CurrentWalletBalance balanceStyles={[styles.text7XLarge]} />
                     </View>
                     <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.p5}>
                         {_.map(this.paymentTypes, type => (
@@ -123,7 +132,7 @@ class TransferBalancePage extends React.Component {
                         <Text
                             style={[styles.pv5, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
                         >
-                            Which Account?
+                            {this.props.translate('transferAmountPage.whichAccount')}
                         </Text>
                         <MenuItem
                             title="asdsdsd"
@@ -141,18 +150,25 @@ class TransferBalancePage extends React.Component {
                         <Text
                             style={[styles.mt5, styles.mb3, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
                         >
-                            Fee
+                            {this.props.translate('transferAmountPage.fee')}
                         </Text>
                         <Text
                             style={[styles.textLabel, styles.justifyContentStart]}
                         >
-                            $0.30
+                            {`$${Fee.toFixed(2)}`}
                         </Text>
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
                         <Button
                             success
-                            text={this.props.translate('addSecondaryLoginPage.sendValidation')}
+                            pressOnEnter
+                            isLoading={this.state.loading}
+                            isDisabled={!canTransfer}
+                            onPress={this.transferBalance}
+                            text={this.props.translate(
+                                'transferAmountPage.transfer',
+                                {amount: canTransfer ? `$${transferAmount}` : ''},
+                            )}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>

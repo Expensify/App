@@ -245,6 +245,17 @@ export default {
     paymentsPage: {
         paymentMethodsTitle: 'Payment Methods',
     },
+    transferAmountPage: {
+        transfer: ({amount}) => `Transfer${amount ? (` ${amount}`) : ''}`,
+        transferBalance: 'Transfer Balance',
+        instant: 'Instant',
+        instantSummary: '1.5% fee ($0.25 minimum)',
+        ach: '1-3 Business Days',
+        achSummary: 'No fee',
+        whichAccount: 'Which Account?',
+        fee: 'Fee',
+        failedTransfer: 'Failed to transfer balance',
+    },
     paymentMethodList: {
         addPaymentMethod: 'Add Payment Method',
         accountLastFour: 'Account ending in',
