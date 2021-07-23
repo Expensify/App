@@ -1405,6 +1405,7 @@ const styles = {
     settingsPageBody: {
         width: '100%',
         justifyContent: 'space-around',
+        alignItems: 'center',
     },
 
     settingsPageColumn: {
