@@ -540,6 +540,19 @@ function PersonalDetails_Update(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Object} parameters.name
+ * @param {Object} parameters.value
+ * @returns {Promise}
+ */
+function PreferredLocale_Update(parameters) {
+    const commandName = 'PreferredLocale_Update';
+    requireParameters(['name', 'value'],
+        parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.socket_id
  * @param {String} parameters.channel_name
  * @returns {Promise}
@@ -1099,4 +1112,5 @@ export {
     GetCurrencyList,
     Policy_Create,
     Policy_Employees_Remove,
+    PreferredLocale_Update,
 };

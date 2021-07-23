@@ -145,15 +145,19 @@ class AuthScreens extends React.Component {
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
-        }).then(subscribeToUserEvents);
+        }).then(() => {
+            subscribeToUserEvents();
+            User.subscribeToUserEvents();
+        });
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
+        NameValuePair.get(CONST.NVP.PREFERRED_LOCALE, ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
         User.getDomainInfo();
-        PersonalDetails.fetchCurrencyPreferences();
+        PersonalDetails.fetchLocalCurrency();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
