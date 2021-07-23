@@ -11,15 +11,15 @@ import NetworkConnection from './NetworkConnection';
  * @param {Object} params
  * @param {Object} params.parameters
  * @param {String} params.message
+ * @return {Promise}
  */
 function serverLoggingCallback(params) {
-    const requestParams = {
-        message: params.message,
-        parameters: JSON.stringify(params.parameters || {}),
-        expensifyCashAppVersion: `expensifyCash[${getPlatform()}]${version}`,
-    };
-
-    API.Log(requestParams);
+    const requestParams = params;
+    requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${version}`;
+    if (requestParams.parameters) {
+        requestParams.parameters = JSON.stringify(params.parameters);
+    }
+    return API.Log(requestParams);
 }
 
 // Note: We are importing Logger from expensify-common because it is

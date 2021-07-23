@@ -42,7 +42,7 @@ Onyx.init({
 });
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
-        Log.alert(message, 0, {}, false);
+        Log.alert(message, {}, false);
     } else {
         Log.client(message);
     }

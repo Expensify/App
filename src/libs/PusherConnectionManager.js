@@ -7,7 +7,7 @@ import Log from './Log';
 // reconnect each time when we only need to reconnect once. This way, if an authToken is expired and we try to
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
 const reauthenticate = _.throttle(() => {
-    Log.info('[Pusher] Re-authenticating and then reconnecting', true);
+    Log.info('[Pusher] Re-authenticating and then reconnecting');
     API.reauthenticate('Push_Authenticate')
         .then(() => Pusher.reconnect())
         .catch(() => {
@@ -27,7 +27,7 @@ function init() {
      */
     Pusher.registerCustomAuthorizer(channel => ({
         authorize: (socketID, callback) => {
-            Log.info('[PusherConnectionManager] Attempting to authorize Pusher', true);
+            Log.info('[PusherConnectionManager] Attempting to authorize Pusher', false, {channelName: channel.name});
 
             API.Push_Authenticate({
                 socket_id: socketID,
@@ -44,11 +44,11 @@ function init() {
                         return;
                     }
 
-                    Log.info('[PusherConnectionManager] Pusher authenticated successfully', true);
+                    Log.info('[PusherConnectionManager] Pusher authenticated successfully', false, {channelName: channel.name});
                     callback(null, data);
                 })
                 .catch((error) => {
-                    Log.info('[PusherConnectionManager] Unhandled error: ', error);
+                    Log.info('[PusherConnectionManager] Unhandled error: ', false, {channelName: channel.name});
                     callback(error, {auth: ''});
                 });
         },
@@ -63,14 +63,14 @@ function init() {
     Pusher.registerSocketEventCallback((eventName, data) => {
         switch (eventName) {
             case 'error':
-                Log.info('[PusherConnectionManager] error event', true, {error: data});
+                Log.info('[PusherConnectionManager] error event', false, {error: data});
                 reauthenticate();
                 break;
             case 'connected':
-                Log.info('[PusherConnectionManager] connected event', true);
+                Log.info('[PusherConnectionManager] connected event');
                 break;
             case 'disconnected':
-                Log.info('[PusherConnectionManager] disconnected event', true);
+                Log.info('[PusherConnectionManager] disconnected event');
                 break;
             default:
                 break;

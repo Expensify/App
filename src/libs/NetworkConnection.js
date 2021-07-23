@@ -49,7 +49,7 @@ function setOfflineStatus(isCurrentlyOffline) {
  * `disconnected` event which takes about 10-15 seconds to emit.
  */
 function listenForReconnect() {
-    logInfo('[NetworkConnection] listenForReconnect called', true);
+    logInfo('[NetworkConnection] listenForReconnect called');
 
     unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
         triggerReconnectionCallbacks('app became active');
