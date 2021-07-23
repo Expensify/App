@@ -120,6 +120,7 @@ class ReportActionsView extends React.Component {
         };
         this.updateSortedReportActions(props.reportActions);
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
+        this.keyExtractor = this.keyExtractor.bind(this);
 
         this.onPopoverHide = () => {};
         this.contextMenuAchor = undefined;
@@ -131,6 +132,7 @@ class ReportActionsView extends React.Component {
         this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.showDeleteConfirmModal = this.showDeleteConfirmModal.bind(this);
         this.contextMenuHidden = this.contextMenuHidden.bind(this);
+        this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
     }
 
     componentDidMount() {
@@ -258,7 +260,7 @@ class ReportActionsView extends React.Component {
      * @returns {Promise<Object>}
      * @memberof ReportActionItem
      */
-    getMeasureLocation() {
+    getContextMenuMeasuredLocation() {
         return new Promise((res) => {
             if (this.contextMenuAchor) {
                 this.contextMenuAchor.measureInWindow((x, y) => res({x, y}));
@@ -267,26 +269,6 @@ class ReportActionsView extends React.Component {
             }
         });
     }
-
-    /**
-     * Save the location of a native press event & set the Initial Context menu anchor coordinates
-     *
-     * @param {Object} nativeEvent
-     * @returns {Promise}
-     */
-    getPressLocation(nativeEvent) {
-        return this.getMeasureLocation().then(({x, y}) => ({
-            cursorPosition: {
-                horizontal: nativeEvent.pageX - x,
-                vertical: nativeEvent.pageY - y,
-            },
-            popoverAnchorPosition: {
-                horizontal: nativeEvent.pageX,
-                vertical: nativeEvent.pageY,
-            },
-        }));
-    }
-
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -302,10 +284,16 @@ class ReportActionsView extends React.Component {
     showContextMenu(event, selection, contextMenuAnchor, reportID, reportAction, draftMessage) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAchor = contextMenuAnchor;
-        this.getPressLocation(nativeEvent).then(({cursorPosition, popoverAnchorPosition}) => {
+        this.getContextMenuMeasuredLocation().then(({x, y}) => {
             this.setState({
-                cursorPosition,
-                popoverAnchorPosition,
+                cursorPosition: {
+                    horizontal: nativeEvent.pageX - x,
+                    vertical: nativeEvent.pageY - y,
+                },
+                popoverAnchorPosition: {
+                    horizontal: nativeEvent.pageX,
+                    vertical: nativeEvent.pageY,
+                },
                 reportID,
                 reportAction,
                 selection,
@@ -322,7 +310,7 @@ class ReportActionsView extends React.Component {
         if (!this.state.isPopoverVisible) {
             return;
         }
-        this.getMeasureLocation().then(({x, y}) => {
+        this.getContextMenuMeasuredLocation().then(({x, y}) => {
             this.setState(prev => ({
                 popoverAnchorPosition: {
                     horizontal: prev.cursorPosition.horizontal + x,
@@ -348,6 +336,10 @@ class ReportActionsView extends React.Component {
             this.onPopoverHide = onHideCallback;
         }
         this.setState({isPopoverVisible: false});
+    }
+
+    keyExtractor(item) {
+        return `${item.action.sequenceNumber}${item.action.clientID}`;
     }
 
     /**
@@ -380,11 +372,12 @@ class ReportActionsView extends React.Component {
 
     /**
      * Opens the Confirm delete action modal
-     *
-     * @memberof ReportActionItem
+     * @param {Number} reportID
+     * @param {Object} reportAction
+     * @memberof ReportActionsView
      */
-    showDeleteConfirmModal() {
-        this.setState({isDeleteCommentConfirmModalVisible: true});
+    showDeleteConfirmModal(reportID, reportAction) {
+        this.setState({reportID, reportAction, isDeleteCommentConfirmModalVisible: true});
     }
 
 
@@ -579,12 +572,12 @@ class ReportActionsView extends React.Component {
                     data={this.sortedReportActions}
                     renderItem={this.renderItem}
                     CellRendererComponent={this.renderCell}
-                    contentContainerStyle={[styles.chatContentScrollView]}
+                    contentContainerStyle={styles.chatContentScrollView}
 
                     // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
                     // shouldn't happen, but might be possible in some rare cases.
                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    keyExtractor={item => `${item.action.sequenceNumber}${item.action.clientID}`}
+                    keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     onEndReached={this.loadMoreChats}
                     onEndReachedThreshold={0.75}

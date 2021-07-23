@@ -31,7 +31,7 @@ const propTypes = {
 
 const defaultProps = MiniReportActionContextMenuDefaultProps;
 
-class ReportActionContextMenu extends React.PureComponent {
+class ReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
 
@@ -97,13 +97,8 @@ class ReportActionContextMenu extends React.PureComponent {
                         _.isEmpty(this.props.draftMessage) ? this.getActionText() : '',
                     );
 
-                    if (this.props.isMini) {
-                        // No popover to hide, call editAction immediately
-                        editAction();
-                    } else {
-                        // Hide popover, then call editAction
-                        this.hidePopover(false, editAction);
-                    }
+                    // Hide popover, then call editAction
+                    this.hidePopover(false, editAction);
                 },
             },
             {
@@ -111,13 +106,11 @@ class ReportActionContextMenu extends React.PureComponent {
                 icon: Trashcan,
                 shouldShow: () => canDeleteReportAction(this.props.reportAction),
                 onPress: () => {
-                    if (this.props.isMini) {
-                        // No popover to hide, call showDeleteConfirmModal immediately
-                        this.props.showDeleteConfirmModal();
-                    } else {
-                        // Hide popover, then call showDeleteConfirmModal
-                        this.hidePopover(false, this.props.showDeleteConfirmModal);
-                    }
+                    // Hide popover, then call showDeleteConfirmModal
+                    this.hidePopover(
+                        false,
+                        () => this.props.showDeleteConfirmModal(this.props.reportID, this.props.reportAction),
+                    );
                 },
             },
         ];
