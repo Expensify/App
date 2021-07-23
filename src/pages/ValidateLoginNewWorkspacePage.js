@@ -7,7 +7,7 @@ import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import {continueSessionFromECom} from '../libs/actions/Session';
+import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
 
 const propTypes = {
     /* Onyx Props */
@@ -20,6 +20,9 @@ const propTypes = {
 
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
+
+    /** List of betas */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -27,6 +30,7 @@ const defaultProps = {
         params: {},
     },
     session: {},
+    betas: null,
 };
 class ValidateLoginNewWorkspacePage extends Component {
     componentDidMount() {
@@ -39,7 +43,11 @@ class ValidateLoginNewWorkspacePage extends Component {
             // by calling dismissModal(), the /v/... route is removed from history so the user will get taken to `/`
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
-            Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            if (this.props.betas) {
+                Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            } else {
+                setRedirectToWorkspaceNewAfterSignIn(true);
+            }
             return;
         }
 
@@ -62,6 +70,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ValidateLoginNewWorkspacePage);
