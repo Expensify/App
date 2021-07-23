@@ -47,10 +47,13 @@ const propTypes = {
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
-    /* Onyx Props */
+    /** Function to show the Context Menu */
     showContextMenu: PropTypes.func.isRequired,
-    hideContextMenu: PropTypes.func.isRequired,
+
+    /** Function to show the delete Action confirmation modal */
     showDeleteConfirmModal: PropTypes.func.isRequired,
+
+    /** Whether the contextMenu is action for this action */
     isContextMenuActive: PropTypes.bool,
 
     /** Draft message - if this is set the comment is in 'edit' mode */
@@ -167,7 +170,6 @@ class ReportActionItem extends Component {
                                         && !this.props.draftMessage
                                     }
                                     draftMessage={this.props.draftMessage}
-                                    hidePopover={this.props.hideContextMenu}
                                     showDeleteConfirmModal={this.props.showDeleteConfirmModal}
                                 />
                             </View>

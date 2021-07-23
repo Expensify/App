@@ -125,7 +125,7 @@ class ReportActionsView extends React.Component {
         this.onPopoverHide = () => {};
         this.contextMenuAchor = undefined;
         this.showContextMenu = this.showContextMenu.bind(this);
-        this.hideContentMenu = this.hideContentMenu.bind(this);
+        this.hideContextMenu = this.hideContextMenu.bind(this);
         this.measureContent = this.measureContent.bind(this);
         this.measureContextMenuAnchorPosition = this.measureContextMenuAnchorPosition.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
@@ -331,7 +331,7 @@ class ReportActionsView extends React.Component {
      * Hide the ReportActionContextMenu modal popover.
      * @param {Function} onHideCallback Callback to be called after popover is completely hidden
      */
-    hideContentMenu(onHideCallback) {
+    hideContextMenu(onHideCallback) {
         if (_.isFunction(onHideCallback)) {
             this.onPopoverHide = onHideCallback;
         }
@@ -355,7 +355,7 @@ class ReportActionsView extends React.Component {
                 selection={this.state.selection}
                 reportID={this.state.reportID}
                 reportAction={this.state.reportAction}
-                hidePopover={this.hideContentMenu}
+                hidePopover={this.hideContextMenu}
                 showDeleteConfirmModal={this.showDeleteConfirmModal}
             />
         );
@@ -541,7 +541,7 @@ class ReportActionsView extends React.Component {
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
                 showContextMenu={this.showContextMenu}
-                hideContextMenu={this.hideContentMenu}
+                hideContextMenu={this.hideContextMenu}
                 isContextMenuActive={this.state.reportAction.reportActionID === item.action.reportActionID}
                 showDeleteConfirmModal={this.showDeleteConfirmModal}
             />
@@ -589,7 +589,7 @@ class ReportActionsView extends React.Component {
                 />
                 <PopoverWithMeasuredContent
                         isVisible={this.state.isPopoverVisible}
-                        onClose={this.hideContentMenu}
+                        onClose={this.hideContextMenu}
                         onModalHide={this.contextMenuHidden}
                         anchorPosition={this.state.popoverAnchorPosition}
                         animationIn="fadeIn"
@@ -603,7 +603,7 @@ class ReportActionsView extends React.Component {
                         reportID={this.state.reportID}
                         reportAction={this.state.reportAction}
                         draftMessage={this.state.reportActionDraftMessage}
-                        hidePopover={this.hideContentMenu}
+                        hidePopover={this.hideContextMenu}
                         showDeleteConfirmModal={this.showDeleteConfirmModal}
                     />
                 </PopoverWithMeasuredContent>

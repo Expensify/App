@@ -15,7 +15,6 @@ import {propTypes, defaultProps} from './MiniReportActionContextMenuPropsTypes';
 import Clipboard from '../../../../../libs/Clipboard';
 import {isReportMessageAttachment, canEditReportAction, canDeleteReportAction} from '../../../../../libs/reportUtils';
 import withLocalize from '../../../../../components/withLocalize';
-import ReportActionComposeFocusManager from '../../../../../libs/ReportActionComposeFocusManager';
 
 class MiniReportActionContextMenu extends React.Component {
     constructor(props) {
@@ -48,7 +47,6 @@ class MiniReportActionContextMenu extends React.Component {
                     } else {
                         Clipboard.setString(html);
                     }
-                    this.props.hidePopover(true, ReportActionComposeFocusManager.focus);
                 },
             },
 
@@ -67,7 +65,6 @@ class MiniReportActionContextMenu extends React.Component {
                 onPress: () => {
                     updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
                     setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
-                    this.props.hidePopover(true, ReportActionComposeFocusManager.focus);
                 },
             },
 
