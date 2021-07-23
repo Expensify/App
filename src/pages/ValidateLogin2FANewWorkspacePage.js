@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import validateLinkPropTypes from './validateLinkPropTypes';
-import {continueSessionFromECom} from '../libs/actions/Session';
+import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../components/ExpensifyCashLogo';
 import variables from '../styles/variables';
@@ -30,6 +30,9 @@ const propTypes = {
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 
+    /** List of betas */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -38,6 +41,7 @@ const defaultProps = {
         params: {},
     },
     session: {},
+    betas: null,
 };
 class ValidateLogin2FANewWorkspacePage extends Component {
     constructor(props) {
@@ -62,7 +66,12 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             // by calling dismissModal(), the /v/... route is removed from history so the user will get taken to `/`
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
-            Navigation.navigate(ROUTES.WORKSPACE_NEW);
+
+            if (this.props.betas) {
+                Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            } else {
+                setRedirectToWorkspaceNewAfterSignIn(true);
+            }
         }
     }
 
@@ -143,6 +152,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ValidateLogin2FANewWorkspacePage);
