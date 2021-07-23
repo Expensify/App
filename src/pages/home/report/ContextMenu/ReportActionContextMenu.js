@@ -31,7 +31,7 @@ const propTypes = {
 
 const defaultProps = MiniReportActionContextMenuDefaultProps;
 
-class ReportActionContextMenu extends React.Component {
+class ReportActionContextMenu extends React.PureComponent {
     constructor(props) {
         super(props);
 
