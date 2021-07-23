@@ -679,7 +679,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  *
  * @param {Object} currencyOptions
  * @param {String} searchValue
- * @param {Object} selectedCurrency
  * @returns {Array}
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
