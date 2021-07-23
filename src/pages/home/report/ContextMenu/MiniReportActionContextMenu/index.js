@@ -13,7 +13,6 @@ import {
 import ContextMenuItem from '../../../../../components/ContextMenuItem';
 import {propTypes, defaultProps} from './MiniReportActionContextMenuPropsTypes';
 import Clipboard from '../../../../../libs/Clipboard';
-import compose from '../../../../../libs/compose';
 import {isReportMessageAttachment, canEditReportAction, canDeleteReportAction} from '../../../../../libs/reportUtils';
 import withLocalize from '../../../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../../../libs/ReportActionComposeFocusManager';
@@ -89,7 +88,7 @@ class MiniReportActionContextMenu extends React.Component {
                 icon: Trashcan,
                 shouldShow: () => canDeleteReportAction(this.props.reportAction),
                 onPress: () => {
-                    this.props.showDeleteConfirmModal();
+                    this.props.showDeleteConfirmModal(this.props.reportID, this.props.reportAction);
                 },
             },
         ];
@@ -127,6 +126,4 @@ class MiniReportActionContextMenu extends React.Component {
 MiniReportActionContextMenu.propTypes = propTypes;
 MiniReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-)(MiniReportActionContextMenu);
+export default withLocalize(MiniReportActionContextMenu);
