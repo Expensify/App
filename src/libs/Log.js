@@ -5,6 +5,9 @@ import getPlatform from './getPlatform';
 import {version} from '../../package.json';
 import NetworkConnection from './NetworkConnection';
 
+let timeout = null;
+let info;
+
 /**
  * Network interface for logger.
  *
@@ -19,6 +22,8 @@ function serverLoggingCallback(params) {
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(params.parameters);
     }
+    clearTimeout(timeout);
+    timeout = setTimeout(() => info('Flushing logs older than 10 minutes', true), 10 * 60 * 1000);
     return API.Log(requestParams);
 }
 
@@ -33,6 +38,8 @@ const Log = new Logger({
     },
     isDebug: !CONFIG.IS_IN_PRODUCTION,
 });
+info = Log.info;
+timeout = setTimeout(() => info('Flushing logs older than 10 minutes', true), 10 * 60 * 1000);
 
 NetworkConnection.registerLogInfoCallback(Log.info);
 export default Log;

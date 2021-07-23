@@ -4,6 +4,7 @@ import {StackActions, DrawerActions} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import linkTo from './linkTo';
+import Log from '../Log';
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
 import CustomActions from './CustomActions';
@@ -54,6 +55,7 @@ function goBack(shouldOpenDrawer = true) {
  * @param {String} route
  */
 function navigate(route = ROUTES.HOME) {
+    Log.info('Navigating to route', false, {route});
     if (route === ROUTES.HOME) {
         if (isLoggedIn) {
             openDrawer();

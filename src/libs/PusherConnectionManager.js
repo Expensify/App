@@ -44,7 +44,11 @@ function init() {
                         return;
                     }
 
-                    Log.info('[PusherConnectionManager] Pusher authenticated successfully', false, {channelName: channel.name});
+                    Log.info(
+                        '[PusherConnectionManager] Pusher authenticated successfully',
+                        false,
+                        {channelName: channel.name},
+                    );
                     callback(null, data);
                 })
                 .catch((error) => {
