@@ -39,7 +39,7 @@ Onyx.connect({
 
 let preferredLocale;
 Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
@@ -683,7 +683,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  *
  * @param {Object} currencyOptions
  * @param {String} searchValue
- * @param {Object} selectedCurrency
  * @returns {Array}
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
@@ -748,6 +747,7 @@ function isCurrentUser(userDetails) {
 }
 
 export {
+    addSMSDomainIfPhoneNumber,
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,

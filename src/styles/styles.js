@@ -1066,7 +1066,6 @@ const styles = {
     },
 
     emojiItem: {
-        flex: 1,
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
@@ -1406,6 +1405,7 @@ const styles = {
     settingsPageBody: {
         width: '100%',
         justifyContent: 'space-around',
+        alignItems: 'center',
     },
 
     settingsPageColumn: {
@@ -1647,11 +1647,10 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         opacity: 0,
-        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {

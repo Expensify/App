@@ -42,6 +42,7 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
           packages.add(new PlaidPackage());
+          packages.add(new ExpensifyAppPackage());
 
           // Add unimodules
           List<ReactPackage> unimodules = Arrays.<ReactPackage>asList(
@@ -75,6 +76,11 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
       if (BuildConfig.DEBUG) {
           FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
       }
+
+      // Start the "js_load" custom performance tracing metric. This timer is stopped by a native
+      // module in the JS so we can measure total time starting in the native layer and ending in
+      // the JS layer.
+      StartupTimer.start();
 
       // Increase SQLite DB write size
       try {
