@@ -183,6 +183,7 @@ const OptionRow = ({
                                                 ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                 : undefined,
                                         ]}
+                                        isDefaultChatRoom={option.isDefaultChatRoom}
                                     />
                                 )
                             }
