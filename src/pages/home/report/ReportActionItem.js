@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {Dimensions, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../CONST';
@@ -12,18 +12,14 @@ import {
 } from '../../../styles/getReportActionItemStyles';
 import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
 import Hoverable from '../../../components/Hoverable';
-import PopoverWithMeasuredContent from '../../../components/PopoverWithMeasuredContent';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
-import ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import IOUAction from '../../../components/ReportActionItem/IOUAction';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
-import ConfirmModal from '../../../components/ConfirmModal';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {deleteReportComment} from '../../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
@@ -52,6 +48,10 @@ const propTypes = {
     index: PropTypes.number.isRequired,
 
     /* Onyx Props */
+    showContextMenu: PropTypes.func.isRequired,
+    hideContextMenu: PropTypes.func.isRequired,
+    showDeleteConfirmModal: PropTypes.func.isRequired,
+    isContextMenuActive: PropTypes.bool,
 
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
@@ -63,36 +63,18 @@ const propTypes = {
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
+    isContextMenuActive: false,
 };
 
 class ReportActionItem extends Component {
     constructor(props) {
         super(props);
-
-        this.state = {
-            isPopoverVisible: false,
-            isDeleteCommentConfirmModalVisible: false,
-            cursorPosition: {
-                horizontal: 0,
-                vertical: 0,
-            },
-
-            // The horizontal and vertical position (relative to the screen) where the popover will display.
-            popoverAnchorPosition: {
-                horizontal: 0,
-                vertical: 0,
-            },
-        };
-
         this.popoverAnchor = undefined;
         this.showPopover = this.showPopover.bind(this);
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        return this.state.isPopoverVisible !== nextState.isPopoverVisible
-            || this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition
-            || this.state.isDeleteCommentConfirmModalVisible !== nextState.isDeleteCommentConfirmModalVisible
-            || this.props.displayAsGroup !== nextProps.displayAsGroup
+    shouldComponentUpdate(nextProps) {
+        return this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
@@ -111,7 +93,14 @@ class ReportActionItem extends Component {
         if (this.props.draftMessage) {
             return;
         }
-        this.props.showContextMenu(event, selection, this.popoverAnchor, this.props.reportID, this.props.action, this.props.draftMessage);
+        this.props.showContextMenu(
+            event,
+            selection,
+            this.popoverAnchor,
+            this.props.reportID,
+            this.props.action,
+            this.props.draftMessage,
+        );
     }
 
     render() {
@@ -152,7 +141,7 @@ class ReportActionItem extends Component {
                             <View
                                 style={getReportActionItemStyle(
                                     hovered
-                                    || this.state.isPopoverVisible
+                                    || this.props.isContextMenuActive
                                     || this.props.draftMessage,
                                 )}
                             >
@@ -174,7 +163,7 @@ class ReportActionItem extends Component {
                                     reportAction={this.props.action}
                                     isVisible={
                                         hovered
-                                        && !this.state.isPopoverVisible
+                                        && !this.props.isContextMenuActive
                                         && !this.props.draftMessage
                                     }
                                     draftMessage={this.props.draftMessage}

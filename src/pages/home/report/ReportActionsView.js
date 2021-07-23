@@ -269,6 +269,26 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Save the location of a native press event & set the Initial Context menu anchor coordinates
+     *
+     * @param {Object} nativeEvent
+     * @returns {Promise}
+     */
+    getPressLocation(nativeEvent) {
+        return this.getMeasureLocation().then(({x, y}) => ({
+            cursorPosition: {
+                horizontal: nativeEvent.pageX - x,
+                vertical: nativeEvent.pageY - y,
+            },
+            popoverAnchorPosition: {
+                horizontal: nativeEvent.pageX,
+                vertical: nativeEvent.pageY,
+            },
+        }));
+    }
+
+
+    /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param {Object} [event] - A press event.
@@ -282,8 +302,10 @@ class ReportActionsView extends React.Component {
     showContextMenu(event, selection, contextMenuAnchor, reportID, reportAction, draftMessage) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAchor = contextMenuAnchor;
-        this.capturePressLocation(nativeEvent).then(() => {
+        this.getPressLocation(nativeEvent).then(({cursorPosition, popoverAnchorPosition}) => {
             this.setState({
+                cursorPosition,
+                popoverAnchorPosition,
                 reportID,
                 reportAction,
                 selection,
@@ -316,28 +338,6 @@ class ReportActionsView extends React.Component {
         // After we have called the action, reset it.
         this.onPopoverHide = () => {};
     }
-
-    /**
-     * Save the location of a native press event & set the Initial Context menu anchor coordinates
-     *
-     * @param {Object} nativeEvent
-     * @returns {Promise}
-     */
-    capturePressLocation(nativeEvent) {
-        return this.getMeasureLocation().then(({x, y}) => {
-            this.setState({
-                cursorPosition: {
-                    horizontal: nativeEvent.pageX - x,
-                    vertical: nativeEvent.pageY - y,
-                },
-                popoverAnchorPosition: {
-                    horizontal: nativeEvent.pageX,
-                    vertical: nativeEvent.pageY,
-                },
-            });
-        });
-    }
-
 
     /**
      * Hide the ReportActionContextMenu modal popover.
@@ -548,7 +548,8 @@ class ReportActionsView extends React.Component {
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
                 showContextMenu={this.showContextMenu}
-                hideContentMenu={this.hideContentMenu}
+                hideContextMenu={this.hideContentMenu}
+                isContextMenuActive={this.state.reportAction.reportActionID === item.action.reportActionID}
                 showDeleteConfirmModal={this.showDeleteConfirmModal}
             />
         );
