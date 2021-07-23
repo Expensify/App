@@ -13,7 +13,6 @@ import {
 } from '../../../../libs/actions/Report';
 import ContextMenuItem from '../../../../components/ContextMenuItem';
 import Clipboard from '../../../../libs/Clipboard';
-import compose from '../../../../libs/compose';
 import {
     propTypes as MiniReportActionContextMenuPropsTypes,
     defaultProps as MiniReportActionContextMenuDefaultProps,
@@ -162,6 +161,4 @@ class ReportActionContextMenu extends React.Component {
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-)(ReportActionContextMenu);
+export default withLocalize(ReportActionContextMenu);
