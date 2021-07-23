@@ -17,7 +17,7 @@ const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 export default {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
-    getBankAccountRoute: stepToOpen => `bank-account/${stepToOpen}`,
+    getBankAccountRoute: (stepToOpen = '') => `bank-account/${stepToOpen}`,
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',

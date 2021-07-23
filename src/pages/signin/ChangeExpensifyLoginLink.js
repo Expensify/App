@@ -28,7 +28,7 @@ const ChangeExpensifyLoginLink = ({credentials, translate, toLocalPhone}) => (
             onPress={restartSignin}
             underlayColor={themeColors.componentBG}
         >
-            <Text style={[styles.link]}>
+            <Text style={[styles.link, styles.mt3]}>
                 {translate('common.not')}
                 &nbsp;
                 {Str.isSMSLogin(credentials.login)
