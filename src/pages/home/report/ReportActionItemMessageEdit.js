@@ -94,7 +94,8 @@ class ReportActionItemMessageEdit extends React.Component {
      * the new content.
      */
     publishDraft() {
-        editReportComment(this.props.reportID, this.props.action, this.state.draft);
+        const trimmedNewDraft = this.state.draft.trim();
+        editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
         this.deleteDraft();
     }
 
