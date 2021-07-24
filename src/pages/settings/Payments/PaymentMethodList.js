@@ -1,8 +1,9 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {FlatList} from 'react-native';
+import {FlatList, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import styles from '../../../styles/styles';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -13,12 +14,16 @@ import {
     CreditCard,
     PayPal,
     Plus,
-    Wallet,
 } from '../../../components/Icon/Expensicons';
+
+const MENU_ITEM = 'menuItem';
 
 const propTypes = {
     /** What to do when a menu item is pressed */
     onPress: PropTypes.func.isRequired,
+
+    /** Are we loading payments from the server? */
+    isLoadingPayments: PropTypes.bool,
 
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
@@ -57,6 +62,7 @@ const defaultProps = {
     payPalMeUsername: '',
     bankAccountList: [],
     cardList: [],
+    isLoadingPayments: false,
 };
 
 class PaymentMethodList extends Component {
@@ -75,20 +81,26 @@ class PaymentMethodList extends Component {
         const combinedPaymentMethods = [];
 
         _.each(this.props.bankAccountList, (bankAccount) => {
-            combinedPaymentMethods.push({
-                title: bankAccount.addressName,
+            // Add all bank accounts besides the wallet
+            if (bankAccount.type !== CONST.BANK_ACCOUNT_TYPES.WALLET) {
+                combinedPaymentMethods.push({
+                    type: MENU_ITEM,
+                    title: bankAccount.addressName,
 
-                // eslint-disable-next-line
-                description: `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`,
-                icon: bankAccount.type === CONST.BANK_ACCOUNT_TYPES.WALLET ? Wallet : Bank,
-                onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
-                key: `bankAccount-${bankAccount.bankAccountID}`,
-            });
+                    // eslint-disable-next-line
+                    description: `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`,
+                    icon: Bank,
+                    onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
+                    key: `bankAccount-${bankAccount.bankAccountID}`,
+                });
+            }
         });
 
         _.each(this.props.cardList, (card) => {
+            // Add all cards besides the "cash" card
             if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
                 combinedPaymentMethods.push({
+                    type: MENU_ITEM,
                     title: card.cardName,
 
                     // eslint-disable-next-line
@@ -102,6 +114,7 @@ class PaymentMethodList extends Component {
 
         if (this.props.payPalMeUsername) {
             combinedPaymentMethods.push({
+                type: MENU_ITEM,
                 title: 'PayPal.me',
                 description: this.props.payPalMeUsername,
                 icon: PayPal,
@@ -110,12 +123,26 @@ class PaymentMethodList extends Component {
             });
         }
 
-        combinedPaymentMethods.push({
-            title: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Plus,
-            onPress: e => this.props.onPress(e),
-            key: 'addPaymentMethodButton',
-        });
+        // If we have not added any payment methods, show a default empty state
+        if (_.isEmpty(combinedPaymentMethods)) {
+            combinedPaymentMethods.push({
+                text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
+            });
+        }
+
+        // Don't show Add Payment Method button if user provided details for all possible payment methods.
+        // Right now only available method is Paypal.me
+        // When there is a new payment method, it needs to be added to following if condition.
+        if (!this.props.payPalMeUsername) {
+            combinedPaymentMethods.push({
+                type: MENU_ITEM,
+                title: this.props.translate('paymentMethodList.addPaymentMethod'),
+                icon: Plus,
+                onPress: e => this.props.onPress(e),
+                key: 'addPaymentMethodButton',
+                disabled: this.props.isLoadingPayments,
+            });
+        }
 
         return combinedPaymentMethods;
     }
@@ -129,14 +156,25 @@ class PaymentMethodList extends Component {
      * @return {React.Component}
      */
     renderItem({item}) {
+        if (item.type === MENU_ITEM) {
+            return (
+                <MenuItem
+                    onPress={item.onPress}
+                    title={item.title}
+                    description={item.description}
+                    icon={item.icon}
+                    key={item.key}
+                    disabled={item.disabled}
+                />
+            );
+        }
+
         return (
-            <MenuItem
-                onPress={item.onPress}
-                title={item.title}
-                description={item.description}
-                icon={item.icon}
-                key={item.key}
-            />
+            <Text
+                style={[styles.popoverMenuItem]}
+            >
+                {item.text}
+            </Text>
         );
     }
 
@@ -162,9 +200,6 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
         },
         payPalMeUsername: {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,

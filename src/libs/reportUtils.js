@@ -102,6 +102,56 @@ function isDefaultRoom(report) {
     ], lodashGet(report, ['chatType'], ''));
 }
 
+/**
+ * Whether the provided report is an archived room
+ * @param {Object} report
+ * @param {Number} report.stateNum
+ * @param {Number} report.statusNum
+ * @returns {Boolean}
+ */
+function isArchivedRoom(report) {
+    if (!isDefaultRoom(report)) {
+        return false;
+    }
+
+    return report.statusNum === 2 && report.stateNum === 2;
+}
+
+/**
+ * Get either the policyName or domainName the chat is tied to
+ * @param {Object} report
+ * @param {Object} policiesMap must have onyxkey prefix (i.e 'policy_') for keys
+ * @returns {String}
+ */
+function getDefaultRoomSubtitle(report, policiesMap) {
+    if (!isDefaultRoom(report)) {
+        return '';
+    }
+    if (report.chatType === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
+        // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
+        return report.reportName.substring(1);
+    }
+    if (isArchivedRoom(report)) {
+        return report.oldPolicyName;
+    }
+    return lodashGet(
+        policiesMap,
+        [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
+        'Unknown Policy',
+    );
+}
+
+/**
+ * Only returns true if this is our main 1:1 DM report with Concierge
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isConciergeChatReport(report) {
+    return lodashGet(report, 'participants', []).length === 1
+        && report.participants[0] === CONST.EMAIL.CONCIERGE;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -110,4 +160,7 @@ export {
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
+    getDefaultRoomSubtitle,
+    isArchivedRoom,
+    isConciergeChatReport,
 };

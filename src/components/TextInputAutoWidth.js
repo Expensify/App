@@ -1,8 +1,9 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles, {getAutoGrowTextInputStyle} from '../styles/styles';
+import Text from './Text';
 import TextInputFocusable from './TextInputFocusable';
 
 const propTypes = {
@@ -41,13 +42,15 @@ class TextInputAutoWidth extends React.Component {
     render() {
         const propsWithoutStyles = _.omit(this.props, ['inputStyle', 'textStyle']);
         return (
-            <View>
-                <TextInputFocusable
-                    style={[this.props.inputStyle, getAutoGrowTextInputStyle(this.state.textInputWidth)]}
-                    ref={this.props.forwardedRef}
-                    /* eslint-disable-next-line react/jsx-props-no-spreading */
-                    {...propsWithoutStyles}
-                />
+            <>
+                <View>
+                    <TextInputFocusable
+                        style={[this.props.inputStyle, getAutoGrowTextInputStyle(this.state.textInputWidth)]}
+                        ref={this.props.forwardedRef}
+                        /* eslint-disable-next-line react/jsx-props-no-spreading */
+                        {...propsWithoutStyles}
+                    />
+                </View>
                 {/*
                 Text input component doesn't support auto grow by default.
                 We're using a hidden text input to achieve that.
@@ -60,7 +63,7 @@ class TextInputAutoWidth extends React.Component {
                 >
                     {this.props.value || this.props.placeholder}
                 </Text>
-            </View>
+            </>
         );
     }
 }
