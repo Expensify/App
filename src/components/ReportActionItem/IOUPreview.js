@@ -3,7 +3,6 @@ import {
     View,
     ActivityIndicator,
     TouchableOpacity,
-    Text,
     TouchableWithoutFeedback,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -21,6 +20,7 @@ import themeColors from '../../styles/themes/default';
 import Icon from '../Icon';
 import CONST from '../../CONST';
 import {Checkmark} from '../Icon/Expensicons';
+import Text from '../Text';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */

@@ -8,6 +8,8 @@ export default {
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',
+        'https://new.expensify.com',
+        'https://staging.new.expensify.com',
     ],
     config: {
         initialRouteName: SCREENS.HOME,
@@ -25,6 +27,8 @@ export default {
             // Public Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
+            [SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE]: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE,
+            [SCREENS.VALIDATE_LOGIN_2FA_NEW_WORKSPACE]: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE,
 
             // Modal Screens
             Settings: {
@@ -98,19 +102,19 @@ export default {
             },
             IOU_Request: {
                 screens: {
-                    IOU_Request_Root: ROUTES.IOU_REQUEST,
+                    IOU_Request_Root: ROUTES.IOU_REQUEST_WITH_REPORT_ID,
                     IOU_Request_Currency: ROUTES.IOU_REQUEST_CURRENCY,
                 },
             },
             IOU_Bill: {
                 screens: {
-                    IOU_Bill_Root: ROUTES.IOU_BILL,
+                    IOU_Bill_Root: ROUTES.IOU_BILL_WITH_REPORT_ID,
                     IOU_Bill_Currency: ROUTES.IOU_BILL_CURRENCY,
                 },
             },
             IOU_Send: {
                 screens: {
-                    IOU_Send_Root: ROUTES.IOU_SEND,
+                    IOU_Send_Root: ROUTES.IOU_SEND_WITH_REPORT_ID,
                     IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
                 },
             },

@@ -9,6 +9,13 @@ const STATES = _.map(CONST.STATES, ({stateISO}) => ({
     label: stateISO,
 }));
 
+
+// Add a blank state so users are sure to actively choose a state instead accidentally going with the default choice
+STATES.unshift({
+    value: '',
+    label: '-',
+});
+
 const propTypes = {
     /** A callback method that is called when the value changes and it received the selected value as an argument */
     onChange: PropTypes.func.isRequired,

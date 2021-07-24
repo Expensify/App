@@ -283,13 +283,13 @@ jobs:
 
       - name: Purge production Cloudflare cache
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-        run: /home/runner/.local/bin/cli4 --delete hosts=["expensify.cash"] /zones/:357b42c0989e3bed82f6d6400e8b9d66/purge_cache
+        run: /home/runner/.local/bin/cli4 --delete hosts=["new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
       - name: Purge staging Cloudflare cache
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
-        run: /home/runner/.local/bin/cli4 --delete hosts=["staging.expensify.cash"] /zones/:357b42c0989e3bed82f6d6400e8b9d66/purge_cache
+        run: /home/runner/.local/bin/cli4 --delete hosts=["staging.new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 

@@ -9,6 +9,9 @@ const participantPropTypes = PropTypes.shape({
 
     // Avatar url of participant
     avatar: PropTypes.string,
+
+    /** First Name of the participant */
+    firstName: PropTypes.string,
 });
 
 const optionPropTypes = PropTypes.shape({

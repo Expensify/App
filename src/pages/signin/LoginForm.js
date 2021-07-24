@@ -1,15 +1,12 @@
 import React from 'react';
-import {
-    Text,
-    TextInput,
-    View,
-} from 'react-native';
+import {TextInput, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Button from '../../components/Button';
+import Text from '../../components/Text';
 import {fetchAccountDetails} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -74,7 +71,7 @@ class LoginForm extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.mb4]}>
+                <View style={[styles.mt3]}>
                     <Text style={[styles.formLabel]}>{this.props.translate('loginForm.enterYourPhoneOrEmail')}</Text>
                     <TextInput
                         style={[styles.textInput]}
@@ -91,10 +88,9 @@ class LoginForm extends React.Component {
                         autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
-                <View>
+                <View style={[styles.mt5]}>
                     <Button
                         success
-                        style={[styles.mb2]}
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}

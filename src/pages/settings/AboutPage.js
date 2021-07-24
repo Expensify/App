@@ -19,7 +19,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
-import Logo from '../../../assets/images/expensify-cash.svg';
+import Logo from '../../../assets/images/new-expensify.svg';
 import {version} from '../../../package.json';
 import {fetchOrCreateChatReport} from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -89,19 +89,20 @@ const AboutPage = ({translate, session}) => {
                 <View style={[styles.flex1]}>
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.mb6]}>
-                            <Logo height={100} />
+                            <Logo height={80} width={80} />
                             <Text
                                 style={[
                                     styles.textLabel,
                                     styles.alignSelfCenter,
-                                    styles.mv2,
+                                    styles.mt6,
+                                    styles.mb2,
                                     styles.colorMuted,
                                 ]}
                             >
                                 v
                                 {version}
                             </Text>
-                            <Text style={[styles.textLabel, styles.textP, styles.mv5]}>
+                            <Text style={[styles.textLabel, styles.mv5]}>
                                 {translate('initialSettingsPage.aboutPage.description')}
                             </Text>
                         </View>

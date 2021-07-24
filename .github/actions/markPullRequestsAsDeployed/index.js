@@ -18,10 +18,10 @@ const GithubUtils = __nccwpck_require__(7999);
 
 const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
 const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
-const stagingDeployIssueNumber = ActionUtils.getJSONInput('STAGING_DEPLOY_NUMBER', {required: true});
 const version = core.getInput('DEPLOY_VERSION', {required: true});
-let lockCashDeployLabelTimeline = [];
 const PRMap = {};
+const stagingDeployIssueMap = {};
+let stagingDeployIssuesList = [];
 
 
 /**
@@ -44,15 +44,48 @@ function getDeployTableMessage(platformResult) {
     }
 }
 
+const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
+const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
+const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
+const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
+
+const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
+    + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
+
+/**
+ * Fetch all the StagingDeploy issues that were created after the passed fromTimestamp and
+ * including one before the fromTimestamp.
+ *
+ * @param {String} fromTimestamp
+ * @returns {Promise}
+ */
+function fetchAllStagingDeployCash(fromTimestamp) {
+    return GithubUtils.octokit.paginate(GithubUtils.octokit.issues.listForRepo, {
+        owner: GithubUtils.GITHUB_OWNER,
+        repo: GithubUtils.EXPENSIFY_CASH_REPO,
+        state: 'all',
+        sort: 'created',
+        direction: 'desc',
+        labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
+    }, ({data}, done) => {
+        const lastIssueIndex = _.findIndex(data, issue => moment(issue.created_at).isBefore(moment(fromTimestamp)));
+        if (lastIssueIndex !== -1) {
+            done();
+        }
+        return data;
+    })
+        .catch(err => console.error(`Failed to get ${GithubUtils.STAGING_DEPLOY_CASH_LABEL} issues list`, err));
+}
+
 /**
  * Get the [added, removed] pairs for the `🔐 LockCashDeploys 🔐` label on StagingDeployCash
- *
+ * @param {Number|String} stagingDeployIssueNumber
  * @return {Promise<Array<[string, string]>>}
  */
-function getLockCashDeploysTimeline() {
+function fetchLockCashDeploysTimeline(stagingDeployIssueNumber) {
     return GithubUtils.octokit.paginate(GithubUtils.octokit.issues.listEvents, {
         owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.GITHUB_REPOSITORY,
+        repo: GithubUtils.EXPENSIFY_CASH_REPO,
         issue_number: stagingDeployIssueNumber,
         per_page: 100,
     }).then((events) => {
@@ -74,16 +107,29 @@ function getLockCashDeploysTimeline() {
             return pair.length > 1 ? pair : undefined;
         }));
         return startEndPairs;
-    });
+    }).catch(err => console.error('Failed to get the 🔐 LockCashDeploys 🔐 label\'s timeline', err));
 }
 
-const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
-const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
-const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
-const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
-
-const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
-    + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
+/**
+ * Get StagingDeployIssue timeline for the PR
+ *
+ * @param {Number} pr
+ * @return {Promise<[string, string][]>}
+ */
+function getPRLockCashDeploysTimeline(pr) {
+    const prData = PRMap[pr];
+    const stagingDeployIssue = _.find(
+        stagingDeployIssuesList, issue => moment(issue.created_at).isBefore(moment(prData.mergedAt)),
+    );
+    const stagingDeployIssueMapRef = stagingDeployIssueMap[stagingDeployIssue.number];
+    if (stagingDeployIssueMapRef.timeline) {
+        return Promise.resolve(stagingDeployIssueMapRef.timeline);
+    }
+    return fetchLockCashDeploysTimeline(stagingDeployIssue.number).then((lockCashDeployLabelTimeSet) => {
+        stagingDeployIssueMap[stagingDeployIssue.number].timeline = lockCashDeployLabelTimeSet;
+        return lockCashDeployLabelTimeSet;
+    });
+}
 
 /**
  * Get Deploy Verb for the PR
@@ -96,22 +142,25 @@ function getPRDeployVerb(pr) {
     const hasCPStagingLabel = _.contains(_.pluck(PR.labels, 'name'), 'CP Staging');
 
     if (!hasCPStagingLabel) {
-        return 'Deployed';
+        return Promise.resolve('Deployed');
     }
-    const liesBetweenTimeline = _.some(
-        lockCashDeployLabelTimeline,
-        ([startAt, endAt]) => moment(PR.mergedAt).isBetween(startAt, endAt, undefined, '[]'),
-    );
-    return liesBetweenTimeline ? 'Cherry-picked' : 'Deployed';
+    return getPRLockCashDeploysTimeline(pr).then((lockCashDeployLabelTimeline) => {
+        const liesBetweenTimeline = _.some(
+            lockCashDeployLabelTimeline,
+            ([startAt, endAt]) => moment(PR.mergedAt).isBetween(startAt, endAt, undefined, '[]'),
+        );
+        return liesBetweenTimeline ? 'Cherry-picked' : 'Deployed';
+    });
 }
 
 function getPRMessage(PR) {
-    const deployVerb = getPRDeployVerb(PR);
-    let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}\
+    return getPRDeployVerb(PR).then((deployVerb) => {
+        let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}\
          in version: ${version}🚀`;
-    message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
-    message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
-    return message;
+        message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
+        message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
+        return message;
+    });
 }
 
 /**
@@ -121,7 +170,7 @@ function getPRMessage(PR) {
  * @returns {Promise<void>}
  */
 function commentPR(pr) {
-    return GithubUtils.createComment(context.repo.repo, pr, getPRMessage(pr))
+    return getPRMessage(pr).then(message => GithubUtils.createComment(context.repo.repo, pr, message))
         .then(() => {
             console.log(`Comment created on #${pr} successfully 🎉`);
         })
@@ -132,21 +181,28 @@ function commentPR(pr) {
 }
 
 const run = function () {
-    return Promise.all([
-        getLockCashDeploysTimeline(),
-        GithubUtils.fetchAllPullRequests(prList),
-    ])
-        .then(([lockCashDeployLabelTimeSet, PRListWithDetails]) => {
-            lockCashDeployLabelTimeline = lockCashDeployLabelTimeSet;
+    return GithubUtils.fetchAllPullRequests(_.compact(_.map(prList, pr => parseInt(pr, 10))))
+        .then((PRListWithDetails) => {
             _.each(PRListWithDetails, (PR) => {
                 PRMap[PR.number] = PR;
             });
+            const oldestPR = _.first(_.sortBy(prList));
+            return fetchAllStagingDeployCash(PRMap[oldestPR].mergedAt);
+        })
+        .then((issueList) => {
+            _.each(issueList, (issueData) => {
+                stagingDeployIssueMap[issueData.number] = {
+                    data: issueData,
+                };
+            });
+            stagingDeployIssuesList = issueList;
 
             /**
              * Create comment on each pull request
              */
             return prList.reduce((promise, pr) => promise.then(() => commentPR(pr)), Promise.resolve());
-        });
+        })
+        .catch(err => console.error('Failed to get neccesary data to comment deployed PRs', err));
 };
 
 if (require.main === require.cache[eval('__filename')]) {
@@ -392,26 +448,13 @@ class GithubUtils {
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
-        return this.octokit.paginate(this.octokit.pulls.list, {
-            owner: GITHUB_OWNER,
-            repo: EXPENSIFY_CASH_REPO,
-            state: 'all',
-            sort: 'created',
-            direction: 'desc',
-            per_page: 100,
-        }, ({data}, done) => {
-            // PRList is reverse-chronologically ordered
-            const oldestMergedPR = _.last(PRList);
-            if (_.find(data, pr => pr.html_url === oldestMergedPR)) {
-                done();
-            }
-            return data;
-        })
+        return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
             .then((data) => {
                 const automatedPRs = _.pluck(
                     _.filter(data, GithubUtils.isAutomatedPullRequest),
                     'html_url',
                 );
+                console.log('Filtering out the following automated pull requests:', automatedPRs);
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
                     .unique()
@@ -475,7 +518,8 @@ class GithubUtils {
             }
             return data;
         })
-            .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)));
+            .then(prList => _.filter(prList, pr => _.contains(pullRequestNumbers, pr.number)))
+            .catch(err => console.error('Failed to get PR list', err));
     }
 
     /**
