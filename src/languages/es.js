@@ -21,6 +21,8 @@ export default {
         not: 'No',
         signIn: 'Conectarse',
         continue: 'Continuar',
+        firstName: 'Nombre',
+        lastName: 'Apellidos',
         phoneNumber: 'Número de teléfono',
         email: 'Email',
         and: 'y',
@@ -55,6 +57,11 @@ export default {
         noResultsFound: 'No se han encontrado resultados',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
+        todayAt: 'Hoy a las',
+        tomorrowAt: 'Mañana a las',
+        yesterdayAt: 'Ayer a las',
+        conjunctionAt: 'a',
+
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -105,9 +112,11 @@ export default {
         youAppearToBeOffline: 'Parece que estás desconectado.',
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
     },
-    reportActionContextMenu: {
+    contextMenuItem: {
         copyToClipboard: 'Copiar al Portapapeles',
         copied: '¡Copiado!',
+    },
+    reportActionContextMenu: {
         copyLink: 'Copiar Enlace',
         markAsUnread: 'Marcar como no leído',
         editComment: 'Editar Commentario',
@@ -170,9 +179,7 @@ export default {
     profilePage: {
         profile: 'Perfil',
         tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
-        firstName: 'Nombre',
         john: 'Juan',
-        lastName: 'Apellidos',
         doe: 'Nadie',
         preferredPronouns: 'Pronombres preferidos',
         selectYourPronouns: 'Selecciona tus pronombres',
