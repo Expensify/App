@@ -13,12 +13,9 @@ import ReportActionContextMenu from './ReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
 
 const propTypes = {
-    /** The report currently being looked at */
+    /** Update the callbacks on ContextMenu Context */
     setValue: PropTypes.func.isRequired,
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
 };
 
 class PopoverReportActionContextMenu extends React.Component {
@@ -140,7 +137,6 @@ class PopoverReportActionContextMenu extends React.Component {
         }
         this.getContextMenuMeasuredLocation().then(({x, y}) => {
             if (!x || !y) {
-                console.debug('render skipped');
                 return;
             }
             this.setState(prev => ({
@@ -246,6 +242,6 @@ class PopoverReportActionContextMenu extends React.Component {
 }
 
 PopoverReportActionContextMenu.propTypes = propTypes;
-PopoverReportActionContextMenu.defaultProps = defaultProps;
+PopoverReportActionContextMenu.displayName = 'PopoverReportActionContextMenu';
 
 export default withLocalize(PopoverReportActionContextMenu);
