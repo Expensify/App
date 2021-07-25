@@ -24,6 +24,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import ControlSelection from '../../../libs/ControlSelection';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
+import {ContextMenuContext} from './ContextMenu/ContextMenuContext';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -47,15 +48,6 @@ const propTypes = {
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
-    /** Function to show the Context Menu */
-    showContextMenu: PropTypes.func.isRequired,
-
-    /** Function to show the delete Action confirmation modal */
-    showDeleteConfirmModal: PropTypes.func.isRequired,
-
-    /** Whether the contextMenu is action for this action */
-    isContextMenuActive: PropTypes.bool,
-
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
@@ -66,7 +58,6 @@ const propTypes = {
 const defaultProps = {
     draftMessage: '',
     hasOutstandingIOU: false,
-    isContextMenuActive: false,
 };
 
 class ReportActionItem extends Component {
@@ -96,7 +87,7 @@ class ReportActionItem extends Component {
         if (this.props.draftMessage) {
             return;
         }
-        this.props.showContextMenu(
+        this.context.showContextMenu(
             event,
             selection,
             this.popoverAnchor,
@@ -144,7 +135,7 @@ class ReportActionItem extends Component {
                             <View
                                 style={getReportActionItemStyle(
                                     hovered
-                                    || this.props.isContextMenuActive
+                                    || this.context.isActionReportAction(this.props.action.reportActionID)
                                     || this.props.draftMessage,
                                 )}
                             >
@@ -166,11 +157,11 @@ class ReportActionItem extends Component {
                                     reportAction={this.props.action}
                                     isVisible={
                                         hovered
-                                        && !this.props.isContextMenuActive
+                                        && !this.context.isActionReportAction(this.props.action.reportActionID)
                                         && !this.props.draftMessage
                                     }
                                     draftMessage={this.props.draftMessage}
-                                    showDeleteConfirmModal={this.props.showDeleteConfirmModal}
+                                    showDeleteConfirmModal={this.context.showDeleteConfirmModal}
                                 />
                             </View>
                         </View>
@@ -180,7 +171,7 @@ class ReportActionItem extends Component {
         );
     }
 }
-
+ReportActionItem.contextType = ContextMenuContext;
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
 
