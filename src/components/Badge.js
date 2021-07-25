@@ -57,7 +57,7 @@ const Badge = (props) => {
     );
 };
 
-Badge.displayName = 'EnvironmentBadge';
+Badge.displayName = 'Badge';
 Badge.propTypes = propTypes;
 Badge.defaultProps = defaultProps;
 export default Badge;
