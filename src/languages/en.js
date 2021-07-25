@@ -60,6 +60,11 @@ export default {
         noResultsFound: 'No results found',
         timePrefix: 'It\'s',
         conjunctionFor: 'for',
+        todayAt: 'Today at',
+        tomorrowAt: 'Tomorrow at',
+        yesterdayAt: 'Yesterday at',
+        conjunctionAt: 'at',
+
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
