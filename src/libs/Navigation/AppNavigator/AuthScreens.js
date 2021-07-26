@@ -151,14 +151,14 @@ class AuthScreens extends React.Component {
             User.subscribeToUserEvents();
         });
 
-        // Fetch some data we need on initialization
-        User.getBetas();
+        // Fetch main data we need on initialization for the LHN
         fetchAllReports(true, true);
-        PersonalDetails.fetchPersonalDetails();
-        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
 
         // Defer less critical API requests until after the sidebar loads
         App.onSidebarLoaded(() => {
+            User.getBetas();
+            PersonalDetails.fetchPersonalDetails();
+            NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
             NameValuePair.get(CONST.NVP.PREFERRED_LOCALE, ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
             User.getUserDetails();
             User.getDomainInfo();

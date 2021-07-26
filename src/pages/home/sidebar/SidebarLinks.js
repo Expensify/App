@@ -94,6 +94,18 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
+    constructor(props) {
+        super(props);
+        this.getItemLayout = this.getItemLayout.bind(this);
+    }
+
+    getItemLayout(data, index) {
+        const length = this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 52 : 64;
+        return (
+            {length, offset: length * index, index}
+        );
+    }
+
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
     }
@@ -180,6 +192,7 @@ class SidebarLinks extends React.Component {
                     disableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                     onLayout={App.setSidebarLoaded}
+                    getItemLayout={this.getItemLayout}
                 />
                 <KeyboardSpacer />
             </View>
