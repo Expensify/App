@@ -1647,10 +1647,11 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
         opacity: 0,
+        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {
