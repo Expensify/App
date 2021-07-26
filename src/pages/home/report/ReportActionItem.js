@@ -8,7 +8,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import {
     getReportActionItemStyle,
-    getMiniReportActionContextMenuWrapperStyle,
 } from '../../../styles/getReportActionItemStyles';
 import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
 import Hoverable from '../../../components/Hoverable';
@@ -135,7 +134,7 @@ class ReportActionItem extends Component {
                             <View
                                 style={getReportActionItemStyle(
                                     hovered
-                                    || this.context.isActionReportAction(this.props.action.reportActionID)
+                                    || this.context.isActiveReportAction(this.props.action.reportActionID)
                                     || this.props.draftMessage,
                                 )}
                             >
@@ -151,19 +150,19 @@ class ReportActionItem extends Component {
                                         </ReportActionItemGrouped>
                                     )}
                             </View>
-                            <View style={getMiniReportActionContextMenuWrapperStyle(this.props.displayAsGroup)}>
-                                <MiniReportActionContextMenu
-                                    reportID={this.props.reportID}
-                                    reportAction={this.props.action}
-                                    isVisible={
-                                        hovered
-                                        && !this.context.isActionReportAction(this.props.action.reportActionID)
-                                        && !this.props.draftMessage
-                                    }
-                                    draftMessage={this.props.draftMessage}
-                                    showDeleteConfirmModal={this.context.showDeleteConfirmModal}
-                                />
-                            </View>
+                            <MiniReportActionContextMenu
+                                reportID={this.props.reportID}
+                                reportAction={this.props.action}
+                                displayAsGroup={this.props.displayAsGroup}
+                                isVisible={
+                                    hovered
+                                    && !this.context.isActiveReportAction(this.props.action.reportActionID)
+                                    && !this.props.draftMessage
+                                }
+                                draftMessage={this.props.draftMessage}
+                                hidePopover={this.context.hideContextMenu}
+                                showDeleteConfirmModal={this.context.showDeleteConfirmModal}
+                            />
                         </View>
                     )}
                 </Hoverable>

@@ -13,22 +13,47 @@ import {
 } from '../../../../libs/actions/Report';
 import ContextMenuItem from '../../../../components/ContextMenuItem';
 import Clipboard from '../../../../libs/Clipboard';
-import {
-    propTypes as MiniReportActionContextMenuPropsTypes,
-    defaultProps as MiniReportActionContextMenuDefaultProps,
-} from './MiniReportActionContextMenu/MiniReportActionContextMenuPropsTypes';
 import {isReportMessageAttachment, canEditReportAction, canDeleteReportAction} from '../../../../libs/reportUtils';
-import withLocalize from '../../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
+import ReportActionPropTypes from '../ReportActionPropTypes';
 
 const propTypes = {
-    ...MiniReportActionContextMenuPropsTypes,
+    /** The ID of the report this report action is attached to. */
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportID: PropTypes.number.isRequired,
+
+    /** The report action this context menu is attached to. */
+    reportAction: PropTypes.shape(ReportActionPropTypes).isRequired,
+
+    /** If true, this component will be a small, row-oriented menu that displays icons but not text.
+    If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row. */
+    isMini: PropTypes.bool,
+
+    /** Controls the visibility of this component. */
+    isVisible: PropTypes.bool,
+
+    /** The copy selection of text. */
+    selection: PropTypes.string,
+
+    /** Draft message - if this is set the comment is in 'edit' mode */
+    draftMessage: PropTypes.string,
+
+    /** Function to show the delete Action confirmation modal */
+    showDeleteConfirmModal: PropTypes.func.isRequired,
 
     /** Function to dismiss the popover containing this menu */
     hidePopover: PropTypes.func.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
-const defaultProps = MiniReportActionContextMenuDefaultProps;
+const defaultProps = {
+    isMini: false,
+    isVisible: false,
+    selection: '',
+    draftMessage: '',
+};
 
 class ReportActionContextMenu extends React.Component {
     constructor(props) {
@@ -62,7 +87,9 @@ class ReportActionContextMenu extends React.Component {
                     } else {
                         Clipboard.setString(html);
                     }
-                    this.hidePopover(true, ReportActionComposeFocusManager.focus);
+                    if (!this.props.isMini) {
+                        this.hidePopover(true, ReportActionComposeFocusManager.focus);
+                    }
                 },
             },
 
@@ -81,7 +108,9 @@ class ReportActionContextMenu extends React.Component {
                 onPress: () => {
                     updateLastReadActionID(this.props.reportID, this.props.reportAction.sequenceNumber);
                     setNewMarkerPosition(this.props.reportID, this.props.reportAction.sequenceNumber);
-                    this.hidePopover(true, ReportActionComposeFocusManager.focus);
+                    if (!this.props.isMini) {
+                        this.hidePopover(true, ReportActionComposeFocusManager.focus);
+                    }
                 },
             },
 
@@ -96,8 +125,13 @@ class ReportActionContextMenu extends React.Component {
                         _.isEmpty(this.props.draftMessage) ? this.getActionText() : '',
                     );
 
-                    // Hide popover, then call editAction
-                    this.hidePopover(false, editAction);
+                    if (this.props.isMini) {
+                        // No popover to hide, call editAction immediately
+                        editAction();
+                    } else {
+                        // Hide popover, then call editAction
+                        this.hidePopover(false, editAction);
+                    }
                 },
             },
             {
@@ -105,14 +139,21 @@ class ReportActionContextMenu extends React.Component {
                 icon: Trashcan,
                 shouldShow: () => canDeleteReportAction(this.props.reportAction),
                 onPress: () => {
-                    // Hide popover, then call showDeleteConfirmModal
-                    this.hidePopover(
-                        false,
-                        () => this.props.showDeleteConfirmModal(this.props.reportID, this.props.reportAction),
-                    );
+                    if (this.props.isMini) {
+                        // No popover to hide, call showDeleteConfirmModal immediately
+                        this.props.showDeleteConfirmModal(this.props.reportID, this.props.reportAction);
+                    } else {
+                        // Hide popover, then call showDeleteConfirmModal
+                        this.hidePopover(
+                            false,
+                            () => this.props.showDeleteConfirmModal(this.props.reportID, this.props.reportAction),
+                        );
+                    }
                 },
             },
         ];
+
+        this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
     }
 
     /**
@@ -142,13 +183,14 @@ class ReportActionContextMenu extends React.Component {
 
     render() {
         return this.props.isVisible && (
-            <View style={getReportActionContextMenuStyles(false)}>
+            <View style={this.wrapperStyle}>
                 {this.contextActions.map(contextAction => _.result(contextAction, 'shouldShow', false) && (
                     <ContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
                         successIcon={contextAction.successIcon}
                         successText={contextAction.successText}
+                        isMini={this.props.isMini}
                         key={contextAction.text}
                         onPress={() => contextAction.onPress(this.props.reportAction)}
                     />

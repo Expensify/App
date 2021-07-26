@@ -3,7 +3,7 @@ import React from 'react';
 const ContextMenuContextDefaultValue = {
     showContextMenu: () => {},
     hideContextMenu: () => {},
-    isActionReportAction: () => {},
+    isActiveReportAction: () => {},
     showDeleteConfirmModal: () => {},
 };
 const ContextMenuContext = React.createContext(ContextMenuContextDefaultValue);

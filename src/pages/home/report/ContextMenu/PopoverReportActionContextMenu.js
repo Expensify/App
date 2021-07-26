@@ -51,14 +51,14 @@ class PopoverReportActionContextMenu extends React.Component {
         this.showDeleteConfirmModal = this.showDeleteConfirmModal.bind(this);
         this.contextMenuHidden = this.contextMenuHidden.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
-        this.isActionReportAction = this.isActionReportAction.bind(this);
+        this.isActiveReportAction = this.isActiveReportAction.bind(this);
     }
 
     componentDidMount() {
         this.props.setValue({
             showContextMenu: this.showContextMenu,
             hideContextMenu: this.hideContextMenu,
-            isActionReportAction: this.isActionReportAction,
+            isActiveReportAction: this.isActiveReportAction,
             showDeleteConfirmModal: this.showDeleteConfirmModal,
         });
         Dimensions.addEventListener('change', this.measureContextMenuAnchorPosition);
@@ -91,7 +91,7 @@ class PopoverReportActionContextMenu extends React.Component {
         });
     }
 
-    isActionReportAction(actionId) {
+    isActiveReportAction(actionId) {
         return this.state.reportAction.reportActionID === actionId;
     }
 
