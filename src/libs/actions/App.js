@@ -1,6 +1,8 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import Firebase from '../Firebase';
+import CONST from '../../CONST';
 
 let isSidebarLoaded;
 let sidebarLoadedCallback;
@@ -37,6 +39,7 @@ function setSidebarLoaded() {
 
     sidebarLoadedCallback();
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
+    Firebase.stopTrace(CONST.TIMING.SIDEBAR_LOADED);
 }
 
 export {

@@ -1,5 +1,6 @@
 import getPlatform from '../getPlatform';
 import {Graphite_Timer} from '../API';
+import {isDevelopment} from '../Environment/Environment';
 
 let timestampData = {};
 
@@ -26,17 +27,19 @@ function end(eventName, secondaryName = '') {
             : `expensify.cash.${eventName}`;
 
         console.debug(`Timing:${grafanaEventName}`, eventTime);
+        delete timestampData[eventName];
 
         // eslint-disable-next-line no-undef
-        if (!__DEV__) {
-            Graphite_Timer({
-                name: grafanaEventName,
-                value: eventTime,
-                platform: `${getPlatform()}`,
-            });
+        if (isDevelopment()) {
+            // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
+            return;
         }
 
-        delete timestampData[eventName];
+        Graphite_Timer({
+            name: grafanaEventName,
+            value: eventTime,
+            platform: `${getPlatform()}`,
+        });
     }
 }
 
