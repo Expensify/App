@@ -31,5 +31,6 @@ const MiniReportActionContextMenu = props => (
 
 MiniReportActionContextMenu.propTypes = propTypes;
 MiniReportActionContextMenu.defaultProps = defaultProps;
+MiniReportActionContextMenu.displayName = 'MiniReportActionContextMenu';
 
 export default withLocalize(MiniReportActionContextMenu);
