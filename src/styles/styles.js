@@ -469,6 +469,10 @@ const styles = {
     expensiTextInputDesktop: {
         outline: 'none',
     },
+    expensiTextInputAndroid: left => ({
+        padding: 0,
+        left,
+    }),
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
