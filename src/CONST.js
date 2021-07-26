@@ -193,6 +193,7 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
+        SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
     },

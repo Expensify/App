@@ -78,6 +78,9 @@ const propTypes = {
 
     /** Whether to disable the interactivity of the list's option row(s) */
     disableRowInteractivity: PropTypes.bool,
+
+    /** Callback to execute when the SectionList lays out */
+    onLayout: PropTypes.func,
 };
 
 const defaultProps = {
@@ -99,6 +102,7 @@ const defaultProps = {
     showTitleTooltip: false,
     optionMode: undefined,
     disableRowInteractivity: false,
+    onLayout: undefined,
 };
 
 class OptionsList extends Component {
@@ -228,6 +232,10 @@ class OptionsList extends Component {
                     renderItem={this.renderItem}
                     renderSectionHeader={this.renderSectionHeader}
                     extraData={this.props.focusedIndex}
+                    initialNumToRender={5}
+                    maxToRenderPerBatch={5}
+                    windowSize={5}
+                    onLayout={this.props.onLayout}
                 />
             </View>
         );

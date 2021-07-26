@@ -21,29 +21,39 @@ const propTypes = {
     session: PropTypes.shape({
         shouldShowComposeInput: PropTypes.bool,
     }),
+
+    /** Used to defer rendering the report view until after the sidebar has loaded */
+    isSidebarLoaded: PropTypes.bool,
 };
 
 const defaultProps = {
     session: {
         shouldShowComposeInput: true,
     },
+    isSidebarLoaded: false,
 };
 
-const ReportView = ({reportID, session}) => (
-    <View nativeID={CONST.REPORT.DROP_NATIVE_ID} key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
-        <ReportActionsView reportID={reportID} />
+const ReportView = ({reportID, session, isSidebarLoaded}) => {
+    if (!isSidebarLoaded) {
+        return null;
+    }
 
-        {session.shouldShowComposeInput && (
-            <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
-                <ReportActionCompose
-                    onSubmit={text => addAction(reportID, text)}
-                    reportID={reportID}
-                />
-            </SwipeableView>
-        )}
-        <KeyboardSpacer />
-    </View>
-);
+    return (
+        <View nativeID={CONST.REPORT.DROP_NATIVE_ID} key={reportID} style={[styles.flex1, styles.justifyContentEnd]}>
+            <ReportActionsView reportID={reportID} />
+
+            {session.shouldShowComposeInput && (
+                <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
+                    <ReportActionCompose
+                        onSubmit={text => addAction(reportID, text)}
+                        reportID={reportID}
+                    />
+                </SwipeableView>
+            )}
+            <KeyboardSpacer />
+        </View>
+    );
+};
 
 ReportView.propTypes = propTypes;
 ReportView.defaultProps = defaultProps;
@@ -51,5 +61,8 @@ ReportView.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
     },
 })(ReportView);
