@@ -69,6 +69,7 @@ const CONST = {
         VERIFICATION_MAX_ATTEMPTS: 7,
         STATE: {
             VERIFYING: 'VERIFYING',
+            PENDING: 'PENDING',
         },
     },
     INCORPORATION_TYPES: {
