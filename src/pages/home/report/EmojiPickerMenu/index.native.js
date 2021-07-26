@@ -58,7 +58,7 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <Text style={styles.emojiHeaderStyle}>
-                    {item.code}
+                    {`${item.code}\uFE0F`}
                 </Text>
             );
         }
@@ -66,7 +66,7 @@ class EmojiPickerMenu extends Component {
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
-                emoji={item.code}
+                emoji={`${item.code}\uFE0F`}
                 emojiSize={this.emojiSize}
             />
         );

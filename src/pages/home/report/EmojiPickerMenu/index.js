@@ -298,7 +298,9 @@ class EmojiPickerMenu extends Component {
     /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
-     * so that the sticky headers function properly
+     * so that the sticky headers function properly.
+     * We add '\uFE0F' to our unicode to force the correct emoji presentation (VS16)
+     * on emojis that also have a text style presentation (VS15).
      *
      * @param {Object} item
      * @param {Number} index
@@ -313,7 +315,7 @@ class EmojiPickerMenu extends Component {
         if (header) {
             return (
                 <Text style={styles.emojiHeaderStyle}>
-                    {code}
+                    {`${code}\uFE0F`}
                 </Text>
             );
         }
@@ -322,7 +324,7 @@ class EmojiPickerMenu extends Component {
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
                 onHover={() => this.setState({highlightedIndex: index})}
-                emoji={code}
+                emoji={`${code}\uFE0F`}
                 isHighlighted={index === this.state.highlightedIndex}
                 emojiSize={this.emojiSize}
             />
