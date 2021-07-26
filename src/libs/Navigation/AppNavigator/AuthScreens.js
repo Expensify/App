@@ -157,7 +157,7 @@ class AuthScreens extends React.Component {
         User.getUserDetails();
         User.getBetas();
         User.getDomainInfo();
-        PersonalDetails.fetchCurrencyPreferences();
+        PersonalDetails.fetchLocalCurrency();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
