@@ -137,7 +137,9 @@ class Expensify extends PureComponent {
             BootSplash.show({fade: true});
         }
 
-        if (this.getAuthToken() && !_.isEmpty(this.props.betas) && lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
+        if (this.getAuthToken()
+            && !_.isEmpty(this.props.betas)
+            && lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
             setRedirectToWorkspaceNewAfterSignIn(false);
             Navigation.navigate(ROUTES.WORKSPACE_NEW);
         }
