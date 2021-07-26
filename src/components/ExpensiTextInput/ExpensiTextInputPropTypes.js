@@ -23,7 +23,10 @@ const expensiTextInputPropTypes = {
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** label translate x */
-    translateX: PropTypes.string,
+    translateX: PropTypes.number,
+
+    /** android specific styles */
+    androidStyle: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default expensiTextInputPropTypes;

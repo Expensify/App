@@ -78,7 +78,7 @@ class ExpensiTextInput extends Component {
 
     render() {
         const {
-            label, value, placeholder, error, containerStyles, ...inputProps
+            label, value, placeholder, error, containerStyles, androidStyles, ...inputProps
         } = this.props;
         const {
             isFocused, labelTranslateY, labelTranslateX, labelScale,
@@ -109,8 +109,9 @@ class ExpensiTextInput extends Component {
                         onBlur={this.onBlur}
                         placeholder={isFocused || !label ? placeholder : null}
                         placeholderTextColor={themeColors.placeholderText}
-                        style={styles.expensiTextInput}
-                                // eslint-disable-next-line react/jsx-props-no-spreading
+                        underlineColorAndroid="transparent"
+                        style={[styles.expensiTextInput, androidStyles]}
+                        // eslint-disable-next-line
                         {...inputProps}
                     />
                 </>

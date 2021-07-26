@@ -94,7 +94,7 @@ const PreferencesPage = ({
                             />
                         </View>
                     </View>
-                    <View style={[styles.mb2]}>
+                    <View style={[styles.mb2, styles.w100]}>
                         <ExpensiPicker
                             label={translate('preferencesPage.priorityMode')}
                             onChange={
@@ -107,7 +107,7 @@ const PreferencesPage = ({
                     <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
                         {priorityModes[priorityMode].description}
                     </Text>
-                    <View style={[styles.mb2]}>
+                    <View style={[styles.mb2, styles.w100]}>
                         <ExpensiPicker
                             label={translate('preferencesPage.language')}
                             onChange={(locale) => {
