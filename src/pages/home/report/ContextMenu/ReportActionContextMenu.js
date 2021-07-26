@@ -105,10 +105,14 @@ class ReportActionContextMenu extends React.Component {
                         // No popover to hide, call showDeleteConfirmModal immediately
                         this.props.showDeleteConfirmModal(this.props.reportID, this.props.reportAction);
                     } else {
+                        // preserve the copy of props so that they don't reset on prop changes during hidePopover call
+                        const reportID = this.props.reportID;
+                        const reportAction = this.props.reportAction;
+
                         // Hide popover, then call showDeleteConfirmModal
                         this.hidePopover(
                             false,
-                            () => this.props.showDeleteConfirmModal(this.props.reportID, this.props.reportAction),
+                            () => this.props.showDeleteConfirmModal(reportID, reportAction),
                         );
                     }
                 },

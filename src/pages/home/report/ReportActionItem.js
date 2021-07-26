@@ -93,6 +93,10 @@ class ReportActionItem extends Component {
             this.props.reportID,
             this.props.action,
             this.props.draftMessage,
+            () => {
+                // ForceUpdate to hide the Mini menu when PopoverMenu is shown
+                this.forceUpdate();
+            },
         );
     }
 
@@ -158,6 +162,7 @@ class ReportActionItem extends Component {
                                     hovered
                                     && !this.context.isActiveReportAction(this.props.action.reportActionID)
                                     && !this.props.draftMessage
+
                                 }
                                 draftMessage={this.props.draftMessage}
                                 hidePopover={this.context.hideContextMenu}
