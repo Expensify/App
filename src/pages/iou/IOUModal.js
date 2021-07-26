@@ -289,9 +289,9 @@ class IOUModal extends Component {
                         </View>
                         <View style={[styles.pRelative, styles.flex1]}>
                             <FullScreenLoadingIndicator
-                                visible={!didScreenTransitionEnd || this.props.iou.isRetrievingCurrency}
+                                visible={!didScreenTransitionEnd}
                             />
-                            {didScreenTransitionEnd && !this.props.iou.isRetrievingCurrency && (
+                            {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
                                         <IOUAmountPage
