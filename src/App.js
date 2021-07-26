@@ -35,7 +35,7 @@ class App extends Component {
 
     handleAppStateChange(nextAppState) {
         if (nextAppState.match(/inactive|background/) && this.state.appState === 'active') {
-            Log.info('Flushing logs as app is going inactive', true);
+            Log.info('Flushing logs as app is going inactive', true, {}, true);
         }
         this.setState({appState: nextAppState});
     }
