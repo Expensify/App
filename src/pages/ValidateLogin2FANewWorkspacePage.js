@@ -3,6 +3,7 @@ import {TextInput, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
@@ -41,7 +42,7 @@ const defaultProps = {
         params: {},
     },
     session: {},
-    betas: null,
+    betas: [],
 };
 class ValidateLogin2FANewWorkspacePage extends Component {
     constructor(props) {
@@ -67,10 +68,10 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
 
-            if (this.props.betas) {
-                Navigation.navigate(ROUTES.WORKSPACE_NEW);
-            } else {
+            if (_.isEmpty(this.props.betas)) {
                 setRedirectToWorkspaceNewAfterSignIn(true);
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_NEW);
             }
         }
     }
