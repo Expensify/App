@@ -387,7 +387,8 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
+        offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
+        offlineMessage: 'Parece que estás desconectado.',
     },
     workspace: {
         common: {
