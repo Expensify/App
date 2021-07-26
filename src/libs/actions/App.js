@@ -37,7 +37,10 @@ function setSidebarLoaded() {
         return;
     }
 
-    sidebarLoadedCallback();
+    if (sidebarLoadedCallback) {
+        sidebarLoadedCallback();
+    }
+
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
     Firebase.stopTrace(CONST.TIMING.SIDEBAR_LOADED);
 }
