@@ -20,8 +20,7 @@ import CONST from '../../../CONST';
 import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Timing from '../../../libs/actions/Timing';
-
+import * as App from '../../../libs/actions/App';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -180,9 +179,7 @@ class SidebarLinks extends React.Component {
                     showTitleTooltip
                     disableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
-                    onLayout={() => {
-                        Timing.end(CONST.TIMING.SIDEBAR_LOADED);
-                    }}
+                    onLayout={App.setSidebarLoaded}
                 />
                 <KeyboardSpacer />
             </View>
