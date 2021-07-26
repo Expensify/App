@@ -79,7 +79,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * We calculate the achor coordinates from measureInWindow async method
      *
      * @returns {Promise<Object>}
-     * @memberof ReportActionItem
+     * @memberof PopoverReportActionContextMenu
      */
     getContextMenuMeasuredLocation() {
         return new Promise((res) => {
@@ -104,7 +104,8 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Number} reportID - Active Report Id
      * @param {Object} reportAction - ReportAction for ContextMenu
      * @param {String} draftMessage - ReportAction Draftmessage
-     * @memberof ReportActionsView
+     * @param {Function} [onShown=() => {}]
+     * @memberof PopoverReportActionContextMenu
      */
     showContextMenu(event, selection, contextMenuAnchor, reportID, reportAction, draftMessage) {
         const nativeEvent = event.nativeEvent || {};
@@ -170,7 +171,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * Used to calculate the Context Menu Dimensions
      *
      * @returns {JSX}
-     * @memberof ReportActionItem
+     * @memberof PopoverReportActionContextMenu
      */
     measureContent() {
         return (
@@ -198,7 +199,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * Opens the Confirm delete action modal
      * @param {Number} reportID
      * @param {Object} reportAction
-     * @memberof ReportActionsView
+     * @memberof PopoverReportActionContextMenu
      */
     showDeleteConfirmModal(reportID, reportAction) {
         this.setState({reportID, reportAction, isDeleteCommentConfirmModalVisible: true});
