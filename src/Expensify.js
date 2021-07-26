@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View, AppState} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 
 import BootSplash from './libs/BootSplash';
 import listenToStorageEvents from './libs/listenToStorageEvents';
@@ -83,7 +84,7 @@ const defaultProps = {
     },
     updateAvailable: false,
     initialReportDataLoaded: false,
-    betas: null,
+    betas: [],
 };
 
 class Expensify extends PureComponent {
@@ -136,7 +137,7 @@ class Expensify extends PureComponent {
             BootSplash.show({fade: true});
         }
 
-        if (this.getAuthToken() && this.props.betas && this.props.session.redirectToWorkspaceNewAfterSignIn) {
+        if (this.getAuthToken() && !_.isEmpty(this.props.betas) && lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
             setRedirectToWorkspaceNewAfterSignIn(false);
             Navigation.navigate(ROUTES.WORKSPACE_NEW);
         }

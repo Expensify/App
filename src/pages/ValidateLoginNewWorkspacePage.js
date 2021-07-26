@@ -2,12 +2,14 @@ import {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
+
 
 const propTypes = {
     /* Onyx Props */
@@ -30,7 +32,7 @@ const defaultProps = {
         params: {},
     },
     session: {},
-    betas: null,
+    betas: [],
 };
 class ValidateLoginNewWorkspacePage extends Component {
     componentDidMount() {
@@ -43,10 +45,10 @@ class ValidateLoginNewWorkspacePage extends Component {
             // by calling dismissModal(), the /v/... route is removed from history so the user will get taken to `/`
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
-            if (this.props.betas) {
-                Navigation.navigate(ROUTES.WORKSPACE_NEW);
-            } else {
+            if (_.isEmpty(this.props.betas)) {
                 setRedirectToWorkspaceNewAfterSignIn(true);
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_NEW);
             }
             return;
         }
