@@ -12,11 +12,11 @@ import {
     setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft,
 } from '../../../../libs/actions/Report';
 import ContextMenuItem from '../../../../components/ContextMenuItem';
+import ReportActionPropTypes from '../ReportActionPropTypes';
 import Clipboard from '../../../../libs/Clipboard';
 import {isReportMessageAttachment, canEditReportAction, canDeleteReportAction} from '../../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
-import ReportActionPropTypes from '../ReportActionPropTypes';
 
 const propTypes = {
     /** The ID of the report this report action is attached to. */
@@ -39,11 +39,11 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    /** Function to show the delete Action confirmation modal */
-    showDeleteConfirmModal: PropTypes.func.isRequired,
-
     /** Function to dismiss the popover containing this menu */
     hidePopover: PropTypes.func.isRequired,
+
+    /** Function to show the delete Action confirmation modal */
+    showDeleteConfirmModal: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
 };
