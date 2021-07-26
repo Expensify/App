@@ -27,11 +27,14 @@ function end(eventName, secondaryName = '') {
 
         console.debug(`Timing:${grafanaEventName}`, eventTime);
 
-        Graphite_Timer({
-            name: grafanaEventName,
-            value: eventTime,
-            platform: `${getPlatform()}`,
-        });
+        // eslint-disable-next-line no-undef
+        if (!__DEV__) {
+            Graphite_Timer({
+                name: grafanaEventName,
+                value: eventTime,
+                platform: `${getPlatform()}`,
+            });
+        }
 
         delete timestampData[eventName];
     }

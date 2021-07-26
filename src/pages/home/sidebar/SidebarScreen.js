@@ -47,6 +47,10 @@ class SidebarScreen extends Component {
         };
     }
 
+    componentDidMount() {
+        Timing.start(CONST.TIMING.SIDEBAR_LOADED);
+    }
+
     /**
      * Method called when a Create Menu item is selected.
      */

@@ -25,6 +25,7 @@ import {fetchCountryCodeByRequestIP} from '../../actions/GeoLocation';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
+import * as App from '../../actions/App';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
 import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
@@ -151,18 +152,21 @@ class AuthScreens extends React.Component {
         });
 
         // Fetch some data we need on initialization
-        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        NameValuePair.get(CONST.NVP.PREFERRED_LOCALE, ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
-        PersonalDetails.fetchPersonalDetails();
-        User.getUserDetails();
         User.getBetas();
-        User.getDomainInfo();
-        PersonalDetails.fetchLocalCurrency();
         fetchAllReports(true, true);
-        fetchCountryCodeByRequestIP();
-        UnreadIndicatorUpdater.listenForReportChanges();
+        PersonalDetails.fetchPersonalDetails();
+        NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
 
-        loadPoliciesBehindBeta(this.props.betas);
+        // Defer less critical API requests until after the sidebar loads
+        App.onSidebarLoaded(() => {
+            NameValuePair.get(CONST.NVP.PREFERRED_LOCALE, ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+            User.getUserDetails();
+            User.getDomainInfo();
+            PersonalDetails.fetchLocalCurrency();
+            fetchCountryCodeByRequestIP();
+            UnreadIndicatorUpdater.listenForReportChanges();
+            loadPoliciesBehindBeta(this.props.betas);
+        });
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
