@@ -25,8 +25,9 @@ class PopoverReportActionContextMenu extends React.Component {
         this.state = {
             reportID: 0,
             reportAction: {},
-            isPopoverVisible: false,
+            selection: '',
             reportActionDraftMessage: '',
+            isPopoverVisible: false,
             isDeleteCommentConfirmModalVisible: false,
             cursorRelativePosition: {
                 horizontal: 0,
@@ -38,7 +39,6 @@ class PopoverReportActionContextMenu extends React.Component {
                 horizontal: 0,
                 vertical: 0,
             },
-            selection: '',
         };
         this.onPopoverHide = () => {};
         this.contextMenuAchor = undefined;
@@ -104,10 +104,10 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Number} reportID - Active Report Id
      * @param {Object} reportAction - ReportAction for ContextMenu
      * @param {String} draftMessage - ReportAction Draftmessage
-     * @param {Function} [onShown=() => {}]
+     * @param {Function} [onShown=() => {}] - Run a callback when Menu is shown
      * @memberof PopoverReportActionContextMenu
      */
-    showContextMenu(event, selection, contextMenuAnchor, reportID, reportAction, draftMessage) {
+    showContextMenu(event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShown = () => {}) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAchor = contextMenuAnchor;
         this.getContextMenuMeasuredLocation().then(({x, y}) => {
@@ -125,7 +125,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection,
                 isPopoverVisible: true,
                 reportActionDraftMessage: draftMessage,
-            });
+            }, onShown);
         });
     }
 
@@ -164,7 +164,13 @@ class PopoverReportActionContextMenu extends React.Component {
         if (_.isFunction(onHideCallback)) {
             this.onPopoverHide = onHideCallback;
         }
-        this.setState({isPopoverVisible: false});
+        this.setState({
+            reportID: 0,
+            reportAction: {},
+            selection: '',
+            reportActionDraftMessage: '',
+            isPopoverVisible: false,
+        });
     }
 
     /**
@@ -192,7 +198,11 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     hideDeleteConfirmModal() {
-        this.setState({isDeleteCommentConfirmModalVisible: false});
+        this.setState({
+            reportID: 0,
+            reportAction: {},
+            isDeleteCommentConfirmModalVisible: false,
+        });
     }
 
     /**
