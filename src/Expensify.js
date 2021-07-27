@@ -70,6 +70,9 @@ const propTypes = {
 
     /** Whether the initial data needed to render the app is ready */
     initialReportDataLoaded: PropTypes.bool,
+
+    /** Tells us if the sidebar has rendered */
+    isSidebarLoaded: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -80,6 +83,7 @@ const defaultProps = {
     },
     updateAvailable: false,
     initialReportDataLoaded: false,
+    isSidebarLoaded: false,
 };
 
 class Expensify extends PureComponent {
@@ -135,7 +139,7 @@ class Expensify extends PureComponent {
             }
         }
 
-        if (this.getAuthToken() && this.props.initialReportDataLoaded) {
+        if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
             BootSplash.getVisibilityStatus()
                 .then((value) => {
                     if (value !== 'visible') {
@@ -195,5 +199,8 @@ export default withOnyx({
     },
     initialReportDataLoaded: {
         key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
+    },
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
     },
 })(Expensify);
