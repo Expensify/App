@@ -21,6 +21,7 @@ import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
+import Permissions from '../../libs/Permissions';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OptionRow from '../home/sidebar/OptionRow';
 
@@ -28,6 +29,9 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
+
+    /** List of betas */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
@@ -204,6 +208,10 @@ class WorkspacePeoplePage extends React.Component {
     }
 
     render() {
+        if (!Permissions.canUseFreePlan(this.props.betas)) {
+            console.debug('Not showing workspace people page because user is not on free plan beta');
+            return <Navigation.DismissModal />;
+        }
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
         const data = _.chain(policyEmployeeList)
             .map(email => this.props.personalDetails[email])
@@ -284,6 +292,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas : {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(WorkspacePeoplePage);
