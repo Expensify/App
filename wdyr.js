@@ -12,6 +12,7 @@ if (useWDYR && process.env.NODE_ENV === 'development') {
         // Include and exclude components to be tracked by their displayName here
         include: [
             /^Avatar/,
+            /^ReportActionItem/,
             /^ReportActionItemSingle/,
         ],
         exclude: [],
