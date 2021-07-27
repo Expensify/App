@@ -1647,10 +1647,11 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
         opacity: 0,
+        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {
@@ -1798,10 +1799,8 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-    communicationsLinkIcon: {
-        right: -36,
-        top: 0,
-        bottom: 0,
+    communicationsLinkHeight: {
+        height: 20,
     },
 };
 
