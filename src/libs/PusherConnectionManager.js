@@ -7,7 +7,6 @@ import Log from './Log';
 // reconnect each time when we only need to reconnect once. This way, if an authToken is expired and we try to
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
 const reauthenticate = _.throttle(() => {
-    Log.info('[Pusher] Re-authenticating and then reconnecting', true);
     API.reauthenticate('Push_Authenticate')
         .then(() => Pusher.reconnect())
         .catch(() => {
@@ -27,8 +26,6 @@ function init() {
      */
     Pusher.registerCustomAuthorizer(channel => ({
         authorize: (socketID, callback) => {
-            Log.info('[PusherConnectionManager] Attempting to authorize Pusher', true);
-
             API.Push_Authenticate({
                 socket_id: socketID,
                 channel_name: channel.name,
@@ -44,7 +41,6 @@ function init() {
                         return;
                     }
 
-                    Log.info('[PusherConnectionManager] Pusher authenticated successfully', true);
                     callback(null, data);
                 })
                 .catch((error) => {
@@ -65,12 +61,6 @@ function init() {
             case 'error':
                 Log.info('[PusherConnectionManager] error event', true, {error: data});
                 reauthenticate();
-                break;
-            case 'connected':
-                Log.info('[PusherConnectionManager] connected event', true);
-                break;
-            case 'disconnected':
-                Log.info('[PusherConnectionManager] disconnected event', true);
                 break;
             default:
                 break;

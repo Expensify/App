@@ -193,7 +193,6 @@ function subscribe(
             most likely has been called before Pusher.init()`);
         }
 
-        console.debug('[Pusher] Attempting to subscribe to channel', true, {channelName, eventName});
         let channel = getChannel(channelName);
 
         if (!channel || !channel.subscribed) {
