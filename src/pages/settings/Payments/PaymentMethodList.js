@@ -83,12 +83,15 @@ class PaymentMethodList extends Component {
         _.each(this.props.bankAccountList, (bankAccount) => {
             // Add all bank accounts besides the wallet
             if (bankAccount.type !== CONST.BANK_ACCOUNT_TYPES.WALLET) {
+                const formattedBankAccountNumber = bankAccount.accountNumber
+                    ? `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`
+                    : null;
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
                     title: bankAccount.addressName,
 
                     // eslint-disable-next-line
-                    description: `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`,
+                    description: formattedBankAccountNumber,
                     icon: Bank,
                     onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
@@ -99,12 +102,15 @@ class PaymentMethodList extends Component {
         _.each(this.props.cardList, (card) => {
             // Add all cards besides the "cash" card
             if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
+                const formattedCardNumber = card.cardNumber
+                    ? `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
+                    : null;
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
                     title: card.cardName,
 
                     // eslint-disable-next-line
-                    description: `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`,
+                    description: formattedCardNumber,
                     icon: CreditCard,
                     onPress: e => this.props.onPress(e, card.cardID),
                     key: `card-${card.cardID}`,
