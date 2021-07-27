@@ -128,6 +128,8 @@ class ReportActionItem extends Component {
                 onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
+                preventDefaultContentMenu={!this.props.draftMessage}
+
             >
                 <Hoverable resetsOnClickOutside={false}>
                     {hovered => (
