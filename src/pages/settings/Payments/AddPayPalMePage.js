@@ -103,7 +103,9 @@ class AddPayPalMePage extends React.Component {
                             onPress={this.setPayPalMeUsername}
                             pressOnEnter
                             style={[styles.mt3]}
-                            text={this.props.translate('addPayPalMePage.addPayPalAccount')}
+                            text={this.props.payPalMeUsername
+                                ? this.props.translate('addPayPalMePage.editPayPalAccount')
+                                : this.props.translate('addPayPalMePage.addPayPalAccount')}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>

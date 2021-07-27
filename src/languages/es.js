@@ -231,7 +231,8 @@ export default {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
-        addPayPalAccount: 'Agregar Cuenta de Paypal',
+        addPayPalAccount: 'Agregar Cuenta de PayPal',
+        editPayPalAccount: 'Actualizar Cuenta de PayPal',
     },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
