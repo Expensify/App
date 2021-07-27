@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import {addTrailingForwardSlash} from './libs/Url';
 import {GetAccountValidateCode} from './libs/API';
 import CONFIG from './CONFIG';
-import CONST from './CONST';
 import ONYXKEYS from './ONYXKEYS';
 
 /**
@@ -94,17 +93,21 @@ export default {
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     REQUEST_CALL: 'request-call',
+    VALIDATE_CODE_URL: (accountID, validateCode, exitTo = '') => {
+        const exitToURL = exitTo ? `?exitTo=${exitTo}` : '';
+        return `v/${accountID}/${validateCode}${exitToURL}`;
+    },
 
     /**
      * This links to a page in e.com ensuring the user is logged in.
      * It does so by getting a validate code and redirecting to the validate URL with exitTo set to the URL
      * we want to visit
-     * @param {string} url relative URL to open in expensify.com
+     * @param {string} url relative URL starting with `/` to open in expensify.com
      */
     openSignedInLink: (url) => {
         GetAccountValidateCode().then((response) => {
             Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM
-                + CONST.VALIDATE_CODE_URL(currentUserAccountID, response.validateCode, url));
+                + this.VALIDATE_CODE_URL(currentUserAccountID, response.validateCode, url));
         });
     },
 
