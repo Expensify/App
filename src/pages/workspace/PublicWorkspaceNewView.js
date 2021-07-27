@@ -1,8 +1,7 @@
 import React from 'react';
-import Onyx from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import ONYXKEYS from '../../ONYXKEYS';
 import SCREENS from '../../SCREENS';
+import {setRedirectToWorkspaceNewAfterSignIn} from '../../libs/actions/Session';
 
 const propTypes = {
     /** react-navigation navigation object available to screen components */
@@ -14,7 +13,7 @@ const propTypes = {
 
 class PublicWorkspaceNewView extends React.PureComponent {
     componentDidMount() {
-        Onyx.merge(ONYXKEYS.SESSION, {redirectToWorkspaceNewAfterSignIn: true});
+        setRedirectToWorkspaceNewAfterSignIn(true);
         this.props.navigation.replace(SCREENS.HOME);
     }
 

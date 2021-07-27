@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View, AppState} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 
 import BootSplash from './libs/BootSplash';
 import listenToStorageEvents from './libs/listenToStorageEvents';
@@ -21,6 +22,7 @@ import {growlRef} from './libs/Growl';
 import Navigation from './libs/Navigation/Navigation';
 import ROUTES from './ROUTES';
 import StartupTimer from './libs/StartupTimer';
+import {setRedirectToWorkspaceNewAfterSignIn} from './libs/actions/Session';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -69,6 +71,9 @@ const propTypes = {
 
     /** Whether the initial data needed to render the app is ready */
     initialReportDataLoaded: PropTypes.bool,
+
+    /** List of betas */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -79,6 +84,7 @@ const defaultProps = {
     },
     updateAvailable: false,
     initialReportDataLoaded: false,
+    betas: [],
 };
 
 class Expensify extends PureComponent {
@@ -129,9 +135,13 @@ class Expensify extends PureComponent {
         const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
         if (this.getAuthToken() && !previousAuthToken) {
             BootSplash.show({fade: true});
-            if (lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
-                Navigation.navigate(ROUTES.WORKSPACE_NEW);
-            }
+        }
+
+        if (this.getAuthToken()
+            && !_.isEmpty(this.props.betas)
+            && lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
+            setRedirectToWorkspaceNewAfterSignIn(false);
+            Navigation.navigate(ROUTES.WORKSPACE_NEW);
         }
 
         if (this.getAuthToken() && this.props.initialReportDataLoaded) {
@@ -187,6 +197,9 @@ Expensify.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
     },
     updateAvailable: {
         key: ONYXKEYS.UPDATE_AVAILABLE,

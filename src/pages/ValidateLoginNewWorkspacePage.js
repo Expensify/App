@@ -2,12 +2,14 @@ import {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import {continueSessionFromECom} from '../libs/actions/Session';
+import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
+
 
 const propTypes = {
     /* Onyx Props */
@@ -20,6 +22,9 @@ const propTypes = {
 
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
+
+    /** List of betas */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -27,6 +32,7 @@ const defaultProps = {
         params: {},
     },
     session: {},
+    betas: [],
 };
 class ValidateLoginNewWorkspacePage extends Component {
     componentDidMount() {
@@ -39,7 +45,11 @@ class ValidateLoginNewWorkspacePage extends Component {
             // by calling dismissModal(), the /v/... route is removed from history so the user will get taken to `/`
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
-            Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            if (_.isEmpty(this.props.betas)) {
+                setRedirectToWorkspaceNewAfterSignIn(true);
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            }
             return;
         }
 
@@ -62,6 +72,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ValidateLoginNewWorkspacePage);
