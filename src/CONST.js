@@ -125,10 +125,6 @@ const CONST = {
     LICENSES_URL: 'https://use.expensify.com/licenses',
     PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
     ADD_SECONDARY_LOGIN_URL: '/settings?param={%22section%22:%22account%22}',
-    VALIDATE_CODE_URL: (accountID, validateCode, exitTo = '') => {
-        const exitToURL = exitTo ? `?exitTo=${exitTo}` : '';
-        return `v/${accountID}/${validateCode}${exitToURL}`;
-    },
     MANAGE_CARDS_URL: '/domain_companycards',
     OPTION_TYPE: {
         REPORT: 'report',
