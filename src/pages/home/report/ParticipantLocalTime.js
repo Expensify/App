@@ -42,9 +42,14 @@ class ParticipantLocalTime extends React.Component {
 
     getParticipantLocalTime() {
         const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', {});
-        return moment().tz(reportRecipientTimezone.selected).format('LT');
-    }
+        const reportRecipientDay = moment().tz(reportRecipientTimezone.selected).format('dddd');
+        const currentUserDay = moment().tz(this.props.currentUserTimezone.selected).format('dddd');
 
+        if (reportRecipientDay !== currentUserDay) {
+            return `${moment().tz(reportRecipientTimezone.selected).format('LT')} ${reportRecipientDay}`;
+        }
+        return `${moment().tz(reportRecipientTimezone.selected).format('LT')}`;
+    }
 
     render() {
         // Moment.format does not return AM or PM values immediately.
