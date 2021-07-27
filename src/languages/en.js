@@ -240,6 +240,7 @@ export default {
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal Account',
+        editPayPalAccount: 'Update PayPal Account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
     },
     paymentsPage: {
