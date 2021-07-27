@@ -20,6 +20,13 @@ const propTypes = {
             reportID: PropTypes.string,
         }).isRequired,
     }).isRequired,
+
+    /** Tells us if the sidebar has rendered */
+    isSidebarLoaded: PropTypes.bool,
+};
+
+const defaultProps = {
+    isSidebarLoaded: false,
 };
 
 class ReportScreen extends React.Component {
@@ -86,7 +93,6 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        return null;
         if (!this.props.isSidebarLoaded) {
             return null;
         }
@@ -107,6 +113,8 @@ class ReportScreen extends React.Component {
 }
 
 ReportScreen.propTypes = propTypes;
+ReportScreen.defaultProps = defaultProps;
+
 export default withOnyx({
     isSidebarLoaded: {
         key: ONYXKEYS.IS_SIDEBAR_LOADED,
