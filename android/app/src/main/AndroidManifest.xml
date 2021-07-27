@@ -59,5 +59,8 @@
         </intent-filter>
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
+
+      <meta-data android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
+          android:value="com.expensify.chat.CustomAirshipExtender" />
     </application>
 </manifest>
