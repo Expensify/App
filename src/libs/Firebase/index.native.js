@@ -3,10 +3,15 @@ import {isDevelopment} from '../Environment/Environment';
 
 const traceMap = {};
 
+let start;
+let end;
+
 /**
  * @param {String} customEventName
  */
 function startTrace(customEventName) {
+    start = global.performance.now();
+
     if (isDevelopment()) {
         return;
     }
@@ -24,6 +29,9 @@ function startTrace(customEventName) {
  * @param {String} customEventName
  */
 function stopTrace(customEventName) {
+    end = global.performance.now();
+    console.debug('sidebar_loaded in ', end - start, ' ms');
+
     if (isDevelopment()) {
         return;
     }

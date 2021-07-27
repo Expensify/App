@@ -97,6 +97,12 @@ class SidebarLinks extends React.Component {
     constructor(props) {
         super(props);
         this.getItemLayout = this.getItemLayout.bind(this);
+        this.onSelectRow = this.onSelectRow.bind(this);
+    }
+
+    onSelectRow(option) {
+        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+        this.props.onLinkClick();
     }
 
     getItemLayout(data, index) {
@@ -182,10 +188,7 @@ class SidebarLinks extends React.Component {
                     focusedIndex={_.findIndex(recentReports, (
                         option => option.reportID === activeReportID
                     ))}
-                    onSelectRow={(option) => {
-                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-                        this.props.onLinkClick();
-                    }}
+                    onSelectRow={this.onSelectRow}
                     optionBackgroundColor={themeColors.sidebar}
                     hideSectionHeaders
                     showTitleTooltip
