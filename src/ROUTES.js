@@ -1,10 +1,5 @@
 import lodashGet from 'lodash/get';
-import {Linking} from 'react-native';
-import Onyx from 'react-native-onyx';
 import {addTrailingForwardSlash} from './libs/Url';
-import {GetAccountValidateCode} from './libs/API';
-import CONFIG from './CONFIG';
-import ONYXKEYS from './ONYXKEYS';
 
 /**
  * This is a file containing constants for all of the routes we want to be able to go to
