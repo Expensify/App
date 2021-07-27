@@ -19,14 +19,6 @@ const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 
-let currentUserAccountID;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        currentUserAccountID = lodashGet(val, 'accountID', '');
-    },
-});
-
 export default {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
@@ -96,19 +88,6 @@ export default {
     VALIDATE_CODE_URL: (accountID, validateCode, exitTo = '') => {
         const exitToURL = exitTo ? `?exitTo=${exitTo}` : '';
         return `v/${accountID}/${validateCode}${exitToURL}`;
-    },
-
-    /**
-     * This links to a page in e.com ensuring the user is logged in.
-     * It does so by getting a validate code and redirecting to the validate URL with exitTo set to the URL
-     * we want to visit
-     * @param {string} url relative URL starting with `/` to open in expensify.com
-     */
-    openSignedInLink: (url) => {
-        GetAccountValidateCode().then((response) => {
-            Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM
-                + this.VALIDATE_CODE_URL(currentUserAccountID, response.validateCode, url));
-        });
     },
 
     /**

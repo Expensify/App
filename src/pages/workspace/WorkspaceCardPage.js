@@ -21,6 +21,7 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import HeroCardWebImage from '../../../assets/images/cascading-cards-web.svg';
 import HeroCardMobileImage from '../../../assets/images/cascading-cards-mobile.svg';
+import {openSignedInLink} from '../../libs/actions/App';
 
 const propTypes = {
     /* Onyx Props */
@@ -80,9 +81,9 @@ const WorkspaceCardPage = ({
 
     const onPress = () => {
         if (user.isFromPublicDomain) {
-            ROUTES.openSignedInLink(CONST.ADD_SECONDARY_LOGIN_URL);
+            openSignedInLink(CONST.ADD_SECONDARY_LOGIN_URL);
         } else if (user.isUsingExpensifyCard) {
-            ROUTES.openSignedInLink(CONST.MANAGE_CARDS_URL);
+            openSignedInLink(CONST.MANAGE_CARDS_URL);
         } else {
             Navigation.navigate(ROUTES.getBankAccountRoute());
         }
