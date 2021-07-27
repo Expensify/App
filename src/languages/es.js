@@ -250,7 +250,7 @@ export default {
         },
     },
     signInPage: {
-        expensifyDotCash: 'New Expensify',
+        expensifyDotCash: 'Nuevo Expensify',
         expensifyIsOpenSource: 'New Expensify es open source',
         theCode: 'el código',
         openJobs: 'trabajos disponibles',
