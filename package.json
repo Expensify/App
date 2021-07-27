@@ -124,6 +124,7 @@
     "@testing-library/jest-native": "^3.4.2",
     "@testing-library/react-native": "^7.0.2",
     "@vercel/ncc": "^0.27.0",
+    "@welldone-software/why-did-you-render": "^6.2.0",
     "ajv-cli": "^5.0.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",
