@@ -100,6 +100,10 @@ class SidebarLinks extends React.Component {
         this.onSelectRow = this.onSelectRow.bind(this);
     }
 
+    shouldComponentUpdate(prevProps) {
+        return _.isEqual(prevProps, this.props);
+    }
+
     onSelectRow(option) {
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
         this.props.onLinkClick();
