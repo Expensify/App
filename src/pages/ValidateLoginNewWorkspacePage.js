@@ -10,7 +10,6 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
 
-
 const propTypes = {
     /* Onyx Props */
 
