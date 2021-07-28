@@ -63,6 +63,7 @@ class AttachmentModal extends PureComponent {
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
+        this.isValidSize = this.isValidSize.bind(this);
     }
 
     /**
@@ -79,6 +80,18 @@ class AttachmentModal extends PureComponent {
         }
 
         this.setState({isModalOpen: false});
+    }
+
+    /**
+     * Check if the attachment file is less than the API size limit.
+     * @param {Object} file 
+     * @returns {Boolean}
+     */
+    isValidSize(file) {
+        if (!file) {
+            return true;
+        }
+        return parseInt(file.size, 10) < CONST.API_MAX_ATTACHMENT_SIZE;
     }
 
     render() {
