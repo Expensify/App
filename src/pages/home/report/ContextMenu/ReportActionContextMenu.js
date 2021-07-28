@@ -11,7 +11,8 @@ const contextMenuRef = React.createRef();
  * @param {Number} reportID - Active Report Id
  * @param {Object} reportAction - ReportAction for ContextMenu
  * @param {String} draftMessage - ReportAction Draftmessage
- * @param {Function} [onShown=() => {}] - Run a callback when Menu is shown
+ * @param {Function} [onShow=() => {}] - Run a callback when Menu is shown
+ * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
  */
 function showContextMenu(
     event,
@@ -20,7 +21,8 @@ function showContextMenu(
     reportID,
     reportAction,
     draftMessage,
-    onShown = () => {},
+    onShow = () => {},
+    onHide = () => {},
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -32,7 +34,8 @@ function showContextMenu(
         reportID,
         reportAction,
         draftMessage,
-        onShown,
+        onShow,
+        onHide,
     );
 }
 
@@ -58,7 +61,7 @@ function hideDeleteModal() {
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.hideDeleteModal();
+    return contextMenuRef.current.hideDeleteModal();
 }
 
 /**
@@ -74,11 +77,17 @@ function showDeleteModal(reportID, reportAction) {
     contextMenuRef.current.showDeleteModal(reportID, reportAction);
 }
 
+/**
+ * Whether Context Menu is active for the Report Action.
+ *
+ * @param {Number|String} actionID
+ * @return {Boolean}
+ */
 function isActiveReportAction(actionID) {
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.isActiveReportAction(actionID);
+    return contextMenuRef.current.isActiveReportAction(actionID);
 }
 
 export {

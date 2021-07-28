@@ -222,6 +222,12 @@ class ReportActionsView extends React.Component {
         this.setState({contextMenuContext: value});
     }
 
+    /**
+     * Create a unique key for Each Action in the FlatList.
+     *
+     * @param {Object} item
+     * @return {String}
+     */
     keyExtractor(item) {
         return `${item.action.sequenceNumber}${item.action.clientID}`;
     }

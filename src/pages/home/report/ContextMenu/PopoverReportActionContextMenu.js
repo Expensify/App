@@ -94,11 +94,22 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Number} reportID - Active Report Id
      * @param {Object} reportAction - ReportAction for ContextMenu
      * @param {String} draftMessage - ReportAction Draftmessage
-     * @param {Function} [onShown=() => {}] - Run a callback when Menu is shown
+     * @param {Function} [onShow=() => {}] - Run a callback when Menu is shown
+     * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
      */
-    showContextMenu(event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShown = () => {}) {
+    showContextMenu(
+        event,
+        selection,
+        contextMenuAnchor,
+        reportID,
+        reportAction,
+        draftMessage,
+        onShow = () => {},
+        onHide = () => {},
+    ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
+        this.onPopoverHide = onHide;
         this.getContextMenuMeasuredLocation().then(({x, y}) => {
             this.setState({
                 cursorRelativePosition: {
@@ -114,7 +125,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection,
                 isPopoverVisible: true,
                 reportActionDraftMessage: draftMessage,
-            }, onShown);
+            }, onShow);
         });
     }
 
@@ -139,6 +150,7 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     runAfterContextMenuHide() {
+        console.debug('callback');
         this.onPopoverHide();
 
         // After we have called the action, reset it.
@@ -160,6 +172,7 @@ class PopoverReportActionContextMenu extends React.Component {
             reportActionDraftMessage: '',
             isPopoverVisible: false,
         });
+        console.debug('reset state');
     }
 
     /**
