@@ -275,6 +275,7 @@ class IOUConfirmationList extends Component {
                             onChangeText={this.props.onUpdateComment}
                             placeholder={this.props.translate('common.optional')}
                             placeholderTextColor={themeColors.placeholderText}
+                            autoFocus
                         />
                     </View>
                 </ScrollView>
