@@ -58,8 +58,6 @@ export default {
         send: 'Send',
         notifications: 'Notifications',
         noResultsFound: 'No results found',
-        timePrefix: 'It\'s',
-        conjunctionFor: 'for',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -110,6 +108,7 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
         roomIsArchived: 'This chat room has been deleted',
+        localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
     contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
