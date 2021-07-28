@@ -340,6 +340,64 @@ const styles = {
         },
     },
 
+    pickerSmall: {
+        inputIOS: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeSmall,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+        inputWeb: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            appearance: 'none',
+            height: variables.componentSizeSmall,
+            opacity: 1,
+            cursor: 'pointer',
+            backgroundColor: 'transparent',
+        },
+        inputAndroid: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeSmall,
+            opacity: 1,
+        },
+        iconContainer: {
+            top: 7,
+            right: 9,
+            pointerEvents: 'none',
+        },
+        icon: {
+            width: variables.iconSizeExtraSmall,
+            height: variables.iconSizeExtraSmall,
+        },
+    },
+
     badge: {
         backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
@@ -1646,10 +1704,11 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
         opacity: 0,
+        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {
@@ -1797,10 +1856,8 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-    communicationsLinkIcon: {
-        right: -36,
-        top: 0,
-        bottom: 0,
+    communicationsLinkHeight: {
+        height: 20,
     },
 };
 

@@ -95,6 +95,8 @@ const ReportActionItemSingle = ({
 
 ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
+ReportActionItemSingle.displayName = 'ReportActionItemSingle';
+
 export default compose(
     withLocalize,
     withOnyx({
