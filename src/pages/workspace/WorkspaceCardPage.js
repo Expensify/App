@@ -22,6 +22,7 @@ import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import HeroCardWebImage from '../../../assets/images/cascading-cards-web.svg';
 import HeroCardMobileImage from '../../../assets/images/cascading-cards-mobile.svg';
+import BankAccount from '../../libs/models/BankAccount';
 
 const propTypes = {
     /* Onyx Props */
@@ -70,13 +71,15 @@ const WorkspaceCardPage = ({
     isSmallScreenWidth,
     reimbursementAccount,
 }) => {
-    const isVerifying = lodashGet(reimbursementAccount, 'achData.state', '') === CONST.BANK_ACCOUNT.STATE.VERIFYING;
+    const isVerifying = lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.VERIFYING;
+    const isNotAutoProvisioned = !user.isUsingExpensifyCard
+        && lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.OPEN;
     let buttonText;
     if (user.isFromPublicDomain) {
         buttonText = translate('workspace.card.addEmail');
     } else if (user.isUsingExpensifyCard) {
         buttonText = translate('workspace.card.manageCards');
-    } else if (isVerifying) {
+    } else if (isVerifying || isNotAutoProvisioned) {
         buttonText = translate('workspace.card.finishSetup');
     } else {
         buttonText = translate('workspace.card.getStarted');
