@@ -74,8 +74,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             try {
                 JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
 
+                // Apply message style only for report comments
                 if (REPORT_COMMENT_TYPE.equals(payload.get(TYPE_KEY).getString())) {
-                        applyMessageStyle(builder, payload, arguments);
+                        applyMessageStyle(builder, payload, arguments.getNotificationId());
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Failed to parse conversation", e);
@@ -85,7 +86,15 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         return builder;
     }
 
-    private void applyMessageStyle(NotificationCompat.Builder builder, JsonMap payload, NotificationArguments arguments) {
+    /**
+     * Applies the message style to the notification builder. It also takes advantage of the
+     * notification cache to build conversations.
+     *
+     * @param builder Notification builder that will receive the message style
+     * @param payload Notification payload, which contains all the data we need to build the notifications.
+     * @param notificationID Current notification ID
+     */
+    private void applyMessageStyle(NotificationCompat.Builder builder, JsonMap payload, int notificationID) {
         int reportID = payload.get("reportID").getInt(-1);
         NotificationCache notificationCache = findOrCreateNotificationCache(reportID);
         JsonMap reportAction = payload.get("reportAction").getMap();
@@ -116,14 +125,22 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
         }
 
-        if (notificationCache.prevNotificationId != -1) {
-            NotificationManagerCompat.from(context).cancel(notificationCache.prevNotificationId);
+        if (notificationCache.prevNotificationID != -1) {
+            NotificationManagerCompat.from(context).cancel(notificationCache.prevNotificationID);
         }
 
         builder.setStyle(messagingStyle);
-        notificationCache.prevNotificationId = arguments.getNotificationId();
+        notificationCache.prevNotificationID = notificationID;
     }
 
+    /**
+     * Check if we are showing a notification related to a reportID.
+     * If not, create a new NotificationCache so we can build a conversation notification
+     * as the messages come.
+     *
+     * @param reportID Report ID.
+     * @return Notification Cache.
+     */
     private NotificationCache findOrCreateNotificationCache(int reportID) {
         NotificationCache notificationCache = cache.get(reportID);
 
@@ -135,6 +152,11 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         return notificationCache;
     }
 
+    /**
+     * Remove the notification data from the cache when the user dismisses the notification.
+     *
+     * @param message Push notification's message
+     */
     public void onDismissNotification(PushMessage message) {
         try {
             JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
@@ -190,7 +212,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     private static class NotificationCache {
         public Map<String, Person> people = new HashMap<>();
         public ArrayList<Message> messages = new ArrayList<>();
-        public int prevNotificationId = -1;
+        public int prevNotificationID = -1;
 
         public static class Message {
             public Person person;

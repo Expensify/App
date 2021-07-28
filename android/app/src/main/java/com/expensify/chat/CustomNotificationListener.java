@@ -9,6 +9,9 @@ import com.urbanairship.push.PushMessage;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Allows us to clear the notification cache when the user dismisses a notification.
+ */
 public class CustomNotificationListener implements NotificationListener {
     private final NotificationListener parent;
     private final CustomNotificationProvider provider;
