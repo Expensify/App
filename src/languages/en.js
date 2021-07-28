@@ -421,6 +421,9 @@ export default {
         electronicFundsInstantFee: '1.5%',
         electronicFundsInstantFeeMin: 'Min $0.25',
         noOverdraftOrCredit: 'No overdraft/credit feature.',
+        electronicFundsWithdrawal: 'Electronic Funds Withdrawal',
+        instant: 'Instant',
+        standard: 'Standard',
         shortTermsForm: {
             expensifyPaymentsAccount: 'The Expensify Payments Account is issues by The Bancorp Bank.',
             perPurchase: 'Per Purchase',
@@ -434,8 +437,6 @@ export default {
             automatedOrLive: 'Automated or live agent',
             afterTwelveMonths: 'After 12 months with no transactions',
             weChargeOneFee: 'We charge 1 type of fee.',
-            electronicFundsWithdrawal: 'Electronic Funds Withdrawal',
-            instant: 'Instant',
             fdicInsurance: 'Your funds are eligible for FDIC insurance.',
             generalInfo: 'For general information about prepaid accounts, visit',
             conditionsDetails: 'Find details and conditions for all fees and services by visiting',
@@ -455,11 +456,9 @@ export default {
             sendingFundsTitle: 'Sending funds to another account holder',
             sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, '
                 + 'bank account, or debit card.',
-            electronicFundsStandardTitle: 'Electronic funds withdrawal (standard)',
             electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Payments Account '
                 + 'to your bank account using the standard option. This transfer usually completes within 1-3 business'
                 + ' days.',
-            electronicFundsInstantTitle: 'Electronic funds withdrawal (instant)',
             electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Payments Account to '
                 + 'your linked debit card using the instant transfer option. This transfer usually completes within'
                 + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
