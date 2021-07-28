@@ -58,88 +58,171 @@ const termsData = [
     },
 ];
 
-const getTermsSection = () => termsData.map(data => (
-    <CollapsibleSection title={data.sectionTitle} key={data.sectionTitle}>
-        <View style={[styles.flex1, styles.flexRow, styles.borderBottom]}>
-            <View style={[styles.flex1, styles.borderRight, styles.alignItemsCenter, styles.pb2, styles.pt1]}>
-                <Text>{translateLocal('termsStep.longTermsForm.typeOfFeeHeader')}</Text>
-            </View>
-            <View style={[styles.flex1, styles.borderRight, styles.alignItemsCenter, styles.pb2, styles.pt1]}>
-                <Text>{translateLocal('termsStep.longTermsForm.feeAmountHeader')}</Text>
-            </View>
-            <View style={[styles.flex1, styles.alignItemsCenter, styles.pb2, styles.pt1]}>
-                <Text>{translateLocal('termsStep.longTermsForm.moreDetailsHeader')}</Text>
-            </View>
-        </View>
-        <View style={[styles.flex1, styles.flexRow, styles.mb4]}>
-            <View style={[styles.flex1, styles.borderRight, styles.pb1, styles.pt2, styles.termsTableItem]}>
-                <Text>{data.typeOfFee}</Text>
-            </View>
-            <View style={[styles.flex1, styles.borderRight, styles.pb1, styles.pt2, styles.termsTableItem]}>
-                <Text>{data.feeAmount}</Text>
-            </View>
-            <View style={[styles.flex1, styles.pb1, styles.pt2, styles.termsTableItem]}>
-                <Text>{data.moreDetails}</Text>
-            </View>
-        </View>
-    </CollapsibleSection>
-));
-
 const LongTermsForm = () => (
     <>
-        <View style={[styles.mt4, styles.pt4, styles.termsRow]}>
-            <Text style={styles.pb4}>
-                {translateLocal('termsStep.longTermsForm.listOfAllFees')}
-            </Text>
-            <View style={styles.termsSection} />
-            {getTermsSection()}
-        </View>
-        <CollapsibleSection title="More Information">
-            <View style={[styles.pl4, styles.pr4, styles.mb4]}>
-                <Text style={styles.mb4}>
-                    {translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')}
-                    {' '}
-                    <TextLink href="https://fdic.gov/deposit/deposits/prepaid.html">
-                        fdic.gov/deposit/deposits/prepaid.html
-                    </TextLink>
-                    {' '}
-                    {translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp2')}
+        <CollapsibleSection title={translateLocal('termsStep.longTermsForm.listOfAllFees')}>
+            <View style={[styles.shortTermsRow]}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.monthlyFee')}</Text>
+                </View>
+                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('termsStep.feeAmountZero')}
+                    </Text>
+                </View>
+            </View>
+            <View style={[styles.shortTermsRow]}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.shortTermsForm.perPurchase')}</Text>
+                </View>
+                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('termsStep.feeAmountZero')}
+                    </Text>
+                </View>
+            </View>
+            <View style={styles.shortTermsRow}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.shortTermsForm.atmWithdrawal')}</Text>
+                    <Text style={[styles.textMicroSupporting]}>
+                        {translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork')}
+                    </Text>
+                </View>
+                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('common.na')}
+                    </Text>
+                </View>
+            </View>
+            <View style={[styles.shortTermsRow]}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.shortTermsForm.cashReload')}</Text>
+                </View>
+                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('common.na')}
+                    </Text>
+                </View>
+            </View>
+            <View style={styles.shortTermsRow}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.shortTermsForm.atmBalanceInquiry')}</Text>
+                    <Text style={[styles.textMicroSupporting]}>
+                        {translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork')}
+                    </Text>
+                </View>
+                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('common.na')}
+                    </Text>
+                </View>
+            </View>
+            <View style={styles.shortTermsRow}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.shortTermsForm.customerService')}</Text>
+                    <Text style={[styles.textMicroSupporting]}>
+                        {translateLocal('termsStep.shortTermsForm.automatedOrLive')}
+                    </Text>
+                </View>
+                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('termsStep.feeAmountZero')}
+                    </Text>
+                </View>
+            </View>
+            <View style={styles.shortTermsRow}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.inactivity')}</Text>
+                    <Text style={[styles.textMicroSupporting]}>
+                        {translateLocal('termsStep.shortTermsForm.afterTwelveMonths')}
+                    </Text>
+                </View>
+                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('termsStep.feeAmountZero')}
+                    </Text>
+                </View>
+            </View>
+            <View style={styles.shortTermsBoldHeadingSection}>
+                <Text style={styles.textStrong}>
+                    {translateLocal('termsStep.shortTermsForm.weChargeOneFee')}
                 </Text>
-                <Text style={[styles.mb4, styles.textStrong]}>
+            </View>
+            <View style={styles.shortTermsRow}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.shortTermsForm.electronicFundsWithdrawal')}</Text>
+                    <Text style={styles.textMicroSupporting}>
+                        {translateLocal('termsStep.shortTermsForm.instant')}
+                    </Text>
+                </View>
+                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('termsStep.electronicFundsInstantFee')}
+                    </Text>
+                    <Text style={styles.textMicroSupporting}>
+                        {translateLocal('termsStep.electronicFundsInstantFeeMin')}
+                    </Text>
+                </View>
+            </View>
+            <View style={styles.shortTermsBoldHeadingSection}>
+                <Text style={[styles.textStrong, styles.mb3]}>
                     {translateLocal('termsStep.noOverdraftOrCredit')}
                 </Text>
-                <Text style={styles.mb4}>
-                    {translateLocal('termsStep.longTermsForm.contactExpensifyPayments')}
-                    {' '}
-                    <TextLink href="mailto:concierge@expensify.com">
-                        {CONST.EMAIL.CONCIERGE}
-                    </TextLink>
-                    {' '}
-                    {translateLocal('termsStep.longTermsForm.contactExpensifyPayments2')}
-                    {' '}
-                    <TextLink href="https://new.expensify.com">
-                        new.expensify.com
-                    </TextLink>
-                    .
+                <Text style={styles.mb3}>
+                    {translateLocal('termsStep.shortTermsForm.fdicInsurance')}
                 </Text>
-                <Text style={styles.mb4}>
-                    {translateLocal('termsStep.longTermsForm.generalInformation')}
+                <Text style={styles.mb3}>
+                    {translateLocal('termsStep.shortTermsForm.generalInfo')}
                     {' '}
                     <TextLink href="https://cfpb.gov/prepaid">
                         cfpb.gov/prepaid
                     </TextLink>
-                    {' '}
-                    {translateLocal('termsStep.longTermsForm.generalInformation2')}
-                    {' '}
-                    <TextLink href="https://cfpb.gov/complaint">
-                        cfpb.gov/complaint.
-                    </TextLink>
+                    .
                 </Text>
-                <TextLink href="https://expensify-use2.squarespace.com/fees">
-                    {translateLocal('termsStep.longTermsForm.printerFriendlyView')}
-                </TextLink>
+                <Text>
+                    {translateLocal('termsStep.shortTermsForm.conditionsDetails')}
+                    {' '}
+                    <TextLink href="https://use.expensify.com/fees">
+                        use.expensify.com/fees
+                    </TextLink>
+                    {' '}
+                    {translateLocal('termsStep.shortTermsForm.conditionsPhone')}
+                </Text>
             </View>
         </CollapsibleSection>
+
+        <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
+            {translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')}
+            {' '}
+            fdic.gov/deposit/deposits/prepaid.html
+            {' '}
+            {translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp2')}
+        </Text>
+        <Text style={[styles.mb4, styles.textMicroSupporting]}>
+            {translateLocal('termsStep.noOverdraftOrCredit')}
+        </Text>
+        <Text style={[styles.mb4, styles.textMicroSupporting]}>
+            {translateLocal('termsStep.longTermsForm.contactExpensifyPayments')}
+            {' '}
+            {CONST.EMAIL.CONCIERGE}
+            {' '}
+            {translateLocal('termsStep.longTermsForm.contactExpensifyPayments2')}
+            {' '}
+            new.expensify.com.
+        </Text>
+        <Text style={[styles.mb6, styles.textMicroSupporting]}>
+            {translateLocal('termsStep.longTermsForm.generalInformation')}
+            {' '}
+            cfpb.gov/prepaid
+            {' '}
+            {translateLocal('termsStep.longTermsForm.generalInformation2')}
+            {' '}
+            cfpb.gov/complaint.
+        </Text>
+
+        <TextLink href="https://expensify-use2.squarespace.com/fees">
+            {translateLocal('termsStep.longTermsForm.printerFriendlyView')}
+        </TextLink>
     </>
 );
 

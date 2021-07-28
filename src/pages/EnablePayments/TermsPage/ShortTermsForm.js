@@ -10,7 +10,7 @@ const ShortTermsForm = () => (
         <Text style={styles.mb5}>
             {translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount')}
         </Text>
-        <View style={[styles.border, styles.p2]}>
+        <View style={[styles.border, styles.p2, styles.mb6]}>
             <View style={[styles.shortTermsRow]}>
                 <View style={[styles.flex4]}>
                     <Text>{translateLocal('termsStep.monthlyFee')}</Text>
@@ -114,7 +114,7 @@ const ShortTermsForm = () => (
                     </Text>
                 </View>
             </View>
-            <View style={styles.shortTermsBoldHeadingSection}>
+            <View style={[styles.shortTermsBoldHeadingSection, styles.mb4]}>
                 <Text style={[styles.textStrong, styles.mb3]}>
                     {translateLocal('termsStep.noOverdraftOrCredit')}
                 </Text>
