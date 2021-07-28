@@ -32,8 +32,13 @@
             -webkit-user-select: none !important;
             -webkit-touch-callout: none !important;
         }
-        *:focus, *:focus-visible, [data-focusvisible-polyfill] {
-            outline: 1px solid #0185ff;
+        :focus-visible {
+            outline: 0;
+            box-shadow: 0px 0px 0px 1px #0185ff;
+        }
+        :focus[data-focusvisible-polyfill] {
+            outline: 0;
+            box-shadow: 0px 0px 0px 1px #0185ff;
         }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
