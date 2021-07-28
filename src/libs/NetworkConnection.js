@@ -49,6 +49,8 @@ function setOfflineStatus(isCurrentlyOffline) {
  * `disconnected` event which takes about 10-15 seconds to emit.
  */
 function listenForReconnect() {
+    logInfo('[NetworkConnection] listenForReconnect called', true);
+
     unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
         triggerReconnectionCallbacks('app became active');
     });
@@ -56,6 +58,7 @@ function listenForReconnect() {
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     unsubscribeFromNetInfo = NetInfo.addEventListener((state) => {
+        logInfo(`[NetworkConnection] NetInfo isConnected: ${state && state.isConnected}`);
         setOfflineStatus(!state.isConnected);
     });
 }
@@ -64,6 +67,7 @@ function listenForReconnect() {
  * Tear down the event listeners when we are finished with them.
  */
 function stopListeningForReconnect() {
+    logInfo('[NetworkConnection] stopListeningForReconnect called', true);
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
         unsubscribeFromNetInfo = undefined;
