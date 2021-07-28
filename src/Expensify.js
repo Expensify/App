@@ -43,6 +43,9 @@ const propTypes = {
     /** Whether the initial data needed to render the app is ready */
     initialReportDataLoaded: PropTypes.bool,
 
+    /** Tells us if the sidebar has rendered */
+    isSidebarLoaded: PropTypes.bool,
+
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string),
 };
@@ -55,6 +58,7 @@ const defaultProps = {
     },
     updateAvailable: false,
     initialReportDataLoaded: false,
+    isSidebarLoaded: false,
     betas: [],
 };
 
@@ -115,7 +119,7 @@ class Expensify extends PureComponent {
             Navigation.navigate(ROUTES.WORKSPACE_NEW);
         }
 
-        if (this.getAuthToken() && this.props.initialReportDataLoaded) {
+        if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
             BootSplash.getVisibilityStatus()
                 .then((value) => {
                     if (value !== 'visible') {
@@ -178,5 +182,8 @@ export default withOnyx({
     },
     initialReportDataLoaded: {
         key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
+    },
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
     },
 })(Expensify);
