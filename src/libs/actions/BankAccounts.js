@@ -9,7 +9,6 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
-import Navigation from '../Navigation/Navigation';
 import {translateLocal} from '../translate';
 
 /**
@@ -552,7 +551,11 @@ function validateBankAccount(bankAccountID, validateCode) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 3000);
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: ''});
+                API.User_IsUsingExpensifyCard()
+                    .then(({isUsingExpensifyCard}) => {
+                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
+                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: ''});
+                    });
                 return;
             }
 
