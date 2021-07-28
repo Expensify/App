@@ -11,15 +11,25 @@ const ShortTermsForm = () => (
             <Text style={styles.mb5}>
                 {translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount')}
             </Text>
-            <View style={[styles.border, styles.pl4, styles.pr4]}>
-                <View style={[styles.flexRow, styles.pt4, styles.pb4]}>
+            <View style={[styles.border, styles.p4]}>
+                <View style={[styles.shortTermsRow]}>
+                    <View style={[styles.flex4]}>
+                        <Text>{translateLocal('termsStep.monthlyFee')}</Text>
+                    </View>
+                    <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                        <Text style={styles.textStrong}>
+                            {translateLocal('termsStep.feeAmountZero')}
+                        </Text>
+                    </View>
+                </View>
+                <View style={styles.shortTermsRow}>
                     <View style={[styles.flex4]}>
                         <Text>{translateLocal('termsStep.shortTermsForm.atmBalanceInquiry')}</Text>
                         <Text style={[styles.textMicro]}>
                             {translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork')}
                         </Text>
                     </View>
-                    <View style={[styles.flex1, styles.termsCenterRight]}>
+                    <View style={[styles.flex1, styles.shortTermsCenterRight]}>
                         <Text style={styles.textStrong}>
                             {translateLocal('common.na')}
                         </Text>
