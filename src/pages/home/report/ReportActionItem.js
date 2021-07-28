@@ -55,9 +55,6 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    /** Runs when the view enclosing the chat message lays out indicating it has rendered */
-    onLayout: PropTypes.func.isRequired,
-
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -276,6 +273,7 @@ class ReportActionItem extends Component {
                     onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onSecondaryInteraction={this.showPopover}
+                    preventDefaultContentMenu={!this.props.draftMessage}
                 >
                     <Hoverable resetsOnClickOutside={false}>
                         {hovered => (
@@ -289,7 +287,6 @@ class ReportActionItem extends Component {
                                         || this.state.isPopoverVisible
                                         || this.props.draftMessage,
                                     )}
-                                    onLayout={this.props.onLayout}
                                 >
                                     {!this.props.displayAsGroup
                                         ? (

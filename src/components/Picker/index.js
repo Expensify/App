@@ -13,19 +13,29 @@ const Picker = ({
     value,
     icon,
     disabled,
-}) => (
-    <RNPickerSelect
-        onValueChange={onChange}
-        items={items}
-        style={useDisabledStyles ? pickerDisabledStyles : styles.picker}
-        useNativeAndroidPickerStyle={false}
-        placeholder={placeholder}
-        value={value}
-        Icon={icon}
-        disabled={disabled}
-        fixAndroidTouchableBug
-    />
-);
+    size,
+}) => {
+    let pickerStyles;
+    if (size === 'small') {
+        pickerStyles = styles.pickerSmall;
+    } else {
+        pickerStyles = useDisabledStyles ? pickerDisabledStyles : styles.picker;
+    }
+
+    return (
+        <RNPickerSelect
+            onValueChange={onChange}
+            items={items}
+            style={pickerStyles}
+            useNativeAndroidPickerStyle={false}
+            placeholder={placeholder}
+            value={value}
+            Icon={() => icon(size)}
+            disabled={disabled}
+            fixAndroidTouchableBug
+        />
+    );
+};
 
 Picker.propTypes = pickerPropTypes.propTypes;
 Picker.defaultProps = pickerPropTypes.defaultProps;

@@ -24,6 +24,7 @@ const CONST = {
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
+            EXISTING_OWNERS: '402 Existing Owners',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -83,6 +84,7 @@ const CONST = {
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
+        INTERNATIONALIZATION: 'internationalization',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -139,6 +141,9 @@ const CONST = {
                 ADDCOMMENT: 'ADDCOMMENT',
             },
         },
+        ERROR: {
+            INACCESSIBLE_REPORT: 'Report not found',
+        },
         MESSAGE: {
             TYPE: {
                 COMMENT: 'COMMENT',
@@ -189,6 +194,7 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
+        SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
     },
@@ -197,7 +203,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     ERROR: {
-        API_OFFLINE: 'session.offlineMessage',
+        API_OFFLINE: 'session.offlineMessageRetry',
     },
     NETWORK: {
         METHOD: {
@@ -213,6 +219,7 @@ const CONST = {
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
         FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
         BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
+        PREFERRED_LOCALE: 'preferredLocale',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},

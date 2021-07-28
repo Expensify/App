@@ -19,19 +19,11 @@ import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
-
-    // User's currency preference
-    selectedCurrency: PropTypes.shape({
-        // Currency code for the selected currency
-        currencyCode: PropTypes.string,
-
-        // Currency symbol for the selected currency
-        currencySymbol: PropTypes.string,
-    }).isRequired,
 
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
@@ -80,20 +72,33 @@ const propTypes = {
 
         /** Primary login of the user */
         login: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** Holds data related to IOU view state, rather than the underlying IOU data. */
     iou: PropTypes.shape({
 
         /** Whether or not the IOU step is loading (creating the IOU Report) */
         loading: PropTypes.bool,
+
+        // Selected Currency Code of the current IOU
+        selectedCurrencyCode: PropTypes.string,
+    }),
+
+    /** Information about the network */
+    network: PropTypes.shape({
+        /** Is the network currently offline or not */
+        isOffline: PropTypes.bool,
     }),
 };
 
 const defaultProps = {
-    iou: {},
+    iou: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    },
     onUpdateComment: null,
     comment: '',
+    network: {},
+    myPersonalDetails: {},
 };
 
 // Gives minimum height to offset the height of
@@ -115,14 +120,14 @@ class IOUConfirmationList extends Component {
                 this.props.myPersonalDetails,
                 this.props.numberFormat(this.calculateAmount() / 100, {
                     style: 'currency',
-                    currency: this.props.selectedCurrency.currencyCode,
+                    currency: this.props.iou.selectedCurrencyCode,
                 }),
             );
 
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
                 this.props.numberFormat(this.calculateAmount() / 100, {
                     style: 'currency',
-                    currency: this.props.selectedCurrency.currencyCode,
+                    currency: this.props.iou.selectedCurrencyCode,
                 }));
 
             sections.push({
@@ -141,7 +146,7 @@ class IOUConfirmationList extends Component {
             const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
                 this.props.numberFormat(this.props.iouAmount, {
                     style: 'currency',
-                    currency: this.props.selectedCurrency.currencyCode,
+                    currency: this.props.iou.selectedCurrencyCode,
                 }));
 
             sections.push({
@@ -237,7 +242,7 @@ class IOUConfirmationList extends Component {
             this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
                 amount: this.props.numberFormat(
                     this.props.iouAmount,
-                    {style: 'currency', currency: this.props.selectedCurrency.currencyCode},
+                    {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
                 ),
             },
         );
@@ -270,14 +275,21 @@ class IOUConfirmationList extends Component {
                             onChangeText={this.props.onUpdateComment}
                             placeholder={this.props.translate('common.optional')}
                             placeholderTextColor={themeColors.placeholderText}
+                            autoFocus
                         />
                     </View>
                 </ScrollView>
                 <FixedFooter>
+                    {this.props.network.isOffline && (
+                        <Text style={[styles.formError, styles.pb2]}>
+                            {this.props.translate('session.offlineMessage')}
+                        </Text>
+                    )}
                     <Button
                         success
+                        isDisabled={this.props.network.isOffline}
                         style={[styles.w100]}
-                        isLoading={this.props.iou.loading}
+                        isLoading={this.props.iou.loading && !this.props.network.isOffline}
                         text={buttonText}
                         onPress={() => this.props.onConfirm(this.getSplits())}
                         pressOnEnter
@@ -300,6 +312,9 @@ export default compose(
         iou: {key: ONYXKEYS.IOU},
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
         },
     }),
 )(IOUConfirmationList);
