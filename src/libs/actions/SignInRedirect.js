@@ -21,7 +21,7 @@ Onyx.connect({
 
 let currentPreferredLocale;
 Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: val => currentPreferredLocale = val,
 });
 
@@ -51,7 +51,7 @@ function redirectToSignIn(errorMessage) {
         .then(() => {
             Onyx.clear().then(() => {
                 if (preferredLocale) {
-                    Onyx.set(ONYXKEYS.PREFERRED_LOCALE, preferredLocale);
+                    Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
                 }
                 if (errorMessage) {
                     Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
