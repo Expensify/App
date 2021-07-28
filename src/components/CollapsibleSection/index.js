@@ -37,7 +37,7 @@ class CollapsibleSection extends React.Component {
                     </Text>
                     <Icon src={src} />
                 </TouchableOpacity>
-                <View style={styles.termsSection} />
+                <View style={styles.collapsibleSectionBorder} />
 
                 <Collapsible isOpened={this.state.isExpanded}>
                     <View>

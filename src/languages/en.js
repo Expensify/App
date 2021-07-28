@@ -472,7 +472,7 @@ export default {
             generalInformation: 'For general information about prepaid accounts, visit',
             generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial '
                 + 'Protection Bureau at 1-855-411-2372 or visit',
-            printerFriendlyView: 'Printer Friendly View',
+            printerFriendlyView: 'View printer-friendly version',
             automated: 'Automated',
             liveAgent: 'Live Agent',
         },

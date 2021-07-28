@@ -6,53 +6,8 @@ import CollapsibleSection from '../../../components/CollapsibleSection';
 import {translateLocal} from '../../../libs/translate';
 import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
-
-const termsData = [
-    {
-        sectionTitle: translateLocal('termsStep.longTermsForm.openingAccountTitle'),
-        typeOfFee: translateLocal('termsStep.longTermsForm.openingAccountTitle'),
-        feeAmount: translateLocal('termsStep.feeAmountZero'),
-        moreDetails: translateLocal('termsStep.longTermsForm.openingAccountDetails'),
-    },
-    {
-        sectionTitle: translateLocal('termsStep.monthlyFee'),
-        typeOfFee: translateLocal('termsStep.monthlyFee'),
-        feeAmount: translateLocal('termsStep.feeAmountZero'),
-        moreDetails: translateLocal('termsStep.longTermsForm.monthlyFeeDetails'),
-    },
-    {
-        feeAmount: translateLocal('termsStep.feeAmountZero'),
-        moreDetails: translateLocal('termsStep.longTermsForm.customerServiceDetails'),
-    },
-    {
-        feeAmount: translateLocal('termsStep.feeAmountZero'),
-        moreDetails: translateLocal('termsStep.longTermsForm.customerServiceDetails'),
-    },
-    {
-        sectionTitle: translateLocal('termsStep.inactivity'),
-        typeOfFee: translateLocal('termsStep.inactivity'),
-        feeAmount: translateLocal('termsStep.feeAmountZero'),
-        moreDetails: translateLocal('termsStep.longTermsForm.inactivityDetails'),
-    },
-    {
-        sectionTitle: translateLocal('termsStep.longTermsForm.sendingFundsTitle'),
-        typeOfFee: translateLocal('termsStep.longTermsForm.sendingFundsTitle'),
-        feeAmount: translateLocal('termsStep.feeAmountZero'),
-        moreDetails: translateLocal('termsStep.longTermsForm.sendingFundsDetails'),
-    },
-    {
-        sectionTitle: translateLocal('termsStep.longTermsForm.electronicFundsStandardTitle'),
-        typeOfFee: translateLocal('termsStep.longTermsForm.electronicFundsStandardTitle'),
-        feeAmount: translateLocal('termsStep.feeAmountZero'),
-        moreDetails: translateLocal('termsStep.longTermsForm.electronicFundsStandardDetails'),
-    },
-    {
-        sectionTitle: translateLocal('termsStep.longTermsForm.electronicFundsInstantTitle'),
-        typeOfFee: translateLocal('termsStep.longTermsForm.electronicFundsInstantTitle'),
-        feeAmount: translateLocal('termsStep.electronicFundsInstantFee'),
-        moreDetails: translateLocal('termsStep.longTermsForm.electronicFundsInstantDetails'),
-    },
-];
+import Icon from '../../../components/Icon';
+import {Receipt} from '../../../components/Icon/Expensicons';
 
 const LongTermsForm = () => (
     <>
@@ -210,9 +165,13 @@ const LongTermsForm = () => (
             cfpb.gov/complaint.
         </Text>
 
-        <TextLink href="https://expensify-use2.squarespace.com/fees">
-            {translateLocal('termsStep.longTermsForm.printerFriendlyView')}
-        </TextLink>
+        <View style={styles.flexRow}>
+            {/* TODO: Get printer icon */}
+            <Icon style={styles.flex1} src={Receipt} />
+            <TextLink style={styles.ml1} href="https://expensify-use2.squarespace.com/fees">
+                {translateLocal('termsStep.longTermsForm.printerFriendlyView')}
+            </TextLink>
+        </View>
     </>
 );
 

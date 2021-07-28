@@ -1882,12 +1882,7 @@ const styles = {
         borderTopColor: themeColors.shadow,
     },
 
-    termsTableItem: {
-        textAlign: 'center',
-        alignItems: 'center',
-    },
-
-    termsSection: {
+    collapsibleSectionBorder: {
         borderBottomWidth: 2,
         borderBottomColor: themeColors.border,
     },
