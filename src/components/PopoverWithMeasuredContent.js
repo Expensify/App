@@ -55,6 +55,7 @@ class PopoverWithMeasuredContent extends Component {
 
         this.state = {
             isContentMeasured: false,
+            isVisible: false,
         };
 
         this.popoverWidth = 0;
@@ -62,6 +63,17 @@ class PopoverWithMeasuredContent extends Component {
 
         this.measurePopover = this.measurePopover.bind(this);
         this.setContentMeasured = this.setContentMeasured.bind(this);
+    }
+
+    static getDerivedStateFromProps(props, state) {
+        // When Popover is shown recalculate
+        if (!state.isVisible && props.isVisible) {
+            return {isContentMeasured: false, isVisible: true};
+        }
+        if (!props.isVisible) {
+            return {isVisible: false};
+        }
+        return null;
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -77,13 +89,6 @@ class PopoverWithMeasuredContent extends Component {
             _.omit(this.props, ['windowWidth', 'windowHeight']),
             _.omit(nextProps, ['windowWidth', 'windowHeight']),
         ) || !_.isEqual(this.state, nextState);
-    }
-
-    componentDidUpdate(prevProps) {
-        // When Popover is shown recalculate
-        if (!prevProps.isVisible && this.props.isVisible) {
-            this.setContentMeasured(false);
-        }
     }
 
     setContentMeasured(isContentMeasured) {
@@ -144,6 +149,7 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     render() {
+        console.debug('render');
         const adjustedAnchorPosition = this.calculateAdjustedAnchorPosition();
         const horizontalShift = computeHorizontalShift(
             adjustedAnchorPosition.left,

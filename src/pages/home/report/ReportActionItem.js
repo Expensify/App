@@ -63,19 +63,21 @@ class ReportActionItem extends Component {
     constructor(props) {
         super(props);
         this.popoverAnchor = undefined;
-        this.showPopover = this.showPopover.bind(this);
         this.state = {
             isContextMenuActive: isActiveReportAction(props.action.reportActionID),
         };
+        this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
+        this.showPopover = this.showPopover.bind(this);
     }
 
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         return this.props.displayAsGroup !== nextProps.displayAsGroup
             || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
-            || !_.isEqual(this.props.action, nextProps.action);
+            || !_.isEqual(this.props.action, nextProps.action)
+            || this.state.isContextMenuActive !== nextState.isContextMenuActive;
     }
 
     /**
@@ -96,11 +98,13 @@ class ReportActionItem extends Component {
             this.props.reportID,
             this.props.action,
             this.props.draftMessage,
-            () => {
-                // Update to hide the Mini menu when PopoverMenu is shown
-                this.setState({isContextMenuActive: isActiveReportAction(this.props.action.reportActionID)});
-            },
+            this.checkIfContextMenuActive,
+            this.checkIfContextMenuActive,
         );
+    }
+
+    checkIfContextMenuActive() {
+        this.setState({isContextMenuActive: isActiveReportAction(this.props.action.reportActionID)});
     }
 
     render() {
