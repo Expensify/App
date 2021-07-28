@@ -2,19 +2,16 @@ import React from 'react';
 import {
     Dimensions,
 } from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {
     deleteReportComment,
 } from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
-import ReportActionContextMenu from './ReportActionContextMenu';
+import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
 
 const propTypes = {
-    /** Update the callbacks on ContextMenu Context */
-    setValue: PropTypes.func.isRequired,
     ...withLocalizePropTypes,
 };
 
@@ -55,12 +52,6 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     componentDidMount() {
-        this.props.setValue({
-            showContextMenu: this.showContextMenu,
-            hideContextMenu: this.hideContextMenu,
-            isActiveReportAction: this.isActiveReportAction,
-            showDeleteConfirmModal: this.showDeleteConfirmModal,
-        });
         Dimensions.addEventListener('change', this.measureContextMenuAnchorPosition);
     }
 
@@ -181,7 +172,7 @@ class PopoverReportActionContextMenu extends React.Component {
      */
     measureContent() {
         return (
-            <ReportActionContextMenu
+            <BaseReportActionContextMenu
                 isVisible
                 selection={this.state.selection}
                 reportID={this.state.reportID}
@@ -229,7 +220,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     shouldSetModalVisibility={false}
                     fullscreen={false}
                 >
-                    <ReportActionContextMenu
+                    <BaseReportActionContextMenu
                         isVisible
                         reportID={this.state.reportID}
                         reportAction={this.state.reportAction}
