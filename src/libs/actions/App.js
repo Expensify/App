@@ -5,7 +5,6 @@ import Firebase from '../Firebase';
 import CONST from '../../CONST';
 
 let isSidebarLoaded;
-let sidebarLoadedCallback;
 
 Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
@@ -28,17 +27,9 @@ function setLocale(locale) {
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
-function onSidebarLoaded(callback) {
-    sidebarLoadedCallback = callback;
-}
-
 function setSidebarLoaded() {
     if (isSidebarLoaded) {
         return;
-    }
-
-    if (sidebarLoadedCallback) {
-        sidebarLoadedCallback();
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
@@ -49,5 +40,4 @@ export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
-    onSidebarLoaded,
 };

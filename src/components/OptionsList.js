@@ -81,9 +81,6 @@ const propTypes = {
 
     /** Callback to execute when the SectionList lays out */
     onLayout: PropTypes.func,
-
-    /** Peformance optimization used when rows have a fixed height */
-    getItemLayout: PropTypes.func,
 };
 
 const defaultProps = {
@@ -106,7 +103,6 @@ const defaultProps = {
     optionMode: undefined,
     disableRowInteractivity: false,
     onLayout: undefined,
-    getItemLayout: undefined,
 };
 
 class OptionsList extends Component {
@@ -241,7 +237,6 @@ class OptionsList extends Component {
                     initialNumToRender={5}
                     maxToRenderPerBatch={5}
                     windowSize={5}
-                    getItemLayout={this.props.getItemLayout}
                     viewabilityConfig={this.viewabilityConfig}
                     onViewableItemsChanged={() => {
                         if (this.didLayout) {
