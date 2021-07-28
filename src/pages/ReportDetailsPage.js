@@ -15,7 +15,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
-import {getDefaultRoomSubtitle, isDefaultRoom} from '../libs/reportUtils';
+import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../libs/reportUtils';
 import {participantPropTypes} from './home/sidebar/optionPropTypes';
 import Picker from '../components/Picker';
 import {updateNotificationPreference} from '../libs/actions/Report';
@@ -88,14 +88,15 @@ class ReportDetailsPage extends Component {
             },
         };
 
-        this.menuItems = [
-            {
-                translationKey: 'reportDetailsPage.members',
-                icon: Users,
-                subtitle: props.report.participants.length,
-                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
-            },
-        ];
+        this.menuItems = isArchivedRoom(this.props.report) ? []
+            : [
+                {
+                    translationKey: 'reportDetailsPage.members',
+                    icon: Users,
+                    subtitle: props.report.participants.length,
+                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+                },
+            ];
     }
 
     render() {
@@ -128,6 +129,7 @@ class ReportDetailsPage extends Component {
                         >
                             <Avatar
                                 isDefaultChatRoom={isDefaultRoom(this.props.report)}
+                                isArchivedRoom={isArchivedRoom(this.props.report)}
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}
                                 source={{uri: this.props.report.icons[0]}}
@@ -149,28 +151,32 @@ class ReportDetailsPage extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.mt4}>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('common.notifications')}
-                            </Text>
-                        </View>
-                        <View>
-                            <Text style={[styles.mb3]}>
-                                {this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
-                            </Text>
-                            <View style={[styles.mb5]}>
-                                <Picker
-                                    onChange={(notificationPreference) => {
-                                        updateNotificationPreference(
-                                            this.props.report.reportID,
-                                            notificationPreference,
-                                        );
-                                    }}
-                                    items={Object.values(this.notificationPreferencesOptions)}
-                                    value={this.props.report.notificationPreference}
-                                />
+                        {!isArchivedRoom(this.props.report) && (
+                            <View>
+                                <View style={styles.mt4}>
+                                    <Text style={[styles.formLabel]} numberOfLines={1}>
+                                        {this.props.translate('common.notifications')}
+                                    </Text>
+                                </View>
+                                <View>
+                                    <Text style={[styles.mb3]}>
+                                        {this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
+                                    </Text>
+                                    <View style={[styles.mb5]}>
+                                        <Picker
+                                            onChange={(notificationPreference) => {
+                                                updateNotificationPreference(
+                                                    this.props.report.reportID,
+                                                    notificationPreference,
+                                                );
+                                            }}
+                                            items={Object.values(this.notificationPreferencesOptions)}
+                                            value={this.props.report.notificationPreference}
+                                        />
+                                    </View>
+                                </View>
                             </View>
-                        </View>
+                        )}
                     </View>
                     {this.menuItems.map((item) => {
                         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
