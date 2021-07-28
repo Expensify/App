@@ -445,6 +445,9 @@ export default {
         electronicFundsInstantFee: '1.5%',
         electronicFundsInstantFeeMin: 'Mínimo $0.25',
         noOverdraftOrCredit: 'Sin función de sobregiro / crédito',
+        electronicFundsWithdrawal: 'Retiro electrónico de fondos',
+        instant: 'Instantáneo',
+        standard: 'Estándar',
         shortTermsForm: {
             expensifyPaymentsAccount: 'La cuenta Expensify Payments es emitida por The Bancorp Bank.',
             perPurchase: 'Por compra',
@@ -458,8 +461,6 @@ export default {
             automatedOrLive: 'Agente automatizado o en vivo',
             afterTwelveMonths: 'Después de 12 meses sin transacciones',
             weChargeOneFee: 'Cobramos 1 tipo de tarifa.',
-            electronicFundsWithdrawal: 'Retiro electrónico de fondos',
-            instant: 'Instantáneo',
             fdicInsurance: 'Sus fondos son elegibles para el seguro de la FDIC.',
             generalInfo: 'Para obtener información general sobre cuentas prepagas, visite',
             conditionsDetails: 'Encuentra detalles y condiciones para todas las tarifas y servicios visitando',
@@ -479,11 +480,9 @@ export default {
             sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
             sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando su '
             + 'saldo cuenta bancaria o tarjeta de débito',
-            electronicFundsStandardTitle: 'Retiro electrónico de fondos (estándar)',
             electronicFundsStandardDetails: 'No hay cargo por transferir fondos desde su cuenta Expensify Payments'
                 + 'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en'
                 + '1-3 negocios días.',
-            electronicFundsInstantTitle: 'Retiro electrónico de fondos (instantáneo)',
             electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su cuenta Expensify Payments a '
                 + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia'
                 + ' generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '

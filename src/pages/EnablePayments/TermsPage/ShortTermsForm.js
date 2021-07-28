@@ -100,9 +100,9 @@ const ShortTermsForm = () => (
             </View>
             <View style={styles.shortTermsRow}>
                 <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.electronicFundsWithdrawal')}</Text>
+                    <Text>{translateLocal('termsStep.electronicFundsWithdrawal')}</Text>
                     <Text style={[styles.textMicroSupporting, styles.mt1]}>
-                        {translateLocal('termsStep.shortTermsForm.instant')}
+                        {translateLocal('termsStep.instant')}
                     </Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
