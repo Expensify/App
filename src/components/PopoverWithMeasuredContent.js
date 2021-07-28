@@ -149,7 +149,6 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     render() {
-        console.debug('render');
         const adjustedAnchorPosition = this.calculateAdjustedAnchorPosition();
         const horizontalShift = computeHorizontalShift(
             adjustedAnchorPosition.left,
