@@ -1,10 +1,8 @@
 import PropTypes from 'prop-types';
-import {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ReportActionPropTypes from '../ReportActionPropTypes';
 
 const propTypes = {
     /** The ID of the report this report action is attached to. */
-    // eslint-disable-next-line react/no-unused-prop-types
     reportID: PropTypes.number.isRequired,
 
     /** The report action this context menu is attached to. */
@@ -22,8 +20,6 @@ const propTypes = {
 
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
