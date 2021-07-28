@@ -967,10 +967,12 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
+        backgroundColor: themeColors.appBG,
     },
 
     chatItemComposeWithFirstRow: {
         minHeight: 90,
+        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {
