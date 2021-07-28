@@ -94,28 +94,6 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
-    constructor(props) {
-        super(props);
-        this.getItemLayout = this.getItemLayout.bind(this);
-        this.onSelectRow = this.onSelectRow.bind(this);
-    }
-
-    shouldComponentUpdate(prevProps) {
-        return _.isEqual(prevProps, this.props);
-    }
-
-    onSelectRow(option) {
-        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-        this.props.onLinkClick();
-    }
-
-    getItemLayout(data, index) {
-        const length = this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 52 : 64;
-        return (
-            {length, offset: length * index, index}
-        );
-    }
-
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
     }
@@ -192,14 +170,16 @@ class SidebarLinks extends React.Component {
                     focusedIndex={_.findIndex(recentReports, (
                         option => option.reportID === activeReportID
                     ))}
-                    onSelectRow={this.onSelectRow}
+                    onSelectRow={(option) => {
+                        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+                        this.props.onLinkClick();
+                    }}
                     optionBackgroundColor={themeColors.sidebar}
                     hideSectionHeaders
                     showTitleTooltip
                     disableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                     onLayout={App.setSidebarLoaded}
-                    getItemLayout={this.getItemLayout}
                 />
                 <KeyboardSpacer />
             </View>
