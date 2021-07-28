@@ -221,7 +221,8 @@ class ReportActionsView extends React.Component {
 
     /**
      * Create a unique key for Each Action in the FlatList.
-     *
+     * We use a combination of sequenceNumber and clientID in case the clientID are the same - which
+     * shouldn't happen, but might be possible in some rare cases.
      * @param {Object} item
      * @return {String}
      */
@@ -417,10 +418,6 @@ class ReportActionsView extends React.Component {
                     renderItem={this.renderItem}
                     CellRendererComponent={this.renderCell}
                     contentContainerStyle={styles.chatContentScrollView}
-
-                    // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
-                    // shouldn't happen, but might be possible in some rare cases.
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     onEndReached={this.loadMoreChats}

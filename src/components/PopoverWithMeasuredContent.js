@@ -64,6 +64,15 @@ class PopoverWithMeasuredContent extends Component {
         this.measurePopover = this.measurePopover.bind(this);
     }
 
+    /**
+     * When Popover becomes visible, we need to recalculate the Dimensions.
+     * Skip render on Popover until recalculations have done by setting isContentMeasured false as early as possible.
+     *
+     * @static
+     * @param {Object} props
+     * @param {Object} state
+     * @return {Object|null}
+     */
     static getDerivedStateFromProps(props, state) {
         // When Popover is shown recalculate
         if (!state.isVisible && props.isVisible) {
