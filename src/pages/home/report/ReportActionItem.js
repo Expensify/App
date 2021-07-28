@@ -18,7 +18,6 @@ import ReportActionItemMessage from './ReportActionItemMessage';
 import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import compose from '../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
@@ -50,7 +49,6 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
@@ -187,7 +185,6 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withLocalize,
     withOnyx({
         draftMessage: {
             key: ({

@@ -150,7 +150,6 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     runAfterContextMenuHide() {
-        console.debug('callback');
         this.onPopoverHide();
 
         // After we have called the action, reset it.
@@ -172,7 +171,6 @@ class PopoverReportActionContextMenu extends React.Component {
             reportActionDraftMessage: '',
             isPopoverVisible: false,
         });
-        console.debug('reset state');
     }
 
     /**
