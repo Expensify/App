@@ -37,7 +37,7 @@ const secureURLRoot = useNgrok && secureNgrokURL ? secureNgrokURL : expensifyURL
 const expensifyURLRoot = useNgrok && ngrokURL ? ngrokURL : expensifyComWithProxy;
 
 export default {
-    APP_NAME: 'NewExpensify',
+    APP_NAME: 'ExpensifyCash',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL_COM whether the proxy is enabled or not.
