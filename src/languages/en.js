@@ -421,6 +421,7 @@ export default {
         electronicFundsInstantFee: '1.5% (min. of $0.25)',
         noOverdraftOrCredit: 'No overdraft/credit feature.',
         shortTermsForm: {
+            expensifyPaymentsAccount: 'The Expensify Payments Account is issues by The Bancorp Bank.',
             perPurchase: 'Per Purchase',
             atmWithdrawal: 'ATM Withdrawal',
             cashReload: 'Cash Reload',
