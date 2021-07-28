@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import ContextMenuItem from '../../../../components/ContextMenuItem';
 import {
@@ -24,7 +25,7 @@ class BaseReportActionContextMenu extends React.Component {
     render() {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {ContextMenuActions.map(contextAction => contextAction.shouldShow(this.props.reportAction) && (
+                {_.map(ContextMenuActions, contextAction => contextAction.shouldShow(this.props.reportAction) && (
                     <ContextMenuItem
                         icon={contextAction.icon}
                         text={this.props.translate(contextAction.textTranslateKey)}

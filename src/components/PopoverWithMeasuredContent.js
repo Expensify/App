@@ -62,7 +62,6 @@ class PopoverWithMeasuredContent extends Component {
         this.popoverHeight = 0;
 
         this.measurePopover = this.measurePopover.bind(this);
-        this.setContentMeasured = this.setContentMeasured.bind(this);
     }
 
     static getDerivedStateFromProps(props, state) {
