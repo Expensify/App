@@ -84,7 +84,9 @@ class PaymentMethodList extends Component {
             // Add all bank accounts besides the wallet
             if (bankAccount.type !== CONST.BANK_ACCOUNT_TYPES.WALLET) {
                 const formattedBankAccountNumber = bankAccount.accountNumber
-                    ? `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`
+                    ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
+                        bankAccount.accountNumber.slice(-4)
+                    }`
                     : null;
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
