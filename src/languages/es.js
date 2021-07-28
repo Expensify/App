@@ -453,7 +453,7 @@ export default {
             inNetwork: 'En la red',
             outOfNetwork: 'fuera de la red',
             atmBalanceInquiry: 'Consulta de saldo de cajero automático',
-            inOrOutOfNetwork: 'dentro o fuera de la red',
+            inOrOutOfNetwork: 'Dentro o fuera de la red',
             customerService: 'Servicio al cliente',
             automatedOrLive: 'Agente automatizado o en vivo',
             afterTwelveMonths: 'Después de 12 meses sin transacciones',
@@ -473,8 +473,7 @@ export default {
             openingAccountTitle: 'Abrir una cuenta',
             openingAccountDetails: 'No hay tarifa para crear una cuenta.',
             monthlyFeeDetails: 'No hay tarifa mensual',
-            customerServiceAutomatedTitle: 'Servicio al cliente (automatizado)',
-            customerServiceLiveTitle: 'Servicio al cliente (agente en vivo)',
+            customerServiceTitle: 'Servicio al cliente',
             customerServiceDetails: 'No hay tarifas de servicio al cliente.',
             inactivityDetails: 'No hay tarifa de inactividad.',
             sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
@@ -500,6 +499,8 @@ export default {
             generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de '
                 + 'Protección al 1-855-411-2372 o visite',
             printerFriendlyView: 'Vista fácil de imprimir',
+            automated: 'Automatizado',
+            liveAgent: 'Agente en vivo',
         },
     },
     activateStep: {

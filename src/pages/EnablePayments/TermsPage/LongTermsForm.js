@@ -21,14 +21,10 @@ const termsData = [
         moreDetails: translateLocal('termsStep.longTermsForm.monthlyFeeDetails'),
     },
     {
-        sectionTitle: translateLocal('termsStep.longTermsForm.customerServiceAutomatedTitle'),
-        typeOfFee: translateLocal('termsStep.longTermsForm.customerServiceAutomatedTitle'),
         feeAmount: translateLocal('termsStep.feeAmountZero'),
         moreDetails: translateLocal('termsStep.longTermsForm.customerServiceDetails'),
     },
     {
-        sectionTitle: translateLocal('termsStep.longTermsForm.customerServiceLiveTitle'),
-        typeOfFee: translateLocal('termsStep.longTermsForm.customerServiceLiveTitle'),
         feeAmount: translateLocal('termsStep.feeAmountZero'),
         moreDetails: translateLocal('termsStep.longTermsForm.customerServiceDetails'),
     },
@@ -61,134 +57,128 @@ const termsData = [
 const LongTermsForm = () => (
     <>
         <CollapsibleSection title={translateLocal('termsStep.longTermsForm.listOfAllFees')}>
-            <View style={[styles.shortTermsRow]}>
+            <View style={[styles.longTermsRow]}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.longTermsForm.openingAccountTitle')}</Text>
+                </View>
+                <View style={[styles.flex1, styles.termsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('termsStep.feeAmountZero')}
+                    </Text>
+                </View>
+            </View>
+            <Text style={[styles.formHint, styles.mt2]}>
+                {translateLocal('termsStep.longTermsForm.openingAccountDetails')}
+            </Text>
+
+            <View style={[styles.longTermsRow]}>
                 <View style={[styles.flex4]}>
                     <Text>{translateLocal('termsStep.monthlyFee')}</Text>
                 </View>
-                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                <View style={[styles.flex1, styles.termsCenterRight]}>
                     <Text style={styles.textStrong}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
             </View>
-            <View style={[styles.shortTermsRow]}>
+            <Text style={[styles.formHint, styles.mt2]}>
+                {translateLocal('termsStep.longTermsForm.monthlyFeeDetails')}
+            </Text>
+
+            <View style={[styles.longTermsRow]}>
                 <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.perPurchase')}</Text>
+                    <Text>
+                        {translateLocal('termsStep.longTermsForm.customerServiceTitle')}
+                    </Text>
+                    <Text style={[styles.textMicroSupporting, styles.mt1]}>
+                        {translateLocal('termsStep.longTermsForm.automated')}
+                    </Text>
                 </View>
-                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                <View style={[styles.flex1, styles.termsCenterRight]}>
                     <Text style={styles.textStrong}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
             </View>
-            <View style={styles.shortTermsRow}>
+            <Text style={[styles.formHint, styles.mt2]}>
+                {translateLocal('termsStep.longTermsForm.customerServiceDetails')}
+            </Text>
+
+            <View style={[styles.longTermsRow]}>
                 <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.atmWithdrawal')}</Text>
-                    <Text style={[styles.textMicroSupporting]}>
-                        {translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork')}
+                    <Text>
+                        {translateLocal('termsStep.longTermsForm.customerServiceTitle')}
+                    </Text>
+                    <Text style={[styles.textMicroSupporting, styles.mt1]}>
+                        {translateLocal('termsStep.longTermsForm.liveAgent')}
                     </Text>
                 </View>
-                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
-                    <Text style={styles.textStrong}>
-                        {translateLocal('common.na')}
-                    </Text>
-                </View>
-            </View>
-            <View style={[styles.shortTermsRow]}>
-                <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.cashReload')}</Text>
-                </View>
-                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
-                    <Text style={styles.textStrong}>
-                        {translateLocal('common.na')}
-                    </Text>
-                </View>
-            </View>
-            <View style={styles.shortTermsRow}>
-                <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.atmBalanceInquiry')}</Text>
-                    <Text style={[styles.textMicroSupporting]}>
-                        {translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork')}
-                    </Text>
-                </View>
-                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
-                    <Text style={styles.textStrong}>
-                        {translateLocal('common.na')}
-                    </Text>
-                </View>
-            </View>
-            <View style={styles.shortTermsRow}>
-                <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.customerService')}</Text>
-                    <Text style={[styles.textMicroSupporting]}>
-                        {translateLocal('termsStep.shortTermsForm.automatedOrLive')}
-                    </Text>
-                </View>
-                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                <View style={[styles.flex1, styles.termsCenterRight]}>
                     <Text style={styles.textStrong}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
             </View>
-            <View style={styles.shortTermsRow}>
+            <Text style={[styles.formHint, styles.mt2]}>
+                {translateLocal('termsStep.longTermsForm.customerServiceDetails')}
+            </Text>
+
+            <View style={[styles.longTermsRow]}>
                 <View style={[styles.flex4]}>
                     <Text>{translateLocal('termsStep.inactivity')}</Text>
-                    <Text style={[styles.textMicroSupporting]}>
-                        {translateLocal('termsStep.shortTermsForm.afterTwelveMonths')}
-                    </Text>
                 </View>
-                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+                <View style={[styles.flex1, styles.termsCenterRight]}>
                     <Text style={styles.textStrong}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
             </View>
-            <View style={styles.shortTermsBoldHeadingSection}>
-                <Text style={styles.textStrong}>
-                    {translateLocal('termsStep.shortTermsForm.weChargeOneFee')}
-                </Text>
-            </View>
-            <View style={styles.shortTermsRow}>
+            <Text style={[styles.formHint, styles.mt2]}>
+                {translateLocal('termsStep.longTermsForm.inactivityDetails')}
+            </Text>
+
+            <View style={[styles.longTermsRow]}>
                 <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.electronicFundsWithdrawal')}</Text>
-                    <Text style={styles.textMicroSupporting}>
-                        {translateLocal('termsStep.shortTermsForm.instant')}
+                    <Text>{translateLocal('termsStep.longTermsForm.sendingFundsTitle')}</Text>
+                </View>
+                <View style={[styles.flex1, styles.termsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
-                <View style={[styles.flex1, styles.shortTermsCenterRight]}>
+            </View>
+            <Text style={[styles.formHint, styles.mt2]}>
+                {translateLocal('termsStep.longTermsForm.sendingFundsDetails')}
+            </Text>
+
+            <View style={[styles.longTermsRow]}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.longTermsForm.electronicFundsStandardTitle')}</Text>
+                </View>
+                <View style={[styles.flex1, styles.termsCenterRight]}>
+                    <Text style={styles.textStrong}>
+                        {translateLocal('termsStep.feeAmountZero')}
+                    </Text>
+                </View>
+            </View>
+            <Text style={[styles.formHint, styles.mt2]}>
+                {translateLocal('termsStep.longTermsForm.electronicFundsStandardDetails')}
+            </Text>
+
+            <View style={[styles.longTermsRow]}>
+                <View style={[styles.flex4]}>
+                    <Text>{translateLocal('termsStep.longTermsForm.electronicFundsInstantTitle')}</Text>
+                </View>
+                <View style={[styles.flex1, styles.termsCenterRight]}>
                     <Text style={styles.textStrong}>
                         {translateLocal('termsStep.electronicFundsInstantFee')}
                     </Text>
-                    <Text style={styles.textMicroSupporting}>
-                        {translateLocal('termsStep.electronicFundsInstantFeeMin')}
-                    </Text>
                 </View>
             </View>
-            <View style={styles.shortTermsBoldHeadingSection}>
-                <Text style={[styles.textStrong, styles.mb3]}>
-                    {translateLocal('termsStep.noOverdraftOrCredit')}
-                </Text>
-                <Text style={styles.mb3}>
-                    {translateLocal('termsStep.shortTermsForm.fdicInsurance')}
-                </Text>
-                <Text style={styles.mb3}>
-                    {translateLocal('termsStep.shortTermsForm.generalInfo')}
-                    {' '}
-                    <TextLink href="https://cfpb.gov/prepaid">
-                        cfpb.gov/prepaid
-                    </TextLink>
-                    .
-                </Text>
-                <Text>
-                    {translateLocal('termsStep.shortTermsForm.conditionsDetails')}
-                    {' '}
-                    <TextLink href="https://use.expensify.com/fees">
-                        use.expensify.com/fees
-                    </TextLink>
-                    {' '}
-                    {translateLocal('termsStep.shortTermsForm.conditionsPhone')}
-                </Text>
-            </View>
+            <Text style={[styles.formHint, styles.mt2]}>
+                {translateLocal('termsStep.longTermsForm.electronicFundsInstantDetails')}
+            </Text>
+
         </CollapsibleSection>
 
         <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
