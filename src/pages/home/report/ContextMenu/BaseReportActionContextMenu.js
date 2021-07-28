@@ -2,9 +2,17 @@ import React from 'react';
 import {View} from 'react-native';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import ContextMenuItem from '../../../../components/ContextMenuItem';
-import {propTypes, defaultProps} from './ReportActionContextMenuPropsTypes';
-import withLocalize from '../../../../components/withLocalize';
+import {
+    propTypes as GenericReportActionContextMenuPropTypes,
+    defaultProps,
+} from './GenericReportActionContextMenuPropTypes';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ContextMenuActions from './ContextMenuActions';
+
+const propTypes = {
+    ...GenericReportActionContextMenuPropTypes,
+    ...withLocalizePropTypes,
+};
 
 class BaseReportActionContextMenu extends React.Component {
     constructor(props) {

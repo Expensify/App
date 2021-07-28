@@ -3,21 +3,22 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {
-    propTypes as ReportActionContextMenuPropsTypes,
-    defaultProps as ReportActionContextMenuDefaultProps,
-} from '../ReportActionContextMenuPropsTypes';
+    propTypes as GenericReportActionContextMenuPropTypes,
+    defaultProps as GenericReportActionContextMenuDefaultProps,
+} from '../GenericReportActionContextMenuPropTypes';
 import {getMiniReportActionContextMenuWrapperStyle} from '../../../../../styles/getReportActionItemStyles';
 import BaseReportActionContextMenu from '../BaseReportActionContextMenu';
 
 const propTypes = {
-    ..._.omit(ReportActionContextMenuPropsTypes, ['isMini']),
+    ..._.omit(GenericReportActionContextMenuPropTypes, ['isMini']),
 
-    /** Should the comment have the appearance of being grouped with the previous comment? */
+    /** Should the reportAction this menu is attached to have the appearance of being
+     * grouped with the previous reportAction? */
     displayAsGroup: PropTypes.bool,
 };
 
 const defaultProps = {
-    ..._.omit(ReportActionContextMenuDefaultProps, ['isMini']),
+    ..._.omit(GenericReportActionContextMenuDefaultProps, ['isMini']),
     displayAsGroup: false,
 };
 
