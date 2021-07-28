@@ -45,6 +45,19 @@ class CompanyStep extends React.Component {
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
         };
+
+        // These fields need to be filled out in order to submit the form
+        this.requiredFields = [
+            'companyName',
+            'addressStreet',
+            'addressCity',
+            'addressState',
+            'addressZipCode',
+            'companyTaxID',
+            'incorporationDate',
+            'industryCode',
+            'password',
+        ];
     }
 
     /**
@@ -111,6 +124,8 @@ class CompanyStep extends React.Component {
     render() {
         const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
+        const shouldDisableSubmitButton = this.requiredFields
+            .reduce((acc, curr) => acc || !this.state[curr].trim(), false);
         return (
             <>
                 <HeaderWithCloseButton
@@ -253,6 +268,7 @@ class CompanyStep extends React.Component {
                         onPress={this.submit}
                         style={[styles.w100]}
                         text={this.props.translate('common.saveAndContinue')}
+                        isDisabled={shouldDisableSubmitButton}
                     />
                 </FixedFooter>
             </>
