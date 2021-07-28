@@ -14,6 +14,7 @@ import Button from './Button';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import ConfirmModal from './ConfirmModal';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -58,11 +59,13 @@ class AttachmentModal extends PureComponent {
 
         this.state = {
             isModalOpen: false,
+            isConfirmModalOpen: false,
             file: null,
             sourceURL: props.sourceURL,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
+        this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
     }
 
@@ -83,8 +86,15 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
-     * Check if the attachment file is less than the API size limit.
-     * @param {Object} file 
+     * Close the confirm modal.
+     */
+    closeConfirmModal() {
+        this.setState({isConfirmModalOpen: false});
+    }
+
+    /**
+     * Check if the attachment size is less than the API size limit.
+     * @param {Object} file
      * @returns {Boolean}
      */
     isValidSize(file) {
@@ -147,8 +157,20 @@ class AttachmentModal extends PureComponent {
                         />
                     )}
                 </Modal>
+                <ConfirmModal
+                    title={this.props.translate('attachmentPicker.attachmentTooLarge')}
+                    onConfirm={this.closeConfirmModal}
+                    isVisible={this.state.isConfirmModalOpen}
+                    prompt={this.props.translate('attachmentPicker.sizeExceeded')}
+                    confirmText={this.props.translate('common.close')}
+                    shouldShowCancelButton={false}
+                />
                 {this.props.children({
                     displayFileInModal: ({file}) => {
+                        if (!this.isValidSize(file)) {
+                            this.setState({isConfirmModalOpen: true});
+                            return;
+                        }
                         if (file instanceof File) {
                             const source = URL.createObjectURL(file);
                             this.setState({isModalOpen: true, sourceURL: source, file});
