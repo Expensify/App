@@ -11,7 +11,7 @@ import getButtonState from '../libs/getButtonState';
 import Badge from './Badge';
 
 const propTypes = {
-    // Text to be shown as badge near the right end.
+    /** Text to be shown as badge near the right end. */
     badgeText: PropTypes.string,
 
     /** Any additional styles to apply */
