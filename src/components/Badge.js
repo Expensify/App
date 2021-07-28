@@ -5,10 +5,10 @@ import styles, {getBadgeColorStyle} from '../styles/styles';
 import Text from './Text';
 
 const propTypes = {
-    /** Is success type */
+    /** Is Success type */
     success: PropTypes.bool,
 
-    /** Is success type */
+    /** Is Error type */
     error: PropTypes.bool,
 
     /** Whether badge is clickable */

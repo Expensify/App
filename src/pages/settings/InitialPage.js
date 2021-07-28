@@ -81,7 +81,9 @@ const defaultProps = {
     network: {},
     session: {},
     policies: {},
-    userWallet: {},
+    userWallet: {
+        availableBalance: 0,
+    },
 };
 
 const defaultMenuItems = [

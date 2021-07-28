@@ -2014,8 +2014,8 @@ function getBackgroundColorStyle(backgroundColor) {
 /**
  * Generate a style for the background color of the Badge
  *
- * @param {*} success
- * @param {*} error
+ * @param {Boolean} success
+ * @param {Boolean} error
  * @param {boolean} [isPressed=false]
  * @return {Object}
  */
