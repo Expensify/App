@@ -1,4 +1,5 @@
 apply plugin: "com.android.application"
+apply plugin: "com.google.firebase.firebase-perf"
 apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
@@ -149,8 +150,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001007702
-        versionName "1.0.77-2"
+        versionCode 1001008002
+        versionName "1.0.80-2"
     }
     splits {
         abi {
@@ -232,6 +233,9 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    implementation platform("com.google.firebase:firebase-bom:20.0.2")
+    implementation "com.google.firebase:firebase-perf"
 
     // GIF support
     implementation 'com.facebook.fresco:fresco:2.3.0'

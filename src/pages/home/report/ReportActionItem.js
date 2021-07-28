@@ -26,6 +26,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import {deleteReportComment} from '../../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -53,9 +54,6 @@ const propTypes = {
 
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
-
-    /** Runs when the view enclosing the chat message lays out indicating it has rendered */
-    onLayout: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -272,9 +270,10 @@ class ReportActionItem extends Component {
             <>
                 <PressableWithSecondaryInteraction
                     ref={el => this.popoverAnchor = el}
-                    onPressIn={() => this.props.isSmallScreenWidth && ControlSelection.block()}
+                    onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onSecondaryInteraction={this.showPopover}
+                    preventDefaultContentMenu={!this.props.draftMessage}
                 >
                     <Hoverable resetsOnClickOutside={false}>
                         {hovered => (
@@ -288,7 +287,6 @@ class ReportActionItem extends Component {
                                         || this.state.isPopoverVisible
                                         || this.props.draftMessage,
                                     )}
-                                    onLayout={this.props.onLayout}
                                 >
                                     {!this.props.displayAsGroup
                                         ? (
